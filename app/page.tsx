@@ -1,50 +1,89 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 type Fermentation = "6h-room" | "12h-room" | "24h-room" | "24h-cold" | "48h-cold";
-type YeastType = "fresh" | "dry";
+type YeastType = "cy" | "ady" | "idy" | "ssd" | "lsd";
 type Locale = "en" | "fi";
+type PizzaGoal = "balanced" | "airy" | "crispy" | "pan";
 
-const fermentationOptions: { value: Fermentation; freshYeast: number }[] = [
-  { value: "6h-room", freshYeast: 0.8 },
-  { value: "12h-room", freshYeast: 0.45 },
-  { value: "24h-room", freshYeast: 0.22 },
-  { value: "24h-cold", freshYeast: 0.18 },
-  { value: "48h-cold", freshYeast: 0.1 },
+const fermentationOptions: { value: Fermentation; hours: number; temperature: number }[] = [
+  { value: "6h-room", hours: 6, temperature: 22 },
+  { value: "12h-room", hours: 12, temperature: 22 },
+  { value: "24h-room", hours: 24, temperature: 22 },
+  { value: "24h-cold", hours: 24, temperature: 4 },
+  { value: "48h-cold", hours: 48, temperature: 4 },
 ];
+
+const presetFor = (goal: PizzaGoal, ovenTemperature: number) => {
+  const hotOven = ovenTemperature >= 380;
+  const presets = {
+    balanced: hotOven
+      ? { ballWeight: 260, hydration: 64, salt: 2.8, fermentation: "12h-room" as Fermentation, temperature: 22, flourW: "W 250–290", diameter: "30–32 cm" }
+      : { ballWeight: 270, hydration: 65, salt: 2.8, fermentation: "24h-cold" as Fermentation, temperature: 4, flourW: "W 260–300", diameter: "30–32 cm" },
+    airy: hotOven
+      ? { ballWeight: 260, hydration: 68, salt: 2.8, fermentation: "24h-room" as Fermentation, temperature: 22, flourW: "W 280–320", diameter: "30–32 cm" }
+      : { ballWeight: 280, hydration: 72, salt: 2.8, fermentation: "48h-cold" as Fermentation, temperature: 4, flourW: "W 300–340", diameter: "30–32 cm" },
+    crispy: hotOven
+      ? { ballWeight: 220, hydration: 60, salt: 2.6, fermentation: "24h-cold" as Fermentation, temperature: 4, flourW: "W 220–260", diameter: "30–32 cm" }
+      : { ballWeight: 230, hydration: 62, salt: 2.6, fermentation: "48h-cold" as Fermentation, temperature: 4, flourW: "W 240–280", diameter: "30–32 cm" },
+    pan: { ballWeight: 450, hydration: 75, salt: 2.8, fermentation: "48h-cold" as Fermentation, temperature: 4, flourW: "W 300–350", diameter: "28 cm pan" },
+  };
+  return presets[goal];
+};
 
 const copy = {
   en: {
-    toolkit: "Baker's toolkit", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
-    intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Build your batch",
+    toolkit: "Baker's toolkit", guide: "Guide & glossary", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
+    intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Fine-tune your batch",
+    quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result and your oven temperature. The calculator builds a sensible medium-size starting recipe.",
+    oven: "Maximum oven temperature", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning",
+    goals: { balanced: ["Balanced", "Soft with a crisp base"], airy: ["Very airy", "Open, light crust"], crispy: ["Thin & crispy", "Low, crunchy profile"], pan: ["Airy pan", "Soft, tall and fluffy"] },
     pizzas: "Number of pizzas", ballWeight: "Dough ball weight", hydration: "Hydration", salt: "Salt", waste: "Extra for waste",
-    yeastType: "Yeast type", dry: "Dry", fresh: "Fresh", fermentation: "Fermentation",
+    yeastType: "Leavening type", fermentation: "Fermentation", temperature: "Room temperature", coldTemperature: "Refrigerator temperature", coldFixed: "Fixed by the cold-fermentation preset",
+    yeasts: {
+      cy: ["CY", "Compressed yeast"], ady: ["ADY", "Active dry yeast"], idy: ["IDY", "Instant dry yeast"],
+      ssd: ["SSD", "Stiff sourdough (50%)"], lsd: ["LSD", "Liquid sourdough (100%)"],
+    },
     ferment: {
       "6h-room": ["6h room", "Same-day"], "12h-room": ["12h room", "Overnight"], "24h-room": ["24h room", "Slow room"],
       "24h-cold": ["24h cold", "Fridge"], "48h-cold": ["48h cold", "Deep flavor"],
     },
-    yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water", freshYeast: "Fresh yeast", dryYeast: "Dry yeast",
-    note: "Yeast is estimated for roughly 21°C room temperature and 4°C refrigeration. Adjust for your kitchen and flour.",
+    yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
+    note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
   fi: {
-    toolkit: "Leipurin työkalut", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
-    intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Rakenna taikinaerä",
+    toolkit: "Leipurin työkalut", guide: "Ohjeet & termit", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
+    intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Hienosäädä taikina",
+    quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos ja uunisi lämpötila. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.",
+    oven: "Uunin enimmäislämpötila", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö",
+    goals: { balanced: ["Tasapainoinen", "Pehmeä ja rapeapohjainen"], airy: ["Erittäin ilmava", "Avoin ja kevyt reuna"], crispy: ["Ohut ja rapea", "Matala, rouskuva pohja"], pan: ["Ilmava pannupizza", "Pehmeä, korkea ja kuohkea"] },
     pizzas: "Pizzojen määrä", ballWeight: "Taikinapallon paino", hydration: "Hydraatio", salt: "Suola", waste: "Hävikkivara",
-    yeastType: "Hiivatyyppi", dry: "Kuivahiiva", fresh: "Tuorehiiva", fermentation: "Kohotus",
+    yeastType: "Kohotustapa", fermentation: "Kohotus", temperature: "Huonelämpötila", coldTemperature: "Jääkaapin lämpötila", coldFixed: "Kylmäkohotuksen vakioasetus",
+    yeasts: {
+      cy: ["CY", "Puristehiiva"], ady: ["ADY", "Aktiivikuivahiiva"], idy: ["IDY", "Pikakuivahiiva"],
+      ssd: ["SSD", "Jäykkä juuri (50 %)"], lsd: ["LSD", "Nestemäinen juuri (100 %)"],
+    },
     ferment: {
       "6h-room": ["6 h huone", "Samana päivänä"], "12h-room": ["12 h huone", "Yön yli"], "24h-room": ["24 h huone", "Hidas kohotus"],
       "24h-cold": ["24 h kylmä", "Jääkaapissa"], "48h-cold": ["48 h kylmä", "Syvä maku"],
     },
-    yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi", freshYeast: "Tuorehiiva", dryYeast: "Kuivahiiva",
-    note: "Hiivan määrä on arvioitu noin 21°C huonelämpöön ja 4°C jääkaappiin. Säädä määrää keittiösi ja jauhojesi mukaan.",
+    yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi",
+    note: "Kohotteen määrä arvioidaan ajan ja lämpötilan perusteella. Jauhon vahvuus, juuren aktiivisuus ja taikinan todellinen lämpötila voivat vaatia säätöä.",
     footer: "Parempia pizzailtoja varten.", bakers: "Leipurin prosentit lasketaan jauhojen painosta.", decrease: "Vähennä pizzojen määrää", increase: "Lisää pizzojen määrää",
   },
 } as const;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value || 0));
-const grams = (value: number) => value < 10 ? value.toFixed(1) : Math.round(value).toString();
+const steppedValue = (value: number, direction: -1 | 1, step: number, min: number, max: number) => {
+  const decimals = step.toString().split(".")[1]?.length ?? 0;
+  return clamp(Number((value + direction * step).toFixed(decimals)), min, max);
+};
+const grams = (value: number, locale: Locale, precise = false) => new Intl.NumberFormat(locale === "fi" ? "fi-FI" : "en-US", {
+  maximumFractionDigits: precise ? (value < 10 ? 2 : 1) : (value < 10 ? 1 : 0),
+}).format(value);
 
 function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = false, decreaseLabel = "Decrease", increaseLabel = "Increase", onChange }: {
   id: string; label: string; value: number; min: number; max: number; step?: number; suffix?: string; stepper?: boolean; decreaseLabel?: string; increaseLabel?: string; onChange: (value: number) => void;
@@ -53,14 +92,14 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
     <div className="block">
       <label htmlFor={id} className="mb-2 block text-sm font-semibold text-ink/70">{label}</label>
       <div className={`relative ${stepper ? "grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] gap-2" : "block"}`}>
-        {stepper && <button type="button" aria-label={decreaseLabel} disabled={value <= min} onClick={() => onChange(clamp(value - step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition active:scale-95 disabled:opacity-30">−</button>}
+        {stepper && <button type="button" aria-label={decreaseLabel} disabled={value <= min} onClick={() => onChange(steppedValue(value, -1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition active:scale-95 disabled:opacity-30">−</button>}
         <div className="relative min-w-0">
           <input id={id} type="number" inputMode="decimal" min={min} max={max} step={step} value={value}
             onChange={(event) => onChange(clamp(Number(event.target.value), min, max))}
             className={`h-14 min-w-0 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 ${stepper ? "text-center" : "pr-12"}`} />
           {suffix && <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink/40">{suffix}</span>}
         </div>
-        {stepper && <button type="button" aria-label={increaseLabel} disabled={value >= max} onClick={() => onChange(clamp(value + step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition active:scale-95 disabled:opacity-30">+</button>}
+        {stepper && <button type="button" aria-label={increaseLabel} disabled={value >= max} onClick={() => onChange(steppedValue(value, 1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition active:scale-95 disabled:opacity-30">+</button>}
       </div>
     </div>
   );
@@ -68,14 +107,20 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
 
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("en");
+  const [goal, setGoal] = useState<PizzaGoal>("balanced");
+  const [ovenTemperature, setOvenTemperature] = useState(250);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [pizzas, setPizzas] = useState(4);
-  const [ballWeight, setBallWeight] = useState(260);
+  const [ballWeight, setBallWeight] = useState(270);
   const [waste, setWaste] = useState(3);
   const [hydration, setHydration] = useState(65);
   const [salt, setSalt] = useState(2.8);
-  const [yeastType, setYeastType] = useState<YeastType>("dry");
+  const [yeastType, setYeastType] = useState<YeastType>("idy");
   const [fermentation, setFermentation] = useState<Fermentation>("24h-cold");
+  const [temperature, setTemperature] = useState(4);
   const t = copy[locale];
+  const isColdFermentation = fermentation.endsWith("cold");
+  const activePreset = presetFor(goal, ovenTemperature);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("doughtools-locale") as Locale | null;
@@ -91,20 +136,55 @@ export default function Home() {
     document.documentElement.lang = nextLocale;
   };
 
+  const applyPreset = (nextGoal: PizzaGoal, nextOvenTemperature = ovenTemperature) => {
+    const preset = presetFor(nextGoal, nextOvenTemperature);
+    setGoal(nextGoal);
+    setOvenTemperature(nextOvenTemperature);
+    setBallWeight(preset.ballWeight);
+    setHydration(preset.hydration);
+    setSalt(preset.salt);
+    setFermentation(preset.fermentation);
+    setTemperature(preset.temperature);
+    setYeastType("idy");
+  };
+
   const recipe = useMemo(() => {
     const total = pizzas * ballWeight * (1 + waste / 100);
     const option = fermentationOptions.find((item) => item.value === fermentation)!;
-    const yeastPercent = yeastType === "fresh" ? option.freshYeast : option.freshYeast / 3;
+    // Calibrated to the supplied reference: CY 0.14335% at 12 h / 22°C.
+    // Fermentation activity roughly doubles for every 10°C rise (Q10 model).
+    const effectiveHours = option.hours * Math.pow(2, (temperature - 22) / 10);
+    const cyPercent = 0.14335 * (12 / Math.max(effectiveHours, 0.25));
+    const commercialFactors = { cy: 1, ady: 0.52, idy: 0.414 } as const;
+    const isSourdough = yeastType === "ssd" || yeastType === "lsd";
+
+    if (isSourdough) {
+      const totalFlour = total / (1 + hydration / 100 + salt / 100);
+      const referenceStarterPercent = yeastType === "ssd" ? 11 : 8.39;
+      const starterPercent = referenceStarterPercent * (cyPercent / 0.14335);
+      const starterHydration = yeastType === "ssd" ? 0.5 : 1;
+      const leavener = totalFlour * starterPercent / 100;
+      const starterFlour = leavener / (1 + starterHydration);
+      const starterWater = leavener - starterFlour;
+      return {
+        total,
+        flour: Math.max(0, totalFlour - starterFlour),
+        water: Math.max(0, totalFlour * hydration / 100 - starterWater),
+        salt: totalFlour * salt / 100,
+        leavener,
+      };
+    }
+
+    const yeastPercent = cyPercent * commercialFactors[yeastType];
     const flour = total / (1 + hydration / 100 + salt / 100 + yeastPercent / 100);
     return {
       total,
       flour,
       water: flour * hydration / 100,
       salt: flour * salt / 100,
-      yeast: flour * yeastPercent / 100,
-      yeastPercent,
+      leavener: flour * yeastPercent / 100,
     };
-  }, [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation]);
+  }, [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature]);
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
@@ -117,6 +197,7 @@ export default function Home() {
             <span className="text-lg font-extrabold tracking-tight">Dough<span className="text-tomato">Tools</span></span>
           </a>
           <div className="flex items-center gap-2">
+            <Link href="/guide" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink sm:block">{t.guide}</Link>
             <div className="flex rounded-full border border-ink/10 bg-white/70 p-1" aria-label="Language">
               {(["fi", "en"] as Locale[]).map((language) => <button key={language} type="button" onClick={() => changeLocale(language)} aria-pressed={locale === language} className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase transition ${locale === language ? "bg-ink text-white" : "text-ink/45"}`}>{language}</button>)}
             </div>
@@ -132,18 +213,40 @@ export default function Home() {
 
         <div className="grid items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">
           <section className="rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="recipe-settings">
-            <div className="mb-6 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.build}</h2></div>
+            <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
+            <p className="mb-5 text-sm leading-6 text-ink/55">{t.quickIntro}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(["balanced", "airy", "crispy", "pan"] as PizzaGoal[]).map((option) => (
+                <button key={option} type="button" onClick={() => applyPreset(option)} aria-pressed={goal === option} className={`min-h-20 rounded-2xl border p-3 text-left transition ${goal === option ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : "border-ink/10 bg-white hover:border-ink/25"}`}>
+                  <span className="block text-sm font-extrabold">{t.goals[option][0]}</span>
+                  <span className={`mt-1 block text-[11px] leading-4 ${goal === option ? "text-white/70" : "text-ink/45"}`}>{t.goals[option][1]}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <NumberField id="quick-pizzas" label={t.pizzas} value={pizzas} min={1} max={50} stepper decreaseLabel={t.decrease} increaseLabel={t.increase} onChange={setPizzas} />
+              <NumberField id="oven-temperature" label={t.oven} value={ovenTemperature} min={200} max={500} step={10} suffix="°C" stepper onChange={(value) => applyPreset(goal, value)} />
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl bg-leaf/[.08] p-4 text-center">
+              <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.ballWeight}</span><strong className="mt-1 block text-sm">{activePreset.ballWeight} g</strong></div>
+              <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.flourStrength}</span><strong className="mt-1 block text-sm">{activePreset.flourW}</strong></div>
+              <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.mediumSize}</span><strong className="mt-1 block text-sm">{activePreset.diameter}</strong></div>
+            </div>
+            <button type="button" onClick={() => setShowAdvanced((current) => !current)} aria-expanded={showAdvanced} className="mt-5 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink">{showAdvanced ? t.hideTune : t.tune} <span aria-hidden="true">{showAdvanced ? "↑" : "↓"}</span></button>
+
+            {showAdvanced && <div className="mt-7 border-t border-ink/10 pt-7">
+            <div className="mb-6 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">2</span><h2 className="font-display text-2xl font-semibold">{t.build}</h2></div>
             <div className="grid gap-5 sm:grid-cols-2">
-              <NumberField id="pizzas" label={t.pizzas} value={pizzas} min={1} max={50} stepper decreaseLabel={t.decrease} increaseLabel={t.increase} onChange={setPizzas} />
               <NumberField id="ball-weight" label={t.ballWeight} value={ballWeight} min={100} max={1000} step={5} suffix="g" stepper onChange={setBallWeight} />
               <NumberField id="hydration" label={t.hydration} value={hydration} min={40} max={100} step={0.5} suffix="%" stepper onChange={setHydration} />
               <NumberField id="salt" label={t.salt} value={salt} min={0} max={10} step={0.1} suffix="%" stepper onChange={setSalt} />
               <NumberField id="waste" label={t.waste} value={waste} min={0} max={25} step={0.5} suffix="%" stepper onChange={setWaste} />
               <fieldset>
                 <legend className="mb-2 text-sm font-semibold text-ink/70">{t.yeastType}</legend>
-                <div className="grid h-14 grid-cols-2 rounded-2xl bg-ink/5 p-1">
-                  {(["dry", "fresh"] as YeastType[]).map((type) => <button key={type} type="button" onClick={() => setYeastType(type)} className={`rounded-xl text-sm font-bold transition ${yeastType === type ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink"}`}>{t[type]}</button>)}
+                <div className="grid h-14 grid-cols-5 rounded-2xl bg-ink/5 p-1">
+                  {(["cy", "ady", "idy", "ssd", "lsd"] as YeastType[]).map((type) => <button key={type} type="button" title={t.yeasts[type][1]} aria-label={t.yeasts[type][1]} onClick={() => setYeastType(type)} className={`rounded-xl text-xs font-extrabold transition ${yeastType === type ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink"}`}>{t.yeasts[type][0]}</button>)}
                 </div>
+                <p className="mt-2 text-xs font-semibold text-ink/50">{t.yeasts[yeastType][1]}</p>
               </fieldset>
             </div>
 
@@ -151,13 +254,27 @@ export default function Home() {
               <legend className="mb-3 text-sm font-semibold text-ink/70">{t.fermentation}</legend>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {fermentationOptions.map((option) => (
-                  <button key={option.value} type="button" onClick={() => setFermentation(option.value)} aria-pressed={fermentation === option.value}
+                  <button key={option.value} type="button" onClick={() => { setFermentation(option.value); setTemperature(option.temperature); }} aria-pressed={fermentation === option.value}
                     className={`min-h-16 rounded-2xl border px-2 py-3 text-left transition sm:text-center ${fermentation === option.value ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : "border-ink/10 bg-white text-ink hover:border-ink/25"}`}>
                     <span className="block text-sm font-bold">{t.ferment[option.value][0]}</span><span className={`mt-1 block text-[10px] font-medium ${fermentation === option.value ? "text-white/70" : "text-ink/40"}`}>{t.ferment[option.value][1]}</span>
                   </button>
                 ))}
               </div>
+              <div className="mt-5 max-w-sm">
+                {isColdFermentation ? (
+                  <div>
+                    <p className="mb-2 text-sm font-semibold text-ink/70">{t.coldTemperature}</p>
+                    <div className="flex h-14 items-center justify-between rounded-2xl border border-ink/10 bg-ink/[.035] px-4">
+                      <span className="text-base font-semibold">4 °C</span>
+                      <span className="text-xs font-semibold text-ink/40">{t.coldFixed}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <NumberField id="temperature" label={t.temperature} value={temperature} min={15} max={30} step={1} suffix="°C" stepper onChange={setTemperature} />
+                )}
+              </div>
             </fieldset>
+            </div>}
           </section>
 
           <aside className="overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card lg:sticky lg:top-7" aria-live="polite">
@@ -168,10 +285,10 @@ export default function Home() {
               </div>
 
               <div className="divide-y divide-white/10">
-                {[{ name: t.flour, value: recipe.flour, color: "bg-[#e8c98a]" }, { name: t.water, value: recipe.water, color: "bg-[#80b4c3]" }, { name: t.salt, value: recipe.salt, color: "bg-white" }, { name: yeastType === "fresh" ? t.freshYeast : t.dryYeast, value: recipe.yeast, color: "bg-[#d67e65]" }].map((ingredient) => (
+                {[{ name: t.flour, value: recipe.flour, color: "bg-[#e8c98a]", precise: false }, { name: t.water, value: recipe.water, color: "bg-[#80b4c3]", precise: false }, { name: t.salt, value: recipe.salt, color: "bg-white", precise: false }, { name: t.yeasts[yeastType][1], value: recipe.leavener, color: "bg-[#d67e65]", precise: true }].map((ingredient) => (
                   <div key={ingredient.name} className="flex items-center justify-between py-4 first:pt-1 last:pb-1">
                     <span className="flex items-center gap-3 text-sm font-semibold text-white/65"><span className={`h-2 w-2 rounded-full ${ingredient.color}`} />{ingredient.name}</span>
-                    <span className="text-2xl font-extrabold tabular-nums">{grams(ingredient.value)} <small className="text-sm font-semibold text-white/35">g</small></span>
+                    <span className="text-2xl font-extrabold tabular-nums">{grams(ingredient.value, locale, ingredient.precise)} <small className="text-sm font-semibold text-white/35">g</small></span>
                   </div>
                 ))}
               </div>
@@ -182,7 +299,7 @@ export default function Home() {
           </aside>
         </div>
 
-        <footer className="mt-8 flex flex-col gap-2 border-t border-ink/10 py-6 text-xs text-ink/45 sm:flex-row sm:items-center sm:justify-between"><p>{t.footer}</p><p>{t.bakers}</p></footer>
+        <footer className="mt-8 flex flex-col gap-3 border-t border-ink/10 py-6 text-xs text-ink/45 sm:flex-row sm:items-center sm:justify-between"><p>{t.footer}</p><Link href="/guide" className="font-bold text-tomato sm:hidden">{t.guide} →</Link><p>{t.bakers}</p></footer>
       </div>
     </main>
   );

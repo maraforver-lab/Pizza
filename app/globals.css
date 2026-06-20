@@ -26,6 +26,33 @@ input[type="number"]::-webkit-outer-spin-button { margin: 0; appearance: none; -
 
 ::selection { background: #d84b2a; color: white; }
 
+.guide-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("/pizza-pattern.svg");
+  background-size: 220px 220px;
+  opacity: .28;
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+
+.guide-hero {
+  background-image: linear-gradient(90deg, #20251f 0%, #20251f 58%, rgba(32, 37, 31, .72) 100%), url("/pizza-guide-hero.svg");
+  background-position: center, right -1rem center;
+  background-repeat: no-repeat;
+  background-size: cover, min(48%, 30rem) auto;
+}
+
+@media (max-width: 640px) {
+  .guide-hero {
+    background-image: linear-gradient(90deg, rgba(32, 37, 31, .96), rgba(32, 37, 31, .76)), url("/pizza-guide-hero.svg");
+    background-position: center, right -5rem bottom -2rem;
+    background-size: cover, 20rem auto;
+  }
+}
+
 @media (display-mode: standalone) {
   body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 }
