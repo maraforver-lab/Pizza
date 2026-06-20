@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import AppSignature from "@/components/AppSignature";
 
 type Locale = "en" | "fi";
+
+const flourProducts = [
+  { maker: "W 220–240", name: "Caputo Classica", image: "/flours/caputo-classica.png", source: "https://www.mulinocaputo.it/prodotti/classica-5kg/" },
+  { maker: "W 260–280", name: "Caputo Pizzeria", image: "/flours/caputo-pizzeria.png", source: "https://www.mulinocaputo.it/prodotti/pizzeria/" },
+  { maker: "W 270–290", name: "Caputo Nuvola", image: "/flours/caputo-nuvola.png", source: "https://www.mulinocaputo.it/prodotti/nuvola/" },
+  { maker: "W 320–340", name: "Caputo Nuvola Super", image: "/flours/caputo-nuvola-super.png", source: "https://www.mulinocaputo.it/prodotti/nuvola-super-5kg/" },
+  { maker: "W 360–380", name: "Caputo Manitoba Oro", image: "/flours/caputo-manitoba.png", source: "https://www.mulinocaputo.it/prodotti/manitoba-oro/" },
+] as const;
 
 const content = {
   fi: {
@@ -36,6 +45,8 @@ const content = {
     ],
     flourTitle: "Eurooppalaiset vehnäjauhot",
     flourIntro: "Pussin tyyppinumero ja jauhon vahvuus eivät ole sama asia. Tyyppi kertoo yleensä jauhatusasteesta tai mineraalipitoisuudesta; W-arvo kertoo paremmin, kuinka vahvan ja kaasua pidättävän taikinan jauho muodostaa.",
+    productTitle: "Oikeita pizzajauhoja eri vahvuuksilla", productIntro: "Saman valmistajan pussit näyttävät selvästi, ettei Tipo 00 yksin kerro vahvuutta. W-arvo valitaan kohotusajan, hydraation ja tavoitellun rakenteen mukaan. Tuotteet ovat esimerkkejä, eivät sponsoreita.", productLink: "Valmistajan tiedot",
+    productNotes: ["Lyhyelle kohotukselle ja maltilliselle hydraatiolle. Sopii parhaiten saman päivän, ohuempaan tai vähemmän märkään taikinaan.", "Klassisen napolilaisen yleisvahvuus: tasapainoinen sitko, noin 60–68 % hydraatio ja lyhyt tai keskipitkä kohotus.", "Ilmavaan, hyvin hydratoituun contemporary-tyyliin. Hieman Pizzeriaa vahvempi ja suunniteltu avoimempaan reunarakenteeseen.", "Vahva jauho korkeaan hydraatioon ja pitkään kohotukseen. Sopii ilmavaan pizzaan, kun W 270–290 ei enää riitä ajalle tai vesimäärälle.", "Erittäin vahva jauho hyvin pitkään fermentaatioon tai jauhoseoksen vahvistamiseen. Yksin käytettynä tavallinen pizza voi jäädä turhan sitkeäksi."],
     flours: [
       ["Italia", "Tipo 00 / 0", "00 on hyvin hienoksi jauhettu ja vähätuhkainen, mutta voi olla heikko tai vahva. Pizzaan tarkista lisäksi W-arvo ja mahdollinen P/L-arvo."],
       ["Ranska", "T45 / T55 / T65", "T-luku perustuu mineraali- eli tuhkapitoisuuteen. T55 on yleinen vaalea jauho; pussin proteiini- tai vahvuustieto ratkaisee pitkän pizzakohotuksen sopivuuden."],
@@ -92,6 +103,8 @@ const content = {
     ],
     flourTitle: "European wheat flours",
     flourIntro: "A flour type number and flour strength are not the same thing. Type usually describes refinement or mineral content; the W value is a better guide to how strongly the dough can hold fermentation gas.",
+    productTitle: "Real pizza flours at different strengths", productIntro: "Bags from one mill make it clear that Tipo 00 alone does not define strength. Choose W according to fermentation time, hydration and the intended structure. Products are examples, not sponsors.", productLink: "Manufacturer details",
+    productNotes: ["For short fermentation and moderate hydration. Best suited to same-day, thinner or less hydrated dough.", "A classic Neapolitan all-round strength: balanced gluten, roughly 60–68% hydration, and short to medium fermentation.", "For airy, well-hydrated contemporary pizza. Slightly stronger than Pizzeria and designed for a more open rim structure.", "Strong flour for high hydration and long fermentation. Useful for airy pizza when W 270–290 no longer supports the time or water level.", "Very strong flour for extremely long fermentation or strengthening a flour blend. Used alone, it may make an ordinary pizza unnecessarily chewy."],
     flours: [
       ["Italy", "Tipo 00 / 0", "00 is finely milled and low in ash, but it can be weak or strong. For pizza, also check the W value and, when available, P/L."],
       ["France", "T45 / T55 / T65", "The T number is based on mineral or ash content. T55 is a common white flour; protein or strength information determines suitability for long pizza fermentation."],
@@ -186,6 +199,25 @@ export default function Guide() {
             <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{t.flourIntro}</p>
             <div className="mt-5 divide-y divide-ink/10">
               {t.flours.map(([region, types, description]) => <article key={region} className="grid gap-1 py-4 first:pt-0 last:pb-0 sm:grid-cols-[10rem_10rem_1fr] sm:gap-4"><strong className="text-sm">{region}</strong><span className="text-sm font-bold text-tomato">{types}</span><p className="text-sm leading-6 text-ink/55">{description}</p></article>)}
+            </div>
+          </div>
+          <div className="mt-8">
+            <h2 className="font-display text-3xl font-semibold">{t.productTitle}</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{t.productIntro}</p>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {flourProducts.map((product, index) => (
+                <article key={product.maker} className="group overflow-hidden rounded-3xl border border-white/90 bg-white/85 shadow-card backdrop-blur">
+                  <div className="relative h-56 bg-[#eee9dd] p-4">
+                    <Image src={product.image} alt={`${product.maker} ${product.name}`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain p-4 transition duration-300 group-hover:scale-[1.03]" />
+                    <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white">{product.maker}</span>
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-display text-xl font-semibold">{product.name}</h3>
+                    <p className="mt-2 text-xs leading-5 text-ink/55">{t.productNotes[index]}</p>
+                    <a href={product.source} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1 text-xs font-extrabold text-tomato transition hover:text-ink">{t.productLink} <span aria-hidden="true">↗</span></a>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
           <h2 className="mt-8 font-display text-3xl font-semibold">{t.strengthTitle}</h2>
