@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import AppSignature from "@/components/AppSignature";
 
 type Locale = "en" | "fi";
 
@@ -215,6 +216,7 @@ export default function Guide() {
           <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.accuracyChapter}</p>
           <div className="rounded-3xl border border-tomato/20 bg-[#fff7ed]/90 p-5 shadow-card sm:p-7"><h2 className="font-display text-2xl font-semibold">{t.exactTitle}</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-ink/65">{t.exact}</p></div>
         </section>
+        <footer className="mb-4 border-t border-ink/10 pt-5"><AppSignature locale={locale} /></footer>
       </div>
     </main>
   );
