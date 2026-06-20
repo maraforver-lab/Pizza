@@ -66,6 +66,9 @@ const content = {
       ["Ohut ja rapea", "230 g · 62 % · suola 2,6 % · W 240–280 · 48 h kylmä"],
       ["Ilmava 28 cm pannupizza", "450 g · 75 % · suola 2,8 % · W 300–350 · 48 h kylmä"],
     ],
+    ovenTitle: "Ooni, Chef Matteo ja muut kaasupizzauunit",
+    ovenIntro: "Merkki ei yksin määrää pallopainoa: ratkaisevia ovat tavoiteltu halkaisija ja pizzatyyli. Kuuma 400–500°C uuni vaikuttaa enemmän hydraatioon ja paistoaikaan kuin pallon kokoon.",
+    ovens: [["12” / 30 cm", "250–260 g", "Hyvä keskikoko Ooni 12 -uuneihin ja kaikkiin suurempiin uuneihin."], ["14” / 35 cm", "noin 300 g", "Sopii 16-tuumaiseen Ooni- tai Chef Matteo -uuniin, kun haluat isomman pizzan."], ["16” / 40 cm", "noin 350 g", "Oonin oma lähtöpaino 16-tuumaiseen pizzaan; vaatii 16” paistopinnan kuten Chef Matteo Crosta 16."], ["Ohut 30–32 cm", "200–230 g", "Kun tavoite on matala ja rapea pizza tavallisen napolilaisen reunan sijaan."]],
     exactTitle: "Tarkka laskenta vai arvio?",
     exact: "Ainesmassojen ja leipurin prosenttien laskenta on tarkkaa matematiikkaa. Kohotteen määrä on käytännön arvio, joka perustuu valittuun aikaan, lämpötilaan ja kohotteen tyyppiin. Erityisesti hapanjuuren aktiivisuus vaihtelee, joten ensimmäistä paistoa kannattaa käyttää oman keittiön kalibrointiin.",
   },
@@ -119,6 +122,9 @@ const content = {
       ["Thin and crispy", "230 g · 62% · salt 2.6% · W 240–280 · 48h cold"],
       ["Airy 28 cm pan pizza", "450 g · 75% · salt 2.8% · W 300–350 · 48h cold"],
     ],
+    ovenTitle: "Ooni, Chef Matteo and other gas pizza ovens",
+    ovenIntro: "Brand alone does not determine ball weight: target diameter and pizza style do. A hot 400–500°C oven affects hydration and baking time more than ball size.",
+    ovens: [["12” / 30 cm", "250–260 g", "A good medium size for Ooni 12 ovens and every larger oven."], ["14” / 35 cm", "about 300 g", "Fits a 16-inch Ooni or Chef Matteo oven when you want a larger pizza."], ["16” / 40 cm", "about 350 g", "Ooni's own starting weight for a 16-inch pizza; requires a 16-inch cooking surface such as Chef Matteo Crosta 16."], ["Thin 30–32 cm", "200–230 g", "For a low, crisp pizza instead of a classic Neapolitan rim."]],
     exactTitle: "Exact calculation or estimate?",
     exact: "Ingredient masses and baker's percentages are exact mathematics. The amount of leavening is a practical estimate based on time, temperature and leavening type. Sourdough activity varies especially widely, so use the first bake to calibrate the calculator to your kitchen.",
   },
@@ -199,6 +205,13 @@ export default function Guide() {
           <h2 className="mt-8 font-display text-3xl font-semibold">{t.setupTitle}</h2>
           <div className="mt-4 overflow-hidden rounded-3xl border border-ink/10 bg-white/85 shadow-card">
             {t.setups.map(([name, setup]) => <div key={name} className="grid gap-1 border-b border-ink/10 px-5 py-4 last:border-0 sm:grid-cols-[15rem_1fr]"><strong className="text-sm">{name}</strong><span className="text-sm text-ink/55">{setup}</span></div>)}
+          </div>
+          <div className="mt-8 rounded-[1.75rem] border border-tomato/15 bg-[#fff7ed]/90 p-5 shadow-card sm:p-7">
+            <h2 className="font-display text-3xl font-semibold">{t.ovenTitle}</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{t.ovenIntro}</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {t.ovens.map(([size, weight, description]) => <article key={size} className="rounded-2xl bg-white/80 p-4"><div className="flex items-center justify-between gap-3"><strong className="text-sm">{size}</strong><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{weight}</span></div><p className="mt-2 text-xs leading-5 text-ink/55">{description}</p></article>)}
+            </div>
           </div>
         </section>
 

@@ -8,6 +8,7 @@ type Fermentation = "6h-room" | "12h-room" | "24h-room" | "24h-cold" | "48h-cold
 type YeastType = "cy" | "ady" | "idy" | "ssd" | "lsd";
 type Locale = "en" | "fi";
 type PizzaGoal = "balanced" | "airy" | "crispy" | "pan";
+type OvenType = "home" | "gas";
 
 const fermentationOptions: { value: Fermentation; hours: number; temperature: number }[] = [
   { value: "6h-room", hours: 6, temperature: 22 },
@@ -17,29 +18,47 @@ const fermentationOptions: { value: Fermentation; hours: number; temperature: nu
   { value: "48h-cold", hours: 48, temperature: 4 },
 ];
 
-const presetFor = (goal: PizzaGoal, ovenTemperature: number) => {
+const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-cold", "48h-cold"];
+
+const bakeFor = (goal: PizzaGoal, oven: OvenType) => {
+  const recommendations = {
+    home: {
+      balanced: { temperature: 250, time: "6–9 min" }, airy: { temperature: 250, time: "7–10 min" },
+      crispy: { temperature: 250, time: "8–12 min" }, pan: { temperature: 240, time: "14–18 min" },
+    },
+    gas: {
+      balanced: { temperature: 450, time: "60–90 s" }, airy: { temperature: 430, time: "75–110 s" },
+      crispy: { temperature: 400, time: "2–3 min" }, pan: { temperature: 380, time: "5–7 min" },
+    },
+  };
+  return recommendations[oven][goal];
+};
+
+const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentation) => {
   const hotOven = ovenTemperature >= 380;
+  const scheduleOption = fermentationOptions.find((option) => option.value === schedule)!;
+  const longFermentation = scheduleOption.hours >= 24;
   const presets = {
     balanced: hotOven
-      ? { ballWeight: 260, hydration: 64, salt: 2.8, fermentation: "12h-room" as Fermentation, temperature: 22, flourW: "W 250–290", diameter: "30–32 cm" }
-      : { ballWeight: 270, hydration: 65, salt: 2.8, fermentation: "24h-cold" as Fermentation, temperature: 4, flourW: "W 260–300", diameter: "30–32 cm" },
+      ? { ballWeight: 260, hydration: 64, salt: 2.8, flourW: longFermentation ? "W 270–310" : "W 250–290", diameter: "30–32 cm" }
+      : { ballWeight: 270, hydration: 65, salt: 2.8, flourW: longFermentation ? "W 270–310" : "W 250–290", diameter: "30–32 cm" },
     airy: hotOven
-      ? { ballWeight: 260, hydration: 68, salt: 2.8, fermentation: "24h-room" as Fermentation, temperature: 22, flourW: "W 280–320", diameter: "30–32 cm" }
-      : { ballWeight: 280, hydration: 72, salt: 2.8, fermentation: "48h-cold" as Fermentation, temperature: 4, flourW: "W 300–340", diameter: "30–32 cm" },
+      ? { ballWeight: 260, hydration: 68, salt: 2.8, flourW: longFermentation ? "W 300–340" : "W 280–320", diameter: "30–32 cm" }
+      : { ballWeight: 280, hydration: 72, salt: 2.8, flourW: longFermentation ? "W 300–340" : "W 290–330", diameter: "30–32 cm" },
     crispy: hotOven
-      ? { ballWeight: 220, hydration: 60, salt: 2.6, fermentation: "24h-cold" as Fermentation, temperature: 4, flourW: "W 220–260", diameter: "30–32 cm" }
-      : { ballWeight: 230, hydration: 62, salt: 2.6, fermentation: "48h-cold" as Fermentation, temperature: 4, flourW: "W 240–280", diameter: "30–32 cm" },
-    pan: { ballWeight: 450, hydration: 75, salt: 2.8, fermentation: "48h-cold" as Fermentation, temperature: 4, flourW: "W 300–350", diameter: "28 cm pan" },
+      ? { ballWeight: 220, hydration: 60, salt: 2.6, flourW: longFermentation ? "W 240–280" : "W 220–260", diameter: "30–32 cm" }
+      : { ballWeight: 230, hydration: 62, salt: 2.6, flourW: longFermentation ? "W 240–280" : "W 220–260", diameter: "30–32 cm" },
+    pan: { ballWeight: 450, hydration: 75, salt: 2.8, flourW: longFermentation ? "W 300–350" : "W 280–330", diameter: "28 cm pan" },
   };
-  return presets[goal];
+  return { ...presets[goal], fermentation: schedule, temperature: scheduleOption.temperature };
 };
 
 const copy = {
   en: {
     toolkit: "Baker's toolkit", guide: "Guide & glossary", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
     intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Fine-tune your batch",
-    quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result and your oven temperature. The calculator builds a sensible medium-size starting recipe.",
-    oven: "Maximum oven temperature", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning",
+    quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result, baking schedule and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "When will you bake?",
+    oven: "Which oven do you use?", homeOven: "Kitchen oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning",
     goals: { balanced: ["Balanced", "Soft with a crisp base"], airy: ["Very airy", "Open, light crust"], crispy: ["Thin & crispy", "Low, crunchy profile"], pan: ["Airy pan", "Soft, tall and fluffy"] },
     pizzas: "Number of pizzas", ballWeight: "Dough ball weight", hydration: "Hydration", salt: "Salt", waste: "Extra for waste",
     yeastType: "Leavening type", fermentation: "Fermentation", temperature: "Room temperature", coldTemperature: "Refrigerator temperature", coldFixed: "Fixed by the cold-fermentation preset",
@@ -58,8 +77,8 @@ const copy = {
   fi: {
     toolkit: "Leipurin työkalut", guide: "Ohjeet & termit", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
     intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Hienosäädä taikina",
-    quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos ja uunisi lämpötila. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.",
-    oven: "Uunin enimmäislämpötila", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö",
+    quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, paistoajankohta ja uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Milloin paistat?",
+    oven: "Mitä uunia käytät?", homeOven: "Keittiöuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö",
     goals: { balanced: ["Tasapainoinen", "Pehmeä ja rapeapohjainen"], airy: ["Erittäin ilmava", "Avoin ja kevyt reuna"], crispy: ["Ohut ja rapea", "Matala, rouskuva pohja"], pan: ["Ilmava pannupizza", "Pehmeä, korkea ja kuohkea"] },
     pizzas: "Pizzojen määrä", ballWeight: "Taikinapallon paino", hydration: "Hydraatio", salt: "Suola", waste: "Hävikkivara",
     yeastType: "Kohotustapa", fermentation: "Kohotus", temperature: "Huonelämpötila", coldTemperature: "Jääkaapin lämpötila", coldFixed: "Kylmäkohotuksen vakioasetus",
@@ -109,7 +128,7 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("en");
   const [goal, setGoal] = useState<PizzaGoal>("balanced");
-  const [ovenTemperature, setOvenTemperature] = useState(250);
+  const [ovenType, setOvenType] = useState<OvenType>("home");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [pizzas, setPizzas] = useState(4);
   const [ballWeight, setBallWeight] = useState(270);
@@ -121,7 +140,9 @@ export default function Home() {
   const [temperature, setTemperature] = useState(4);
   const t = copy[locale];
   const isColdFermentation = fermentation.endsWith("cold");
-  const activePreset = presetFor(goal, ovenTemperature);
+  const activeBake = bakeFor(goal, ovenType);
+  const ovenTemperature = activeBake.temperature;
+  const activePreset = presetFor(goal, ovenTemperature, fermentation);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("doughtools-locale") as Locale | null;
@@ -137,10 +158,11 @@ export default function Home() {
     document.documentElement.lang = nextLocale;
   };
 
-  const applyPreset = (nextGoal: PizzaGoal, nextOvenTemperature = ovenTemperature) => {
-    const preset = presetFor(nextGoal, nextOvenTemperature);
+  const applyPreset = (nextGoal: PizzaGoal, nextOvenType = ovenType, nextFermentation = fermentation) => {
+    const nextOvenTemperature = bakeFor(nextGoal, nextOvenType).temperature;
+    const preset = presetFor(nextGoal, nextOvenTemperature, nextFermentation);
     setGoal(nextGoal);
-    setOvenTemperature(nextOvenTemperature);
+    setOvenType(nextOvenType);
     setBallWeight(preset.ballWeight);
     setHydration(preset.hydration);
     setSalt(preset.salt);
@@ -224,14 +246,30 @@ export default function Home() {
                 </button>
               ))}
             </div>
+            <fieldset className="mt-5">
+              <legend className="mb-2 text-sm font-semibold text-ink/70">{t.schedule}</legend>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {quickFermentationOptions.map((option) => <button key={option} type="button" onClick={() => applyPreset(goal, ovenType, option)} aria-pressed={fermentation === option} className={`rounded-2xl border px-3 py-3 text-left transition sm:text-center ${fermentation === option ? "border-leaf bg-leaf text-white" : "border-ink/10 bg-white hover:border-ink/25"}`}><span className="block text-sm font-extrabold">{t.ferment[option][0]}</span><span className={`mt-1 block text-[10px] ${fermentation === option ? "text-white/65" : "text-ink/40"}`}>{t.ferment[option][1]}</span></button>)}
+              </div>
+            </fieldset>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <NumberField id="quick-pizzas" label={t.pizzas} value={pizzas} min={1} max={50} stepper decreaseLabel={t.decrease} increaseLabel={t.increase} onChange={setPizzas} />
-              <NumberField id="oven-temperature" label={t.oven} value={ovenTemperature} min={200} max={500} step={10} suffix="°C" stepper onChange={(value) => applyPreset(goal, value)} />
+              <fieldset>
+                <legend className="mb-2 text-sm font-semibold text-ink/70">{t.oven}</legend>
+                <div className="grid h-14 grid-cols-2 rounded-2xl bg-ink/5 p-1">
+                  {(["home", "gas"] as OvenType[]).map((option) => <button key={option} type="button" onClick={() => applyPreset(goal, option)} aria-pressed={ovenType === option} className={`rounded-xl px-2 text-left transition ${ovenType === option ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}><span className="block text-xs font-extrabold">{option === "home" ? t.homeOven : t.gasOven}</span><span className="mt-0.5 block truncate text-[9px] font-semibold opacity-60">{option === "home" ? t.homeOvenNote : t.gasOvenNote}</span></button>)}
+                </div>
+              </fieldset>
             </div>
-            <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl bg-leaf/[.08] p-4 text-center">
+            <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-leaf/[.08] p-4 text-center sm:grid-cols-4">
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.ballWeight}</span><strong className="mt-1 block text-sm">{activePreset.ballWeight} g</strong></div>
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.flourStrength}</span><strong className="mt-1 block text-sm">{activePreset.flourW}</strong></div>
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.mediumSize}</span><strong className="mt-1 block text-sm">{activePreset.diameter}</strong></div>
+              <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.fermentation}</span><strong className="mt-1 block text-sm">{t.ferment[fermentation][0]}</strong></div>
+            </div>
+            <div className="mt-3 rounded-2xl bg-ink p-4 text-white">
+              <div className="flex items-center justify-between gap-4"><strong className="text-sm">{t.bakeGuide}</strong><div className="flex gap-4 text-right"><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTemperature}</small><b className="text-sm">{activeBake.temperature}°C</b></span><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTime}</small><b className="text-sm">{activeBake.time}</b></span></div></div>
+              <p className="mt-2 border-t border-white/10 pt-2 text-[11px] leading-5 text-white/45">{ovenType === "home" ? t.homePreheat : t.gasPreheat}{goal === "pan" && ovenType === "gas" ? ` ${t.panGasNote}` : ""}</p>
             </div>
             <button type="button" onClick={() => setShowAdvanced((current) => !current)} aria-expanded={showAdvanced} className="mt-5 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink">{showAdvanced ? t.hideTune : t.tune} <span aria-hidden="true">{showAdvanced ? "↑" : "↓"}</span></button>
 
