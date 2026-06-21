@@ -413,6 +413,7 @@ export default function Home() {
             <Link href="/ovens" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">{locale === "fi" ? "Uuniopas" : "Oven guide"}</Link>
             <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">{locale === "fi" ? "Kustannukset" : "Costs"}</Link>
             <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full bg-tomato px-3 py-2 text-xs font-bold text-white transition hover:bg-tomato/90 xl:block">AI Coach</Link>
+            <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">{locale === "fi" ? "Yhteisö" : "Community"}</Link>
             <div className="flex rounded-full border border-ink/10 bg-white/70 p-1" aria-label="Language">
               {(["fi", "en"] as Locale[]).map((language) => <button key={language} type="button" onClick={() => changeLocale(language)} aria-pressed={locale === language} className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase transition ${locale === language ? "bg-ink text-white" : "text-ink/45"}`}>{language}</button>)}
             </div>
@@ -430,6 +431,7 @@ export default function Home() {
           <Link href="/ovens" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Uuniopas" : "Oven guide"}</Link>
           <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Kustannukset" : "Costs"}</Link>
           <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full bg-tomato px-4 py-2 text-xs font-bold text-white">AI Coach</Link>
+          <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Yhteisö" : "Community"}</Link>
         </nav>
 
         <section id="top" className="mb-7 max-w-2xl sm:mb-10">
