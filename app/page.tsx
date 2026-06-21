@@ -50,7 +50,7 @@ const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentat
 
 const copy = {
   en: {
-    toolkit: "Baker's toolkit", guide: "Guide & glossary", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
+    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", doctor: "Dough Doctor", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
     intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Fine-tune your batch",
     quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result, baking schedule and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "When will you bake?",
     oven: "Which oven do you use?", homeOven: "Kitchen oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
@@ -72,7 +72,7 @@ const copy = {
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
   fi: {
-    toolkit: "Leipurin työkalut", guide: "Ohjeet & termit", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
+    toolkit: "Leipurin työkalut", guide: "Ohjeet & termit", calculator: "Laskuri", planner: "Aikataulu", doctor: "Taikinalääkäri", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
     intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Hienosäädä taikina",
     quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, paistoajankohta ja uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Milloin paistat?",
     oven: "Mitä uunia käytät?", homeOven: "Keittiöuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö", flourChoice: "Valitse pizzajauho", flourIntro: "Jauhoprofiili ehdottaa sille sopivaa hydraatiota ja kohotusaikaa.", protein: "Proteiini", suggestedHydration: "Hydraatio", suggestedTime: "Kohotus", bestFor: "Sopii parhaiten", applyFlour: "Käytä jauhosuositusta", flourApplied: "Jauhosuositus otettu käyttöön", estimatedData: "Arvioitu profiili – tarkista ajantasaiset arvot omasta jauhopussista.", makerInfo: "Valmistajan tiedot",
@@ -292,6 +292,7 @@ export default function Home() {
   }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId]);
 
   const planHref = `/plan?${recipeParams(currentSettings).toString()}`;
+  const doctorHref = `/doctor?${recipeParams(currentSettings).toString()}`;
 
   useEffect(() => {
     if (!urlReady) return;
@@ -397,6 +398,11 @@ export default function Home() {
             </span>
             <span className="text-lg font-extrabold tracking-tight">Dough<span className="text-tomato">Tools</span></span>
           </a>
+          <nav className="hidden items-center gap-1 rounded-full border border-ink/10 bg-white/70 p-1 lg:flex" aria-label={t.toolkit}>
+            <a href="#top" className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.calculator}</a>
+            <Link href={planHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.planner}</Link>
+            <Link href={doctorHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.doctor}</Link>
+          </nav>
           <div className="flex items-center gap-2">
             <Link href="/guide" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink sm:block">{t.guide}</Link>
             <div className="flex rounded-full border border-ink/10 bg-white/70 p-1" aria-label="Language">
@@ -405,6 +411,12 @@ export default function Home() {
             <span className="hidden rounded-full border border-leaf/20 bg-leaf/5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-leaf md:block">{t.toolkit}</span>
           </div>
         </header>
+
+        <nav className="mb-7 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label={t.toolkit}>
+          <a href="#top" className="shrink-0 rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.calculator}</a>
+          <Link href={planHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.planner}</Link>
+          <Link href={doctorHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.doctor}</Link>
+        </nav>
 
         <section id="top" className="mb-7 max-w-2xl sm:mb-10">
           <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p>
