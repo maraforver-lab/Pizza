@@ -1,4 +1,5 @@
 import type { RecipeSettings } from "@/lib/saved-recipes";
+import { flourIds } from "@/lib/flours";
 
 const fermentations = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"] as const;
 const yeastTypes = ["cy", "ady", "idy", "ssd", "lsd"] as const;
@@ -29,6 +30,7 @@ export function recipeParams(settings: RecipeSettings) {
     temperature: String(settings.temperature),
     style: settings.goal,
     oven: settings.ovenType,
+    flour: settings.flourId,
   });
 }
 
@@ -57,5 +59,6 @@ export function settingsFromUrl(search: string): Partial<RecipeSettings> {
     fermentation: optionValue(params, "fermentation", fermentations),
     goal: optionValue(params, "style", goals),
     ovenType: optionValue(params, "oven", ovens),
+    flourId: optionValue(params, "flour", flourIds),
   };
 }

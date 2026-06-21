@@ -14,6 +14,7 @@ import {
   type YeastType,
 } from "@/lib/saved-recipes";
 import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
+import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
 
 type Locale = "en" | "fi";
 
@@ -65,7 +66,7 @@ const copy = {
     toolkit: "Baker's toolkit", guide: "Guide & glossary", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
     intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Fine-tune your batch",
     quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result, baking schedule and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "When will you bake?",
-    oven: "Which oven do you use?", homeOven: "Kitchen oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning",
+    oven: "Which oven do you use?", homeOven: "Kitchen oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
     goals: { balanced: ["Balanced", "Soft with a crisp base"], airy: ["Very airy", "Open, light crust"], crispy: ["Thin & crispy", "Low, crunchy profile"], pan: ["Airy pan", "Soft, tall and fluffy"] },
     pizzas: "Number of pizzas", ballWeight: "Dough ball weight", hydration: "Hydration", salt: "Salt", waste: "Extra for waste",
     yeastType: "Leavening type", fermentation: "Fermentation", temperature: "Room temperature", coldTemperature: "Refrigerator temperature", coldFixed: "Fixed by the cold-fermentation preset",
@@ -86,7 +87,7 @@ const copy = {
     toolkit: "Leipurin työkalut", guide: "Ohjeet & termit", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
     intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Hienosäädä taikina",
     quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, paistoajankohta ja uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Milloin paistat?",
-    oven: "Mitä uunia käytät?", homeOven: "Keittiöuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö",
+    oven: "Mitä uunia käytät?", homeOven: "Keittiöuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö", flourChoice: "Valitse pizzajauho", flourIntro: "Jauhoprofiili ehdottaa sille sopivaa hydraatiota ja kohotusaikaa.", protein: "Proteiini", suggestedHydration: "Hydraatio", suggestedTime: "Kohotus", bestFor: "Sopii parhaiten", applyFlour: "Käytä jauhosuositusta", flourApplied: "Jauhosuositus otettu käyttöön", estimatedData: "Arvioitu profiili – tarkista ajantasaiset arvot omasta jauhopussista.", makerInfo: "Valmistajan tiedot",
     goals: { balanced: ["Tasapainoinen", "Pehmeä ja rapeapohjainen"], airy: ["Erittäin ilmava", "Avoin ja kevyt reuna"], crispy: ["Ohut ja rapea", "Matala, rouskuva pohja"], pan: ["Ilmava pannupizza", "Pehmeä, korkea ja kuohkea"] },
     pizzas: "Pizzojen määrä", ballWeight: "Taikinapallon paino", hydration: "Hydraatio", salt: "Suola", waste: "Hävikkivara",
     yeastType: "Kohotustapa", fermentation: "Kohotus", temperature: "Huonelämpötila", coldTemperature: "Jääkaapin lämpötila", coldFixed: "Kylmäkohotuksen vakioasetus",
@@ -199,6 +200,7 @@ export default function Home() {
   const [yeastType, setYeastType] = useState<YeastType>("idy");
   const [fermentation, setFermentation] = useState<Fermentation>("24h-cold");
   const [temperature, setTemperature] = useState(4);
+  const [flourId, setFlourId] = useState<FlourId>("caputo-pizzeria");
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [recipeName, setRecipeName] = useState("");
@@ -209,6 +211,7 @@ export default function Home() {
   const activeBake = bakeFor(goal, ovenType);
   const ovenTemperature = activeBake.temperature;
   const activePreset = presetFor(goal, ovenTemperature, fermentation);
+  const activeFlour = flourById(flourId);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("doughtools-locale") as Locale | null;
@@ -234,6 +237,7 @@ export default function Home() {
     if (shared.temperature !== undefined) setTemperature(shared.temperature);
     if (shared.goal !== undefined) setGoal(shared.goal);
     if (shared.ovenType !== undefined) setOvenType(shared.ovenType);
+    if (shared.flourId !== undefined) setFlourId(shared.flourId);
     setUrlReady(true);
   }, []);
 
@@ -295,8 +299,8 @@ export default function Home() {
   }, [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature]);
 
   const currentSettings = useMemo(() => ({
-    pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType,
-  }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType]);
+    pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId,
+  }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId]);
 
   useEffect(() => {
     if (!urlReady) return;
@@ -342,6 +346,14 @@ export default function Home() {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
   };
 
+  const applyFlourSuggestion = () => {
+    const option = fermentationOptions.find((item) => item.value === activeFlour.recommendedFermentation)!;
+    setHydration(activeFlour.recommendedHydration);
+    setFermentation(activeFlour.recommendedFermentation);
+    setTemperature(option.temperature);
+    setRecipeNotice(t.flourApplied);
+  };
+
   const saveCurrentRecipe = () => {
     const name = recipeName.trim();
     if (!name) return;
@@ -372,6 +384,7 @@ export default function Home() {
     setTemperature(settings.temperature);
     setGoal(settings.goal);
     setOvenType(settings.ovenType);
+    setFlourId(settings.flourId ?? "caputo-pizzeria");
     setRecipeNotice(t.recipeOpened);
     document.getElementById("top")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -440,6 +453,25 @@ export default function Home() {
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.flourStrength}</span><strong className="mt-1 block text-sm">{activePreset.flourW}</strong></div>
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.mediumSize}</span><strong className="mt-1 block text-sm">{activePreset.diameter}</strong></div>
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.fermentation}</span><strong className="mt-1 block text-sm">{t.ferment[fermentation][0]}</strong></div>
+            </div>
+            <div className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
+              <label htmlFor="flour-profile" className="block text-sm font-extrabold">{t.flourChoice}</label>
+              <p className="mt-1 text-[11px] leading-4 text-ink/45">{t.flourIntro}</p>
+              <select id="flour-profile" value={flourId} onChange={(event) => setFlourId(event.target.value as FlourId)} className="mt-3 h-12 w-full rounded-xl border border-ink/10 bg-cream px-3 text-sm font-bold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
+                {flourProfiles.map((flour) => <option key={flour.id} value={flour.id}>{flour.brand} {flour.name} · {flour.strength}</option>)}
+              </select>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.flourStrength}</span><strong className="mt-1 block text-xs">{activeFlour.strength}</strong></div>
+                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.protein}</span><strong className="mt-1 block text-xs">{activeFlour.protein}</strong></div>
+                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.suggestedHydration}</span><strong className="mt-1 block text-xs">{activeFlour.hydration[0]}–{activeFlour.hydration[1]} %</strong></div>
+                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.suggestedTime}</span><strong className="mt-1 block text-xs">{activeFlour.fermentationHours[0]}–{activeFlour.fermentationHours[1]} h</strong></div>
+              </div>
+              <p className="mt-3 text-[11px] text-ink/55"><strong>{t.bestFor}:</strong> {activeFlour.styles.map((style) => t.goals[style][0]).join(" · ")}</p>
+              {activeFlour.approximate && <p className="mt-2 rounded-lg bg-tomato/[.07] px-2.5 py-2 text-[10px] leading-4 text-tomato">{t.estimatedData}</p>}
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <button type="button" onClick={applyFlourSuggestion} className="rounded-xl bg-leaf px-4 py-2.5 text-xs font-extrabold text-white transition active:scale-[.98]">{t.applyFlour}</button>
+                <a href={activeFlour.source} target="_blank" rel="noreferrer" className="rounded-xl border border-ink/10 px-4 py-2.5 text-center text-xs font-bold text-ink/55">{t.makerInfo} ↗</a>
+              </div>
             </div>
             <div className="mt-3 rounded-2xl bg-ink p-4 text-white">
               <div className="flex items-center justify-between gap-4"><strong className="text-sm">{t.bakeGuide}</strong><div className="flex gap-4 text-right"><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTemperature}</small><b className="text-sm">{activeBake.temperature}°C</b></span><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTime}</small><b className="text-sm">{activeBake.time}</b></span></div></div>
@@ -552,7 +584,7 @@ export default function Home() {
               {savedRecipes.map((savedRecipe) => (
                 <article key={savedRecipe.id} className="rounded-2xl border border-ink/10 bg-white p-4">
                   <div className="flex items-start justify-between gap-3"><div><h3 className="font-display text-xl font-semibold">{savedRecipe.name}</h3><p className="mt-1 text-[10px] font-semibold text-ink/40">{t.savedOn} {new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(savedRecipe.createdAt))}</p></div><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{Math.round(savedRecipe.ingredients.total)} g</span></div>
-                  <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs"><span className="text-ink/45">{t.pizzas}</span><strong className="text-right">{savedRecipe.settings.pizzas} × {savedRecipe.settings.ballWeight} g</strong><span className="text-ink/45">{t.hydration}</span><strong className="text-right">{savedRecipe.settings.hydration} %</strong><span className="text-ink/45">{t.fermentation}</span><strong className="text-right">{t.ferment[savedRecipe.settings.fermentation][0]}</strong><span className="text-ink/45">{t.yeastType}</span><strong className="truncate text-right">{t.yeasts[savedRecipe.settings.yeastType][1]}</strong></div>
+                  <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs"><span className="text-ink/45">{t.pizzas}</span><strong className="text-right">{savedRecipe.settings.pizzas} × {savedRecipe.settings.ballWeight} g</strong><span className="text-ink/45">{t.hydration}</span><strong className="text-right">{savedRecipe.settings.hydration} %</strong><span className="text-ink/45">{t.fermentation}</span><strong className="text-right">{t.ferment[savedRecipe.settings.fermentation][0]}</strong><span className="text-ink/45">{t.flourChoice}</span><strong className="truncate text-right">{flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").brand} {flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").name}</strong><span className="text-ink/45">{t.yeastType}</span><strong className="truncate text-right">{t.yeasts[savedRecipe.settings.yeastType][1]}</strong></div>
                   <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => openSavedRecipe(savedRecipe)} className="rounded-xl bg-ink px-3 py-2.5 text-xs font-bold text-white">{t.openRecipe}</button><button type="button" onClick={() => deleteSavedRecipe(savedRecipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-bold text-tomato">{t.deleteRecipe}</button></div>
                 </article>
               ))}

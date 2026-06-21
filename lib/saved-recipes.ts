@@ -14,6 +14,7 @@ export type RecipeSettings = {
   temperature: number;
   goal: PizzaGoal;
   ovenType: OvenType;
+  flourId: FlourId;
 };
 
 export type RecipeIngredients = {
@@ -54,3 +55,4 @@ export function newRecipeId() {
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+import type { FlourId } from "@/lib/flours";
