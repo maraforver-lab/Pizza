@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
 import { bakeFor } from "@/lib/baking";
 import { buildDoughInstructions } from "@/lib/dough-instructions";
+import { beginnerHelpFor } from "@/lib/beginner-guide";
+import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { flourById } from "@/lib/flours";
 import { nextScheduledStep, scheduleInstructions } from "@/lib/pizza-schedule";
 import { recipeParams, settingsFromUrl } from "@/lib/recipe-url";
@@ -21,11 +24,11 @@ const defaults: RecipeSettings = {
 const copy = {
   fi: {
     back: "Takaisin laskuriin", eyebrow: "Valmistusohje ja aikataulu", title: "Pizza valmistuu ajallaan.", intro: "Aloita heti tai valitse paistohetki. DoughTools antaa jokaiselle työvaiheelle kellonajan.",
-    startNow: "Aloita nyt", startNote: "Aikataulu alkaa puhelimen nykyisestä kellonajasta.", bakeAt: "Haluttu paistoaika", makeSchedule: "Laske taaksepäin", localTime: "Puhelimen aika", next: "Seuraavaksi", overdue: "Aloita nyt", done: "Kaikki vaiheet tehty – on aika nauttia pizzasta!", markDone: "Merkitse tehdyksi", undo: "Palauta", timeline: "Koko aikataulu", warnings: "Tarkista yhdistelmä", estimated: "Kellonajat ovat käytännöllisiä arvioita. Seuraa myös taikinan rakennetta, lämpöä ja kasvua.", currentRecipe: "Nykyinen resepti", balls: "palloa", hydration: "hydraatio", timezone: "Aikavyöhyke", day: "pv", hour: "h", minute: "min",
+    startNow: "Aloita nyt", startNote: "Aikataulu alkaa puhelimen nykyisestä kellonajasta.", bakeAt: "Haluttu paistoaika", makeSchedule: "Laske taaksepäin", localTime: "Puhelimen aika", next: "Seuraavaksi", overdue: "Aloita nyt", done: "Kaikki vaiheet tehty – on aika nauttia pizzasta!", markDone: "Merkitse tehdyksi", undo: "Palauta", timeline: "Beginner guide – vaihe vaiheelta", warnings: "Tarkista yhdistelmä", estimated: "Kellonajat ovat käytännöllisiä arvioita. Taikina ei tunne kelloa: seuraa myös kuvissa näytettyä rakennetta, lämpöä ja kasvua.", currentRecipe: "Nykyinen resepti", balls: "palloa", hydration: "hydraatio", timezone: "Aikavyöhyke", day: "pv", hour: "h", minute: "min", doThis: "Tee näin", why: "Miksi tämä tehdään?", readyWhen: "Valmis, kun", commonMistake: "Vältä tätä", ingredients: "Punnitse nämä", flour: "Jauhot", water: "Vesi", salt: "Suola", leavener: "Hiiva / juuri", visualIntro: "Jokainen kuva näyttää tavoiteltavan rakenteen tai käsien liikkeen. Avaa vaihe ja vertaa omaa taikinaasi kuvaan.",
   },
   en: {
     back: "Back to calculator", eyebrow: "Instructions and schedule", title: "Pizza, ready on time.", intro: "Start immediately or choose your baking time. DoughTools gives every step a clock time.",
-    startNow: "Start now", startNote: "The schedule begins from your phone’s current time.", bakeAt: "Desired baking time", makeSchedule: "Calculate backwards", localTime: "Phone time", next: "Up next", overdue: "Start now", done: "Every step is complete – time to enjoy your pizza!", markDone: "Mark complete", undo: "Undo", timeline: "Full schedule", warnings: "Check this combination", estimated: "Clock times are practical estimates. Also watch the dough’s texture, temperature and growth.", currentRecipe: "Current recipe", balls: "balls", hydration: "hydration", timezone: "Time zone", day: "d", hour: "h", minute: "min",
+    startNow: "Start now", startNote: "The schedule begins from your phone’s current time.", bakeAt: "Desired baking time", makeSchedule: "Calculate backwards", localTime: "Phone time", next: "Up next", overdue: "Start now", done: "Every step is complete – time to enjoy your pizza!", markDone: "Mark complete", undo: "Undo", timeline: "Beginner guide – step by step", warnings: "Check this combination", estimated: "Clock times are practical estimates. Dough cannot read a clock: also watch the texture, temperature and growth shown in the pictures.", currentRecipe: "Current recipe", balls: "balls", hydration: "hydration", timezone: "Time zone", day: "d", hour: "h", minute: "min", doThis: "Do this", why: "Why do this?", readyWhen: "Ready when", commonMistake: "Avoid this", ingredients: "Weigh these", flour: "Flour", water: "Water", salt: "Salt", leavener: "Yeast / starter", visualIntro: "Each picture shows the target texture or hand movement. Open each step and compare your dough with the image.",
   },
 } as const;
 
@@ -55,6 +58,7 @@ export default function PlanPage() {
   const t = copy[locale];
   const flour = flourById(settings.flourId);
   const bake = bakeFor(settings.goal, settings.ovenType);
+  const ingredients = useMemo(() => calculateDoughIngredients(settings), [settings]);
 
   useEffect(() => {
     const savedLocale = window.localStorage.getItem("doughtools-locale") as Locale | null;
@@ -134,7 +138,19 @@ export default function PlanPage() {
 
         <section className="mt-4 rounded-[1.5rem] border border-white bg-white/75 p-5 shadow-card sm:p-7"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[10px] font-extrabold uppercase tracking-wide text-ink/35">{t.currentRecipe}</p><h2 className="mt-1 font-display text-2xl font-semibold">{flour.brand} {flour.name}</h2></div><div className="text-right text-xs font-bold text-ink/50">{settings.pizzas} {t.balls} × {settings.ballWeight} g<br/>{settings.hydration} % {t.hydration}</div></div>{instructions.warnings.length > 0 && <div className="mt-4 rounded-xl bg-tomato/[.07] p-3"><strong className="text-xs text-tomato">{t.warnings}</strong>{instructions.warnings.map((warning) => <p key={warning} className="mt-1 text-xs leading-5 text-ink/55">• {warning}</p>)}</div>}</section>
 
-        <section className="mt-7"><div className="flex items-end justify-between gap-4"><h2 className="font-display text-3xl font-semibold">{t.timeline}</h2><span className="text-[10px] font-bold text-ink/35">{t.timezone}: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span></div><ol className="mt-4 space-y-3">{scheduled.map((step, index) => { const isDone = completed.has(step.id); return <li key={step.id} className={`rounded-2xl border bg-white p-4 shadow-sm transition sm:p-5 ${isDone ? "border-leaf/20 opacity-55" : "border-white"}`}><div className="flex gap-3"><button type="button" onClick={() => toggleStep(step.id)} aria-label={isDone ? t.undo : t.markDone} className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border text-xs font-extrabold ${isDone ? "border-leaf bg-leaf text-white" : "border-ink/10 bg-cream text-ink"}`}>{isDone ? "✓" : index + 1}</button><div className="min-w-0 flex-1"><div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between"><h3 className={`font-display text-xl font-semibold ${isDone ? "line-through" : ""}`}>{step.title}</h3><time className="text-xs font-extrabold text-tomato">{dateFormatter.format(step.at)}</time></div><p className="mt-2 text-sm leading-6 text-ink/55">{step.description}</p></div></div></li>; })}</ol></section>
+        <section className="mt-7">
+          <div className="flex items-end justify-between gap-4"><h2 className="font-display text-3xl font-semibold">{t.timeline}</h2><span className="text-[10px] font-bold text-ink/35">{t.timezone}: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span></div>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/50">{t.visualIntro}</p>
+          <div className="mt-4 rounded-2xl bg-[#e8c98a]/25 p-4"><strong className="text-xs uppercase tracking-wide text-ink/50">{t.ingredients}</strong><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[[t.flour, ingredients.flour, false], [t.water, ingredients.water, false], [t.salt, ingredients.salt, false], [t.leavener, ingredients.leavener, true]].map(([name, value, precise]) => <div key={String(name)} className="rounded-xl bg-white/80 px-3 py-2"><span className="block text-[10px] font-bold text-ink/40">{name}</span><strong className="text-sm">{Number(value).toFixed(precise ? 2 : 0)} g</strong></div>)}</div></div>
+          <ol className="mt-4 space-y-5">{scheduled.map((step, index) => { const isDone = completed.has(step.id); const help = beginnerHelpFor(step.id, locale); return <li key={step.id} className={`overflow-hidden rounded-[1.5rem] border bg-white shadow-card transition ${isDone ? "border-leaf/20 opacity-60" : "border-white"}`}>
+            <div className="relative aspect-[3/2] bg-cream"><Image src={help.image} alt={help.imageAlt} fill sizes="(max-width: 768px) 100vw, 850px" className="object-cover" priority={index < 2}/><div className="absolute left-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-ink text-sm font-extrabold text-white shadow-lg">{isDone ? "✓" : index + 1}</div><time className="absolute bottom-3 right-3 rounded-full bg-white/95 px-3 py-2 text-xs font-extrabold text-tomato shadow-lg">{dateFormatter.format(step.at)}</time></div>
+            <div className="p-5 sm:p-7"><div className="flex items-start justify-between gap-3"><div><h3 className={`font-display text-2xl font-semibold ${isDone ? "line-through" : ""}`}>{step.title}</h3><span className="mt-1 block text-xs font-bold text-tomato">{step.timing}</span></div><button type="button" onClick={() => toggleStep(step.id)} className={`shrink-0 rounded-full px-3 py-2 text-xs font-extrabold ${isDone ? "bg-leaf text-white" : "bg-cream text-ink/60"}`}>{isDone ? t.undo : t.markDone}</button></div>
+              <p className="mt-3 text-sm leading-6 text-ink/55">{step.description}</p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2"><div className="rounded-2xl bg-cream p-4"><strong className="text-xs uppercase tracking-wide text-leaf">{t.doThis}</strong><ol className="mt-2 space-y-2">{help.action.map((action, actionIndex) => <li key={action} className="flex gap-2 text-sm leading-5 text-ink/65"><span className="font-extrabold text-tomato">{actionIndex + 1}.</span><span>{action}</span></li>)}</ol></div><div className="space-y-3"><div className="rounded-2xl bg-leaf/[.08] p-4"><strong className="text-xs uppercase tracking-wide text-leaf">{t.why}</strong><p className="mt-2 text-sm leading-5 text-ink/60">{help.why}</p></div><div className="rounded-2xl bg-[#e8c98a]/20 p-4"><strong className="text-xs uppercase tracking-wide text-ink/45">✓ {t.readyWhen}</strong><p className="mt-2 text-sm leading-5 text-ink/60">{help.ready}</p></div></div></div>
+              <div className="mt-3 rounded-xl border border-tomato/15 bg-tomato/[.05] px-4 py-3 text-xs leading-5 text-ink/55"><strong className="text-tomato">{t.commonMistake}: </strong>{help.mistake}</div>
+            </div>
+          </li>; })}</ol>
+        </section>
         <p className="mt-5 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs leading-5 text-ink/50">{t.estimated}</p>
         <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature locale={locale} /></footer>
       </div>
