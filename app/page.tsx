@@ -78,7 +78,7 @@ const copy = {
       "24h-cold": ["24h cold", "Fridge"], "48h-cold": ["48h cold", "Deep flavor"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
-    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share recipe", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
+    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
@@ -99,7 +99,7 @@ const copy = {
       "24h-cold": ["24 h kylmä", "Jääkaapissa"], "48h-cold": ["48 h kylmä", "Syvä maku"],
     },
     yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi",
-    saveRecipe: "Tallenna resepti", recipeName: "Reseptin nimi", recipeNamePlaceholder: "Perjantain pizza", save: "Tallenna", cancel: "Peruuta", saved: "Resepti tallennettu", myRecipes: "Omat reseptit", noRecipes: "Ei vielä tallennettuja reseptejä.", openRecipe: "Avaa", deleteRecipe: "Poista", deleteConfirm: "Poistetaanko tämä tallennettu resepti?", savedOn: "Tallennettu", recipeOpened: "Resepti avattu", shareTitle: "Jaa pizzasi", shareIntro: "Lähetä pizzakortti ja reseptilinkki Instagramiin, WhatsAppiin tai muuhun sovellukseen.", shareRecipe: "Jaa resepti", copyLink: "Kopioi reseptilinkki", linkCopied: "Reseptilinkki kopioitu", shareText: "Teen {style}-pizzaa DoughToolsilla. Tee oma pizzareseptisi:", shareFallback: "Reseptilinkki kopioitiin. Voit liittää sen Instagramiin tai muuhun sovellukseen.",
+    saveRecipe: "Tallenna resepti", recipeName: "Reseptin nimi", recipeNamePlaceholder: "Perjantain pizza", save: "Tallenna", cancel: "Peruuta", saved: "Resepti tallennettu", myRecipes: "Omat reseptit", noRecipes: "Ei vielä tallennettuja reseptejä.", openRecipe: "Avaa", deleteRecipe: "Poista", deleteConfirm: "Poistetaanko tämä tallennettu resepti?", savedOn: "Tallennettu", recipeOpened: "Resepti avattu", shareTitle: "Jaa pizzasi", shareIntro: "Lähetä pizzakortti ja reseptilinkki Instagramiin, WhatsAppiin tai muuhun sovellukseen.", shareRecipe: "Jaa kuva", shareWhatsApp: "WhatsApp-linkki", copyLink: "Kopioi reseptilinkki", linkCopied: "Reseptilinkki kopioitu", shareText: "Teen {style}-pizzaa DoughToolsilla. Tee oma pizzareseptisi:", shareFallback: "Reseptilinkki kopioitiin. Voit liittää sen Instagramiin tai muuhun sovellukseen.",
     note: "Kohotteen määrä arvioidaan ajan ja lämpötilan perusteella. Jauhon vahvuus, juuren aktiivisuus ja taikinan todellinen lämpötila voivat vaatia säätöä.",
     footer: "Parempia pizzailtoja varten.", bakers: "Leipurin prosentit lasketaan jauhojen painosta.", decrease: "Vähennä pizzojen määrää", increase: "Lisää pizzojen määrää",
   },
@@ -335,6 +335,13 @@ export default function Home() {
     }
   };
 
+  const shareToWhatsApp = () => {
+    const url = recipeUrl(currentSettings);
+    const style = t.goals[goal][0];
+    const text = `${t.shareText.replace("{style}", style.toLowerCase())} ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
   const saveCurrentRecipe = () => {
     const name = recipeName.trim();
     if (!name) return;
@@ -514,7 +521,8 @@ export default function Home() {
                   <p className="mt-1 text-[11px] leading-4 text-ink/50">{t.shareIntro}</p>
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <button type="button" onClick={shareRecipe} className="rounded-xl bg-tomato px-3 py-3 text-xs font-extrabold text-white transition active:scale-[.98]">{t.shareRecipe}</button>
-                    <button type="button" onClick={copyRecipeLink} className="rounded-xl border border-ink/15 bg-white px-3 py-3 text-xs font-extrabold text-ink transition active:scale-[.98]">{t.copyLink}</button>
+                    <button type="button" onClick={shareToWhatsApp} className="rounded-xl bg-[#25D366] px-3 py-3 text-xs font-extrabold text-white transition active:scale-[.98]">{t.shareWhatsApp}</button>
+                    <button type="button" onClick={copyRecipeLink} className="col-span-2 rounded-xl border border-ink/15 bg-white px-3 py-3 text-xs font-extrabold text-ink transition active:scale-[.98]">{t.copyLink}</button>
                   </div>
                 </div>
               </div>

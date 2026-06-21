@@ -33,7 +33,11 @@ export function recipeParams(settings: RecipeSettings) {
 }
 
 export function recipeUrl(settings: RecipeSettings) {
-  const url = new URL(window.location.href);
+  const localHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  const base = localHost && process.env.NEXT_PUBLIC_SITE_URL
+    ? process.env.NEXT_PUBLIC_SITE_URL
+    : window.location.origin;
+  const url = new URL(base);
   url.pathname = "/";
   url.search = recipeParams(settings).toString();
   url.hash = "";
