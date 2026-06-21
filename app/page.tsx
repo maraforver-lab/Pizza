@@ -27,7 +27,7 @@ const fermentationOptions: { value: Fermentation; hours: number; temperature: nu
   { value: "48h-cold", hours: 48, temperature: 4 },
 ];
 
-const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-cold", "48h-cold"];
+const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"];
 
 const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentation) => {
   const hotOven = ovenTemperature >= 380;
@@ -50,7 +50,7 @@ const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentat
 
 const copy = {
   en: {
-    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", doctor: "Dough Doctor", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
+    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", doctor: "Dough Doctor", styles: "Pizza styles", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
     intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Fine-tune your batch",
     quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result, baking schedule and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "When will you bake?",
     oven: "Which oven do you use?", homeOven: "Kitchen oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
@@ -62,7 +62,7 @@ const copy = {
       ssd: ["SSD", "Stiff sourdough (50%)"], lsd: ["LSD", "Liquid sourdough (100%)"],
     },
     ferment: {
-      "6h-room": ["6h room", "Same-day"], "12h-room": ["12h room", "Overnight"], "24h-room": ["24h room", "Slow room"],
+      "6h-room": ["6h room", "Same-day"], "12h-room": ["12h room", "Overnight"], "24h-room": ["24h room", "Day + night"],
       "24h-cold": ["24h cold", "Fridge"], "48h-cold": ["48h cold", "Deep flavor"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
@@ -72,7 +72,7 @@ const copy = {
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
   fi: {
-    toolkit: "Leipurin työkalut", guide: "Ohjeet & termit", calculator: "Laskuri", planner: "Aikataulu", doctor: "Taikinalääkäri", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
+    toolkit: "Leipurin työkalut", guide: "Ohjeet & termit", calculator: "Laskuri", planner: "Aikataulu", doctor: "Taikinalääkäri", styles: "Pizzatyylit", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
     intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Hienosäädä taikina",
     quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, paistoajankohta ja uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Milloin paistat?",
     oven: "Mitä uunia käytät?", homeOven: "Keittiöuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö", flourChoice: "Valitse pizzajauho", flourIntro: "Jauhoprofiili ehdottaa sille sopivaa hydraatiota ja kohotusaikaa.", protein: "Proteiini", suggestedHydration: "Hydraatio", suggestedTime: "Kohotus", bestFor: "Sopii parhaiten", applyFlour: "Käytä jauhosuositusta", flourApplied: "Jauhosuositus otettu käyttöön", estimatedData: "Arvioitu profiili – tarkista ajantasaiset arvot omasta jauhopussista.", makerInfo: "Valmistajan tiedot",
@@ -84,7 +84,7 @@ const copy = {
       ssd: ["SSD", "Jäykkä juuri (50 %)"], lsd: ["LSD", "Nestemäinen juuri (100 %)"],
     },
     ferment: {
-      "6h-room": ["6 h huone", "Samana päivänä"], "12h-room": ["12 h huone", "Yön yli"], "24h-room": ["24 h huone", "Hidas kohotus"],
+      "6h-room": ["6 h huone", "Samana päivänä"], "12h-room": ["12 h huone", "Yön yli"], "24h-room": ["24 h huone", "Päivä + yö"],
       "24h-cold": ["24 h kylmä", "Jääkaapissa"], "48h-cold": ["48 h kylmä", "Syvä maku"],
     },
     yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi",
@@ -179,12 +179,12 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("en");
   const [goal, setGoal] = useState<PizzaGoal>("balanced");
-  const [ovenType, setOvenType] = useState<OvenType>("home");
+  const [ovenType, setOvenType] = useState<OvenType>("gas");
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [pizzas, setPizzas] = useState(4);
-  const [ballWeight, setBallWeight] = useState(270);
+  const [pizzas, setPizzas] = useState(6);
+  const [ballWeight, setBallWeight] = useState(260);
   const [waste, setWaste] = useState(3);
-  const [hydration, setHydration] = useState(65);
+  const [hydration, setHydration] = useState(64);
   const [salt, setSalt] = useState(2.8);
   const [yeastType, setYeastType] = useState<YeastType>("idy");
   const [fermentation, setFermentation] = useState<Fermentation>("24h-cold");
@@ -293,6 +293,7 @@ export default function Home() {
 
   const planHref = `/plan?${recipeParams(currentSettings).toString()}`;
   const doctorHref = `/doctor?${recipeParams(currentSettings).toString()}`;
+  const stylesHref = "/styles";
 
   useEffect(() => {
     if (!urlReady) return;
@@ -402,6 +403,7 @@ export default function Home() {
             <a href="#top" className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.calculator}</a>
             <Link href={planHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.planner}</Link>
             <Link href={doctorHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.doctor}</Link>
+            <Link href={stylesHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.styles}</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/guide" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink sm:block">{t.guide}</Link>
@@ -416,6 +418,7 @@ export default function Home() {
           <a href="#top" className="shrink-0 rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.calculator}</a>
           <Link href={planHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.planner}</Link>
           <Link href={doctorHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.doctor}</Link>
+          <Link href={stylesHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.styles}</Link>
         </nav>
 
         <section id="top" className="mb-7 max-w-2xl sm:mb-10">
@@ -438,7 +441,7 @@ export default function Home() {
             </div>
             <fieldset className="mt-5">
               <legend className="mb-2 text-sm font-semibold text-ink/70">{t.schedule}</legend>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {quickFermentationOptions.map((option) => <button key={option} type="button" onClick={() => applyPreset(goal, ovenType, option)} aria-pressed={fermentation === option} className={`rounded-2xl border px-3 py-3 text-left transition sm:text-center ${fermentation === option ? "border-leaf bg-leaf text-white" : "border-ink/10 bg-white hover:border-ink/25"}`}><span className="block text-sm font-extrabold">{t.ferment[option][0]}</span><span className={`mt-1 block text-[10px] ${fermentation === option ? "text-white/65" : "text-ink/40"}`}>{t.ferment[option][1]}</span></button>)}
               </div>
             </fieldset>
@@ -447,7 +450,7 @@ export default function Home() {
               <fieldset>
                 <legend className="mb-2 text-sm font-semibold text-ink/70">{t.oven}</legend>
                 <div className="grid h-14 grid-cols-2 rounded-2xl bg-ink/5 p-1">
-                  {(["home", "gas"] as OvenType[]).map((option) => <button key={option} type="button" onClick={() => applyPreset(goal, option)} aria-pressed={ovenType === option} className={`rounded-xl px-2 text-left transition ${ovenType === option ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}><span className="block text-xs font-extrabold">{option === "home" ? t.homeOven : t.gasOven}</span><span className="mt-0.5 block truncate text-[9px] font-semibold opacity-60">{option === "home" ? t.homeOvenNote : t.gasOvenNote}</span></button>)}
+                  {(["gas", "home"] as OvenType[]).map((option) => <button key={option} type="button" onClick={() => applyPreset(goal, option)} aria-pressed={ovenType === option} className={`rounded-xl px-2 text-left transition ${ovenType === option ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}><span className="block text-xs font-extrabold">{option === "home" ? t.homeOven : t.gasOven}</span><span className="mt-0.5 block truncate text-[9px] font-semibold opacity-60">{option === "home" ? t.homeOvenNote : t.gasOvenNote}</span></button>)}
                 </div>
               </fieldset>
             </div>

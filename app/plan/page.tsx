@@ -14,8 +14,8 @@ type Locale = "fi" | "en";
 type ScheduleMode = "start" | "bake";
 
 const defaults: RecipeSettings = {
-  pizzas: 4, ballWeight: 270, waste: 3, hydration: 65, salt: 2.8, yeastType: "idy",
-  fermentation: "24h-cold", temperature: 4, goal: "balanced", ovenType: "home", flourId: "caputo-pizzeria",
+  pizzas: 6, ballWeight: 260, waste: 3, hydration: 64, salt: 2.8, yeastType: "idy",
+  fermentation: "24h-cold", temperature: 4, goal: "balanced", ovenType: "gas", flourId: "caputo-pizzeria",
 };
 
 const copy = {
