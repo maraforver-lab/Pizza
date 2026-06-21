@@ -13,6 +13,7 @@ import {
   type SavedRecipe,
   type YeastType,
 } from "@/lib/saved-recipes";
+import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
 
 type Locale = "en" | "fi";
 
@@ -77,7 +78,7 @@ const copy = {
       "24h-cold": ["24h cold", "Fridge"], "48h-cold": ["48h cold", "Deep flavor"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
-    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened",
+    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share recipe", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
@@ -98,7 +99,7 @@ const copy = {
       "24h-cold": ["24 h kylmä", "Jääkaapissa"], "48h-cold": ["48 h kylmä", "Syvä maku"],
     },
     yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi",
-    saveRecipe: "Tallenna resepti", recipeName: "Reseptin nimi", recipeNamePlaceholder: "Perjantain pizza", save: "Tallenna", cancel: "Peruuta", saved: "Resepti tallennettu", myRecipes: "Omat reseptit", noRecipes: "Ei vielä tallennettuja reseptejä.", openRecipe: "Avaa", deleteRecipe: "Poista", deleteConfirm: "Poistetaanko tämä tallennettu resepti?", savedOn: "Tallennettu", recipeOpened: "Resepti avattu",
+    saveRecipe: "Tallenna resepti", recipeName: "Reseptin nimi", recipeNamePlaceholder: "Perjantain pizza", save: "Tallenna", cancel: "Peruuta", saved: "Resepti tallennettu", myRecipes: "Omat reseptit", noRecipes: "Ei vielä tallennettuja reseptejä.", openRecipe: "Avaa", deleteRecipe: "Poista", deleteConfirm: "Poistetaanko tämä tallennettu resepti?", savedOn: "Tallennettu", recipeOpened: "Resepti avattu", shareTitle: "Jaa pizzasi", shareIntro: "Lähetä pizzakortti ja reseptilinkki Instagramiin, WhatsAppiin tai muuhun sovellukseen.", shareRecipe: "Jaa resepti", copyLink: "Kopioi reseptilinkki", linkCopied: "Reseptilinkki kopioitu", shareText: "Teen {style}-pizzaa DoughToolsilla. Tee oma pizzareseptisi:", shareFallback: "Reseptilinkki kopioitiin. Voit liittää sen Instagramiin tai muuhun sovellukseen.",
     note: "Kohotteen määrä arvioidaan ajan ja lämpötilan perusteella. Jauhon vahvuus, juuren aktiivisuus ja taikinan todellinen lämpötila voivat vaatia säätöä.",
     footer: "Parempia pizzailtoja varten.", bakers: "Leipurin prosentit lasketaan jauhojen painosta.", decrease: "Vähennä pizzojen määrää", increase: "Lisää pizzojen määrää",
   },
@@ -112,6 +113,58 @@ const steppedValue = (value: number, direction: -1 | 1, step: number, min: numbe
 const grams = (value: number, locale: Locale, precise = false) => new Intl.NumberFormat(locale === "fi" ? "fi-FI" : "en-US", {
   maximumFractionDigits: precise ? (value < 10 ? 2 : 1) : (value < 10 ? 1 : 0),
 }).format(value);
+
+const shareCardFile = async (title: string, subtitle: string, details: string[]) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1080;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+
+  context.fillStyle = "#f6f3ea";
+  context.fillRect(0, 0, 1080, 1080);
+  context.fillStyle = "#e34a2c";
+  context.beginPath();
+  context.arc(880, 190, 300, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "#efc46d";
+  context.beginPath();
+  context.arc(820, 250, 220, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = "#d99b42";
+  context.lineWidth = 28;
+  context.stroke();
+  [[735, 175], [895, 180], [780, 310], [920, 330]].forEach(([x, y]) => {
+    context.fillStyle = "#bf3826";
+    context.beginPath();
+    context.arc(x, y, 38, 0, Math.PI * 2);
+    context.fill();
+  });
+  context.fillStyle = "#18221b";
+  context.font = "800 46px Arial, sans-serif";
+  context.fillText("Dough", 72, 105);
+  context.fillStyle = "#e34a2c";
+  context.fillText("Tools", 222, 105);
+  context.fillStyle = "#18221b";
+  context.font = "700 84px Georgia, serif";
+  context.fillText(title, 72, 520);
+  context.fillStyle = "rgba(24,34,27,.62)";
+  context.font = "500 34px Arial, sans-serif";
+  context.fillText(subtitle, 72, 580);
+  details.forEach((line, index) => {
+    context.fillStyle = index === 0 ? "#e34a2c" : "#18221b";
+    context.font = `${index === 0 ? "800" : "700"} 37px Arial, sans-serif`;
+    context.fillText(line, 72, 700 + index * 62);
+  });
+  context.fillStyle = "#18221b";
+  context.fillRect(0, 975, 1080, 105);
+  context.fillStyle = "#fff";
+  context.font = "600 30px Arial, sans-serif";
+  context.fillText("doughtools — make your own perfect pizza", 72, 1040);
+
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+  return blob ? new File([blob], "doughtools-recipe.png", { type: "image/png" }) : null;
+};
 
 function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = false, decreaseLabel = "Decrease", increaseLabel = "Increase", onChange }: {
   id: string; label: string; value: number; min: number; max: number; step?: number; suffix?: string; stepper?: boolean; decreaseLabel?: string; increaseLabel?: string; onChange: (value: number) => void;
@@ -150,6 +203,7 @@ export default function Home() {
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [recipeName, setRecipeName] = useState("");
   const [recipeNotice, setRecipeNotice] = useState("");
+  const [urlReady, setUrlReady] = useState(false);
   const t = copy[locale];
   const isColdFermentation = fermentation.endsWith("cold");
   const activeBake = bakeFor(goal, ovenType);
@@ -166,6 +220,21 @@ export default function Home() {
 
   useEffect(() => {
     setSavedRecipes(loadSavedRecipes());
+  }, []);
+
+  useEffect(() => {
+    const shared = settingsFromUrl(window.location.search);
+    if (shared.pizzas !== undefined) setPizzas(shared.pizzas);
+    if (shared.ballWeight !== undefined) setBallWeight(shared.ballWeight);
+    if (shared.waste !== undefined) setWaste(shared.waste);
+    if (shared.hydration !== undefined) setHydration(shared.hydration);
+    if (shared.salt !== undefined) setSalt(shared.salt);
+    if (shared.yeastType !== undefined) setYeastType(shared.yeastType);
+    if (shared.fermentation !== undefined) setFermentation(shared.fermentation);
+    if (shared.temperature !== undefined) setTemperature(shared.temperature);
+    if (shared.goal !== undefined) setGoal(shared.goal);
+    if (shared.ovenType !== undefined) setOvenType(shared.ovenType);
+    setUrlReady(true);
   }, []);
 
   const changeLocale = (nextLocale: Locale) => {
@@ -225,6 +294,47 @@ export default function Home() {
     };
   }, [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature]);
 
+  const currentSettings = useMemo(() => ({
+    pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType,
+  }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType]);
+
+  useEffect(() => {
+    if (!urlReady) return;
+    const query = recipeParams(currentSettings).toString();
+    window.history.replaceState(null, "", `${window.location.pathname}?${query}`);
+  }, [currentSettings, urlReady]);
+
+  const copyRecipeLink = async () => {
+    await navigator.clipboard.writeText(recipeUrl(currentSettings));
+    setRecipeNotice(t.linkCopied);
+  };
+
+  const shareRecipe = async () => {
+    const url = recipeUrl(currentSettings);
+    const style = t.goals[goal][0];
+    const text = t.shareText.replace("{style}", style.toLowerCase());
+    const card = await shareCardFile(
+      style,
+      `${pizzas} × ${ballWeight} g`,
+      [`${hydration} % ${t.hydration.toLowerCase()}`, `${t.ferment[fermentation][0]} · ${activeBake.temperature} °C · ${activeBake.time}`],
+    );
+    try {
+      if (navigator.share) {
+        const files = card ? [card] : [];
+        const shareData: ShareData = { title: `DoughTools – ${style}`, text, url };
+        if (files.length && navigator.canShare?.({ files })) shareData.files = files;
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setRecipeNotice(t.shareFallback);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      await navigator.clipboard.writeText(url);
+      setRecipeNotice(t.shareFallback);
+    }
+  };
+
   const saveCurrentRecipe = () => {
     const name = recipeName.trim();
     if (!name) return;
@@ -232,7 +342,7 @@ export default function Home() {
       id: newRecipeId(),
       name,
       createdAt: new Date().toISOString(),
-      settings: { pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType },
+      settings: currentSettings,
       ingredients: recipe,
     };
     const nextRecipes = [savedRecipe, ...savedRecipes];
@@ -387,6 +497,26 @@ export default function Home() {
                     <span className="text-2xl font-extrabold tabular-nums">{grams(ingredient.value, locale, ingredient.precise)} <small className="text-sm font-semibold text-white/35">g</small></span>
                   </div>
                 ))}
+              </div>
+              <div className="mt-6 overflow-hidden rounded-2xl bg-cream text-ink">
+                <div className="relative min-h-32 overflow-hidden p-4 pr-32">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">DoughTools</p>
+                  <h3 className="mt-2 font-display text-2xl font-semibold leading-none">{t.goals[goal][0]}</h3>
+                  <p className="mt-2 text-[11px] font-semibold text-ink/55">{pizzas} × {ballWeight} g · {hydration} % · {t.ferment[fermentation][0]}</p>
+                  <div className="absolute -right-8 -top-9 h-40 w-40 rounded-full bg-tomato p-5 shadow-lg rotate-6" aria-hidden="true">
+                    <div className="relative h-full w-full rounded-full border-[9px] border-[#d99b42] bg-[#efc46d]">
+                      {[[22, 22], [63, 18], [40, 58], [72, 66]].map(([left, top], index) => <span key={index} className="absolute h-5 w-5 rounded-full bg-[#bf3826]" style={{ left, top }} />)}
+                    </div>
+                  </div>
+                </div>
+                <div className="border-t border-ink/10 p-4">
+                  <h3 className="text-sm font-extrabold">{t.shareTitle}</h3>
+                  <p className="mt-1 text-[11px] leading-4 text-ink/50">{t.shareIntro}</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button type="button" onClick={shareRecipe} className="rounded-xl bg-tomato px-3 py-3 text-xs font-extrabold text-white transition active:scale-[.98]">{t.shareRecipe}</button>
+                    <button type="button" onClick={copyRecipeLink} className="rounded-xl border border-ink/15 bg-white px-3 py-3 text-xs font-extrabold text-ink transition active:scale-[.98]">{t.copyLink}</button>
+                  </div>
+                </div>
               </div>
               <div className="mt-6 border-t border-white/10 pt-5">
                 {recipeNotice && <p className="mb-3 rounded-xl bg-leaf/30 px-3 py-2 text-xs font-bold text-white/80">{recipeNotice}</p>}
