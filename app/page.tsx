@@ -409,6 +409,7 @@ export default function Home() {
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/guide" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink sm:block">{t.guide}</Link>
+            <Link href="/history" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">{locale === "fi" ? "Pizzan historia" : "Pizza history"}</Link>
             <div className="flex rounded-full border border-ink/10 bg-white/70 p-1" aria-label="Language">
               {(["fi", "en"] as Locale[]).map((language) => <button key={language} type="button" onClick={() => changeLocale(language)} aria-pressed={locale === language} className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase transition ${locale === language ? "bg-ink text-white" : "text-ink/45"}`}>{language}</button>)}
             </div>
@@ -422,6 +423,7 @@ export default function Home() {
           <Link href={doctorHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.doctor}</Link>
           <Link href={stylesHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.styles}</Link>
           <Link href={journalHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.journal}</Link>
+          <Link href="/history" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Pizzan historia" : "Pizza history"}</Link>
         </nav>
 
         <section id="top" className="mb-7 max-w-2xl sm:mb-10">
