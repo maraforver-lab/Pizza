@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import AppSignature from "@/components/AppSignature";
 import EditableNumberInput from "@/components/EditableNumberInput";
 import {
@@ -105,7 +106,30 @@ const grams = (value: number, locale: Locale, precise = false) => new Intl.Numbe
   maximumFractionDigits: precise ? (value < 10 ? 2 : 1) : (value < 10 ? 1 : 0),
 }).format(value);
 
-const shareCardFile = async (title: string, subtitle: string, details: string[]) => {
+const pizzaImageByGoal: Record<PizzaGoal, string> = {
+  balanced: "/pizza-styles/neapolitan.webp",
+  airy: "/pizza-styles/contemporary.webp",
+  crispy: "/pizza-styles/roman-thin.webp",
+  pan: "/pizza-styles/detroit.webp",
+};
+
+const loadCardImage = (source: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const image = new window.Image();
+  image.onload = () => resolve(image);
+  image.onerror = () => reject(new Error("Pizza image could not be loaded"));
+  image.src = source;
+});
+
+const drawCoverImage = (context: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) => {
+  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+  const sourceWidth = width / scale;
+  const sourceHeight = height / scale;
+  const sourceX = (image.naturalWidth - sourceWidth) / 2;
+  const sourceY = (image.naturalHeight - sourceHeight) / 2;
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+};
+
+const shareCardFile = async (title: string, subtitle: string, details: string[], imageSource: string) => {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
   canvas.height = 1080;
@@ -114,38 +138,28 @@ const shareCardFile = async (title: string, subtitle: string, details: string[])
 
   context.fillStyle = "#f6f3ea";
   context.fillRect(0, 0, 1080, 1080);
-  context.fillStyle = "#e34a2c";
-  context.beginPath();
-  context.arc(880, 190, 300, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = "#efc46d";
-  context.beginPath();
-  context.arc(820, 250, 220, 0, Math.PI * 2);
-  context.fill();
-  context.strokeStyle = "#d99b42";
-  context.lineWidth = 28;
-  context.stroke();
-  [[735, 175], [895, 180], [780, 310], [920, 330]].forEach(([x, y]) => {
-    context.fillStyle = "#bf3826";
-    context.beginPath();
-    context.arc(x, y, 38, 0, Math.PI * 2);
-    context.fill();
-  });
+  const pizzaImage = await loadCardImage(imageSource);
+  drawCoverImage(context, pizzaImage, 0, 0, 470, 975);
+  const shade = context.createLinearGradient(0, 0, 470, 0);
+  shade.addColorStop(0, "rgba(24,34,27,.04)");
+  shade.addColorStop(1, "rgba(24,34,27,.28)");
+  context.fillStyle = shade;
+  context.fillRect(0, 0, 470, 975);
   context.fillStyle = "#18221b";
-  context.font = "800 46px Arial, sans-serif";
-  context.fillText("Dough", 72, 105);
+  context.font = "800 39px Arial, sans-serif";
+  context.fillText("Dough", 530, 105);
   context.fillStyle = "#e34a2c";
-  context.fillText("Tools", 222, 105);
+  context.fillText("Tools", 658, 105);
   context.fillStyle = "#18221b";
-  context.font = "700 84px Georgia, serif";
-  context.fillText(title, 72, 520);
+  context.font = "700 69px Georgia, serif";
+  context.fillText(title, 530, 430);
   context.fillStyle = "rgba(24,34,27,.62)";
-  context.font = "500 34px Arial, sans-serif";
-  context.fillText(subtitle, 72, 580);
+  context.font = "500 30px Arial, sans-serif";
+  context.fillText(subtitle, 530, 485);
   details.forEach((line, index) => {
     context.fillStyle = index === 0 ? "#e34a2c" : "#18221b";
-    context.font = `${index === 0 ? "800" : "700"} 37px Arial, sans-serif`;
-    context.fillText(line, 72, 700 + index * 62);
+    context.font = `${index === 0 ? "800" : "700"} 29px Arial, sans-serif`;
+    context.fillText(line, 530, 620 + index * 58);
   });
   context.fillStyle = "#18221b";
   context.fillRect(0, 975, 1080, 105);
@@ -315,6 +329,7 @@ export default function Home() {
       style,
       `${pizzas} × ${ballWeight} g`,
       [`${hydration} % ${t.hydration.toLowerCase()}`, `${t.ferment[fermentation][0]} · ${activeBake.temperature} °C · ${activeBake.time}`],
+      pizzaImageByGoal[goal],
     );
     try {
       if (navigator.share) {
@@ -561,14 +576,12 @@ export default function Home() {
                 ))}
               </div>
               <div className="mt-6 overflow-hidden rounded-2xl bg-cream text-ink">
-                <div className="relative min-h-32 overflow-hidden p-4 pr-32">
-                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">DoughTools</p>
-                  <h3 className="mt-2 font-display text-2xl font-semibold leading-none">{t.goals[goal][0]}</h3>
-                  <p className="mt-2 text-[11px] font-semibold text-ink/55">{pizzas} × {ballWeight} g · {hydration} % · {t.ferment[fermentation][0]}</p>
-                  <div className="absolute -right-8 -top-9 h-40 w-40 rounded-full bg-tomato p-5 shadow-lg rotate-6" aria-hidden="true">
-                    <div className="relative h-full w-full rounded-full border-[9px] border-[#d99b42] bg-[#efc46d]">
-                      {[[22, 22], [63, 18], [40, 58], [72, 66]].map(([left, top], index) => <span key={index} className="absolute h-5 w-5 rounded-full bg-[#bf3826]" style={{ left, top }} />)}
-                    </div>
+                <div className="grid min-h-40 grid-cols-[42%_58%] overflow-hidden">
+                  <div className="relative min-h-40" aria-hidden="true"><Image src={pizzaImageByGoal[goal]} alt="" fill sizes="280px" className="object-cover"/></div>
+                  <div className="flex min-w-0 flex-col justify-center p-4">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">DoughTools</p>
+                    <h3 className="mt-2 font-display text-2xl font-semibold leading-none">{t.goals[goal][0]}</h3>
+                    <p className="mt-2 text-[11px] font-semibold leading-4 text-ink/55">{pizzas} × {ballWeight} g · {hydration} % · {t.ferment[fermentation][0]}</p>
                   </div>
                 </div>
                 <div className="border-t border-ink/10 p-4">
