@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import AppSignature from "@/components/AppSignature";
+import EditableNumberInput from "@/components/EditableNumberInput";
 import {
   loadSavedRecipes,
   newRecipeId,
@@ -165,8 +166,7 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
       <div className={`relative ${stepper ? "grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] gap-2" : "block"}`}>
         {stepper && <button type="button" aria-label={decreaseLabel} disabled={value <= min} onClick={() => onChange(steppedValue(value, -1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition active:scale-95 disabled:opacity-30">−</button>}
         <div className="relative min-w-0">
-          <input id={id} type="number" inputMode="decimal" min={min} max={max} step={step} value={value}
-            onChange={(event) => onChange(clamp(Number(event.target.value), min, max))}
+          <EditableNumberInput id={id} min={min} max={max} value={value} onValueChange={onChange}
             className={`h-14 min-w-0 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 ${stepper ? "text-center" : "pr-12"}`} />
           {suffix && <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink/40">{suffix}</span>}
         </div>

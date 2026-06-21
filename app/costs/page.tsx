@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
+import EditableNumberInput from "@/components/EditableNumberInput";
 import { calculatePizzaCost, type CostInputs } from "@/lib/cost-calculator";
 import { settingsFromUrl } from "@/lib/recipe-url";
 
@@ -31,8 +32,7 @@ export default function CostsPage() {
   }, []);
   const result = useMemo(() => calculatePizzaCost(values), [values]);
   if (!ready) return <main className="min-h-screen bg-cream"/>;
-  const set = (key: keyof CostInputs, value: string) => setValues(current => ({ ...current, [key]: Math.max(0, Number(value) || 0) }));
-  const field = (key: keyof CostInputs, suffix?: string) => <div className="relative"><input aria-label={key} type="number" min="0" step="0.1" value={values[key]} onChange={e => set(key, e.target.value)} className="h-12 w-full rounded-xl border border-ink/10 bg-white px-3 pr-16 text-sm font-bold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"/>{suffix && <span className="pointer-events-none absolute right-3 top-3.5 text-xs font-bold text-ink/35">{suffix}</span>}</div>;
+  const field = (key: keyof CostInputs, suffix?: string) => <div className="relative"><EditableNumberInput aria-label={key} min={0} value={values[key]} onValueChange={value => setValues(current => ({ ...current, [key]: value }))} className="h-12 w-full rounded-xl border border-ink/10 bg-white px-3 pr-16 text-sm font-bold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"/>{suffix && <span className="pointer-events-none absolute right-3 top-3.5 text-xs font-bold text-ink/35">{suffix}</span>}</div>;
   const names: Record<string, string> = { flour: t.flour, doughExtras: t.doughExtras, sauce: t.sauce, cheese: t.cheese, toppings: t.toppings, extras: t.extras, energy: t.energy, packaging: t.packaging };
   return <main className="min-h-screen bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl">
     <header className="flex items-center justify-between"><Link href="/" className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato font-black text-white">€</span><strong>Dough<span className="text-tomato">Tools</span></strong></Link><div className="flex gap-2"><Link href="/guide" className="hidden rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold sm:block">{t.guide}</Link><Link href="/" className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.back}</Link></div></header>
