@@ -15,7 +15,7 @@ import {
 } from "@/lib/saved-recipes";
 import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
 import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
-import { buildDoughInstructions } from "@/lib/dough-instructions";
+import { bakeFor } from "@/lib/baking";
 
 type Locale = "en" | "fi";
 
@@ -28,20 +28,6 @@ const fermentationOptions: { value: Fermentation; hours: number; temperature: nu
 ];
 
 const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-cold", "48h-cold"];
-
-const bakeFor = (goal: PizzaGoal, oven: OvenType) => {
-  const recommendations = {
-    home: {
-      balanced: { temperature: 250, time: "6–9 min" }, airy: { temperature: 250, time: "7–10 min" },
-      crispy: { temperature: 250, time: "8–12 min" }, pan: { temperature: 240, time: "14–18 min" },
-    },
-    gas: {
-      balanced: { temperature: 450, time: "60–90 s" }, airy: { temperature: 430, time: "75–110 s" },
-      crispy: { temperature: 400, time: "2–3 min" }, pan: { temperature: 380, time: "5–7 min" },
-    },
-  };
-  return recommendations[oven][goal];
-};
 
 const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentation) => {
   const hotOven = ovenTemperature >= 380;
@@ -82,7 +68,7 @@ const copy = {
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
     saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
-    instructionsTitle: "Your dough plan", instructionsIntro: "Step-by-step instructions adapted to this flour, hydration, leavening, fermentation and oven.", tailoredFor: "Tailored for", warningTitle: "Check this combination", doughCue: "The dough itself is the final judge: temperature and flour batches can change the timing.",
+    instructionsTitle: "Your dough plan", instructionsIntro: "Open the lighter planning view for step-by-step instructions and exact clock times.", openPlan: "Open instructions & schedule", startClock: "Start now or choose your desired baking time.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
   fi: {
@@ -104,7 +90,7 @@ const copy = {
     yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi",
     saveRecipe: "Tallenna resepti", recipeName: "Reseptin nimi", recipeNamePlaceholder: "Perjantain pizza", save: "Tallenna", cancel: "Peruuta", saved: "Resepti tallennettu", myRecipes: "Omat reseptit", noRecipes: "Ei vielä tallennettuja reseptejä.", openRecipe: "Avaa", deleteRecipe: "Poista", deleteConfirm: "Poistetaanko tämä tallennettu resepti?", savedOn: "Tallennettu", recipeOpened: "Resepti avattu", shareTitle: "Jaa pizzasi", shareIntro: "Lähetä pizzakortti ja reseptilinkki Instagramiin, WhatsAppiin tai muuhun sovellukseen.", shareRecipe: "Jaa kuva", shareWhatsApp: "WhatsApp-linkki", copyLink: "Kopioi reseptilinkki", linkCopied: "Reseptilinkki kopioitu", shareText: "Teen {style}-pizzaa DoughToolsilla. Tee oma pizzareseptisi:", shareFallback: "Reseptilinkki kopioitiin. Voit liittää sen Instagramiin tai muuhun sovellukseen.",
     note: "Kohotteen määrä arvioidaan ajan ja lämpötilan perusteella. Jauhon vahvuus, juuren aktiivisuus ja taikinan todellinen lämpötila voivat vaatia säätöä.",
-    instructionsTitle: "Taikinasi valmistusohje", instructionsIntro: "Vaiheittainen ohje mukautuu tähän jauhoon, hydraatioon, kohotteeseen, kohotukseen ja uuniin.", tailoredFor: "Mukautettu valinnoille", warningTitle: "Tarkista tämä yhdistelmä", doughCue: "Taikina ratkaisee lopulta: lämpötila ja jauhoerät voivat muuttaa kellonaikoja.",
+    instructionsTitle: "Taikinasi valmistusohje", instructionsIntro: "Avaa kevyt suunnittelunäkymä, jossa ovat vaiheittaiset ohjeet ja tarkat kellonajat.", openPlan: "Avaa valmistusohje ja aikataulu", startClock: "Aloita nyt tai valitse haluamasi paistoaika.",
     footer: "Parempia pizzailtoja varten.", bakers: "Leipurin prosentit lasketaan jauhojen painosta.", decrease: "Vähennä pizzojen määrää", increase: "Lisää pizzojen määrää",
   },
 } as const;
@@ -305,12 +291,7 @@ export default function Home() {
     pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId,
   }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId]);
 
-  const instructionPlan = useMemo(() => buildDoughInstructions({
-    locale,
-    settings: currentSettings,
-    flour: activeFlour,
-    bake: activeBake,
-  }), [locale, currentSettings, activeFlour, activeBake]);
+  const planHref = `/plan?${recipeParams(currentSettings).toString()}`;
 
   useEffect(() => {
     if (!urlReady) return;
@@ -587,23 +568,11 @@ export default function Home() {
           </aside>
         </div>
 
-        <section id="instructions" className="mt-8 overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/75 shadow-card backdrop-blur">
-          <div className="border-b border-ink/10 p-5 sm:p-7">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div><p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">03 · DoughTools</p><h2 className="mt-2 font-display text-3xl font-semibold">{t.instructionsTitle}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-ink/55">{t.instructionsIntro}</p></div>
-              <div className="shrink-0 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs"><span className="block text-[9px] font-extrabold uppercase tracking-wide text-ink/35">{t.tailoredFor}</span><strong className="mt-1 block">{activeFlour.brand} {activeFlour.name}</strong><span className="mt-1 block text-ink/50">{hydration} % · {t.ferment[fermentation][0]}</span></div>
-            </div>
-            {instructionPlan.warnings.length > 0 && <div className="mt-5 rounded-2xl border border-tomato/15 bg-tomato/[.06] p-4"><strong className="text-xs text-tomato">{t.warningTitle}</strong><ul className="mt-2 space-y-1.5 text-xs leading-5 text-ink/60">{instructionPlan.warnings.map((warning) => <li key={warning} className="flex gap-2"><span className="text-tomato">•</span><span>{warning}</span></li>)}</ul></div>}
+        <section id="instructions" className="mt-8 rounded-[1.75rem] bg-leaf p-5 text-white shadow-card sm:p-7">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-xs font-extrabold uppercase tracking-[.18em] text-white/50">03 · DoughTools</p><h2 className="mt-2 font-display text-3xl font-semibold">{t.instructionsTitle}</h2><p className="mt-2 max-w-xl text-sm leading-6 text-white/65">{t.instructionsIntro} {t.startClock}</p></div>
+            <Link href={planHref} className="shrink-0 rounded-2xl bg-white px-5 py-4 text-center text-sm font-extrabold text-leaf shadow-lg transition active:scale-[.98]">{t.openPlan} →</Link>
           </div>
-          <ol className="grid md:grid-cols-2">
-            {instructionPlan.steps.map((step, index) => (
-              <li key={step.id} className="grid grid-cols-[2.5rem_1fr] gap-3 border-b border-ink/10 p-5 last:border-b-0 md:border-r md:[&:nth-last-child(-n+2)]:border-b-0 md:[&:nth-child(even)]:border-r-0 sm:p-6">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-xs font-extrabold text-white">{index + 1}</span>
-                <div><div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="font-display text-xl font-semibold">{step.title}</h3><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-[10px] font-extrabold text-tomato">{step.timing}</span></div><p className="mt-2 text-sm leading-6 text-ink/55">{step.description}</p></div>
-              </li>
-            ))}
-          </ol>
-          <p className="border-t border-ink/10 bg-ink/[.025] px-5 py-4 text-xs leading-5 text-ink/45 sm:px-7">{t.doughCue}</p>
         </section>
 
         <section id="my-recipes" className="mt-8 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-7">
