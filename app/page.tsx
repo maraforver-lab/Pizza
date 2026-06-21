@@ -3,12 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import AppSignature from "@/components/AppSignature";
+import {
+  loadSavedRecipes,
+  newRecipeId,
+  storeSavedRecipes,
+  type Fermentation,
+  type OvenType,
+  type PizzaGoal,
+  type SavedRecipe,
+  type YeastType,
+} from "@/lib/saved-recipes";
 
-type Fermentation = "6h-room" | "12h-room" | "24h-room" | "24h-cold" | "48h-cold";
-type YeastType = "cy" | "ady" | "idy" | "ssd" | "lsd";
 type Locale = "en" | "fi";
-type PizzaGoal = "balanced" | "airy" | "crispy" | "pan";
-type OvenType = "home" | "gas";
 
 const fermentationOptions: { value: Fermentation; hours: number; temperature: number }[] = [
   { value: "6h-room", hours: 6, temperature: 22 },
@@ -71,6 +77,7 @@ const copy = {
       "24h-cold": ["24h cold", "Fridge"], "48h-cold": ["48h cold", "Deep flavor"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
+    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
@@ -91,6 +98,7 @@ const copy = {
       "24h-cold": ["24 h kylmä", "Jääkaapissa"], "48h-cold": ["48 h kylmä", "Syvä maku"],
     },
     yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi",
+    saveRecipe: "Tallenna resepti", recipeName: "Reseptin nimi", recipeNamePlaceholder: "Perjantain pizza", save: "Tallenna", cancel: "Peruuta", saved: "Resepti tallennettu", myRecipes: "Omat reseptit", noRecipes: "Ei vielä tallennettuja reseptejä.", openRecipe: "Avaa", deleteRecipe: "Poista", deleteConfirm: "Poistetaanko tämä tallennettu resepti?", savedOn: "Tallennettu", recipeOpened: "Resepti avattu",
     note: "Kohotteen määrä arvioidaan ajan ja lämpötilan perusteella. Jauhon vahvuus, juuren aktiivisuus ja taikinan todellinen lämpötila voivat vaatia säätöä.",
     footer: "Parempia pizzailtoja varten.", bakers: "Leipurin prosentit lasketaan jauhojen painosta.", decrease: "Vähennä pizzojen määrää", increase: "Lisää pizzojen määrää",
   },
@@ -138,6 +146,10 @@ export default function Home() {
   const [yeastType, setYeastType] = useState<YeastType>("idy");
   const [fermentation, setFermentation] = useState<Fermentation>("24h-cold");
   const [temperature, setTemperature] = useState(4);
+  const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
+  const [showSaveForm, setShowSaveForm] = useState(false);
+  const [recipeName, setRecipeName] = useState("");
+  const [recipeNotice, setRecipeNotice] = useState("");
   const t = copy[locale];
   const isColdFermentation = fermentation.endsWith("cold");
   const activeBake = bakeFor(goal, ovenType);
@@ -150,6 +162,10 @@ export default function Home() {
     const nextLocale = saved === "fi" || saved === "en" ? saved : detected;
     setLocale(nextLocale);
     document.documentElement.lang = nextLocale;
+  }, []);
+
+  useEffect(() => {
+    setSavedRecipes(loadSavedRecipes());
   }, []);
 
   const changeLocale = (nextLocale: Locale) => {
@@ -208,6 +224,47 @@ export default function Home() {
       leavener: flour * yeastPercent / 100,
     };
   }, [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature]);
+
+  const saveCurrentRecipe = () => {
+    const name = recipeName.trim();
+    if (!name) return;
+    const savedRecipe: SavedRecipe = {
+      id: newRecipeId(),
+      name,
+      createdAt: new Date().toISOString(),
+      settings: { pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType },
+      ingredients: recipe,
+    };
+    const nextRecipes = [savedRecipe, ...savedRecipes];
+    storeSavedRecipes(nextRecipes);
+    setSavedRecipes(nextRecipes);
+    setRecipeName("");
+    setShowSaveForm(false);
+    setRecipeNotice(t.saved);
+  };
+
+  const openSavedRecipe = (savedRecipe: SavedRecipe) => {
+    const settings = savedRecipe.settings;
+    setPizzas(settings.pizzas);
+    setBallWeight(settings.ballWeight);
+    setWaste(settings.waste);
+    setHydration(settings.hydration);
+    setSalt(settings.salt);
+    setYeastType(settings.yeastType);
+    setFermentation(settings.fermentation);
+    setTemperature(settings.temperature);
+    setGoal(settings.goal);
+    setOvenType(settings.ovenType);
+    setRecipeNotice(t.recipeOpened);
+    document.getElementById("top")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const deleteSavedRecipe = (id: string) => {
+    if (!window.confirm(t.deleteConfirm)) return;
+    const nextRecipes = savedRecipes.filter((savedRecipe) => savedRecipe.id !== id);
+    storeSavedRecipes(nextRecipes);
+    setSavedRecipes(nextRecipes);
+  };
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
@@ -331,12 +388,39 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              <div className="mt-6 border-t border-white/10 pt-5">
+                {recipeNotice && <p className="mb-3 rounded-xl bg-leaf/30 px-3 py-2 text-xs font-bold text-white/80">{recipeNotice}</p>}
+                {showSaveForm ? (
+                  <div>
+                    <label htmlFor="recipe-name" className="mb-2 block text-xs font-bold text-white/60">{t.recipeName}</label>
+                    <input id="recipe-name" type="text" value={recipeName} onChange={(event) => setRecipeName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") saveCurrentRecipe(); }} placeholder={t.recipeNamePlaceholder} autoFocus className="h-12 w-full rounded-xl border border-white/10 bg-white px-3 text-sm font-semibold text-ink outline-none focus:ring-4 focus:ring-tomato/25" />
+                    <div className="mt-2 grid grid-cols-2 gap-2"><button type="button" onClick={() => { setShowSaveForm(false); setRecipeName(""); }} className="rounded-xl border border-white/15 px-3 py-2.5 text-xs font-bold text-white/60">{t.cancel}</button><button type="button" onClick={saveCurrentRecipe} disabled={!recipeName.trim()} className="rounded-xl bg-tomato px-3 py-2.5 text-xs font-bold text-white disabled:opacity-40">{t.save}</button></div>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => { setShowSaveForm(true); setRecipeNotice(""); }} className="w-full rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-ink transition hover:bg-cream">{t.saveRecipe}</button>
+                )}
+              </div>
             </div>
             <div className="border-t border-white/10 bg-white/[.04] px-5 py-4 sm:px-7">
               <p className="flex items-start gap-2 text-xs leading-5 text-white/45"><svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8v.01"/></svg>{t.note}</p>
             </div>
           </aside>
         </div>
+
+        <section id="my-recipes" className="mt-8 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-7">
+          <div className="flex items-center justify-between gap-4"><h2 className="font-display text-3xl font-semibold">{t.myRecipes}</h2><span className="grid h-8 min-w-8 place-items-center rounded-full bg-ink px-2 text-xs font-extrabold text-white">{savedRecipes.length}</span></div>
+          {savedRecipes.length === 0 ? <p className="mt-4 rounded-2xl border border-dashed border-ink/15 px-4 py-6 text-center text-sm text-ink/45">{t.noRecipes}</p> : (
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {savedRecipes.map((savedRecipe) => (
+                <article key={savedRecipe.id} className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <div className="flex items-start justify-between gap-3"><div><h3 className="font-display text-xl font-semibold">{savedRecipe.name}</h3><p className="mt-1 text-[10px] font-semibold text-ink/40">{t.savedOn} {new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(savedRecipe.createdAt))}</p></div><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{Math.round(savedRecipe.ingredients.total)} g</span></div>
+                  <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs"><span className="text-ink/45">{t.pizzas}</span><strong className="text-right">{savedRecipe.settings.pizzas} × {savedRecipe.settings.ballWeight} g</strong><span className="text-ink/45">{t.hydration}</span><strong className="text-right">{savedRecipe.settings.hydration} %</strong><span className="text-ink/45">{t.fermentation}</span><strong className="text-right">{t.ferment[savedRecipe.settings.fermentation][0]}</strong><span className="text-ink/45">{t.yeastType}</span><strong className="truncate text-right">{t.yeasts[savedRecipe.settings.yeastType][1]}</strong></div>
+                  <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => openSavedRecipe(savedRecipe)} className="rounded-xl bg-ink px-3 py-2.5 text-xs font-bold text-white">{t.openRecipe}</button><button type="button" onClick={() => deleteSavedRecipe(savedRecipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-bold text-tomato">{t.deleteRecipe}</button></div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
         <footer className="mt-8 border-t border-ink/10 py-6">
           <div className="flex flex-col gap-3 text-xs text-ink/45 sm:flex-row sm:items-center sm:justify-between"><p>{t.footer}</p><Link href="/guide" className="font-bold text-tomato sm:hidden">{t.guide} →</Link><p>{t.bakers}</p></div>
