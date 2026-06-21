@@ -17,7 +17,7 @@ const flourProducts = [
 
 const content = {
   fi: {
-    back: "Takaisin laskuriin", eyebrow: "DoughTools-opas", title: "Ohjeet ja termit",
+    back: "Takaisin laskuriin", eyebrow: "DoughTools-opas", title: "Ohjeet ja terminologia",
     intro: "Mitä luvut tarkoittavat, miten resepti lasketaan ja missä kohtaa tarvitaan leipurin omaa harkintaa.",
     nav: [["Perusteet", "basics"], ["Jauhot", "flours"], ["Asetukset", "settings"], ["Kohotteet", "leavening"], ["Tarkkuus", "accuracy"]],
     basicsTitle: "1. Taikinan perusteet", flourChapter: "2. Jauhot ja vahvuus", settingsChapter: "3. Asetusten yhteispeli", leaveningChapter: "4. Hiiva ja juuri", accuracyChapter: "5. Mitä laskuri tietää?",
