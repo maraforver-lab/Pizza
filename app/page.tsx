@@ -57,7 +57,7 @@ const copy = {
     quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result, baking schedule and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "When will you bake?",
     oven: "Which oven do you use?", homeOven: "Kitchen oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
     goals: { balanced: ["Balanced", "Soft with a crisp base"], airy: ["Very airy", "Open, light crust"], crispy: ["Thin & crispy", "Low, crunchy profile"], pan: ["Airy pan", "Soft, tall and fluffy"] },
-    pizzas: "Number of pizzas", ballWeight: "Dough ball weight", hydration: "Hydration", salt: "Salt", waste: "Extra for waste",
+    pizzas: "Number of pizzas", panPizzas: "Number of pan pizzas", panOvenLocked: "Pan pizza uses a home oven. The gas-oven option is locked for a safe, predictable beginner setup.", ballWeight: "Dough ball weight", hydration: "Hydration", salt: "Salt", waste: "Extra for waste",
     yeastType: "Leavening type", fermentation: "Fermentation", temperature: "Room temperature", coldTemperature: "Refrigerator temperature", coldFixed: "Fixed by the cold-fermentation preset",
     yeasts: {
       cy: ["CY", "Compressed yeast"], ady: ["ADY", "Active dry yeast"], idy: ["IDY", "Instant dry yeast"],
@@ -79,7 +79,7 @@ const copy = {
     quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, paistoajankohta ja uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Milloin paistat?",
     oven: "Mitä uunia käytät?", homeOven: "Keittiöuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö", flourChoice: "Valitse pizzajauho", flourIntro: "Jauhoprofiili ehdottaa sille sopivaa hydraatiota ja kohotusaikaa.", protein: "Proteiini", suggestedHydration: "Hydraatio", suggestedTime: "Kohotus", bestFor: "Sopii parhaiten", applyFlour: "Käytä jauhosuositusta", flourApplied: "Jauhosuositus otettu käyttöön", estimatedData: "Arvioitu profiili – tarkista ajantasaiset arvot omasta jauhopussista.", makerInfo: "Valmistajan tiedot",
     goals: { balanced: ["Tasapainoinen", "Pehmeä ja rapeapohjainen"], airy: ["Erittäin ilmava", "Avoin ja kevyt reuna"], crispy: ["Ohut ja rapea", "Matala, rouskuva pohja"], pan: ["Ilmava pannupizza", "Pehmeä, korkea ja kuohkea"] },
-    pizzas: "Pizzojen määrä", ballWeight: "Taikinapallon paino", hydration: "Hydraatio", salt: "Suola", waste: "Hävikkivara",
+    pizzas: "Pizzojen määrä", panPizzas: "Pannupizzojen määrä", panOvenLocked: "Pannupizza käyttää keittiöuunia. Kaasupizzauuni on lukittu turvallisen ja ennustettavan aloittelija-asetuksen vuoksi.", ballWeight: "Taikinapallon paino", hydration: "Hydraatio", salt: "Suola", waste: "Hävikkivara",
     yeastType: "Kohotustapa", fermentation: "Kohotus", temperature: "Huonelämpötila", coldTemperature: "Jääkaapin lämpötila", coldFixed: "Kylmäkohotuksen vakioasetus",
     yeasts: {
       cy: ["CY", "Puristehiiva"], ady: ["ADY", "Aktiivikuivahiiva"], idy: ["IDY", "Pikakuivahiiva"],
@@ -239,7 +239,8 @@ export default function Home() {
     if (shared.fermentation !== undefined) setFermentation(shared.fermentation);
     if (shared.temperature !== undefined) setTemperature(shared.temperature);
     if (shared.goal !== undefined) setGoal(shared.goal);
-    if (shared.ovenType !== undefined) setOvenType(shared.ovenType);
+    if (shared.goal === "pan") setOvenType("home");
+    else if (shared.ovenType !== undefined) setOvenType(shared.ovenType);
     if (shared.flourId !== undefined) setFlourId(shared.flourId);
     setUrlReady(true);
   }, []);
@@ -251,10 +252,11 @@ export default function Home() {
   };
 
   const applyPreset = (nextGoal: PizzaGoal, nextOvenType = ovenType, nextFermentation = fermentation) => {
-    const nextOvenTemperature = bakeFor(nextGoal, nextOvenType).temperature;
+    const safeOvenType: OvenType = nextGoal === "pan" ? "home" : nextOvenType;
+    const nextOvenTemperature = bakeFor(nextGoal, safeOvenType).temperature;
     const preset = presetFor(nextGoal, nextOvenTemperature, nextFermentation);
     setGoal(nextGoal);
-    setOvenType(nextOvenType);
+    setOvenType(safeOvenType);
     setBallWeight(preset.ballWeight);
     setHydration(preset.hydration);
     setSalt(preset.salt);
@@ -392,7 +394,7 @@ export default function Home() {
     setFermentation(settings.fermentation);
     setTemperature(settings.temperature);
     setGoal(settings.goal);
-    setOvenType(settings.ovenType);
+    setOvenType(settings.goal === "pan" ? "home" : settings.ovenType);
     setFlourId(settings.flourId ?? "caputo-pizzeria");
     setRecipeNotice(t.recipeOpened);
     document.getElementById("top")?.scrollIntoView({ behavior: "smooth" });
@@ -478,12 +480,13 @@ export default function Home() {
               </div>
             </fieldset>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
-              <NumberField id="quick-pizzas" label={t.pizzas} value={pizzas} min={1} max={50} stepper decreaseLabel={t.decrease} increaseLabel={t.increase} onChange={setPizzas} />
+              <NumberField id="quick-pizzas" label={goal === "pan" ? t.panPizzas : t.pizzas} value={pizzas} min={1} max={50} stepper decreaseLabel={t.decrease} increaseLabel={t.increase} onChange={setPizzas} />
               <fieldset>
                 <legend className="mb-2 text-sm font-semibold text-ink/70">{t.oven}</legend>
                 <div className="grid h-14 grid-cols-2 rounded-2xl bg-ink/5 p-1">
-                  {(["gas", "home"] as OvenType[]).map((option) => <button key={option} type="button" onClick={() => applyPreset(goal, option)} aria-pressed={ovenType === option} className={`rounded-xl px-2 text-left transition ${ovenType === option ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}><span className="block text-xs font-extrabold">{option === "home" ? t.homeOven : t.gasOven}</span><span className="mt-0.5 block truncate text-[9px] font-semibold opacity-60">{option === "home" ? t.homeOvenNote : t.gasOvenNote}</span></button>)}
+                  {(["gas", "home"] as OvenType[]).map((option) => { const locked = goal === "pan" && option === "gas"; return <button key={option} type="button" disabled={locked} onClick={() => applyPreset(goal, option)} aria-pressed={ovenType === option} className={`rounded-xl px-2 text-left transition ${ovenType === option ? "bg-white text-ink shadow-sm" : "text-ink/45"} ${locked ? "cursor-not-allowed opacity-35" : ""}`}><span className="block text-xs font-extrabold">{locked ? "🔒 " : ""}{option === "home" ? t.homeOven : t.gasOven}</span><span className="mt-0.5 block truncate text-[9px] font-semibold opacity-60">{option === "home" ? t.homeOvenNote : t.gasOvenNote}</span></button>; })}
                 </div>
+                {goal === "pan" && <p className="mt-2 text-[10px] leading-4 text-ink/45">{t.panOvenLocked}</p>}
               </fieldset>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-leaf/[.08] p-4 text-center sm:grid-cols-4">
