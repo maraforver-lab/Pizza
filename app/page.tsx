@@ -18,6 +18,7 @@ import {
 import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
 import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
 import { bakeFor } from "@/lib/baking";
+import { defaultPizzaStyleId, pizzaStyleById, type PizzaStyleId } from "@/lib/pizza-styles";
 
 type Locale = "en" | "fi";
 
@@ -105,13 +106,6 @@ const steppedValue = (value: number, direction: -1 | 1, step: number, min: numbe
 const grams = (value: number, locale: Locale, precise = false) => new Intl.NumberFormat(locale === "fi" ? "fi-FI" : "en-US", {
   maximumFractionDigits: precise ? (value < 10 ? 2 : 1) : (value < 10 ? 1 : 0),
 }).format(value);
-
-const pizzaImageByGoal: Record<PizzaGoal, string> = {
-  balanced: "/pizza-styles/neapolitan.webp",
-  airy: "/pizza-styles/contemporary.webp",
-  crispy: "/pizza-styles/roman-thin.webp",
-  pan: "/pizza-styles/detroit.webp",
-};
 
 const loadCardImage = (source: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new window.Image();
@@ -201,6 +195,7 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("en");
   const [goal, setGoal] = useState<PizzaGoal>("balanced");
+  const [pizzaStyleId, setPizzaStyleId] = useState<PizzaStyleId>("neapolitan");
   const [ovenType, setOvenType] = useState<OvenType>("gas");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [pizzas, setPizzas] = useState(6);
@@ -223,6 +218,8 @@ export default function Home() {
   const ovenTemperature = activeBake.temperature;
   const activePreset = presetFor(goal, ovenTemperature, fermentation);
   const activeFlour = flourById(flourId);
+  const activePizzaStyle = pizzaStyleById(pizzaStyleId, goal);
+  const activePizzaName = locale === "fi" ? activePizzaStyle.nameFi : activePizzaStyle.nameEn;
 
   useEffect(() => {
     const saved = window.localStorage.getItem("doughtools-locale") as Locale | null;
@@ -247,6 +244,8 @@ export default function Home() {
     if (shared.fermentation !== undefined) setFermentation(shared.fermentation);
     if (shared.temperature !== undefined) setTemperature(shared.temperature);
     if (shared.goal !== undefined) setGoal(shared.goal);
+    if (shared.pizzaStyleId !== undefined) setPizzaStyleId(shared.pizzaStyleId);
+    else if (shared.goal !== undefined) setPizzaStyleId(defaultPizzaStyleId(shared.goal));
     if (shared.goal === "pan") setOvenType("home");
     else if (shared.ovenType !== undefined) setOvenType(shared.ovenType);
     if (shared.flourId !== undefined) setFlourId(shared.flourId);
@@ -264,6 +263,7 @@ export default function Home() {
     const nextOvenTemperature = bakeFor(nextGoal, safeOvenType).temperature;
     const preset = presetFor(nextGoal, nextOvenTemperature, nextFermentation);
     setGoal(nextGoal);
+    if (nextGoal !== goal) setPizzaStyleId(defaultPizzaStyleId(nextGoal));
     setOvenType(safeOvenType);
     setBallWeight(preset.ballWeight);
     setHydration(preset.hydration);
@@ -312,8 +312,8 @@ export default function Home() {
   }, [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature]);
 
   const currentSettings = useMemo(() => ({
-    pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId,
-  }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId]);
+    pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId,
+  }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId]);
 
   const planHref = `/plan?${recipeParams(currentSettings).toString()}`;
   const doctorHref = `/doctor?${recipeParams(currentSettings).toString()}`;
@@ -333,13 +333,13 @@ export default function Home() {
 
   const shareRecipe = async () => {
     const url = recipeUrl(currentSettings);
-    const style = t.goals[goal][0];
+    const style = activePizzaName;
     const text = t.shareText.replace("{style}", style.toLowerCase());
     const card = await shareCardFile(
       style,
       `${pizzas} × ${ballWeight} g`,
       [`${hydration} % ${t.hydration.toLowerCase()}`, `${t.ferment[fermentation][0]} · ${activeBake.temperature} °C · ${activeBake.time}`],
-      pizzaImageByGoal[goal],
+      activePizzaStyle.image,
     );
     try {
       if (navigator.share) {
@@ -360,7 +360,7 @@ export default function Home() {
 
   const shareToWhatsApp = () => {
     const url = recipeUrl(currentSettings);
-    const style = t.goals[goal][0];
+    const style = activePizzaName;
     const text = `${t.shareText.replace("{style}", style.toLowerCase())} ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
   };
@@ -402,6 +402,7 @@ export default function Home() {
     setFermentation(settings.fermentation);
     setTemperature(settings.temperature);
     setGoal(settings.goal);
+    setPizzaStyleId(settings.pizzaStyleId ?? defaultPizzaStyleId(settings.goal));
     setOvenType(settings.goal === "pan" ? "home" : settings.ovenType);
     setFlourId(settings.flourId ?? "caputo-pizzeria");
     setRecipeNotice(t.recipeOpened);
@@ -590,10 +591,10 @@ export default function Home() {
               </div>
               <div className="mt-6 overflow-hidden rounded-2xl bg-cream text-ink">
                 <div className="grid min-h-40 grid-cols-[42%_58%] overflow-hidden">
-                  <div className="relative min-h-40" aria-hidden="true"><Image src={pizzaImageByGoal[goal]} alt="" fill sizes="280px" className="object-cover"/></div>
+                  <div className="relative min-h-40"><Image src={activePizzaStyle.image} alt={activePizzaName} fill sizes="280px" className="object-cover"/></div>
                   <div className="flex min-w-0 flex-col justify-center p-4">
                     <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">DoughTools</p>
-                    <h3 className="mt-2 font-display text-2xl font-semibold leading-none">{t.goals[goal][0]}</h3>
+                    <h3 className="mt-2 font-display text-2xl font-semibold leading-none">{activePizzaName}</h3>
                     <p className="mt-2 text-[11px] font-semibold leading-4 text-ink/55">{pizzas} × {ballWeight} g · {hydration} % · {t.ferment[fermentation][0]}</p>
                   </div>
                 </div>
@@ -638,10 +639,13 @@ export default function Home() {
           {savedRecipes.length === 0 ? <p className="mt-4 rounded-2xl border border-dashed border-ink/15 px-4 py-6 text-center text-sm text-ink/45">{t.noRecipes}</p> : (
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {savedRecipes.map((savedRecipe) => (
-                <article key={savedRecipe.id} className="rounded-2xl border border-ink/10 bg-white p-4">
+                <article key={savedRecipe.id} className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
+                  <div className="relative aspect-[2/1] bg-ink/5"><Image src={pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).image} alt={locale === "fi" ? pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameFi : pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover"/><span className="absolute bottom-3 left-3 rounded-full bg-ink/85 px-3 py-1.5 text-[10px] font-extrabold text-white">{locale === "fi" ? pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameFi : pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn}</span></div>
+                  <div className="p-4">
                   <div className="flex items-start justify-between gap-3"><div><h3 className="font-display text-xl font-semibold">{savedRecipe.name}</h3><p className="mt-1 text-[10px] font-semibold text-ink/40">{t.savedOn} {new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(savedRecipe.createdAt))}</p></div><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{Math.round(savedRecipe.ingredients.total)} g</span></div>
                   <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs"><span className="text-ink/45">{t.pizzas}</span><strong className="text-right">{savedRecipe.settings.pizzas} × {savedRecipe.settings.ballWeight} g</strong><span className="text-ink/45">{t.hydration}</span><strong className="text-right">{savedRecipe.settings.hydration} %</strong><span className="text-ink/45">{t.fermentation}</span><strong className="text-right">{t.ferment[savedRecipe.settings.fermentation][0]}</strong><span className="text-ink/45">{t.flourChoice}</span><strong className="truncate text-right">{flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").brand} {flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").name}</strong><span className="text-ink/45">{t.yeastType}</span><strong className="truncate text-right">{t.yeasts[savedRecipe.settings.yeastType][1]}</strong></div>
                   <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => openSavedRecipe(savedRecipe)} className="rounded-xl bg-ink px-3 py-2.5 text-xs font-bold text-white">{t.openRecipe}</button><button type="button" onClick={() => deleteSavedRecipe(savedRecipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-bold text-tomato">{t.deleteRecipe}</button></div>
+                  </div>
                 </article>
               ))}
             </div>

@@ -5,6 +5,7 @@ const fermentations = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"
 const yeastTypes = ["cy", "ady", "idy", "ssd", "lsd"] as const;
 const goals = ["balanced", "airy", "crispy", "pan"] as const;
 const ovens = ["home", "gas"] as const;
+const pizzaStyles = ["neapolitan", "contemporary", "new-york", "roman-thin", "detroit", "sicilian"] as const;
 
 const numberValue = (params: URLSearchParams, key: string, min: number, max: number) => {
   const raw = params.get(key);
@@ -19,7 +20,7 @@ const optionValue = <T extends string>(params: URLSearchParams, key: string, opt
 };
 
 export function recipeParams(settings: RecipeSettings) {
-  return new URLSearchParams({
+  const params = new URLSearchParams({
     balls: String(settings.pizzas),
     ballWeight: String(settings.ballWeight),
     waste: String(settings.waste),
@@ -32,6 +33,8 @@ export function recipeParams(settings: RecipeSettings) {
     oven: settings.ovenType,
     flour: settings.flourId,
   });
+  if (settings.pizzaStyleId) params.set("pizzaStyle", settings.pizzaStyleId);
+  return params;
 }
 
 export function recipeUrl(settings: RecipeSettings) {
@@ -60,5 +63,6 @@ export function settingsFromUrl(search: string): Partial<RecipeSettings> {
     goal: optionValue(params, "style", goals),
     ovenType: optionValue(params, "oven", ovens),
     flourId: optionValue(params, "flour", flourIds),
+    pizzaStyleId: optionValue(params, "pizzaStyle", pizzaStyles),
   };
 }

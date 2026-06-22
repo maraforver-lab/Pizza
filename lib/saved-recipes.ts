@@ -2,6 +2,7 @@ export type Fermentation = "6h-room" | "12h-room" | "24h-room" | "24h-cold" | "4
 export type YeastType = "cy" | "ady" | "idy" | "ssd" | "lsd";
 export type PizzaGoal = "balanced" | "airy" | "crispy" | "pan";
 export type OvenType = "home" | "gas";
+export type PizzaStyleId = "neapolitan" | "contemporary" | "new-york" | "roman-thin" | "detroit" | "sicilian";
 
 export type RecipeSettings = {
   pizzas: number;
@@ -15,6 +16,7 @@ export type RecipeSettings = {
   goal: PizzaGoal;
   ovenType: OvenType;
   flourId: FlourId;
+  pizzaStyleId?: PizzaStyleId;
 };
 
 export type RecipeIngredients = {
