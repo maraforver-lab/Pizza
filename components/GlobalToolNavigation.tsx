@@ -3,36 +3,37 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Locale = "fi" | "sv" | "en";
 type MenuId = "plan" | "solve" | "learn" | "mine" | "all";
 
 const copy = {
   fi: {
-    calculator: "Laskuri", plan: "Suunnittele", learn: "Opi", mine: "Omat", all: "Kaikki työkalut", menu: "Valikko", close: "Sulje valikko",
+    calculator: "Laskuri", plan: "Suunnittele", learn: "Opi", mine: "Omat", all: "Kaikki työkalut", menu: "Valikko", close: "Sulje valikko", account: "Kirjaudu", accountActive: "Tilisi",
     groups: [
       ["Suunnittele", [["/styles", "Pizzatyylit"], ["/plan", "Valmistusohje ja aikataulu"], ["/timer", "Paistoajastin"], ["/sauce", "Kastikelaskuri"], ["/toppings", "Juusto ja täytteet"]]],
       ["Ratkaise", [["/doctor", "Taikinalääkäri"], ["/coach", "AI Pizza Coach"], ["/costs", "Kustannuslaskuri"]]],
       ["Opi ja varustaudu", [["/guide", "Ohjeet ja terminologia"], ["/ovens", "Uuniopas"], ["/gear", "Varusteopas"], ["/history", "Pizzan historia"], ["/updates", "Päivitykset ja tarina"]]],
-      ["Omat ja yhteisö", [["/#my-recipes", "Omat reseptit"], ["/journal", "Pizzapäiväkirja"], ["/community", "Yhteisön reseptit"]]],
+      ["Omat ja yhteisö", [["/account", "Käyttäjätili"], ["/#my-recipes", "Omat reseptit"], ["/journal", "Pizzapäiväkirja"], ["/community", "Yhteisön reseptit"]]],
     ],
   },
   en: {
-    calculator: "Calculator", plan: "Plan", learn: "Learn", mine: "Mine", all: "All tools", menu: "Menu", close: "Close menu",
+    calculator: "Calculator", plan: "Plan", learn: "Learn", mine: "Mine", all: "All tools", menu: "Menu", close: "Close menu", account: "Sign in", accountActive: "Your account",
     groups: [
       ["Plan", [["/styles", "Pizza styles"], ["/plan", "Instructions and schedule"], ["/timer", "Bake timer"], ["/sauce", "Sauce calculator"], ["/toppings", "Cheese and toppings"]]],
       ["Solve", [["/doctor", "Dough Doctor"], ["/coach", "AI Pizza Coach"], ["/costs", "Cost calculator"]]],
       ["Learn and equip", [["/guide", "Guide and terminology"], ["/ovens", "Oven guide"], ["/gear", "Gear guide"], ["/history", "Pizza history"], ["/updates", "Updates and story"]]],
-      ["Mine and community", [["/#my-recipes", "Saved recipes"], ["/journal", "Pizza journal"], ["/community", "Community recipes"]]],
+      ["Mine and community", [["/account", "User account"], ["/#my-recipes", "Saved recipes"], ["/journal", "Pizza journal"], ["/community", "Community recipes"]]],
     ],
   },
   sv: {
-    calculator: "Kalkylator", plan: "Planera", learn: "Lär dig", mine: "Mina", all: "Alla verktyg", menu: "Meny", close: "Stäng menyn",
+    calculator: "Kalkylator", plan: "Planera", learn: "Lär dig", mine: "Mina", all: "Alla verktyg", menu: "Meny", close: "Stäng menyn", account: "Logga in", accountActive: "Ditt konto",
     groups: [
       ["Planera", [["/styles", "Pizzastilar"], ["/plan", "Instruktioner och tidsplan"], ["/timer", "Gräddningstimer"], ["/sauce", "Såskalkylator"], ["/toppings", "Ost och toppingar"]]],
       ["Lös problem", [["/doctor", "Degläkaren"], ["/coach", "AI Pizza Coach"], ["/costs", "Kostnadskalkylator"]]],
       ["Lär dig och utrusta", [["/guide", "Guide och terminologi"], ["/ovens", "Ugnsguide"], ["/gear", "Utrustningsguide"], ["/history", "Pizzans historia"], ["/updates", "Uppdateringar och berättelse"]]],
-      ["Mina och gemenskap", [["/#my-recipes", "Sparade recept"], ["/journal", "Pizzadagbok"], ["/community", "Gemenskapens recept"]]],
+      ["Mina och gemenskap", [["/account", "Användarkonto"], ["/#my-recipes", "Sparade recept"], ["/journal", "Pizzadagbok"], ["/community", "Gemenskapens recept"]]],
     ],
   },
 } as const;
@@ -40,13 +41,15 @@ const copy = {
 const menuGroups: Record<Exclude<MenuId, "all">, number[]> = { plan: [0], solve: [1], learn: [2], mine: [3] };
 const planRoutes = ["/styles", "/plan", "/timer", "/sauce", "/toppings"];
 const learnRoutes = ["/guide", "/ovens", "/gear", "/history", "/updates"];
-const mineRoutes = ["/journal", "/community"];
+const mineRoutes = ["/account", "/journal", "/community"];
 
 export default function GlobalToolNavigation() {
   const pathname = usePathname();
   const [locale, setLocale] = useState<Locale>("en");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<MenuId | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
+  const [authPulse, setAuthPulse] = useState(false);
 
   useEffect(() => {
     const updateLocale = () => { const params = new URLSearchParams(window.location.search); const pageLocale = pathname === "/toppings" ? params.get("toppingsLang") : null; const stored = localStorage.getItem("doughtools-locale"); const browserLocale = navigator.language.toLowerCase(); setLocale(pageLocale === "fi" || pageLocale === "sv" || pageLocale === "en" ? pageLocale : stored === "fi" || stored === "sv" || stored === "en" ? stored : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en"); };
@@ -64,6 +67,25 @@ export default function GlobalToolNavigation() {
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [open]);
+
+  useEffect(() => {
+    let pulseTimer: number | undefined;
+    try {
+      const supabase = getSupabaseBrowserClient();
+      supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session?.user)));
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        setSignedIn(Boolean(session?.user));
+        if (event === "SIGNED_IN") {
+          setAuthPulse(true);
+          window.clearTimeout(pulseTimer);
+          pulseTimer = window.setTimeout(() => setAuthPulse(false), 3500);
+        }
+      });
+      return () => { window.clearTimeout(pulseTimer); data.subscription.unsubscribe(); };
+    } catch {
+      setSignedIn(false);
+    }
+  }, []);
 
   const t = copy[locale];
   const href = (route: string) => { const [path, hash] = route.split("#"); return `${path}${query}${hash ? `#${hash}` : ""}`; };
@@ -91,7 +113,14 @@ export default function GlobalToolNavigation() {
           <button type="button" onClick={() => toggle("mine")} aria-expanded={open === "mine"} className={`rounded-full px-4 py-2 text-xs font-extrabold ${active(mineRoutes) || open === "mine" ? "bg-ink text-white" : "text-ink/55 hover:bg-white"}`}>{t.mine}⌄</button>
           <button type="button" onClick={() => toggle("all")} aria-expanded={open === "all"} className={`rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-extrabold ${open === "all" ? "border-tomato text-tomato" : "text-ink/65"}`}>☰ {t.all}</button>
         </nav>
-        {languageSwitch}
+        <div className="flex shrink-0 items-center gap-2">
+          <Link href="/account" aria-label={signedIn ? t.accountActive : t.account} aria-current={pathname === "/account" ? "page" : undefined} className={`group relative flex h-10 items-center gap-2 rounded-full border px-2.5 transition sm:px-3 ${pathname === "/account" ? "border-ink bg-ink text-white" : signedIn ? "border-leaf/20 bg-leaf/[.08] text-leaf" : "border-ink/10 bg-white text-ink/55 hover:border-tomato/30 hover:text-tomato"}`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" strokeLinecap="round"/></svg>
+            <span className="hidden text-[11px] font-extrabold xl:block">{signedIn ? t.accountActive : t.account}</span>
+            {signedIn && <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf"><span className={`absolute h-full w-full rounded-full bg-leaf ${authPulse ? "animate-ping" : ""}`}/></span>}
+          </Link>
+          {languageSwitch}
+        </div>
       </div>
     </header>
 

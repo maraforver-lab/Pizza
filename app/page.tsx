@@ -55,7 +55,7 @@ const copy = {
   en: {
     toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", doctor: "Dough Doctor", styles: "Pizza styles", journal: "Journal", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
     intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Fine-tune your batch",
-    quickTitle: "What kind of pizza do you want?", quickIntro: "Choose a result, baking schedule and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "When will you bake?",
+    quickTitle: "What kind of pizza do you want?", quickIntro: "Choose the result, fermentation time and environment, and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "Fermentation time and environment",
     oven: "Which oven do you use?", homeOven: "Electric oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
     goals: { balanced: ["Balanced", "Soft with a crisp base"], airy: ["Very airy", "Open, light crust"], crispy: ["Thin & crispy", "Low, crunchy profile"], pan: ["Airy pan", "Soft, tall and fluffy"] },
     pizzas: "Number of pizzas", panPizzas: "Number of pan pizzas", panOvenLocked: "Pan pizza uses an electric oven. The gas-oven option is locked for a safe, predictable beginner setup.", ballWeight: "Dough ball weight", hydration: "Hydration", salt: "Salt", waste: "Extra for waste",
@@ -65,8 +65,8 @@ const copy = {
       ssd: ["SSD", "Stiff sourdough (50%)"], lsd: ["LSD", "Liquid sourdough (100%)"],
     },
     ferment: {
-      "6h-room": ["6h room", "Same-day"], "12h-room": ["12h room", "Overnight"], "24h-room": ["24h room", "Day + night"],
-      "24h-cold": ["24h cold", "Fridge"], "48h-cold": ["48h cold", "Deep flavor"],
+      "6h-room": ["6 h at room temp", "About 22 °C"], "12h-room": ["12 h at room temp", "About 22 °C"], "24h-room": ["24 h at room temp", "About 22 °C"],
+      "24h-cold": ["24 h in the fridge", "About 4 °C"], "48h-cold": ["48 h in the fridge", "About 4 °C"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
     saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
@@ -77,7 +77,7 @@ const copy = {
   fi: {
     toolkit: "Leipurin työkalut", guide: "Ohjeet ja terminologia", calculator: "Laskuri", planner: "Aikataulu", doctor: "Taikinalääkäri", styles: "Pizzatyylit", journal: "Päiväkirja", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
     intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Hienosäädä taikina",
-    quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, paistoajankohta ja uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Milloin paistat?",
+    quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, fermentaation kesto ja ympäristö sekä uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Fermentaation kesto ja ympäristö",
     oven: "Mitä uunia käytät?", homeOven: "Sähköuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö", flourChoice: "Valitse pizzajauho", flourIntro: "Jauhoprofiili ehdottaa sille sopivaa hydraatiota ja kohotusaikaa.", protein: "Proteiini", suggestedHydration: "Hydraatio", suggestedTime: "Kohotus", bestFor: "Sopii parhaiten", applyFlour: "Käytä jauhosuositusta", flourApplied: "Jauhosuositus otettu käyttöön", estimatedData: "Arvioitu profiili – tarkista ajantasaiset arvot omasta jauhopussista.", makerInfo: "Valmistajan tiedot",
     goals: { balanced: ["Tasapainoinen", "Pehmeä ja rapeapohjainen"], airy: ["Erittäin ilmava", "Avoin ja kevyt reuna"], crispy: ["Ohut ja rapea", "Matala, rouskuva pohja"], pan: ["Ilmava pannupizza", "Pehmeä, korkea ja kuohkea"] },
     pizzas: "Pizzojen määrä", panPizzas: "Pannupizzojen määrä", panOvenLocked: "Pannupizza käyttää sähköuunia. Kaasupizzauuni on lukittu turvallisen ja ennustettavan aloittelija-asetuksen vuoksi.", ballWeight: "Taikinapallon paino", hydration: "Hydraatio", salt: "Suola", waste: "Hävikkivara",
@@ -87,8 +87,8 @@ const copy = {
       ssd: ["SSD", "Jäykkä juuri (50 %)"], lsd: ["LSD", "Nestemäinen juuri (100 %)"],
     },
     ferment: {
-      "6h-room": ["6 h huone", "Samana päivänä"], "12h-room": ["12 h huone", "Yön yli"], "24h-room": ["24 h huone", "Päivä + yö"],
-      "24h-cold": ["24 h kylmä", "Jääkaapissa"], "48h-cold": ["48 h kylmä", "Syvä maku"],
+      "6h-room": ["6 h huoneessa", "Noin 22 °C"], "12h-room": ["12 h huoneessa", "Noin 22 °C"], "24h-room": ["24 h huoneessa", "Noin 22 °C"],
+      "24h-cold": ["24 h jääkaapissa", "Noin 4 °C"], "48h-cold": ["48 h jääkaapissa", "Noin 4 °C"],
     },
     yourRecipe: "Reseptisi", ready: "Valmis sekoitettavaksi", total: "yhteensä", flour: "Jauhot", water: "Vesi",
     saveRecipe: "Tallenna resepti", recipeName: "Reseptin nimi", recipeNamePlaceholder: "Perjantain pizza", save: "Tallenna", cancel: "Peruuta", saved: "Resepti tallennettu", myRecipes: "Omat reseptit", noRecipes: "Ei vielä tallennettuja reseptejä.", openRecipe: "Avaa", deleteRecipe: "Poista", deleteConfirm: "Poistetaanko tämä tallennettu resepti?", savedOn: "Tallennettu", recipeOpened: "Resepti avattu", shareTitle: "Jaa pizzasi", shareIntro: "Lähetä pizzakortti ja reseptilinkki Instagramiin, WhatsAppiin tai muuhun sovellukseen.", shareRecipe: "Jaa kuva", shareWhatsApp: "WhatsApp-linkki", copyLink: "Kopioi reseptilinkki", linkCopied: "Reseptilinkki kopioitu", shareText: "Teen {style}-pizzaa DoughToolsilla. Tee oma pizzareseptisi:", shareFallback: "Reseptilinkki kopioitiin. Voit liittää sen Instagramiin tai muuhun sovellukseen.",
@@ -99,13 +99,13 @@ const copy = {
   sv: {
     toolkit: "Bagarens verktyg", guide: "Guide och terminologi", calculator: "Kalkylator", planner: "Tidsplan", doctor: "Degläkaren", styles: "Pizzastilar", journal: "Dagbok", eyebrow: "Pizzadegskalkylator", title: "Din nästa fantastiska pizza börjar med rätt siffror.",
     intro: "Välj satsstorlek, stil och jäsning. Vi sköter bagarens matematik.", build: "Finjustera degen",
-    quickTitle: "Vilken pizza vill du baka?", quickIntro: "Välj resultat, baktid och ugn. Kalkylatorn skapar ett vettigt startrecept för en mellanstor pizza.", schedule: "När ska du baka?",
+    quickTitle: "Vilken pizza vill du baka?", quickIntro: "Välj resultat, jästid och temperatur samt ugn. Kalkylatorn skapar ett vettigt startrecept för en mellanstor pizza.", schedule: "Jäsningstid och temperatur",
     oven: "Vilken ugn använder du?", homeOven: "Elektrisk ugn", homeOvenNote: "Sten eller stål", gasOven: "Gaseldad pizzaugn", gasOvenNote: "Ooni, Chef Matteo m.fl.", bakeGuide: "Bakrekommendation", bakeTemperature: "Temperatur", bakeTime: "Baktid", homePreheat: "Förvärm stenen eller stålet ordentligt, vanligtvis 45–60 minuter.", gasPreheat: "Värm stenen helt och justera lågan medan du roterar pizzan.", panGasNote: "Kontrollera att formen tål temperaturen och gaslågan.", recommendation: "Rekommenderad inställning", flourStrength: "Mjölets styrka", mediumSize: "Mellanstor", tune: "Finjustera receptet", hideTune: "Dölj finjustering", flourChoice: "Välj pizzamjöl", flourIntro: "Mjölprofilen föreslår lämplig hydrering och jästid.", protein: "Protein", suggestedHydration: "Hydrering", suggestedTime: "Jäsning", bestFor: "Passar bäst för", applyFlour: "Använd mjölförslaget", flourApplied: "Mjölförslaget har använts", estimatedData: "Ungefärlig profil – kontrollera aktuella värden på din mjölpåse.", makerInfo: "Tillverkarens information",
     goals: { balanced: ["Balanserad", "Mjuk med krispig botten"], airy: ["Mycket luftig", "Öppen och lätt kant"], crispy: ["Tunn och krispig", "Låg och knaprig botten"], pan: ["Luftig pannpizza", "Mjuk, hög och fluffig"] },
     pizzas: "Antal pizzor", panPizzas: "Antal pannpizzor", panOvenLocked: "Pannpizza bakas i elektrisk ugn. Gasugnen är låst för en säker och förutsägbar nybörjarinställning.", ballWeight: "Degbollens vikt", hydration: "Hydrering", salt: "Salt", waste: "Reserv för svinn",
     yeastType: "Jästyp", fermentation: "Jäsning", temperature: "Rumstemperatur", coldTemperature: "Kylskåpstemperatur", coldFixed: "Fast inställning för kalljäsning",
     yeasts: { cy: ["CY", "Färsk jäst"], ady: ["ADY", "Aktiv torrjäst"], idy: ["IDY", "Snabbtorrjäst"], ssd: ["SSD", "Fast surdeg (50 %)"], lsd: ["LSD", "Flytande surdeg (100 %)"] },
-    ferment: { "6h-room": ["6 h rum", "Samma dag"], "12h-room": ["12 h rum", "Över natten"], "24h-room": ["24 h rum", "Dag + natt"], "24h-cold": ["24 h kall", "Kylskåp"], "48h-cold": ["48 h kall", "Djup smak"] },
+    ferment: { "6h-room": ["6 h · rum", "Cirka 22 °C"], "12h-room": ["12 h · rum", "Cirka 22 °C"], "24h-room": ["24 h · rum", "Cirka 22 °C"], "24h-cold": ["24 h · kyl", "Cirka 4 °C"], "48h-cold": ["48 h · kyl", "Cirka 4 °C"] },
     yourRecipe: "Ditt recept", ready: "Redo att blandas", total: "totalt", flour: "Mjöl", water: "Vatten",
     saveRecipe: "Spara recept", recipeName: "Receptets namn", recipeNamePlaceholder: "Fredagspizza", save: "Spara", cancel: "Avbryt", saved: "Receptet sparades", myRecipes: "Mina recept", noRecipes: "Inga sparade recept ännu.", openRecipe: "Öppna", deleteRecipe: "Radera", deleteConfirm: "Radera det sparade receptet?", savedOn: "Sparat", recipeOpened: "Receptet öppnades", shareTitle: "Dela din pizza", shareIntro: "Skicka ett pizzakort och receptlänk till Instagram, WhatsApp eller en annan app.", shareRecipe: "Dela bild", shareWhatsApp: "WhatsApp-länk", copyLink: "Kopiera receptlänk", linkCopied: "Receptlänken kopierades", shareText: "Jag bakar {style}-pizza med DoughTools. Skapa ditt eget pizzarecept:", shareFallback: "Receptlänken kopierades. Klistra in den i Instagram eller en annan app.",
     note: "Mängden jäsmedel uppskattas från tid och temperatur. Mjölets styrka, surdegens aktivitet och degens verkliga temperatur kan kräva justering.",
@@ -273,7 +273,10 @@ export default function Home() {
     const nextOvenTemperature = bakeFor(nextGoal, safeOvenType).temperature;
     const preset = presetFor(nextGoal, nextOvenTemperature, nextFermentation);
     setGoal(nextGoal);
-    if (nextGoal !== goal) setPizzaStyleId(defaultPizzaStyleId(nextGoal));
+    if (nextGoal !== goal) {
+      setPizzaStyleId(defaultPizzaStyleId(nextGoal));
+      setPizzas(nextGoal === "pan" ? 1 : 6);
+    }
     setOvenType(safeOvenType);
     setBallWeight(preset.ballWeight);
     setHydration(preset.hydration);

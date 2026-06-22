@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
-import EditableNumberInput from "@/components/EditableNumberInput";
+import ScrollNumberPicker from "@/components/ScrollNumberPicker";
 import { pizzaStyleById } from "@/lib/pizza-styles";
 import { settingsFromUrl } from "@/lib/recipe-url";
 import type { RecipeSettings } from "@/lib/saved-recipes";
@@ -64,6 +64,12 @@ const visualCopy = {
   fi: { title: "Näin täytekuorma näkyy", lead: "Vertaa omaa pizzaasi kolmeen yksinkertaiseen esimerkkiin.", light: "Liian vähän", balanced: "Sopiva määrä", heavy: "Liikaa", yours: "Sinun pizzasi", section: "Pizzan sivuleikkaus", dry: "Tasapainoinen keskusta", wet: "Märän keskustan riski", note: "Havainnekuva näyttää kuorman ja kosteuden suunnan, ei valmista valokuvaa reseptistä." },
   en: { title: "What topping load looks like", lead: "Compare your pizza with three simple examples.", light: "Too little", balanced: "Just right", heavy: "Too much", yours: "Your pizza", section: "Pizza cross-section", dry: "Balanced centre", wet: "Risk of a soggy centre", note: "The illustration shows the direction of load and moisture, not a finished photo of the recipe." },
   sv: { title: "Så ser toppingbelastningen ut", lead: "Jämför din pizza med tre enkla exempel.", light: "För lite", balanced: "Lagom", heavy: "För mycket", yours: "Din pizza", section: "Pizzans tvärsnitt", dry: "Balanserad mitt", wet: "Risk för blöt mitt", note: "Bilden visar belastning och fukt i stora drag, inte ett färdigt foto av receptet." },
+} as const;
+
+const pickerCopy = {
+  fi: { label: "Valitse määrä", hint: "Vieritä sormella ylös tai alas", done: "Valitse" },
+  sv: { label: "Välj mängd", hint: "Rulla uppåt eller nedåt med fingret", done: "Välj" },
+  en: { label: "Choose amount", hint: "Swipe up or down", done: "Choose" },
 } as const;
 
 function ToppingLoadVisual({ locale, load, moisture }: { locale: Locale; load: "light" | "balanced" | "heavy" | "overloaded"; moisture: "low" | "medium" | "high" }) {
@@ -189,7 +195,7 @@ export default function ToppingsPage() {
   const chooseShape = (shape: "round" | "rectangle") => setGeometry(current => shape === "round" ? { shape, diameter: current.shape === "round" ? current.diameter : 32, rim: current.rim } : { shape, width: current.shape === "rectangle" ? current.width : 20, length: current.shape === "rectangle" ? current.length : 25, rim: current.rim });
   const updateTopping = (id: ToppingId, change?: Partial<ToppingSelection>) => setToppings(current => { const next = { ...current }; const profile = toppingProfiles.find(item => item.id === id)!; if (!change) delete next[id]; else next[id] = { grams: change.grams ?? current[id]?.grams ?? profile.defaultGrams, preparation: change.preparation ?? current[id]?.preparation ?? (profile.prepRecommended ? "raw" : "prepared") }; return next; });
   const changeLocale = (next: Locale) => { setLocale(next); localStorage.setItem("doughtools-toppings-locale", next); document.documentElement.lang = next; };
-  const numberField = (value: number, onChange: (value: number) => void, suffix = "cm") => <div className="relative mt-2"><EditableNumberInput min={0} max={100} value={value} onValueChange={onChange} className="h-12 w-full rounded-xl border border-ink/10 bg-white px-3 pr-10 font-bold"/><span className="absolute right-3 top-3.5 text-xs text-ink/35">{suffix}</span></div>;
+  const numberField = (value: number, onChange: (value: number) => void, suffix = "cm") => <ScrollNumberPicker value={value} onValueChange={onChange} min={0} max={suffix === "g" ? 300 : 100} suffix={suffix} label={pickerCopy[locale].label} hint={pickerCopy[locale].hint} done={pickerCopy[locale].done}/>;
 
   return <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6"><div className="mx-auto max-w-6xl">
     <section className="grid items-end gap-5 py-8 lg:grid-cols-[1fr_auto]"><div><div className="mb-5 inline-flex rounded-full bg-white/75 p-1 shadow-sm" aria-label="Language / Språk / Kieli">{(["fi", "sv", "en"] as Locale[]).map(lang => <button key={lang} type="button" onClick={() => changeLocale(lang)} aria-pressed={locale === lang} className={`rounded-full px-3 py-2 text-[10px] font-extrabold uppercase ${locale === lang ? "bg-ink text-white" : "text-ink/45"}`}>{lang}</button>)}</div><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-3xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></div><div className="rounded-2xl bg-white/80 p-4 text-xs shadow-card"><strong className="block text-leaf">{t.current}</strong><span className="mt-1 block text-ink/55">{locale === "fi" ? style.nameFi : locale === "sv" ? swedishStyleNames[style.id] : style.nameEn} · {settings.pizzas} {settings.goal === "pan" ? t.pan : t.pizzas} · {settings.ovenType === "gas" ? t.gas : t.home}</span></div></section>
