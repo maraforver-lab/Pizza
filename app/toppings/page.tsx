@@ -59,6 +59,58 @@ const copy = {
   },
 } as const;
 
+const visualCopy = {
+  fi: { title: "Näin täytekuorma näkyy", lead: "Vertaa omaa pizzaasi kolmeen yksinkertaiseen esimerkkiin.", light: "Liian vähän", balanced: "Sopiva määrä", heavy: "Liikaa", yours: "Sinun pizzasi", section: "Pizzan sivuleikkaus", dry: "Tasapainoinen keskusta", wet: "Märän keskustan riski", note: "Havainnekuva näyttää kuorman ja kosteuden suunnan, ei valmista valokuvaa reseptistä." },
+  en: { title: "What topping load looks like", lead: "Compare your pizza with three simple examples.", light: "Too little", balanced: "Just right", heavy: "Too much", yours: "Your pizza", section: "Pizza cross-section", dry: "Balanced centre", wet: "Risk of a soggy centre", note: "The illustration shows the direction of load and moisture, not a finished photo of the recipe." },
+  sv: { title: "Så ser toppingbelastningen ut", lead: "Jämför din pizza med tre enkla exempel.", light: "För lite", balanced: "Lagom", heavy: "För mycket", yours: "Din pizza", section: "Pizzans tvärsnitt", dry: "Balanserad mitt", wet: "Risk för blöt mitt", note: "Bilden visar belastning och fukt i stora drag, inte ett färdigt foto av receptet." },
+} as const;
+
+const toppingDots = {
+  light: [[34, 35], [62, 54], [43, 70]],
+  balanced: [[31, 29], [54, 25], [69, 39], [39, 49], [58, 57], [29, 67], [69, 72]],
+  heavy: [[25, 24], [43, 22], [61, 25], [73, 37], [32, 39], [51, 41], [65, 51], [27, 57], [43, 61], [57, 68], [73, 70], [34, 77]],
+} as const;
+
+function ToppingLoadVisual({ locale, load, moisture }: { locale: Locale; load: "light" | "balanced" | "heavy" | "overloaded"; moisture: "low" | "medium" | "high" }) {
+  const v = visualCopy[locale];
+  const current = load === "light" ? "light" : load === "balanced" ? "balanced" : "heavy";
+  const examples = (["light", "balanced", "heavy"] as const).map(kind => ({ kind, label: v[kind] }));
+  const wet = moisture === "high" || moisture === "medium";
+
+  return <section className="rounded-[1.75rem] bg-white/85 p-5 shadow-card" aria-labelledby="topping-visual-title">
+    <h2 id="topping-visual-title" className="font-display text-2xl font-semibold">{v.title}</h2>
+    <p className="mt-1 text-[11px] leading-5 text-ink/45">{v.lead}</p>
+    <div className="mt-4 grid grid-cols-3 gap-2">
+      {examples.map(({ kind, label }) => {
+        const active = current === kind;
+        return <div key={kind} className={`rounded-2xl border p-2 text-center ${active ? "border-leaf bg-leaf/[.07]" : "border-ink/10 bg-cream/60"}`}>
+          <div className="relative mx-auto aspect-square w-full max-w-20 rounded-full bg-[#d7a65c] shadow-inner" aria-hidden="true">
+            <div className="absolute inset-[9%] rounded-full bg-[#c94c32]" />
+            <div className="absolute left-[27%] top-[28%] h-[19%] w-[24%] rounded-full bg-[#f5e1b8]" />
+            <div className="absolute bottom-[23%] right-[18%] h-[18%] w-[27%] rounded-full bg-[#f5e1b8]" />
+            {toppingDots[kind].map(([left, top], index) => <span key={index} className={`absolute h-[9%] w-[9%] rounded-full ${kind === "heavy" && index % 3 === 0 ? "bg-[#77613c]" : "bg-[#4f733f]"}`} style={{ left: `${left}%`, top: `${top}%` }} />)}
+            {kind === "heavy" && <><span className="absolute bottom-[18%] left-[46%] h-[8%] w-[8%] rounded-full bg-sky-300/80"/><span className="absolute right-[25%] top-[47%] h-[7%] w-[7%] rounded-full bg-sky-300/80"/></>}
+          </div>
+          <strong className="mt-2 block text-[10px] leading-tight">{label}</strong>
+          {active && <span className="mt-1 inline-flex rounded-full bg-leaf px-2 py-1 text-[8px] font-extrabold text-white">✓ {v.yours}</span>}
+        </div>;
+      })}
+    </div>
+    <div className="mt-4 rounded-2xl bg-ink/[.04] p-3">
+      <div className="flex items-center justify-between gap-3"><strong className="text-xs">{v.section}</strong><span className={`rounded-full px-2 py-1 text-[9px] font-extrabold ${wet ? "bg-tomato/10 text-tomato" : "bg-leaf/10 text-leaf"}`}>{wet ? v.wet : v.dry}</span></div>
+      <div className="relative mt-3 h-20 overflow-hidden rounded-xl bg-[#dce9ec]" aria-hidden="true">
+        <div className="absolute inset-x-[8%] bottom-2 h-5 rounded-[50%_50%_28%_28%] bg-[#c78d4b]" />
+        <div className="absolute inset-x-[11%] bottom-[1.15rem] h-3 rounded-full bg-[#f0c77d]" />
+        <div className="absolute inset-x-[15%] bottom-[1.85rem] h-2 rounded-full bg-[#c94c32]" />
+        <div className={`absolute inset-x-[20%] bottom-[2.3rem] h-2 rounded-full ${wet ? "bg-sky-400/70" : "bg-[#f7e4b7]"}`} />
+        <span className="absolute bottom-[2.65rem] left-[30%] h-3 w-3 rounded-full bg-[#4f733f]"/><span className="absolute bottom-[2.65rem] right-[30%] h-3 w-3 rounded-full bg-[#77613c]"/>
+        {wet && <><span className="absolute bottom-3 left-[43%] h-3 w-2 rounded-full bg-sky-400/60"/><span className="absolute bottom-2 left-[54%] h-2 w-4 rounded-full bg-sky-400/50"/></>}
+      </div>
+    </div>
+    <p className="mt-3 text-[9px] leading-4 text-ink/35">{v.note}</p>
+  </section>;
+}
+
 const swedishToppingNames: Record<ToppingId, string> = { mushroom: "Svamp", onion: "Lök", pepper: "Paprika", zucchini: "Zucchini", spinach: "Spenat", "fresh-tomato": "Färsk tomat", pineapple: "Ananas", pepperoni: "Pepperoni", sausage: "Rå korv eller köttfärs", olives: "Oliver", basil: "Basilika", prosciutto: "Prosciutto", arugula: "Rucola", burrata: "Burrata" };
 const swedishToppingText: Record<ToppingId, { prep: string; why: string; mistake: string }> = {
   mushroom: { prep: "Skiva tunt. Stek i en het, torr panna tills vätskan har avdunstat. Låt svalna.", why: "Svamp släpper vätska snabbare än den hinner avdunsta under en kort gräddning.", mistake: "Tjocka råa skivor gör pizzans mitt blöt." },
@@ -157,6 +209,7 @@ export default function ToppingsPage() {
       {(selectedProfiles.length > 0 || cheeseType !== "none") && <section className="rounded-[1.75rem] bg-white/70 p-5 sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.checklist}</h2><p className="mt-2 text-xs text-ink/45">{t.checklistLead}</p><ol className="mt-5 space-y-3 text-xs leading-5">{(cheeseType === "fior-di-latte" || cheeseType === "buffalo") && <li className="rounded-xl bg-white p-3"><strong>1. </strong>{t.cheeseTips[cheeseType]}</li>}{selectedProfiles.filter(profile => profile.prepRecommended).map(profile => <li key={profile.id} className="rounded-xl bg-white p-3"><strong>• {toppingName(profile.id)}: </strong>{profileText(profile.id, "prep")}</li>)}<li className="rounded-xl bg-white p-3">• {t.stretch}</li><li className="rounded-xl bg-white p-3">• {t.sauceStep}</li>{cheeseType !== "none" && <li className="rounded-xl bg-white p-3">• {t.cheeseStep}</li>}<li className="rounded-xl bg-white p-3">• {t.bake}</li>{afterBakeProfiles.length > 0 && <li className="rounded-xl bg-leaf/[.08] p-3">• {t.finish} <strong>{afterBakeProfiles.map(profile => toppingName(profile.id)).join(", ")}</strong></li>}</ol></section>}
     </div>
     <aside className="space-y-5 lg:sticky lg:top-24"><section className="rounded-[1.75rem] bg-ink p-6 text-white shadow-card"><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">{t.load}</p><div className="mt-3 flex items-end justify-between"><strong className="font-display text-5xl">{result.loadPer100}</strong><span className="pb-1 text-xs text-white/45">{t.perArea}</span></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full ${meterColor}`} style={{ width: `${Math.min(100, result.loadPer100 / Math.max(result.loadLimit, 1) * 75)}%` }}/></div><div className="mt-2 flex justify-between text-[10px]"><strong>{t.loadLabels[result.load]}</strong><span className="text-white/40">{result.total} g {t.preBake}</span></div><p className="mt-3 text-[10px] leading-4 text-white/35">{t.practical}</p><div className="mt-5 grid grid-cols-3 gap-2 text-center text-[10px]"><div className="rounded-xl bg-white/[.07] p-3"><strong className="block text-base">{sauceGrams} g</strong>{t.sauce}</div><div className="rounded-xl bg-white/[.07] p-3"><strong className="block text-base">{cheeseType === "none" ? 0 : cheeseGrams} g</strong>{t.cheeseShort}</div><div className="rounded-xl bg-white/[.07] p-3"><strong className="block text-base">{result.preBakeToppingGrams} g</strong>{t.other}</div></div></section>
+      <ToppingLoadVisual locale={locale} load={result.load} moisture={result.moisture}/>
       <section className={`rounded-[1.75rem] p-5 ${result.moisture === "high" ? "bg-[#5a2c20] text-white" : result.moisture === "medium" ? "bg-[#e8c98a]/35" : "bg-leaf/[.09]"}`}><p className="text-[10px] font-extrabold uppercase tracking-[.16em]">{t.moisture}</p><h2 className="mt-1 font-display text-3xl font-semibold">{t.risks[result.moisture]}</h2><span className="text-[10px] opacity-55">{result.moisturePoints} {t.points}</span>{riskReasons.length ? <div className="mt-4"><strong className="text-xs">{t.causedBy}:</strong><ul className="mt-2 space-y-1 text-xs leading-5 opacity-70">{riskReasons.map(reason => <li key={reason}>• {reason}</li>)}</ul></div> : <p className="mt-3 text-xs leading-5 opacity-65">{t.noRisks}</p>}</section>
       {result.warnings.length > 0 && <section className="rounded-[1.75rem] border border-tomato/20 bg-tomato/[.07] p-5"><h2 className="font-display text-2xl font-semibold">{t.warnings}</h2><ul className="mt-3 space-y-2 text-xs leading-5 text-ink/60">{result.warnings.map(warning => <li key={warning}>• {t.warningText[warning as keyof typeof t.warningText]}</li>)}</ul></section>}
       <Link href={`/costs?${costParams.toString()}`} className="flex min-h-14 items-center justify-between rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg"><span>{t.cost}</span><span>→</span></Link>
