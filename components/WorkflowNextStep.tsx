@@ -7,12 +7,12 @@ import { useEffect, useState } from "react";
 type Locale = "fi" | "sv" | "en";
 
 const nextSteps: Record<string, { route: string; fi: string; en: string; sv?: string }> = {
-  "/": { route: "/plan", fi: "Avaa valmistusohje ja aikataulu", en: "Open instructions and schedule" },
-  "/styles": { route: "/", fi: "Muokkaa valittua reseptiä laskurissa", en: "Fine-tune the selected recipe" },
-  "/plan": { route: "/sauce", fi: "Laske seuraavaksi pizzakastike", en: "Calculate the pizza sauce next" },
-  "/sauce": { route: "/toppings", fi: "Valitse juusto ja täytteet", en: "Choose cheese and toppings" },
+  "/": { route: "/plan", fi: "Avaa valmistusohje ja aikataulu", sv: "Öppna instruktioner och tidsplan", en: "Open instructions and schedule" },
+  "/styles": { route: "/", fi: "Muokkaa valittua reseptiä laskurissa", sv: "Finjustera receptet i kalkylatorn", en: "Fine-tune the selected recipe" },
+  "/plan": { route: "/sauce", fi: "Laske seuraavaksi pizzakastike", sv: "Beräkna pizzasåsen härnäst", en: "Calculate the pizza sauce next" },
+  "/sauce": { route: "/toppings", fi: "Valitse juusto ja täytteet", sv: "Välj ost och toppingar", en: "Choose cheese and toppings" },
   "/toppings": { route: "/costs", fi: "Laske koko pizzaillan kustannukset", sv: "Beräkna kostnaden för hela pizzakvällen", en: "Calculate the full pizza-night cost" },
-  "/timer": { route: "/journal", fi: "Kirjaa paiston tulos pizzapäiväkirjaan", en: "Record the bake in your pizza journal" },
+  "/timer": { route: "/journal", fi: "Kirjaa paiston tulos pizzapäiväkirjaan", sv: "Skriv in resultatet i pizzadagboken", en: "Record the bake in your pizza journal" },
   "/costs": { route: "/journal", fi: "Tallenna lopputulos päiväkirjaan", en: "Save the result in your journal" },
   "/doctor": { route: "/plan", fi: "Avaa korjattu valmistussuunnitelma", en: "Open the adjusted preparation plan" },
   "/coach": { route: "/", fi: "Vie suositukset laskuriin", en: "Take the recommendations to the calculator" },
@@ -32,7 +32,8 @@ export default function WorkflowNextStep() {
   useEffect(() => {
     const pageLocale = pathname === "/toppings" ? new URLSearchParams(window.location.search).get("toppingsLang") : null;
     const stored = localStorage.getItem("doughtools-locale");
-    setLocale(pageLocale === "fi" || pageLocale === "sv" || pageLocale === "en" ? pageLocale : stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en");
+    const browserLocale = navigator.language.toLowerCase();
+    setLocale(pageLocale === "fi" || pageLocale === "sv" || pageLocale === "en" ? pageLocale : stored === "fi" || stored === "sv" || stored === "en" ? stored : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en");
     const updateQuery = () => setQuery(window.location.search);
     updateQuery();
     window.addEventListener("doughtools:urlchange", updateQuery);

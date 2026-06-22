@@ -49,7 +49,7 @@ export default function GlobalToolNavigation() {
   const [open, setOpen] = useState<MenuId | null>(null);
 
   useEffect(() => {
-    const updateLocale = () => { const params = new URLSearchParams(window.location.search); const pageLocale = pathname === "/toppings" ? params.get("toppingsLang") : null; const stored = localStorage.getItem("doughtools-locale"); setLocale(pageLocale === "fi" || pageLocale === "sv" || pageLocale === "en" ? pageLocale : stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en"); };
+    const updateLocale = () => { const params = new URLSearchParams(window.location.search); const pageLocale = pathname === "/toppings" ? params.get("toppingsLang") : null; const stored = localStorage.getItem("doughtools-locale"); const browserLocale = navigator.language.toLowerCase(); setLocale(pageLocale === "fi" || pageLocale === "sv" || pageLocale === "en" ? pageLocale : stored === "fi" || stored === "sv" || stored === "en" ? stored : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en"); };
     const updateQuery = () => setQuery(window.location.search);
     updateLocale(); updateQuery(); setOpen(null);
     window.addEventListener("popstate", updateQuery);
@@ -67,13 +67,13 @@ export default function GlobalToolNavigation() {
 
   const t = copy[locale];
   const href = (route: string) => { const [path, hash] = route.split("#"); return `${path}${query}${hash ? `#${hash}` : ""}`; };
-  const changeLocale = (next: Locale) => { if (pathname === "/toppings") { localStorage.setItem("doughtools-toppings-locale", next); const params = new URLSearchParams(window.location.search); params.set("toppingsLang", next); window.history.replaceState(null, "", `${pathname}?${params.toString()}`); } else if (next !== "sv") localStorage.setItem("doughtools-locale", next); document.documentElement.lang = next; window.dispatchEvent(new Event("doughtools:localechange")); window.location.reload(); };
+  const changeLocale = (next: Locale) => { localStorage.setItem("doughtools-locale", next); if (pathname === "/toppings") { localStorage.setItem("doughtools-toppings-locale", next); const params = new URLSearchParams(window.location.search); params.set("toppingsLang", next); window.history.replaceState(null, "", `${pathname}?${params.toString()}`); } document.documentElement.lang = next; window.dispatchEvent(new Event("doughtools:localechange")); window.location.reload(); };
   const toggle = (menu: MenuId) => setOpen(current => current === menu ? null : menu);
   const active = (routes: readonly string[]) => routes.includes(pathname);
   const visibleGroups = open === "all" ? [0, 1, 2, 3] : open ? menuGroups[open as Exclude<MenuId, "all">] : [];
 
-  const languageSwitch = <div className="flex rounded-full bg-ink/[.05] p-1" aria-label="Language">
-    {(pathname === "/toppings" ? ["fi", "sv", "en"] as Locale[] : ["fi", "en"] as Locale[]).map(lang => <button key={lang} type="button" onClick={() => changeLocale(lang)} aria-pressed={locale === lang} className={`rounded-full px-2.5 py-1.5 text-[10px] font-extrabold uppercase ${locale === lang ? "bg-ink text-white" : "text-ink/45"}`}>{lang}</button>)}
+  const languageSwitch = <div className="flex rounded-full bg-ink/[.05] p-1" aria-label="Language / Språk / Kieli">
+    {(["fi", "sv", "en"] as Locale[]).map(lang => <button key={lang} type="button" onClick={() => changeLocale(lang)} aria-pressed={locale === lang} className={`rounded-full px-2.5 py-1.5 text-[10px] font-extrabold uppercase ${locale === lang ? "bg-ink text-white" : "text-ink/45"}`}>{lang}</button>)}
   </div>;
 
   return <>

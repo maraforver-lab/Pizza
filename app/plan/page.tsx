@@ -13,7 +13,7 @@ import { nextScheduledStep, scheduleInstructions } from "@/lib/pizza-schedule";
 import { recipeParams, settingsFromUrl } from "@/lib/recipe-url";
 import type { RecipeSettings } from "@/lib/saved-recipes";
 
-type Locale = "fi" | "en";
+type Locale = "fi" | "sv" | "en";
 type ScheduleMode = "start" | "bake";
 
 const defaults: RecipeSettings = {
@@ -29,6 +29,10 @@ const copy = {
   en: {
     back: "Back to calculator", eyebrow: "Instructions and schedule", title: "Pizza, ready on time.", intro: "Start immediately or choose your baking time. DoughTools gives every step a clock time.",
     startNow: "Start now", startNote: "The schedule begins from your phone’s current time.", bakeAt: "Desired baking time", makeSchedule: "Calculate backwards", localTime: "Phone time", next: "Up next", overdue: "Start now", done: "Every step is complete – time to enjoy your pizza!", markDone: "Mark complete", undo: "Undo", timeline: "Beginner guide – step by step", warnings: "Check this combination", estimated: "Clock times are practical estimates. Dough cannot read a clock: also watch the texture, temperature and growth shown in the pictures.", currentRecipe: "Current recipe", balls: "balls", hydration: "hydration", timezone: "Time zone", day: "d", hour: "h", minute: "min", doThis: "Do this", why: "Why do this?", readyWhen: "Ready when", commonMistake: "Avoid this", ingredients: "Weigh these", flour: "Flour", water: "Water", salt: "Salt", leavener: "Yeast / starter", visualIntro: "Each picture shows the target texture or hand movement. Open each step and compare your dough with the image.", timerTitle: "Open bake timer", timerLead: "Large phone view, final 10-second sound cues and screen wake lock.",
+  },
+  sv: {
+    back: "Tillbaka till kalkylatorn", eyebrow: "Instruktioner och tidsplan", title: "Pizza, klar i rätt tid.", intro: "Börja genast eller välj baktid. DoughTools ger varje arbetsmoment ett klockslag.",
+    startNow: "Börja nu", startNote: "Tidsplanen börjar från telefonens aktuella tid.", bakeAt: "Önskad baktid", makeSchedule: "Räkna bakåt", localTime: "Telefonens tid", next: "Nästa steg", overdue: "Börja nu", done: "Alla steg är klara – dags att njuta av pizzan!", markDone: "Markera som klar", undo: "Ångra", timeline: "Nybörjarguide – steg för steg", warnings: "Kontrollera kombinationen", estimated: "Klockslagen är praktiska uppskattningar. Degen kan inte läsa klockan: följ också strukturen, temperaturen och tillväxten på bilderna.", currentRecipe: "Aktuellt recept", balls: "bollar", hydration: "hydrering", timezone: "Tidszon", day: "d", hour: "h", minute: "min", doThis: "Gör så här", why: "Varför gör man detta?", readyWhen: "Klar när", commonMistake: "Undvik detta", ingredients: "Väg upp", flour: "Mjöl", water: "Vatten", salt: "Salt", leavener: "Jäst / surdeg", visualIntro: "Varje bild visar önskad struktur eller handrörelse. Öppna steget och jämför din deg med bilden.", timerTitle: "Öppna gräddningstimern", timerLead: "Stor mobilvy, ljudsignaler de sista 10 sekunderna och skärmen hålls vaken.",
   },
 } as const;
 
@@ -62,7 +66,8 @@ export default function PlanPage() {
 
   useEffect(() => {
     const savedLocale = window.localStorage.getItem("doughtools-locale") as Locale | null;
-    const nextLocale = savedLocale === "fi" || savedLocale === "en" ? savedLocale : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en";
+    const browserLocale = navigator.language.toLowerCase();
+    const nextLocale = savedLocale === "fi" || savedLocale === "sv" || savedLocale === "en" ? savedLocale : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en";
     const shared = settingsFromUrl(window.location.search);
     const validShared = Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) as Partial<RecipeSettings>;
     const parsed = { ...defaults, ...validShared };
@@ -100,8 +105,8 @@ export default function PlanPage() {
   const instructions = useMemo(() => buildDoughInstructions({ locale, settings, flour, bake }), [locale, settings, flour, bake]);
   const scheduled = useMemo(() => scheduleInstructions(instructions.steps, settings.fermentation, anchor, mode), [instructions.steps, settings.fermentation, anchor, mode]);
   const nextStep = nextScheduledStep(scheduled, now, completed);
-  const dateFormatter = useMemo(() => new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : "en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), [locale]);
-  const timeFormatter = useMemo(() => new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : "en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }), [locale]);
+  const dateFormatter = useMemo(() => new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : locale === "sv" ? "sv-SE" : "en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), [locale]);
+  const timeFormatter = useMemo(() => new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : locale === "sv" ? "sv-SE" : "en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }), [locale]);
   const backHref = `/?${recipeParams(settings).toString()}`;
 
   const startNow = () => {

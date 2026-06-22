@@ -8,7 +8,7 @@ import { flourById } from "@/lib/flours";
 import { pizzaStyles, type PizzaStyleId } from "@/lib/pizza-styles";
 import { recipeParams } from "@/lib/recipe-url";
 
-type Locale = "fi" | "en";
+type Locale = "fi" | "sv" | "en";
 
 const copy = {
   fi: {
@@ -23,6 +23,12 @@ const copy = {
     descriptions: { neapolitan: "A soft thin centre, airy leopard-spotted rim, and a very fast bake in a hot pizza oven.", contemporary: "A dramatically tall, open canotto rim. Higher hydration and strong flour call for gentle handling.", "new-york": "A large, thin and foldable slice. The base is crisp while the centre remains flexible.", "roman-thin": "An extremely thin, low and crunchy tonda romana without a large rim.", detroit: "A thick rectangular pan pizza with an airy crumb and dark caramelised cheese crown.", sicilian: "A soft airy rectangular pan pizza with an oil-crisped golden base." },
     ferment: { "6h-room": "6h room", "12h-room": "12h room", "24h-room": "24h room", "24h-cold": "24h cold", "48h-cold": "48h cold" },
   },
+  sv: {
+    calculator: "Kalkylator", planner: "Tidsplan", doctor: "Degläkaren", styles: "Pizzastilar", guide: "Guide och terminologi", eyebrow: "Bibliotek över pizzastilar", title: "Välj pizzan du vill baka.", intro: "Varje stil använder lämplig bollvikt, hydrering, mjöl, jäsning och ugn. För över alla inställningar till kalkylatorn med ett tryck.", use: "Använd denna stil", balls: "bollar", pan: "form", flour: "Mjöl", fermentation: "Jäsning", hydration: "Hydrering", bake: "Gräddning", note: "Inställningarna är praktiska utgångspunkter, inte det enda rätta receptet. Finjustera dem efter din ugn och mjölsats.",
+    names: { neapolitan: "Klassisk napolitansk", contemporary: "Modern napolitansk", "new-york": "New York", "roman-thin": "Romersk tunn", detroit: "Detroit", sicilian: "Siciliansk" },
+    descriptions: { neapolitan: "Mjuk tunn mitt, luftig leopardfläckig kant och mycket snabb gräddning i en het pizzaugn.", contemporary: "Mycket hög och öppen canotto-kant. Högre hydrering och starkt mjöl kräver varsam hantering.", "new-york": "En stor, tunn och vikbar bit. Botten är krispig medan mitten förblir flexibel.", "roman-thin": "Extremt tunn, låg och knaprig tonda romana utan stor kant.", detroit: "Tjock rektangulär pannpizza med luftig smula och mörkt karamelliserad ostkant.", sicilian: "Mjuk och luftig rektangulär pannpizza med oljekrispig gyllene botten." },
+    ferment: { "6h-room": "6 h rum", "12h-room": "12 h rum", "24h-room": "24 h rum", "24h-cold": "24 h kall", "48h-cold": "48 h kall" },
+  },
 } as const;
 
 export default function StylesPage() {
@@ -32,7 +38,8 @@ export default function StylesPage() {
 
   useEffect(() => {
     const stored = window.localStorage.getItem("doughtools-locale") as Locale | null;
-    const next = stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en";
+    const browserLocale = navigator.language.toLowerCase();
+    const next = stored === "fi" || stored === "sv" || stored === "en" ? stored : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en";
     setLocale(next); document.documentElement.lang = next; setReady(true);
   }, []);
 

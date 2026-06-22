@@ -1,7 +1,7 @@
 import type { FlourProfile } from "@/lib/flours";
 import type { Fermentation, PizzaGoal, RecipeSettings, YeastType } from "@/lib/saved-recipes";
 
-export type InstructionLocale = "fi" | "en";
+export type InstructionLocale = "fi" | "sv" | "en";
 
 export type DoughInstruction = {
   id: string;
@@ -32,6 +32,13 @@ const yeastDirections: Record<InstructionLocale, Record<YeastType, string>> = {
     ssd: "Use stiff starter at peak activity and tear it into small pieces in the water.",
     lsd: "Use liquid starter at peak activity and mix it into the water.",
   },
+  sv: {
+    cy: "Lös upp färsk jäst i en del av vattnet.",
+    ady: "Aktivera torrjästen i en liten del av vattnet enligt anvisningen på förpackningen.",
+    idy: "Fördela snabbtorrjästen jämnt i mjölet.",
+    ssd: "Använd fast surdeg vid maximal aktivitet och riv den i små bitar i vattnet.",
+    lsd: "Använd aktiv flytande surdeg vid maximal aktivitet och blanda den i vattnet.",
+  },
 };
 
 const fermentationPlan: Record<Fermentation, { bulk: string; final: string; cold?: string; warm?: string }> = {
@@ -54,6 +61,12 @@ const styleFinish: Record<InstructionLocale, Record<PizzaGoal, string>> = {
     airy: "Handle the dough very gently and preserve the gas collected in the rim.",
     crispy: "Open the dough thinner than usual. A light rolling pin is possible when the goal is a very low, crisp base.",
     pan: "Oil the pan, ease the dough into it, and let it relax before the final stretch.",
+  },
+  sv: {
+    balanced: "Öppna bollen från mitten utåt och bevara luften i kanten. Använd inte kavel.",
+    airy: "Hantera degen mycket varsamt och bevara gasen som samlats i kanten.",
+    crispy: "Öppna degen tunnare än vanligt. En lätt kavel kan användas för en mycket låg och krispig botten.",
+    pan: "Olja formen, bred försiktigt ut degen och låt den slappna av före den sista sträckningen.",
   },
 };
 
@@ -154,5 +167,20 @@ export function buildDoughInstructions({ locale, settings, flour, bake }: Instru
       : (fi ? "Kuumenna paistokivi täysin, käännä pizzaa paiston aikana ja säädä liekkiä pohjan mukaan." : "Heat the stone fully, turn the pizza during baking, and adjust the flame according to the base.")}`,
   });
 
+  if (locale === "sv") {
+    const swedish: Record<string, { title: string; description: string }> = {
+      prepare: { title: "Förbered och väg", description: `Väg alla ingredienser noggrant. Du använder ${flour.brand} ${flour.name} (${flour.strength}). ${yeastDirections.sv[settings.yeastType]}` },
+      mix: { title: "Blanda degen", description: highHydration ? "Börja med cirka 90–95 % av vattnet. Blanda tills inget torrt mjöl finns kvar och spara resten till senare." : "Blanda mjöl och vatten till en jämn, grov deg. Försök inte få den helt slät ännu." },
+      rest: { title: "Låt vila", description: "Täck degen. Den korta vilan hjälper mjölet att ta upp vatten och gör knådningen lättare." },
+      knead: { title: "Tillsätt salt och knåda", description: highHydration ? "Tillsätt salt och resten av vattnet gradvis. Gör 2–3 sträck- och vikomgångar med 15 minuters mellanrum." : "Tillsätt salt och knåda tills degen är sammanhängande, elastisk och ganska slät." },
+      bulk: { title: "Jäs degen i en massa", description: `Täck behållaren och jäs vid cirka ${cold ? "22" : settings.temperature} °C. Degen ska bli tydligt livligare och något större, men behöver inte fördubblas.` },
+      ball: { title: "Dela och forma bollar", description: "Dela degen jämnt och spänn till släta bollar utan att riva ytan. Lägg bollarna i behållare med lock." },
+      cold: { title: "Kalljäs", description: "Flytta bollarna till kylskåp vid 4 °C. Lämna plats för tillväxt och håll dem täckta så att de inte torkar." },
+      warm: { title: "Låt degen bli varm", description: "Håll bollarna täckta i rumstemperatur. De är klara när de är avslappnade, luftiga och kan öppnas utan att fjädra tillbaka kraftigt." },
+      final: { title: "Slutjäs som bollar", description: `Jäs täckt vid cirka ${settings.temperature} °C. En färdig boll ser levande ut och en lätt intryckning återgår långsamt.` },
+      bake: { title: "Öppna, toppa och grädda", description: `${styleFinish.sv[settings.goal]} ${settings.ovenType === "home" ? "Förvärm sten eller stål i 45–60 minuter och använd ugnens högsta praktiska värme." : "Värm stenen helt, rotera pizzan under gräddningen och justera lågan efter botten."}` },
+    };
+    return { steps: steps.map(step => ({ ...step, ...swedish[step.id] })), warnings: warnings.map(warning => warning.replace("hydration is outside this flour’s suggested", "hydrering ligger utanför mjölets rekommenderade").replace("hours is outside this flour’s suggested", "timmar ligger utanför mjölets rekommenderade")) };
+  }
   return { steps, warnings };
 }

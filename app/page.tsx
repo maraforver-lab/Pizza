@@ -20,7 +20,7 @@ import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
 import { bakeFor } from "@/lib/baking";
 import { defaultPizzaStyleId, pizzaStyleById, type PizzaStyleId } from "@/lib/pizza-styles";
 
-type Locale = "en" | "fi";
+type Locale = "en" | "fi" | "sv";
 
 const fermentationOptions: { value: Fermentation; hours: number; temperature: number }[] = [
   { value: "6h-room", hours: 6, temperature: 22 },
@@ -96,6 +96,22 @@ const copy = {
     instructionsTitle: "Taikinasi valmistusohje", instructionsIntro: "Avaa kevyt suunnittelunäkymä, jossa ovat vaiheittaiset ohjeet ja tarkat kellonajat.", openPlan: "Avaa valmistusohje ja aikataulu", startClock: "Aloita nyt tai valitse haluamasi paistoaika.",
     footer: "Parempia pizzailtoja varten.", bakers: "Leipurin prosentit lasketaan jauhojen painosta.", decrease: "Vähennä pizzojen määrää", increase: "Lisää pizzojen määrää",
   },
+  sv: {
+    toolkit: "Bagarens verktyg", guide: "Guide och terminologi", calculator: "Kalkylator", planner: "Tidsplan", doctor: "Degläkaren", styles: "Pizzastilar", journal: "Dagbok", eyebrow: "Pizzadegskalkylator", title: "Din nästa fantastiska pizza börjar med rätt siffror.",
+    intro: "Välj satsstorlek, stil och jäsning. Vi sköter bagarens matematik.", build: "Finjustera degen",
+    quickTitle: "Vilken pizza vill du baka?", quickIntro: "Välj resultat, baktid och ugn. Kalkylatorn skapar ett vettigt startrecept för en mellanstor pizza.", schedule: "När ska du baka?",
+    oven: "Vilken ugn använder du?", homeOven: "Elektrisk ugn", homeOvenNote: "Sten eller stål", gasOven: "Gaseldad pizzaugn", gasOvenNote: "Ooni, Chef Matteo m.fl.", bakeGuide: "Bakrekommendation", bakeTemperature: "Temperatur", bakeTime: "Baktid", homePreheat: "Förvärm stenen eller stålet ordentligt, vanligtvis 45–60 minuter.", gasPreheat: "Värm stenen helt och justera lågan medan du roterar pizzan.", panGasNote: "Kontrollera att formen tål temperaturen och gaslågan.", recommendation: "Rekommenderad inställning", flourStrength: "Mjölets styrka", mediumSize: "Mellanstor", tune: "Finjustera receptet", hideTune: "Dölj finjustering", flourChoice: "Välj pizzamjöl", flourIntro: "Mjölprofilen föreslår lämplig hydrering och jästid.", protein: "Protein", suggestedHydration: "Hydrering", suggestedTime: "Jäsning", bestFor: "Passar bäst för", applyFlour: "Använd mjölförslaget", flourApplied: "Mjölförslaget har använts", estimatedData: "Ungefärlig profil – kontrollera aktuella värden på din mjölpåse.", makerInfo: "Tillverkarens information",
+    goals: { balanced: ["Balanserad", "Mjuk med krispig botten"], airy: ["Mycket luftig", "Öppen och lätt kant"], crispy: ["Tunn och krispig", "Låg och knaprig botten"], pan: ["Luftig pannpizza", "Mjuk, hög och fluffig"] },
+    pizzas: "Antal pizzor", panPizzas: "Antal pannpizzor", panOvenLocked: "Pannpizza bakas i elektrisk ugn. Gasugnen är låst för en säker och förutsägbar nybörjarinställning.", ballWeight: "Degbollens vikt", hydration: "Hydrering", salt: "Salt", waste: "Reserv för svinn",
+    yeastType: "Jästyp", fermentation: "Jäsning", temperature: "Rumstemperatur", coldTemperature: "Kylskåpstemperatur", coldFixed: "Fast inställning för kalljäsning",
+    yeasts: { cy: ["CY", "Färsk jäst"], ady: ["ADY", "Aktiv torrjäst"], idy: ["IDY", "Snabbtorrjäst"], ssd: ["SSD", "Fast surdeg (50 %)"], lsd: ["LSD", "Flytande surdeg (100 %)"] },
+    ferment: { "6h-room": ["6 h rum", "Samma dag"], "12h-room": ["12 h rum", "Över natten"], "24h-room": ["24 h rum", "Dag + natt"], "24h-cold": ["24 h kall", "Kylskåp"], "48h-cold": ["48 h kall", "Djup smak"] },
+    yourRecipe: "Ditt recept", ready: "Redo att blandas", total: "totalt", flour: "Mjöl", water: "Vatten",
+    saveRecipe: "Spara recept", recipeName: "Receptets namn", recipeNamePlaceholder: "Fredagspizza", save: "Spara", cancel: "Avbryt", saved: "Receptet sparades", myRecipes: "Mina recept", noRecipes: "Inga sparade recept ännu.", openRecipe: "Öppna", deleteRecipe: "Radera", deleteConfirm: "Radera det sparade receptet?", savedOn: "Sparat", recipeOpened: "Receptet öppnades", shareTitle: "Dela din pizza", shareIntro: "Skicka ett pizzakort och receptlänk till Instagram, WhatsApp eller en annan app.", shareRecipe: "Dela bild", shareWhatsApp: "WhatsApp-länk", copyLink: "Kopiera receptlänk", linkCopied: "Receptlänken kopierades", shareText: "Jag bakar {style}-pizza med DoughTools. Skapa ditt eget pizzarecept:", shareFallback: "Receptlänken kopierades. Klistra in den i Instagram eller en annan app.",
+    note: "Mängden jäsmedel uppskattas från tid och temperatur. Mjölets styrka, surdegens aktivitet och degens verkliga temperatur kan kräva justering.",
+    instructionsTitle: "Din degplan", instructionsIntro: "Öppna den tydliga planeringsvyn med stegvisa instruktioner och exakta klockslag.", openPlan: "Öppna instruktioner och tidsplan", startClock: "Börja nu eller välj önskad baktid.",
+    footer: "För bättre pizzakvällar.", bakers: "Bagarprocent beräknas utifrån mjölets vikt.", decrease: "Minska antalet pizzor", increase: "Öka antalet pizzor",
+  },
 } as const;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value || 0));
@@ -103,7 +119,7 @@ const steppedValue = (value: number, direction: -1 | 1, step: number, min: numbe
   const decimals = step.toString().split(".")[1]?.length ?? 0;
   return clamp(Number((value + direction * step).toFixed(decimals)), min, max);
 };
-const grams = (value: number, locale: Locale, precise = false) => new Intl.NumberFormat(locale === "fi" ? "fi-FI" : "en-US", {
+const grams = (value: number, locale: Locale, precise = false) => new Intl.NumberFormat(locale === "fi" ? "fi-FI" : locale === "sv" ? "sv-SE" : "en-US", {
   maximumFractionDigits: precise ? (value < 10 ? 2 : 1) : (value < 10 ? 1 : 0),
 }).format(value);
 
@@ -211,12 +227,14 @@ export default function Home() {
   const activePreset = presetFor(goal, ovenTemperature, fermentation);
   const activeFlour = flourById(flourId);
   const activePizzaStyle = pizzaStyleById(pizzaStyleId, goal);
-  const activePizzaName = locale === "fi" ? activePizzaStyle.nameFi : activePizzaStyle.nameEn;
+  const swedishStyleNames: Record<string, string> = { neapolitan: "Klassisk napolitansk", contemporary: "Modern napolitansk", "new-york": "New York", "roman-thin": "Romersk tunn", detroit: "Detroit", sicilian: "Siciliansk" };
+  const activePizzaName = locale === "fi" ? activePizzaStyle.nameFi : locale === "sv" ? swedishStyleNames[activePizzaStyle.id] ?? activePizzaStyle.nameEn : activePizzaStyle.nameEn;
 
   useEffect(() => {
     const saved = window.localStorage.getItem("doughtools-locale") as Locale | null;
-    const detected: Locale = navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en";
-    const nextLocale = saved === "fi" || saved === "en" ? saved : detected;
+    const browserLocale = navigator.language.toLowerCase();
+    const detected: Locale = browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en";
+    const nextLocale = saved === "fi" || saved === "sv" || saved === "en" ? saved : detected;
     setLocale(nextLocale);
     document.documentElement.lang = nextLocale;
   }, []);
@@ -436,7 +454,7 @@ export default function Home() {
             <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full bg-tomato px-3 py-2 text-xs font-bold text-white transition hover:bg-tomato/90 xl:block">AI Coach</Link>
             <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">{locale === "fi" ? "Yhteisö" : "Community"}</Link>
             <div className="flex rounded-full border border-ink/10 bg-white/70 p-1" aria-label="Language">
-              {(["fi", "en"] as Locale[]).map((language) => <button key={language} type="button" onClick={() => changeLocale(language)} aria-pressed={locale === language} className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase transition ${locale === language ? "bg-ink text-white" : "text-ink/45"}`}>{language}</button>)}
+              {(["fi", "sv", "en"] as Locale[]).map((language) => <button key={language} type="button" onClick={() => changeLocale(language)} aria-pressed={locale === language} className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase transition ${locale === language ? "bg-ink text-white" : "text-ink/45"}`}>{language}</button>)}
             </div>
             <span className="hidden rounded-full border border-leaf/20 bg-leaf/5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-leaf md:block">{t.toolkit}</span>
           </div>

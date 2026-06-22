@@ -7,7 +7,7 @@ import { pizzaStyleById } from "@/lib/pizza-styles";
 import { settingsFromUrl } from "@/lib/recipe-url";
 import type { PizzaStyleId, RecipeSettings } from "@/lib/saved-recipes";
 
-type Locale = "fi" | "en";
+type Locale = "fi" | "sv" | "en";
 type TimerStatus = "idle" | "running" | "paused" | "overtime" | "expired";
 type WakeStatus = "idle" | "active" | "unsupported" | "failed";
 type LightMode = "off" | "torch" | "screen";
@@ -24,6 +24,9 @@ const copy = {
   },
   en: {
     eyebrow: "Bake timer", title: "Keep your eyes on the pizza. We will keep the time.", intro: "The final 10 seconds get a rising sound cue. After zero, red overtime runs for a maximum of 90 seconds.", back: "Back to preparation guide", recipe: "Current pizza style", recommended: "Style default", quick: "Quick times", custom: "Adjust time", start: "Start", pause: "Pause", resume: "Resume", reset: "Reset", minus: "Subtract 10 seconds", plus: "Add 10 seconds", mute: "Mute sounds", sound: "Sounds on", ready: "Ready to start", running: "Pizza is baking", paused: "Timer paused", overtime: "PIZZA OUT!", expired: "90 seconds overtime — check the pizza now", wakeActive: "Screen will stay awake", wakeIdle: "The screen will stay awake when the timer starts", wakeUnsupported: "This browser cannot keep the screen awake. Temporarily change the phone's auto-lock if needed.", wakeFailed: "The phone did not allow screen wake lock. Battery saving mode may block it.", note: "Keep this page visible while timing. If you switch apps, time is still calculated from the real finish time.", secondsLeft: "seconds left", overtimeLabel: "overtime", maxOvertime: "Overtime stops at +1:30.", light: "Inspection light", lightOff: "Turn light off", torchOn: "Flashlight on", screenOn: "White inspection light", whiteLight: "Open white screen", lightHint: "Android will try to use the rear flash. On iPhone a bright white view opens while the timer keeps running.",
+  },
+  sv: {
+    eyebrow: "Gräddningstimer", title: "Håll ögonen på pizzan. Vi håller tiden.", intro: "De sista 10 sekunderna får en stigande ljudsignal. Efter noll fortsätter röd övertid i högst 90 sekunder.", back: "Tillbaka till tillagningsguiden", recipe: "Aktuell pizzastil", recommended: "Stilens standardtid", quick: "Snabbtider", custom: "Justera tiden", start: "Starta", pause: "Paus", resume: "Fortsätt", reset: "Nollställ", minus: "Minska med 10 sekunder", plus: "Öka med 10 sekunder", mute: "Stäng av ljud", sound: "Ljud på", ready: "Redo att starta", running: "Pizzan gräddas", paused: "Timern är pausad", overtime: "TA UT PIZZAN!", expired: "90 sekunders övertid — kontrollera pizzan nu", wakeActive: "Skärmen hålls vaken", wakeIdle: "Skärmen hålls vaken när timern startar", wakeUnsupported: "Webbläsaren kan inte hålla skärmen vaken. Ändra vid behov telefonens autolås.", wakeFailed: "Telefonen tillät inte skärmlåset. Strömsparläget kan blockera det.", note: "Håll sidan synlig under tidtagningen. Om du byter app beräknas tiden ändå från den verkliga sluttiden.", secondsLeft: "sekunder kvar", overtimeLabel: "övertid", maxOvertime: "Övertiden stannar vid +1:30.", light: "Kontrolljus", lightOff: "Släck ljuset", torchOn: "Ficklampan är på", screenOn: "Vitt kontrolljus", whiteLight: "Öppna vit skärm", lightHint: "Android försöker använda den bakre blixten. På iPhone öppnas en ljus vit vy medan timern fortsätter.",
   },
 } as const;
 
@@ -50,7 +53,8 @@ export default function TimerPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem("doughtools-locale") as Locale | null;
-    const next = stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en";
+    const browserLocale = navigator.language.toLowerCase();
+    const next = stored === "fi" || stored === "sv" || stored === "en" ? stored : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en";
     const shared = settingsFromUrl(location.search);
     const nextSettings = { ...defaults, ...Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) } as RecipeSettings;
     const styleId = pizzaStyleById(nextSettings.pizzaStyleId, nextSettings.goal).id;
