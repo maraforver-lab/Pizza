@@ -11,7 +11,7 @@ const copy = {
   fi: {
     calculator: "Laskuri", plan: "Suunnittele", learn: "Opi", mine: "Omat", all: "Kaikki työkalut", menu: "Valikko", close: "Sulje valikko",
     groups: [
-      ["Suunnittele", [["/styles", "Pizzatyylit"], ["/plan", "Valmistusohje ja aikataulu"], ["/sauce", "Kastikelaskuri"], ["/toppings", "Juusto ja täytteet"]]],
+      ["Suunnittele", [["/styles", "Pizzatyylit"], ["/plan", "Valmistusohje ja aikataulu"], ["/timer", "Paistoajastin"], ["/sauce", "Kastikelaskuri"], ["/toppings", "Juusto ja täytteet"]]],
       ["Ratkaise", [["/doctor", "Taikinalääkäri"], ["/coach", "AI Pizza Coach"], ["/costs", "Kustannuslaskuri"]]],
       ["Opi ja varustaudu", [["/guide", "Ohjeet ja terminologia"], ["/ovens", "Uuniopas"], ["/gear", "Varusteopas"], ["/history", "Pizzan historia"]]],
       ["Omat ja yhteisö", [["/#my-recipes", "Omat reseptit"], ["/journal", "Pizzapäiväkirja"], ["/community", "Yhteisön reseptit"]]],
@@ -20,7 +20,7 @@ const copy = {
   en: {
     calculator: "Calculator", plan: "Plan", learn: "Learn", mine: "Mine", all: "All tools", menu: "Menu", close: "Close menu",
     groups: [
-      ["Plan", [["/styles", "Pizza styles"], ["/plan", "Instructions and schedule"], ["/sauce", "Sauce calculator"], ["/toppings", "Cheese and toppings"]]],
+      ["Plan", [["/styles", "Pizza styles"], ["/plan", "Instructions and schedule"], ["/timer", "Bake timer"], ["/sauce", "Sauce calculator"], ["/toppings", "Cheese and toppings"]]],
       ["Solve", [["/doctor", "Dough Doctor"], ["/coach", "AI Pizza Coach"], ["/costs", "Cost calculator"]]],
       ["Learn and equip", [["/guide", "Guide and terminology"], ["/ovens", "Oven guide"], ["/gear", "Gear guide"], ["/history", "Pizza history"]]],
       ["Mine and community", [["/#my-recipes", "Saved recipes"], ["/journal", "Pizza journal"], ["/community", "Community recipes"]]],
@@ -29,7 +29,7 @@ const copy = {
   sv: {
     calculator: "Kalkylator", plan: "Planera", learn: "Lär dig", mine: "Mina", all: "Alla verktyg", menu: "Meny", close: "Stäng menyn",
     groups: [
-      ["Planera", [["/styles", "Pizzastilar"], ["/plan", "Instruktioner och tidsplan"], ["/sauce", "Såskalkylator"], ["/toppings", "Ost och toppingar"]]],
+      ["Planera", [["/styles", "Pizzastilar"], ["/plan", "Instruktioner och tidsplan"], ["/timer", "Gräddningstimer"], ["/sauce", "Såskalkylator"], ["/toppings", "Ost och toppingar"]]],
       ["Lös problem", [["/doctor", "Degläkaren"], ["/coach", "AI Pizza Coach"], ["/costs", "Kostnadskalkylator"]]],
       ["Lär dig och utrusta", [["/guide", "Guide och terminologi"], ["/ovens", "Ugnsguide"], ["/gear", "Utrustningsguide"], ["/history", "Pizzans historia"]]],
       ["Mina och gemenskap", [["/#my-recipes", "Sparade recept"], ["/journal", "Pizzadagbok"], ["/community", "Gemenskapens recept"]]],
@@ -38,7 +38,7 @@ const copy = {
 } as const;
 
 const menuGroups: Record<Exclude<MenuId, "all">, number[]> = { plan: [0], solve: [1], learn: [2], mine: [3] };
-const planRoutes = ["/styles", "/plan", "/sauce", "/toppings"];
+const planRoutes = ["/styles", "/plan", "/timer", "/sauce", "/toppings"];
 const learnRoutes = ["/guide", "/ovens", "/gear", "/history"];
 const mineRoutes = ["/journal", "/community"];
 

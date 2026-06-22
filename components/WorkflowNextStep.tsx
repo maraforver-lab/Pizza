@@ -12,6 +12,7 @@ const nextSteps: Record<string, { route: string; fi: string; en: string; sv?: st
   "/plan": { route: "/sauce", fi: "Laske seuraavaksi pizzakastike", en: "Calculate the pizza sauce next" },
   "/sauce": { route: "/toppings", fi: "Valitse juusto ja täytteet", en: "Choose cheese and toppings" },
   "/toppings": { route: "/costs", fi: "Laske koko pizzaillan kustannukset", sv: "Beräkna kostnaden för hela pizzakvällen", en: "Calculate the full pizza-night cost" },
+  "/timer": { route: "/journal", fi: "Kirjaa paiston tulos pizzapäiväkirjaan", en: "Record the bake in your pizza journal" },
   "/costs": { route: "/journal", fi: "Tallenna lopputulos päiväkirjaan", en: "Save the result in your journal" },
   "/doctor": { route: "/plan", fi: "Avaa korjattu valmistussuunnitelma", en: "Open the adjusted preparation plan" },
   "/coach": { route: "/", fi: "Vie suositukset laskuriin", en: "Take the recommendations to the calculator" },
