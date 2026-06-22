@@ -316,6 +316,7 @@ export default function Home() {
     if (!urlReady) return;
     const query = recipeParams(currentSettings).toString();
     window.history.replaceState(null, "", `${window.location.pathname}?${query}`);
+    window.dispatchEvent(new Event("doughtools:urlchange"));
   }, [currentSettings, urlReady]);
 
   const copyRecipeLink = async () => {
@@ -441,7 +442,7 @@ export default function Home() {
           </div>
         </header>
 
-        <nav className="mb-7 flex gap-2 overflow-x-auto pb-1 xl:hidden" aria-label={t.toolkit}>
+        <nav className="legacy-tool-nav mb-7 flex gap-2 overflow-x-auto pb-1 xl:hidden" aria-label={t.toolkit}>
           <a href="#top" className="shrink-0 rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.calculator}</a>
           <Link href={planHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.planner}</Link>
           <Link href={doctorHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.doctor}</Link>

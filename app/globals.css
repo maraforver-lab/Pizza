@@ -18,6 +18,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The shared site header replaces the older page-specific header links. */
+main header { display: none !important; }
+.legacy-tool-nav { display: none !important; }
+
+@media (max-width: 767px) {
+  body { padding-bottom: calc(5.25rem + env(safe-area-inset-bottom)); }
+}
+
 button, input, select { font: inherit; }
 
 input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
