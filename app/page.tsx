@@ -165,14 +165,6 @@ const shareCardFile = async (title: string, subtitle: string, details: string[],
   return blob ? new File([blob], "doughtools-recipe.png", { type: "image/png" }) : null;
 };
 
-function YeastIcon({ type }: { type: YeastType }) {
-  if (type === "cy") return <svg viewBox="0 0 48 48" aria-hidden="true" className="h-9 w-9"><path d="M10 17 24 9l14 8v16l-14 7-14-7Z" fill="currentColor" opacity=".16"/><path d="m10 17 14 8 14-8M24 25v15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/><circle cx="20" cy="17" r="1.5" fill="currentColor"/><circle cx="29" cy="16" r="1.5" fill="currentColor"/></svg>;
-  if (type === "ady") return <svg viewBox="0 0 48 48" aria-hidden="true" className="h-9 w-9"><path d="M9 27h30l-4 10H13Z" fill="currentColor" opacity=".16"/><path d="M9 27h30l-4 10H13Z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/>{[[16,22],[22,19],[28,22],[34,18],[25,14]].map(([x,y],i)=><circle key={i} cx={x} cy={y} r="2" fill="currentColor"/>)}</svg>;
-  if (type === "idy") return <svg viewBox="0 0 48 48" aria-hidden="true" className="h-9 w-9"><path d="M14 8h20l3 32H11Z" fill="currentColor" opacity=".16"/><path d="M14 8h20l3 32H11Zm1 8h20M19 26h10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/></svg>;
-  const liquid = type === "lsd";
-  return <svg viewBox="0 0 48 48" aria-hidden="true" className="h-9 w-9"><path d="M13 13h22v27H13Z" fill="currentColor" opacity=".12"/><path d="M13 13h22v27H13Zm-2-5h26v5H11Z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/><path d={liquid ? "M16 29c4-4 8 4 16 0v8H16Z" : "M16 25c4 2 5-2 8 0 3 2 5-2 8 0v12H16Z"} fill="currentColor" opacity=".55"/>{!liquid && <path d="M19 30h10M18 34h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}</svg>;
-}
-
 function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = false, decreaseLabel = "Decrease", increaseLabel = "Increase", onChange }: {
   id: string; label: string; value: number; min: number; max: number; step?: number; suffix?: string; stepper?: boolean; decreaseLabel?: string; increaseLabel?: string; onChange: (value: number) => void;
 }) {
@@ -538,12 +530,10 @@ export default function Home() {
               <NumberField id="waste" label={t.waste} value={waste} min={0} max={25} step={0.5} suffix="%" stepper onChange={setWaste} />
               <fieldset>
                 <legend className="mb-2 text-sm font-semibold text-ink/70">{t.yeastType}</legend>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["cy", "ady", "idy", "ssd", "lsd"] as YeastType[]).map((type) => { const selected = yeastType === type; return <button key={type} type="button" aria-label={t.yeasts[type][1]} aria-pressed={selected} onClick={() => setYeastType(type)} className={`relative flex min-h-20 items-center gap-2 rounded-2xl border p-2.5 text-left transition ${type === "lsd" ? "col-span-2" : ""} ${selected ? "border-tomato bg-tomato/[.07] text-tomato shadow-sm" : "border-ink/10 bg-white text-ink/55 hover:border-ink/25 hover:text-ink"}`}>
-                    <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? "bg-tomato/10" : "bg-ink/[.04]"}`}><YeastIcon type={type}/></span>
-                    <span className="min-w-0"><span className="flex items-center gap-1.5"><strong className="text-sm text-ink">{t.yeasts[type][1]}</strong><small className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-extrabold ${selected ? "bg-tomato text-white" : "bg-ink/[.07] text-ink/45"}`}>{t.yeasts[type][0]}</small></span>{selected && <span className="mt-1 block text-[10px] font-bold">✓ {locale === "fi" ? "Valittu" : "Selected"}</span>}</span>
-                  </button>; })}
+                <div className="grid h-14 grid-cols-5 rounded-2xl bg-ink/5 p-1">
+                  {(["cy", "ady", "idy", "ssd", "lsd"] as YeastType[]).map((type) => <button key={type} type="button" title={t.yeasts[type][1]} aria-label={t.yeasts[type][1]} aria-pressed={yeastType === type} onClick={() => setYeastType(type)} className={`rounded-xl text-xs font-extrabold transition ${yeastType === type ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink"}`}>{t.yeasts[type][0]}</button>)}
                 </div>
+                <p className="mt-2 text-xs font-semibold text-ink/50">{t.yeasts[yeastType][1]}</p>
               </fieldset>
             </div>
 
