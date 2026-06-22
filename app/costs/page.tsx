@@ -43,7 +43,9 @@ export default function CostsPage() {
     const shared = settingsFromUrl(location.search);
     setLocale(next);
     setCurrency(storedCurrency === "EUR" || storedCurrency === "USD" ? storedCurrency : defaultCurrency(navigator.language));
-    setValues(current => ({ ...current, pizzas: shared.pizzas ?? current.pizzas, diners: shared.pizzas ?? current.diners, ballWeight: shared.ballWeight ?? current.ballWeight, hydration: shared.hydration ?? current.hydration, salt: shared.salt ?? current.salt }));
+    const params = new URLSearchParams(location.search);
+    const amount = (key: string, fallback: number) => { const value = Number(params.get(key)); return Number.isFinite(value) && value >= 0 ? value : fallback; };
+    setValues(current => ({ ...current, pizzas: shared.pizzas ?? current.pizzas, diners: shared.pizzas ?? current.diners, ballWeight: shared.ballWeight ?? current.ballWeight, hydration: shared.hydration ?? current.hydration, salt: shared.salt ?? current.salt, sauceGrams: amount("sauceGrams", current.sauceGrams), cheeseGrams: amount("cheeseGrams", current.cheeseGrams), toppingGrams: amount("toppingGrams", current.toppingGrams) }));
     document.documentElement.lang = next; setReady(true);
   }, []);
   const result = useMemo(() => calculatePizzaCost(values), [values]);
