@@ -8,6 +8,7 @@ export type ChangeEntry = {
 };
 
 export const changes: ChangeEntry[] = [
+  { version: "1.0.52", date: "2026-06-23", owner: "Joel", href: "/toppings", fi: "Aidot pizzakuvat täytekuorman pikaoppaaseen", en: "Real pizza photos for the topping-load quick guide" },
   { version: "1.0.51", date: "2026-06-22", owner: "Joel", href: "/toppings", fi: "Täytekuorman visuaalinen pikaopas", en: "Visual topping-load quick guide" },
   { version: "1.0.50", date: "2026-06-22", owner: "Mara", href: "/updates", fi: "Päivityshistoria, sivuston syntytarina ja uusien ominaisuuksien nosto", en: "Update history, the DoughTools story and a new-feature highlight" },
   { version: "1.0.49", date: "2026-06-22", owner: "Mara", href: "/", fi: "Ruotsin kielituki laskuriin ja tärkeimpiin työkaluihin", en: "Swedish support for the calculator and core tools" },
@@ -32,7 +33,6 @@ export const changes: ChangeEntry[] = [
   { version: "1.0.30", date: "2026-06-22", owner: "Mara", href: "/", fi: "Kohotustavan valintaa selkeytetty", en: "Clearer leavening selector" },
   { version: "1.0.29", date: "2026-06-22", owner: "Mara", href: "/", fi: "Pannupizza lukitaan sähköuuniin", en: "Pan pizza recipes locked to an electric oven" },
   { version: "1.0.28", date: "2026-06-22", owner: "Mara", href: "/", fi: "Valitun pizzan kuva jaettavaan reseptikorttiin", en: "Selected pizza photo used in share cards" },
-  { version: "1.0.27", date: "2026-06-22", owner: "Mara", href: "/guide", fi: "Ohjeet ja terminologia -nimeä parannettu", en: "Improved Finnish terminology label" },
 ];
 
 export const latestChange = changes[0];

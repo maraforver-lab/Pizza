@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
@@ -65,31 +66,25 @@ const visualCopy = {
   sv: { title: "Så ser toppingbelastningen ut", lead: "Jämför din pizza med tre enkla exempel.", light: "För lite", balanced: "Lagom", heavy: "För mycket", yours: "Din pizza", section: "Pizzans tvärsnitt", dry: "Balanserad mitt", wet: "Risk för blöt mitt", note: "Bilden visar belastning och fukt i stora drag, inte ett färdigt foto av receptet." },
 } as const;
 
-const toppingDots = {
-  light: [[34, 35], [62, 54], [43, 70]],
-  balanced: [[31, 29], [54, 25], [69, 39], [39, 49], [58, 57], [29, 67], [69, 72]],
-  heavy: [[25, 24], [43, 22], [61, 25], [73, 37], [32, 39], [51, 41], [65, 51], [27, 57], [43, 61], [57, 68], [73, 70], [34, 77]],
-} as const;
-
 function ToppingLoadVisual({ locale, load, moisture }: { locale: Locale; load: "light" | "balanced" | "heavy" | "overloaded"; moisture: "low" | "medium" | "high" }) {
   const v = visualCopy[locale];
   const current = load === "light" ? "light" : load === "balanced" ? "balanced" : "heavy";
-  const examples = (["light", "balanced", "heavy"] as const).map(kind => ({ kind, label: v[kind] }));
+  const examples = ([
+    { kind: "light", label: v.light, src: "/toppings/too-light.webp" },
+    { kind: "balanced", label: v.balanced, src: "/toppings/balanced.webp" },
+    { kind: "heavy", label: v.heavy, src: "/toppings/too-heavy.webp" },
+  ] as const);
   const wet = moisture === "high" || moisture === "medium";
 
   return <section className="rounded-[1.75rem] bg-white/85 p-5 shadow-card" aria-labelledby="topping-visual-title">
     <h2 id="topping-visual-title" className="font-display text-2xl font-semibold">{v.title}</h2>
     <p className="mt-1 text-[11px] leading-5 text-ink/45">{v.lead}</p>
     <div className="mt-4 grid grid-cols-3 gap-2">
-      {examples.map(({ kind, label }) => {
+      {examples.map(({ kind, label, src }) => {
         const active = current === kind;
         return <div key={kind} className={`rounded-2xl border p-2 text-center ${active ? "border-leaf bg-leaf/[.07]" : "border-ink/10 bg-cream/60"}`}>
-          <div className="relative mx-auto aspect-square w-full max-w-20 rounded-full bg-[#d7a65c] shadow-inner" aria-hidden="true">
-            <div className="absolute inset-[9%] rounded-full bg-[#c94c32]" />
-            <div className="absolute left-[27%] top-[28%] h-[19%] w-[24%] rounded-full bg-[#f5e1b8]" />
-            <div className="absolute bottom-[23%] right-[18%] h-[18%] w-[27%] rounded-full bg-[#f5e1b8]" />
-            {toppingDots[kind].map(([left, top], index) => <span key={index} className={`absolute h-[9%] w-[9%] rounded-full ${kind === "heavy" && index % 3 === 0 ? "bg-[#77613c]" : "bg-[#4f733f]"}`} style={{ left: `${left}%`, top: `${top}%` }} />)}
-            {kind === "heavy" && <><span className="absolute bottom-[18%] left-[46%] h-[8%] w-[8%] rounded-full bg-sky-300/80"/><span className="absolute right-[25%] top-[47%] h-[7%] w-[7%] rounded-full bg-sky-300/80"/></>}
+          <div className="relative mx-auto aspect-square w-full overflow-hidden rounded-xl bg-ink/5 shadow-inner">
+            <Image src={src} alt={label} fill sizes="(max-width: 640px) 29vw, 96px" className="object-cover"/>
           </div>
           <strong className="mt-2 block text-[10px] leading-tight">{label}</strong>
           {active && <span className="mt-1 inline-flex rounded-full bg-leaf px-2 py-1 text-[8px] font-extrabold text-white">✓ {v.yours}</span>}
