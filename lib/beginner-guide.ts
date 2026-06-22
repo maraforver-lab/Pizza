@@ -10,9 +10,9 @@ export type BeginnerStepHelp = {
 };
 
 const imageByStep: Record<string, string> = {
-  prepare: "/dough-guide/01-weigh.webp", mix: "/dough-guide/02-mix.webp", rest: "/dough-guide/03-rest.webp",
-  knead: "/dough-guide/04-fold.webp", bulk: "/dough-guide/05-bulk.webp", ball: "/dough-guide/06-ball-new.webp",
-  cold: "/dough-guide/07-cold.webp", warm: "/dough-guide/08-ready-new.webp", final: "/dough-guide/08-ready-new.webp", bake: "/dough-guide/09-open.webp",
+  prepare: "/dough-guide/01-weigh.webp", mix: "/dough-guide/02-mix.webp", rest: "/dough-guide/03-rest-v2.webp",
+  knead: "/dough-guide/04-fold-v2.webp", bulk: "/dough-guide/05-bulk-v2.webp", ball: "/dough-guide/06-ball-v3.webp",
+  cold: "/dough-guide/07-cold.webp", warm: "/dough-guide/08-ready-v3.webp", final: "/dough-guide/08-ready-v3.webp", bake: "/dough-guide/09-open.webp",
 };
 
 const fi: Record<string, Omit<BeginnerStepHelp, "image">> = {
