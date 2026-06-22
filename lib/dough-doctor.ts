@@ -64,5 +64,20 @@ export function diagnoseDough(issue: DoctorIssueId, settings: RecipeSettings, fl
     },
   } as const;
 
-  return answers[issue];
+  const styleNotes = {
+    balanced: fi
+      ? "Tasapainoisessa pyöreässä pizzassa pallon pitää olla rento mutta yhä ryhdikäs. Liiallinen tahmeus, leviäminen tai voimakas palautuminen kannattaa korjata ennen avaamista."
+      : "For a balanced round pizza, the ball should be relaxed yet still hold itself. Excessive stickiness, spreading, or spring-back should be corrected before opening.",
+    airy: fi
+      ? "Ilmava tyyli käyttää usein korkeampaa hydraatiota, joten pehmeys ja lievä tahmeus ovat tavallisia. Älä lisää heti jauhoa tai purista kaasua pois; käsittele pallo mahdollisimman hellästi."
+      : "An airy style often uses higher hydration, so softness and slight stickiness are normal. Do not immediately add flour or squeeze out the gas; handle the ball as gently as possible.",
+    crispy: fi
+      ? "Ohuessa ja rapeassa tyylissä taikina saa olla napakampi ja vähemmän kupliva kuin ilmavassa pizzassa. Tavoite on helposti oheneva pohja, ei suuri kaasumäärä reunuksessa."
+      : "For a thin crisp style, dough may be firmer and less bubbly than an airy pizza. The goal is an easily thinned base, not a large volume of gas in the rim.",
+    pan: fi
+      ? "Pannupizzan pehmeä ja tahmea taikina voi olla täysin normaali. Älä arvioi sitä pyöreän pizzapallon säännöillä: öljyä pannu ja kädet, levitä taikina vaiheittain ja anna sen rentoutua välissä."
+      : "Soft sticky pan-pizza dough can be completely normal. Do not judge it by round dough-ball rules: oil the pan and hands, spread in stages, and let it relax between stretches.",
+  } as const;
+
+  return { ...answers[issue], styleNote: styleNotes[settings.goal] };
 }
