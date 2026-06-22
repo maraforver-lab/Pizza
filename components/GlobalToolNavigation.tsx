@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type Locale = "fi" | "en";
+type Locale = "fi" | "sv" | "en";
 type MenuId = "plan" | "solve" | "learn" | "mine" | "all";
 
 const copy = {
@@ -26,6 +26,15 @@ const copy = {
       ["Mine and community", [["/#my-recipes", "Saved recipes"], ["/journal", "Pizza journal"], ["/community", "Community recipes"]]],
     ],
   },
+  sv: {
+    calculator: "Kalkylator", plan: "Planera", learn: "Lär dig", mine: "Mina", all: "Alla verktyg", menu: "Meny", close: "Stäng menyn",
+    groups: [
+      ["Planera", [["/styles", "Pizzastilar"], ["/plan", "Instruktioner och tidsplan"], ["/sauce", "Såskalkylator"], ["/toppings", "Ost och toppingar"]]],
+      ["Lös problem", [["/doctor", "Degläkaren"], ["/coach", "AI Pizza Coach"], ["/costs", "Kostnadskalkylator"]]],
+      ["Lär dig och utrusta", [["/guide", "Guide och terminologi"], ["/ovens", "Ugnsguide"], ["/gear", "Utrustningsguide"], ["/history", "Pizzans historia"]]],
+      ["Mina och gemenskap", [["/#my-recipes", "Sparade recept"], ["/journal", "Pizzadagbok"], ["/community", "Gemenskapens recept"]]],
+    ],
+  },
 } as const;
 
 const menuGroups: Record<Exclude<MenuId, "all">, number[]> = { plan: [0], solve: [1], learn: [2], mine: [3] };
@@ -40,7 +49,7 @@ export default function GlobalToolNavigation() {
   const [open, setOpen] = useState<MenuId | null>(null);
 
   useEffect(() => {
-    const updateLocale = () => { const stored = localStorage.getItem("doughtools-locale"); setLocale(stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en"); };
+    const updateLocale = () => { const params = new URLSearchParams(window.location.search); const pageLocale = pathname === "/toppings" ? params.get("toppingsLang") : null; const stored = localStorage.getItem("doughtools-locale"); setLocale(pageLocale === "fi" || pageLocale === "sv" || pageLocale === "en" ? pageLocale : stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en"); };
     const updateQuery = () => setQuery(window.location.search);
     updateLocale(); updateQuery(); setOpen(null);
     window.addEventListener("popstate", updateQuery);
@@ -58,13 +67,13 @@ export default function GlobalToolNavigation() {
 
   const t = copy[locale];
   const href = (route: string) => { const [path, hash] = route.split("#"); return `${path}${query}${hash ? `#${hash}` : ""}`; };
-  const changeLocale = (next: Locale) => { localStorage.setItem("doughtools-locale", next); document.documentElement.lang = next; window.dispatchEvent(new Event("doughtools:localechange")); window.location.reload(); };
+  const changeLocale = (next: Locale) => { if (pathname === "/toppings") { localStorage.setItem("doughtools-toppings-locale", next); const params = new URLSearchParams(window.location.search); params.set("toppingsLang", next); window.history.replaceState(null, "", `${pathname}?${params.toString()}`); } else if (next !== "sv") localStorage.setItem("doughtools-locale", next); document.documentElement.lang = next; window.dispatchEvent(new Event("doughtools:localechange")); window.location.reload(); };
   const toggle = (menu: MenuId) => setOpen(current => current === menu ? null : menu);
   const active = (routes: readonly string[]) => routes.includes(pathname);
   const visibleGroups = open === "all" ? [0, 1, 2, 3] : open ? menuGroups[open as Exclude<MenuId, "all">] : [];
 
   const languageSwitch = <div className="flex rounded-full bg-ink/[.05] p-1" aria-label="Language">
-    {(["fi", "en"] as Locale[]).map(lang => <button key={lang} type="button" onClick={() => changeLocale(lang)} aria-pressed={locale === lang} className={`rounded-full px-2.5 py-1.5 text-[10px] font-extrabold uppercase ${locale === lang ? "bg-ink text-white" : "text-ink/45"}`}>{lang}</button>)}
+    {(pathname === "/toppings" ? ["fi", "sv", "en"] as Locale[] : ["fi", "en"] as Locale[]).map(lang => <button key={lang} type="button" onClick={() => changeLocale(lang)} aria-pressed={locale === lang} className={`rounded-full px-2.5 py-1.5 text-[10px] font-extrabold uppercase ${locale === lang ? "bg-ink text-white" : "text-ink/45"}`}>{lang}</button>)}
   </div>;
 
   return <>
