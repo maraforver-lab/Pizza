@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Props = {
   locale: "en" | "fi" | "sv";
   dark?: boolean;
@@ -11,8 +13,6 @@ export default function AppSignature({ locale, dark = false }: Props) {
     day: "numeric",
     month: "short",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
     timeZone: "Europe/Helsinki",
   }).format(new Date(updatedAt));
 
@@ -24,6 +24,7 @@ export default function AppSignature({ locale, dark = false }: Props) {
       <span className="font-mono">build {buildId}</span>
       <span aria-hidden="true">•</span>
       <time dateTime={updatedAt}>{locale === "fi" ? "Päivitetty" : locale === "sv" ? "Uppdaterad" : "Updated"} {updated}</time>
+      <Link href="/updates" className={`font-bold underline underline-offset-2 ${dark ? "hover:text-white" : "hover:text-tomato"}`}>{locale === "fi" ? "Katso päivitykset" : locale === "sv" ? "Se uppdateringar" : "View updates"}</Link>
     </div>
   );
 }

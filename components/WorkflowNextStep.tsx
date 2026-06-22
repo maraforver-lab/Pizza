@@ -17,6 +17,7 @@ const nextSteps: Record<string, { route: string; fi: string; en: string; sv?: st
   "/doctor": { route: "/plan", fi: "Avaa korjattu valmistussuunnitelma", en: "Open the adjusted preparation plan" },
   "/coach": { route: "/", fi: "Vie suositukset laskuriin", en: "Take the recommendations to the calculator" },
   "/guide": { route: "/styles", fi: "Tutustu pizzatyyleihin", en: "Explore pizza styles" },
+  "/updates": { route: "/", fi: "Kokeile uusinta versiota laskurissa", sv: "Prova den senaste versionen i kalkylatorn", en: "Try the latest version in the calculator" },
   "/history": { route: "/styles", fi: "Tutustu historiallisiin pizzatyyleihin", en: "Explore classic pizza styles" },
   "/ovens": { route: "/gear", fi: "Katso uunin kanssa tarvittavat varusteet", en: "See the gear needed with your oven" },
   "/gear": { route: "/plan", fi: "Siirry pizzaillan valmistussuunnitelmaan", en: "Continue to the pizza-night plan" },

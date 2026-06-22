@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import GlobalToolNavigation from "@/components/GlobalToolNavigation";
+import LatestUpdateNotice from "@/components/LatestUpdateNotice";
 import WorkflowNextStep from "@/components/WorkflowNextStep";
 import "./globals.css";
 
@@ -36,7 +37,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${inter.variable} ${newsreader.variable}`}>
-      <body className="font-sans"><GlobalToolNavigation/>{children}<WorkflowNextStep/></body>
+      <body className="font-sans"><GlobalToolNavigation/><LatestUpdateNotice/>{children}<WorkflowNextStep/></body>
     </html>
   );
 }
