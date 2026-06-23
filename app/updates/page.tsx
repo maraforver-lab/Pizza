@@ -5,8 +5,9 @@ import { useEffect } from "react";
 import AppSignature from "@/components/AppSignature";
 import {
   latestPublicUpdate,
-  patchHistoryNewestFirst,
-  publicUpdatesNewestFirst,
+  MAX_VISIBLE_UPDATES,
+  visiblePatchHistory,
+  visiblePublicUpdates,
 } from "@/lib/changelog";
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", {
@@ -21,7 +22,7 @@ export default function UpdatesPage() {
     document.documentElement.lang = "en";
   }, []);
 
-  const latest = latestPublicUpdate ?? publicUpdatesNewestFirst[0];
+  const latest = latestPublicUpdate ?? visiblePublicUpdates[0];
 
   return (
     <main className="min-h-screen px-4 py-8 pb-28 text-ink sm:px-6">
@@ -45,6 +46,7 @@ export default function UpdatesPage() {
               </span>
               <h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold sm:text-5xl">{latest.title}</h2>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">{latest.summary}</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">{latest.userImpact}</p>
               <ul className="mt-5 grid gap-2 text-sm text-white/70 sm:grid-cols-2">
                 {latest.highlights.map((highlight) => (
                   <li key={highlight} className="flex gap-2">
@@ -53,6 +55,11 @@ export default function UpdatesPage() {
                   </li>
                 ))}
               </ul>
+              {latest.technicalNote && (
+                <p className="mt-5 rounded-2xl bg-white/10 p-4 text-xs leading-5 text-white/55">
+                  {latest.technicalNote}
+                </p>
+              )}
             </div>
             <Link
               href="/"
@@ -73,11 +80,12 @@ export default function UpdatesPage() {
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Release history</p>
             <h2 className="mt-2 font-display text-4xl font-semibold">What changed</h2>
             <p className="mt-3 text-sm leading-6 text-ink/55">
-              These entries summarize the completed Patch 01–Patch 12 foundation work without exposing internal commit details.
+              Showing the newest {MAX_VISIBLE_UPDATES} update cards at most. Older update data can stay in the changelog
+              without making this page harder to scan.
             </p>
           </div>
           <div className="mt-6 grid gap-3 md:grid-cols-2">
-            {patchHistoryNewestFirst.map((entry) => (
+            {visiblePatchHistory.map((entry) => (
               <article key={entry.patch} className="rounded-2xl border border-white bg-white/75 p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <strong className="font-mono text-sm text-tomato">Patch {String(entry.patch).padStart(2, "0")}</strong>
@@ -87,6 +95,20 @@ export default function UpdatesPage() {
                 </div>
                 <h3 className="mt-3 font-display text-xl font-semibold leading-tight">{entry.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink/55">{entry.summary}</p>
+                <ul className="mt-4 space-y-2 text-sm leading-6 text-ink/60">
+                  {entry.highlights.map((highlight) => (
+                    <li key={highlight} className="flex gap-2">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" />
+                      <span>{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-sm leading-6 text-ink/65">{entry.userImpact}</p>
+                {entry.technicalNote && (
+                  <p className="mt-4 rounded-2xl bg-ink/[.04] p-3 text-xs leading-5 text-ink/50">
+                    {entry.technicalNote}
+                  </p>
+                )}
               </article>
             ))}
           </div>

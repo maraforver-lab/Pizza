@@ -2,14 +2,18 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  getVisibleUpdates,
   isUpdateRecent,
   latestPublicUpdate,
+  MAX_VISIBLE_UPDATES,
   newUpdateNotice,
   patchHistory,
   patchHistoryNewestFirst,
   RECENT_UPDATE_NOTICE_VISIBLE_MS,
   sortUpdatesNewestFirst,
   updates,
+  visiblePatchHistory,
+  visiblePublicUpdates,
 } from "@/lib/changelog";
 
 const publicCopy = [
@@ -17,12 +21,19 @@ const publicCopy = [
     update.title,
     update.summary,
     update.category,
+    update.userImpact,
     ...update.highlights,
+    ...update.details,
+    update.technicalNote ?? "",
   ]),
   ...patchHistory.flatMap((entry) => [
     entry.title,
     entry.summary,
     entry.category,
+    entry.userImpact,
+    ...entry.highlights,
+    ...entry.details,
+    entry.technicalNote ?? "",
   ]),
   newUpdateNotice.label,
   newUpdateNotice.copy,
@@ -44,20 +55,54 @@ describe("updates changelog", () => {
     ]);
 
     expect(sorted.map((update) => update.id)).toEqual(["newer", "older", "invalid"]);
-    expect(latestPublicUpdate).toBe(updates.filter((update) => update.isPublic)[0]);
+    expect(latestPublicUpdate).toBe(visiblePublicUpdates[0]);
   });
 
-  it("includes Patch 01 through Patch 12 in release history", () => {
+  it("limits visible updates to the newest 20 without mutating source data", () => {
+    const source = Array.from({ length: 25 }, (_, index) => ({
+      id: `update-${index + 1}`,
+      date: `2026-06-${String(index + 1).padStart(2, "0")}`,
+    }));
+    const originalOrder = source.map((update) => update.id);
+
+    const visible = getVisibleUpdates(source);
+
+    expect(MAX_VISIBLE_UPDATES).toBe(20);
+    expect(visible).toHaveLength(20);
+    expect(visible[0].id).toBe("update-25");
+    expect(visible.at(-1)?.id).toBe("update-6");
+    expect(source.map((update) => update.id)).toEqual(originalOrder);
+    expect(getVisibleUpdates([])).toEqual([]);
+    expect(getVisibleUpdates(source, 0)).toEqual([]);
+  });
+
+  it("includes Patch 01 through Patch 14 in release history", () => {
     expect([...patchHistory].sort((a, b) => a.patch - b.patch).map((entry) => entry.patch))
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
     for (const entry of patchHistory) {
       expect(entry.title.trim()).toBeTruthy();
       expect(entry.summary.trim()).toBeTruthy();
+      expect(entry.highlights.length).toBeGreaterThanOrEqual(3);
+      expect(entry.details.length).toBeGreaterThanOrEqual(2);
+      expect(entry.userImpact.trim()).toBeTruthy();
     }
   });
 
   it("exposes Patch history newest first for the updates page", () => {
-    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(visiblePatchHistory).toHaveLength(patchHistory.length);
+    expect(visiblePatchHistory.length).toBeLessThanOrEqual(MAX_VISIBLE_UPDATES);
+    expect(visiblePatchHistory[0].patch).toBe(14);
+  });
+
+  it("keeps Patch 12 and Patch 14 details explicit", () => {
+    const patch12 = patchHistory.find((entry) => entry.patch === 12);
+    const patch14 = patchHistory.find((entry) => entry.patch === 14);
+
+    expect(patch12?.details.join(" ")).toContain("doughtools:bake-results");
+    expect(patch12?.technicalNote).toContain("photo upload");
+    expect(patch14?.details.join(" ")).toContain("30 seconds");
+    expect(patch14?.details.join(" ")).toContain("non-modal");
   });
 
   it("uses the required new-update notice destination", () => {
@@ -97,5 +142,12 @@ describe("updates changelog", () => {
     expect(publicCopy).not.toMatch(/cloud sync (is|now|available)/i);
     expect(publicCopy).not.toMatch(/indexing is enabled|search indexing is enabled|Google indexing/i);
     expect(publicCopy).not.toMatch(/perfect pizza|guaranteed results/i);
+  });
+
+  it("renders the updates page from the bounded visible history list", () => {
+    const updatesPageSource = readFileSync(join(process.cwd(), "app", "updates", "page.tsx"), "utf8");
+
+    expect(updatesPageSource).toContain("visiblePatchHistory.map");
+    expect(updatesPageSource).not.toContain("patchHistoryNewestFirst.map");
   });
 });
