@@ -18,6 +18,7 @@ import {
 import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
 import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
 import { bakeFor } from "@/lib/baking";
+import { homepageContent, type HomepageTool } from "@/lib/homepage";
 import { defaultPizzaStyleId, pizzaStyleById, type PizzaStyleId } from "@/lib/pizza-styles";
 
 type Locale = "en" | "fi" | "sv";
@@ -53,8 +54,8 @@ const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentat
 
 const copy = {
   en: {
-    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", doctor: "Dough Doctor", styles: "Pizza styles", journal: "Journal", eyebrow: "Pizza dough calculator", title: "Your next great pizza starts with the numbers.",
-    intro: "Set your batch, style, and fermentation. We'll handle the baker's math.", build: "Fine-tune your batch",
+    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", doctor: "Dough Doctor", styles: "Pizza styles", journal: "Journal", eyebrow: "Dough recipe builder", title: "Build the dough recipe.",
+    intro: "Choose a pizza style, oven and fermentation. DoughTools calculates the batch with baker's percentages.", build: "Fine-tune your batch",
     quickTitle: "What kind of pizza do you want?", quickIntro: "Choose the result, fermentation time and environment, and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "Fermentation time and environment",
     oven: "Which oven do you use?", homeOven: "Electric oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
     goals: { balanced: ["Balanced", "Soft with a crisp base"], airy: ["Very airy", "Open, light crust"], crispy: ["Thin & crispy", "Low, crunchy profile"], pan: ["Airy pan", "Soft, tall and fluffy"] },
@@ -71,7 +72,7 @@ const copy = {
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
     saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
-    instructionsTitle: "Your dough plan", instructionsIntro: "Open the lighter planning view for step-by-step instructions and exact clock times.", openPlan: "Open instructions & schedule", startClock: "Start now or choose your desired baking time.",
+    instructionsTitle: "Plan fermentation next", instructionsIntro: "Your dough numbers are ready. Open the planner for step-by-step instructions and exact clock times.", openPlan: "Open Fermentation Planner", startClock: "Start now or choose your desired baking time.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
   fi: {
@@ -316,10 +317,12 @@ export default function Home() {
     pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId,
   }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId]);
 
-  const planHref = `/plan?${recipeParams(currentSettings).toString()}`;
-  const doctorHref = `/doctor?${recipeParams(currentSettings).toString()}`;
+  const recipeQuery = recipeParams(currentSettings).toString();
+  const toolHref = (tool: HomepageTool) => tool.preserveRecipe ? `${tool.href}?${recipeQuery}` : tool.href;
+  const planHref = `/plan?${recipeQuery}`;
+  const doctorHref = `/doctor?${recipeQuery}`;
   const stylesHref = "/styles";
-  const journalHref = `/journal?${recipeParams(currentSettings).toString()}`;
+  const journalHref = `/journal?${recipeQuery}`;
 
   useEffect(() => {
     if (!urlReady) return;
@@ -463,14 +466,48 @@ export default function Home() {
           <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Community</Link>
         </nav>
 
-        <section id="top" className="mb-7 max-w-2xl sm:mb-10">
+        <section className="mb-6 grid gap-5 rounded-[2rem] border border-white/80 bg-white/65 p-5 shadow-card backdrop-blur sm:p-7 lg:grid-cols-[1.1fr_.9fr] lg:items-center" aria-labelledby="homepage-title">
+          <div>
+            <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{homepageContent.hero.eyebrow}</p>
+            <h1 id="homepage-title" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">{homepageContent.hero.h1}</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">{homepageContent.hero.intro}</p>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <a href={homepageContent.hero.primaryCta.href} className="rounded-2xl bg-tomato px-5 py-4 text-center text-sm font-extrabold text-white shadow-lg shadow-tomato/15 transition active:scale-[.98]">{homepageContent.hero.primaryCta.label}</a>
+              <Link href={homepageContent.hero.secondaryCta.href} className="rounded-2xl border border-ink/10 bg-white px-5 py-4 text-center text-sm font-extrabold text-ink transition hover:border-ink/25 active:scale-[.98]">{homepageContent.hero.secondaryCta.label}</Link>
+            </div>
+          </div>
+          <div className="rounded-[1.5rem] bg-ink p-5 text-white">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-white/40">DoughTools workflow</p>
+            <div className="mt-4 grid gap-3">
+              {["Dough", "Plan", "Prep", "Bake"].map((label, index) => (
+                <div key={label} className="flex items-center gap-3 rounded-2xl bg-white/[.06] p-3">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-extrabold text-ink">{index + 1}</span>
+                  <span className="font-display text-2xl font-semibold">{label}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-5 text-white/45">Start with the calculator, then carry the same recipe into planning, sauce, toppings, baking and troubleshooting.</p>
+          </div>
+        </section>
+
+        <section className="mb-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Pizza-making workflow">
+          {homepageContent.workflow.map((step, index) => (
+            <article key={step.title} className="rounded-2xl border border-white/80 bg-white/55 p-4 shadow-sm">
+              <span className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Step {index + 1}</span>
+              <h2 className="mt-2 font-display text-xl font-semibold">{step.title}</h2>
+              <p className="mt-2 text-xs leading-5 text-ink/55">{step.description}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="mb-7 max-w-2xl sm:mb-10" aria-labelledby="calculator-intro">
           <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p>
-          <h1 className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">{t.title}</h1>
+          <h2 id="calculator-intro" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl">{t.title}</h2>
           <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{t.intro}</p>
         </section>
 
         <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">
-          <section className="min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="recipe-settings">
+          <section id="top" tabIndex={-1} className="scroll-mt-24 min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur outline-none sm:p-7" aria-labelledby="recipe-settings">
             <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
             <p className="mb-5 text-sm leading-6 text-ink/55">{t.quickIntro}</p>
             <div className="grid grid-cols-2 gap-2">
@@ -523,7 +560,7 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-3 rounded-2xl bg-ink p-4 text-white">
-              <div className="flex items-center justify-between gap-4"><strong className="text-sm">{t.bakeGuide}</strong><div className="flex gap-4 text-right"><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTemperature}</small><b className="text-sm">{activeBake.temperature}°C</b></span><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTime}</small><b className="text-sm">{activeBake.time}</b></span></div></div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><strong className="text-sm">{t.bakeGuide}</strong><div className="flex gap-4 text-left sm:text-right"><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTemperature}</small><b className="text-sm">{activeBake.temperature}°C</b></span><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTime}</small><b className="text-sm">{activeBake.time}</b></span></div></div>
               <p className="mt-2 border-t border-white/10 pt-2 text-[11px] leading-5 text-white/45">{ovenType === "home" ? t.homePreheat : t.gasPreheat}{goal === "pan" && ovenType === "gas" ? ` ${t.panGasNote}` : ""}</p>
             </div>
             <button type="button" onClick={() => setShowAdvanced((current) => !current)} aria-expanded={showAdvanced} className="mt-5 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink">{showAdvanced ? t.hideTune : t.tune} <span aria-hidden="true">{showAdvanced ? "↑" : "↓"}</span></button>
@@ -628,6 +665,51 @@ export default function Home() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="text-xs font-extrabold uppercase tracking-[.18em] text-white/50">03 · DoughTools</p><h2 className="mt-2 font-display text-3xl font-semibold">{t.instructionsTitle}</h2><p className="mt-2 max-w-xl text-sm leading-6 text-white/65">{t.instructionsIntro} {t.startClock}</p></div>
             <Link href={planHref} className="shrink-0 rounded-2xl bg-white px-5 py-4 text-center text-sm font-extrabold text-leaf shadow-lg transition active:scale-[.98]">{t.openPlan} →</Link>
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="core-tools">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Primary workflow</p>
+            <h2 id="core-tools" className="font-display text-3xl font-semibold">Core pizza workflow tools</h2>
+            <p className="mt-3 text-sm leading-6 text-ink/55">Use the dough recipe as the starting point, then continue into the tools that prepare the whole pizza night.</p>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {homepageContent.coreTools.map((tool) => (
+              <article key={tool.name} className="flex min-h-48 flex-col rounded-2xl border border-ink/10 bg-white p-4">
+                <h3 className="font-display text-2xl font-semibold">{tool.name}</h3>
+                <p className="mt-2 flex-1 text-sm leading-6 text-ink/55">{tool.description}</p>
+                {tool.href.startsWith("#") ? (
+                  <a href={tool.href} className="mt-4 rounded-xl bg-ink px-4 py-3 text-center text-xs font-extrabold text-white transition active:scale-[.98]">{tool.action} →</a>
+                ) : (
+                  <Link href={toolHref(tool)} className="mt-4 rounded-xl bg-ink px-4 py-3 text-center text-xs font-extrabold text-white transition active:scale-[.98]">{tool.action} →</Link>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-5 rounded-[1.75rem] border border-white/80 bg-white/55 p-5 shadow-card backdrop-blur sm:p-7 lg:grid-cols-[.8fr_1.2fr] lg:items-start" aria-labelledby="why-doughtools">
+          <div>
+            <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Why it works</p>
+            <h2 id="why-doughtools" className="font-display text-3xl font-semibold">A practical pizza workspace, not just one recipe.</h2>
+          </div>
+          <ul className="grid gap-3">
+            {homepageContent.trust.map((item) => (
+              <li key={item} className="flex gap-3 rounded-2xl bg-white p-4 text-sm leading-6 text-ink/60">
+                <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-leaf text-[10px] font-extrabold text-white">✓</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-8 rounded-[1.75rem] border border-ink/10 bg-cream/70 p-5 sm:p-7" aria-labelledby="discover-tools">
+          <h2 id="discover-tools" className="font-display text-2xl font-semibold">Explore the rest of the workshop</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {homepageContent.secondaryTools.map((tool) => (
+              <Link key={tool.href} href={tool.href} className="rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink">{tool.name}</Link>
+            ))}
           </div>
         </section>
 
