@@ -33,7 +33,7 @@ export const publicSeoRoutes = [
   {
     path: "/contact",
     title: "Contact | DoughTools",
-    description: "Contact placeholder for DoughTools support, privacy, business and calculation feedback requests.",
+    description: "Contact DoughTools for support questions, privacy requests, business inquiries and calculation feedback.",
     changeFrequency: "monthly",
     priority: 0.4,
   },

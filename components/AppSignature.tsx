@@ -26,11 +26,11 @@ export default function AppSignature({ locale, dark = false }: Props) {
         <span className="font-mono">build {buildId}</span>
         <span aria-hidden="true">•</span>
         <time dateTime={updatedAt}>Updated {updated}</time>
-        <Link href="/updates" className={`font-bold underline underline-offset-2 ${dark ? "hover:text-white" : "hover:text-tomato"}`}>View updates</Link>
+        <Link href="/updates" className={`rounded-sm font-bold underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${dark ? "hover:text-white" : "hover:text-tomato"}`}>View updates</Link>
       </div>
       <nav aria-label="DoughTools support links" className="mt-3 flex flex-wrap gap-x-3 gap-y-2">
         {trustFooterLinks.map((item) => (
-          <Link key={item.href} href={item.href} className={`font-bold underline-offset-2 hover:underline ${dark ? "hover:text-white" : "hover:text-tomato"}`}>
+          <Link key={item.href} href={item.href} className={`rounded-sm font-bold underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${dark ? "hover:text-white" : "hover:text-tomato"}`}>
             {item.label}
           </Link>
         ))}

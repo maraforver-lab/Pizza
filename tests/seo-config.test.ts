@@ -128,6 +128,7 @@ describe("SEO launch configuration", () => {
 
     expect(seoText).not.toMatch(/pizza-maraforver|vercel\.app/i);
     expect(seoText).not.toMatch(/\b(perfect pizza|guaranteed|ultimate|revolutionary|scientifically exact)\b/i);
+    expect(seoText).not.toMatch(/\bplaceholder\b|to be added before public launch|lorem|TODO|FIXME/i);
     expect(seoText).not.toMatch(/\b(Laskuri|Pizzatyylit|Aikataulu|Kalkylator|Pizzastilar|Tidsplan)\b|[äöåÄÖÅ]/);
   });
 
