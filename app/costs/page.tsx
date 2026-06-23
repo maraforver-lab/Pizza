@@ -7,7 +7,6 @@ import EditableNumberInput from "@/components/EditableNumberInput";
 import { calculatePizzaCost, type CostInputs } from "@/lib/cost-calculator";
 import { settingsFromUrl } from "@/lib/recipe-url";
 
-type Locale = "fi" | "en";
 type Currency = "EUR" | "USD";
 const initial: CostInputs = { pizzas: 6, diners: 6, ballWeight: 260, hydration: 64, salt: 2.8, flourPrice: 2.8, sauceGrams: 80, saucePrice: 3.5, cheeseGrams: 90, cheesePrice: 11, toppingGrams: 60, toppingPrice: 12, extrasPerPizza: 0.2, energy: 1.5, packagingPerPizza: 0, waste: 5, sellingPrice: 0 };
 const copy = {
@@ -20,42 +19,31 @@ const currencyCopy = {
   en: { title: "Currency", eur: "Euro (€)", usd: "US dollar ($)", note: "Enter prices in the selected currency. No exchange rate is applied." },
 } as const;
 
-const euRegions = new Set(["AT", "BE", "BG", "HR", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MT", "NL", "NO", "PL", "PT", "RO", "SE", "SI", "SK"]);
-const defaultCurrency = (language: string): Currency => {
-  const parts = language.toUpperCase().split("-");
-  const region = parts.length > 1 ? parts.at(-1) ?? "" : language.toLowerCase().startsWith("fi") ? "FI" : "";
-  return euRegions.has(region) ? "EUR" : "USD";
-};
-
-const money = (value: number, locale: Locale, currency: Currency) => new Intl.NumberFormat(currency === "USD" ? "en-US" : locale === "fi" ? "fi-FI" : "en-IE", { style: "currency", currency }).format(value);
-const formatNumber = (value: number, locale: Locale, digits = 0) => new Intl.NumberFormat(locale === "fi" ? "fi-FI" : "en-IE", { maximumFractionDigits: digits }).format(value);
+const money = (value: number, currency: Currency) => new Intl.NumberFormat(currency === "USD" ? "en-US" : "en-IE", { style: "currency", currency }).format(value);
+const formatNumber = (value: number, digits = 0) => new Intl.NumberFormat("en-IE", { maximumFractionDigits: digits }).format(value);
 
 export default function CostsPage() {
-  const [locale, setLocale] = useState<Locale>("en");
   const [currency, setCurrency] = useState<Currency>("EUR");
   const [ready, setReady] = useState(false);
   const [values, setValues] = useState<CostInputs>(initial);
-  const t = copy[locale];
+  const t = copy.en;
   useEffect(() => {
-    const stored = localStorage.getItem("doughtools-locale") as Locale | null;
-    const next = stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en";
     const storedCurrency = localStorage.getItem("doughtools-currency") as Currency | null;
     const shared = settingsFromUrl(location.search);
-    setLocale(next);
-    setCurrency(storedCurrency === "EUR" || storedCurrency === "USD" ? storedCurrency : defaultCurrency(navigator.language));
+    setCurrency(storedCurrency === "EUR" || storedCurrency === "USD" ? storedCurrency : "EUR");
     const params = new URLSearchParams(location.search);
     const amount = (key: string, fallback: number) => { const value = Number(params.get(key)); return Number.isFinite(value) && value >= 0 ? value : fallback; };
     setValues(current => ({ ...current, pizzas: shared.pizzas ?? current.pizzas, diners: shared.pizzas ?? current.diners, ballWeight: shared.ballWeight ?? current.ballWeight, hydration: shared.hydration ?? current.hydration, salt: shared.salt ?? current.salt, sauceGrams: amount("sauceGrams", current.sauceGrams), cheeseGrams: amount("cheeseGrams", current.cheeseGrams), toppingGrams: amount("toppingGrams", current.toppingGrams) }));
-    document.documentElement.lang = next; setReady(true);
+    document.documentElement.lang = "en"; setReady(true);
   }, []);
   const result = useMemo(() => calculatePizzaCost(values), [values]);
   if (!ready) return <main className="min-h-screen bg-cream"/>;
-  const currencyText = currencyCopy[locale];
+  const currencyText = currencyCopy.en;
   const currencySymbol = currency === "EUR" ? "€" : "$";
   const perKg = `${currencySymbol}/kg`;
   const perPizza = `${currencySymbol}/pizza`;
   const changeCurrency = (next: Currency) => { setCurrency(next); localStorage.setItem("doughtools-currency", next); };
-  const formatMoney = (value: number) => money(value, locale, currency);
+  const formatMoney = (value: number) => money(value, currency);
   const field = (key: keyof CostInputs, suffix?: string) => { const shownSuffix = suffix === "€/kg" ? perKg : suffix === "€/pizza" ? perPizza : suffix === "€" ? currencySymbol : suffix; return <div className="relative"><EditableNumberInput aria-label={key} min={0} value={values[key]} onValueChange={value => setValues(current => ({ ...current, [key]: value }))} className="h-12 w-full rounded-xl border border-ink/10 bg-white px-3 pr-16 text-sm font-bold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"/>{shownSuffix && <span className="pointer-events-none absolute right-3 top-3.5 text-xs font-bold text-ink/35">{shownSuffix}</span>}</div>; };
   const names: Record<string, string> = { flour: t.flour, doughExtras: t.doughExtras, sauce: t.sauce, cheese: t.cheese, toppings: t.toppings, extras: t.extras, energy: t.energy, packaging: t.packaging };
   return <main className="min-h-screen bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl">
@@ -64,8 +52,8 @@ export default function CostsPage() {
     <div className="grid items-start gap-5 lg:grid-cols-[1fr_.8fr]"><div className="space-y-5">
       <section className="rounded-[1.5rem] bg-white/80 p-5 shadow-card"><h2 className="font-display text-3xl font-semibold">{t.batch}</h2><div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">{([["pizzas", t.pizzas, ""], ["diners", t.diners, ""], ["ballWeight", t.ball, "g"], ["hydration", t.hydration, "%"]] as const).map(([key, label, suffix]) => <label key={key} className="text-xs font-bold text-ink/55">{label}<div className="mt-2">{field(key, suffix)}</div></label>)}</div></section>
       <section className="rounded-[1.5rem] bg-white/80 p-5 shadow-card"><h2 className="font-display text-3xl font-semibold">{t.ingredients}</h2><div className="mt-5 space-y-4"><label className="grid gap-2 text-xs font-bold text-ink/55 sm:grid-cols-[1fr_12rem] sm:items-center"><span>{t.flour}</span>{field("flourPrice", t.perKg)}</label>{([["sauceGrams", "saucePrice", t.sauce], ["cheeseGrams", "cheesePrice", t.cheese], ["toppingGrams", "toppingPrice", t.toppings]] as const).map(([grams, price, label]) => <div key={grams} className="grid gap-2 sm:grid-cols-[1fr_9rem_12rem] sm:items-end"><span className="text-xs font-bold text-ink/55">{label}</span>{field(grams, t.gramsPizza)}{field(price, t.perKg)}</div>)}<label className="grid gap-2 text-xs font-bold text-ink/55 sm:grid-cols-[1fr_12rem] sm:items-center"><span>{t.extras}</span>{field("extrasPerPizza", t.perPizza)}</label><label className="grid gap-2 text-xs font-bold text-ink/55 sm:grid-cols-[1fr_12rem] sm:items-center"><span>{t.energy}</span>{field("energy", "€")}</label><label className="grid gap-2 text-xs font-bold text-ink/55 sm:grid-cols-[1fr_12rem] sm:items-center"><span>{t.packaging}</span>{field("packagingPerPizza", t.perPizza)}</label><label className="grid gap-2 text-xs font-bold text-ink/55 sm:grid-cols-[1fr_12rem] sm:items-center"><span>{t.waste}</span>{field("waste", "%")}</label></div></section>
-    </div><aside className="lg:sticky lg:top-5"><section className="overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card"><div className="p-6"><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">{t.results}</p><p className="mt-3 font-display text-5xl font-semibold">{formatMoney(result.total)}</p><span className="text-xs text-white/40">{t.whole}</span><div className="mt-6 grid grid-cols-2 gap-3"><div className="rounded-xl bg-white/10 p-4"><strong className="text-xl">{formatMoney(result.perPizza)}</strong><span className="mt-1 block text-[10px] text-white/45">{t.one}</span></div><div className="rounded-xl bg-white/10 p-4"><strong className="text-xl">{formatMoney(result.perDiner)}</strong><span className="mt-1 block text-[10px] text-white/45">{t.diner}</span></div></div></div><div className="border-t border-white/10 p-6"><div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-2 text-xs"><strong>{t.amount}</strong><span></span><strong className="text-right">{t.lineCost}</strong>{result.lines.map(line => <div className="contents" key={line.id}><span className="text-white/55">{names[line.id]}</span><span className="text-right text-white/35">{formatNumber(line.amount, locale)} {line.unit}</span><strong className="text-right">{formatMoney(line.cost)}</strong></div>)}<span className="text-white/55">{t.waste} ({values.waste} %)</span><span></span><strong className="text-right">{formatMoney(result.wasteCost)}</strong></div></div></section>
-      <section className="mt-5 rounded-[1.5rem] bg-leaf/[.09] p-5"><h2 className="font-display text-2xl font-semibold">{t.selling}</h2><label className="mt-4 block text-xs font-bold text-ink/55">{t.sellingPrice}<div className="mt-2">{field("sellingPrice", t.perPizza)}</div></label>{values.sellingPrice > 0 && <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs"><div><strong className="block">{formatMoney(result.revenue)}</strong><span className="text-ink/40">{t.revenue}</span></div><div><strong className={`block ${result.profit >= 0 ? "text-leaf" : "text-tomato"}`}>{formatMoney(result.profit)}</strong><span className="text-ink/40">{t.profit}</span></div><div><strong className="block">{formatNumber(result.margin, locale, 1)} %</strong><span className="text-ink/40">{t.margin}</span></div></div>}</section></aside></div>
-    <p className="mt-6 rounded-2xl bg-tomato/[.06] p-4 text-xs leading-5 text-ink/50">{t.note}</p><footer className="mt-8 border-t border-ink/10 py-6"><AppSignature locale={locale}/></footer>
+    </div><aside className="lg:sticky lg:top-5"><section className="overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card"><div className="p-6"><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">{t.results}</p><p className="mt-3 font-display text-5xl font-semibold">{formatMoney(result.total)}</p><span className="text-xs text-white/40">{t.whole}</span><div className="mt-6 grid grid-cols-2 gap-3"><div className="rounded-xl bg-white/10 p-4"><strong className="text-xl">{formatMoney(result.perPizza)}</strong><span className="mt-1 block text-[10px] text-white/45">{t.one}</span></div><div className="rounded-xl bg-white/10 p-4"><strong className="text-xl">{formatMoney(result.perDiner)}</strong><span className="mt-1 block text-[10px] text-white/45">{t.diner}</span></div></div></div><div className="border-t border-white/10 p-6"><div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-2 text-xs"><strong>{t.amount}</strong><span></span><strong className="text-right">{t.lineCost}</strong>{result.lines.map(line => <div className="contents" key={line.id}><span className="text-white/55">{names[line.id]}</span><span className="text-right text-white/35">{formatNumber(line.amount)} {line.unit}</span><strong className="text-right">{formatMoney(line.cost)}</strong></div>)}<span className="text-white/55">{t.waste} ({values.waste} %)</span><span></span><strong className="text-right">{formatMoney(result.wasteCost)}</strong></div></div></section>
+      <section className="mt-5 rounded-[1.5rem] bg-leaf/[.09] p-5"><h2 className="font-display text-2xl font-semibold">{t.selling}</h2><label className="mt-4 block text-xs font-bold text-ink/55">{t.sellingPrice}<div className="mt-2">{field("sellingPrice", t.perPizza)}</div></label>{values.sellingPrice > 0 && <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs"><div><strong className="block">{formatMoney(result.revenue)}</strong><span className="text-ink/40">{t.revenue}</span></div><div><strong className={`block ${result.profit >= 0 ? "text-leaf" : "text-tomato"}`}>{formatMoney(result.profit)}</strong><span className="text-ink/40">{t.profit}</span></div><div><strong className="block">{formatNumber(result.margin, 1)} %</strong><span className="text-ink/40">{t.margin}</span></div></div>}</section></aside></div>
+    <p className="mt-6 rounded-2xl bg-tomato/[.06] p-4 text-xs leading-5 text-ink/50">{t.note}</p><footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;
 }

@@ -16,8 +16,8 @@ const copy = {
 } as const;
 
 export default function CoachPage() {
-  const [locale, setLocale] = useState<Locale>("en"); const [settings, setSettings] = useState(defaults); const [goal, setGoal] = useState<CoachGoal>("airy"); const [issue, setIssue] = useState<CoachIssue>("none"); const [ready, setReady] = useState(false); const t = copy[locale];
-  useEffect(() => { const stored = localStorage.getItem("doughtools-locale") as Locale | null; const next = stored === "fi" || stored === "en" ? stored : navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en"; const shared = settingsFromUrl(location.search); setLocale(next); setSettings({ ...defaults, ...Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) }); document.documentElement.lang = next; setReady(true); }, []);
+  const locale: Locale = "en"; const [settings, setSettings] = useState(defaults); const [goal, setGoal] = useState<CoachGoal>("airy"); const [issue, setIssue] = useState<CoachIssue>("none"); const [ready, setReady] = useState(false); const t = copy.en;
+  useEffect(() => { const shared = settingsFromUrl(location.search); setSettings({ ...defaults, ...Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) }); document.documentElement.lang = "en"; setReady(true); }, []);
   const flour = flourById(settings.flourId); const advice = useMemo(() => buildCoachAdvice(locale, settings, flour, goal, issue), [locale, settings, flour, goal, issue]); const originalQuery = recipeParams(settings).toString(); const recommendationQuery = recipeParams(advice.recommended).toString(); const changed = originalQuery !== recommendationQuery;
   if (!ready) return <main className="min-h-screen bg-cream"/>;
   return <main className="min-h-screen bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl">
@@ -31,6 +31,6 @@ export default function CoachPage() {
         {advice.warnings.length > 0 && <div className="border-t border-white/10 bg-tomato/10 p-6 sm:px-8"><strong className="text-xs text-[#e8c98a]">{t.warnings}</strong><ul className="mt-2 space-y-2 text-xs leading-5 text-white/55">{advice.warnings.map(warning => <li key={warning}>• {warning}</li>)}</ul></div>}
         <div className="border-t border-white/10 p-5 sm:p-8">{changed ? <Link href={`/?${recommendationQuery}`} className="block rounded-xl bg-tomato px-5 py-4 text-center text-sm font-extrabold text-white">{t.apply} →</Link> : <p className="rounded-xl bg-white/[.06] p-4 text-center text-xs text-white/50">{t.noChange}</p>}</div>
       </section></div>
-    <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature locale={locale}/></footer>
+    <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;
 }

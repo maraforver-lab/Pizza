@@ -5,8 +5,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import AppSignature from "@/components/AppSignature";
 
-type Locale = "en" | "fi";
-
 const flourProducts = [
   { maker: "W 220–240", name: "Caputo Classica", image: "/flours/caputo-classica.png", source: "https://www.mulinocaputo.it/prodotti/classica-5kg/" },
   { maker: "W 260–280", name: "Caputo Pizzeria", image: "/flours/caputo-pizzeria.png", source: "https://www.mulinocaputo.it/prodotti/pizzeria/" },
@@ -144,31 +142,17 @@ const content = {
 } as const;
 
 export default function Guide() {
-  const [locale, setLocale] = useState<Locale>("en");
-  const t = content[locale];
+  const t = content.en;
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("doughtools-locale") as Locale | null;
-    const detected: Locale = navigator.language.toLowerCase().startsWith("fi") ? "fi" : "en";
-    const nextLocale = saved === "fi" || saved === "en" ? saved : detected;
-    setLocale(nextLocale);
-    document.documentElement.lang = nextLocale;
+    document.documentElement.lang = "en";
   }, []);
-
-  const changeLocale = (nextLocale: Locale) => {
-    setLocale(nextLocale);
-    window.localStorage.setItem("doughtools-locale", nextLocale);
-    document.documentElement.lang = nextLocale;
-  };
 
   return (
     <main className="guide-page min-h-screen px-4 py-5 sm:px-6 sm:py-10">
       <div className="relative z-10 mx-auto max-w-5xl">
         <header className="mb-6 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 text-sm font-bold text-ink/65 transition hover:text-ink"><span aria-hidden="true">←</span>{t.back}</Link>
-          <div className="flex rounded-full border border-ink/10 bg-white/80 p-1 shadow-sm backdrop-blur" aria-label="Language">
-            {(["fi", "en"] as Locale[]).map((language) => <button key={language} type="button" onClick={() => changeLocale(language)} aria-pressed={locale === language} className={`rounded-full px-3 py-1.5 text-[11px] font-extrabold uppercase transition ${locale === language ? "bg-ink text-white" : "text-ink/45"}`}>{language}</button>)}
-          </div>
         </header>
 
         <section className="guide-hero relative mb-5 overflow-hidden rounded-[2rem] px-6 py-10 text-white shadow-card sm:px-10 sm:py-14">
@@ -261,7 +245,7 @@ export default function Guide() {
           <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.accuracyChapter}</p>
           <div className="rounded-3xl border border-tomato/20 bg-[#fff7ed]/90 p-5 shadow-card sm:p-7"><h2 className="font-display text-2xl font-semibold">{t.exactTitle}</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-ink/65">{t.exact}</p></div>
         </section>
-        <footer className="mb-4 border-t border-ink/10 pt-5"><AppSignature locale={locale} /></footer>
+        <footer className="mb-4 border-t border-ink/10 pt-5"><AppSignature /></footer>
       </div>
     </main>
   );

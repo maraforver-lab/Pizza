@@ -201,7 +201,7 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
 }
 
 export default function Home() {
-  const [locale, setLocale] = useState<Locale>("en");
+  const locale: Locale = "en";
   const [goal, setGoal] = useState<PizzaGoal>("balanced");
   const [pizzaStyleId, setPizzaStyleId] = useState<PizzaStyleId>("neapolitan");
   const [ovenType, setOvenType] = useState<OvenType>("gas");
@@ -220,23 +220,17 @@ export default function Home() {
   const [recipeName, setRecipeName] = useState("");
   const [recipeNotice, setRecipeNotice] = useState("");
   const [urlReady, setUrlReady] = useState(false);
-  const t = copy[locale];
+  const t = copy.en;
   const isColdFermentation = fermentation.endsWith("cold");
   const activeBake = bakeFor(goal, ovenType);
   const ovenTemperature = activeBake.temperature;
   const activePreset = presetFor(goal, ovenTemperature, fermentation);
   const activeFlour = flourById(flourId);
   const activePizzaStyle = pizzaStyleById(pizzaStyleId, goal);
-  const swedishStyleNames: Record<string, string> = { neapolitan: "Klassisk napolitansk", contemporary: "Modern napolitansk", "new-york": "New York", "roman-thin": "Romersk tunn", detroit: "Detroit", sicilian: "Siciliansk" };
-  const activePizzaName = locale === "fi" ? activePizzaStyle.nameFi : locale === "sv" ? swedishStyleNames[activePizzaStyle.id] ?? activePizzaStyle.nameEn : activePizzaStyle.nameEn;
+  const activePizzaName = activePizzaStyle.nameEn;
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("doughtools-locale") as Locale | null;
-    const browserLocale = navigator.language.toLowerCase();
-    const detected: Locale = browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en";
-    const nextLocale = saved === "fi" || saved === "sv" || saved === "en" ? saved : detected;
-    setLocale(nextLocale);
-    document.documentElement.lang = nextLocale;
+    document.documentElement.lang = "en";
   }, []);
 
   useEffect(() => {
@@ -261,12 +255,6 @@ export default function Home() {
     if (shared.flourId !== undefined) setFlourId(shared.flourId);
     setUrlReady(true);
   }, []);
-
-  const changeLocale = (nextLocale: Locale) => {
-    setLocale(nextLocale);
-    window.localStorage.setItem("doughtools-locale", nextLocale);
-    document.documentElement.lang = nextLocale;
-  };
 
   const applyPreset = (nextGoal: PizzaGoal, nextOvenType = ovenType, nextFermentation = fermentation) => {
     const safeOvenType: OvenType = nextGoal === "pan" ? "home" : nextOvenType;
@@ -449,16 +437,13 @@ export default function Home() {
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/guide" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink sm:block">{t.guide}</Link>
-            <Link href="/history" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">{locale === "fi" ? "Pizzan historia" : "Pizza history"}</Link>
-            <Link href="/ovens" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">{locale === "fi" ? "Uuniopas" : "Oven guide"}</Link>
-            <Link href="/gear" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">{locale === "fi" ? "Varusteet" : "Gear"}</Link>
-            <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">{locale === "fi" ? "Kastike" : "Sauce"}</Link>
-            <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">{locale === "fi" ? "Kustannukset" : "Costs"}</Link>
+            <Link href="/history" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">Pizza history</Link>
+            <Link href="/ovens" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">Oven guide</Link>
+            <Link href="/gear" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Gear</Link>
+            <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Sauce</Link>
+            <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Costs</Link>
             <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full bg-tomato px-3 py-2 text-xs font-bold text-white transition hover:bg-tomato/90 xl:block">AI Coach</Link>
-            <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">{locale === "fi" ? "Yhteisö" : "Community"}</Link>
-            <div className="flex rounded-full border border-ink/10 bg-white/70 p-1" aria-label="Language">
-              {(["fi", "sv", "en"] as Locale[]).map((language) => <button key={language} type="button" onClick={() => changeLocale(language)} aria-pressed={locale === language} className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase transition ${locale === language ? "bg-ink text-white" : "text-ink/45"}`}>{language}</button>)}
-            </div>
+            <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Community</Link>
             <span className="hidden rounded-full border border-leaf/20 bg-leaf/5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-leaf md:block">{t.toolkit}</span>
           </div>
         </header>
@@ -469,13 +454,13 @@ export default function Home() {
           <Link href={doctorHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.doctor}</Link>
           <Link href={stylesHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.styles}</Link>
           <Link href={journalHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.journal}</Link>
-          <Link href="/history" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Pizzan historia" : "Pizza history"}</Link>
-          <Link href="/ovens" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Uuniopas" : "Oven guide"}</Link>
-          <Link href="/gear" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Varusteet" : "Gear"}</Link>
-          <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Kastike" : "Sauce"}</Link>
-          <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Kustannukset" : "Costs"}</Link>
+          <Link href="/history" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Pizza history</Link>
+          <Link href="/ovens" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Oven guide</Link>
+          <Link href="/gear" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Gear</Link>
+          <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Sauce</Link>
+          <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Costs</Link>
           <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full bg-tomato px-4 py-2 text-xs font-bold text-white">AI Coach</Link>
-          <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{locale === "fi" ? "Yhteisö" : "Community"}</Link>
+          <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Community</Link>
         </nav>
 
         <section id="top" className="mb-7 max-w-2xl sm:mb-10">
@@ -652,9 +637,9 @@ export default function Home() {
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {savedRecipes.map((savedRecipe) => (
                 <article key={savedRecipe.id} className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
-                  <div className="relative aspect-[2/1] bg-ink/5"><Image src={pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).image} alt={locale === "fi" ? pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameFi : pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover"/><span className="absolute bottom-3 left-3 rounded-full bg-ink/85 px-3 py-1.5 text-[10px] font-extrabold text-white">{locale === "fi" ? pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameFi : pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn}</span></div>
+                  <div className="relative aspect-[2/1] bg-ink/5"><Image src={pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).image} alt={pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover"/><span className="absolute bottom-3 left-3 rounded-full bg-ink/85 px-3 py-1.5 text-[10px] font-extrabold text-white">{pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn}</span></div>
                   <div className="p-4">
-                  <div className="flex items-start justify-between gap-3"><div><h3 className="font-display text-xl font-semibold">{savedRecipe.name}</h3><p className="mt-1 text-[10px] font-semibold text-ink/40">{t.savedOn} {new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(savedRecipe.createdAt))}</p></div><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{Math.round(savedRecipe.ingredients.total)} g</span></div>
+                  <div className="flex items-start justify-between gap-3"><div><h3 className="font-display text-xl font-semibold">{savedRecipe.name}</h3><p className="mt-1 text-[10px] font-semibold text-ink/40">{t.savedOn} {new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(savedRecipe.createdAt))}</p></div><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{Math.round(savedRecipe.ingredients.total)} g</span></div>
                   <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs"><span className="text-ink/45">{t.pizzas}</span><strong className="text-right">{savedRecipe.settings.pizzas} × {savedRecipe.settings.ballWeight} g</strong><span className="text-ink/45">{t.hydration}</span><strong className="text-right">{savedRecipe.settings.hydration} %</strong><span className="text-ink/45">{t.fermentation}</span><strong className="text-right">{t.ferment[savedRecipe.settings.fermentation][0]}</strong><span className="text-ink/45">{t.flourChoice}</span><strong className="truncate text-right">{flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").brand} {flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").name}</strong><span className="text-ink/45">{t.yeastType}</span><strong className="truncate text-right">{t.yeasts[savedRecipe.settings.yeastType][1]}</strong></div>
                   <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => openSavedRecipe(savedRecipe)} className="rounded-xl bg-ink px-3 py-2.5 text-xs font-bold text-white">{t.openRecipe}</button><button type="button" onClick={() => deleteSavedRecipe(savedRecipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-bold text-tomato">{t.deleteRecipe}</button></div>
                   </div>
@@ -666,7 +651,7 @@ export default function Home() {
 
         <footer className="mt-8 border-t border-ink/10 py-6">
           <div className="flex flex-col gap-3 text-xs text-ink/45 sm:flex-row sm:items-center sm:justify-between"><p>{t.footer}</p><Link href="/guide" className="font-bold text-tomato sm:hidden">{t.guide} →</Link><p>{t.bakers}</p></div>
-          <div className="mt-4 border-t border-ink/5 pt-4"><AppSignature locale={locale} /></div>
+          <div className="mt-4 border-t border-ink/5 pt-4"><AppSignature /></div>
         </footer>
       </div>
     </main>

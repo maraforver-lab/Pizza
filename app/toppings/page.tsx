@@ -10,7 +10,6 @@ import { settingsFromUrl } from "@/lib/recipe-url";
 import type { RecipeSettings } from "@/lib/saved-recipes";
 import { calculateToppingLoad, recommendedCheese, toppingDefaults, toppingProfiles, type CheeseType, type DrainState, type PizzaGeometry, type PreparationState, type ToppingId, type ToppingSelection } from "@/lib/topping-calculator";
 
-type Locale = "fi" | "sv" | "en";
 const defaults: RecipeSettings = { pizzas: 6, ballWeight: 260, waste: 3, hydration: 64, salt: 2.8, yeastType: "idy", fermentation: "24h-cold", temperature: 4, goal: "balanced", ovenType: "gas", flourId: "caputo-pizzeria", pizzaStyleId: "neapolitan" };
 const cheeseTypes: CheeseType[] = ["fior-di-latte", "buffalo", "low-moisture", "none"];
 const drainStates: DrainState[] = ["undrained", "under-1h", "1-3h", "4-8h", "overnight"];
@@ -72,8 +71,8 @@ const pickerCopy = {
   en: { label: "Choose amount", hint: "Swipe up or down", done: "Choose" },
 } as const;
 
-function ToppingLoadVisual({ locale, load, moisture }: { locale: Locale; load: "light" | "balanced" | "heavy" | "overloaded"; moisture: "low" | "medium" | "high" }) {
-  const v = visualCopy[locale];
+function ToppingLoadVisual({ load, moisture }: { load: "light" | "balanced" | "heavy" | "overloaded"; moisture: "low" | "medium" | "high" }) {
+  const v = visualCopy.en;
   const current = load === "light" ? "light" : load === "balanced" ? "balanced" : "heavy";
   const examples = ([
     { kind: "light", label: v.light, src: "/toppings/too-light.webp" },
@@ -112,29 +111,9 @@ function ToppingLoadVisual({ locale, load, moisture }: { locale: Locale; load: "
   </section>;
 }
 
-const swedishToppingNames: Record<ToppingId, string> = { mushroom: "Svamp", onion: "Lök", pepper: "Paprika", zucchini: "Zucchini", spinach: "Spenat", "fresh-tomato": "Färsk tomat", pineapple: "Ananas", pepperoni: "Pepperoni", sausage: "Rå korv eller köttfärs", olives: "Oliver", basil: "Basilika", prosciutto: "Prosciutto", arugula: "Rucola", burrata: "Burrata" };
-const swedishToppingText: Record<ToppingId, { prep: string; why: string; mistake: string }> = {
-  mushroom: { prep: "Skiva tunt. Stek i en het, torr panna tills vätskan har avdunstat. Låt svalna.", why: "Svamp släpper vätska snabbare än den hinner avdunsta under en kort gräddning.", mistake: "Tjocka råa skivor gör pizzans mitt blöt." },
-  onion: { prep: "Skiva papperstunt. Mjuka upp tjocka eller rikliga bitar i en panna.", why: "Tunn lök tillagas i samma takt som pizzan; tjocka bitar förblir lätt råa.", mistake: "Ett tjockt lager fångar fukt ovanpå osten." },
-  pepper: { prep: "Skiva tunt. Rosta eller fräs om du använder mer än en liten mängd. Låt svalna.", why: "Förkokning avlägsnar vatten och koncentrerar sötman.", mistake: "Fuktig, tjock paprika ångkokar toppingarna." },
-  zucchini: { prep: "Skiva, salta i 15–20 minuter och torka — eller grilla snabbt. Låt svalna.", why: "Salt eller grillning avlägsnar vatten före topping.", mistake: "Lägg inte en hög rå zucchini på pizzan." },
-  spinach: { prep: "Fräs, låt svalna och pressa ur vattnet. Fördela i små portioner.", why: "Spenat släpper mycket vatten när den värms upp.", mistake: "En blöt klump skapar en lokal vattenpöl." },
-  "fresh-tomato": { prep: "Ta bort kärnhuset, salta lätt i en sil och torka ytan.", why: "Tomat tillför ännu en vattenkälla ovanpå såsen.", mistake: "Lägg inte blöta skivor ovanpå sås och färsk mozzarella." },
-  pineapple: { prep: "Låt rinna av, pressa lätt och torka bitarna.", why: "Konserveringsspadet hinner inte avdunsta under gräddningen.", mistake: "Ananas direkt ur burken för med sig onödig vätska." },
-  pepperoni: { prep: "Fördela i ett lager. Använd mycket fet pepperoni sparsamt.", why: "Fett bär smak, men för mycket mjukar upp bottnen.", mistake: "Ett heltäckande lager gör pizzan tung." },
-  sausage: { prep: "Stek smulad korv eller färs helt färdig, häll av fettet och låt svalna.", why: "Förkokning ger säker tillagning och kontrollerar fettmängden.", mistake: "Lita inte på att tjocka råa bitar blir färdiga under en kort gräddning." },
-  olives: { prep: "Låt rinna av, torka och skiva.", why: "Saltlagen tillför både fukt och sälta.", mistake: "Lägg inte oliver som är blöta av lag direkt på pizzan." },
-  basil: { prep: "Torka bladen och lägg dem på efter gräddning i elektrisk ugn. På napolitansk pizza kan de skyddas med ost.", why: "Lång gräddning mörkar bladen och driver bort aromen.", mistake: "Blöta blad och lång gräddning ger inte en frisk smak." },
-  prosciutto: { prep: "Riv i tunna strimlor och lägg på den heta pizzan efter gräddning.", why: "Eftervärmen mjukar upp skinkan utan att förstöra den fina smaken.", mistake: "Lång gräddning gör prosciutton hård och alltför salt." },
-  arugula: { prep: "Skölj, torka mycket noggrant och lägg på först efter gräddning.", why: "Rucolans friska pepprighet bevaras utan ugnsvärme.", mistake: "Blöt eller gräddad rucola vissnar och kan bli bitter." },
-  burrata: { prep: "Låt rinna av, torka ytan och lägg i bitar på den färdiga pizzan precis före servering.", why: "Den mycket fuktiga kärnan passar som avslutning, inte ovanpå bottnen i ugnen.", mistake: "I ugnen släpper burrata mycket vätska och förlorar sin konsistens." },
-};
-const swedishStyleNames = { neapolitan: "Klassisk napolitansk", contemporary: "Modern napolitansk", "new-york": "New York", "roman-thin": "Tunn romersk", detroit: "Detroit", sicilian: "Siciliansk" } as const;
-
 const queryNumber = (params: URLSearchParams, key: string, fallback: number) => { const raw = params.get(key); if (raw === null || raw.trim() === "") return fallback; const value = Number(raw); return Number.isFinite(value) && value >= 0 ? value : fallback; };
 
 export default function ToppingsPage() {
-  const [locale, setLocale] = useState<Locale>("en");
   const [ready, setReady] = useState(false);
   const [settings, setSettings] = useState(defaults);
   const [geometry, setGeometry] = useState<PizzaGeometry>({ shape: "round", diameter: 32, rim: 2 });
@@ -143,16 +122,11 @@ export default function ToppingsPage() {
   const [cheeseGrams, setCheeseGrams] = useState(88);
   const [sauceGrams, setSauceGrams] = useState(75);
   const [toppings, setToppings] = useState<Partial<Record<ToppingId, ToppingSelection>>>({});
-  const t = copy[locale];
+  const t = copy.en;
   const style = pizzaStyleById(settings.pizzaStyleId, settings.goal);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const requested = params.get("toppingsLang") as Locale | null;
-    const storedLocal = localStorage.getItem("doughtools-toppings-locale") as Locale | null;
-    const storedGlobal = localStorage.getItem("doughtools-locale") as Locale | null;
-    const browserLocale: Locale = navigator.language.toLowerCase().startsWith("fi") ? "fi" : navigator.language.toLowerCase().startsWith("sv") ? "sv" : "en";
-    const next = requested === "fi" || requested === "sv" || requested === "en" ? requested : storedLocal === "fi" || storedLocal === "sv" || storedLocal === "en" ? storedLocal : storedGlobal === "fi" || storedGlobal === "en" ? storedGlobal : browserLocale;
     const shared = settingsFromUrl(location.search);
     const nextSettings = { ...defaults, ...Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) } as RecipeSettings;
     const nextStyle = pizzaStyleById(nextSettings.pizzaStyleId, nextSettings.goal);
@@ -165,7 +139,7 @@ export default function ToppingsPage() {
     const nextDrain = drainStates.includes(params.get("drain") as DrainState) ? params.get("drain") as DrainState : nextSettings.ovenType === "home" ? "overnight" : "4-8h";
     const selected: Partial<Record<ToppingId, ToppingSelection>> = {};
     (params.get("toppings") ?? "").split(",").forEach(item => { const [id, raw, prep] = item.split(":"); const profile = toppingProfiles.find(candidate => candidate.id === id); const grams = Number(raw); if (profile && Number.isFinite(grams) && grams > 0) selected[profile.id] = { grams, preparation: prep === "prepared" ? "prepared" : "raw" }; });
-    setLocale(next); setSettings(nextSettings); setGeometry(nextGeometry); setCheeseType(nextCheese); setDrainState(nextDrain); setCheeseGrams(queryNumber(params, "cheeseGrams", recommendedCheese(nextStyle.id, nextCheese, nextGeometry))); setSauceGrams(queryNumber(params, "sauceGrams", styleDefault.sauceGrams)); setToppings(selected); document.documentElement.lang = next; setReady(true);
+    setSettings(nextSettings); setGeometry(nextGeometry); setCheeseType(nextCheese); setDrainState(nextDrain); setCheeseGrams(queryNumber(params, "cheeseGrams", recommendedCheese(nextStyle.id, nextCheese, nextGeometry))); setSauceGrams(queryNumber(params, "sauceGrams", styleDefault.sauceGrams)); setToppings(selected); document.documentElement.lang = "en"; setReady(true);
   }, []);
 
   const cheeseRecommendation = useMemo(() => recommendedCheese(style.id, cheeseType, geometry), [style.id, cheeseType, geometry]);
@@ -174,31 +148,30 @@ export default function ToppingsPage() {
   useEffect(() => {
     if (!ready) return;
     const params = new URLSearchParams(location.search);
-    params.set("toppingsLang", locale); params.set("pizzaShape", geometry.shape); params.set("rim", String(geometry.rim));
+    params.set("pizzaShape", geometry.shape); params.set("rim", String(geometry.rim));
     if (geometry.shape === "round") { params.set("diameter", String(geometry.diameter)); params.delete("pizzaWidth"); params.delete("pizzaLength"); }
     else { params.set("pizzaWidth", String(geometry.width)); params.set("pizzaLength", String(geometry.length)); params.delete("diameter"); }
     params.set("cheese", cheeseType); params.set("drain", drainState); params.set("cheeseGrams", String(cheeseType === "none" ? 0 : cheeseGrams)); params.set("sauceGrams", String(sauceGrams));
     const selected = toppingProfiles.flatMap(profile => toppings[profile.id] ? [`${profile.id}:${toppings[profile.id]!.grams}:${toppings[profile.id]!.preparation}`] : []);
     selected.length ? params.set("toppings", selected.join(",")) : params.delete("toppings");
     history.replaceState(null, "", `${location.pathname}?${params.toString()}`); window.dispatchEvent(new Event("doughtools:urlchange"));
-  }, [ready, locale, geometry, cheeseType, drainState, cheeseGrams, sauceGrams, toppings]);
+  }, [ready, geometry, cheeseType, drainState, cheeseGrams, sauceGrams, toppings]);
 
   if (!ready) return <main className="min-h-screen bg-cream"/>;
   const selectedProfiles = toppingProfiles.filter(profile => toppings[profile.id]);
   const preBakeProfiles = selectedProfiles.filter(profile => profile.stage === "before");
   const afterBakeProfiles = selectedProfiles.filter(profile => profile.stage === "after");
-  const toppingName = (id: ToppingId) => locale === "fi" ? toppingProfiles.find(profile => profile.id === id)?.nameFi ?? id : locale === "sv" ? swedishToppingNames[id] : toppingProfiles.find(profile => profile.id === id)?.nameEn ?? id;
-  const profileText = (id: ToppingId, field: "prep" | "why" | "mistake") => { const profile = toppingProfiles.find(item => item.id === id)!; return locale === "sv" ? swedishToppingText[id][field] : field === "prep" ? locale === "fi" ? profile.prepFi : profile.prepEn : field === "why" ? locale === "fi" ? profile.whyFi : profile.whyEn : locale === "fi" ? profile.mistakeFi : profile.mistakeEn; };
-  const riskReasons = result.reasons.map(reason => reason.startsWith("raw-") ? `${locale === "fi" ? "raakana tai käsittelemättömänä: " : locale === "sv" ? "rå eller obehandlad: " : "raw or untreated: "}${toppingName(reason.slice(4) as ToppingId)}` : t.reasonText[reason as keyof typeof t.reasonText]).filter(Boolean);
+  const toppingName = (id: ToppingId) => toppingProfiles.find(profile => profile.id === id)?.nameEn ?? id;
+  const profileText = (id: ToppingId, field: "prep" | "why" | "mistake") => { const profile = toppingProfiles.find(item => item.id === id)!; return field === "prep" ? profile.prepEn : field === "why" ? profile.whyEn : profile.mistakeEn; };
+  const riskReasons = result.reasons.map(reason => reason.startsWith("raw-") ? `raw or untreated: ${toppingName(reason.slice(4) as ToppingId)}` : t.reasonText[reason as keyof typeof t.reasonText]).filter(Boolean);
   const meterColor = result.load === "overloaded" || result.load === "heavy" ? "bg-tomato" : result.load === "balanced" ? "bg-leaf" : "bg-[#e8c98a]";
   const costParams = new URLSearchParams(location.search); costParams.set("cheeseGrams", String(cheeseType === "none" ? 0 : cheeseGrams)); costParams.set("sauceGrams", String(sauceGrams)); costParams.set("toppingGrams", String(result.toppingGrams));
   const chooseShape = (shape: "round" | "rectangle") => setGeometry(current => shape === "round" ? { shape, diameter: current.shape === "round" ? current.diameter : 32, rim: current.rim } : { shape, width: current.shape === "rectangle" ? current.width : 20, length: current.shape === "rectangle" ? current.length : 25, rim: current.rim });
   const updateTopping = (id: ToppingId, change?: Partial<ToppingSelection>) => setToppings(current => { const next = { ...current }; const profile = toppingProfiles.find(item => item.id === id)!; if (!change) delete next[id]; else next[id] = { grams: change.grams ?? current[id]?.grams ?? profile.defaultGrams, preparation: change.preparation ?? current[id]?.preparation ?? (profile.prepRecommended ? "raw" : "prepared") }; return next; });
-  const changeLocale = (next: Locale) => { setLocale(next); localStorage.setItem("doughtools-toppings-locale", next); document.documentElement.lang = next; };
-  const numberField = (value: number, onChange: (value: number) => void, suffix = "cm") => <ScrollNumberPicker value={value} onValueChange={onChange} min={0} max={suffix === "g" ? 300 : 100} suffix={suffix} label={pickerCopy[locale].label} hint={pickerCopy[locale].hint} done={pickerCopy[locale].done}/>;
+  const numberField = (value: number, onChange: (value: number) => void, suffix = "cm") => <ScrollNumberPicker value={value} onValueChange={onChange} min={0} max={suffix === "g" ? 300 : 100} suffix={suffix} label={pickerCopy.en.label} hint={pickerCopy.en.hint} done={pickerCopy.en.done}/>;
 
   return <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6"><div className="mx-auto max-w-6xl">
-    <section className="grid items-end gap-5 py-8 lg:grid-cols-[1fr_auto]"><div><div className="mb-5 inline-flex rounded-full bg-white/75 p-1 shadow-sm" aria-label="Language / Språk / Kieli">{(["fi", "sv", "en"] as Locale[]).map(lang => <button key={lang} type="button" onClick={() => changeLocale(lang)} aria-pressed={locale === lang} className={`rounded-full px-3 py-2 text-[10px] font-extrabold uppercase ${locale === lang ? "bg-ink text-white" : "text-ink/45"}`}>{lang}</button>)}</div><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-3xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></div><div className="rounded-2xl bg-white/80 p-4 text-xs shadow-card"><strong className="block text-leaf">{t.current}</strong><span className="mt-1 block text-ink/55">{locale === "fi" ? style.nameFi : locale === "sv" ? swedishStyleNames[style.id] : style.nameEn} · {settings.pizzas} {settings.goal === "pan" ? t.pan : t.pizzas} · {settings.ovenType === "gas" ? t.gas : t.home}</span></div></section>
+    <section className="grid items-end gap-5 py-8 lg:grid-cols-[1fr_auto]"><div><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-3xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></div><div className="rounded-2xl bg-white/80 p-4 text-xs shadow-card"><strong className="block text-leaf">{t.current}</strong><span className="mt-1 block text-ink/55">{style.nameEn} · {settings.pizzas} {settings.goal === "pan" ? t.pan : t.pizzas} · {settings.ovenType === "gas" ? t.gas : t.home}</span></div></section>
     <div className="grid items-start gap-5 lg:grid-cols-[1fr_22rem]"><div className="space-y-5">
       <section className="rounded-[1.75rem] bg-white/80 p-5 shadow-card sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.pizza}</h2><div className="mt-4 inline-flex rounded-xl bg-ink/[.05] p-1">{(["round", "rectangle"] as const).map(shape => <button key={shape} type="button" onClick={() => chooseShape(shape)} className={`rounded-lg px-4 py-2 text-xs font-bold ${geometry.shape === shape ? "bg-ink text-white" : "text-ink/45"}`}>{shape === "round" ? t.round : t.rectangle}</button>)}</div><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{geometry.shape === "round" ? <label className="text-xs font-bold text-ink/55">{t.diameter}{numberField(geometry.diameter, value => setGeometry({ ...geometry, diameter: value }))}</label> : <><label className="text-xs font-bold text-ink/55">{t.width}{numberField(geometry.width, value => setGeometry({ ...geometry, width: value }))}</label><label className="text-xs font-bold text-ink/55">{t.length}{numberField(geometry.length, value => setGeometry({ ...geometry, length: value }))}</label></>}<label className="text-xs font-bold text-ink/55">{t.rim}{numberField(geometry.rim, value => setGeometry({ ...geometry, rim: value }))}</label></div><p className="mt-4 text-xs text-ink/40">{t.areaNote}</p></section>
       <section className="rounded-[1.75rem] bg-white/80 p-5 shadow-card sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.cheese}</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{cheeseTypes.map(type => { const labels = t.cheeses[type]; return <button key={type} type="button" onClick={() => setCheeseType(type)} className={`min-h-20 rounded-2xl border p-4 text-left ${cheeseType === type ? "border-tomato bg-tomato text-white shadow-lg" : "border-ink/10 bg-white"}`}><strong className="block">{labels[0]}</strong><span className={`mt-1 block text-xs ${cheeseType === type ? "text-white/70" : "text-ink/45"}`}>{labels[1]}</span></button>; })}</div>
@@ -210,12 +183,12 @@ export default function ToppingsPage() {
       {(selectedProfiles.length > 0 || cheeseType !== "none") && <section className="rounded-[1.75rem] bg-white/70 p-5 sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.checklist}</h2><p className="mt-2 text-xs text-ink/45">{t.checklistLead}</p><ol className="mt-5 space-y-3 text-xs leading-5">{(cheeseType === "fior-di-latte" || cheeseType === "buffalo") && <li className="rounded-xl bg-white p-3"><strong>1. </strong>{t.cheeseTips[cheeseType]}</li>}{selectedProfiles.filter(profile => profile.prepRecommended).map(profile => <li key={profile.id} className="rounded-xl bg-white p-3"><strong>• {toppingName(profile.id)}: </strong>{profileText(profile.id, "prep")}</li>)}<li className="rounded-xl bg-white p-3">• {t.stretch}</li><li className="rounded-xl bg-white p-3">• {t.sauceStep}</li>{cheeseType !== "none" && <li className="rounded-xl bg-white p-3">• {t.cheeseStep}</li>}<li className="rounded-xl bg-white p-3">• {t.bake}</li>{afterBakeProfiles.length > 0 && <li className="rounded-xl bg-leaf/[.08] p-3">• {t.finish} <strong>{afterBakeProfiles.map(profile => toppingName(profile.id)).join(", ")}</strong></li>}</ol></section>}
     </div>
     <aside className="space-y-5 lg:sticky lg:top-24"><section className="rounded-[1.75rem] bg-ink p-6 text-white shadow-card"><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">{t.load}</p><div className="mt-3 flex items-end justify-between"><strong className="font-display text-5xl">{result.loadPer100}</strong><span className="pb-1 text-xs text-white/45">{t.perArea}</span></div><div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full ${meterColor}`} style={{ width: `${Math.min(100, result.loadPer100 / Math.max(result.loadLimit, 1) * 75)}%` }}/></div><div className="mt-2 flex justify-between text-[10px]"><strong>{t.loadLabels[result.load]}</strong><span className="text-white/40">{result.total} g {t.preBake}</span></div><p className="mt-3 text-[10px] leading-4 text-white/35">{t.practical}</p><div className="mt-5 grid grid-cols-3 gap-2 text-center text-[10px]"><div className="rounded-xl bg-white/[.07] p-3"><strong className="block text-base">{sauceGrams} g</strong>{t.sauce}</div><div className="rounded-xl bg-white/[.07] p-3"><strong className="block text-base">{cheeseType === "none" ? 0 : cheeseGrams} g</strong>{t.cheeseShort}</div><div className="rounded-xl bg-white/[.07] p-3"><strong className="block text-base">{result.preBakeToppingGrams} g</strong>{t.other}</div></div></section>
-      <ToppingLoadVisual locale={locale} load={result.load} moisture={result.moisture}/>
+      <ToppingLoadVisual load={result.load} moisture={result.moisture}/>
       <section className={`rounded-[1.75rem] p-5 ${result.moisture === "high" ? "bg-[#5a2c20] text-white" : result.moisture === "medium" ? "bg-[#e8c98a]/35" : "bg-leaf/[.09]"}`}><p className="text-[10px] font-extrabold uppercase tracking-[.16em]">{t.moisture}</p><h2 className="mt-1 font-display text-3xl font-semibold">{t.risks[result.moisture]}</h2><span className="text-[10px] opacity-55">{result.moisturePoints} {t.points}</span>{riskReasons.length ? <div className="mt-4"><strong className="text-xs">{t.causedBy}:</strong><ul className="mt-2 space-y-1 text-xs leading-5 opacity-70">{riskReasons.map(reason => <li key={reason}>• {reason}</li>)}</ul></div> : <p className="mt-3 text-xs leading-5 opacity-65">{t.noRisks}</p>}</section>
       {result.warnings.length > 0 && <section className="rounded-[1.75rem] border border-tomato/20 bg-tomato/[.07] p-5"><h2 className="font-display text-2xl font-semibold">{t.warnings}</h2><ul className="mt-3 space-y-2 text-xs leading-5 text-ink/60">{result.warnings.map(warning => <li key={warning}>• {t.warningText[warning as keyof typeof t.warningText]}</li>)}</ul></section>}
       <Link href={`/costs?${costParams.toString()}`} className="flex min-h-14 items-center justify-between rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg"><span>{t.cost}</span><span>→</span></Link>
     </aside></div>
     <section className="mt-8 rounded-[1.75rem] border border-ink/10 bg-white/60 p-5 sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><p className="mt-3 max-w-4xl text-xs leading-5 text-ink/50">{t.sourceLead}</p><div className="mt-4 flex flex-wrap gap-2 text-[10px] font-bold"><a className="rounded-full bg-white px-3 py-2" href="https://www.pizzanapoletana.org/en/ricetta_pizza_napoletana" target="_blank" rel="noreferrer">AVPN ↗</a><a className="rounded-full bg-white px-3 py-2" href="https://www.kingarthurbaking.com/blog/2024/06/07/add-pizza-toppings" target="_blank" rel="noreferrer">King Arthur Baking ↗</a><a className="rounded-full bg-white px-3 py-2" href="https://www.seriouseats.com/the-pizza-lab-the-best-low-moisture-mozzarella-for-pizzas" target="_blank" rel="noreferrer">Serious Eats ↗</a><a className="rounded-full bg-white px-3 py-2" href="https://www.pizzamaking.com/forum/index.php/topic,70662.0.html" target="_blank" rel="noreferrer">PizzaMaking ↗</a></div></section>
-    <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature locale={locale}/></footer>
+    <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;
 }

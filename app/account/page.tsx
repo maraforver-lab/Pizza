@@ -6,7 +6,6 @@ import type { User } from "@supabase/supabase-js";
 import AppSignature from "@/components/AppSignature";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-type Locale = "fi" | "sv" | "en";
 type Mode = "login" | "signup";
 
 const copy = {
@@ -19,7 +18,6 @@ const copy = {
 } as const;
 
 export default function AccountPage() {
-  const [locale, setLocale] = useState<Locale>("en");
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,17 +26,13 @@ export default function AccountPage() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const t = copy[locale];
+  const t = copy.en;
 
   useEffect(() => {
-    const stored = localStorage.getItem("doughtools-locale");
-    const browser = navigator.language.toLowerCase();
-    const next: Locale = stored === "fi" || stored === "sv" || stored === "en" ? stored : browser.startsWith("fi") ? "fi" : browser.startsWith("sv") ? "sv" : "en";
-    setLocale(next);
-    document.documentElement.lang = next;
+    document.documentElement.lang = "en";
     const params = new URLSearchParams(location.search);
-    if (params.get("confirmed") === "1") setMessage(copy[next].confirmed);
-    if (params.get("authError")) { setMessage(copy[next].retry); setIsError(true); }
+    if (params.get("confirmed") === "1") setMessage(copy.en.confirmed);
+    if (params.get("authError")) { setMessage(copy.en.retry); setIsError(true); }
 
     supabase.auth.getUser().then(({ data }) => { setUser(data.user); setLoading(false); });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => { setUser(session?.user ?? null); setLoading(false); });
@@ -75,6 +69,6 @@ export default function AccountPage() {
         <p className="mt-5 border-t border-ink/10 pt-4 text-[10px] leading-4 text-ink/35">{t.privacy}</p>
       </section>
     </section>
-    <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature locale={locale}/></footer>
+    <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;
 }

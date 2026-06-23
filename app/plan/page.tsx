@@ -42,16 +42,16 @@ const dateInputValue = (date: Date) => {
 };
 
 const durationText = (milliseconds: number, locale: Locale) => {
-  if (milliseconds <= 0) return copy[locale].overdue;
+  if (milliseconds <= 0) return copy.en.overdue;
   const totalMinutes = Math.ceil(milliseconds / 60_000);
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
-  return [[days, copy[locale].day], [hours, copy[locale].hour], [minutes, copy[locale].minute]].filter(([value]) => Number(value) > 0).map(([value, unit]) => `${value} ${unit}`).join(" ");
+  return [[days, copy.en.day], [hours, copy.en.hour], [minutes, copy.en.minute]].filter(([value]) => Number(value) > 0).map(([value, unit]) => `${value} ${unit}`).join(" ");
 };
 
 export default function PlanPage() {
-  const [locale, setLocale] = useState<Locale>("en");
+  const locale: Locale = "en";
   const [settings, setSettings] = useState<RecipeSettings>(defaults);
   const [mode, setMode] = useState<ScheduleMode>("start");
   const [anchor, setAnchor] = useState(new Date(0));
@@ -59,15 +59,12 @@ export default function PlanPage() {
   const [now, setNow] = useState(new Date(0));
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
-  const t = copy[locale];
+  const t = copy.en;
   const flour = flourById(settings.flourId);
   const bake = bakeFor(settings.goal, settings.ovenType);
   const ingredients = useMemo(() => calculateDoughIngredients(settings), [settings]);
 
   useEffect(() => {
-    const savedLocale = window.localStorage.getItem("doughtools-locale") as Locale | null;
-    const browserLocale = navigator.language.toLowerCase();
-    const nextLocale = savedLocale === "fi" || savedLocale === "sv" || savedLocale === "en" ? savedLocale : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en";
     const shared = settingsFromUrl(window.location.search);
     const validShared = Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) as Partial<RecipeSettings>;
     const parsed = { ...defaults, ...validShared };
@@ -81,14 +78,13 @@ export default function PlanPage() {
     const storedAnchor = stored?.signature === signature && stored.anchor ? new Date(stored.anchor) : null;
     const nextMode = stored?.signature === signature && stored.mode ? stored.mode : "start";
     const nextAnchor = storedAnchor && !Number.isNaN(storedAnchor.getTime()) ? storedAnchor : (nextMode === "bake" ? defaultBake : current);
-    setLocale(nextLocale);
     setSettings(parsed);
     setNow(current);
     setMode(nextMode);
     setAnchor(nextAnchor);
     setBakeInput(dateInputValue(nextMode === "bake" ? nextAnchor : defaultBake));
     setCompleted(new Set(stored?.signature === signature ? stored.completed ?? [] : []));
-    document.documentElement.lang = nextLocale;
+    document.documentElement.lang = "en";
     setReady(true);
   }, []);
 
@@ -105,8 +101,8 @@ export default function PlanPage() {
   const instructions = useMemo(() => buildDoughInstructions({ locale, settings, flour, bake }), [locale, settings, flour, bake]);
   const scheduled = useMemo(() => scheduleInstructions(instructions.steps, settings.fermentation, anchor, mode), [instructions.steps, settings.fermentation, anchor, mode]);
   const nextStep = nextScheduledStep(scheduled, now, completed);
-  const dateFormatter = useMemo(() => new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : locale === "sv" ? "sv-SE" : "en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), [locale]);
-  const timeFormatter = useMemo(() => new Intl.DateTimeFormat(locale === "fi" ? "fi-FI" : locale === "sv" ? "sv-SE" : "en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }), [locale]);
+  const dateFormatter = useMemo(() => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }), []);
+  const timeFormatter = useMemo(() => new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }), []);
   const backHref = `/?${recipeParams(settings).toString()}`;
 
   const startNow = () => {
@@ -156,9 +152,9 @@ export default function PlanPage() {
             </div>
           </li>; })}</ol>
         </section>
-        <Link href={`/timer?${recipeParams(settings).toString()}`} className="mt-5 flex items-center justify-between gap-4 rounded-[1.5rem] bg-tomato p-5 text-white shadow-card"><span><small className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/55">{locale === "fi" ? "Paistovaihe" : "Bake stage"}</small><strong className="mt-1 block font-display text-2xl">{t.timerTitle}</strong><span className="mt-1 block text-xs text-white/65">{t.timerLead}</span></span><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl text-tomato">⏱</span></Link>
+        <Link href={`/timer?${recipeParams(settings).toString()}`} className="mt-5 flex items-center justify-between gap-4 rounded-[1.5rem] bg-tomato p-5 text-white shadow-card"><span><small className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/55">Bake stage</small><strong className="mt-1 block font-display text-2xl">{t.timerTitle}</strong><span className="mt-1 block text-xs text-white/65">{t.timerLead}</span></span><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl text-tomato">⏱</span></Link>
         <p className="mt-5 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs leading-5 text-ink/50">{t.estimated}</p>
-        <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature locale={locale} /></footer>
+        <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
       </div>
     </main>
   );

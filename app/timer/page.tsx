@@ -7,7 +7,6 @@ import { pizzaStyleById } from "@/lib/pizza-styles";
 import { settingsFromUrl } from "@/lib/recipe-url";
 import type { PizzaStyleId, RecipeSettings } from "@/lib/saved-recipes";
 
-type Locale = "fi" | "sv" | "en";
 type TimerStatus = "idle" | "running" | "paused" | "overtime" | "expired";
 type WakeStatus = "idle" | "active" | "unsupported" | "failed";
 type LightMode = "off" | "torch" | "screen";
@@ -33,7 +32,6 @@ const copy = {
 const clock = (seconds: number) => `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${Math.floor(seconds % 60).toString().padStart(2, "0")}`;
 
 export default function TimerPage() {
-  const [locale, setLocale] = useState<Locale>("en");
   const [ready, setReady] = useState(false);
   const [settings, setSettings] = useState(defaults);
   const [duration, setDuration] = useState(90);
@@ -48,18 +46,15 @@ export default function TimerPage() {
   const audio = useRef<AudioContext | null>(null);
   const wakeLock = useRef<WakeLockLike | null>(null);
   const torchStream = useRef<MediaStream | null>(null);
-  const t = copy[locale];
+  const t = copy.en;
   const style = pizzaStyleById(settings.pizzaStyleId, settings.goal);
 
   useEffect(() => {
-    const stored = localStorage.getItem("doughtools-locale") as Locale | null;
-    const browserLocale = navigator.language.toLowerCase();
-    const next = stored === "fi" || stored === "sv" || stored === "en" ? stored : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en";
     const shared = settingsFromUrl(location.search);
     const nextSettings = { ...defaults, ...Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) } as RecipeSettings;
     const styleId = pizzaStyleById(nextSettings.pizzaStyleId, nextSettings.goal).id;
     const initial = Math.max(10, Math.min(1800, Number(new URLSearchParams(location.search).get("timer")) || styleSeconds[styleId]));
-    setLocale(next); setSettings(nextSettings); setDuration(initial); setRemaining(initial); document.documentElement.lang = next; setReady(true);
+    setSettings(nextSettings); setDuration(initial); setRemaining(initial); document.documentElement.lang = "en"; setReady(true);
   }, []);
 
   const releaseWakeLock = useCallback(async () => {
@@ -169,9 +164,9 @@ export default function TimerPage() {
     <div className="mx-auto max-w-4xl">
     <div className="flex items-center justify-between gap-2"><Link href={`/plan${query}`} className={`rounded-full px-4 py-2 text-xs font-bold ${urgent ? "bg-white/15 text-white" : "bg-white text-ink/65"}`}>← {t.back}</Link><div className="flex gap-2"><button type="button" onClick={() => void toggleInspectionLight()} className={`rounded-full px-3 py-2 text-xs font-bold ${urgent ? "bg-white/15 text-white" : lightMode === "torch" ? "bg-tomato text-white" : "bg-white text-ink/65"}`}>🔦 {lightMode === "torch" ? t.torchOn : t.light}</button><button type="button" onClick={() => setMuted(current => !current)} aria-label={muted ? t.mute : t.sound} className={`rounded-full px-3 py-2 text-xs font-bold ${urgent ? "bg-white/15 text-white" : "bg-white text-ink/65"}`}>{muted ? "🔇" : "🔊"}</button></div></div>
     <section className={`py-9 text-center ${urgent ? "text-white" : ""}`}><p className={`text-xs font-extrabold uppercase tracking-[.22em] ${urgent ? "text-white/55" : "text-tomato"}`}>{t.eyebrow}</p><h1 className="mx-auto mt-3 max-w-3xl font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className={`mx-auto mt-4 max-w-2xl text-sm leading-6 ${urgent ? "text-white/65" : "text-ink/50"}`}>{t.intro}</p></section>
-    <section className={`overflow-hidden rounded-[2rem] shadow-2xl ${urgent ? "bg-[#7d1d13] text-white" : "bg-ink text-white"}`}><div className="border-b border-white/10 p-5 text-center"><span className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">{t.recipe}</span><strong className="ml-2 text-xs">{locale === "fi" ? style.nameFi : style.nameEn}</strong><span className="ml-2 text-[10px] text-white/35">· {t.recommended} {clock(styleSeconds[style.id])}</span></div><div className={`relative grid min-h-[22rem] place-items-center px-4 py-10 text-center ${lastTen ? "animate-pulse" : ""}`}><div><p className={`font-mono text-[clamp(4.8rem,24vw,10rem)] font-black leading-none tracking-[-.08em] ${lastTen ? "text-[#ffd166]" : ""}`} aria-live="polite">{timerValue}</p><p className={`mt-5 text-sm font-extrabold uppercase tracking-[.18em] ${urgent ? "text-white" : lastTen ? "text-[#ffd166]" : "text-white/45"}`}>{statusText}</p>{urgent && <p className="mt-2 text-xs text-white/50">{t.maxOvertime}</p>}</div></div><div className="grid grid-cols-2 gap-3 border-t border-white/10 p-5 sm:grid-cols-3">{status === "running" ? <button type="button" onClick={pause} className="min-h-16 rounded-2xl bg-white text-lg font-extrabold text-ink">Ⅱ {t.pause}</button> : status === "idle" || status === "paused" ? <button type="button" onClick={start} className="min-h-16 rounded-2xl bg-tomato text-lg font-extrabold text-white sm:col-span-2">▶ {status === "paused" ? t.resume : t.start}</button> : null}<button type="button" onClick={reset} className="min-h-16 rounded-2xl bg-white/10 text-sm font-extrabold text-white">↺ {t.reset}</button></div></section>
+    <section className={`overflow-hidden rounded-[2rem] shadow-2xl ${urgent ? "bg-[#7d1d13] text-white" : "bg-ink text-white"}`}><div className="border-b border-white/10 p-5 text-center"><span className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">{t.recipe}</span><strong className="ml-2 text-xs">{style.nameEn}</strong><span className="ml-2 text-[10px] text-white/35">· {t.recommended} {clock(styleSeconds[style.id])}</span></div><div className={`relative grid min-h-[22rem] place-items-center px-4 py-10 text-center ${lastTen ? "animate-pulse" : ""}`}><div><p className={`font-mono text-[clamp(4.8rem,24vw,10rem)] font-black leading-none tracking-[-.08em] ${lastTen ? "text-[#ffd166]" : ""}`} aria-live="polite">{timerValue}</p><p className={`mt-5 text-sm font-extrabold uppercase tracking-[.18em] ${urgent ? "text-white" : lastTen ? "text-[#ffd166]" : "text-white/45"}`}>{statusText}</p>{urgent && <p className="mt-2 text-xs text-white/50">{t.maxOvertime}</p>}</div></div><div className="grid grid-cols-2 gap-3 border-t border-white/10 p-5 sm:grid-cols-3">{status === "running" ? <button type="button" onClick={pause} className="min-h-16 rounded-2xl bg-white text-lg font-extrabold text-ink">Ⅱ {t.pause}</button> : status === "idle" || status === "paused" ? <button type="button" onClick={start} className="min-h-16 rounded-2xl bg-tomato text-lg font-extrabold text-white sm:col-span-2">▶ {status === "paused" ? t.resume : t.start}</button> : null}<button type="button" onClick={reset} className="min-h-16 rounded-2xl bg-white/10 text-sm font-extrabold text-white">↺ {t.reset}</button></div></section>
     <section className="mt-5 grid gap-5 lg:grid-cols-2"><div className="rounded-[1.5rem] bg-white/80 p-5 shadow-card"><h2 className="font-display text-2xl font-semibold">{t.quick}</h2><div className="mt-4 grid grid-cols-3 gap-2">{presets.map(seconds => <button key={seconds} type="button" disabled={status === "running" || status === "overtime"} onClick={() => chooseDuration(seconds)} className={`min-h-12 rounded-xl text-xs font-extrabold disabled:opacity-35 ${duration === seconds ? "bg-ink text-white" : "bg-cream text-ink/55"}`}>{clock(seconds)}</button>)}</div></div><div className="rounded-[1.5rem] bg-white/80 p-5 shadow-card"><h2 className="font-display text-2xl font-semibold">{t.custom}</h2><div className="mt-4 grid grid-cols-[1fr_5rem_1fr] gap-2"><button type="button" disabled={status === "running" || status === "overtime"} onClick={() => adjust(-10)} aria-label={t.minus} className="min-h-14 rounded-xl bg-cream text-2xl font-black disabled:opacity-35">−</button><strong className="grid place-items-center font-mono text-xl">{clock(duration)}</strong><button type="button" disabled={status === "running" || status === "overtime"} onClick={() => adjust(10)} aria-label={t.plus} className="min-h-14 rounded-xl bg-cream text-2xl font-black disabled:opacity-35">+</button></div></div></section>
     <section className="mt-5 rounded-[1.5rem] bg-white/80 p-5 shadow-card"><div className="flex gap-3"><span className="text-xl">{wakeStatus === "active" ? "☀" : "◐"}</span><div><strong className={`text-sm ${wakeColor}`}>{wakeText}</strong><p className="mt-1 text-xs leading-5 text-ink/45">{t.note}</p></div></div><div className="mt-4 flex gap-3 border-t border-ink/10 pt-4"><span className="text-xl">🔦</span><div className="flex-1"><strong className="text-sm text-ink/70">{lightMode === "torch" ? t.torchOn : lightMode === "screen" ? t.screenOn : t.light}</strong><p className="mt-1 text-xs leading-5 text-ink/45">{t.lightHint}</p><button type="button" onClick={() => { stopInspectionLight(); setLightMode("screen"); }} className="mt-3 min-h-11 rounded-xl bg-cream px-4 text-xs font-extrabold text-ink/70">☀ {t.whiteLight}</button></div></div></section>
-    <footer className={`mt-8 border-t py-6 ${urgent ? "border-white/20" : "border-ink/10"}`}><AppSignature locale={locale} dark={urgent}/></footer>
+    <footer className={`mt-8 border-t py-6 ${urgent ? "border-white/20" : "border-ink/10"}`}><AppSignature dark={urgent}/></footer>
   </div></main>;
 }

@@ -5,37 +5,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-type Locale = "fi" | "sv" | "en";
 type MenuId = "plan" | "solve" | "learn" | "mine" | "all";
 
 const copy = {
-  fi: {
-    calculator: "Laskuri", plan: "Suunnittele", learn: "Opi", mine: "Omat", all: "Kaikki työkalut", menu: "Valikko", close: "Sulje valikko", account: "Kirjaudu", accountActive: "Tilisi",
-    groups: [
-      ["Suunnittele", [["/styles", "Pizzatyylit"], ["/plan", "Valmistusohje ja aikataulu"], ["/timer", "Paistoajastin"], ["/sauce", "Kastikelaskuri"], ["/toppings", "Juusto ja täytteet"]]],
-      ["Ratkaise", [["/doctor", "Taikinalääkäri"], ["/coach", "AI Pizza Coach"], ["/costs", "Kustannuslaskuri"]]],
-      ["Opi ja varustaudu", [["/guide", "Ohjeet ja terminologia"], ["/ovens", "Uuniopas"], ["/gear", "Varusteopas"], ["/history", "Pizzan historia"], ["/updates", "Päivitykset ja tarina"]]],
-      ["Omat ja yhteisö", [["/account", "Käyttäjätili"], ["/#my-recipes", "Omat reseptit"], ["/journal", "Pizzapäiväkirja"], ["/community", "Yhteisön reseptit"]]],
-    ],
-  },
-  en: {
-    calculator: "Calculator", plan: "Plan", learn: "Learn", mine: "Mine", all: "All tools", menu: "Menu", close: "Close menu", account: "Sign in", accountActive: "Your account",
-    groups: [
-      ["Plan", [["/styles", "Pizza styles"], ["/plan", "Instructions and schedule"], ["/timer", "Bake timer"], ["/sauce", "Sauce calculator"], ["/toppings", "Cheese and toppings"]]],
-      ["Solve", [["/doctor", "Dough Doctor"], ["/coach", "AI Pizza Coach"], ["/costs", "Cost calculator"]]],
-      ["Learn and equip", [["/guide", "Guide and terminology"], ["/ovens", "Oven guide"], ["/gear", "Gear guide"], ["/history", "Pizza history"], ["/updates", "Updates and story"]]],
-      ["Mine and community", [["/account", "User account"], ["/#my-recipes", "Saved recipes"], ["/journal", "Pizza journal"], ["/community", "Community recipes"]]],
-    ],
-  },
-  sv: {
-    calculator: "Kalkylator", plan: "Planera", learn: "Lär dig", mine: "Mina", all: "Alla verktyg", menu: "Meny", close: "Stäng menyn", account: "Logga in", accountActive: "Ditt konto",
-    groups: [
-      ["Planera", [["/styles", "Pizzastilar"], ["/plan", "Instruktioner och tidsplan"], ["/timer", "Gräddningstimer"], ["/sauce", "Såskalkylator"], ["/toppings", "Ost och toppingar"]]],
-      ["Lös problem", [["/doctor", "Degläkaren"], ["/coach", "AI Pizza Coach"], ["/costs", "Kostnadskalkylator"]]],
-      ["Lär dig och utrusta", [["/guide", "Guide och terminologi"], ["/ovens", "Ugnsguide"], ["/gear", "Utrustningsguide"], ["/history", "Pizzans historia"], ["/updates", "Uppdateringar och berättelse"]]],
-      ["Mina och gemenskap", [["/account", "Användarkonto"], ["/#my-recipes", "Sparade recept"], ["/journal", "Pizzadagbok"], ["/community", "Gemenskapens recept"]]],
-    ],
-  },
+  calculator: "Calculator", plan: "Plan", learn: "Learn", mine: "Mine", all: "All tools", menu: "Menu", close: "Close menu", account: "Sign in", accountActive: "Your account",
+  groups: [
+    ["Plan", [["/styles", "Pizza styles"], ["/plan", "Instructions and schedule"], ["/timer", "Bake timer"], ["/sauce", "Sauce calculator"], ["/toppings", "Cheese and toppings"]]],
+    ["Solve", [["/doctor", "Dough Doctor"], ["/coach", "AI Pizza Coach"], ["/costs", "Cost calculator"]]],
+    ["Learn and equip", [["/guide", "Guide and terminology"], ["/ovens", "Oven guide"], ["/gear", "Gear guide"], ["/history", "Pizza history"], ["/updates", "Updates and story"]]],
+    ["Mine and community", [["/account", "User account"], ["/#my-recipes", "Saved recipes"], ["/journal", "Pizza journal"], ["/community", "Community recipes"]]],
+  ],
 } as const;
 
 const menuGroups: Record<Exclude<MenuId, "all">, number[]> = { plan: [0], solve: [1], learn: [2], mine: [3] };
@@ -45,20 +24,18 @@ const mineRoutes = ["/account", "/journal", "/community"];
 
 export default function GlobalToolNavigation() {
   const pathname = usePathname();
-  const [locale, setLocale] = useState<Locale>("en");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<MenuId | null>(null);
   const [signedIn, setSignedIn] = useState(false);
   const [authPulse, setAuthPulse] = useState(false);
 
   useEffect(() => {
-    const updateLocale = () => { const params = new URLSearchParams(window.location.search); const pageLocale = pathname === "/toppings" ? params.get("toppingsLang") : null; const stored = localStorage.getItem("doughtools-locale"); const browserLocale = navigator.language.toLowerCase(); setLocale(pageLocale === "fi" || pageLocale === "sv" || pageLocale === "en" ? pageLocale : stored === "fi" || stored === "sv" || stored === "en" ? stored : browserLocale.startsWith("fi") ? "fi" : browserLocale.startsWith("sv") ? "sv" : "en"); };
     const updateQuery = () => setQuery(window.location.search);
-    updateLocale(); updateQuery(); setOpen(null);
+    document.documentElement.lang = "en";
+    updateQuery(); setOpen(null);
     window.addEventListener("popstate", updateQuery);
     window.addEventListener("doughtools:urlchange", updateQuery);
-    window.addEventListener("doughtools:localechange", updateLocale);
-    return () => { window.removeEventListener("popstate", updateQuery); window.removeEventListener("doughtools:urlchange", updateQuery); window.removeEventListener("doughtools:localechange", updateLocale); };
+    return () => { window.removeEventListener("popstate", updateQuery); window.removeEventListener("doughtools:urlchange", updateQuery); };
   }, [pathname]);
 
   useEffect(() => {
@@ -87,16 +64,11 @@ export default function GlobalToolNavigation() {
     }
   }, []);
 
-  const t = copy[locale];
+  const t = copy;
   const href = (route: string) => { const [path, hash] = route.split("#"); return `${path}${query}${hash ? `#${hash}` : ""}`; };
-  const changeLocale = (next: Locale) => { localStorage.setItem("doughtools-locale", next); if (pathname === "/toppings") { localStorage.setItem("doughtools-toppings-locale", next); const params = new URLSearchParams(window.location.search); params.set("toppingsLang", next); window.history.replaceState(null, "", `${pathname}?${params.toString()}`); } document.documentElement.lang = next; window.dispatchEvent(new Event("doughtools:localechange")); window.location.reload(); };
   const toggle = (menu: MenuId) => setOpen(current => current === menu ? null : menu);
   const active = (routes: readonly string[]) => routes.includes(pathname);
   const visibleGroups = open === "all" ? [0, 1, 2, 3] : open ? menuGroups[open as Exclude<MenuId, "all">] : [];
-
-  const languageSwitch = <div className="flex rounded-full bg-ink/[.05] p-1" aria-label="Language / Språk / Kieli">
-    {(["fi", "sv", "en"] as Locale[]).map(lang => <button key={lang} type="button" onClick={() => changeLocale(lang)} aria-pressed={locale === lang} className={`rounded-full px-2.5 py-1.5 text-[10px] font-extrabold uppercase ${locale === lang ? "bg-ink text-white" : "text-ink/45"}`}>{lang}</button>)}
-  </div>;
 
   return <>
     <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/95 px-3 py-2.5 text-ink shadow-sm backdrop-blur-xl sm:px-6">
@@ -119,7 +91,6 @@ export default function GlobalToolNavigation() {
             <span className="hidden text-[11px] font-extrabold xl:block">{signedIn ? t.accountActive : t.account}</span>
             {signedIn && <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf"><span className={`absolute h-full w-full rounded-full bg-leaf ${authPulse ? "animate-ping" : ""}`}/></span>}
           </Link>
-          {languageSwitch}
         </div>
       </div>
     </header>
