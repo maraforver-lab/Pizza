@@ -469,8 +469,8 @@ export default function Home() {
           <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{t.intro}</p>
         </section>
 
-        <div className="grid items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">
-          <section className="rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="recipe-settings">
+        <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">
+          <section className="min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="recipe-settings">
             <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
             <p className="mb-5 text-sm leading-6 text-ink/55">{t.quickIntro}</p>
             <div className="grid grid-cols-2 gap-2">
