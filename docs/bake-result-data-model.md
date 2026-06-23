@@ -97,3 +97,32 @@ Patch 11 does not:
 - change IndexedDB version
 - migrate existing user data
 - change calculations
+
+## Patch 12 local-only save flow
+
+Patch 12 connects the model to a small local workflow:
+
+```text
+calculate recipe → save private local BakeResult → view saved bakes in Journal
+```
+
+Saved bakes are stored in browser `localStorage` with:
+
+```text
+doughtools:bake-results
+```
+
+The feature is intentionally private and local-only:
+
+- no Supabase upload
+- no account sync
+- no photo upload
+- no share card
+- no public or unlisted publishing UI
+- no public bake routes
+
+The calculator creates a `RecipeSnapshot` from the current recipe and saves it inside a private `BakeResult`. The Journal page shows a separate “Saved bakes” section so old photo journal entries remain untouched.
+
+If a user clears browser site data, local saved bakes may be lost.
+
+Patch 13 can build on this by adding richer post-bake details or a photo reference, but it should keep snapshots immutable and private by default until a deliberate publishing workflow exists.

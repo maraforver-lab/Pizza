@@ -40,6 +40,18 @@ Full IndexedDB regression tests are intentionally not included yet because the p
 - a focused fake IndexedDB dependency for unit tests, or
 - a browser integration test that runs against real IndexedDB.
 
+## Local BakeResults
+
+Patch 12 adds private local BakeResult storage with this dedicated `localStorage` key:
+
+```text
+doughtools:bake-results
+```
+
+This storage is separate from saved recipes and separate from the IndexedDB pizza journal. It does not migrate existing recipes or journal entries, does not change the journal database version, and does not upload BakeResults to Supabase.
+
+The loader validates stored objects with the BakeResult migration helpers. Malformed storage data returns a safe empty list, and saved BakeResults are forced to private visibility.
+
 ## Local data not covered by this patch
 
 - Existing real user browser data.

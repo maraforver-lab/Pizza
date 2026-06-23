@@ -18,7 +18,9 @@ import {
 import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
 import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
 import { bakeFor } from "@/lib/baking";
+import { createBakeResult, createBakingSnapshot, createRecipeSnapshot, createResultSnapshot } from "@/lib/bake-result";
 import { homepageContent, type HomepageTool } from "@/lib/homepage";
+import { addLocalBakeResult, BAKE_RESULTS_LOCAL_ONLY_COPY } from "@/lib/local-bake-results";
 import { defaultPizzaStyleId, pizzaStyleById, type PizzaStyleId } from "@/lib/pizza-styles";
 
 type Locale = "en" | "fi" | "sv";
@@ -70,7 +72,7 @@ const copy = {
       "24h-cold": ["24 h in the fridge", "About 4 °C"], "48h-cold": ["48 h in the fridge", "About 4 °C"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
-    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
+    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", saveBake: "Save this bake", bakeSaved: "Bake result saved locally", bakeRating: "Overall rating", bakeTimeSeconds: "Bake time", bakeOvenTemp: "Oven temperature", privateBakeNote: "Private note", privateBakePlaceholder: "What happened in the oven?", savedBakesLink: "View saved bakes", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
     instructionsTitle: "Plan fermentation next", instructionsIntro: "Your dough numbers are ready. Open the planner for step-by-step instructions and exact clock times.", openPlan: "Open Fermentation Planner", startClock: "Start now or choose your desired baking time.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
@@ -218,6 +220,11 @@ export default function Home() {
   const [flourId, setFlourId] = useState<FlourId>("caputo-pizzeria");
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
+  const [showBakeForm, setShowBakeForm] = useState(false);
+  const [bakeRating, setBakeRating] = useState(0);
+  const [bakeTimeSeconds, setBakeTimeSeconds] = useState("");
+  const [bakeOvenTemperature, setBakeOvenTemperature] = useState("");
+  const [bakeNote, setBakeNote] = useState("");
   const [recipeName, setRecipeName] = useState("");
   const [recipeNotice, setRecipeNotice] = useState("");
   const [urlReady, setUrlReady] = useState(false);
@@ -394,6 +401,35 @@ export default function Home() {
     setRecipeName("");
     setShowSaveForm(false);
     setRecipeNotice(t.saved);
+  };
+
+  const saveCurrentBake = () => {
+    const ovenTemperatureValue = Number(bakeOvenTemperature);
+    const bakeTimeValue = Number(bakeTimeSeconds);
+    const bakingSnapshot = createBakingSnapshot({
+      ovenType,
+      ...(Number.isFinite(ovenTemperatureValue) && ovenTemperatureValue > 0 ? { ovenTemperatureCelsius: ovenTemperatureValue } : {}),
+      ...(Number.isFinite(bakeTimeValue) && bakeTimeValue > 0 ? { bakeTimeSeconds: bakeTimeValue } : {}),
+    });
+    const hasResultDetails = bakeRating > 0 || Boolean(bakeNote.trim());
+    const resultSnapshot = hasResultDetails ? createResultSnapshot({
+      ...(bakeRating > 0 ? { overallRating: bakeRating } : {}),
+      ...(bakeNote.trim() ? { resultNotes: bakeNote.trim() } : {}),
+    }) : undefined;
+    const bakeResult = createBakeResult({
+      recipeSnapshot: createRecipeSnapshot(currentSettings, recipe),
+      bakingSnapshot,
+      ...(resultSnapshot ? { resultSnapshot } : {}),
+      visibility: "private",
+    });
+
+    addLocalBakeResult(bakeResult);
+    setBakeRating(0);
+    setBakeTimeSeconds("");
+    setBakeOvenTemperature("");
+    setBakeNote("");
+    setShowBakeForm(false);
+    setRecipeNotice(t.bakeSaved);
   };
 
   const openSavedRecipe = (savedRecipe: SavedRecipe) => {
@@ -653,6 +689,28 @@ export default function Home() {
                 ) : (
                   <button type="button" onClick={() => { setShowSaveForm(true); setRecipeNotice(""); }} className="w-full rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-ink transition hover:bg-cream">{t.saveRecipe}</button>
                 )}
+                <div className="mt-3 rounded-2xl border border-white/10 bg-white/[.04] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-extrabold text-white">{t.saveBake}</h3>
+                      <p className="mt-1 text-[10px] leading-4 text-white/45">{BAKE_RESULTS_LOCAL_ONLY_COPY}</p>
+                    </div>
+                    <button type="button" onClick={() => { setShowBakeForm((current) => !current); setRecipeNotice(""); }} aria-expanded={showBakeForm} className="shrink-0 rounded-xl bg-tomato px-3 py-2 text-xs font-extrabold text-white">{showBakeForm ? t.cancel : t.save}</button>
+                  </div>
+                  {showBakeForm && <div className="mt-3 grid gap-2">
+                    <fieldset>
+                      <legend className="mb-2 text-[10px] font-bold text-white/50">{t.bakeRating}</legend>
+                      <div className="flex gap-1.5">{[1, 2, 3, 4, 5].map((rating) => <button key={rating} type="button" onClick={() => setBakeRating(rating)} aria-pressed={bakeRating === rating} className={`grid h-9 w-9 place-items-center rounded-xl text-sm ${rating <= bakeRating ? "bg-tomato text-white" : "bg-white/10 text-white/35"}`}>★</button>)}</div>
+                    </fieldset>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="text-[10px] font-bold text-white/50">{t.bakeTimeSeconds}<input inputMode="numeric" value={bakeTimeSeconds} onChange={(event) => setBakeTimeSeconds(event.target.value.replace(/[^\d]/g, ""))} placeholder="90" className="mt-1 h-11 w-full rounded-xl border border-white/10 bg-white px-3 text-sm font-semibold text-ink outline-none focus:ring-4 focus:ring-tomato/25" /></label>
+                      <label className="text-[10px] font-bold text-white/50">{t.bakeOvenTemp}<input inputMode="numeric" value={bakeOvenTemperature} onChange={(event) => setBakeOvenTemperature(event.target.value.replace(/[^\d]/g, ""))} placeholder={String(activeBake.temperature)} className="mt-1 h-11 w-full rounded-xl border border-white/10 bg-white px-3 text-sm font-semibold text-ink outline-none focus:ring-4 focus:ring-tomato/25" /></label>
+                    </div>
+                    <label className="text-[10px] font-bold text-white/50">{t.privateBakeNote}<textarea value={bakeNote} onChange={(event) => setBakeNote(event.target.value)} placeholder={t.privateBakePlaceholder} rows={2} className="mt-1 w-full rounded-xl border border-white/10 bg-white p-3 text-sm text-ink outline-none focus:ring-4 focus:ring-tomato/25" /></label>
+                    <button type="button" onClick={saveCurrentBake} className="rounded-xl bg-white px-3 py-3 text-xs font-extrabold text-ink">{t.saveBake}</button>
+                    <Link href={journalHref} className="rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/65">{t.savedBakesLink} →</Link>
+                  </div>}
+                </div>
               </div>
             </div>
             <div className="border-t border-white/10 bg-white/[.04] px-5 py-4 sm:px-7">
