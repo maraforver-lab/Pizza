@@ -14,9 +14,46 @@ const packageVersion = JSON.parse(readFileSync(new URL("./package.json", import.
 const buildId = (process.env.VERCEL_GIT_COMMIT_SHA ?? gitValue(["rev-parse", "--short=7", "HEAD"], "local")).slice(0, 7);
 const lastUpdated = gitValue(["log", "-1", "--format=%cI"], new Date().toISOString());
 
+const hasSafeProductionSiteUrl = (value?: string) => {
+  try {
+    const url = new URL(value ?? "");
+    const hostname = url.hostname.toLowerCase();
+
+    return (
+      ["http:", "https:"].includes(url.protocol)
+      && hostname !== "localhost"
+      && hostname !== "127.0.0.1"
+      && hostname !== "0.0.0.0"
+      && !hostname.endsWith(".local")
+      && !hostname.endsWith(".vercel.app")
+    );
+  } catch {
+    return false;
+  }
+};
+
+const allowIndexing = (
+  process.env.ALLOW_INDEXING === "true"
+  && hasSafeProductionSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
+  && process.env.VERCEL_ENV !== "preview"
+);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   async headers() {
+    if (allowIndexing) {
+      return [
+        {
+          source: "/account/:path*",
+          headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+        },
+        {
+          source: "/auth/:path*",
+          headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+        },
+      ];
+    }
+
     return [
       {
         source: "/:path*",
@@ -24,7 +61,7 @@ const nextConfig: NextConfig = {
           {
             key: "X-Robots-Tag",
             // TEMPORARY PRE-LAUNCH INDEXING BLOCK:
-            // Remove this header before DoughTools is ready for public search indexing.
+            // Controlled by ALLOW_INDEXING and a safe NEXT_PUBLIC_SITE_URL before public launch.
             value: "noindex, nofollow, noarchive",
           },
         ],
@@ -35,7 +72,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_VERSION: packageVersion,
     NEXT_PUBLIC_BUILD_ID: buildId,
     NEXT_PUBLIC_LAST_UPDATED: lastUpdated,
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "https://pizza-maraforver.vercel.app",
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "",
+    NEXT_PUBLIC_ALLOW_INDEXING: allowIndexing ? "true" : "false",
   },
 };
 

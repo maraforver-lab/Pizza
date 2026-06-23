@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import TrustPageLayout from "@/components/TrustPageLayout";
+import { metadataForRoute } from "@/lib/seo-config";
 import { trustPages } from "@/lib/trust-pages";
 
-export const metadata: Metadata = {
-  title: "Contact | DoughTools",
-  description: "Contact placeholder for DoughTools support, privacy and feedback requests.",
-};
+export const metadata: Metadata = metadataForRoute("/contact");
 
 export default function ContactPage() {
   return <TrustPageLayout page={trustPages.contact} />;
