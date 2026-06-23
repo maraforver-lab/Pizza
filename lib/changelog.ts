@@ -8,6 +8,7 @@ export type ChangeEntry = {
 };
 
 export const changes: ChangeEntry[] = [
+  { version: "1.0.54", date: "2026-06-23", owner: "Mara", href: "/", fi: "Väliaikainen hakukonenäkyvyyden esto ennen julkista lanseerausta", en: "Temporary search indexing block before public launch" },
   { version: "1.0.53", date: "2026-06-23", owner: "Mara", href: "/account", fi: "Käyttäjätili, kirjautumistila ja mobiilikäytön parannuksia", en: "User accounts, sign-in status and mobile usability improvements" },
   { version: "1.0.52", date: "2026-06-23", owner: "Joel", href: "/toppings", fi: "Aidot pizzakuvat täytekuorman pikaoppaaseen", en: "Real pizza photos for the topping-load quick guide" },
   { version: "1.0.51", date: "2026-06-22", owner: "Joel", href: "/toppings", fi: "Täytekuorman visuaalinen pikaopas", en: "Visual topping-load quick guide" },

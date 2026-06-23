@@ -15,6 +15,12 @@ export const metadata: Metadata = {
   title: "Pizza Dough Calculator | DoughTools",
   description: "A simple baker's percentage calculator for perfectly portioned pizza dough.",
   applicationName: "DoughTools",
+  // TEMPORARY PRE-LAUNCH INDEXING BLOCK:
+  // Remove this robots rule before DoughTools is ready for public search indexing.
+  robots: {
+    index: false,
+    follow: false,
+  },
   openGraph: {
     title: "Make your own pizza with DoughTools",
     description: "Open this shared recipe or build your own pizza dough recipe.",

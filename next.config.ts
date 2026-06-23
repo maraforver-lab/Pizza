@@ -16,6 +16,21 @@ const lastUpdated = gitValue(["log", "-1", "--format=%cI"], new Date().toISOStri
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            // TEMPORARY PRE-LAUNCH INDEXING BLOCK:
+            // Remove this header before DoughTools is ready for public search indexing.
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      },
+    ];
+  },
   env: {
     NEXT_PUBLIC_APP_VERSION: packageVersion,
     NEXT_PUBLIC_BUILD_ID: buildId,
