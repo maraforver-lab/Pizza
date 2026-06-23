@@ -2,7 +2,7 @@
 
 Temporary Patch 02 regression document for DoughTools calculation safety.
 
-This document records the current calculation behavior as a baseline. It does not claim that every formula is perfect pizza science; it locks the current behavior so later feature work can detect accidental changes.
+This document records the current calculation behavior as a baseline. It does not claim that every formula is universal pizza science; it locks the current behavior so later feature work can detect accidental changes.
 
 ## Covered by automated tests
 

@@ -91,9 +91,9 @@ Complete this checklist first:
 
 - Restore and verify the production domain.
 - Set `NEXT_PUBLIC_SITE_URL=https://doughtools.app`.
-- Add the real public contact email.
-- Add the owner or legal entity.
-- Confirm the applicable jurisdiction.
+- Confirm the public contact email remains `hello@doughtools.app`.
+- Confirm the owner/legal entity remains `Marcin Arcisz`.
+- Confirm the applicable jurisdiction remains `Finland`.
 - Review Privacy Policy and Terms of Use.
 - Check all public page copy for placeholders.
 - Confirm no unsupported AI, cloud-sync or guarantee claims are present.

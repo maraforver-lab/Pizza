@@ -16,6 +16,10 @@ export type TrustPage = {
   sections: TrustPageSection[];
 };
 
+export const projectContactEmail = "hello@doughtools.app";
+export const projectOwner = "Marcin Arcisz";
+export const projectJurisdiction = "Finland";
+
 export const trustFooterLinks = [
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -37,7 +41,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       {
         heading: "What DoughTools is",
         paragraphs: [
-          "DoughTools is a pizza-making workspace, not a restaurant ordering service and not a promise of perfect pizza. It connects dough calculation, fermentation planning, sauce and topping guidance, oven timing, saved recipes and troubleshooting into one practical flow.",
+          "DoughTools is a pizza-making workspace, not a restaurant ordering service and not a promise of identical results every time. It connects dough calculation, fermentation planning, sauce and topping guidance, oven timing, saved recipes and troubleshooting into one practical flow.",
           "The first action is still simple: build a dough recipe from pizza count, dough-ball weight, hydration, salt, leavening, fermentation and oven context.",
         ],
       },
@@ -59,7 +63,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       },
       {
         heading: "Owner details",
-        paragraphs: ["[Owner/legal entity to be added before public launch]"],
+        paragraphs: [`DoughTools is maintained by ${projectOwner}.`],
       },
     ],
   },
@@ -70,11 +74,11 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     eyebrow: "Contact",
     title: "Questions, corrections and feedback.",
     intro:
-      "Use this page as the public contact placeholder before launch. A real contact address should be added before DoughTools is promoted publicly.",
+      "Use this page for DoughTools support questions, bug reports, calculation feedback and privacy-related requests.",
     sections: [
       {
         heading: "Contact address",
-        paragraphs: ["[Contact email to be added before public launch]"],
+        paragraphs: [`You can contact DoughTools at ${projectContactEmail}.`],
       },
       {
         heading: "Useful reasons to get in touch",
@@ -86,9 +90,9 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         ],
       },
       {
-        heading: "What not to send yet",
+        heading: "What not to send",
         paragraphs: [
-          "Do not send passwords, payment data, sensitive personal information or private photos through a future contact channel unless the final public policy clearly explains how that channel is handled.",
+          "Do not send passwords, payment data, sensitive personal information or private photos unless they are necessary for your request.",
         ],
       },
     ],
@@ -98,15 +102,16 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     href: "/privacy",
     navLabel: "Privacy",
     eyebrow: "Privacy Policy",
-    title: "How DoughTools handles data before public launch.",
+    title: "How DoughTools handles data.",
     intro:
-      "This draft policy explains the current product behavior in plain English. Exact production policy details must be completed before public launch.",
+      "This policy explains the current DoughTools data behavior in plain English.",
     sections: [
       {
         heading: "Local browser storage",
         paragraphs: [
           "Some recipe and tool data may be stored locally in your browser. This includes saved recipes in localStorage, active planning state in localStorage, gear checklist choices in localStorage, cost currency choices in localStorage and locally saved community recipe drafts.",
           "Pizza journal entries and compressed journal photos use the browser’s IndexedDB storage. This means the data is tied to the browser and device where it was saved unless a future feature explicitly moves it elsewhere.",
+          "Browser-local data may be lost if you clear site data, reset the browser profile or use a different device.",
         ],
       },
       {
@@ -120,22 +125,22 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       {
         heading: "Analytics and tracking",
         paragraphs: [
-          "No analytics service is currently described in the application code inspected for this patch. If analytics, advertising pixels or cookie-based tracking are added later, this policy must be updated before public launch.",
+          "No analytics service is currently described in the application code inspected for this patch. If analytics, advertising pixels or cookie-based tracking are added later, this policy must be updated.",
         ],
       },
       {
         heading: "Export and deletion",
         paragraphs: [
           "Saved recipes can be deleted from the saved recipes section. Journal entries can be deleted from the journal where that feature is available.",
-          "Browser-stored data may also be removed by clearing site data in the browser. Account deletion is not currently described as a self-service feature and must be completed or documented before public launch.",
+          "Browser-stored data may also be removed by clearing site data in the browser. Account deletion is not currently described as a self-service feature. For privacy-related questions or requests, contact DoughTools at hello@doughtools.app.",
         ],
       },
       {
-        heading: "Policy placeholders",
+        heading: "Controller and jurisdiction",
         paragraphs: [
-          "[Owner/legal entity to be added before public launch]",
-          "[Contact email to be added before public launch]",
-          "[Applicable jurisdiction to be confirmed before public launch]",
+          `Owner/legal entity: ${projectOwner}.`,
+          `Contact: ${projectContactEmail}.`,
+          `Jurisdiction: ${projectJurisdiction}.`,
         ],
       },
     ],
@@ -145,21 +150,21 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     href: "/terms",
     navLabel: "Terms",
     eyebrow: "Terms of Use",
-    title: "Use DoughTools as guidance, not a guarantee.",
+    title: "Use DoughTools as guidance, not a promise.",
     intro:
-      "These draft terms describe the current product limits in plain English. Legal details must be completed before public launch.",
+      "These terms describe the current product limits in plain English.",
     sections: [
       {
         heading: "Estimates and responsibility",
         paragraphs: [
-          "DoughTools provides estimates, calculations and practical guidance for pizza making. The results are not guarantees.",
+          "DoughTools provides estimates, calculations and practical guidance for pizza making. The results are planning aids, not promises.",
           "Fermentation depends on flour, temperature, yeast activity, starter strength, dough temperature, handling and oven behavior. Users are responsible for checking food safety, ingredient suitability and whether the process fits their situation.",
         ],
       },
       {
-        heading: "No professional guarantee",
+        heading: "No professional assurance",
         paragraphs: [
-          "DoughTools is not professional food-safety, legal, medical or commercial advice. No professional or commercial result is guaranteed.",
+          "DoughTools is not professional food-safety, legal, medical or commercial advice. No professional or commercial outcome is promised.",
           "If you use the tool for a business or public food service, you are responsible for meeting local rules, safety requirements and labeling obligations.",
         ],
       },
@@ -176,10 +181,11 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         ],
       },
       {
-        heading: "Legal placeholders",
+        heading: "Owner, contact and jurisdiction",
         paragraphs: [
-          "[Owner/legal entity to be added before public launch]",
-          "[Applicable jurisdiction to be confirmed before public launch]",
+          `Owner/legal entity: ${projectOwner}.`,
+          `Contact: ${projectContactEmail}.`,
+          `Jurisdiction: ${projectJurisdiction}, where applicable.`,
         ],
       },
     ],
@@ -227,7 +233,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
           "Ingredient results are displayed with practical rounding.",
           "Tiny yeast amounts may require a precision scale.",
           "Flour strength, actual dough temperature, room temperature swings, refrigerator temperature and handling can all change the result.",
-          "The app does not guarantee fermentation readiness or final pizza quality.",
+          "The app does not promise fermentation readiness or final pizza quality.",
         ],
       },
       {

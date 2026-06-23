@@ -1,6 +1,29 @@
 import Link from "next/link";
 import AppSignature from "@/components/AppSignature";
-import { trustFooterLinks, type TrustPage } from "@/lib/trust-pages";
+import { projectContactEmail, trustFooterLinks, type TrustPage } from "@/lib/trust-pages";
+
+function LinkedParagraph({ text }: { text: string }) {
+  const parts = text.split(projectContactEmail);
+
+  if (parts.length === 1) {
+    return <>{text}</>;
+  }
+
+  return (
+    <>
+      {parts.map((part, index) => (
+        <span key={`${part}-${index}`}>
+          {part}
+          {index < parts.length - 1 && (
+            <a className="font-bold text-tomato underline underline-offset-2 break-all" href={`mailto:${projectContactEmail}`}>
+              {projectContactEmail}
+            </a>
+          )}
+        </span>
+      ))}
+    </>
+  );
+}
 
 export default function TrustPageLayout({ page }: { page: TrustPage }) {
   return (
@@ -24,11 +47,11 @@ export default function TrustPageLayout({ page }: { page: TrustPage }) {
               {section.paragraphs?.map((paragraph) => (
                 <p
                   key={paragraph}
-                  className={`mt-3 text-sm leading-7 ${
+                  className={`mt-3 break-words text-sm leading-7 ${
                     paragraph.startsWith("[") ? "rounded-2xl bg-tomato/[.07] px-4 py-3 font-bold text-tomato" : "text-ink/60"
                   }`}
                 >
-                  {paragraph}
+                  <LinkedParagraph text={paragraph} />
                 </p>
               ))}
               {section.bullets && (

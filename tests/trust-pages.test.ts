@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { trustFooterLinks, trustPages, type TrustPageId } from "@/lib/trust-pages";
+import {
+  projectContactEmail,
+  projectJurisdiction,
+  projectOwner,
+  trustFooterLinks,
+  trustPages,
+  type TrustPageId,
+} from "@/lib/trust-pages";
 
 const requiredPages: TrustPageId[] = ["about", "contact", "privacy", "terms", "methodology"];
 const existingAndNewRoutes = new Set([
@@ -62,8 +69,8 @@ describe("trust and legal pages", () => {
   it("includes the required H1 text for each page", () => {
     expect(trustPages.about.title).toBe("A practical workspace for better pizza decisions.");
     expect(trustPages.contact.title).toBe("Questions, corrections and feedback.");
-    expect(trustPages.privacy.title).toBe("How DoughTools handles data before public launch.");
-    expect(trustPages.terms.title).toBe("Use DoughTools as guidance, not a guarantee.");
+    expect(trustPages.privacy.title).toBe("How DoughTools handles data.");
+    expect(trustPages.terms.title).toBe("Use DoughTools as guidance, not a promise.");
     expect(trustPages.methodology.title).toBe("How the dough calculation works.");
   });
 
@@ -76,10 +83,10 @@ describe("trust and legal pages", () => {
     expect(privacy).not.toMatch(/all data (stays|is stored|remains) local/i);
   });
 
-  it("states that terms and methodology are estimates, not guarantees", () => {
+  it("states that terms and methodology are estimates, not promises", () => {
     expect(pageText("terms")).toMatch(/estimates/i);
-    expect(pageText("terms")).toMatch(/not guarantees/i);
-    expect(pageText("methodology")).toMatch(/does not guarantee/i);
+    expect(pageText("terms")).toMatch(/not promises/i);
+    expect(pageText("methodology")).toMatch(/does not promise/i);
   });
 
   it("includes the Patch 01 reference calculation in methodology", () => {
@@ -94,18 +101,20 @@ describe("trust and legal pages", () => {
     expect(methodology).toContain("yeast 0.99 g");
   });
 
-  it("keeps launch placeholders explicit and easy to find", () => {
+  it("replaces launch placeholders with real project details", () => {
     const allText = requiredPages.map(pageText).join("\n");
 
-    expect(allText).toContain("[Contact email to be added before public launch]");
-    expect(allText).toContain("[Owner/legal entity to be added before public launch]");
-    expect(allText).toContain("[Applicable jurisdiction to be confirmed before public launch]");
+    expect(allText).not.toContain("[Contact email to be added before public launch]");
+    expect(allText).not.toContain("[Owner/legal entity to be added before public launch]");
+    expect(allText).not.toContain("[Applicable jurisdiction to be confirmed before public launch]");
+    expect(allText).toContain(projectContactEmail);
+    expect(allText).toContain(projectOwner);
+    expect(allText).toContain(projectJurisdiction);
   });
 
-  it("does not introduce fake contact, company, testimonial or user-count claims", () => {
+  it("does not introduce fake company, testimonial or user-count claims", () => {
     const allText = requiredPages.map(pageText).join("\n");
 
-    expect(allText).not.toMatch(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
     expect(allText).not.toMatch(/\b(Inc\.|Ltd\.|LLC|Oy|GmbH)\b/);
     expect(allText).not.toMatch(/\b(testimonial|rated|reviews|users love|trusted by \d+)\b/i);
   });

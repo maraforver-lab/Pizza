@@ -13,7 +13,13 @@ import {
   robotsPolicy,
   sitemapEntries,
 } from "@/lib/seo-config";
-import { trustPages, type TrustPageId } from "@/lib/trust-pages";
+import {
+  projectContactEmail,
+  projectJurisdiction,
+  projectOwner,
+  trustPages,
+  type TrustPageId,
+} from "@/lib/trust-pages";
 
 const requiredPublicRoutes = [
   "/",
@@ -133,13 +139,16 @@ describe("SEO launch configuration", () => {
     expect(coachText).not.toMatch(/\bAI\b|artificial intelligence|guaranteed|perfect/i);
   });
 
-  it("keeps trust placeholders visible before launch", () => {
+  it("keeps real trust details visible for launch readiness", () => {
     const trustText = (["about", "contact", "privacy", "terms", "methodology"] as const)
       .map(trustPageText)
       .join("\n");
 
-    expect(trustText).toContain("[Contact email to be added before public launch]");
-    expect(trustText).toContain("[Owner/legal entity to be added before public launch]");
-    expect(trustText).toContain("[Applicable jurisdiction to be confirmed before public launch]");
+    expect(trustText).not.toContain("[Contact email to be added before public launch]");
+    expect(trustText).not.toContain("[Owner/legal entity to be added before public launch]");
+    expect(trustText).not.toContain("[Applicable jurisdiction to be confirmed before public launch]");
+    expect(trustText).toContain(projectContactEmail);
+    expect(trustText).toContain(projectOwner);
+    expect(trustText).toContain(projectJurisdiction);
   });
 });
