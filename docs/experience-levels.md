@@ -77,6 +77,27 @@ The level affects:
 
 Patch 17 does not change calculations, recipe defaults, input ranges, saved recipes, Journal data, BakeResult storage, routes or navigation.
 
+## What Patch 18 applies
+
+Patch 18 applies the selected level to Planner, Guide and Dough Doctor guidance copy.
+
+- Beginner guidance focuses on the next practical action and avoids unnecessary variables.
+- Enthusiast guidance adds learning context around fermentation balance, flour strength, hydration, dough handling and saved observations.
+- Pizza Nerd guidance adds technical notes about dough temperature, yeast or starter activity, baker’s percentages, gluten development and process assumptions.
+
+The level affects:
+
+- Planner intro and timeline helper copy
+- Planner timing-estimate explanation
+- Guide intro, basics note, settings note and accuracy note
+- Dough Doctor intro, recipe-confirmation copy, diagnosis detail notes and caveat copy
+
+Patch 18 does not change planner timing logic, Dough Doctor diagnostic logic, calculations, saved recipes, Journal data, BakeResult storage, routes, navigation or tool availability.
+
+Experience level remains local-only for now.
+
+Future patches may apply the same pattern to sauce, toppings, gear, costs and methodology content.
+
 ## What Patch 16 does not implement
 
 - no broad content hiding across the site

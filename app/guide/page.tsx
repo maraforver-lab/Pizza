@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import AppSignature from "@/components/AppSignature";
+import { getEducationExperienceCopy } from "@/lib/education-experience-copy";
+import { getExperienceLevelConfig, readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
 
 const flourProducts = [
   { maker: "W 220–240", name: "Caputo Classica", image: "/flours/caputo-classica.png", source: "https://www.mulinocaputo.it/prodotti/classica-5kg/" },
@@ -143,9 +145,13 @@ const content = {
 
 export default function Guide() {
   const t = content.en;
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const levelCopy = getEducationExperienceCopy(experienceLevel).guide;
+  const experienceConfig = getExperienceLevelConfig(experienceLevel);
 
   useEffect(() => {
     document.documentElement.lang = "en";
+    setExperienceLevel(readExperienceLevelPreference());
   }, []);
 
   return (
@@ -159,7 +165,8 @@ export default function Guide() {
           <div className="relative z-10 max-w-xl">
             <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-[#e8c98a]">{t.eyebrow}</p>
             <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">{t.title}</h1>
-            <p className="mt-4 max-w-lg text-sm leading-7 text-white/65 sm:text-base">{t.intro}</p>
+            <p className="mt-4 max-w-lg text-sm leading-7 text-white/65 sm:text-base">{levelCopy.intro}</p>
+            <Link href="/account" className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/75 ring-1 ring-white/15 transition hover:bg-white/15"><span aria-hidden="true">{experienceConfig.emoji}</span>{experienceConfig.label} guidance</Link>
           </div>
         </section>
 
@@ -171,6 +178,7 @@ export default function Guide() {
 
         <section id="basics" className="scroll-mt-20">
           <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.basicsTitle}</p>
+          <p className="mb-4 max-w-3xl rounded-2xl bg-leaf/[.08] px-4 py-3 text-sm leading-6 text-ink/55">{levelCopy.basicsNote}</p>
           <div className="grid gap-4 sm:grid-cols-3">
             {t.sections.map((section, index) => <article key={section.title} className="rounded-3xl border border-white/90 bg-white/80 p-5 shadow-card backdrop-blur"><span className="mb-4 grid h-8 w-8 place-items-center rounded-full bg-leaf/10 text-xs font-extrabold text-leaf">{index + 1}</span><h2 className="font-display text-xl font-semibold">{section.title}</h2><p className="mt-3 text-sm leading-6 text-ink/60">{section.body}</p></article>)}
           </div>
@@ -214,6 +222,7 @@ export default function Guide() {
           <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.settingsChapter}</p>
           <div className="rounded-[1.75rem] bg-[#e8dfca]/95 p-5 shadow-card sm:p-7">
             <h2 className="font-display text-3xl font-semibold">{t.relationTitle}</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{levelCopy.settingsNote}</p>
             <div className="mt-5 grid gap-x-7 gap-y-5 sm:grid-cols-2">
               {t.relations.map(([title, description], index) => <article key={title} className="border-l-2 border-tomato/30 pl-4"><span className="text-[10px] font-extrabold text-tomato">0{index + 1}</span><h3 className="text-sm font-extrabold">{title}</h3><p className="mt-1 text-sm leading-6 text-ink/60">{description}</p></article>)}
             </div>
@@ -243,7 +252,7 @@ export default function Guide() {
 
         <section id="accuracy" className="scroll-mt-20 py-12">
           <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.accuracyChapter}</p>
-          <div className="rounded-3xl border border-tomato/20 bg-[#fff7ed]/90 p-5 shadow-card sm:p-7"><h2 className="font-display text-2xl font-semibold">{t.exactTitle}</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-ink/65">{t.exact}</p></div>
+          <div className="rounded-3xl border border-tomato/20 bg-[#fff7ed]/90 p-5 shadow-card sm:p-7"><h2 className="font-display text-2xl font-semibold">{t.exactTitle}</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-ink/65">{t.exact}</p><p className="mt-4 max-w-3xl text-sm leading-6 text-ink/60">{levelCopy.accuracyNote}</p><ul className="mt-4 grid gap-2 text-sm leading-6 text-ink/55">{levelCopy.technicalDetails.map((detail) => <li key={detail} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" /><span>{detail}</span></li>)}</ul></div>
         </section>
         <footer className="mb-4 border-t border-ink/10 pt-5"><AppSignature /></footer>
       </div>

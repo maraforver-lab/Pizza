@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
 import { bakeFor } from "@/lib/baking";
 import { buildDoughInstructions } from "@/lib/dough-instructions";
+import { getEducationExperienceCopy } from "@/lib/education-experience-copy";
+import { getExperienceLevelConfig, readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
 import { beginnerHelpFor } from "@/lib/beginner-guide";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { flourById } from "@/lib/flours";
@@ -59,7 +61,10 @@ export default function PlanPage() {
   const [now, setNow] = useState(new Date(0));
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const t = copy.en;
+  const levelCopy = getEducationExperienceCopy(experienceLevel).planner;
+  const experienceConfig = getExperienceLevelConfig(experienceLevel);
   const flour = flourById(settings.flourId);
   const bake = bakeFor(settings.goal, settings.ovenType);
   const ingredients = useMemo(() => calculateDoughIngredients(settings), [settings]);
@@ -85,6 +90,7 @@ export default function PlanPage() {
     setBakeInput(dateInputValue(nextMode === "bake" ? nextAnchor : defaultBake));
     setCompleted(new Set(stored?.signature === signature ? stored.completed ?? [] : []));
     document.documentElement.lang = "en";
+    setExperienceLevel(readExperienceLevelPreference());
     setReady(true);
   }, []);
 
@@ -126,7 +132,7 @@ export default function PlanPage() {
     <main className="min-h-screen px-4 py-5 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl">
         <div className="flex justify-end"><div className="rounded-full bg-white px-3 py-2 text-xs font-bold text-ink/55 shadow-sm">{t.localTime} {timeFormatter.format(now)}</div></div>
-        <section className="py-9 sm:py-12"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></section>
+        <section className="py-9 sm:py-12"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{levelCopy.intro}</p><Link href="/account" className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/60 ring-1 ring-ink/10 transition hover:text-ink"><span aria-hidden="true">{experienceConfig.emoji}</span>{experienceConfig.label} guidance</Link></section>
 
         <section className="grid gap-4 md:grid-cols-2">
           <button type="button" onClick={startNow} className={`rounded-[1.5rem] border p-5 text-left shadow-card transition ${mode === "start" ? "border-leaf bg-leaf text-white" : "border-white bg-white/75"}`}><span className="text-xs font-extrabold uppercase tracking-wide opacity-55">01</span><strong className="mt-2 block font-display text-2xl">{t.startNow}</strong><span className="mt-2 block text-xs leading-5 opacity-65">{t.startNote}</span></button>
@@ -135,13 +141,15 @@ export default function PlanPage() {
 
         <section className="mt-4 rounded-[1.5rem] bg-ink p-5 text-white shadow-card sm:p-7">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[.16em] text-white/40">{t.next}</p>{nextStep ? <><h2 className="mt-2 font-display text-3xl font-semibold">{nextStep.title}</h2><p className="mt-2 text-sm text-white/55">{dateFormatter.format(nextStep.at)}</p></> : <h2 className="mt-2 font-display text-3xl font-semibold">{t.done}</h2>}</div>{nextStep && <div className="rounded-2xl bg-white/10 px-5 py-4 text-center"><strong className="block text-2xl text-[#e8c98a]">{durationText(nextStep.at.getTime() - now.getTime(), locale)}</strong><button type="button" onClick={() => toggleStep(nextStep.id)} className="mt-2 text-xs font-bold text-white/60 underline">{t.markDone}</button></div>}</div>
+          <p className="mt-4 border-t border-white/10 pt-4 text-xs leading-5 text-white/45">{levelCopy.nextAdvice}</p>
         </section>
 
         <section className="mt-4 rounded-[1.5rem] border border-white bg-white/75 p-5 shadow-card sm:p-7"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[10px] font-extrabold uppercase tracking-wide text-ink/35">{t.currentRecipe}</p><h2 className="mt-1 font-display text-2xl font-semibold">{flour.brand} {flour.name}</h2></div><div className="text-right text-xs font-bold text-ink/50">{settings.pizzas} {t.balls} × {settings.ballWeight} g<br/>{settings.hydration} % {t.hydration}</div></div>{instructions.warnings.length > 0 && <div className="mt-4 rounded-xl bg-tomato/[.07] p-3"><strong className="text-xs text-tomato">{t.warnings}</strong>{instructions.warnings.map((warning) => <p key={warning} className="mt-1 text-xs leading-5 text-ink/55">• {warning}</p>)}</div>}</section>
 
         <section className="mt-7">
           <div className="flex items-end justify-between gap-4"><h2 className="font-display text-3xl font-semibold">{t.timeline}</h2><span className="text-[10px] font-bold text-ink/35">{t.timezone}: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span></div>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/50">{t.visualIntro}</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/50">{levelCopy.visualIntro}</p>
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/45">{levelCopy.timelineNote}</p>
           <div className="mt-4 rounded-2xl bg-[#e8c98a]/25 p-4"><strong className="text-xs uppercase tracking-wide text-ink/50">{t.ingredients}</strong><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[[t.flour, ingredients.flour, false], [t.water, ingredients.water, false], [t.salt, ingredients.salt, false], [t.leavener, ingredients.leavener, true]].map(([name, value, precise]) => <div key={String(name)} className="rounded-xl bg-white/80 px-3 py-2"><span className="block text-[10px] font-bold text-ink/40">{name}</span><strong className="text-sm">{Number(value).toFixed(precise ? 2 : 0)} g</strong></div>)}</div></div>
           <ol className="mt-4 space-y-5">{scheduled.map((step, index) => { const isDone = completed.has(step.id); const help = beginnerHelpFor(step.id, locale); return <li key={step.id} className={`overflow-hidden rounded-[1.5rem] border bg-white shadow-card transition ${isDone ? "border-leaf/20 opacity-60" : "border-white"}`}>
             <div className="relative aspect-[3/2] bg-cream"><Image src={help.image} alt={help.imageAlt} fill sizes="(max-width: 768px) 100vw, 850px" className="object-cover" priority={index < 2}/><div className="absolute left-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-ink text-sm font-extrabold text-white shadow-lg">{isDone ? "✓" : index + 1}</div><time className="absolute bottom-3 right-3 rounded-full bg-white/95 px-3 py-2 text-xs font-extrabold text-tomato shadow-lg">{dateFormatter.format(step.at)}</time></div>
@@ -153,7 +161,7 @@ export default function PlanPage() {
           </li>; })}</ol>
         </section>
         <Link href={`/timer?${recipeParams(settings).toString()}`} className="mt-5 flex items-center justify-between gap-4 rounded-[1.5rem] bg-tomato p-5 text-white shadow-card"><span><small className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/55">Bake stage</small><strong className="mt-1 block font-display text-2xl">{t.timerTitle}</strong><span className="mt-1 block text-xs text-white/65">{t.timerLead}</span></span><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl text-tomato">⏱</span></Link>
-        <p className="mt-5 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs leading-5 text-ink/50">{t.estimated}</p>
+        <p className="mt-5 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs leading-5 text-ink/50">{levelCopy.estimated}</p>
         <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
       </div>
     </main>
