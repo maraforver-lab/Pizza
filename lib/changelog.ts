@@ -1,41 +1,168 @@
-export type ChangeEntry = {
-  version: string;
+export type UpdateCategory =
+  | "Product"
+  | "Navigation"
+  | "Calculator safety"
+  | "Trust & legal"
+  | "SEO & launch safety"
+  | "Local saved bakes"
+  | "Technical foundation";
+
+export type UpdateEntry = {
+  id: string;
+  title: string;
   date: string;
-  owner: string;
+  summary: string;
+  category: UpdateCategory;
+  highlights: string[];
+  isPublic: boolean;
+  patchNumbers: number[];
   href: string;
-  fi: string;
-  en: string;
 };
 
-export const changes: ChangeEntry[] = [
-  { version: "1.0.55", date: "2026-06-23", owner: "Mara", href: "/updates", fi: "Uuden ominaisuuden ilmoitus piilotettu väliaikaisesti", en: "New-feature notification temporarily hidden" },
-  { version: "1.0.54", date: "2026-06-23", owner: "Mara", href: "/", fi: "Väliaikainen hakukonenäkyvyyden esto ennen julkista lanseerausta", en: "Temporary search indexing block before public launch" },
-  { version: "1.0.53", date: "2026-06-23", owner: "Mara", href: "/account", fi: "Käyttäjätili, kirjautumistila ja mobiilikäytön parannuksia", en: "User accounts, sign-in status and mobile usability improvements" },
-  { version: "1.0.52", date: "2026-06-23", owner: "Joel", href: "/toppings", fi: "Aidot pizzakuvat täytekuorman pikaoppaaseen", en: "Real pizza photos for the topping-load quick guide" },
-  { version: "1.0.51", date: "2026-06-22", owner: "Joel", href: "/toppings", fi: "Täytekuorman visuaalinen pikaopas", en: "Visual topping-load quick guide" },
-  { version: "1.0.50", date: "2026-06-22", owner: "Mara", href: "/updates", fi: "Päivityshistoria, sivuston syntytarina ja uusien ominaisuuksien nosto", en: "Update history, the DoughTools story and a new-feature highlight" },
-  { version: "1.0.49", date: "2026-06-22", owner: "Mara", href: "/", fi: "Ruotsin kielituki laskuriin ja tärkeimpiin työkaluihin", en: "Swedish support for the calculator and core tools" },
-  { version: "1.0.48", date: "2026-06-22", owner: "Mara", href: "/timer", fi: "Tarkistusvalo paistoajastimeen", en: "Inspection light for the bake timer" },
-  { version: "1.0.47", date: "2026-06-22", owner: "Mara", href: "/timer", fi: "Puhelimelle suunniteltu pizzan paistoajastin", en: "Mobile-first pizza bake timer" },
-  { version: "1.0.46", date: "2026-06-22", owner: "Mara", href: "/toppings", fi: "Ruotsinkielinen juusto- ja täytelaskuri", en: "Swedish cheese and topping calculator" },
-  { version: "1.0.45", date: "2026-06-22", owner: "Mara", href: "/toppings", fi: "Älykkäämmät juusto- ja täytesuositukset", en: "Smarter cheese and topping guidance" },
-  { version: "1.0.44", date: "2026-06-22", owner: "Mara", href: "/toppings", fi: "Juusto- ja täytelaskuri", en: "Cheese and topping calculator" },
-  { version: "1.0.43", date: "2026-06-22", owner: "Mara", href: "/", fi: "Yhtenäinen navigaatio ja ohjattu työnkulku", en: "Unified navigation and guided workflow" },
-  { version: "1.0.42", date: "2026-06-22", owner: "Mara", href: "/gear", fi: "Tarkkuusvaaka välttämättömiin pizzavälineisiin", en: "Precision scale added to essential pizza gear" },
-  { version: "1.0.41", date: "2026-06-22", owner: "Mara", href: "/", fi: "Kompakti kohotustavan valitsin", en: "Compact leavening selector restored" },
-  { version: "1.0.40", date: "2026-06-22", owner: "Mara", href: "/plan", fi: "Valmistuskuvien jatkuvuutta parannettu", en: "Improved visual continuity in the dough guide" },
-  { version: "1.0.39", date: "2026-06-22", owner: "Mara", href: "/doctor", fi: "Personoitu diagnoosi ja yhtenäisempi taikinaohje", en: "Personalised diagnosis and a more consistent dough guide" },
-  { version: "1.0.38", date: "2026-06-22", owner: "Mara", href: "/", fi: "Kaikkien työkalujen navigaatio", en: "Global tool navigation" },
-  { version: "1.0.37", date: "2026-06-22", owner: "Mara", href: "/costs", fi: "Euro- ja dollarivalinta kustannuksiin", en: "EUR and USD cost display" },
-  { version: "1.0.36", date: "2026-06-22", owner: "Mara", href: "/sauce", fi: "Pizzakastikkeen historian laajempi aikajana", en: "Expanded pizza-sauce history" },
-  { version: "1.0.35", date: "2026-06-22", owner: "Mara", href: "/sauce", fi: "Kuvallinen Sauce Lab -valitsin", en: "Visual Sauce Lab selector" },
-  { version: "1.0.34", date: "2026-06-22", owner: "Mara", href: "/sauce", fi: "Marinara ja kastikkeen vianmääritys", en: "Marinara and sauce troubleshooting" },
-  { version: "1.0.33", date: "2026-06-22", owner: "Mara", href: "/gear", fi: "Aidot kuvat varusteoppaaseen", en: "Real photos for the gear guide" },
-  { version: "1.0.32", date: "2026-06-22", owner: "Mara", href: "/ovens", fi: "Keittiöuuni muutettu sähköuuniksi", en: "Home-oven terminology changed to electric oven" },
-  { version: "1.0.31", date: "2026-06-22", owner: "Mara", href: "/styles", fi: "Valittu pizzatyyli säilyy reseptissä", en: "Selected pizza style is preserved in recipes" },
-  { version: "1.0.30", date: "2026-06-22", owner: "Mara", href: "/", fi: "Kohotustavan valintaa selkeytetty", en: "Clearer leavening selector" },
-  { version: "1.0.29", date: "2026-06-22", owner: "Mara", href: "/", fi: "Pannupizza lukitaan sähköuuniin", en: "Pan pizza recipes locked to an electric oven" },
-  { version: "1.0.28", date: "2026-06-22", owner: "Mara", href: "/", fi: "Valitun pizzan kuva jaettavaan reseptikorttiin", en: "Selected pizza photo used in share cards" },
+export type PatchHistoryEntry = {
+  patch: number;
+  title: string;
+  category: UpdateCategory;
+  summary: string;
+};
+
+export const updates: UpdateEntry[] = [
+  {
+    id: "foundation-update-2026-06-23",
+    title: "DoughTools foundation update",
+    date: "2026-06-23",
+    summary:
+      "DoughTools now has a clearer English-only workflow, safer calculations, better navigation, trust pages, noindex-safe launch configuration and local saved bakes.",
+    category: "Product",
+    highlights: [
+      "Cleaner English-only interface",
+      "Better navigation around the pizza-making workflow",
+      "Clearer homepage and calculator journey",
+      "Calculation and saved-recipe safety tests",
+      "New About, Privacy, Terms and Methodology pages",
+      "Safe SEO and noindex launch configuration",
+      "Local-only saved bakes in the Journal",
+      "Production-domain noindex launch preparation",
+    ],
+    isPublic: true,
+    patchNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    href: "/updates",
+  },
 ];
 
-export const latestChange = changes[0];
+export const patchHistory: PatchHistoryEntry[] = [
+  {
+    patch: 1,
+    title: "English-only stabilization",
+    category: "Product",
+    summary: "The active interface was simplified to English and browser-language switching was disabled.",
+  },
+  {
+    patch: 2,
+    title: "Calculation and persistence safety net",
+    category: "Calculator safety",
+    summary: "Regression tests were added for dough calculations, saved recipes, legacy data and shared recipe URLs.",
+  },
+  {
+    patch: 3,
+    title: "Navigation and primary workflow",
+    category: "Navigation",
+    summary: "Navigation was grouped around the pizza-making workflow while keeping the Dough Calculator as the primary entry.",
+  },
+  {
+    patch: 4,
+    title: "Homepage and primary user journey",
+    category: "Product",
+    summary: "The homepage now explains the product journey more clearly and points users from the calculator into planning.",
+  },
+  {
+    patch: 5,
+    title: "Trust, legal and methodology pages",
+    category: "Trust & legal",
+    summary: "About, Contact, Privacy, Terms and Methodology pages were added with practical, transparent wording.",
+  },
+  {
+    patch: 6,
+    title: "SEO launch safety",
+    category: "SEO & launch safety",
+    summary: "Central SEO configuration was added while keeping noindex active and private routes out of the sitemap.",
+  },
+  {
+    patch: 7,
+    title: "Launch placeholders cleanup",
+    category: "Trust & legal",
+    summary: "Contact, owner and jurisdiction placeholders were replaced with real project details.",
+  },
+  {
+    patch: 8,
+    title: "Visual and mobile polish",
+    category: "Product",
+    summary: "Mobile/footer polish and public copy cleanup made the site feel less like a prototype.",
+  },
+  {
+    patch: 9,
+    title: "Production-domain verification docs",
+    category: "SEO & launch safety",
+    summary: "Production-domain and Vercel verification steps were documented without enabling indexing.",
+  },
+  {
+    patch: 10,
+    title: "Manual launch rehearsal checklist",
+    category: "SEO & launch safety",
+    summary: "A manual launch checklist documented deployment checks, noindex verification and rollback steps.",
+  },
+  {
+    patch: 11,
+    title: "BakeResult data model",
+    category: "Technical foundation",
+    summary: "RecipeSnapshot, BakeResult and SharePreferences were introduced with private-by-default visibility.",
+  },
+  {
+    patch: 12,
+    title: "Local saved bakes",
+    category: "Local saved bakes",
+    summary: "A local-only Save this bake flow was added, with saved bakes stored privately on the device.",
+  },
+];
+
+export const latestPublicUpdate = updates.find((update) => update.isPublic);
+
+export const newUpdateNotice = {
+  label: "New update",
+  copy: "See what changed in DoughTools",
+  href: "/updates",
+} as const;
+
+function utcDayFromDateOnly(value: string): number | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return undefined;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    date.getUTCFullYear() !== year
+    || date.getUTCMonth() !== month - 1
+    || date.getUTCDate() !== day
+  ) return undefined;
+
+  return Math.floor(date.getTime() / 86_400_000);
+}
+
+function utcDayFromDate(value: Date): number | undefined {
+  const time = value.getTime();
+  if (!Number.isFinite(time)) return undefined;
+  return Math.floor(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()) / 86_400_000);
+}
+
+export function isUpdateRecent(updateDate: string | undefined, now: Date = new Date(), maxAgeDays = 5) {
+  if (!updateDate) return false;
+  const updateDay = utcDayFromDateOnly(updateDate);
+  const nowDay = utcDayFromDate(now);
+  if (updateDay === undefined || nowDay === undefined) return false;
+
+  const ageDays = nowDay - updateDay;
+  return ageDays >= 0 && ageDays <= maxAgeDays;
+}

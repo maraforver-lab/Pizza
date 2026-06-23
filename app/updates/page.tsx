@@ -1,29 +1,120 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import AppSignature from "@/components/AppSignature";
-import { changes } from "@/lib/changelog";
+import { latestPublicUpdate, patchHistory, updates } from "@/lib/changelog";
 
-const copy = {
-  fi: { eyebrow: "DoughToolsin matka", title: "Mitä uutta – ja miksi tämä sivusto syntyi.", intro: "Täältä löydät 25 viimeisintä versiota, niiden idean omistajan sekä DoughToolsin tarinan.", latest: "Uusin päivitys", open: "Tutustu ominaisuuteen", history: "25 viimeisintä päivitystä", owner: "Idean omistaja", story: "Miksi DoughTools syntyi?", storyText: "DoughTools syntyi halusta tehdä kotona leivotusta pizzasta helpommin ymmärrettävää. Hyvä pizza ei ole vain yksi resepti: jauho, vesi, aika, lämpötila, uuni ja tekijän omat tavoitteet vaikuttavat kaikki lopputulokseen. Sivusto kokoaa laskemisen, suunnittelun, oppimisen ja omien kokemusten tallentamisen samaan paikkaan – ilman että aloittelijan täytyy ensin osata kysyä kaikkia oikeita kysymyksiä.", about: "Tekijästä", creatorText: "DoughToolsia ylläpitää Marcin Arcisz. Projekti keskittyy käytännöllisiin työkaluihin, läpinäkyviin laskelmiin ja parempaan kotipizzan suunnitteluun.", back: "Avaa laskuri" },
-  sv: { eyebrow: "DoughTools resa", title: "Vad är nytt – och varför skapades webbplatsen?", intro: "Här hittar du de 25 senaste versionerna, idéägaren och berättelsen om DoughTools.", latest: "Senaste uppdateringen", open: "Utforska funktionen", history: "De 25 senaste uppdateringarna", owner: "Idéägare", story: "Varför skapades DoughTools?", storyText: "DoughTools föddes ur en vilja att göra hembakad pizza lättare att förstå. En bra pizza är inte bara ett recept: mjöl, vatten, tid, temperatur, ugn och bagarens mål påverkar resultatet. Webbplatsen samlar beräkning, planering, lärande och egna erfarenheter på ett ställe.", about: "Om skaparen", creatorText: "DoughTools underhålls av Marcin Arcisz. Projektet fokuserar på praktiska verktyg, transparenta beräkningar och bättre planering för hemmapizza.", back: "Öppna kalkylatorn" },
-  en: { eyebrow: "The DoughTools journey", title: "What is new – and why this site exists.", intro: "Find the latest 25 versions, the owner of each idea, and the story behind DoughTools.", latest: "Latest update", open: "Explore the feature", history: "Latest 25 updates", owner: "Idea owner", story: "Why was DoughTools created?", storyText: "DoughTools grew from a desire to make home pizza easier to understand. Great pizza is not just one recipe: flour, water, time, temperature, the oven and the baker’s goals all shape the result. The site brings calculation, planning, learning and personal experience together in one place.", about: "About the creator", creatorText: "DoughTools is maintained by Marcin Arcisz. The project focuses on practical tools, transparent calculations and better planning for home pizza makers.", back: "Open calculator" },
-} as const;
+const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+}).format(new Date(`${value}T12:00:00Z`));
 
 export default function UpdatesPage() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => { document.documentElement.lang = "en"; setReady(true); }, []);
-  if (!ready) return <main className="min-h-screen bg-cream"/>;
-  const t = copy.en;
-  const latest = changes[0];
-  const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`));
-  return <main className="min-h-screen px-4 py-8 pb-28 text-ink sm:px-6"><div className="mx-auto max-w-6xl">
-    <section className="py-8 sm:py-14"><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-5xl font-semibold leading-[.92] sm:text-7xl">{t.title}</h1><p className="mt-5 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></section>
-    <section className="grid overflow-hidden rounded-[2rem] bg-ink text-white shadow-2xl md:grid-cols-[1fr_auto]"><div className="p-6 sm:p-9"><span className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">{t.latest} · v{latest.version}</span><h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold sm:text-5xl">{latest.en}</h2><p className="mt-4 text-xs text-white/45">{formatDate(latest.date)} · {t.owner}: {latest.owner}</p></div><Link href={latest.href} className="m-5 grid min-h-14 place-items-center rounded-2xl bg-tomato px-6 text-center text-sm font-extrabold md:min-w-52">{t.open} →</Link></section>
-    <section className="mt-12"><h2 className="font-display text-4xl font-semibold">{t.history}</h2><div className="mt-5 grid gap-3 md:grid-cols-2">{changes.map((change, index) => <article key={change.version} className={`rounded-2xl border p-5 ${index === 0 ? "border-tomato/30 bg-[#fff0e9]" : "border-white bg-white/75"}`}><div className="flex items-center justify-between gap-3"><strong className="font-mono text-sm text-tomato">v{change.version}</strong><time className="text-[10px] font-bold text-ink/35" dateTime={change.date}>{formatDate(change.date)}</time></div><h3 className="mt-3 font-display text-xl font-semibold leading-tight">{change.en}</h3><div className="mt-4 flex items-center justify-between border-t border-ink/10 pt-3 text-[10px]"><span className="text-ink/40">{t.owner}: <strong className="text-ink/65">{change.owner}</strong></span><Link href={change.href} className="font-extrabold text-tomato">{t.open} →</Link></div></article>)}</div></section>
-    <section className="mt-14 grid gap-5 lg:grid-cols-2"><article className="rounded-[2rem] bg-[#5d3025] p-7 text-white sm:p-10"><span className="text-3xl">🍕</span><h2 className="mt-5 font-display text-4xl font-semibold">{t.story}</h2><p className="mt-5 text-sm leading-7 text-white/65">{t.storyText}</p></article><article className="rounded-[2rem] border border-white/80 bg-white/65 p-7 sm:p-10"><span className="text-3xl">✍</span><h2 className="mt-5 font-display text-4xl font-semibold">{t.about}</h2><p className="mt-5 text-sm leading-7 text-ink/55">{t.creatorText}</p></article></section>
-    <div className="mt-8 flex justify-center"><Link href="/" className="rounded-full bg-tomato px-6 py-3 text-sm font-extrabold text-white">{t.back} →</Link></div>
-    <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
-  </div></main>;
+  useEffect(() => {
+    document.documentElement.lang = "en";
+  }, []);
+
+  const latest = latestPublicUpdate ?? updates[0];
+
+  return (
+    <main className="min-h-screen px-4 py-8 pb-28 text-ink sm:px-6">
+      <div className="mx-auto max-w-6xl">
+        <section className="py-8 sm:py-14">
+          <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">DoughTools updates</p>
+          <h1 className="mt-3 max-w-4xl font-display text-5xl font-semibold leading-[.92] sm:text-7xl">
+            What changed in DoughTools.
+          </h1>
+          <p className="mt-5 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">
+            A readable changelog for the pizza-making workspace: product improvements, safer calculations,
+            launch-readiness work and local saved bakes.
+          </p>
+        </section>
+
+        {latest && (
+          <section className="grid overflow-hidden rounded-[2rem] bg-ink text-white shadow-2xl md:grid-cols-[1fr_auto]">
+            <div className="p-6 sm:p-9">
+              <span className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">
+                Latest update · {latest.category} · {formatDate(latest.date)}
+              </span>
+              <h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold sm:text-5xl">{latest.title}</h2>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">{latest.summary}</p>
+              <ul className="mt-5 grid gap-2 text-sm text-white/70 sm:grid-cols-2">
+                {latest.highlights.map((highlight) => (
+                  <li key={highlight} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#e8c98a]" aria-hidden="true" />
+                    <span>{highlight}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <Link
+              href="/"
+              className="m-5 grid min-h-14 place-items-center rounded-2xl bg-tomato px-6 text-center text-sm font-extrabold md:min-w-52"
+            >
+              Open calculator →
+            </Link>
+          </section>
+        )}
+
+        <section className="mt-8 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.07] p-5 text-sm leading-6 text-ink/65">
+          DoughTools is live for testing and still protected by noindex while launch checks continue.
+          This update does not enable search indexing, public bake pages, photo upload, share cards or cloud sync.
+        </section>
+
+        <section className="mt-12">
+          <div className="max-w-2xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Release history</p>
+            <h2 className="mt-2 font-display text-4xl font-semibold">What changed</h2>
+            <p className="mt-3 text-sm leading-6 text-ink/55">
+              These entries summarize the completed Patch 01–Patch 12 foundation work without exposing internal commit details.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            {patchHistory.map((entry) => (
+              <article key={entry.patch} className="rounded-2xl border border-white bg-white/75 p-5 shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="font-mono text-sm text-tomato">Patch {String(entry.patch).padStart(2, "0")}</strong>
+                  <span className="rounded-full bg-ink/[.06] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-ink/45">
+                    {entry.category}
+                  </span>
+                </div>
+                <h3 className="mt-3 font-display text-xl font-semibold leading-tight">{entry.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/55">{entry.summary}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-14 grid gap-5 lg:grid-cols-2">
+          <article className="rounded-[2rem] bg-[#5d3025] p-7 text-white sm:p-10">
+            <span className="text-3xl">🍕</span>
+            <h2 className="mt-5 font-display text-4xl font-semibold">Why DoughTools exists</h2>
+            <p className="mt-5 text-sm leading-7 text-white/65">
+              DoughTools grew from a desire to make home pizza easier to understand. Great pizza is not just one
+              recipe: flour, water, time, temperature, the oven and the baker’s goals all shape the result.
+              The site brings calculation, planning, learning and personal experience together in one place.
+            </p>
+          </article>
+          <article className="rounded-[2rem] border border-white/80 bg-white/65 p-7 sm:p-10">
+            <span className="text-3xl">✍</span>
+            <h2 className="mt-5 font-display text-4xl font-semibold">About the creator</h2>
+            <p className="mt-5 text-sm leading-7 text-ink/55">
+              DoughTools is maintained by Marcin Arcisz. The project focuses on practical tools,
+              transparent calculations and better planning for home pizza makers.
+            </p>
+          </article>
+        </section>
+
+        <div className="mt-8 flex justify-center">
+          <Link href="/" className="rounded-full bg-tomato px-6 py-3 text-sm font-extrabold text-white">
+            Open calculator →
+          </Link>
+        </div>
+        <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
+      </div>
+    </main>
+  );
 }
