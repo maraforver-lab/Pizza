@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { trustFooterLinks } from "@/lib/trust-pages";
 
 type Props = {
   locale?: "en" | "fi" | "sv";
@@ -17,14 +18,23 @@ export default function AppSignature({ locale, dark = false }: Props) {
   }).format(new Date(updatedAt));
 
   return (
-    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] ${dark ? "text-white/45" : "text-ink/45"}`}>
-      <strong className={dark ? "text-white/70" : "text-ink/65"}>Creator Mara Forever</strong>
-      <span aria-hidden="true">•</span>
-      <span>Version {version}</span>
-      <span className="font-mono">build {buildId}</span>
-      <span aria-hidden="true">•</span>
-      <time dateTime={updatedAt}>Updated {updated}</time>
-      <Link href="/updates" className={`font-bold underline underline-offset-2 ${dark ? "hover:text-white" : "hover:text-tomato"}`}>View updates</Link>
+    <div className={`text-[11px] ${dark ? "text-white/45" : "text-ink/45"}`}>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <strong className={dark ? "text-white/70" : "text-ink/65"}>Creator Mara Forever</strong>
+        <span aria-hidden="true">•</span>
+        <span>Version {version}</span>
+        <span className="font-mono">build {buildId}</span>
+        <span aria-hidden="true">•</span>
+        <time dateTime={updatedAt}>Updated {updated}</time>
+        <Link href="/updates" className={`font-bold underline underline-offset-2 ${dark ? "hover:text-white" : "hover:text-tomato"}`}>View updates</Link>
+      </div>
+      <nav aria-label="DoughTools support links" className="mt-3 flex flex-wrap gap-x-3 gap-y-2">
+        {trustFooterLinks.map((item) => (
+          <Link key={item.href} href={item.href} className={`font-bold underline-offset-2 hover:underline ${dark ? "hover:text-white" : "hover:text-tomato"}`}>
+            {item.label}
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }

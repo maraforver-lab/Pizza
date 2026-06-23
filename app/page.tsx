@@ -176,7 +176,7 @@ const shareCardFile = async (title: string, subtitle: string, details: string[],
   context.fillRect(0, 975, 1080, 105);
   context.fillStyle = "#fff";
   context.font = "600 30px Arial, sans-serif";
-  context.fillText("doughtools — make your own perfect pizza", 72, 1040);
+  context.fillText("doughtools — make your own pizza recipe", 72, 1040);
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
   return blob ? new File([blob], "doughtools-recipe.png", { type: "image/png" }) : null;
@@ -445,7 +445,7 @@ export default function Home() {
             <Link href="/gear" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Gear</Link>
             <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Sauce</Link>
             <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Costs</Link>
-            <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full bg-tomato px-3 py-2 text-xs font-bold text-white transition hover:bg-tomato/90 xl:block">AI Coach</Link>
+            <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full bg-tomato px-3 py-2 text-xs font-bold text-white transition hover:bg-tomato/90 xl:block">Pizza Coach</Link>
             <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Community</Link>
             <span className="hidden rounded-full border border-leaf/20 bg-leaf/5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-leaf md:block">{t.toolkit}</span>
           </div>
@@ -462,7 +462,7 @@ export default function Home() {
           <Link href="/gear" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Gear</Link>
           <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Sauce</Link>
           <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Costs</Link>
-          <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full bg-tomato px-4 py-2 text-xs font-bold text-white">AI Coach</Link>
+          <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full bg-tomato px-4 py-2 text-xs font-bold text-white">Pizza Coach</Link>
           <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Community</Link>
         </nav>
 
