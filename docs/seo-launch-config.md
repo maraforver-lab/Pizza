@@ -2,6 +2,8 @@
 
 This document describes the temporary pre-launch SEO setup for DoughTools.
 
+For the production-domain checklist, see `docs/production-domain-verification.md`.
+
 ## Current launch state
 
 DoughTools is still in pre-launch development. Search indexing remains disabled by default.

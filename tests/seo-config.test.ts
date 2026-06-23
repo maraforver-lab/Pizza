@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   SAFE_INTERNAL_SITE_URL,
   canonicalUrl,
@@ -68,6 +70,8 @@ describe("SEO launch configuration", () => {
 
   it("keeps indexing disabled by default and only enables it with an explicit safe production URL", () => {
     expect(isIndexingAllowed({})).toBe(false);
+    expect(isIndexingAllowed({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(false);
+    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(false);
     expect(isIndexingAllowed({ ALLOW_INDEXING: "true" })).toBe(false);
     expect(isIndexingAllowed({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(true);
     expect(isIndexingAllowed({
@@ -79,6 +83,11 @@ describe("SEO launch configuration", () => {
 
   it("returns noindex robots metadata until indexing is explicitly enabled", () => {
     expect(robotsMetadata({})).toMatchObject({ index: false, follow: false, nocache: true });
+    expect(robotsMetadata({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
+      index: false,
+      follow: false,
+      nocache: true,
+    });
     expect(robotsMetadata({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
       index: true,
       follow: true,
@@ -114,10 +123,16 @@ describe("SEO launch configuration", () => {
       "https://doughtools.app/sauce",
     );
     expect(canonicalUrl("/sauce", {})).toBe(`${SAFE_INTERNAL_SITE_URL}/sauce`);
+    expect(metadataForRoute("/", { NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).alternates).toMatchObject({
+      canonical: "https://doughtools.app/",
+    });
   });
 
   it("blocks all crawlers by default in robots.txt policy and exposes a sitemap only when indexing is allowed", () => {
     expect(robotsPolicy({})).toEqual({ rules: { userAgent: "*", disallow: "/" } });
+    expect(robotsPolicy({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toEqual({
+      rules: { userAgent: "*", disallow: "/" },
+    });
     expect(robotsPolicy({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
       sitemap: "https://doughtools.app/sitemap.xml",
     });
@@ -151,5 +166,25 @@ describe("SEO launch configuration", () => {
     expect(trustText).toContain(projectContactEmail);
     expect(trustText).toContain(projectOwner);
     expect(trustText).toContain(projectJurisdiction);
+  });
+
+  it("documents safe production-domain verification without enabling indexing", () => {
+    const productionDocPath = join(process.cwd(), "docs", "production-domain-verification.md");
+    const envExamplePath = join(process.cwd(), ".env.example");
+    const seoDoc = readFileSync(join(process.cwd(), "docs", "seo-launch-config.md"), "utf8");
+
+    expect(existsSync(productionDocPath)).toBe(true);
+    expect(existsSync(envExamplePath)).toBe(true);
+
+    const productionDoc = readFileSync(productionDocPath, "utf8");
+    const envExample = readFileSync(envExamplePath, "utf8");
+    const combined = `${productionDoc}\n${envExample}\n${seoDoc}`;
+
+    expect(combined).toContain("https://doughtools.app");
+    expect(combined).toContain("NEXT_PUBLIC_SITE_URL=https://doughtools.app");
+    expect(combined).toContain("ALLOW_INDEXING=false");
+    expect(combined).toMatch(/no indexing yet|noindexed|noindex/i);
+    expect(productionDoc).toContain("Do not set `ALLOW_INDEXING=true`");
+    expect(seoDoc).toContain("docs/production-domain-verification.md");
   });
 });
