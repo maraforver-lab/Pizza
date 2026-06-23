@@ -1,0 +1,29 @@
+[
+  {
+    "id": "legacy-sv",
+    "name": "Pizza test",
+    "createdAt": "2026-06-22T10:00:00.000Z",
+    "language": "sv",
+    "settings": {
+      "pizzas": 6,
+      "ballWeight": 260,
+      "waste": 3,
+      "hydration": 70,
+      "salt": 2.8,
+      "yeastType": "idy",
+      "fermentation": "48h-cold",
+      "temperature": 4,
+      "goal": "airy",
+      "ovenType": "gas",
+      "flourId": "caputo-nuvola-super",
+      "pizzaStyleId": "contemporary"
+    },
+    "ingredients": {
+      "total": 1606.8,
+      "flour": 930.0,
+      "water": 651.0,
+      "salt": 26.0,
+      "leavener": 0.48
+    }
+  }
+]

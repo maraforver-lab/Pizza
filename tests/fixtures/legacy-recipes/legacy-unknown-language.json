@@ -1,0 +1,29 @@
+[
+  {
+    "id": "legacy-unknown-lang",
+    "name": "Imported recipe",
+    "createdAt": "2026-06-21T09:00:00.000Z",
+    "language": "de",
+    "settings": {
+      "pizzas": 3,
+      "ballWeight": 320,
+      "waste": 3,
+      "hydration": 65,
+      "salt": 2.5,
+      "yeastType": "ady",
+      "fermentation": "48h-cold",
+      "temperature": 4,
+      "goal": "balanced",
+      "ovenType": "home",
+      "flourId": "caputo-cuoco",
+      "pizzaStyleId": "new-york"
+    },
+    "ingredients": {
+      "total": 988.8,
+      "flour": 580.0,
+      "water": 377.0,
+      "salt": 14.5,
+      "leavener": 17.3
+    }
+  }
+]

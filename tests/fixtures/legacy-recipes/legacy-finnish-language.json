@@ -1,0 +1,29 @@
+[
+  {
+    "id": "legacy-fi",
+    "name": "Oma napolilainen",
+    "createdAt": "2026-06-20T12:00:00.000Z",
+    "language": "fi",
+    "settings": {
+      "pizzas": 4,
+      "ballWeight": 270,
+      "waste": 3,
+      "hydration": 65,
+      "salt": 2.8,
+      "yeastType": "idy",
+      "fermentation": "24h-cold",
+      "temperature": 4,
+      "goal": "balanced",
+      "ovenType": "gas",
+      "flourId": "caputo-pizzeria",
+      "pizzaStyleId": "neapolitan"
+    },
+    "ingredients": {
+      "total": 1112.4,
+      "flour": 646.6,
+      "water": 420.3,
+      "salt": 18.1,
+      "leavener": 27.4
+    }
+  }
+]

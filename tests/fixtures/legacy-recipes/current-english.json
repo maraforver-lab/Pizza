@@ -1,0 +1,28 @@
+[
+  {
+    "id": "current-english",
+    "name": "Classic Neapolitan",
+    "createdAt": "2026-06-23T08:00:00.000Z",
+    "settings": {
+      "pizzas": 6,
+      "ballWeight": 260,
+      "waste": 3,
+      "hydration": 64,
+      "salt": 2.8,
+      "yeastType": "idy",
+      "fermentation": "24h-cold",
+      "temperature": 4,
+      "goal": "balanced",
+      "ovenType": "gas",
+      "flourId": "caputo-pizzeria",
+      "pizzaStyleId": "neapolitan"
+    },
+    "ingredients": {
+      "total": 1606.8,
+      "flour": 935.78,
+      "water": 598.9,
+      "salt": 26.2,
+      "leavener": 45.92
+    }
+  }
+]

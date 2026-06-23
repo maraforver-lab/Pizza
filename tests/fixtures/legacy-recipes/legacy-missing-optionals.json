@@ -1,0 +1,27 @@
+[
+  {
+    "id": "legacy-no-style",
+    "name": "No style recipe",
+    "createdAt": "2026-06-18T16:00:00.000Z",
+    "settings": {
+      "pizzas": 2,
+      "ballWeight": 250,
+      "waste": 0,
+      "hydration": 60,
+      "salt": 2.5,
+      "yeastType": "cy",
+      "fermentation": "6h-room",
+      "temperature": 22,
+      "goal": "crispy",
+      "ovenType": "home",
+      "flourId": "caputo-classica"
+    },
+    "ingredients": {
+      "total": 500,
+      "flour": 307,
+      "water": 184,
+      "salt": 7.7,
+      "leavener": 1.3
+    }
+  }
+]

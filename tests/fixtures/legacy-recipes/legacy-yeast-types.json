@@ -1,0 +1,62 @@
+[
+  {
+    "id": "legacy-cy",
+    "name": "Fresh yeast",
+    "createdAt": "2026-06-17T12:00:00.000Z",
+    "settings": {
+      "pizzas": 1,
+      "ballWeight": 260,
+      "waste": 3,
+      "hydration": 64,
+      "salt": 2.8,
+      "yeastType": "cy",
+      "fermentation": "12h-room",
+      "temperature": 22,
+      "goal": "balanced",
+      "ovenType": "gas",
+      "flourId": "caputo-pizzeria",
+      "pizzaStyleId": "neapolitan"
+    },
+    "ingredients": { "total": 267.8, "flour": 158.9, "water": 101.7, "salt": 4.4, "leavener": 2.8 }
+  },
+  {
+    "id": "legacy-ssd",
+    "name": "Stiff starter",
+    "createdAt": "2026-06-17T13:00:00.000Z",
+    "settings": {
+      "pizzas": 1,
+      "ballWeight": 260,
+      "waste": 3,
+      "hydration": 64,
+      "salt": 2.8,
+      "yeastType": "ssd",
+      "fermentation": "12h-room",
+      "temperature": 22,
+      "goal": "balanced",
+      "ovenType": "gas",
+      "flourId": "caputo-pizzeria",
+      "pizzaStyleId": "neapolitan"
+    },
+    "ingredients": { "total": 267.8, "flour": 145.6, "water": 96.8, "salt": 4.4, "leavener": 21 }
+  },
+  {
+    "id": "legacy-lsd",
+    "name": "Liquid starter",
+    "createdAt": "2026-06-17T14:00:00.000Z",
+    "settings": {
+      "pizzas": 1,
+      "ballWeight": 260,
+      "waste": 3,
+      "hydration": 64,
+      "salt": 2.8,
+      "yeastType": "lsd",
+      "fermentation": "12h-room",
+      "temperature": 22,
+      "goal": "balanced",
+      "ovenType": "gas",
+      "flourId": "caputo-pizzeria",
+      "pizzaStyleId": "neapolitan"
+    },
+    "ingredients": { "total": 267.8, "flour": 151.3, "water": 100.3, "salt": 4.4, "leavener": 11.8 }
+  }
+]
