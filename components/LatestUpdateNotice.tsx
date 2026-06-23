@@ -2,13 +2,28 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { isUpdateRecent, latestPublicUpdate, newUpdateNotice } from "@/lib/changelog";
+import {
+  isUpdateRecent,
+  latestPublicUpdate,
+  newUpdateNotice,
+  RECENT_UPDATE_NOTICE_VISIBLE_MS,
+} from "@/lib/changelog";
 
 export default function LatestUpdateNotice() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    setVisible(isUpdateRecent(latestPublicUpdate?.date));
+    if (!isUpdateRecent(latestPublicUpdate?.date)) {
+      setVisible(false);
+      return;
+    }
+
+    setVisible(true);
+    const timeout = window.setTimeout(() => {
+      setVisible(false);
+    }, RECENT_UPDATE_NOTICE_VISIBLE_MS);
+
+    return () => window.clearTimeout(timeout);
   }, []);
 
   if (!visible || !latestPublicUpdate) return null;

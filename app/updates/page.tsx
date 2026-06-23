@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import AppSignature from "@/components/AppSignature";
-import { latestPublicUpdate, patchHistory, updates } from "@/lib/changelog";
+import {
+  latestPublicUpdate,
+  patchHistoryNewestFirst,
+  publicUpdatesNewestFirst,
+} from "@/lib/changelog";
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
@@ -17,7 +21,7 @@ export default function UpdatesPage() {
     document.documentElement.lang = "en";
   }, []);
 
-  const latest = latestPublicUpdate ?? updates[0];
+  const latest = latestPublicUpdate ?? publicUpdatesNewestFirst[0];
 
   return (
     <main className="min-h-screen px-4 py-8 pb-28 text-ink sm:px-6">
@@ -73,7 +77,7 @@ export default function UpdatesPage() {
             </p>
           </div>
           <div className="mt-6 grid gap-3 md:grid-cols-2">
-            {patchHistory.map((entry) => (
+            {patchHistoryNewestFirst.map((entry) => (
               <article key={entry.patch} className="rounded-2xl border border-white bg-white/75 p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <strong className="font-mono text-sm text-tomato">Patch {String(entry.patch).padStart(2, "0")}</strong>

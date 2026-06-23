@@ -50,6 +50,17 @@ export const updates: UpdateEntry[] = [
   },
 ];
 
+export const RECENT_UPDATE_NOTICE_VISIBLE_MS = 30_000;
+
+function dateSortValue(value: string): number {
+  const day = utcDayFromDateOnly(value);
+  return day ?? Number.NEGATIVE_INFINITY;
+}
+
+export function sortUpdatesNewestFirst<T extends Pick<UpdateEntry, "date">>(items: readonly T[]): T[] {
+  return [...items].sort((a, b) => dateSortValue(b.date) - dateSortValue(a.date));
+}
+
 export const patchHistory: PatchHistoryEntry[] = [
   {
     patch: 1,
@@ -125,7 +136,11 @@ export const patchHistory: PatchHistoryEntry[] = [
   },
 ];
 
-export const latestPublicUpdate = updates.find((update) => update.isPublic);
+export const publicUpdatesNewestFirst = sortUpdatesNewestFirst(updates.filter((update) => update.isPublic));
+
+export const patchHistoryNewestFirst = [...patchHistory].sort((a, b) => b.patch - a.patch);
+
+export const latestPublicUpdate = publicUpdatesNewestFirst[0];
 
 export const newUpdateNotice = {
   label: "New update",
