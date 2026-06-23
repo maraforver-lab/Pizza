@@ -18,6 +18,12 @@ import {
 import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
 import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
 import { bakeFor } from "@/lib/baking";
+import {
+  getExperienceLevelConfig,
+  readExperienceLevelPreference,
+  type ExperienceLevel,
+} from "@/lib/experience-levels";
+import { getHomepageExperienceCopy } from "@/lib/homepage-experience-copy";
 import { createBakeResult, createBakingSnapshot, createRecipeSnapshot, createResultSnapshot } from "@/lib/bake-result";
 import { homepageContent, type HomepageTool } from "@/lib/homepage";
 import { addLocalBakeResult, BAKE_RESULTS_LOCAL_ONLY_COPY } from "@/lib/local-bake-results";
@@ -34,6 +40,12 @@ const fermentationOptions: { value: Fermentation; hours: number; temperature: nu
 ];
 
 const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"];
+
+const experienceBadgeClasses: Record<ExperienceLevel, string> = {
+  beginner: "bg-leaf/10 text-leaf ring-leaf/20",
+  enthusiast: "bg-tomato/10 text-tomato ring-tomato/20",
+  pizza_nerd: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
+};
 
 const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentation) => {
   const hotOven = ovenTemperature >= 380;
@@ -228,7 +240,10 @@ export default function Home() {
   const [recipeName, setRecipeName] = useState("");
   const [recipeNotice, setRecipeNotice] = useState("");
   const [urlReady, setUrlReady] = useState(false);
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const t = copy.en;
+  const levelCopy = getHomepageExperienceCopy(experienceLevel);
+  const experienceConfig = getExperienceLevelConfig(experienceLevel);
   const isColdFermentation = fermentation.endsWith("cold");
   const activeBake = bakeFor(goal, ovenType);
   const ovenTemperature = activeBake.temperature;
@@ -239,6 +254,7 @@ export default function Home() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
+    setExperienceLevel(readExperienceLevelPreference());
   }, []);
 
   useEffect(() => {
@@ -506,7 +522,14 @@ export default function Home() {
           <div>
             <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{homepageContent.hero.eyebrow}</p>
             <h1 id="homepage-title" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">{homepageContent.hero.h1}</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">{homepageContent.hero.intro}</p>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">{levelCopy.heroIntro}</p>
+            <Link
+              href="/account"
+              className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 transition hover:scale-[1.01] active:scale-[.98] ${experienceBadgeClasses[experienceLevel]}`}
+            >
+              <span aria-hidden="true">{experienceConfig.emoji}</span>
+              {experienceConfig.label} guidance
+            </Link>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               <a href={homepageContent.hero.primaryCta.href} className="rounded-2xl bg-tomato px-5 py-4 text-center text-sm font-extrabold text-white shadow-lg shadow-tomato/15 transition active:scale-[.98]">{homepageContent.hero.primaryCta.label}</a>
               <Link href={homepageContent.hero.secondaryCta.href} className="rounded-2xl border border-ink/10 bg-white px-5 py-4 text-center text-sm font-extrabold text-ink transition hover:border-ink/25 active:scale-[.98]">{homepageContent.hero.secondaryCta.label}</Link>
@@ -522,7 +545,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-xs leading-5 text-white/45">Start with the calculator, then carry the same recipe into planning, sauce, toppings, baking and troubleshooting.</p>
+            <p className="mt-4 text-xs leading-5 text-white/45">{levelCopy.workflowHint}</p>
           </div>
         </section>
 
@@ -539,13 +562,13 @@ export default function Home() {
         <section className="mb-7 max-w-2xl sm:mb-10" aria-labelledby="calculator-intro">
           <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p>
           <h2 id="calculator-intro" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl">{t.title}</h2>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{t.intro}</p>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{levelCopy.calculatorIntro}</p>
         </section>
 
         <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">
           <section id="top" tabIndex={-1} className="scroll-mt-24 min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur outline-none sm:p-7" aria-labelledby="recipe-settings">
             <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
-            <p className="mb-5 text-sm leading-6 text-ink/55">{t.quickIntro}</p>
+            <p className="mb-5 text-sm leading-6 text-ink/55">{levelCopy.quickIntro}</p>
             <div className="grid grid-cols-2 gap-2">
               {(["balanced", "airy", "crispy", "pan"] as PizzaGoal[]).map((option) => (
                 <button key={option} type="button" onClick={() => applyPreset(option)} aria-pressed={goal === option} className={`min-h-20 rounded-2xl border p-3 text-left transition ${goal === option ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : "border-ink/10 bg-white hover:border-ink/25"}`}>
@@ -578,7 +601,7 @@ export default function Home() {
             </div>
             <div className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
               <label htmlFor="flour-profile" className="block text-sm font-extrabold">{t.flourChoice}</label>
-              <p className="mt-1 text-[11px] leading-4 text-ink/45">{t.flourIntro}</p>
+              <p className="mt-1 text-[11px] leading-4 text-ink/45">{levelCopy.flourIntro}</p>
               <select id="flour-profile" value={flourId} onChange={(event) => setFlourId(event.target.value as FlourId)} className="mt-3 h-12 w-full rounded-xl border border-ink/10 bg-cream px-3 text-sm font-bold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
                 {flourProfiles.map((flour) => <option key={flour.id} value={flour.id}>{flour.brand} {flour.name} · {flour.strength}</option>)}
               </select>
@@ -659,6 +682,17 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.04] p-4">
+                <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">{experienceConfig.label} guidance</p>
+                <ul className="mt-3 grid gap-2 text-xs leading-5 text-white/60">
+                  {levelCopy.resultDetails.map((detail) => (
+                    <li key={detail} className="flex gap-2">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" />
+                      <span>{detail}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <div className="mt-6 overflow-hidden rounded-2xl bg-cream text-ink">
                 <div className="grid min-h-40 grid-cols-[42%_58%] overflow-hidden">
                   <div className="relative min-h-40"><Image src={activePizzaStyle.image} alt={activePizzaName} fill sizes="280px" className="object-cover"/></div>
@@ -693,7 +727,7 @@ export default function Home() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h3 className="text-sm font-extrabold text-white">{t.saveBake}</h3>
-                      <p className="mt-1 text-[10px] leading-4 text-white/45">{BAKE_RESULTS_LOCAL_ONLY_COPY}</p>
+                      <p className="mt-1 text-[10px] leading-4 text-white/45">{levelCopy.saveBakeHelp} {BAKE_RESULTS_LOCAL_ONLY_COPY}</p>
                     </div>
                     <button type="button" onClick={() => { setShowBakeForm((current) => !current); setRecipeNotice(""); }} aria-expanded={showBakeForm} className="shrink-0 rounded-xl bg-tomato px-3 py-2 text-xs font-extrabold text-white">{showBakeForm ? t.cancel : t.save}</button>
                   </div>
@@ -714,7 +748,7 @@ export default function Home() {
               </div>
             </div>
             <div className="border-t border-white/10 bg-white/[.04] px-5 py-4 sm:px-7">
-              <p className="flex items-start gap-2 text-xs leading-5 text-white/45"><svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8v.01"/></svg>{t.note}</p>
+              <p className="flex items-start gap-2 text-xs leading-5 text-white/45"><svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8v.01"/></svg>{levelCopy.resultNote}</p>
             </div>
           </aside>
         </div>

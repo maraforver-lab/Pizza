@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { homepageContent } from "@/lib/homepage";
+import { getDefaultExperienceLevel } from "@/lib/experience-levels";
+import { getHomepageExperienceCopy, homepageExperienceCopy } from "@/lib/homepage-experience-copy";
 
 const existingRoutes = new Set([
   "/",
@@ -78,5 +80,45 @@ describe("homepage content model", () => {
     ];
 
     for (const label of labels) expect(label).not.toMatch(forbidden);
+  });
+
+  it("defaults homepage guidance to beginner-friendly copy", () => {
+    const defaultCopy = getHomepageExperienceCopy(getDefaultExperienceLevel());
+
+    expect(getDefaultExperienceLevel()).toBe("beginner");
+    expect(defaultCopy.heroIntro).toContain("suggested defaults");
+    expect(defaultCopy.resultDetails).toHaveLength(2);
+    expect(defaultCopy.saveBakeHelp).toContain("compare next time");
+  });
+
+  it("adds more technical result guidance for pizza nerds without changing tools", () => {
+    const beginner = getHomepageExperienceCopy("beginner");
+    const nerd = getHomepageExperienceCopy("pizza_nerd");
+
+    expect(nerd.resultDetails.length).toBeGreaterThan(beginner.resultDetails.length);
+    expect(nerd.resultDetails.join(" ")).toContain("baker");
+    expect(nerd.resultNote).toContain("starter activity");
+  });
+
+  it("keeps experience-level homepage copy English and free of unavailable feature claims", () => {
+    const forbiddenLanguage = /\b(Aloittelija|Harrastaja|Nybörjare|Entusiast)\b|[äöåÄÖÅ]/;
+    const unavailableClaims = /\b(cloud sync|photo upload|share card|public bake page|guaranteed result|perfect pizza)\b/i;
+
+    for (const entry of Object.values(homepageExperienceCopy)) {
+      const text = [
+        entry.heroIntro,
+        entry.workflowHint,
+        entry.calculatorIntro,
+        entry.quickIntro,
+        entry.flourIntro,
+        entry.resultNote,
+        entry.saveBakeHelp,
+        ...entry.resultDetails,
+      ].join(" ");
+
+      expect(text).not.toMatch(forbiddenLanguage);
+      expect(text).not.toMatch(unavailableClaims);
+      expect(entry.saveBakeHelp).toMatch(/^Save/);
+    }
   });
 });

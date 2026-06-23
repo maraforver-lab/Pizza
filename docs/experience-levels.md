@@ -58,6 +58,25 @@ Supabase sync is not included in Patch 16 because it would require profile schem
 - helper functions for future content complexity decisions
 - tests for normalization, storage behavior and helper logic
 
+## What Patch 17 applies
+
+Patch 17 applies the selected level to the homepage and calculator guidance copy only.
+
+- Beginner copy explains the safest next action and keeps the wording simple.
+- Enthusiast copy adds learning context around hydration, flour, fermentation and repeatable improvement.
+- Pizza Nerd copy adds technical notes such as baker’s percentages, starter assumptions and dough-temperature caveats.
+
+The level affects:
+
+- homepage hero guidance
+- workflow helper copy
+- calculator intro copy
+- flour-helper explanation
+- recipe-result explanation
+- local “Save this bake” helper copy
+
+Patch 17 does not change calculations, recipe defaults, input ranges, saved recipes, Journal data, BakeResult storage, routes or navigation.
+
 ## What Patch 16 does not implement
 
 - no broad content hiding across the site
