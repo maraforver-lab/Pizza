@@ -4,6 +4,13 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import AppSignature from "@/components/AppSignature";
+import {
+  EXPERIENCE_LEVELS,
+  getExperienceLevelConfig,
+  readExperienceLevelPreference,
+  writeExperienceLevelPreference,
+  type ExperienceLevel,
+} from "@/lib/experience-levels";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "signup";
@@ -17,6 +24,24 @@ const copy = {
     eyebrow: "User account", title: "Your place for pizza recipes.", intro: "In this first version you can create an account, sign in and sign out. Recipes are not connected to the account yet.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to calculator", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again.", privacy: "Your password is handled by Supabase and is not stored in DoughTools code." },
 } as const;
 
+const experienceLevelClasses: Record<ExperienceLevel, { badge: string; card: string; dot: string }> = {
+  beginner: {
+    badge: "bg-leaf/10 text-leaf ring-leaf/20",
+    card: "border-leaf/30 bg-leaf/[.06]",
+    dot: "bg-leaf",
+  },
+  enthusiast: {
+    badge: "bg-tomato/10 text-tomato ring-tomato/20",
+    card: "border-tomato/30 bg-tomato/[.06]",
+    dot: "bg-tomato",
+  },
+  pizza_nerd: {
+    badge: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
+    card: "border-[#5d3025]/30 bg-[#5d3025]/[.06]",
+    dot: "bg-[#5d3025]",
+  },
+};
+
 export default function AccountPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -25,11 +50,15 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const t = copy.en;
+  const selectedExperience = getExperienceLevelConfig(experienceLevel);
+  const selectedClasses = experienceLevelClasses[experienceLevel];
 
   useEffect(() => {
     document.documentElement.lang = "en";
+    setExperienceLevel(readExperienceLevelPreference());
     const params = new URLSearchParams(location.search);
     if (params.get("confirmed") === "1") setMessage(copy.en.confirmed);
     if (params.get("authError")) { setMessage(copy.en.retry); setIsError(true); }
@@ -57,6 +86,10 @@ export default function AccountPage() {
     setLoading(false); setUser(null); setMessage(error ? error.message : t.signedOut); setIsError(Boolean(error));
   };
 
+  const selectExperienceLevel = (level: ExperienceLevel) => {
+    setExperienceLevel(writeExperienceLevelPreference(level));
+  };
+
   return <main className="min-h-screen bg-cream px-4 py-10 pb-28 text-ink sm:px-6"><div className="mx-auto max-w-4xl">
     <section className="grid min-w-0 items-center gap-8 py-8 lg:grid-cols-[1fr_24rem]">
       <div className="min-w-0"><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-2xl break-words font-display text-5xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-xl leading-7 text-ink/55">{t.intro}</p><Link href="/" className="mt-7 inline-flex min-h-12 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold">← {t.back}</Link></div>
@@ -68,6 +101,50 @@ export default function AccountPage() {
         {message && <p role="status" className={`mt-4 rounded-xl p-3 text-xs leading-5 ${isError ? "bg-tomato/10 text-tomato" : "bg-leaf/10 text-leaf"}`}>{message}</p>}
         <p className="mt-5 border-t border-ink/10 pt-4 text-[10px] leading-4 text-ink/35">{t.privacy}</p>
       </section>
+    </section>
+    <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${selectedClasses.card}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Experience level</p>
+          <h2 className="mt-2 font-display text-3xl font-semibold">Choose how much guidance you want.</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">
+            Experience level helps DoughTools decide how much guidance and technical detail to show.
+            You can change it at any time.
+          </p>
+        </div>
+        <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${selectedClasses.badge}`}>
+          <span aria-hidden="true">{selectedExperience.emoji}</span>
+          {selectedExperience.label}
+        </span>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {EXPERIENCE_LEVELS.map((level) => {
+          const active = level.id === experienceLevel;
+          const classes = experienceLevelClasses[level.id];
+          return (
+            <button
+              key={level.id}
+              type="button"
+              onClick={() => selectExperienceLevel(level.id)}
+              aria-pressed={active}
+              className={`min-h-36 rounded-2xl border bg-white/75 p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                active ? `${classes.card} shadow-sm` : "border-ink/10 hover:border-tomato/30"
+              }`}
+            >
+              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${active ? classes.badge : "bg-ink/[.06] text-ink/45"}`}>
+                <span className={`h-2.5 w-2.5 rounded-full ${classes.dot}`} aria-hidden="true" />
+              </span>
+              <span className="mt-4 block text-base font-extrabold text-ink">{level.label}</span>
+              <span className="mt-2 block text-sm leading-5 text-ink/55">{level.description}</span>
+              {active && <span className="mt-3 block text-xs font-extrabold text-leaf">Selected</span>}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-5 rounded-2xl bg-white/65 p-4 text-xs leading-5 text-ink/50">
+        This is the foundation for personalized guidance. More pages will use this preference in future updates.
+        For now it is stored locally on this device and is not synced to your account.
+      </p>
     </section>
     <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;

@@ -52,6 +52,18 @@ This storage is separate from saved recipes and separate from the IndexedDB pizz
 
 The loader validates stored objects with the BakeResult migration helpers. Malformed storage data returns a safe empty list, and saved BakeResults are forced to private visibility.
 
+## Experience level preference
+
+Patch 16 adds a local-only experience-level preference with this dedicated `localStorage` key:
+
+```text
+doughtools:experience-level
+```
+
+Allowed values are `beginner`, `enthusiast` and `pizza_nerd`. Missing, malformed or unknown values fall back to `beginner`.
+
+This preference is not synced to Supabase in Patch 16, does not require login, does not change calculations, and does not alter saved recipe, BakeResult or Journal storage.
+
 ## Local data not covered by this patch
 
 - Existing real user browser data.
