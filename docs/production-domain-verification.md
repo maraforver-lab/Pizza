@@ -2,6 +2,8 @@
 
 This checklist prepares DoughTools for using the real production domain later without enabling search indexing yet.
 
+For the owner-friendly rehearsal flow, see `docs/manual-launch-rehearsal.md`.
+
 ## Intended production domain
 
 ```text

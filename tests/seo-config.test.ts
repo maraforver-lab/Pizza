@@ -187,4 +187,32 @@ describe("SEO launch configuration", () => {
     expect(productionDoc).toContain("Do not set `ALLOW_INDEXING=true`");
     expect(seoDoc).toContain("docs/production-domain-verification.md");
   });
+
+  it("documents a manual launch rehearsal without instructing this patch to deploy or enable indexing", () => {
+    const rehearsalDocPath = join(process.cwd(), "docs", "manual-launch-rehearsal.md");
+    const productionDoc = readFileSync(join(process.cwd(), "docs", "production-domain-verification.md"), "utf8");
+    const seoDoc = readFileSync(join(process.cwd(), "docs", "seo-launch-config.md"), "utf8");
+
+    expect(existsSync(rehearsalDocPath)).toBe(true);
+
+    const rehearsalDoc = readFileSync(rehearsalDocPath, "utf8");
+
+    expect(rehearsalDoc).toContain("https://doughtools.app");
+    expect(rehearsalDoc).toContain("NEXT_PUBLIC_SITE_URL=https://doughtools.app");
+    expect(rehearsalDoc).toContain("ALLOW_INDEXING=false");
+    expect(rehearsalDoc).toContain("noindex");
+    expect(rehearsalDoc).toContain("robots.txt");
+    expect(rehearsalDoc).toContain("sitemap.xml");
+    expect(rehearsalDoc).toContain("X-Robots-Tag");
+    expect(rehearsalDoc).toContain("`/account` is not in sitemap");
+    expect(rehearsalDoc).toContain("Do not submit sitemap to Google yet");
+    expect(rehearsalDoc).toContain("Do not yet:");
+    expect(rehearsalDoc).toContain("set `ALLOW_INDEXING=true`");
+    expect(rehearsalDoc).toMatch(/rollback/i);
+    expect(rehearsalDoc).toContain("This checklist does not deploy the site.");
+    expect(rehearsalDoc).toContain("Do not execute either approach as part of this documentation patch.");
+    expect(rehearsalDoc).toContain("Opening indexing must be a separate patch and process. Do not enable indexing now.");
+    expect(productionDoc).toContain("docs/manual-launch-rehearsal.md");
+    expect(seoDoc).toContain("docs/manual-launch-rehearsal.md");
+  });
 });

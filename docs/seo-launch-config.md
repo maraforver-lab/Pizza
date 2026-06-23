@@ -3,6 +3,7 @@
 This document describes the temporary pre-launch SEO setup for DoughTools.
 
 For the production-domain checklist, see `docs/production-domain-verification.md`.
+For the owner-friendly manual rehearsal flow, see `docs/manual-launch-rehearsal.md`.
 
 ## Current launch state
 
