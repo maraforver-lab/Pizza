@@ -66,7 +66,8 @@ describe("Start Here path", () => {
 
     expect(startHerePaths.map((path) => path.title)).toEqual(["Home oven pizza", "Pizza oven pizza", "Pan / tray pizza"]);
     expect(pageSource).toContain("{path.title}");
-    expect(pageSource).toContain("aria-label={`${path.title} marker`}");
+    expect(pageSource).toContain("aria-labelledby={headingId}");
+    expect(pageSource).toContain("aria-hidden=\"true\"");
     expect(pageSource).not.toMatch(/<button[^>]*>\s*{path\.marker}\s*<\/button>/);
   });
 });

@@ -39,6 +39,33 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "accessibility-core-ux-2026-06-24",
+    title: "Accessibility pass for core UX",
+    date: "2026-06-24",
+    summary:
+      "Core DoughTools screens were reviewed and improved for clearer labels, keyboard focus and accessible controls.",
+    category: "Product",
+    highlights: [
+      "Clearer accessible names for key controls",
+      "Better label and focus handling across core workflows",
+      "Experience level and Start Here cards remain understandable without relying on color alone",
+      "Mobile and keyboard usability checks added to the baseline",
+    ],
+    details: [
+      "Patch 24 improves the accessibility baseline for the homepage, Start Here, navigation and core tool pages.",
+      "The pass focuses on form labels, control names, focus visibility, link purpose and color-not-alone behavior.",
+      "The update keeps the existing workflow intact and does not change calculations or indexing permissions.",
+    ],
+    userImpact:
+      "DoughTools is easier to use with a keyboard, screen reader, or mobile device, and important choices are clearer for more users.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [24],
+    relatedPatchNumbers: [20, 21, 22, 23, 24],
+    href: "/updates",
+  },
+  {
     id: "seo-indexation-canonical-baseline-2026-06-24",
     title: "SEO indexation and canonical baseline",
     date: "2026-06-24",
@@ -641,6 +668,28 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users can still share recipe and planning links, while new visitors should have a cleaner path to discover DoughTools through search.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics or payment behavior.",
+  },
+  {
+    patch: 24,
+    title: "Accessibility pass for core UX",
+    category: "Product",
+    summary:
+      "Core DoughTools screens were reviewed and improved for clearer labels, keyboard focus and accessible controls.",
+    highlights: [
+      "Clearer accessible names for key controls",
+      "Better label and focus handling across core workflows",
+      "Experience level and Start Here cards remain understandable without relying on color alone",
+      "Mobile and keyboard usability checks added to the baseline",
+    ],
+    details: [
+      "Patch 24 improves the accessibility baseline for the homepage, Start Here, navigation and core tool pages.",
+      "The pass focuses on form labels, control names, focus visibility, link purpose and color-not-alone behavior.",
+      "The update keeps the existing workflow intact and does not change calculations or indexing permissions.",
+    ],
+    userImpact:
+      "DoughTools is easier to use with a keyboard, screen reader, or mobile device, and important choices are clearer for more users.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
   },
 ];
 

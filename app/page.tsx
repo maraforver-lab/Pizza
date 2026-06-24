@@ -198,13 +198,13 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
     <div className="block">
       <label htmlFor={id} className="mb-2 block text-sm font-semibold text-ink/70">{label}</label>
       <div className={`relative ${stepper ? "grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] gap-2" : "block"}`}>
-        {stepper && <button type="button" aria-label={decreaseLabel} disabled={value <= min} onClick={() => onChange(steppedValue(value, -1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition active:scale-95 disabled:opacity-30">−</button>}
+        {stepper && <button type="button" aria-label={decreaseLabel} disabled={value <= min} onClick={() => onChange(steppedValue(value, -1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream active:scale-95 disabled:opacity-30">−</button>}
         <div className="relative min-w-0">
           <EditableNumberInput id={id} min={min} max={max} value={value} onValueChange={onChange}
             className={`h-14 min-w-0 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 ${stepper ? "text-center" : "pr-12"}`} />
           {suffix && <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink/40">{suffix}</span>}
         </div>
-        {stepper && <button type="button" aria-label={increaseLabel} disabled={value >= max} onClick={() => onChange(steppedValue(value, 1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition active:scale-95 disabled:opacity-30">+</button>}
+        {stepper && <button type="button" aria-label={increaseLabel} disabled={value >= max} onClick={() => onChange(steppedValue(value, 1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream active:scale-95 disabled:opacity-30">+</button>}
       </div>
     </div>
   );
@@ -751,7 +751,7 @@ export default function Home() {
                   {showBakeForm && <div className="mt-3 grid gap-2">
                     <fieldset>
                       <legend className="mb-2 text-[10px] font-bold text-white/50">{t.bakeRating}</legend>
-                      <div className="flex gap-1.5">{[1, 2, 3, 4, 5].map((rating) => <button key={rating} type="button" onClick={() => setBakeRating(rating)} aria-pressed={bakeRating === rating} className={`grid h-9 w-9 place-items-center rounded-xl text-sm ${rating <= bakeRating ? "bg-tomato text-white" : "bg-white/10 text-white/35"}`}>★</button>)}</div>
+                      <div className="flex gap-1.5">{[1, 2, 3, 4, 5].map((rating) => <button key={rating} type="button" onClick={() => setBakeRating(rating)} aria-label={`Set overall bake rating to ${rating} out of 5`} aria-pressed={bakeRating === rating} className={`grid h-9 w-9 place-items-center rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-ink ${rating <= bakeRating ? "bg-tomato text-white" : "bg-white/10 text-white/35"}`}>★</button>)}</div>
                     </fieldset>
                     <div className="grid grid-cols-2 gap-2">
                       <label className="text-[10px] font-bold text-white/50">{t.bakeTimeSeconds}<input inputMode="numeric" value={bakeTimeSeconds} onChange={(event) => setBakeTimeSeconds(event.target.value.replace(/[^\d]/g, ""))} placeholder="90" className="mt-1 h-11 w-full rounded-xl border border-white/10 bg-white px-3 text-sm font-semibold text-ink outline-none focus:ring-4 focus:ring-tomato/25" /></label>

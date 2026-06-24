@@ -42,7 +42,7 @@ const publicCopy = [
 describe("updates changelog", () => {
   it("defines the latest public foundation update", () => {
     expect(latestPublicUpdate).toBeDefined();
-    expect(latestPublicUpdate?.title).toBe("SEO indexation and canonical baseline");
+    expect(latestPublicUpdate?.title).toBe("Accessibility pass for core UX");
     expect(latestPublicUpdate?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(`${latestPublicUpdate?.date}T12:00:00Z`))).toBe(false);
   });
@@ -76,9 +76,9 @@ describe("updates changelog", () => {
     expect(getVisibleUpdates(source, 0)).toEqual([]);
   });
 
-  it("includes Patch 01 through Patch 23 in release history", () => {
+  it("includes Patch 01 through Patch 24 in release history", () => {
     expect([...patchHistory].sort((a, b) => a.patch - b.patch).map((entry) => entry.patch))
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]);
     for (const entry of patchHistory) {
       expect(entry.title.trim()).toBeTruthy();
       expect(entry.summary.trim()).toBeTruthy();
@@ -89,10 +89,10 @@ describe("updates changelog", () => {
   });
 
   it("exposes Patch history newest first for the updates page", () => {
-    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(visiblePatchHistory).toHaveLength(MAX_VISIBLE_UPDATES);
     expect(visiblePatchHistory.length).toBeLessThanOrEqual(MAX_VISIBLE_UPDATES);
-    expect(visiblePatchHistory[0].patch).toBe(23);
+    expect(visiblePatchHistory[0].patch).toBe(24);
   });
 
   it("keeps Patch 12, Patch 14, experience-level and onboarding details explicit", () => {
@@ -104,6 +104,7 @@ describe("updates changelog", () => {
     const patch21 = patchHistory.find((entry) => entry.patch === 21);
     const patch22 = patchHistory.find((entry) => entry.patch === 22);
     const patch23 = patchHistory.find((entry) => entry.patch === 23);
+    const patch24 = patchHistory.find((entry) => entry.patch === 24);
 
     expect(patch12?.details.join(" ")).toContain("doughtools:bake-results");
     expect(patch12?.technicalNote).toContain("photo upload");
@@ -125,6 +126,10 @@ describe("updates changelog", () => {
     expect(patch23?.highlights.join(" ")).toContain("canonical URL policy");
     expect(patch23?.details.join(" ")).toContain("Shareable tool links remain supported");
     expect(patch23?.technicalNote).toContain("did not change dough formulas");
+    expect(patch24?.summary).toContain("clearer labels");
+    expect(patch24?.highlights.join(" ")).toContain("accessible names");
+    expect(patch24?.details.join(" ")).toContain("form labels");
+    expect(patch24?.technicalNote).toContain("did not change dough formulas");
   });
 
   it("uses the required new-update notice destination", () => {

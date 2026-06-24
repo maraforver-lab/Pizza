@@ -66,17 +66,18 @@ export default function StartHerePage() {
             const calculatorHref = startHerePathHref(path, "/");
             const plannerHref = startHerePathHref(path, "/plan");
             const doctorHref = startHerePathHref(path, "/doctor");
+            const headingId = `start-path-${path.id}`;
 
             return (
-              <article key={path.id} className="flex min-h-full flex-col overflow-hidden rounded-[1.75rem] border border-white/90 bg-white/80 shadow-card backdrop-blur">
+              <article key={path.id} aria-labelledby={headingId} className="flex min-h-full flex-col overflow-hidden rounded-[1.75rem] border border-white/90 bg-white/80 shadow-card backdrop-blur">
                 <div className="border-b border-ink/10 p-5">
                   <div className="flex items-start gap-3">
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-ink text-xl text-white" aria-label={`${path.title} marker`}>
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-ink text-xl text-white" aria-hidden="true">
                       {path.marker}
                     </span>
                     <div>
                       <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-tomato">Start path</p>
-                      <h2 className="mt-1 font-display text-3xl font-semibold leading-none">{path.title}</h2>
+                      <h2 id={headingId} className="mt-1 font-display text-3xl font-semibold leading-none">{path.title}</h2>
                     </div>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-ink/60">{path.description}</p>
@@ -127,13 +128,13 @@ export default function StartHerePage() {
                 </div>
 
                 <div className="grid gap-2 border-t border-ink/10 p-5">
-                  <Link href={calculatorHref} className="rounded-2xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white transition active:scale-[.98]">
+                  <Link href={calculatorHref} className="rounded-2xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98]">
                     {path.primaryCta} →
                   </Link>
-                  <Link href={plannerHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink transition hover:border-ink/25 active:scale-[.98]">
+                  <Link href={plannerHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink transition hover:border-ink/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98]">
                     {path.secondaryCta} →
                   </Link>
-                  <Link href={doctorHref} className="rounded-2xl border border-leaf/15 bg-leaf/[.07] px-4 py-3 text-center text-sm font-bold text-leaf transition hover:border-leaf/30 active:scale-[.98]">
+                  <Link href={doctorHref} className="rounded-2xl border border-leaf/15 bg-leaf/[.07] px-4 py-3 text-center text-sm font-bold text-leaf transition hover:border-leaf/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98]">
                     If something goes wrong, open Dough Doctor →
                   </Link>
                 </div>

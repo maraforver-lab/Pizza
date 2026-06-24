@@ -83,11 +83,11 @@ export default function AccountPage() {
         <p className="mt-5 border-t border-ink/10 pt-4 text-[10px] leading-4 text-ink/35">{t.privacy}</p>
       </section>
     </section>
-    <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${selectedExperience.cardClassName}`}>
+    <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${selectedExperience.cardClassName}`} aria-labelledby="account-experience-heading">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Experience level</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold">Choose how much guidance you want.</h2>
+          <h2 id="account-experience-heading" className="mt-2 font-display text-3xl font-semibold">Choose how much guidance you want.</h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">
             Experience level helps DoughTools decide how much guidance and technical detail to show.
             You can change it at any time.
@@ -98,7 +98,7 @@ export default function AccountPage() {
           {selectedExperience.label}
         </span>
       </div>
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
+      <div className="mt-5 grid gap-3 md:grid-cols-3" role="group" aria-label="Account experience level options">
         {EXPERIENCE_LEVELS.map((level) => {
           const active = level.id === experienceLevel;
           return (
@@ -107,6 +107,7 @@ export default function AccountPage() {
               type="button"
               onClick={() => selectExperienceLevel(level.id)}
               aria-pressed={active}
+              aria-label={`Select ${level.label} guidance level${active ? ", currently selected" : ""}`}
               className={`min-h-36 rounded-2xl border bg-white/75 p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
                 active ? `${level.cardClassName} shadow-sm` : "border-ink/10 hover:border-tomato/30"
               }`}

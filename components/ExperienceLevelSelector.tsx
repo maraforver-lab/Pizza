@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
   EXPERIENCE_LEVELS,
   getExperienceLevelConfig,
@@ -36,6 +37,9 @@ export default function ExperienceLevelSelector({
   className = "",
 }: ExperienceLevelSelectorProps) {
   const selected = getExperienceLevelConfig(value);
+  const generatedId = useId();
+  const selectorId = `${generatedId}-experience-level-selector`;
+  const introId = `${generatedId}-experience-level-selector-description`;
 
   const selectLevel = (level: ExperienceLevel) => {
     const saved = writeExperienceLevelPreference(level);
@@ -43,17 +47,21 @@ export default function ExperienceLevelSelector({
   };
 
   return (
-    <section className={`rounded-[1.75rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5 ${className}`}>
+    <section
+      className={`rounded-[1.75rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5 ${className}`}
+      aria-labelledby={selectorId}
+      aria-describedby={introId}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-tomato">Experience level</p>
-          <h2 className={`${compact ? "mt-1 text-xl" : "mt-2 text-2xl"} font-display font-semibold text-ink`}>{title}</h2>
-          <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/55 sm:text-sm sm:leading-6">{intro}</p>
+          <h2 id={selectorId} className={`${compact ? "mt-1 text-xl" : "mt-2 text-2xl"} font-display font-semibold text-ink`}>{title}</h2>
+          <p id={introId} className="mt-2 max-w-2xl text-xs leading-5 text-ink/55 sm:text-sm sm:leading-6">{intro}</p>
         </div>
         <GuidanceModeBadge level={selected.id} />
       </div>
 
-      <div className={`mt-4 grid gap-3 ${compact ? "sm:grid-cols-3" : "md:grid-cols-3"}`}>
+      <div className={`mt-4 grid gap-3 ${compact ? "sm:grid-cols-3" : "md:grid-cols-3"}`} role="group" aria-label="Experience level options">
         {EXPERIENCE_LEVELS.map((level) => {
           const active = level.id === selected.id;
 
@@ -63,6 +71,7 @@ export default function ExperienceLevelSelector({
               type="button"
               onClick={() => selectLevel(level.id)}
               aria-pressed={active}
+              aria-label={`Select ${level.label} guidance level${active ? ", currently selected" : ""}`}
               className={`min-h-24 rounded-2xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
                 active ? `${level.cardClassName} shadow-sm` : "border-ink/10 bg-cream/40 hover:border-tomato/30"
               }`}
