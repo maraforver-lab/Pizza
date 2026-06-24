@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "performance-rendering-baseline-2026-06-24",
+    title: "Performance and rendering baseline",
+    date: "2026-06-24",
+    summary:
+      "A performance baseline was added for core DoughTools routes before broader launch work and calculator UX changes.",
+    category: "Technical foundation",
+    highlights: [
+      "Core route build and production-mode checks documented",
+      "Rendering and client-heavy risk areas reviewed",
+      "Initial route performance budget proposed",
+      "Optimization backlog created without changing product behavior",
+      "Google indexing remains disabled",
+    ],
+    details: [
+      "Patch 25 documents how the homepage, Start Here, Planner, Dough Doctor, Guide, Updates and Account routes build and serve in production mode.",
+      "The patch records what can and cannot be concluded from local build and route checks.",
+      "It creates a practical baseline for future performance work without changing calculations, saved data, indexing or tracking behavior.",
+      "The findings should guide the next calculator progressive disclosure patch so the beginner experience improves without unnecessary performance cost.",
+    ],
+    userImpact:
+      "The app has a clearer technical quality baseline, helping future improvements focus on the parts of the workflow that matter most.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [25],
+    relatedPatchNumbers: [23, 24, 25],
+    href: "/updates",
+  },
+  {
     id: "accessibility-core-ux-2026-06-24",
     title: "Accessibility pass for core UX",
     date: "2026-06-24",
@@ -688,6 +717,30 @@ export const patchHistory: PatchHistoryEntry[] = [
     ],
     userImpact:
       "DoughTools is easier to use with a keyboard, screen reader, or mobile device, and important choices are clearer for more users.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+  },
+  {
+    patch: 25,
+    title: "Performance and rendering baseline",
+    category: "Technical foundation",
+    summary:
+      "A performance baseline was added for core DoughTools routes before broader launch work and calculator UX changes.",
+    highlights: [
+      "Core route build and production-mode checks documented",
+      "Rendering and client-heavy risk areas reviewed",
+      "Initial route performance budget proposed",
+      "Optimization backlog created without changing product behavior",
+      "Google indexing remains disabled",
+    ],
+    details: [
+      "Patch 25 documents how the homepage, Start Here, Planner, Dough Doctor, Guide, Updates and Account routes build and serve in production mode.",
+      "The patch records what can and cannot be concluded from local build and route checks.",
+      "It creates a practical baseline for future performance work without changing calculations, saved data, indexing or tracking behavior.",
+      "The findings should guide the next calculator progressive disclosure patch so the beginner experience improves without unnecessary performance cost.",
+    ],
+    userImpact:
+      "The app has a clearer technical quality baseline, helping future improvements focus on the parts of the workflow that matter most.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
   },

@@ -42,7 +42,7 @@ const publicCopy = [
 describe("updates changelog", () => {
   it("defines the latest public foundation update", () => {
     expect(latestPublicUpdate).toBeDefined();
-    expect(latestPublicUpdate?.title).toBe("Accessibility pass for core UX");
+    expect(latestPublicUpdate?.title).toBe("Performance and rendering baseline");
     expect(latestPublicUpdate?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(`${latestPublicUpdate?.date}T12:00:00Z`))).toBe(false);
   });
@@ -76,9 +76,9 @@ describe("updates changelog", () => {
     expect(getVisibleUpdates(source, 0)).toEqual([]);
   });
 
-  it("includes Patch 01 through Patch 24 in release history", () => {
+  it("includes Patch 01 through Patch 25 in release history", () => {
     expect([...patchHistory].sort((a, b) => a.patch - b.patch).map((entry) => entry.patch))
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]);
+      .toEqual(Array.from({ length: 25 }, (_, index) => index + 1));
     for (const entry of patchHistory) {
       expect(entry.title.trim()).toBeTruthy();
       expect(entry.summary.trim()).toBeTruthy();
@@ -89,10 +89,10 @@ describe("updates changelog", () => {
   });
 
   it("exposes Patch history newest first for the updates page", () => {
-    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(visiblePatchHistory).toHaveLength(MAX_VISIBLE_UPDATES);
     expect(visiblePatchHistory.length).toBeLessThanOrEqual(MAX_VISIBLE_UPDATES);
-    expect(visiblePatchHistory[0].patch).toBe(24);
+    expect(visiblePatchHistory[0].patch).toBe(25);
   });
 
   it("keeps Patch 12, Patch 14, experience-level and onboarding details explicit", () => {
@@ -105,6 +105,7 @@ describe("updates changelog", () => {
     const patch22 = patchHistory.find((entry) => entry.patch === 22);
     const patch23 = patchHistory.find((entry) => entry.patch === 23);
     const patch24 = patchHistory.find((entry) => entry.patch === 24);
+    const patch25 = patchHistory.find((entry) => entry.patch === 25);
 
     expect(patch12?.details.join(" ")).toContain("doughtools:bake-results");
     expect(patch12?.technicalNote).toContain("photo upload");
@@ -130,6 +131,10 @@ describe("updates changelog", () => {
     expect(patch24?.highlights.join(" ")).toContain("accessible names");
     expect(patch24?.details.join(" ")).toContain("form labels");
     expect(patch24?.technicalNote).toContain("did not change dough formulas");
+    expect(patch25?.summary).toContain("performance baseline");
+    expect(patch25?.highlights.join(" ")).toContain("Google indexing remains disabled");
+    expect(patch25?.details.join(" ")).toContain("production mode");
+    expect(patch25?.technicalNote).toContain("did not change dough formulas");
   });
 
   it("uses the required new-update notice destination", () => {
@@ -167,7 +172,7 @@ describe("updates changelog", () => {
   it("does not claim unavailable launch or sharing features are available", () => {
     expect(publicCopy).not.toMatch(/share cards? (is|are) available/i);
     expect(publicCopy).not.toMatch(/cloud sync (is|now|available)/i);
-    expect(publicCopy).not.toMatch(/indexing is enabled|search indexing is enabled|Google indexing/i);
+    expect(publicCopy).not.toMatch(/indexing is enabled|search indexing is enabled|Google indexing is enabled/i);
     expect(publicCopy).not.toMatch(/perfect pizza|guaranteed results/i);
   });
 
