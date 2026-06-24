@@ -39,6 +39,34 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "core-recipe-workflow-handoff-2026-06-24",
+    title: "Core recipe workflow handoff",
+    date: "2026-06-24",
+    summary:
+      "Recipe results now guide users more clearly into the next DoughTools steps.",
+    category: "Product",
+    highlights: [
+      "Clearer next-step area after calculating dough",
+      "Planner, Sauce, Toppings, Timer and Dough Doctor actions are easier to find",
+      "Recipe context is preserved where supported",
+      "Beginner, Enthusiast and Pizza Nerd guidance stays consistent",
+      "No formulas, storage, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 28 strengthens the handoff from recipe results into the rest of the DoughTools workflow.",
+      "Users can move from dough numbers to planning, sauce, toppings, timing and troubleshooting with clearer actions.",
+      "Existing query-link behavior is preserved and no unsupported tool parameters are invented.",
+    ],
+    userImpact:
+      "Users can understand what to do after getting a recipe instead of stopping at the ingredient numbers.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [28],
+    relatedPatchNumbers: [22, 26, 27, 28],
+    href: "/updates",
+  },
+  {
     id: "security-launch-baseline-2026-06-24",
     title: "Security headers and launch safety baseline",
     date: "2026-06-24",
@@ -847,6 +875,29 @@ export const patchHistory: PatchHistoryEntry[] = [
       "DoughTools gets a stronger technical safety baseline while the pizza workflow and calculations remain unchanged.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+  },
+  {
+    patch: 28,
+    title: "Core recipe workflow handoff",
+    category: "Product",
+    summary:
+      "Recipe results now guide users more clearly into the next DoughTools steps.",
+    highlights: [
+      "Clearer next-step area after calculating dough",
+      "Planner, Sauce, Toppings, Timer and Dough Doctor actions are easier to find",
+      "Recipe context is preserved where supported",
+      "Beginner, Enthusiast and Pizza Nerd guidance stays consistent",
+      "No formulas, storage, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 28 strengthens the handoff from recipe results into the rest of the DoughTools workflow.",
+      "Users can move from dough numbers to planning, sauce, toppings, timing and troubleshooting with clearer actions.",
+      "Existing query-link behavior is preserved and no unsupported tool parameters are invented.",
+    ],
+    userImpact:
+      "Users can understand what to do after getting a recipe instead of stopping at the ingredient numbers.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
 ];
 

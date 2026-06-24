@@ -34,6 +34,7 @@ import { createBakeResult, createBakingSnapshot, createRecipeSnapshot, createRes
 import { homepageContent, type HomepageTool } from "@/lib/homepage";
 import { addLocalBakeResult, BAKE_RESULTS_LOCAL_ONLY_COPY } from "@/lib/local-bake-results";
 import { defaultPizzaStyleId, pizzaStyleById, type PizzaStyleId } from "@/lib/pizza-styles";
+import { getRecipeWorkflowHandoff } from "@/lib/recipe-workflow";
 
 type Locale = "en" | "fi" | "sv";
 
@@ -354,6 +355,7 @@ export default function Home() {
   const sauceHref = `/sauce?${recipeQuery}`;
   const toppingsHref = `/toppings?${recipeQuery}`;
   const timerHref = `/timer?${recipeQuery}`;
+  const recipeWorkflow = getRecipeWorkflowHandoff(experienceLevel, recipeQuery);
   const stylesHref = "/styles";
   const journalHref = `/journal?${recipeQuery}`;
 
@@ -779,13 +781,37 @@ export default function Home() {
                     ))}
                   </ul>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <Link href={planHref} className="rounded-xl bg-white px-3 py-3 text-center text-xs font-extrabold text-ink">Plan next →</Link>
-                  <Link href={doctorHref} className="rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Dough Doctor →</Link>
-                  <Link href={sauceHref} className="rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Sauce →</Link>
-                  <Link href={toppingsHref} className="rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Toppings →</Link>
-                  <Link href={timerHref} className="col-span-2 rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Timer →</Link>
-                </div>
+                <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="recipe-workflow-heading">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#e8c98a]">Workflow handoff</p>
+                  <h3 id="recipe-workflow-heading" className="mt-2 text-base font-extrabold text-white">{recipeWorkflow.heading}</h3>
+                  <p className="mt-2 text-xs leading-5 text-white/65">{recipeWorkflow.intro}</p>
+                  <p className="mt-2 text-[11px] leading-5 text-white/45">{recipeWorkflow.detail}</p>
+                  <div className="mt-4 grid gap-2">
+                    {recipeWorkflow.actions.map((action) => {
+                      const isPrimary = action.id === recipeWorkflow.primaryActionId;
+                      const className = isPrimary
+                        ? "rounded-xl bg-white px-3 py-3 text-left text-xs font-extrabold text-ink transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+                        : "rounded-xl border border-white/15 px-3 py-3 text-left text-xs font-bold text-white/75 transition hover:border-white/30 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]";
+                      const content = (
+                        <>
+                          <span className="block">{action.label}{action.href ? " →" : ""}</span>
+                          <span className={`mt-1 block text-[11px] leading-4 ${isPrimary ? "font-semibold text-ink/55" : "font-medium text-white/45"}`}>{action.description}</span>
+                          {action.preservesQuery && <span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[10px] font-extrabold uppercase tracking-[.12em] ${isPrimary ? "bg-ink/[.06] text-ink/45" : "bg-white/[.06] text-white/35"}`}>Recipe context included</span>}
+                        </>
+                      );
+
+                      return action.href ? (
+                        <Link key={action.id} href={action.href} className={className}>
+                          {content}
+                        </Link>
+                      ) : (
+                        <div key={action.id} className="rounded-xl border border-white/10 px-3 py-3 text-left text-xs font-bold text-white/70">
+                          {content}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
               </div>
               <div className="mt-6 overflow-hidden rounded-2xl bg-cream text-ink">
                 <div className="grid min-h-40 grid-cols-[42%_58%] overflow-hidden">

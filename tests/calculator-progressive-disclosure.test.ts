@@ -98,6 +98,7 @@ describe("calculator progressive disclosure", () => {
 
   it("wires the homepage to progressive disclosure without new routes or heavy dependencies", () => {
     const homepage = source("app/page.tsx");
+    const workflow = source("lib/recipe-workflow.ts");
     const packageJson = source("package.json");
 
     expect(homepage).toContain("getCalculatorDisclosureMode(experienceLevel)");
@@ -107,11 +108,14 @@ describe("calculator progressive disclosure", () => {
     expect(homepage).toContain("aria-controls=\"advanced-calculator-settings\"");
     expect(homepage).toContain("id=\"advanced-calculator-settings\"");
     expect(homepage).toContain("More settings are active in this recipe link.");
-    expect(homepage).toContain("Plan next");
-    expect(homepage).toContain("Dough Doctor");
-    expect(homepage).toContain("Sauce");
-    expect(homepage).toContain("Toppings");
-    expect(homepage).toContain("Timer");
+    expect(homepage).toContain("getRecipeWorkflowHandoff(experienceLevel, recipeQuery)");
+    expect(homepage).toContain("recipeWorkflow.heading");
+    expect(homepage).toContain("Workflow handoff");
+    expect(homepage).toContain("Recipe context included");
+    expect(workflow).toContain("Open Dough Doctor");
+    expect(workflow).toContain("Calculate sauce");
+    expect(workflow).toContain("Calculate toppings");
+    expect(workflow).toContain("Start baking timer");
     expect(packageJson).not.toMatch(/lighthouse|webpack-bundle-analyzer|@next\/bundle-analyzer|radix|headlessui/i);
   });
 

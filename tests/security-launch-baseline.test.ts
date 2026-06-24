@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { contentSecurityPolicy, securityHeaders } from "@/lib/security-headers";
 import { isIndexingAllowed, robotsPolicy, sitemapEntries } from "@/lib/seo-config";
-import { latestPublicUpdate, patchHistory } from "@/lib/changelog";
+import { patchHistory } from "@/lib/changelog";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 const headerValue = (key: string) => securityHeaders.find((header) => header.key === key)?.value;
@@ -94,7 +94,6 @@ describe("security and launch-safety baseline", () => {
   it("adds Patch 27 to public update history with safe user-facing copy", () => {
     const patch27 = patchHistory.find((entry) => entry.patch === 27);
 
-    expect(latestPublicUpdate?.patchNumbers).toContain(27);
     expect(patch27).toBeDefined();
     expect(patch27?.title).toBe("Security headers and launch safety baseline");
     expect(patch27?.summary).toContain("security and launch-safety baseline");
