@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { securityHeaders } from "./lib/security-headers";
 
 const gitValue = (args: string[], fallback: string) => {
   try {
@@ -38,18 +39,29 @@ const allowIndexing = (
   && process.env.VERCEL_ENV !== "preview"
 );
 
+const noIndexHeader = {
+  key: "X-Robots-Tag",
+  // TEMPORARY PRE-LAUNCH INDEXING BLOCK:
+  // Controlled by ALLOW_INDEXING and a safe NEXT_PUBLIC_SITE_URL before public launch.
+  value: "noindex, nofollow, noarchive",
+};
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   async headers() {
     if (allowIndexing) {
       return [
         {
+          source: "/:path*",
+          headers: securityHeaders,
+        },
+        {
           source: "/account/:path*",
-          headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+          headers: [noIndexHeader],
         },
         {
           source: "/auth/:path*",
-          headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+          headers: [noIndexHeader],
         },
       ];
     }
@@ -58,12 +70,8 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          {
-            key: "X-Robots-Tag",
-            // TEMPORARY PRE-LAUNCH INDEXING BLOCK:
-            // Controlled by ALLOW_INDEXING and a safe NEXT_PUBLIC_SITE_URL before public launch.
-            value: "noindex, nofollow, noarchive",
-          },
+          ...securityHeaders,
+          noIndexHeader,
         ],
       },
     ];

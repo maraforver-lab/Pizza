@@ -39,6 +39,34 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "security-launch-baseline-2026-06-24",
+    title: "Security headers and launch safety baseline",
+    date: "2026-06-24",
+    summary:
+      "A security and launch-safety baseline was added before broader public launch work.",
+    category: "SEO & launch safety",
+    highlights: [
+      "Security response headers reviewed",
+      "Safer baseline headers added",
+      "Pre-launch indexing protection preserved",
+      "Production verification checklist documented",
+      "No analytics, tracking or payment behavior added",
+    ],
+    details: [
+      "Patch 27 reviews DoughTools security headers and adds a conservative launch-safety baseline where safe.",
+      "The patch documents which headers are active, which choices were deferred, and what must be checked after deployment.",
+      "Google indexing remains disabled and no Search Console or analytics integrations were added.",
+    ],
+    userImpact:
+      "DoughTools gets a stronger technical safety baseline while the pizza workflow and calculations remain unchanged.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [27],
+    relatedPatchNumbers: [23, 25, 26, 27],
+    href: "/updates",
+  },
+  {
     id: "calculator-progressive-disclosure-2026-06-24",
     title: "Calculator progressive disclosure",
     date: "2026-06-24",
@@ -794,6 +822,29 @@ export const patchHistory: PatchHistoryEntry[] = [
     ],
     userImpact:
       "New users can get a recipe with less confusion, while experienced users still keep control over the full dough setup.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+  },
+  {
+    patch: 27,
+    title: "Security headers and launch safety baseline",
+    category: "SEO & launch safety",
+    summary:
+      "A security and launch-safety baseline was added before broader public launch work.",
+    highlights: [
+      "Security response headers reviewed",
+      "Safer baseline headers added",
+      "Pre-launch indexing protection preserved",
+      "Production verification checklist documented",
+      "No analytics, tracking or payment behavior added",
+    ],
+    details: [
+      "Patch 27 reviews DoughTools security headers and adds a conservative launch-safety baseline where safe.",
+      "The patch documents which headers are active, which choices were deferred, and what must be checked after deployment.",
+      "Google indexing remains disabled and no Search Console or analytics integrations were added.",
+    ],
+    userImpact:
+      "DoughTools gets a stronger technical safety baseline while the pizza workflow and calculations remain unchanged.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
   },
