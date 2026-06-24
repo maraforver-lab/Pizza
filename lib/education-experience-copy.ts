@@ -72,7 +72,7 @@ export const educationExperienceCopy: Record<ExperienceLevel, EducationExperienc
       ],
     },
   },
-  intermediate: {
+  enthusiast: {
     planner: {
       intro:
         "Use the schedule to balance room-temperature activity, cold time and final warm-up before baking.",
@@ -113,7 +113,7 @@ export const educationExperienceCopy: Record<ExperienceLevel, EducationExperienc
       ],
     },
   },
-  advanced: {
+  pizza_nerd: {
     planner: {
       intro:
         "Treat the planner as a fermentation model: time, dough temperature, flour tolerance and leavening activity interact.",
@@ -159,5 +159,5 @@ export const educationExperienceCopy: Record<ExperienceLevel, EducationExperienc
 };
 
 export function getEducationExperienceCopy(level: ExperienceLevel): EducationExperienceCopy {
-  return educationExperienceCopy[level] ?? educationExperienceCopy.intermediate;
+  return educationExperienceCopy[level] ?? educationExperienceCopy.beginner;
 }

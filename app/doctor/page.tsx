@@ -31,7 +31,7 @@ export default function DoctorPage() {
   const [settings, setSettings] = useState<RecipeSettings>(defaults);
   const [selected, setSelected] = useState<DoctorIssueId | null>(null);
   const [ready, setReady] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const t = copy.en;
   const levelCopy = getEducationExperienceCopy(experienceLevel).doctor;
   const flour = flourById(settings.flourId);

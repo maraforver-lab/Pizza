@@ -42,12 +42,6 @@ const fermentationOptions: { value: Fermentation; hours: number; temperature: nu
 
 const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"];
 
-const experienceBadgeClasses: Record<ExperienceLevel, string> = {
-  beginner: "bg-leaf/10 text-leaf ring-leaf/20",
-  intermediate: "bg-tomato/10 text-tomato ring-tomato/20",
-  advanced: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
-};
-
 const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentation) => {
   const hotOven = ovenTemperature >= 380;
   const scheduleOption = fermentationOptions.find((option) => option.value === schedule)!;
@@ -241,7 +235,7 @@ export default function Home() {
   const [recipeName, setRecipeName] = useState("");
   const [recipeNotice, setRecipeNotice] = useState("");
   const [urlReady, setUrlReady] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const t = copy.en;
   const levelCopy = getHomepageExperienceCopy(experienceLevel);
   const experienceConfig = getExperienceLevelConfig(experienceLevel);
@@ -527,9 +521,9 @@ export default function Home() {
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/55">{levelCopy.heroIntro}</p>
             <Link
               href="/account"
-              className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 transition hover:scale-[1.01] active:scale-[.98] ${experienceBadgeClasses[experienceLevel]}`}
+              className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 transition hover:scale-[1.01] active:scale-[.98] ${experienceConfig.badgeClassName}`}
             >
-              <span aria-hidden="true">{experienceConfig.emoji}</span>
+              <span aria-hidden="true">{experienceConfig.marker}</span>
               {experienceConfig.label} guidance
             </Link>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
@@ -556,7 +550,7 @@ export default function Home() {
             value={experienceLevel}
             onChange={setExperienceLevel}
             title="Choose how DoughTools should guide you"
-            intro="Pick the pizza-making level that feels like you today. Beginner explains more, Home Pizza Maker keeps practical detail visible and Advanced adds more technical context. The calculator, planner and help pages use the same local choice."
+            intro="Pick the pizza-making level that feels like you today. Beginner keeps the path simple, Enthusiast explains the why, and Pizza Nerd exposes deeper technical context. The calculator, planner and help pages use the same local choice."
             className="mb-7"
           />
         </div>

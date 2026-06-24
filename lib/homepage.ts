@@ -16,7 +16,7 @@ export const homepageContent = {
     secondaryCta: { label: "Choose your guidance level", href: "#experience-level" },
   },
   workflow: [
-    { title: "Choose your level", description: "Pick Beginner, Home Pizza Maker or Advanced so the guidance matches how much detail you want." },
+    { title: "Choose your level", description: "Pick Beginner, Enthusiast or Pizza Nerd so the guidance matches how much detail you want." },
     { title: "Calculate your dough", description: "Use baker’s percentages to portion flour, water, salt and leavening for the pizza you want." },
     { title: "Plan fermentation and baking", description: "Turn the recipe into clear mixing, resting, balling, warming and baking times." },
     { title: "Troubleshoot and improve", description: "Use Dough Doctor, saved bakes and notes to understand what to adjust next time." },
@@ -32,7 +32,7 @@ export const homepageContent = {
   trust: [
     "Works with electric ovens, baking steel and high-temperature gas pizza ovens.",
     "Uses transparent baker’s percentages instead of hidden recipe math.",
-    "Adapts guidance for Beginner, Home Pizza Maker and Advanced workflows.",
+    "Adapts guidance for Beginner, Enthusiast and Pizza Nerd workflows.",
     "Connects dough, fermentation, sauce, toppings, baking and learning.",
     "Saved recipes stay on this device unless you choose account features separately.",
     "Helps identify common dough and baking problems without promising perfection.",

@@ -60,7 +60,7 @@ Patch 16 adds a local-only experience-level preference with this dedicated `loca
 doughtools.experienceLevel
 ```
 
-Allowed values are `beginner`, `intermediate` and `advanced`. Missing, malformed or unknown values fall back to `intermediate` / Home Pizza Maker.
+Allowed canonical values are `beginner`, `enthusiast` and `pizza_nerd`. Legacy values are normalized safely: `intermediate` becomes `enthusiast`, and `advanced` becomes `pizza_nerd`. Missing, malformed or unknown values fall back to `beginner` / Beginner.
 
 This preference is browser-local for now. It is not synced to Supabase, does not require login, does not change calculations, and does not alter saved recipe, BakeResult or Journal storage. A future account-based profile could move this setting into a user profile after separate schema and privacy review.
 

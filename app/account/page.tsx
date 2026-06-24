@@ -24,24 +24,6 @@ const copy = {
     eyebrow: "User account", title: "Your place for pizza recipes.", intro: "In this first version you can create an account, sign in and sign out. Recipes are not connected to the account yet.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to calculator", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again.", privacy: "Your password is handled by Supabase and is not stored in DoughTools code." },
 } as const;
 
-const experienceLevelClasses: Record<ExperienceLevel, { badge: string; card: string; dot: string }> = {
-  beginner: {
-    badge: "bg-leaf/10 text-leaf ring-leaf/20",
-    card: "border-leaf/30 bg-leaf/[.06]",
-    dot: "bg-leaf",
-  },
-  intermediate: {
-    badge: "bg-tomato/10 text-tomato ring-tomato/20",
-    card: "border-tomato/30 bg-tomato/[.06]",
-    dot: "bg-tomato",
-  },
-  advanced: {
-    badge: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
-    card: "border-[#5d3025]/30 bg-[#5d3025]/[.06]",
-    dot: "bg-[#5d3025]",
-  },
-};
-
 export default function AccountPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -50,11 +32,10 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const t = copy.en;
   const selectedExperience = getExperienceLevelConfig(experienceLevel);
-  const selectedClasses = experienceLevelClasses[experienceLevel];
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -102,7 +83,7 @@ export default function AccountPage() {
         <p className="mt-5 border-t border-ink/10 pt-4 text-[10px] leading-4 text-ink/35">{t.privacy}</p>
       </section>
     </section>
-    <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${selectedClasses.card}`}>
+    <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${selectedExperience.cardClassName}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Experience level</p>
@@ -112,15 +93,14 @@ export default function AccountPage() {
             You can change it at any time.
           </p>
         </div>
-        <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${selectedClasses.badge}`}>
-          <span aria-hidden="true">{selectedExperience.emoji}</span>
+        <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${selectedExperience.badgeClassName}`}>
+          <span aria-hidden="true">{selectedExperience.marker}</span>
           {selectedExperience.label}
         </span>
       </div>
       <div className="mt-5 grid gap-3 md:grid-cols-3">
         {EXPERIENCE_LEVELS.map((level) => {
           const active = level.id === experienceLevel;
-          const classes = experienceLevelClasses[level.id];
           return (
             <button
               key={level.id}
@@ -128,11 +108,11 @@ export default function AccountPage() {
               onClick={() => selectExperienceLevel(level.id)}
               aria-pressed={active}
               className={`min-h-36 rounded-2xl border bg-white/75 p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                active ? `${classes.card} shadow-sm` : "border-ink/10 hover:border-tomato/30"
+                active ? `${level.cardClassName} shadow-sm` : "border-ink/10 hover:border-tomato/30"
               }`}
             >
-              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${active ? classes.badge : "bg-ink/[.06] text-ink/45"}`}>
-                <span className={`h-2.5 w-2.5 rounded-full ${classes.dot}`} aria-hidden="true" />
+              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${active ? level.badgeClassName : "bg-ink/[.06] text-ink/45"}`} aria-label={`${level.label} marker`}>
+                <span aria-hidden="true">{level.marker}</span>
               </span>
               <span className="mt-4 block text-base font-extrabold text-ink">{level.label}</span>
               <span className="mt-2 block text-sm leading-5 text-ink/55">{level.description}</span>

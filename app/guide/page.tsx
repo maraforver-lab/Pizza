@@ -146,7 +146,7 @@ const content = {
 
 export default function Guide() {
   const t = content.en;
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const levelCopy = getEducationExperienceCopy(experienceLevel).guide;
 
   useEffect(() => {
@@ -166,7 +166,7 @@ export default function Guide() {
             <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-[#e8c98a]">{t.eyebrow}</p>
             <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">{t.title}</h1>
             <p className="mt-4 max-w-lg text-sm leading-7 text-white/65 sm:text-base">{levelCopy.intro}</p>
-            <ExperienceLevelSelector value={experienceLevel} onChange={setExperienceLevel} compact title="Learning guidance mode" intro="Choose whether you want simple steps, practical control or deeper technical explanations." className="mt-6 text-ink" />
+            <ExperienceLevelSelector value={experienceLevel} onChange={setExperienceLevel} compact title="Learning guidance mode" intro="Choose whether you want simple steps, practical explanations or full Pizza Nerd technical detail." className="mt-6 text-ink" />
           </div>
         </section>
 

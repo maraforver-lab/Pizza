@@ -31,7 +31,7 @@ export const homepageExperienceCopy: Record<ExperienceLevel, HomepageExperienceC
     ],
     saveBakeHelp: "Save this bake so you can compare next time.",
   },
-  intermediate: {
+  enthusiast: {
     heroIntro:
       "Build a recipe from style, oven and schedule, then learn how hydration, fermentation, flour strength and saved bakes shape the result.",
     workflowHint:
@@ -50,7 +50,7 @@ export const homepageExperienceCopy: Record<ExperienceLevel, HomepageExperienceC
     ],
     saveBakeHelp: "Save this bake with the recipe snapshot for comparison.",
   },
-  advanced: {
+  pizza_nerd: {
     heroIntro:
       "Use baker’s percentages, recipe variables and methodology notes to optimize dough around flour strength, fermentation, oven heat and repeatable results.",
     workflowHint:
@@ -73,5 +73,5 @@ export const homepageExperienceCopy: Record<ExperienceLevel, HomepageExperienceC
 };
 
 export function getHomepageExperienceCopy(level: ExperienceLevel): HomepageExperienceCopy {
-  return homepageExperienceCopy[level] ?? homepageExperienceCopy.intermediate;
+  return homepageExperienceCopy[level] ?? homepageExperienceCopy.beginner;
 }

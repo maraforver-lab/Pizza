@@ -62,7 +62,7 @@ export default function PlanPage() {
   const [now, setNow] = useState(new Date(0));
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const t = copy.en;
   const levelCopy = getEducationExperienceCopy(experienceLevel).planner;
   const flour = flourById(settings.flourId);

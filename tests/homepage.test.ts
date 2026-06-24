@@ -47,15 +47,15 @@ describe("homepage content model", () => {
     expect(homepageContent.hero.intro).toContain("guidance level");
     expect(homepageContent.hero.intro).toContain("calculate dough");
     expect(homepageContent.hero.intro).toContain("plan fermentation");
-    expect(homepageContent.trust.join(" ")).toContain("Beginner, Home Pizza Maker and Advanced");
+    expect(homepageContent.trust.join(" ")).toContain("Beginner, Enthusiast and Pizza Nerd");
   });
 
   it("explains the three visible experience levels", () => {
     const workflowText = homepageContent.workflow.map((step) => `${step.title} ${step.description}`).join(" ");
 
     expect(workflowText).toContain("Beginner");
-    expect(workflowText).toContain("Home Pizza Maker");
-    expect(workflowText).toContain("Advanced");
+    expect(workflowText).toContain("Enthusiast");
+    expect(workflowText).toContain("Pizza Nerd");
   });
 
   it("uses valid existing routes for core workflow tools", () => {
@@ -98,22 +98,22 @@ describe("homepage content model", () => {
     for (const label of labels) expect(label).not.toMatch(forbidden);
   });
 
-  it("defaults homepage guidance to Home Pizza Maker copy", () => {
+  it("defaults homepage guidance to Beginner copy", () => {
     const defaultCopy = getHomepageExperienceCopy(getDefaultExperienceLevel());
 
-    expect(getDefaultExperienceLevel()).toBe("intermediate");
-    expect(defaultCopy.heroIntro).toContain("hydration");
+    expect(getDefaultExperienceLevel()).toBe("beginner");
+    expect(defaultCopy.heroIntro).toContain("suggested defaults");
     expect(defaultCopy.resultDetails).toHaveLength(2);
-    expect(defaultCopy.saveBakeHelp).toContain("recipe snapshot");
+    expect(defaultCopy.saveBakeHelp).toContain("compare next time");
   });
 
-  it("adds more technical result guidance for advanced users without changing tools", () => {
+  it("adds more technical result guidance for Pizza Nerd users without changing tools", () => {
     const beginner = getHomepageExperienceCopy("beginner");
-    const advanced = getHomepageExperienceCopy("advanced");
+    const pizzaNerd = getHomepageExperienceCopy("pizza_nerd");
 
-    expect(advanced.resultDetails.length).toBeGreaterThan(beginner.resultDetails.length);
-    expect(advanced.resultDetails.join(" ")).toContain("baker");
-    expect(advanced.resultNote).toContain("starter activity");
+    expect(pizzaNerd.resultDetails.length).toBeGreaterThan(beginner.resultDetails.length);
+    expect(pizzaNerd.resultDetails.join(" ")).toContain("baker");
+    expect(pizzaNerd.resultNote).toContain("starter activity");
   });
 
   it("keeps experience-level homepage copy English and free of unavailable feature claims", () => {

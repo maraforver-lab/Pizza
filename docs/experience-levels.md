@@ -4,28 +4,36 @@ DoughTools adapts how much guidance, explanation and technical detail it shows b
 
 This is not a premium feature, an account role or a separate version of the site. The same DoughTools product serves every level, and users can change the level whenever they want.
 
-## Levels
+## Canonical levels
 
-| Internal value | User-facing label | Description |
+| Canonical value | User-facing label | Description |
 | --- | --- | --- |
-| `beginner` | Beginner | I want clear step-by-step help. |
-| `intermediate` | Home Pizza Maker | I already make pizza and want better control. |
-| `advanced` | Advanced | I want deeper technical guidance. |
+| `beginner` | Beginner | I’m new to pizza-making and want a clear path. |
+| `enthusiast` | Enthusiast | I know the basics and want better control. |
+| `pizza_nerd` | Pizza Nerd | I want all the variables and technical details. |
 
 The safe default level is:
 
 ```text
-intermediate
+beginner
 ```
 
-This means DoughTools falls back to Home Pizza Maker when no level has been selected, localStorage is empty, localStorage contains an invalid value, or a server-rendered fallback is needed before hydration.
+This means DoughTools falls back to Beginner when no level has been selected, localStorage is empty, localStorage contains an invalid value, or a server-rendered fallback is needed before hydration.
 
 ## Local-only preference
 
-Patch 19 stores the selected level locally in the browser with this key:
+The selected level is stored locally in the browser with this existing key:
 
 ```text
 doughtools.experienceLevel
+```
+
+Patch 21 keeps the same storage key for compatibility and migrates older values safely:
+
+```text
+beginner -> beginner
+intermediate -> enthusiast
+advanced -> pizza_nerd
 ```
 
 The preference is safe for server rendering: helper functions do not require `window` to exist and do not crash when localStorage is unavailable.
@@ -40,55 +48,87 @@ A later authenticated-profile version may sync this value to a user profile fiel
 experience_level
 ```
 
-Allowed values should be:
+Allowed future profile values should be:
 
 ```text
 beginner
-intermediate
-advanced
+enthusiast
+pizza_nerd
 ```
 
 Account-based persistence is not included yet because it requires profile schema decisions, migration handling and account-data behavior that should be reviewed separately.
 
-## What the patches implement
+## Depth contract
 
-Patch 16 created the foundation:
+### Beginner
 
-- `lib/experience-levels.ts`
-- localStorage helpers
-- Account page selector
-- local badge/accent treatment
-- helper functions for future content complexity decisions
-- tests for normalization, storage behavior and helper logic
+- show essentials first
+- use safe defaults
+- avoid jargon overload
+- give the next action clearly
+- allow deeper detail to be opened later
+- do not remove access to advanced tools
+
+Beginner guidance should feel clear, calm, practical and reassuring.
+
+### Enthusiast
+
+- show Beginner content plus practical explanations
+- explain cause and effect
+- include hydration, fermentation, flour, timing and oven behavior where relevant
+- help the user adjust with confidence
+
+Enthusiast guidance should be practical, curious and cause-and-effect oriented.
+
+### Pizza Nerd
+
+- show all available variables and technical detail
+- include assumptions, constraints and tradeoffs
+- include baker’s percentages and formula notes where relevant
+- avoid unnecessary simplification
+
+Pizza Nerd guidance should be precise, technical and transparent without turning the interface into a warning state.
+
+## Visual identity rules
+
+Experience levels should use subtle visual differences only:
+
+- selected card border
+- selected state background
+- badge marker
+- small accent
+- short text label
+
+Level identity must not rely on color alone. Every selector, badge or status should include visible text such as `Beginner`, `Enthusiast` or `Pizza Nerd`.
+
+Recommended visual language:
+
+| Level | Accent | Marker strategy | Tone |
+| --- | --- | --- | --- |
+| Beginner | Green | Green status marker or sprout-like marker | Simple and approachable |
+| Enthusiast | Orange | Orange heat or activity marker | Warm and practical |
+| Pizza Nerd | Dark red | Technical/lab marker that does not look like an error | Precise and transparent |
+
+Do not add a new icon package for this system. Use the shared metadata in `lib/experience-levels.ts` so future pages do not duplicate labels, accents or marker decisions.
+
+## Patch history
+
+Patch 16 created the original experience-level foundation.
 
 Patch 17 applied the selected level to the homepage and calculator guidance copy.
 
 Patch 18 applied the selected level to Planner, Guide and Dough Doctor guidance copy.
 
-Patch 19 adds a reusable visible selector and places it on:
+Patch 19 added a reusable visible selector and placed it on:
 
 - Homepage
 - Planner
 - Guide/Help
 - Dough Doctor
 
-Patch 19 also synchronizes the update history so recent production patches are visible.
+Patch 20 refined the homepage onboarding around the level-aware workflow.
 
-Patch 20 refines the homepage onboarding around the same model:
-
-- the hero copy explains that DoughTools adapts guidance to the selected level
-- the first workflow now starts with choosing a level
-- the main CTA path connects level choice, dough calculation, planning and troubleshooting
-
-Patch 20 does not change the level values, persistence key or behavior rules.
-
-## Copy behavior by level
-
-- Beginner copy focuses on the next practical action and avoids unnecessary variables.
-- Home Pizza Maker copy adds learning context around hydration, flour, fermentation, dough handling and saved observations.
-- Advanced copy adds deeper technical notes about dough temperature, yeast or starter activity, baker’s percentages, gluten development and process assumptions.
-
-The level affects explanation and emphasis. It does not change recipe calculations, planner timing logic, Dough Doctor diagnostic logic, saved recipes, Journal data, BakeResult storage, routes, navigation or tool availability.
+Patch 21 aligns the system around the canonical Beginner, Enthusiast and Pizza Nerd model, including metadata, migration behavior, visual language and this depth contract.
 
 ## Rules for future patches
 
@@ -96,6 +136,7 @@ The level affects explanation and emphasis. It does not change recipe calculatio
 - Do not change main navigation by experience level.
 - Do not hide whole tools.
 - Beginner should simplify visible detail, not remove capability.
-- Home Pizza Maker should show beginner guidance plus practical learning context.
-- Advanced should show all relevant technical detail.
+- Enthusiast should show Beginner guidance plus practical learning context.
+- Pizza Nerd should show all relevant technical detail.
 - Users can always change the level.
+- Future features should follow the depth contract above.

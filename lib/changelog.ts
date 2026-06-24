@@ -39,6 +39,33 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "experience-level-system-alignment-2026-06-24",
+    title: "Experience level system alignment",
+    date: "2026-06-24",
+    summary:
+      "The guidance levels were aligned into a clearer Beginner, Enthusiast and Pizza Nerd system.",
+    category: "Personalization",
+    highlights: [
+      "Beginner, Enthusiast and Pizza Nerd level model",
+      "Safer migration from older level values",
+      "Clearer badges, accents and level descriptions",
+      "Documentation for how each depth mode should behave",
+    ],
+    details: [
+      "Patch 21 standardizes the experience-level names, internal values, visual markers and guidance principles.",
+      "Existing browser-stored values from the earlier selector are migrated safely.",
+      "The system now defines how DoughTools should simplify, explain or expose detail across future tools.",
+    ],
+    userImpact:
+      "Users get a clearer choice between a simple path, practical control and full technical depth.",
+    technicalNote:
+      "This patch did not change dough formulas, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
+    isPublic: true,
+    patchNumbers: [21],
+    relatedPatchNumbers: [16, 17, 18, 19, 20, 21],
+    href: "/updates",
+  },
+  {
     id: "homepage-onboarding-refinement-2026-06-24",
     title: "Homepage onboarding refinement",
     date: "2026-06-24",
@@ -490,6 +517,26 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Mobile-first scanning was improved without changing the core tools.",
     ],
     userImpact: "New visitors can understand faster how to start and why choosing a guidance level helps.",
+    technicalNote:
+      "This patch did not change dough formulas, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
+  },
+  {
+    patch: 21,
+    title: "Experience level system alignment",
+    category: "Personalization",
+    summary: "The guidance levels were aligned into a clearer Beginner, Enthusiast and Pizza Nerd system.",
+    highlights: [
+      "Beginner, Enthusiast and Pizza Nerd level model",
+      "Safer migration from older level values",
+      "Clearer badges, accents and level descriptions",
+      "Documentation for how each depth mode should behave",
+    ],
+    details: [
+      "Patch 21 standardizes the experience-level names, internal values, visual markers and guidance principles.",
+      "Existing browser-stored values from the earlier selector are migrated safely.",
+      "The system now defines how DoughTools should simplify, explain or expose detail across future tools.",
+    ],
+    userImpact: "Users get a clearer choice between a simple path, practical control and full technical depth.",
     technicalNote:
       "This patch did not change dough formulas, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
   },
