@@ -39,6 +39,33 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "beginner-start-here-path-2026-06-24",
+    title: "Beginner Start Here pizza path",
+    date: "2026-06-24",
+    summary:
+      "A new Start Here path helps beginners choose a simple first pizza workflow before adjusting detailed settings.",
+    category: "Product",
+    highlights: [
+      "New Start Here entry point",
+      "Home oven, pizza oven and pan / tray pizza starter paths",
+      "Clearer beginner-first flow into the calculator and planner",
+      "Level-aware explanations for Beginner, Enthusiast and Pizza Nerd users",
+    ],
+    details: [
+      "Patch 22 adds a simple front door for users who want to make pizza without choosing every technical parameter first.",
+      "Each starter path explains what it is best for, why it works, what not to worry about yet and what to do next.",
+      "The page connects the simpler starting path back into the existing DoughTools calculator, Planner and Dough Doctor workflow.",
+    ],
+    userImpact:
+      "New users can start with a practical pizza goal instead of beginning with every calculator setting.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
+    isPublic: true,
+    patchNumbers: [22],
+    relatedPatchNumbers: [20, 21, 22],
+    href: "/updates",
+  },
+  {
     id: "experience-level-system-alignment-2026-06-24",
     title: "Experience level system alignment",
     date: "2026-06-24",
@@ -539,6 +566,28 @@ export const patchHistory: PatchHistoryEntry[] = [
     userImpact: "Users get a clearer choice between a simple path, practical control and full technical depth.",
     technicalNote:
       "This patch did not change dough formulas, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
+  },
+  {
+    patch: 22,
+    title: "Beginner Start Here pizza path",
+    category: "Product",
+    summary:
+      "A new Start Here path helps beginners choose a simple first pizza workflow before adjusting detailed settings.",
+    highlights: [
+      "New Start Here entry point",
+      "Home oven, pizza oven and pan / tray pizza starter paths",
+      "Clearer beginner-first flow into the calculator and planner",
+      "Level-aware explanations for Beginner, Enthusiast and Pizza Nerd users",
+    ],
+    details: [
+      "Patch 22 adds a simple front door for users who want to make pizza without choosing every technical parameter first.",
+      "Each starter path explains what it is best for, why it works, what not to worry about yet and what to do next.",
+      "The page connects the simpler starting path back into the existing DoughTools calculator, Planner and Dough Doctor workflow.",
+    ],
+    userImpact:
+      "New users can start with a practical pizza goal instead of beginning with every calculator setting.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
   },
 ];
 

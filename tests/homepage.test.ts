@@ -5,6 +5,7 @@ import { getHomepageExperienceCopy, homepageExperienceCopy } from "@/lib/homepag
 
 const existingRoutes = new Set([
   "/",
+  "/start",
   "/plan",
   "/sauce",
   "/toppings",
@@ -31,6 +32,12 @@ describe("homepage content model", () => {
 
   it("keeps the secondary CTA on the experience-level anchor", () => {
     expect(homepageContent.hero.secondaryCta).toEqual({ label: "Choose your guidance level", href: "#experience-level" });
+  });
+
+  it("adds a Start Here entry point without replacing the calculator CTA", () => {
+    expect(homepageContent.hero.startHereCta).toEqual({ label: "Start with a simple pizza path", href: "/start" });
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Calculate your dough", href: "#top" });
+    expect(homepageContent.coreTools.some((tool) => tool.href === "/start" && tool.name === "Start Here")).toBe(true);
   });
 
   it("contains the required four-step workflow", () => {
@@ -89,6 +96,7 @@ describe("homepage content model", () => {
       homepageContent.hero.intro,
       homepageContent.hero.primaryCta.label,
       homepageContent.hero.secondaryCta.label,
+      homepageContent.hero.startHereCta.label,
       ...homepageContent.workflow.flatMap((step) => [step.title, step.description]),
       ...homepageContent.coreTools.flatMap((tool) => [tool.name, tool.description, tool.action]),
       ...homepageContent.trust,

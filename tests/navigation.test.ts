@@ -10,6 +10,7 @@ import {
 
 const requiredRoutes = [
   "/",
+  "/start",
   "/plan",
   "/sauce",
   "/toppings",

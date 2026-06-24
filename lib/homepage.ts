@@ -14,6 +14,7 @@ export const homepageContent = {
       "DoughTools helps you choose your guidance level, calculate dough, plan fermentation and understand the next practical step.",
     primaryCta: { label: "Calculate your dough", href: "#top" },
     secondaryCta: { label: "Choose your guidance level", href: "#experience-level" },
+    startHereCta: { label: "Start with a simple pizza path", href: "/start" },
   },
   workflow: [
     { title: "Choose your level", description: "Pick Beginner, Enthusiast or Pizza Nerd so the guidance matches how much detail you want." },
@@ -22,6 +23,7 @@ export const homepageContent = {
     { title: "Troubleshoot and improve", description: "Use Dough Doctor, saved bakes and notes to understand what to adjust next time." },
   ],
   coreTools: [
+    { name: "Start Here", description: "Choose a beginner-safe path before adjusting detailed settings.", href: "/start", action: "Choose a path" },
     { name: "Dough Calculator", description: "Build the dough recipe and ingredient weights.", href: "#top", action: "Start here" },
     { name: "Fermentation Planner", description: "Create the timeline for mixing, resting, balling and baking.", href: "/plan", action: "Plan the dough", preserveRecipe: true },
     { name: "Sauce Calculator", description: "Match tomato sauce quantity and moisture to the pizza count.", href: "/sauce", action: "Calculate sauce", preserveRecipe: true },

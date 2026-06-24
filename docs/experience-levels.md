@@ -130,6 +130,8 @@ Patch 20 refined the homepage onboarding around the level-aware workflow.
 
 Patch 21 aligns the system around the canonical Beginner, Enthusiast and Pizza Nerd model, including metadata, migration behavior, visual language and this depth contract.
 
+Patch 22 adds `/start` as the main beginner-friendly entry layer. Start Here uses the same depth contract: Beginner users get a simple first path, Enthusiast users get practical why-notes, and Pizza Nerd users get deeper assumptions, constraints and tradeoffs.
+
 ## Rules for future patches
 
 - Do not remove features by experience level.

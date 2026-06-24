@@ -25,6 +25,7 @@ import {
 
 const requiredPublicRoutes = [
   "/",
+  "/start",
   "/about",
   "/contact",
   "/privacy",

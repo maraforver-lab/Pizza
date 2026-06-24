@@ -530,6 +530,14 @@ export default function Home() {
               <a href={homepageContent.hero.primaryCta.href} className="rounded-2xl bg-tomato px-5 py-4 text-center text-sm font-extrabold text-white shadow-lg shadow-tomato/15 transition active:scale-[.98]">{homepageContent.hero.primaryCta.label}</a>
               <Link href={homepageContent.hero.secondaryCta.href} className="rounded-2xl border border-ink/10 bg-white px-5 py-4 text-center text-sm font-extrabold text-ink transition hover:border-ink/25 active:scale-[.98]">{homepageContent.hero.secondaryCta.label}</Link>
             </div>
+            <Link href={homepageContent.hero.startHereCta.href} className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-leaf/20 bg-leaf/[.08] p-4 text-left transition hover:border-leaf/35 hover:bg-leaf/[.12] active:scale-[.99]">
+              <span>
+                <span className="block text-xs font-extrabold uppercase tracking-[.18em] text-leaf">New to DoughTools?</span>
+                <span className="mt-1 block text-sm font-extrabold text-ink">{homepageContent.hero.startHereCta.label}</span>
+                <span className="mt-1 block text-xs leading-5 text-ink/55">Pick home oven, pizza oven or pan pizza first. You do not need to tune every setting yet.</span>
+              </span>
+              <span className="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-extrabold text-leaf">Start →</span>
+            </Link>
           </div>
           <div className="rounded-[1.5rem] bg-ink p-5 text-white">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-white/40">DoughTools workflow</p>
