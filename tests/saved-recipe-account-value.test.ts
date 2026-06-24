@@ -30,6 +30,37 @@ describe("saved recipe account value UX", () => {
     expect(loadSavedRecipes()).toEqual([savedRecipe]);
   });
 
+  it("persists saved recipe deletion after a localStorage reread", () => {
+    Object.defineProperty(globalThis, "window", {
+      value: { localStorage: new MemoryStorage() },
+      configurable: true,
+    });
+
+    const keepRecipe: SavedRecipe = {
+      id: "recipe-to-keep",
+      name: "Keep this recipe",
+      createdAt: "2026-06-25T00:00:00.000Z",
+      settings: baseSettings,
+      ingredients: calculateDoughIngredients(baseSettings),
+    };
+    const deleteRecipe: SavedRecipe = {
+      ...keepRecipe,
+      id: "recipe-to-delete",
+      name: "Delete this recipe",
+    };
+
+    storeSavedRecipes([deleteRecipe, keepRecipe]);
+    const afterDelete = loadSavedRecipes().filter((recipe) => recipe.id !== deleteRecipe.id);
+    storeSavedRecipes(afterDelete);
+
+    const reread = loadSavedRecipes();
+    const rawStorage = window.localStorage.getItem("doughtools-saved-recipes-v1");
+
+    expect(reread).toEqual([keepRecipe]);
+    expect(reread.some((recipe) => recipe.id === deleteRecipe.id)).toBe(false);
+    expect(rawStorage).not.toContain(deleteRecipe.id);
+  });
+
   it("uses existing recipe query helpers for saved recipe workflow actions", () => {
     const query = recipeParams(baseSettings).toString();
 
