@@ -51,8 +51,7 @@ describe("performance and rendering baseline", () => {
   it("keeps Patch 25 in the public update history with safe user-facing copy", () => {
     const patch25 = patchHistory.find((entry) => entry.patch === 25);
 
-    expect(latestPublicUpdate?.title).toBe("Performance and rendering baseline");
-    expect(latestPublicUpdate?.patchNumbers).toEqual([25]);
+    expect(latestPublicUpdate?.patchNumbers).toContain(26);
     expect(patch25).toBeDefined();
     expect(patch25?.summary).toContain("performance baseline");
     expect(patch25?.highlights.join(" ")).toContain("Google indexing remains disabled");

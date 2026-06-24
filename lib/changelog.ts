@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "calculator-progressive-disclosure-2026-06-24",
+    title: "Calculator progressive disclosure",
+    date: "2026-06-24",
+    summary:
+      "The calculator now adapts its control depth more clearly for Beginner, Enthusiast and Pizza Nerd users.",
+    category: "Personalization",
+    highlights: [
+      "Beginner users see a simpler calculator path first",
+      "Advanced settings are still available without overwhelming the first view",
+      "Enthusiast users get more practical explanation",
+      "Pizza Nerd users keep access to full technical depth",
+      "Recipe result next steps are clearer",
+    ],
+    details: [
+      "Patch 26 organizes calculator controls and guidance around the existing experience-level system.",
+      "Beginner mode focuses on essential choices and a clearer next step after calculation.",
+      "Enthusiast and Pizza Nerd modes preserve deeper settings, explanations and technical detail.",
+      "Existing formulas, recipe math, query links and saved recipe behavior remain unchanged.",
+    ],
+    userImpact:
+      "New users can get a recipe with less confusion, while experienced users still keep control over the full dough setup.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [26],
+    relatedPatchNumbers: [21, 22, 24, 25, 26],
+    href: "/updates",
+  },
+  {
     id: "performance-rendering-baseline-2026-06-24",
     title: "Performance and rendering baseline",
     date: "2026-06-24",
@@ -741,6 +770,30 @@ export const patchHistory: PatchHistoryEntry[] = [
     ],
     userImpact:
       "The app has a clearer technical quality baseline, helping future improvements focus on the parts of the workflow that matter most.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
+  },
+  {
+    patch: 26,
+    title: "Calculator progressive disclosure",
+    category: "Personalization",
+    summary:
+      "The calculator now adapts its control depth more clearly for Beginner, Enthusiast and Pizza Nerd users.",
+    highlights: [
+      "Beginner users see a simpler calculator path first",
+      "Advanced settings are still available without overwhelming the first view",
+      "Enthusiast users get more practical explanation",
+      "Pizza Nerd users keep access to full technical depth",
+      "Recipe result next steps are clearer",
+    ],
+    details: [
+      "Patch 26 organizes calculator controls and guidance around the existing experience-level system.",
+      "Beginner mode focuses on essential choices and a clearer next step after calculation.",
+      "Enthusiast and Pizza Nerd modes preserve deeper settings, explanations and technical detail.",
+      "Existing formulas, recipe math, query links and saved recipe behavior remain unchanged.",
+    ],
+    userImpact:
+      "New users can get a recipe with less confusion, while experienced users still keep control over the full dough setup.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments or SEO indexing permissions.",
   },

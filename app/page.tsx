@@ -20,6 +20,11 @@ import { recipeParams, recipeUrl, settingsFromUrl } from "@/lib/recipe-url";
 import { flourById, flourProfiles, type FlourId } from "@/lib/flours";
 import { bakeFor } from "@/lib/baking";
 import {
+  calculatorControlGroups,
+  getCalculatorDisclosureMode,
+  hasAdvancedCalculatorValues,
+} from "@/lib/calculator-progressive-disclosure";
+import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
   type ExperienceLevel,
@@ -243,9 +248,16 @@ export default function Home() {
   const activeBake = bakeFor(goal, ovenType);
   const ovenTemperature = activeBake.temperature;
   const activePreset = presetFor(goal, ovenTemperature, fermentation);
+  const disclosure = getCalculatorDisclosureMode(experienceLevel);
+  const advancedOpen = disclosure.showAdvancedByDefault || showAdvanced;
+  const recommendedOpen = disclosure.showRecommendedByDefault || advancedOpen;
   const activeFlour = flourById(flourId);
   const activePizzaStyle = pizzaStyleById(pizzaStyleId, goal);
   const activePizzaName = activePizzaStyle.nameEn;
+  const hasActiveAdvancedValues = hasAdvancedCalculatorValues(
+    { ballWeight, waste, hydration, salt, yeastType, temperature, flourId },
+    activePreset,
+  );
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -339,6 +351,9 @@ export default function Home() {
   const toolHref = (tool: HomepageTool) => tool.preserveRecipe ? `${tool.href}?${recipeQuery}` : tool.href;
   const planHref = `/plan?${recipeQuery}`;
   const doctorHref = `/doctor?${recipeQuery}`;
+  const sauceHref = `/sauce?${recipeQuery}`;
+  const toppingsHref = `/toppings?${recipeQuery}`;
+  const timerHref = `/timer?${recipeQuery}`;
   const stylesHref = "/styles";
   const journalHref = `/journal?${recipeQuery}`;
 
@@ -490,7 +505,7 @@ export default function Home() {
             <Link href="/history" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">Pizza history</Link>
             <Link href="/ovens" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink lg:block">Oven guide</Link>
             <Link href="/gear" className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Gear</Link>
-            <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Sauce</Link>
+            <Link href={sauceHref} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Sauce</Link>
             <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Costs</Link>
             <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full bg-tomato px-3 py-2 text-xs font-bold text-white transition hover:bg-tomato/90 xl:block">Pizza Coach</Link>
             <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="hidden rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink xl:block">Community</Link>
@@ -507,7 +522,7 @@ export default function Home() {
           <Link href="/history" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Pizza history</Link>
           <Link href="/ovens" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Oven guide</Link>
           <Link href="/gear" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Gear</Link>
-          <Link href={`/sauce?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Sauce</Link>
+          <Link href={sauceHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Sauce</Link>
           <Link href={`/costs?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Costs</Link>
           <Link href={`/coach?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full bg-tomato px-4 py-2 text-xs font-bold text-white">Pizza Coach</Link>
           <Link href={`/community?${recipeParams(currentSettings).toString()}`} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Community</Link>
@@ -585,7 +600,19 @@ export default function Home() {
         <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">
           <section id="top" tabIndex={-1} className="scroll-mt-24 min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur outline-none sm:p-7" aria-labelledby="recipe-settings">
             <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
-            <p className="mb-5 text-sm leading-6 text-ink/55">{levelCopy.quickIntro}</p>
+            <p className="text-sm leading-6 text-ink/55">{levelCopy.quickIntro}</p>
+            <div className={`my-5 rounded-2xl border p-4 ${experienceConfig.cardClassName}`}>
+              <p className="text-xs font-extrabold uppercase tracking-[.16em]">{disclosure.statusLabel}</p>
+              <p className="mt-2 text-sm leading-6 text-ink/60">{disclosure.intro}</p>
+              <div className="mt-3 grid gap-2 text-xs leading-5 text-ink/55 sm:grid-cols-3">
+                {calculatorControlGroups.map((group) => (
+                  <div key={group.id} className="rounded-xl bg-white/65 p-3">
+                    <strong className="block text-ink">{group.title}</strong>
+                    <span className="mt-1 block">{group.fields.slice(0, 3).join(" · ")}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               {(["balanced", "airy", "crispy", "pan"] as PizzaGoal[]).map((option) => (
                 <button key={option} type="button" onClick={() => applyPreset(option)} aria-pressed={goal === option} className={`min-h-20 rounded-2xl border p-3 text-left transition ${goal === option ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : "border-ink/10 bg-white hover:border-ink/25"}`}>
@@ -616,33 +643,64 @@ export default function Home() {
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.mediumSize}</span><strong className="mt-1 block text-sm">{activePreset.diameter}</strong></div>
               <div><span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{t.fermentation}</span><strong className="mt-1 block text-sm">{t.ferment[fermentation][0]}</strong></div>
             </div>
-            <div className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
-              <label htmlFor="flour-profile" className="block text-sm font-extrabold">{t.flourChoice}</label>
-              <p className="mt-1 text-[11px] leading-4 text-ink/45">{levelCopy.flourIntro}</p>
-              <select id="flour-profile" value={flourId} onChange={(event) => setFlourId(event.target.value as FlourId)} className="mt-3 h-12 w-full rounded-xl border border-ink/10 bg-cream px-3 text-sm font-bold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
-                {flourProfiles.map((flour) => <option key={flour.id} value={flour.id}>{flour.brand} {flour.name} · {flour.strength}</option>)}
-              </select>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.flourStrength}</span><strong className="mt-1 block text-xs">{activeFlour.strength}</strong></div>
-                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.protein}</span><strong className="mt-1 block text-xs">{activeFlour.protein}</strong></div>
-                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.suggestedHydration}</span><strong className="mt-1 block text-xs">{activeFlour.hydration[0]}–{activeFlour.hydration[1]} %</strong></div>
-                <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.suggestedTime}</span><strong className="mt-1 block text-xs">{activeFlour.fermentationHours[0]}–{activeFlour.fermentationHours[1]} h</strong></div>
-              </div>
-              <p className="mt-3 text-[11px] text-ink/55"><strong>{t.bestFor}:</strong> {activeFlour.styles.map((style) => t.goals[style][0]).join(" · ")}</p>
-              {activeFlour.approximate && <p className="mt-2 rounded-lg bg-tomato/[.07] px-2.5 py-2 text-[10px] leading-4 text-tomato">{t.estimatedData}</p>}
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <button type="button" onClick={applyFlourSuggestion} className="rounded-xl bg-leaf px-4 py-2.5 text-xs font-extrabold text-white transition active:scale-[.98]">{t.applyFlour}</button>
-                <a href={activeFlour.source} target="_blank" rel="noreferrer" className="rounded-xl border border-ink/10 px-4 py-2.5 text-center text-xs font-bold text-ink/55">{t.makerInfo} ↗</a>
-              </div>
-            </div>
-            <div className="mt-3 rounded-2xl bg-ink p-4 text-white">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><strong className="text-sm">{t.bakeGuide}</strong><div className="flex gap-4 text-left sm:text-right"><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTemperature}</small><b className="text-sm">{activeBake.temperature}°C</b></span><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTime}</small><b className="text-sm">{activeBake.time}</b></span></div></div>
-              <p className="mt-2 border-t border-white/10 pt-2 text-[11px] leading-5 text-white/45">{ovenType === "home" ? t.homePreheat : t.gasPreheat}{goal === "pan" && ovenType === "gas" ? ` ${t.panGasNote}` : ""}</p>
-            </div>
-            <button type="button" onClick={() => setShowAdvanced((current) => !current)} aria-expanded={showAdvanced} className="mt-5 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink">{showAdvanced ? t.hideTune : t.tune} <span aria-hidden="true">{showAdvanced ? "↑" : "↓"}</span></button>
+            {recommendedOpen && (
+              <section className="mt-5 rounded-2xl border border-ink/10 bg-white p-4" aria-labelledby="recommended-settings">
+                <div className="mb-4">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Recommended settings</p>
+                  <h3 id="recommended-settings" className="mt-1 text-sm font-extrabold">{t.flourChoice}</h3>
+                  <p className="mt-1 text-[11px] leading-4 text-ink/45">{levelCopy.flourIntro}</p>
+                </div>
+                <select id="flour-profile" aria-label={t.flourChoice} value={flourId} onChange={(event) => setFlourId(event.target.value as FlourId)} className="h-12 w-full rounded-xl border border-ink/10 bg-cream px-3 text-sm font-bold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
+                  {flourProfiles.map((flour) => <option key={flour.id} value={flour.id}>{flour.brand} {flour.name} · {flour.strength}</option>)}
+                </select>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.flourStrength}</span><strong className="mt-1 block text-xs">{activeFlour.strength}</strong></div>
+                  <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.protein}</span><strong className="mt-1 block text-xs">{activeFlour.protein}</strong></div>
+                  <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.suggestedHydration}</span><strong className="mt-1 block text-xs">{activeFlour.hydration[0]}–{activeFlour.hydration[1]} %</strong></div>
+                  <div className="rounded-xl bg-ink/[.04] p-2.5"><span className="block text-[9px] font-bold uppercase tracking-wide text-ink/40">{t.suggestedTime}</span><strong className="mt-1 block text-xs">{activeFlour.fermentationHours[0]}–{activeFlour.fermentationHours[1]} h</strong></div>
+                </div>
+                <p className="mt-3 text-[11px] text-ink/55"><strong>{t.bestFor}:</strong> {activeFlour.styles.map((style) => t.goals[style][0]).join(" · ")}</p>
+                {activeFlour.approximate && <p className="mt-2 rounded-lg bg-tomato/[.07] px-2.5 py-2 text-[10px] leading-4 text-tomato">{t.estimatedData}</p>}
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <button type="button" onClick={applyFlourSuggestion} className="rounded-xl bg-leaf px-4 py-2.5 text-xs font-extrabold text-white transition active:scale-[.98]">{t.applyFlour}</button>
+                  <a href={activeFlour.source} target="_blank" rel="noreferrer" className="rounded-xl border border-ink/10 px-4 py-2.5 text-center text-xs font-bold text-ink/55">{t.makerInfo} ↗</a>
+                </div>
+                <div className="mt-4 rounded-2xl bg-ink p-4 text-white">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><strong className="text-sm">{t.bakeGuide}</strong><div className="flex gap-4 text-left sm:text-right"><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTemperature}</small><b className="text-sm">{activeBake.temperature}°C</b></span><span><small className="block text-[9px] font-bold uppercase tracking-wide text-white/40">{t.bakeTime}</small><b className="text-sm">{activeBake.time}</b></span></div></div>
+                  <p className="mt-2 border-t border-white/10 pt-2 text-[11px] leading-5 text-white/45">{ovenType === "home" ? t.homePreheat : t.gasPreheat}{goal === "pan" && ovenType === "gas" ? ` ${t.panGasNote}` : ""}</p>
+                </div>
+              </section>
+            )}
+            {experienceLevel !== "pizza_nerd" && (
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((current) => !current)}
+                aria-expanded={advancedOpen}
+                aria-controls="advanced-calculator-settings"
+                className="mt-5 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              >
+                {advancedOpen ? "Hide more settings" : disclosure.disclosureLabel} <span aria-hidden="true">{advancedOpen ? "↑" : "↓"}</span>
+                <span className="mt-1 block text-xs font-medium text-ink/45">{advancedOpen ? disclosure.expandedHelp : disclosure.collapsedHelp}</span>
+                {!advancedOpen && hasActiveAdvancedValues && <span className="mt-1 block text-xs font-extrabold text-tomato">More settings are active in this recipe link.</span>}
+              </button>
+            )}
 
-            {showAdvanced && <div className="mt-7 border-t border-ink/10 pt-7">
+            {advancedOpen && <div id="advanced-calculator-settings" className="mt-7 border-t border-ink/10 pt-7">
             <div className="mb-6 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">2</span><h2 className="font-display text-2xl font-semibold">{t.build}</h2></div>
+            <div className="mb-5 rounded-2xl bg-ink/[.04] p-4">
+              <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">{calculatorControlGroups[2].title}</p>
+              <p className="mt-1 text-sm leading-6 text-ink/55">{calculatorControlGroups[2].description}</p>
+              {disclosure.technicalNotes.length > 0 && (
+                <ul className="mt-3 grid gap-2 text-xs leading-5 text-ink/55">
+                  {disclosure.technicalNotes.map((note) => (
+                    <li key={note} className="flex gap-2">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" />
+                      <span>{note}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <NumberField id="ball-weight" label={t.ballWeight} value={ballWeight} min={100} max={1000} step={5} suffix="g" stepper onChange={setBallWeight} />
               <NumberField id="hydration" label={t.hydration} value={hydration} min={40} max={100} step={0.5} suffix="%" stepper onChange={setHydration} />
@@ -701,6 +759,7 @@ export default function Home() {
               </div>
               <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.04] p-4">
                 <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/40">{experienceConfig.label} guidance</p>
+                <h3 className="mt-2 text-sm font-extrabold text-white">{disclosure.resultHeading}</h3>
                 <ul className="mt-3 grid gap-2 text-xs leading-5 text-white/60">
                   {levelCopy.resultDetails.map((detail) => (
                     <li key={detail} className="flex gap-2">
@@ -709,6 +768,24 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-4 rounded-xl bg-white/[.06] p-3">
+                  <p className="text-xs font-bold leading-5 text-white/75">{disclosure.nextStep}</p>
+                  <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-white/55">
+                    {disclosure.causeAndEffect.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#e8c98a]" aria-hidden="true" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <Link href={planHref} className="rounded-xl bg-white px-3 py-3 text-center text-xs font-extrabold text-ink">Plan next →</Link>
+                  <Link href={doctorHref} className="rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Dough Doctor →</Link>
+                  <Link href={sauceHref} className="rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Sauce →</Link>
+                  <Link href={toppingsHref} className="rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Toppings →</Link>
+                  <Link href={timerHref} className="col-span-2 rounded-xl border border-white/15 px-3 py-3 text-center text-xs font-bold text-white/70">Timer →</Link>
+                </div>
               </div>
               <div className="mt-6 overflow-hidden rounded-2xl bg-cream text-ink">
                 <div className="grid min-h-40 grid-cols-[42%_58%] overflow-hidden">
