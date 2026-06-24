@@ -4,9 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
+import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
 import { diagnoseDough, doctorIssues, issueCopy, type DoctorIssueId } from "@/lib/dough-doctor";
 import { getEducationExperienceCopy } from "@/lib/education-experience-copy";
-import { getExperienceLevelConfig, readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
+import { readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
 import { flourById } from "@/lib/flours";
 import { pizzaStyleById } from "@/lib/pizza-styles";
 import { recipeParams, settingsFromUrl } from "@/lib/recipe-url";
@@ -30,10 +31,9 @@ export default function DoctorPage() {
   const [settings, setSettings] = useState<RecipeSettings>(defaults);
   const [selected, setSelected] = useState<DoctorIssueId | null>(null);
   const [ready, setReady] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
   const t = copy.en;
   const levelCopy = getEducationExperienceCopy(experienceLevel).doctor;
-  const experienceConfig = getExperienceLevelConfig(experienceLevel);
   const flour = flourById(settings.flourId);
   const pizzaStyle = pizzaStyleById(settings.pizzaStyleId, settings.goal);
   const query = recipeParams(settings).toString();
@@ -61,7 +61,7 @@ export default function DoctorPage() {
         </header>
         <nav className="legacy-tool-nav mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden"><Link href={`/?${query}`} className="shrink-0 rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold">{t.calculator}</Link><Link href={`/plan?${query}`} className="shrink-0 rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold">{t.planner}</Link><span className="shrink-0 rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.doctor}</span><Link href="/styles" className="shrink-0 rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold">{t.styles}</Link></nav>
 
-        <section className="py-9 sm:py-12"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{levelCopy.intro}</p><Link href="/account" className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/60 ring-1 ring-ink/10 transition hover:text-ink"><span aria-hidden="true">{experienceConfig.emoji}</span>{experienceConfig.label} guidance</Link><div className="mt-6 max-w-3xl rounded-2xl border border-tomato/15 bg-tomato/[.06] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><strong className="text-sm text-tomato">{t.verify}</strong><p className="mt-1 text-xs leading-5 text-ink/55">{levelCopy.verifyBody}</p></div><Link href={`/?${query}#recipe-settings`} className="mt-3 block shrink-0 rounded-xl bg-white px-4 py-3 text-center text-xs font-extrabold text-ink shadow-sm sm:mt-0">{t.edit} →</Link></div><div className="mt-3 inline-flex flex-wrap gap-x-3 gap-y-1 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs text-ink/55"><strong className="text-leaf">{t.recipe}:</strong><span className="font-bold text-ink">{pizzaStyle.nameEn}</span><span>{flour.brand} {flour.name}</span><span>{settings.hydration} %</span><span>{settings.fermentation.replaceAll("-", " ")}</span></div></section>
+        <section className="py-9 sm:py-12"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{levelCopy.intro}</p><ExperienceLevelSelector value={experienceLevel} onChange={setExperienceLevel} compact title="Diagnosis guidance mode" intro="Choose how much explanation the Dough Doctor should include when it interprets your dough." className="mt-5 max-w-4xl" /><div className="mt-6 max-w-3xl rounded-2xl border border-tomato/15 bg-tomato/[.06] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><strong className="text-sm text-tomato">{t.verify}</strong><p className="mt-1 text-xs leading-5 text-ink/55">{levelCopy.verifyBody}</p></div><Link href={`/?${query}#recipe-settings`} className="mt-3 block shrink-0 rounded-xl bg-white px-4 py-3 text-center text-xs font-extrabold text-ink shadow-sm sm:mt-0">{t.edit} →</Link></div><div className="mt-3 inline-flex flex-wrap gap-x-3 gap-y-1 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs text-ink/55"><strong className="text-leaf">{t.recipe}:</strong><span className="font-bold text-ink">{pizzaStyle.nameEn}</span><span>{flour.brand} {flour.name}</span><span>{settings.hydration} %</span><span>{settings.fermentation.replaceAll("-", " ")}</span></div></section>
 
         <section><h2 className="font-display text-3xl font-semibold">{t.choose}</h2><div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">{doctorIssues.map((issue) => { const labels = issueCopy[locale][issue.id]; const active = selected === issue.id; const isReady = issue.id === "ready"; return <button key={issue.id} type="button" onClick={() => setSelected(issue.id)} aria-pressed={active} className={`group overflow-hidden rounded-2xl border text-left shadow-card transition active:scale-[.99] ${active ? "border-tomato bg-tomato text-white ring-4 ring-tomato/10" : "border-white bg-white"}`}><div className="relative aspect-square overflow-hidden bg-ink/5"><Image src={issue.image} alt={labels[0]} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover transition duration-300 group-hover:scale-[1.03]"/><span aria-hidden="true" className={`absolute bottom-3 right-3 grid h-10 w-10 place-items-center rounded-full border-2 border-white text-xl font-black text-white shadow-lg ${isReady ? "bg-leaf" : "bg-tomato"}`}>{isReady ? "✓" : "×"}</span></div><div className="p-3 sm:p-4"><strong className="block text-sm sm:text-base">{labels[0]}</strong><span className={`mt-1 hidden text-[11px] leading-4 sm:block ${active ? "text-white/65" : "text-ink/45"}`}>{labels[1]}</span></div></button>; })}</div></section>
 

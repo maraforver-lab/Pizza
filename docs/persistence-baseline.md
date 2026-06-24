@@ -57,12 +57,12 @@ The loader validates stored objects with the BakeResult migration helpers. Malfo
 Patch 16 adds a local-only experience-level preference with this dedicated `localStorage` key:
 
 ```text
-doughtools:experience-level
+doughtools.experienceLevel
 ```
 
-Allowed values are `beginner`, `enthusiast` and `pizza_nerd`. Missing, malformed or unknown values fall back to `beginner`.
+Allowed values are `beginner`, `intermediate` and `advanced`. Missing, malformed or unknown values fall back to `intermediate` / Home Pizza Maker.
 
-This preference is not synced to Supabase in Patch 16, does not require login, does not change calculations, and does not alter saved recipe, BakeResult or Journal storage.
+This preference is browser-local for now. It is not synced to Supabase, does not require login, does not change calculations, and does not alter saved recipe, BakeResult or Journal storage. A future account-based profile could move this setting into a user profile after separate schema and privacy review.
 
 ## Local data not covered by this patch
 

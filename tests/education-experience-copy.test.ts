@@ -26,16 +26,16 @@ describe("education experience copy", () => {
     }
   });
 
-  it("keeps beginner copy simpler than Pizza Nerd copy", () => {
+  it("keeps beginner copy simpler than Advanced copy", () => {
     const beginner = getEducationExperienceCopy("beginner");
-    const nerd = getEducationExperienceCopy("pizza_nerd");
+    const advanced = getEducationExperienceCopy("advanced");
 
-    expect(beginner.guide.technicalDetails.length).toBeLessThan(nerd.guide.technicalDetails.length);
-    expect(beginner.doctor.diagnosisDetails.length).toBeLessThan(nerd.doctor.diagnosisDetails.length);
+    expect(beginner.guide.technicalDetails.length).toBeLessThan(advanced.guide.technicalDetails.length);
+    expect(beginner.doctor.diagnosisDetails.length).toBeLessThan(advanced.doctor.diagnosisDetails.length);
   });
 
-  it("adds technical detail for Pizza Nerd guidance", () => {
-    const text = textFor(getEducationExperienceCopy("pizza_nerd"));
+  it("adds technical detail for Advanced guidance", () => {
+    const text = textFor(getEducationExperienceCopy("advanced"));
 
     expect(text).toContain("dough temperature");
     expect(text).toContain("baker's percentages");

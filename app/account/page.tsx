@@ -30,12 +30,12 @@ const experienceLevelClasses: Record<ExperienceLevel, { badge: string; card: str
     card: "border-leaf/30 bg-leaf/[.06]",
     dot: "bg-leaf",
   },
-  enthusiast: {
+  intermediate: {
     badge: "bg-tomato/10 text-tomato ring-tomato/20",
     card: "border-tomato/30 bg-tomato/[.06]",
     dot: "bg-tomato",
   },
-  pizza_nerd: {
+  advanced: {
     badge: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
     card: "border-[#5d3025]/30 bg-[#5d3025]/[.06]",
     dot: "bg-[#5d3025]",
@@ -50,7 +50,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const t = copy.en;
   const selectedExperience = getExperienceLevelConfig(experienceLevel);

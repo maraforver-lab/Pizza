@@ -4,10 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
+import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
 import { bakeFor } from "@/lib/baking";
 import { buildDoughInstructions } from "@/lib/dough-instructions";
 import { getEducationExperienceCopy } from "@/lib/education-experience-copy";
-import { getExperienceLevelConfig, readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
+import { readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
 import { beginnerHelpFor } from "@/lib/beginner-guide";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { flourById } from "@/lib/flours";
@@ -61,10 +62,9 @@ export default function PlanPage() {
   const [now, setNow] = useState(new Date(0));
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
   const t = copy.en;
   const levelCopy = getEducationExperienceCopy(experienceLevel).planner;
-  const experienceConfig = getExperienceLevelConfig(experienceLevel);
   const flour = flourById(settings.flourId);
   const bake = bakeFor(settings.goal, settings.ovenType);
   const ingredients = useMemo(() => calculateDoughIngredients(settings), [settings]);
@@ -132,7 +132,7 @@ export default function PlanPage() {
     <main className="min-h-screen px-4 py-5 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl">
         <div className="flex justify-end"><div className="rounded-full bg-white px-3 py-2 text-xs font-bold text-ink/55 shadow-sm">{t.localTime} {timeFormatter.format(now)}</div></div>
-        <section className="py-9 sm:py-12"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{levelCopy.intro}</p><Link href="/account" className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/60 ring-1 ring-ink/10 transition hover:text-ink"><span aria-hidden="true">{experienceConfig.emoji}</span>{experienceConfig.label} guidance</Link></section>
+        <section className="py-9 sm:py-12"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{levelCopy.intro}</p><ExperienceLevelSelector value={experienceLevel} onChange={setExperienceLevel} compact title="Planning guidance mode" intro="Choose how detailed the fermentation plan should feel while you work through the dough schedule." className="mt-5 max-w-4xl" /></section>
 
         <section className="grid gap-4 md:grid-cols-2">
           <button type="button" onClick={startNow} className={`rounded-[1.5rem] border p-5 text-left shadow-card transition ${mode === "start" ? "border-leaf bg-leaf text-white" : "border-white bg-white/75"}`}><span className="text-xs font-extrabold uppercase tracking-wide opacity-55">01</span><strong className="mt-2 block font-display text-2xl">{t.startNow}</strong><span className="mt-2 block text-xs leading-5 opacity-65">{t.startNote}</span></button>

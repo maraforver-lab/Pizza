@@ -42,7 +42,7 @@ const publicCopy = [
 describe("updates changelog", () => {
   it("defines the latest public foundation update", () => {
     expect(latestPublicUpdate).toBeDefined();
-    expect(latestPublicUpdate?.title).toBe("DoughTools foundation update");
+    expect(latestPublicUpdate?.title).toBe("Experience guidance update");
     expect(latestPublicUpdate?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(`${latestPublicUpdate?.date}T12:00:00Z`))).toBe(false);
   });
@@ -76,9 +76,9 @@ describe("updates changelog", () => {
     expect(getVisibleUpdates(source, 0)).toEqual([]);
   });
 
-  it("includes Patch 01 through Patch 14 in release history", () => {
+  it("includes Patch 01 through Patch 19 in release history", () => {
     expect([...patchHistory].sort((a, b) => a.patch - b.patch).map((entry) => entry.patch))
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
     for (const entry of patchHistory) {
       expect(entry.title.trim()).toBeTruthy();
       expect(entry.summary.trim()).toBeTruthy();
@@ -89,20 +89,24 @@ describe("updates changelog", () => {
   });
 
   it("exposes Patch history newest first for the updates page", () => {
-    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(visiblePatchHistory).toHaveLength(patchHistory.length);
     expect(visiblePatchHistory.length).toBeLessThanOrEqual(MAX_VISIBLE_UPDATES);
-    expect(visiblePatchHistory[0].patch).toBe(14);
+    expect(visiblePatchHistory[0].patch).toBe(19);
   });
 
-  it("keeps Patch 12 and Patch 14 details explicit", () => {
+  it("keeps Patch 12, Patch 14 and recent experience-level details explicit", () => {
     const patch12 = patchHistory.find((entry) => entry.patch === 12);
     const patch14 = patchHistory.find((entry) => entry.patch === 14);
+    const patch18 = patchHistory.find((entry) => entry.patch === 18);
+    const patch19 = patchHistory.find((entry) => entry.patch === 19);
 
     expect(patch12?.details.join(" ")).toContain("doughtools:bake-results");
     expect(patch12?.technicalNote).toContain("photo upload");
     expect(patch14?.details.join(" ")).toContain("30 seconds");
     expect(patch14?.details.join(" ")).toContain("non-modal");
+    expect(patch18?.highlights.join(" ")).toContain("Dough Doctor");
+    expect(patch19?.details.join(" ")).toContain("doughtools.experienceLevel");
   });
 
   it("uses the required new-update notice destination", () => {

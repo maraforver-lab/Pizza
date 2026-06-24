@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import AppSignature from "@/components/AppSignature";
 import EditableNumberInput from "@/components/EditableNumberInput";
+import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
 import {
   loadSavedRecipes,
   newRecipeId,
@@ -43,8 +44,8 @@ const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-ro
 
 const experienceBadgeClasses: Record<ExperienceLevel, string> = {
   beginner: "bg-leaf/10 text-leaf ring-leaf/20",
-  enthusiast: "bg-tomato/10 text-tomato ring-tomato/20",
-  pizza_nerd: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
+  intermediate: "bg-tomato/10 text-tomato ring-tomato/20",
+  advanced: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
 };
 
 const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentation) => {
@@ -240,7 +241,7 @@ export default function Home() {
   const [recipeName, setRecipeName] = useState("");
   const [recipeNotice, setRecipeNotice] = useState("");
   const [urlReady, setUrlReady] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
   const t = copy.en;
   const levelCopy = getHomepageExperienceCopy(experienceLevel);
   const experienceConfig = getExperienceLevelConfig(experienceLevel);
@@ -548,6 +549,14 @@ export default function Home() {
             <p className="mt-4 text-xs leading-5 text-white/45">{levelCopy.workflowHint}</p>
           </div>
         </section>
+
+        <ExperienceLevelSelector
+          value={experienceLevel}
+          onChange={setExperienceLevel}
+          title="Choose how DoughTools should guide you"
+          intro="Pick the pizza-making level that feels like you today. The calculator, planner and help pages will use the same local choice."
+          className="mb-7"
+        />
 
         <section className="mb-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Pizza-making workflow">
           {homepageContent.workflow.map((step, index) => (

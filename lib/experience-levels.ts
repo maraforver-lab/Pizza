@@ -1,4 +1,4 @@
-export type ExperienceLevel = "beginner" | "enthusiast" | "pizza_nerd";
+export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
 
 export type ExperienceLevelAccent = "green" | "orange" | "dark-red";
 
@@ -14,33 +14,33 @@ export type ExperienceLevelConfig = {
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-export const DEFAULT_EXPERIENCE_LEVEL: ExperienceLevel = "beginner";
+export const DEFAULT_EXPERIENCE_LEVEL: ExperienceLevel = "intermediate";
 
-export const EXPERIENCE_LEVEL_STORAGE_KEY = "doughtools:experience-level";
+export const EXPERIENCE_LEVEL_STORAGE_KEY = "doughtools.experienceLevel";
 
 export const EXPERIENCE_LEVELS = [
   {
     id: "beginner",
     label: "Beginner",
-    description: "I am new to pizza-making and want to succeed easily.",
+    description: "I want clear step-by-step help.",
     emoji: "🟢",
     accent: "green",
     badgeClassName: "bg-leaf/10 text-leaf ring-leaf/20",
     cardClassName: "border-leaf/30 bg-leaf/[.06]",
   },
   {
-    id: "enthusiast",
-    label: "Enthusiast",
-    description: "I understand the basics and want to improve.",
+    id: "intermediate",
+    label: "Home Pizza Maker",
+    description: "I already make pizza and want better control.",
     emoji: "🟠",
     accent: "orange",
     badgeClassName: "bg-tomato/10 text-tomato ring-tomato/20",
     cardClassName: "border-tomato/30 bg-tomato/[.06]",
   },
   {
-    id: "pizza_nerd",
-    label: "Pizza Nerd",
-    description: "I want to see every variable and optimize everything.",
+    id: "advanced",
+    label: "Advanced",
+    description: "I want deeper technical guidance.",
     emoji: "🔴",
     accent: "dark-red",
     badgeClassName: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
@@ -99,15 +99,15 @@ export function shouldShowBeginnerContent(level: ExperienceLevel): boolean {
 }
 
 export function shouldShowAdvancedContent(level: ExperienceLevel): boolean {
-  return level === "enthusiast" || level === "pizza_nerd";
+  return level === "intermediate" || level === "advanced";
 }
 
 export function shouldShowNerdContent(level: ExperienceLevel): boolean {
-  return level === "pizza_nerd";
+  return level === "advanced";
 }
 
 export function getExperienceLevelCopyMode(level: ExperienceLevel) {
-  if (level === "pizza_nerd") return "full";
-  if (level === "enthusiast") return "guided";
+  if (level === "advanced") return "full";
+  if (level === "intermediate") return "guided";
   return "simple";
 }

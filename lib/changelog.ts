@@ -5,6 +5,7 @@ export type UpdateCategory =
   | "Trust & legal"
   | "SEO & launch safety"
   | "Local saved bakes"
+  | "Personalization"
   | "Technical foundation";
 
 export type UpdateEntry = {
@@ -38,11 +39,38 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "experience-guidance-update-2026-06-24",
+    title: "Experience guidance update",
+    date: "2026-06-24",
+    summary:
+      "DoughTools now lets users choose a guidance level and shows recent production updates in the public update history.",
+    category: "Personalization",
+    highlights: [
+      "Beginner, Home Pizza Maker and Advanced guidance levels",
+      "Visible level selector on the homepage",
+      "Planner, Guide and Dough Doctor show the selected guidance mode",
+      "Recent Patch 15–Patch 19 history is now visible",
+    ],
+    details: [
+      "The selected level is stored locally in the browser using doughtools.experienceLevel.",
+      "Home Pizza Maker is the safe default when no valid level has been selected.",
+      "The update history has been synchronized so recent production patches are visible.",
+    ],
+    userImpact:
+      "Users can make DoughTools feel simpler or more technical without creating an account or changing the core recipe math.",
+    technicalNote:
+      "This update does not add account-based profiles, cloud sync, payments, public bake pages, indexing or share cards.",
+    isPublic: true,
+    patchNumbers: [19],
+    relatedPatchNumbers: [15, 16, 17, 18, 19],
+    href: "/updates",
+  },
+  {
     id: "foundation-update-2026-06-23",
     title: "DoughTools foundation update",
     date: "2026-06-23",
     summary:
-      "DoughTools now has a clearer English-only workflow, safer calculations, better navigation, trust pages, noindex-safe launch configuration and local saved bakes.",
+      "DoughTools gained a clearer English-only workflow, safer calculations, better navigation, trust pages, noindex-safe launch configuration and local saved bakes.",
     category: "Product",
     highlights: [
       "Cleaner English-only interface",
@@ -329,6 +357,96 @@ export const patchHistory: PatchHistoryEntry[] = [
       "The banner remains non-modal, non-blocking and does not store dismissal state.",
     ],
     userImpact: "The Updates page reads more naturally, and the temporary banner stays helpful without getting in the way.",
+  },
+  {
+    patch: 15,
+    title: "Detailed scalable updates page",
+    category: "Product",
+    summary: "The Updates page was made richer and ready for many future releases.",
+    highlights: [
+      "More detailed release entries",
+      "Newest 20 update cards shown at most",
+      "Older update data kept in the changelog data",
+    ],
+    details: [
+      "Patch 15 expanded the changelog structure with clearer highlights, details and user impact.",
+      "The visible Updates page now uses a bounded newest-first list instead of assuming there will only be a small number of patches.",
+      "The update notice behavior from the previous patch was preserved.",
+    ],
+    userImpact: "Users can read a clearer update history, and the page can keep growing without becoming overwhelming.",
+    technicalNote: "This patch did not change calculations, storage, authentication, indexing or product routes.",
+  },
+  {
+    patch: 16,
+    title: "Experience Levels foundation",
+    category: "Personalization",
+    summary: "A local-only foundation was added for adapting guidance by user experience level.",
+    highlights: [
+      "Three-level experience model introduced",
+      "Local browser preference support added",
+      "Documentation and tests added for level behavior",
+    ],
+    details: [
+      "Patch 16 created the shared data structure for experience-aware guidance.",
+      "The preference is browser-local and safe for server rendering.",
+      "It prepared the app for simpler or more detailed explanations without changing the core tools.",
+    ],
+    userImpact: "DoughTools gained the foundation to explain pizza-making at different depths.",
+    technicalNote: "This patch did not add account-based profiles, Supabase persistence or paid tiers.",
+  },
+  {
+    patch: 17,
+    title: "Experience levels on homepage and calculator",
+    category: "Personalization",
+    summary: "Homepage and calculator guidance started using the experience-level foundation.",
+    highlights: [
+      "Homepage guidance copy became level-aware",
+      "Calculator result guidance became level-aware",
+      "Recipe math and tool availability stayed unchanged",
+    ],
+    details: [
+      "Patch 17 connected the shared experience-level copy to the main recipe journey.",
+      "The calculator can show friendlier or more technical guidance around the same recipe numbers.",
+      "The change focused on explanation, not formula changes.",
+    ],
+    userImpact: "Users get guidance that better matches how much pizza-making detail they want to see.",
+    technicalNote: "No calculation formulas, saved recipes, routes, indexing or storage behavior were changed.",
+  },
+  {
+    patch: 18,
+    title: "Experience levels on planner, guide and Dough Doctor",
+    category: "Personalization",
+    summary: "Planner, Guide and Dough Doctor guidance became level-aware.",
+    highlights: [
+      "Planner level-aware guidance",
+      "Guide/Help level-aware educational copy",
+      "Dough Doctor level-aware diagnostic explanations",
+    ],
+    details: [
+      "Patch 18 applied the experience-level copy structure to the planning and learning surfaces.",
+      "The Dough Doctor now has guidance copy that can be simpler or more technical based on the selected mode.",
+      "Tests and documentation were updated for the shared education copy.",
+    ],
+    userImpact: "The same recipe and troubleshooting tools can now explain themselves with the right amount of detail.",
+    technicalNote: "Planner timing logic, diagnosis logic, calculations, persistence and routes were not changed.",
+  },
+  {
+    patch: 19,
+    title: "Experience Level Selector and update history sync",
+    category: "Personalization",
+    summary: "A visible guidance-level selector was added and recent production updates were synchronized.",
+    highlights: [
+      "Beginner, Home Pizza Maker and Advanced selector added",
+      "Homepage shows the three pizza-making levels as selectable cards",
+      "Planner, Guide and Dough Doctor show the selected guidance mode",
+    ],
+    details: [
+      "Patch 19 stores the selected guidance level locally with doughtools.experienceLevel.",
+      "Home Pizza Maker is used as the safe default before hydration or when stored data is invalid.",
+      "The public update history now includes Patch 15 through Patch 19.",
+    ],
+    userImpact: "Users can immediately choose whether DoughTools should be more step-by-step, practical or technical.",
+    technicalNote: "This patch did not add authentication, Supabase, payments, public profiles, cloud sync or a major redesign.",
   },
 ];
 

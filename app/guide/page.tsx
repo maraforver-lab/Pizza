@@ -4,8 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import AppSignature from "@/components/AppSignature";
+import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
 import { getEducationExperienceCopy } from "@/lib/education-experience-copy";
-import { getExperienceLevelConfig, readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
+import { readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
 
 const flourProducts = [
   { maker: "W 220–240", name: "Caputo Classica", image: "/flours/caputo-classica.png", source: "https://www.mulinocaputo.it/prodotti/classica-5kg/" },
@@ -145,9 +146,8 @@ const content = {
 
 export default function Guide() {
   const t = content.en;
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("intermediate");
   const levelCopy = getEducationExperienceCopy(experienceLevel).guide;
-  const experienceConfig = getExperienceLevelConfig(experienceLevel);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -166,7 +166,7 @@ export default function Guide() {
             <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-[#e8c98a]">{t.eyebrow}</p>
             <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">{t.title}</h1>
             <p className="mt-4 max-w-lg text-sm leading-7 text-white/65 sm:text-base">{levelCopy.intro}</p>
-            <Link href="/account" className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/75 ring-1 ring-white/15 transition hover:bg-white/15"><span aria-hidden="true">{experienceConfig.emoji}</span>{experienceConfig.label} guidance</Link>
+            <ExperienceLevelSelector value={experienceLevel} onChange={setExperienceLevel} compact title="Learning guidance mode" intro="Choose whether you want simple steps, practical control or deeper technical explanations." className="mt-6 text-ink" />
           </div>
         </section>
 
