@@ -26,20 +26,36 @@ describe("homepage content model", () => {
   });
 
   it("keeps the primary CTA on the existing calculator anchor", () => {
-    expect(homepageContent.hero.primaryCta).toEqual({ label: "Build my dough recipe", href: "#top" });
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Calculate your dough", href: "#top" });
   });
 
-  it("keeps the secondary CTA on the existing pizza styles route", () => {
-    expect(homepageContent.hero.secondaryCta).toEqual({ label: "Explore pizza styles", href: "/styles" });
+  it("keeps the secondary CTA on the experience-level anchor", () => {
+    expect(homepageContent.hero.secondaryCta).toEqual({ label: "Choose your guidance level", href: "#experience-level" });
   });
 
   it("contains the required four-step workflow", () => {
     expect(homepageContent.workflow.map((step) => step.title)).toEqual([
-      "Choose your pizza",
-      "Calculate the dough",
-      "Follow the schedule",
-      "Bake and improve",
+      "Choose your level",
+      "Calculate your dough",
+      "Plan fermentation and baking",
+      "Troubleshoot and improve",
     ]);
+  });
+
+  it("positions DoughTools as a pizza-making workspace that adapts guidance", () => {
+    expect(homepageContent.hero.eyebrow).toBe("Pizza-making workspace");
+    expect(homepageContent.hero.intro).toContain("guidance level");
+    expect(homepageContent.hero.intro).toContain("calculate dough");
+    expect(homepageContent.hero.intro).toContain("plan fermentation");
+    expect(homepageContent.trust.join(" ")).toContain("Beginner, Home Pizza Maker and Advanced");
+  });
+
+  it("explains the three visible experience levels", () => {
+    const workflowText = homepageContent.workflow.map((step) => `${step.title} ${step.description}`).join(" ");
+
+    expect(workflowText).toContain("Beginner");
+    expect(workflowText).toContain("Home Pizza Maker");
+    expect(workflowText).toContain("Advanced");
   });
 
   it("uses valid existing routes for core workflow tools", () => {

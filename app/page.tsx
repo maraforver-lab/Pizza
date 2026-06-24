@@ -523,7 +523,8 @@ export default function Home() {
           <div>
             <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{homepageContent.hero.eyebrow}</p>
             <h1 id="homepage-title" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">{homepageContent.hero.h1}</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">{levelCopy.heroIntro}</p>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/65 sm:text-base">{homepageContent.hero.intro}</p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/55">{levelCopy.heroIntro}</p>
             <Link
               href="/account"
               className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 transition hover:scale-[1.01] active:scale-[.98] ${experienceBadgeClasses[experienceLevel]}`}
@@ -539,7 +540,7 @@ export default function Home() {
           <div className="rounded-[1.5rem] bg-ink p-5 text-white">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-white/40">DoughTools workflow</p>
             <div className="mt-4 grid gap-3">
-              {["Dough", "Plan", "Prep", "Bake"].map((label, index) => (
+              {["Level", "Dough", "Plan", "Improve"].map((label, index) => (
                 <div key={label} className="flex items-center gap-3 rounded-2xl bg-white/[.06] p-3">
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-extrabold text-ink">{index + 1}</span>
                   <span className="font-display text-2xl font-semibold">{label}</span>
@@ -550,13 +551,15 @@ export default function Home() {
           </div>
         </section>
 
-        <ExperienceLevelSelector
-          value={experienceLevel}
-          onChange={setExperienceLevel}
-          title="Choose how DoughTools should guide you"
-          intro="Pick the pizza-making level that feels like you today. The calculator, planner and help pages will use the same local choice."
-          className="mb-7"
-        />
+        <div id="experience-level" className="scroll-mt-24">
+          <ExperienceLevelSelector
+            value={experienceLevel}
+            onChange={setExperienceLevel}
+            title="Choose how DoughTools should guide you"
+            intro="Pick the pizza-making level that feels like you today. Beginner explains more, Home Pizza Maker keeps practical detail visible and Advanced adds more technical context. The calculator, planner and help pages use the same local choice."
+            className="mb-7"
+          />
+        </div>
 
         <section className="mb-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Pizza-making workflow">
           {homepageContent.workflow.map((step, index) => (
@@ -572,6 +575,9 @@ export default function Home() {
           <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p>
           <h2 id="calculator-intro" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl">{t.title}</h2>
           <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{levelCopy.calculatorIntro}</p>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-ink/55">
+            The calculator gives the numbers. The guidance explains what they mean, then Planner and Dough Doctor help with timing and troubleshooting.
+          </p>
         </section>
 
         <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">

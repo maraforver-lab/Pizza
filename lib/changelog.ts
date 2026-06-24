@@ -39,6 +39,32 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "homepage-onboarding-refinement-2026-06-24",
+    title: "Homepage onboarding refinement",
+    date: "2026-06-24",
+    summary:
+      "The homepage now explains the DoughTools workflow more clearly for first-time visitors.",
+    category: "Product",
+    highlights: [
+      "Clearer first-visit explanation",
+      "Stronger choose level → calculate dough → plan → troubleshoot journey",
+      "Better connection between the calculator and guidance tools",
+    ],
+    details: [
+      "Patch 20 refined the homepage copy and structure so users understand that DoughTools is more than a calculator.",
+      "The onboarding flow now explains how experience levels, dough calculation, planning and troubleshooting work together.",
+      "Mobile-first scanning was improved without changing the core tools.",
+    ],
+    userImpact:
+      "New visitors can understand faster how to start and why choosing a guidance level helps.",
+    technicalNote:
+      "This patch did not change dough formulas, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
+    isPublic: true,
+    patchNumbers: [20],
+    relatedPatchNumbers: [17, 18, 19, 20],
+    href: "/updates",
+  },
+  {
     id: "experience-guidance-update-2026-06-24",
     title: "Experience guidance update",
     date: "2026-06-24",
@@ -447,6 +473,25 @@ export const patchHistory: PatchHistoryEntry[] = [
     ],
     userImpact: "Users can immediately choose whether DoughTools should be more step-by-step, practical or technical.",
     technicalNote: "This patch did not add authentication, Supabase, payments, public profiles, cloud sync or a major redesign.",
+  },
+  {
+    patch: 20,
+    title: "Homepage onboarding refinement",
+    category: "Product",
+    summary: "The homepage now explains the DoughTools workflow more clearly for first-time visitors.",
+    highlights: [
+      "Clearer first-visit explanation",
+      "Stronger choose level → calculate dough → plan → troubleshoot journey",
+      "Better connection between the calculator and guidance tools",
+    ],
+    details: [
+      "Patch 20 refined the homepage copy and structure so users understand that DoughTools is more than a calculator.",
+      "The onboarding flow now explains how experience levels, dough calculation, planning and troubleshooting work together.",
+      "Mobile-first scanning was improved without changing the core tools.",
+    ],
+    userImpact: "New visitors can understand faster how to start and why choosing a guidance level helps.",
+    technicalNote:
+      "This patch did not change dough formulas, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
   },
 ];
 

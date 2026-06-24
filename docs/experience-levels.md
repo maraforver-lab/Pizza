@@ -74,6 +74,14 @@ Patch 19 adds a reusable visible selector and places it on:
 
 Patch 19 also synchronizes the update history so recent production patches are visible.
 
+Patch 20 refines the homepage onboarding around the same model:
+
+- the hero copy explains that DoughTools adapts guidance to the selected level
+- the first workflow now starts with choosing a level
+- the main CTA path connects level choice, dough calculation, planning and troubleshooting
+
+Patch 20 does not change the level values, persistence key or behavior rules.
+
 ## Copy behavior by level
 
 - Beginner copy focuses on the next practical action and avoids unnecessary variables.
