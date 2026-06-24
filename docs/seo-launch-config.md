@@ -4,6 +4,7 @@ This document describes the temporary pre-launch SEO setup for DoughTools.
 
 For the production-domain checklist, see `docs/production-domain-verification.md`.
 For the owner-friendly manual rehearsal flow, see `docs/manual-launch-rehearsal.md`.
+For the public route, canonical, sitemap and Search Console policy, see `docs/seo-indexation.md`.
 
 ## Current launch state
 
@@ -76,6 +77,8 @@ It excludes:
 
 The sitemap uses the configured safe site URL when available.
 
+`/start` is included as a public discovery route. Query-param tool URLs remain shareable, but they are not listed as sitemap entries.
+
 ## Robots behavior
 
 `/robots.txt` blocks all crawlers while indexing is disabled.
@@ -87,6 +90,8 @@ When indexing is explicitly enabled in the future, robots rules may allow public
 Canonical URLs are generated only when `NEXT_PUBLIC_SITE_URL` is configured as a safe production URL.
 
 If it is missing, invalid, localhost or a Vercel preview URL, canonical links are not promoted from that value.
+
+Stateful recipe and tool URLs canonicalize to their clean base route where route metadata is available. For example, `/plan?hydration=64` should resolve to the clean `/plan` canonical URL rather than becoming a separate sitemap page.
 
 ## Before enabling indexing
 

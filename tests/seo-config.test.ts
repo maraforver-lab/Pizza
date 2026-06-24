@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   SAFE_INTERNAL_SITE_URL,
+  cleanCanonicalPath,
   canonicalUrl,
   getSiteUrl,
   hasConfiguredProductionSiteUrl,
@@ -11,9 +12,11 @@ import {
   normalizeSiteUrl,
   privateSeoRoutes,
   publicSeoRoutes,
+  seoRoutePolicy,
   robotsMetadata,
   robotsPolicy,
   sitemapEntries,
+  statefulQueryParamRoutes,
 } from "@/lib/seo-config";
 import {
   projectContactEmail,
@@ -44,6 +47,7 @@ const requiredPublicRoutes = [
   "/history",
   "/community",
   "/coach",
+  "/updates",
 ];
 
 const trustPageText = (id: TrustPageId) => [
@@ -59,6 +63,7 @@ const trustPageText = (id: TrustPageId) => [
 describe("SEO launch configuration", () => {
   it("normalizes safe production URLs and removes trailing slashes", () => {
     expect(normalizeSiteUrl(" https://doughtools.app/ ")).toBe("https://doughtools.app");
+    expect(normalizeSiteUrl(" https://www.doughtools.app/ ")).toBe("https://www.doughtools.app");
     expect(normalizeSiteUrl("https://doughtools.app/path/")).toBe("https://doughtools.app/path");
   });
 
@@ -107,6 +112,30 @@ describe("SEO launch configuration", () => {
     }
   });
 
+  it("defines a central SEO route policy for public, stateful and private route groups", () => {
+    expect(seoRoutePolicy.publicIndexableRoutes).toEqual(requiredPublicRoutes);
+    expect(seoRoutePolicy.publicToolBaseRoutes).toEqual([
+      "/",
+      "/start",
+      "/plan",
+      "/doctor",
+      "/sauce",
+      "/toppings",
+      "/timer",
+      "/costs",
+    ]);
+    expect(seoRoutePolicy.statefulQueryParamRoutes).toEqual([
+      "/",
+      "/plan",
+      "/doctor",
+      "/journal",
+      "/sauce",
+      "/toppings",
+      "/timer",
+    ]);
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/account");
+  });
+
   it("excludes private account and auth routes from indexable route definitions and sitemap", () => {
     expect(privateSeoRoutes).toContain("/account");
     expect(privateSeoRoutes).toContain("/auth/callback");
@@ -119,24 +148,69 @@ describe("SEO launch configuration", () => {
     expect(sitemapUrls.some((url) => url.includes("pizza-maraforver.vercel.app"))).toBe(false);
   });
 
-  it("generates canonical URLs only from the configured safe URL helper", () => {
-    expect(canonicalUrl("/sauce?balls=6", { NEXT_PUBLIC_SITE_URL: "https://doughtools.app/" })).toBe(
-      "https://doughtools.app/sauce",
+  it("generates clean canonical URLs only from the configured safe URL helper", () => {
+    expect(cleanCanonicalPath("/plan?hydration=64#recipe")).toBe("/plan");
+    expect(cleanCanonicalPath("https://example.com/doctor?hydration=64")).toBe("/doctor");
+    expect(cleanCanonicalPath("/start/")).toBe("/start");
+    expect(canonicalUrl("/sauce?balls=6", { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app/" })).toBe(
+      "https://www.doughtools.app/sauce",
+    );
+    expect(canonicalUrl("https://evil.example/doctor?hydration=64", {
+      NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+    })).toBe(
+      "https://www.doughtools.app/doctor",
     );
     expect(canonicalUrl("/sauce", {})).toBe(`${SAFE_INTERNAL_SITE_URL}/sauce`);
-    expect(metadataForRoute("/", { NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).alternates).toMatchObject({
-      canonical: "https://doughtools.app/",
+    expect(metadataForRoute("/", { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" }).alternates).toMatchObject({
+      canonical: "https://www.doughtools.app/",
+    });
+    expect(metadataForRoute("/start", { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" }).alternates)
+      .toMatchObject({ canonical: "https://www.doughtools.app/start" });
+  });
+
+  it("keeps stateful query-param tool routes shareable but out of sitemap", () => {
+    expect(statefulQueryParamRoutes).toEqual(seoRoutePolicy.statefulQueryParamRoutes);
+
+    for (const route of statefulQueryParamRoutes) {
+      expect(canonicalUrl(`${route}?balls=6&hydration=64`, {
+        NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+      })).toBe(`https://www.doughtools.app${route === "/" ? "/" : route}`);
+    }
+
+    const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" }).map((entry) => entry.url);
+    expect(sitemapUrls.every((url) => !url.includes("?"))).toBe(true);
+  });
+
+  it("blocks all crawlers by default in robots.txt policy while still advertising the sitemap location", () => {
+    expect(robotsPolicy({})).toEqual({
+      rules: { userAgent: "*", disallow: "/" },
+      sitemap: `${SAFE_INTERNAL_SITE_URL}/sitemap.xml`,
+    });
+    expect(robotsPolicy({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" })).toEqual({
+      rules: { userAgent: "*", disallow: "/" },
+      sitemap: "https://www.doughtools.app/sitemap.xml",
+    });
+    expect(robotsPolicy({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" })).toMatchObject({
+      rules: {
+        userAgent: "*",
+        allow: "/",
+      },
+      sitemap: "https://www.doughtools.app/sitemap.xml",
     });
   });
 
-  it("blocks all crawlers by default in robots.txt policy and exposes a sitemap only when indexing is allowed", () => {
-    expect(robotsPolicy({})).toEqual({ rules: { userAgent: "*", disallow: "/" } });
-    expect(robotsPolicy({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toEqual({
-      rules: { userAgent: "*", disallow: "/" },
-    });
-    expect(robotsPolicy({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
-      sitemap: "https://doughtools.app/sitemap.xml",
-    });
+  it("keeps public pages indexable only when indexing is explicitly allowed and private pages noindex", () => {
+    expect(metadataForRoute("/start", {
+      ALLOW_INDEXING: "true",
+      NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+    }).robots).toMatchObject({ index: true, follow: true });
+
+    expect(metadataForRoute("/updates", {
+      ALLOW_INDEXING: "true",
+      NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+    }).robots).toMatchObject({ index: true, follow: true });
+
+    expect(privateSeoRoutes).toContain("/account");
   });
 
   it("does not include old Vercel URL fallback or unsupported claims in active SEO copy", () => {
@@ -187,6 +261,8 @@ describe("SEO launch configuration", () => {
     expect(combined).toMatch(/no indexing yet|noindexed|noindex/i);
     expect(productionDoc).toContain("Do not set `ALLOW_INDEXING=true`");
     expect(seoDoc).toContain("docs/production-domain-verification.md");
+    expect(seoDoc).toContain("docs/seo-indexation.md");
+    expect(seoDoc).toContain("Query-param tool URLs remain shareable");
   });
 
   it("documents a manual launch rehearsal without instructing this patch to deploy or enable indexing", () => {
@@ -215,5 +291,22 @@ describe("SEO launch configuration", () => {
     expect(rehearsalDoc).toContain("Opening indexing must be a separate patch and process. Do not enable indexing now.");
     expect(productionDoc).toContain("docs/manual-launch-rehearsal.md");
     expect(seoDoc).toContain("docs/manual-launch-rehearsal.md");
+  });
+
+  it("documents the SEO indexation policy and Search Console manual checklist", () => {
+    const indexationDocPath = join(process.cwd(), "docs", "seo-indexation.md");
+
+    expect(existsSync(indexationDocPath)).toBe(true);
+
+    const indexationDoc = readFileSync(indexationDocPath, "utf8");
+
+    expect(indexationDoc).toContain("https://www.doughtools.app");
+    expect(indexationDoc).toContain("/start");
+    expect(indexationDoc).toContain("/sitemap.xml");
+    expect(indexationDoc).toContain("/robots.txt");
+    expect(indexationDoc).toContain("Search Console");
+    expect(indexationDoc).toContain("query-param URLs from the sitemap");
+    expect(indexationDoc).toContain("Route-level query-param noindex is intentionally not implemented yet");
+    expect(indexationDoc).not.toMatch(/gtag|posthog|plausible|analytics tracking/i);
   });
 });

@@ -12,6 +12,13 @@ export type SeoRoute = {
   priority?: number;
 };
 
+export type SeoRoutePolicy = {
+  publicIndexableRoutes: readonly string[];
+  publicToolBaseRoutes: readonly string[];
+  statefulQueryParamRoutes: readonly string[];
+  privateNoindexRoutes: readonly string[];
+};
+
 const unsupportedMarketingClaims = /\b(perfect pizza|guaranteed|ultimate|revolutionary|scientifically exact)\b/i;
 
 export const publicSeoRoutes = [
@@ -157,6 +164,13 @@ export const publicSeoRoutes = [
     changeFrequency: "monthly",
     priority: 0.6,
   },
+  {
+    path: "/updates",
+    title: "Updates | DoughTools",
+    description: "Review recent DoughTools product updates and launch-safety improvements.",
+    changeFrequency: "weekly",
+    priority: 0.5,
+  },
 ] as const satisfies readonly SeoRoute[];
 
 export const privateSeoRoutes = [
@@ -168,6 +182,34 @@ export const privateSeoRoutes = [
   "/preview",
   "/debug",
 ] as const;
+
+export const publicToolBaseRoutes = [
+  "/",
+  "/start",
+  "/plan",
+  "/doctor",
+  "/sauce",
+  "/toppings",
+  "/timer",
+  "/costs",
+] as const;
+
+export const statefulQueryParamRoutes = [
+  "/",
+  "/plan",
+  "/doctor",
+  "/journal",
+  "/sauce",
+  "/toppings",
+  "/timer",
+] as const;
+
+export const seoRoutePolicy: SeoRoutePolicy = {
+  publicIndexableRoutes: publicSeoRoutes.map((route) => route.path),
+  publicToolBaseRoutes,
+  statefulQueryParamRoutes,
+  privateNoindexRoutes: privateSeoRoutes,
+};
 
 export const routeMetadataByPath = Object.fromEntries(
   publicSeoRoutes.map((route) => [route.path, route]),
@@ -244,8 +286,20 @@ export function robotsMetadata(env: EnvLike = process.env): Metadata["robots"] {
   };
 }
 
+export function cleanCanonicalPath(path: string): string {
+  try {
+    const url = new URL(path, "https://doughtools.invalid");
+    const cleanPath = url.pathname.replace(/\/{2,}/g, "/");
+    return cleanPath === "/" ? "/" : cleanPath.replace(/\/+$/, "");
+  } catch {
+    const fallback = path.startsWith("/") ? path : `/${path}`;
+    const cleanPath = fallback.split(/[?#]/, 1)[0]?.replace(/\/{2,}/g, "/") || "/";
+    return cleanPath === "/" ? "/" : cleanPath.replace(/\/+$/, "");
+  }
+}
+
 export function canonicalUrl(path: string, env: EnvLike = process.env): string {
-  const url = new URL(path, `${getSiteUrl(env)}/`);
+  const url = new URL(cleanCanonicalPath(path), `${getSiteUrl(env)}/`);
   url.search = "";
   url.hash = "";
   return url.toString();
@@ -321,6 +375,7 @@ export function robotsPolicy(env: EnvLike = process.env): MetadataRoute.Robots {
         userAgent: "*",
         disallow: "/",
       },
+      sitemap: `${siteUrl}/sitemap.xml`,
     };
   }
 

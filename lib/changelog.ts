@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "seo-indexation-canonical-baseline-2026-06-24",
+    title: "SEO indexation and canonical baseline",
+    date: "2026-06-24",
+    summary:
+      "DoughTools now has a clearer search-indexing baseline for public pages, Start Here and shareable tool links.",
+    category: "SEO & launch safety",
+    highlights: [
+      "Cleaner canonical URL policy",
+      "Sitemap and robots baseline reviewed",
+      "Start Here included as a public discovery page",
+      "Query-param tool URLs kept shareable without being treated as sitemap pages",
+      "Search Console verification checklist documented",
+    ],
+    details: [
+      "Patch 23 defines which routes should be discoverable in search and which user-state or query-param URLs should stay out of the sitemap.",
+      "Clean public routes use stable canonical URLs.",
+      "Shareable tool links remain supported, but the SEO policy reduces duplicate-content risk from recipe parameters.",
+      "Manual Search Console steps were documented for production verification.",
+    ],
+    userImpact:
+      "Users can still share recipe and planning links, while new visitors should have a cleaner path to discover DoughTools through search.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics or payment behavior.",
+    isPublic: true,
+    patchNumbers: [23],
+    relatedPatchNumbers: [6, 9, 10, 22, 23],
+    href: "/updates",
+  },
+  {
     id: "beginner-start-here-path-2026-06-24",
     title: "Beginner Start Here pizza path",
     date: "2026-06-24",
@@ -588,6 +617,30 @@ export const patchHistory: PatchHistoryEntry[] = [
       "New users can start with a practical pizza goal instead of beginning with every calculator setting.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, indexing or payment behavior.",
+  },
+  {
+    patch: 23,
+    title: "SEO indexation and canonical baseline",
+    category: "SEO & launch safety",
+    summary:
+      "DoughTools now has a clearer search-indexing baseline for public pages, Start Here and shareable tool links.",
+    highlights: [
+      "Cleaner canonical URL policy",
+      "Sitemap and robots baseline reviewed",
+      "Start Here included as a public discovery page",
+      "Query-param tool URLs kept shareable without being treated as sitemap pages",
+      "Search Console verification checklist documented",
+    ],
+    details: [
+      "Patch 23 defines which routes should be discoverable in search and which user-state or query-param URLs should stay out of the sitemap.",
+      "Clean public routes use stable canonical URLs.",
+      "Shareable tool links remain supported, but the SEO policy reduces duplicate-content risk from recipe parameters.",
+      "Manual Search Console steps were documented for production verification.",
+    ],
+    userImpact:
+      "Users can still share recipe and planning links, while new visitors should have a cleaner path to discover DoughTools through search.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics or payment behavior.",
   },
 ];
 
