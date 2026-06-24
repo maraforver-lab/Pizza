@@ -21,7 +21,7 @@ const copy = {
   sv: {
     eyebrow: "Användarkonto", title: "Din plats för pizzarecept.", intro: "I den första versionen kan du skapa ett konto samt logga in och ut. Recept flyttas ännu inte till kontot.", login: "Logga in", signup: "Skapa konto", email: "E-post", password: "Lösenord", passwordHint: "Minst 8 tecken", working: "Ett ögonblick…", confirm: "Kontrollera din e-post och bekräfta kontot via länken i meddelandet.", confirmed: "E-postadressen är bekräftad. Du är nu inloggad.", signedIn: "Du är inloggad", signOut: "Logga ut", signedOut: "Du är utloggad.", back: "Tillbaka till kalkylatorn", retry: "Bekräftelselänken kunde inte behandlas. Försök logga in.", error: "Inloggningen misslyckades. Kontrollera uppgifterna och försök igen.", privacy: "Lösenordet hanteras av Supabase och lagras inte i DoughTools egen kod." },
   en: {
-    eyebrow: "User account", title: "Your place for pizza recipes.", intro: "In this first version you can create an account, sign in and sign out. Recipes are not connected to the account yet.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to calculator", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again.", privacy: "Your password is handled by Supabase and is not stored in DoughTools code." },
+    eyebrow: "User account", title: "Your place for pizza recipes.", intro: "You can create an account, sign in and sign out. Saved recipes are still browser-local for now, so the account is a foundation for future personal features rather than recipe sync today.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to calculator", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again.", privacy: "Your password is handled by Supabase and is not stored in DoughTools code." },
 } as const;
 
 export default function AccountPage() {
@@ -125,6 +125,29 @@ export default function AccountPage() {
       <p className="mt-5 rounded-2xl bg-white/65 p-4 text-xs leading-5 text-ink/50">
         This is the foundation for personalized guidance. More pages will use this preference in future updates.
         For now it is stored locally on this device and is not synced to your account.
+      </p>
+    </section>
+    <section className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="account-recipes-heading">
+      <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Saved recipe value</p>
+      <h2 id="account-recipes-heading" className="mt-2 font-display text-3xl font-semibold">Save recipes to make progress repeatable.</h2>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">
+        DoughTools is local-first today. Saved recipes and local bake notes stay in this browser on this device unless a future account-sync feature is added separately.
+        Clearing browser site data or using another device can remove or hide local recipes.
+      </p>
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {[
+          { title: "Beginner", text: "Save the recipe that worked so you can repeat it without rebuilding every setting." },
+          { title: "Enthusiast", text: "Use saved recipes to compare fermentation, flour, hydration and results across pizza nights." },
+          { title: "Pizza Nerd", text: "Preserve variables for controlled testing, troubleshooting and future bake notes." },
+        ].map((item) => (
+          <article key={item.title} className="rounded-2xl border border-ink/10 bg-cream/60 p-4">
+            <h3 className="text-sm font-extrabold text-ink">{item.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink/55">{item.text}</p>
+          </article>
+        ))}
+      </div>
+      <p className="mt-5 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">
+        Account sign-in currently handles authentication only. It does not upload saved recipes, local BakeResults or Journal photos to Supabase.
       </p>
     </section>
     <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>

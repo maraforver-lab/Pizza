@@ -21,6 +21,8 @@ Automated tests mock `localStorage` and verify:
 
 The storage loader currently performs permissive parsing. It does not migrate or validate every nested property. Patch 02 documents this behavior without changing it.
 
+Patch 29 improves the value copy and workflow links around saved recipes, but it does not change this storage key, saved recipe object shape, loader behavior or deletion behavior.
+
 ## Shared recipe URLs
 
 Shared recipe URLs are covered by tests for:

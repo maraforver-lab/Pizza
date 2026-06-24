@@ -34,7 +34,7 @@ import { createBakeResult, createBakingSnapshot, createRecipeSnapshot, createRes
 import { homepageContent, type HomepageTool } from "@/lib/homepage";
 import { addLocalBakeResult, BAKE_RESULTS_LOCAL_ONLY_COPY } from "@/lib/local-bake-results";
 import { defaultPizzaStyleId, pizzaStyleById, type PizzaStyleId } from "@/lib/pizza-styles";
-import { getRecipeWorkflowHandoff } from "@/lib/recipe-workflow";
+import { getRecipeWorkflowHandoff, recipeWorkflowQueryHref } from "@/lib/recipe-workflow";
 
 type Locale = "en" | "fi" | "sv";
 
@@ -45,6 +45,12 @@ const fermentationOptions: { value: Fermentation; hours: number; temperature: nu
   { value: "24h-cold", hours: 24, temperature: 4 },
   { value: "48h-cold", hours: 48, temperature: 4 },
 ];
+
+const saveRecipeValueByLevel: Record<ExperienceLevel, string> = {
+  beginner: "Beginner: save the recipe you used so you can make the same pizza again without remembering every number.",
+  enthusiast: "Enthusiast: save repeatable setups so you can compare flour, hydration, fermentation and bake results over time.",
+  pizza_nerd: "Pizza Nerd: preserve the variables for controlled testing, repeatability and later troubleshooting.",
+};
 
 const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"];
 
@@ -85,7 +91,7 @@ const copy = {
       "24h-cold": ["24 h in the fridge", "About 4 °C"], "48h-cold": ["48 h in the fridge", "About 4 °C"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
-    saveRecipe: "Save recipe", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Open", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", saveBake: "Save this bake", bakeSaved: "Bake result saved locally", bakeRating: "Overall rating", bakeTimeSeconds: "Bake time", bakeOvenTemp: "Oven temperature", privateBakeNote: "Private note", privateBakePlaceholder: "What happened in the oven?", savedBakesLink: "View saved bakes", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
+    saveRecipe: "Save recipe", saveRecipeValueTitle: "Save the setup that worked", saveRecipeValueIntro: "A saved recipe keeps the exact calculator settings so you can repeat it, plan it again, troubleshoot it later or compare the next bake.", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Use again", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", savedRecipeLocal: "Saved locally in this browser. Use it again or send the same setup into another DoughTools step.", savedRecipeNextActions: "Next actions", savedRecipePlanner: "Planner", savedRecipeSauce: "Sauce", savedRecipeToppings: "Toppings", savedRecipeTimer: "Timer", savedRecipeDoctor: "Dough Doctor", savedRecipeJournal: "Journal note", saveBake: "Save this bake", bakeSaved: "Bake result saved locally", bakeRating: "Overall rating", bakeTimeSeconds: "Bake time", bakeOvenTemp: "Oven temperature", privateBakeNote: "Private note", privateBakePlaceholder: "What happened in the oven?", savedBakesLink: "View saved bakes", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
     instructionsTitle: "Plan fermentation next", instructionsIntro: "Your dough numbers are ready. Open the planner for step-by-step instructions and exact clock times.", openPlan: "Open Fermentation Planner", startClock: "Start now or choose your desired baking time.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
@@ -834,6 +840,11 @@ export default function Home() {
               </div>
               <div className="mt-6 border-t border-white/10 pt-5">
                 {recipeNotice && <p className="mb-3 rounded-xl bg-leaf/30 px-3 py-2 text-xs font-bold text-white/80">{recipeNotice}</p>}
+                <div className="mb-3 rounded-2xl border border-white/10 bg-white/[.04] p-3">
+                  <h3 className="text-sm font-extrabold text-white">{t.saveRecipeValueTitle}</h3>
+                  <p className="mt-1 text-[11px] leading-5 text-white/55">{t.saveRecipeValueIntro}</p>
+                  <p className="mt-2 text-[11px] leading-5 text-[#e8c98a]">{saveRecipeValueByLevel[experienceLevel]}</p>
+                </div>
                 {showSaveForm ? (
                   <div>
                     <label htmlFor="recipe-name" className="mb-2 block text-xs font-bold text-white/60">{t.recipeName}</label>
@@ -929,16 +940,39 @@ export default function Home() {
           <div className="flex items-center justify-between gap-4"><h2 className="font-display text-3xl font-semibold">{t.myRecipes}</h2><span className="grid h-8 min-w-8 place-items-center rounded-full bg-ink px-2 text-xs font-extrabold text-white">{savedRecipes.length}</span></div>
           {savedRecipes.length === 0 ? <p className="mt-4 rounded-2xl border border-dashed border-ink/15 px-4 py-6 text-center text-sm text-ink/45">{t.noRecipes}</p> : (
             <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {savedRecipes.map((savedRecipe) => (
+              {savedRecipes.map((savedRecipe) => {
+                const savedRecipeQuery = recipeParams(savedRecipe.settings).toString();
+                const savedRecipeActions = [
+                  { label: t.savedRecipePlanner, href: recipeWorkflowQueryHref("/plan", savedRecipeQuery) },
+                  { label: t.savedRecipeSauce, href: recipeWorkflowQueryHref("/sauce", savedRecipeQuery) },
+                  { label: t.savedRecipeToppings, href: recipeWorkflowQueryHref("/toppings", savedRecipeQuery) },
+                  { label: t.savedRecipeTimer, href: recipeWorkflowQueryHref("/timer", savedRecipeQuery) },
+                  { label: t.savedRecipeDoctor, href: recipeWorkflowQueryHref("/doctor", savedRecipeQuery) },
+                  { label: t.savedRecipeJournal, href: recipeWorkflowQueryHref("/journal", savedRecipeQuery) },
+                ];
+
+                return (
                 <article key={savedRecipe.id} className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
                   <div className="relative aspect-[2/1] bg-ink/5"><Image src={pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).image} alt={pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover"/><span className="absolute bottom-3 left-3 rounded-full bg-ink/85 px-3 py-1.5 text-[10px] font-extrabold text-white">{pizzaStyleById(savedRecipe.settings.pizzaStyleId, savedRecipe.settings.goal).nameEn}</span></div>
                   <div className="p-4">
                   <div className="flex items-start justify-between gap-3"><div><h3 className="font-display text-xl font-semibold">{savedRecipe.name}</h3><p className="mt-1 text-[10px] font-semibold text-ink/40">{t.savedOn} {new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(savedRecipe.createdAt))}</p></div><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{Math.round(savedRecipe.ingredients.total)} g</span></div>
                   <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs"><span className="text-ink/45">{t.pizzas}</span><strong className="text-right">{savedRecipe.settings.pizzas} × {savedRecipe.settings.ballWeight} g</strong><span className="text-ink/45">{t.hydration}</span><strong className="text-right">{savedRecipe.settings.hydration} %</strong><span className="text-ink/45">{t.fermentation}</span><strong className="text-right">{t.ferment[savedRecipe.settings.fermentation][0]}</strong><span className="text-ink/45">{t.flourChoice}</span><strong className="truncate text-right">{flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").brand} {flourById(savedRecipe.settings.flourId ?? "caputo-pizzeria").name}</strong><span className="text-ink/45">{t.yeastType}</span><strong className="truncate text-right">{t.yeasts[savedRecipe.settings.yeastType][1]}</strong></div>
+                  <p className="mt-4 rounded-xl bg-cream/70 p-3 text-[11px] leading-5 text-ink/55">{t.savedRecipeLocal}</p>
                   <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" onClick={() => openSavedRecipe(savedRecipe)} className="rounded-xl bg-ink px-3 py-2.5 text-xs font-bold text-white">{t.openRecipe}</button><button type="button" onClick={() => deleteSavedRecipe(savedRecipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-bold text-tomato">{t.deleteRecipe}</button></div>
+                  <div className="mt-4 border-t border-ink/10 pt-4">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/35">{t.savedRecipeNextActions}</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {savedRecipeActions.map((action) => (
+                        <Link key={action.href} href={action.href} className="rounded-xl border border-ink/10 bg-white px-3 py-2.5 text-center text-[11px] font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                          {action.label} →
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

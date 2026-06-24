@@ -39,6 +39,34 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "saved-recipe-account-value-ux-2026-06-25",
+    title: "Saved recipe and account value UX",
+    date: "2026-06-25",
+    summary:
+      "Saved recipes now explain their value more clearly and account copy is more honest about local browser storage.",
+    category: "Product",
+    highlights: [
+      "Recipe result area explains why saving a recipe helps",
+      "Saved recipe cards expose next actions for Planner, Sauce, Toppings, Timer, Dough Doctor and Journal",
+      "Account page explains the current local-first storage model",
+      "Beginner, Enthusiast and Pizza Nerd saved-recipe guidance is clearer",
+      "No formulas, account sync, storage format, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 29 clarifies that a saved recipe preserves the exact calculator setup for reuse, planning, troubleshooting and comparison.",
+      "Saved recipe cards now make the existing workflow easier to continue from a saved setup without changing the saved recipe data model.",
+      "Account copy now states that saved recipes, local BakeResults and Journal photos remain browser-local for now.",
+    ],
+    userImpact:
+      "Users can better understand why saving a recipe matters and can reuse a successful setup across the DoughTools workflow.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, planner timing logic, Dough Doctor diagnosis logic, saved recipe storage format, Journal IndexedDB, Supabase behavior, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [29],
+    relatedPatchNumbers: [12, 16, 19, 28, 29],
+    href: "/updates",
+  },
+  {
     id: "core-recipe-workflow-handoff-2026-06-24",
     title: "Core recipe workflow handoff",
     date: "2026-06-24",
@@ -898,6 +926,29 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users can understand what to do after getting a recipe instead of stopping at the ingredient numbers.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipes, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 29,
+    title: "Saved recipe and account value UX",
+    category: "Product",
+    summary:
+      "Saved recipes became more clearly connected to repeatability, workflow handoff and account expectations.",
+    highlights: [
+      "Calculator result area explains why saving a recipe helps",
+      "Saved recipes now surface Planner, Sauce, Toppings, Timer, Dough Doctor and Journal next actions",
+      "Account page explains browser-local recipe storage more honestly",
+      "Beginner, Enthusiast and Pizza Nerd saved-recipe copy is more useful",
+      "No account recipe sync or storage migration was added",
+    ],
+    details: [
+      "Patch 29 builds on Patch 28 by making saved recipes part of the practical workflow rather than a passive list.",
+      "Saved recipe cards now use existing recipe query helpers to preserve recipe context when opening supported tools.",
+      "Account copy now makes clear that saved recipes, local BakeResults and Journal photos are local to the browser for now.",
+    ],
+    userImpact:
+      "Users can repeat recipes that worked, compare changes over time and understand what account sign-in does and does not store today.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, planner timing logic, Dough Doctor diagnosis logic, saved recipe storage format, Journal IndexedDB, Supabase behavior, analytics, payments, security headers or SEO indexing permissions.",
   },
 ];
 
