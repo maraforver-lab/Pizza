@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import AppSignature from "@/components/AppSignature";
+import InstallAppPrompt from "@/components/InstallAppPrompt";
 import {
   EXPERIENCE_LEVELS,
   getExperienceLevelConfig,
@@ -150,6 +151,7 @@ export default function AccountPage() {
         Account sign-in currently handles authentication only. It does not upload saved recipes, local BakeResults or Journal photos to Supabase.
       </p>
     </section>
+    <InstallAppPrompt className="mt-8" />
     <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;
 }

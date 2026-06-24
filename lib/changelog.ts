@@ -39,6 +39,34 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "install-add-to-home-screen-2026-06-25",
+    title: "Install DoughTools / Add to Home Screen",
+    date: "2026-06-25",
+    summary:
+      "DoughTools now gives users a clearer way to install the site or add it to their home screen.",
+    category: "Product",
+    highlights: [
+      "Install and Add to Home Screen guidance added",
+      "Web app manifest reviewed and improved",
+      "Supported browsers can show an install prompt",
+      "iOS and unsupported browsers get manual home-screen instructions",
+      "No tracking, push notifications, offline mode or Google indexing added",
+    ],
+    details: [
+      "Patch 30 adds a small install experience so users can keep DoughTools easier to access while planning and baking pizza.",
+      "The feature uses browser-supported install behavior where available and shows honest fallback instructions elsewhere.",
+      "The update keeps the existing local-first workflow and does not change calculations, saved recipes or account behavior.",
+    ],
+    userImpact:
+      "Users can return to DoughTools more easily from their phone or desktop without searching for the site again.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [30],
+    relatedPatchNumbers: [27, 29, 30],
+    href: "/updates",
+  },
+  {
     id: "saved-recipe-account-value-ux-2026-06-25",
     title: "Saved recipe and account value UX",
     date: "2026-06-25",
@@ -949,6 +977,29 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users can repeat recipes that worked, compare changes over time and understand what account sign-in does and does not store today.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, planner timing logic, Dough Doctor diagnosis logic, saved recipe storage format, Journal IndexedDB, Supabase behavior, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 30,
+    title: "Install DoughTools / Add to Home Screen",
+    category: "Product",
+    summary:
+      "DoughTools now offers a clearer install and home-screen path for quicker access while cooking.",
+    highlights: [
+      "Install/Add to Home Screen guidance added",
+      "Manifest name, scope and description were reviewed",
+      "Supported browsers can use the browser install prompt",
+      "iOS and unsupported browsers get manual Share → Add to Home Screen instructions",
+      "No tracking, push notifications, offline mode or indexing change was added",
+    ],
+    details: [
+      "Patch 30 adds a small install card on the homepage and account page without interrupting the calculator workflow.",
+      "The install component stores the browser install prompt only in component state and never tracks the user's choice.",
+      "The fallback copy explains manual home-screen installation honestly instead of promising automatic installation.",
+    ],
+    userImpact:
+      "Users can keep DoughTools easier to reach on a phone or desktop while recipes, saved bakes and account behavior stay local-first.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, calculator progressive disclosure, core recipe workflow handoff, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
 ];
 

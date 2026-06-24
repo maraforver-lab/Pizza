@@ -6,6 +6,7 @@ import Image from "next/image";
 import AppSignature from "@/components/AppSignature";
 import EditableNumberInput from "@/components/EditableNumberInput";
 import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
+import InstallAppPrompt from "@/components/InstallAppPrompt";
 import {
   loadSavedRecipes,
   newRecipeId,
@@ -595,6 +596,8 @@ export default function Home() {
             </article>
           ))}
         </section>
+
+        <InstallAppPrompt compact className="mb-7" />
 
         <section className="mb-7 max-w-2xl sm:mb-10" aria-labelledby="calculator-intro">
           <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p>

@@ -2,10 +2,11 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "DoughTools Pizza Dough Calculator",
+    name: "DoughTools",
     short_name: "DoughTools",
-    description: "Calculate a balanced pizza dough recipe in seconds.",
+    description: "Practical pizza-making workspace for dough, planning, baking and improvement.",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#f6f3ea",
     theme_color: "#f6f3ea",
