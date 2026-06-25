@@ -7,31 +7,23 @@ import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
   type PizzaSession,
   type PizzaSessionShoppingItem,
-  pizzaSessionRecipeQuery,
 } from "@/lib/pizza-session";
 import {
+  getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import {
-  pizzaSessionPresets,
   getPizzaSessionPreset,
   findPizzaSessionPreset,
+  pizzaSessionPresets,
   type PizzaPresetId,
 } from "@/lib/pizza-session-presets";
 import {
-  formatShoppingListPlainText,
   generateAndSaveActiveShoppingList,
   generatePizzaSessionShoppingList,
   SHOPPING_LIST_LOCAL_ONLY_COPY,
   updateShoppingItemStatus,
-  type ShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
-
-const statusOptions: Array<{ value: ShoppingItemStatus; label: string }> = [
-  { value: "need_to_buy", label: "Need to buy" },
-  { value: "already_have", label: "Already have" },
-  { value: "bought", label: "Bought" },
-];
 
 function formatSessionTime(value?: string) {
   if (!value) return "Target time not set";
@@ -41,79 +33,71 @@ function formatSessionTime(value?: string) {
     weekday: "short",
     day: "numeric",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
 }
 
-function statusClass(status: PizzaSessionShoppingItem["status"], selected: boolean) {
-  if (!selected) return "border-ink/10 bg-white text-ink/45";
-  if (status === "bought") return "border-leaf/30 bg-leaf/10 text-leaf";
-  if (status === "already_have") return "border-[#e8c98a]/40 bg-[#e8c98a]/20 text-ink";
-  return "border-tomato/35 bg-tomato/10 text-tomato";
+function isItemReady(status: PizzaSessionShoppingItem["status"]) {
+  return status === "already_have" || status === "bought";
 }
 
-function presetCopy(session: PizzaSession, presetId: string) {
-  const preset = getPizzaSessionPreset(presetId);
-  if (session.experienceLevel === "pizza_nerd") return preset.pizzaNerdCopy;
-  if (session.experienceLevel === "enthusiast") return preset.enthusiastCopy;
-  return preset.beginnerCopy;
+function sectionLabel(group: string) {
+  if (group === "Dough") return "Dough essentials";
+  if (group === "Sauce") return "Sauce";
+  if (group === "Cheese") return "Cheese";
+  if (group === "Toppings") return "Toppings";
+  if (group === "Gear") return "Optional gear";
+  return group;
+}
+
+function selectedPresetId(session: PizzaSession | null): PizzaPresetId {
+  return (
+    findPizzaSessionPreset(session?.shoppingList?.presetId)?.id
+    ?? findPizzaSessionPreset(session?.pizzaPreset)?.id
+    ?? pizzaSessionPresets[0].id
+  );
 }
 
 export default function SessionShoppingPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
-  const [selectedPresetId, setSelectedPresetId] = useState<PizzaPresetId>(pizzaSessionPresets[0].id);
+  const [presetId, setPresetId] = useState<PizzaPresetId>(pizzaSessionPresets[0].id);
   const [missingReason, setMissingReason] = useState<string | null>(null);
-  const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    const { session: updatedSession, result } = generateAndSaveActiveShoppingList();
-    setSession(updatedSession ?? null);
-    setSelectedPresetId(findPizzaSessionPreset(updatedSession?.shoppingList?.presetId)?.id ?? pizzaSessionPresets[0].id);
+    const initialSession = getActivePizzaSession();
+    const resolvedPreset = selectedPresetId(initialSession ?? null);
+    const { session: updatedSession, result } = generateAndSaveActiveShoppingList(resolvedPreset);
+    setSession(updatedSession ?? initialSession ?? null);
+    setPresetId(resolvedPreset);
     setMissingReason(result.ok ? null : result.missingReason);
     setReady(true);
   }, []);
 
   const generationResult = useMemo(
-    () => generatePizzaSessionShoppingList(session ?? undefined, selectedPresetId),
-    [session, selectedPresetId],
+    () => generatePizzaSessionShoppingList(session ?? undefined, presetId),
+    [session, presetId],
   );
-  const shoppingList = session?.shoppingList?.presetId === selectedPresetId
+  const shoppingList = session?.shoppingList?.presetId === presetId
     ? session.shoppingList
     : generationResult.ok
       ? generationResult.shoppingList
       : undefined;
-  const selectedPreset = getPizzaSessionPreset(selectedPresetId);
-  const recipeQuery = session ? pizzaSessionRecipeQuery(session) : "";
-  const sauceHref = recipeQuery ? `/sauce?${recipeQuery}` : "/sauce";
-  const toppingsHref = recipeQuery ? `/toppings?${recipeQuery}` : "/toppings";
+  const preset = getPizzaSessionPreset(presetId);
+  const pizzaCount = session?.pizzaCount ?? shoppingList?.pizzaCount ?? session?.recipeSnapshot?.balls;
+  const targetTime = session?.targetEatTime ?? session?.targetBakeTime;
 
-  const choosePreset = (presetId: PizzaPresetId) => {
-    const { session: updatedSession, result } = generateAndSaveActiveShoppingList(presetId);
-    setSelectedPresetId(presetId);
-    setSession(updatedSession ?? session);
-    setMissingReason(result.ok ? null : result.missingReason);
-  };
-
-  const changeStatus = (itemId: string, status: ShoppingItemStatus) => {
+  const toggleReady = (item: PizzaSessionShoppingItem) => {
     if (!session) return;
-    const updated = updateShoppingItemStatus(session, itemId, status);
+    const updated = updateShoppingItemStatus(
+      session,
+      item.id,
+      isItemReady(item.status) ? "need_to_buy" : "already_have",
+    );
     if (updated) setSession(updated);
-  };
-
-  const copyShoppingList = async () => {
-    if (!session || !shoppingList || typeof navigator === "undefined" || !navigator.clipboard) {
-      setCopyMessage("Copy is not available in this browser.");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(formatShoppingListPlainText(session, shoppingList));
-      setCopyMessage("Shopping list copied as plain text.");
-    } catch {
-      setCopyMessage("Copy failed. You can still read the list here.");
-    }
   };
 
   if (!ready) {
@@ -165,145 +149,91 @@ export default function SessionShoppingPage() {
 
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
         <section
           aria-labelledby="session-shopping-heading"
-          className="grid gap-5 rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end"
+          className="rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8"
         >
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session shopping</p>
-            <h1 id="session-shopping-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Build your shopping list</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
-              Choose a pizza preset and turn your active session into a practical shopping list. This is local-first:
-              no cloud sync, tracking or public sharing is active.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <GuidanceModeBadge level={session.experienceLevel} />
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                {session.pizzaCount ?? shoppingList?.pizzaCount ?? 0} pizzas
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                {formatSessionTime(session.targetEatTime)}
-              </span>
-            </div>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-72 lg:grid-cols-1">
-            <button
-              type="button"
-              onClick={copyShoppingList}
-              className="min-h-12 rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-            >
-              Copy shopping list
-            </button>
-            <Link
-              href="/session/kitchen"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-            >
-              Open Kitchen Mode →
-            </Link>
-            <Link
-              href="/session/timeline"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-            >
-              Back to timeline →
-            </Link>
-          </div>
-        </section>
-
-        {copyMessage && (
-          <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status">
-            {copyMessage}
+          <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza session shopping</p>
+          <h1 id="session-shopping-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your shopping list</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70">
+            Everything you need for {pizzaCount ?? shoppingList?.pizzaCount ?? "your"} pizzas.
           </p>
-        )}
-
-        <section className="mt-6 grid gap-5 lg:grid-cols-[22rem_1fr]">
-          <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Choose pizza preset</p>
-            <div className="mt-4 grid gap-3">
-              {pizzaSessionPresets.map((preset) => {
-                const selected = preset.id === selectedPresetId;
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => choosePreset(preset.id)}
-                    aria-pressed={selected}
-                    className={`rounded-[1.25rem] border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${selected ? "border-tomato bg-tomato/10 text-ink shadow-sm" : "border-ink/10 bg-white text-ink/70 hover:border-tomato/40"}`}
-                  >
-                    <span className="block text-lg font-extrabold">{preset.marker} {preset.name}</span>
-                    <span className="mt-1 block text-sm leading-5 text-ink/55">{preset.shortDescription}</span>
-                    {selected && <span className="mt-2 block text-xs font-extrabold text-tomato">Selected</span>}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-5 rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/60">
-              <strong className="text-ink">Why this preset:</strong> {selectedPreset.bestFor}
-              <br />
-              <span>{presetCopy(session, selectedPresetId)}</span>
-            </div>
-            <p className="mt-4 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
-              {SHOPPING_LIST_LOCAL_ONLY_COPY} No custom ingredient editor, cloud sync or public sharing is active yet.
-            </p>
-            <div className="mt-4 grid gap-2">
-              <Link href="/session/recipe" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Review dough plan →
-              </Link>
-              <Link href="/session/kitchen" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open Kitchen Mode →
-              </Link>
-              <Link href={sauceHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open Sauce tool →
-              </Link>
-              <Link href={toppingsHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open Toppings tool →
-              </Link>
-            </div>
-          </aside>
-
-          <section className="grid min-w-0 gap-4" aria-label="Grouped shopping list">
-            {shoppingList?.groups.map((group) => (
-              <article key={group.group} className="rounded-[1.5rem] border border-white/80 bg-white/80 p-5 shadow-sm">
-                <h2 className="font-display text-3xl font-semibold">{group.group === "Gear" ? "Optional gear" : group.group}</h2>
-                <div className="mt-4 grid gap-3">
-                  {group.items.map((item) => (
-                    <div key={item.id} className="rounded-[1.25rem] bg-cream p-4">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div className="min-w-0">
-                          <h3 className="text-lg font-extrabold">{item.label}</h3>
-                          {item.amount && <p className="mt-1 text-sm leading-5 text-ink/55">{item.amount}</p>}
-                        </div>
-                        <div className="grid gap-2 sm:grid-cols-3 md:min-w-[24rem]">
-                          {statusOptions.map((option) => {
-                            const selected = item.status === option.value;
-                            return (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => changeStatus(item.id, option.value)}
-                                aria-pressed={selected}
-                                className={`min-h-11 rounded-2xl border px-3 text-xs font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${statusClass(option.value, selected)}`}
-                              >
-                                {option.label}
-                                {selected && <span className="sr-only"> selected</span>}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </section>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <GuidanceModeBadge level={session.experienceLevel} />
+            <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
+              {pizzaCount ?? shoppingList?.pizzaCount ?? 0} pizzas
+            </span>
+            <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
+              {formatSessionTime(targetTime)}
+            </span>
+          </div>
         </section>
 
-        <section className="mt-8 rounded-[1.5rem] border border-ink/10 bg-white/70 p-5">
-          <h2 className="font-display text-2xl font-semibold">What this list does not do yet</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/60">
-            Patch 34 intentionally avoids free-text ingredient editing and exact topping formulas. Use Sauce and Toppings
-            tools for more detailed prep decisions, especially moisture and topping-load checks.
+        <section className="mt-6 overflow-hidden rounded-[2rem] border border-white/80 bg-white/85 shadow-card" aria-label="Grouped shopping list">
+          <div className="border-b border-ink/10 p-5">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{preset.name}</p>
+            <h2 className="mt-2 font-display text-3xl font-semibold">Check what you already have.</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              Mark items as Have when they are ready. Unchecked items stay marked as Need.
+            </p>
+          </div>
+          {shoppingList?.groups.map((group) => (
+            <section key={group.group} className="border-b border-ink/10 last:border-b-0">
+              <div className="flex items-center justify-between gap-4 px-5 py-4">
+                <h3 className="text-sm font-extrabold uppercase tracking-[.14em] text-ink/70">{sectionLabel(group.group)}</h3>
+                <span className="text-sm font-bold text-ink/45">{group.items.length} {group.items.length === 1 ? "item" : "items"}</span>
+              </div>
+              <div className="divide-y divide-ink/10">
+                {group.items.map((item) => {
+                  const readyItem = isItemReady(item.status);
+                  return (
+                    <label
+                      key={item.id}
+                      className="grid cursor-pointer grid-cols-[1fr_auto] gap-4 px-5 py-4 transition hover:bg-cream/70 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,auto)_5rem_auto] sm:items-center"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-sm font-extrabold text-ink">{item.label}</span>
+                        {item.amount && <span className="mt-1 block text-sm leading-5 text-ink/50 sm:hidden">{item.amount}</span>}
+                      </span>
+                      {item.amount && <span className="hidden text-sm font-bold text-ink/55 sm:block">{item.amount}</span>}
+                      <span className={`text-sm font-extrabold ${readyItem ? "text-leaf" : "text-tomato"}`}>
+                        {readyItem ? "Have" : "Need"}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={readyItem}
+                        onChange={() => toggleReady(item)}
+                        aria-label={`Mark ${item.label} as ${readyItem ? "needed" : "ready"}`}
+                        className="h-6 w-6 rounded-md border-ink/20 text-leaf focus:ring-2 focus:ring-tomato"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </section>
+
+        <section className="mt-6 grid gap-3">
+          <Link
+            href="/session/kitchen"
+            className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-5 text-base font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            Next →
+          </Link>
+          <Link
+            href="/session/timeline"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            Back
+          </Link>
+          <div className="rounded-2xl bg-leaf/10 p-5">
+            <h2 className="text-base font-extrabold text-leaf">Next up: Kitchen Mode</h2>
+            <p className="mt-1 text-sm leading-6 text-ink/60">You’ll cook your pizzas step by step.</p>
+          </div>
+          <p className="rounded-2xl bg-white/75 p-4 text-xs leading-5 text-ink/50">
+            {SHOPPING_LIST_LOCAL_ONLY_COPY} No cloud sync, tracking, public sharing or account sync is active.
           </p>
         </section>
 

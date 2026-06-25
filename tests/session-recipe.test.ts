@@ -251,7 +251,7 @@ describe("Session recipe build step", () => {
     expect(startPage).not.toContain("What pizza do you want to make?");
     expect(startPage).not.toContain("Later planner patches can turn this into a full timeline");
     expect(timelinePage).toContain("Review dough plan");
-    expect(shoppingPage).toContain("Review dough plan");
+    expect(shoppingPage).not.toContain("Review dough plan");
     expect(timelinePage).toContain("/session/kitchen");
     expect(shoppingPage).toContain("/session/kitchen");
     expect(recipePage).toContain("sessionRecipeQuery");

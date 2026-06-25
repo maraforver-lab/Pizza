@@ -156,16 +156,57 @@ describe("Pizza Session shopping list presets", () => {
     const timeline = source("app/session/timeline/page.tsx");
     const start = source("app/session/start/page.tsx");
 
-    expect(page).toContain("Build your shopping list");
-    expect(page).toContain("Copy shopping list");
-    expect(page).toContain("Open Sauce tool");
-    expect(page).toContain("Open Toppings tool");
-    expect(page).toContain("No custom ingredient editor");
+    expect(page).toContain("Your shopping list");
+    expect(page).toContain("Everything you need for");
+    expect(page).toContain("Next →");
+    expect(page).toContain("Back");
+    expect(page).toContain("Next up: Kitchen Mode");
+    expect(page).toContain("You’ll cook your pizzas step by step.");
     expect(page).toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
-    expect(page).not.toMatch(/textarea|contentEditable|public link|upload photo|cloud sync is active/i);
+    expect(page).not.toMatch(/textarea|contentEditable|public link|upload photo|cloud sync is active|Copy shopping list|Open Sauce tool|Open Toppings tool|Back to timeline|Review dough plan/i);
     expect(timeline).toContain("/session/shopping");
     expect(start).toContain("Build my dough plan");
     expect(start).not.toContain("Shopping list →");
+  });
+
+  it("renders the shopping page as a simple grouped Need/Have checklist", () => {
+    const page = source("app/session/shopping/page.tsx");
+
+    expect(page).toContain("Dough essentials");
+    expect(page).toContain("Sauce");
+    expect(page).toContain("Cheese");
+    expect(page).toContain("Toppings");
+    expect(page).toContain("{item.label}");
+    expect(page).toContain("{item.amount}");
+    expect(page).toContain("Need");
+    expect(page).toContain("Have");
+    expect(page).toContain("type=\"checkbox\"");
+    expect(page).toContain("checked={readyItem}");
+    expect(page).toContain("isItemReady(item.status) ? \"need_to_buy\" : \"already_have\"");
+    expect(page).toContain("status === \"already_have\" || status === \"bought\"");
+  });
+
+  it("keeps the shopping hero focused by removing competing prominent actions", () => {
+    const page = source("app/session/shopping/page.tsx");
+
+    expect(page).toContain("Pizza session shopping");
+    expect(page).toContain("GuidanceModeBadge");
+    expect(page).toContain("formatSessionTime(targetTime)");
+    expect(page).toContain("year: \"numeric\"");
+    expect(page).not.toContain("copyShoppingList");
+    expect(page).not.toContain("formatShoppingListPlainText");
+    expect(page).not.toContain("Open Kitchen Mode →");
+    expect(page).not.toContain("Back to timeline →");
+    expect(page).not.toContain("Review dough plan →");
+  });
+
+  it("keeps active session preset compatibility when generating the list", () => {
+    const page = source("app/session/shopping/page.tsx");
+
+    expect(page).toContain("getActivePizzaSession");
+    expect(page).toContain("findPizzaSessionPreset(session?.shoppingList?.presetId)?.id");
+    expect(page).toContain("findPizzaSessionPreset(session?.pizzaPreset)?.id");
+    expect(page).toContain("generateAndSaveActiveShoppingList(resolvedPreset)");
   });
 
   it("documents Patch 34 shopping behavior and adds changelog history", () => {
