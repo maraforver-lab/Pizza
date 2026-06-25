@@ -52,6 +52,27 @@ function statusClass(status: "next" | "target" | PizzaSessionTimelineStep["statu
   return "bg-cream text-ink/55 ring-ink/10";
 }
 
+function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {
+  if (!step) return false;
+  return [
+    "mix-dough",
+    "rest-dough",
+    "cold-ferment",
+    "ball-dough",
+    "room-temperature-rest",
+  ].includes(step.id);
+}
+
+function isServiceTimelineStep(step?: PizzaSessionTimelineStep) {
+  if (!step) return false;
+  return [
+    "preheat-oven",
+    "prepare-sauce-toppings",
+    "bake-pizza",
+    "review-result",
+  ].includes(step.id);
+}
+
 function statusLabel(step: PizzaSessionTimelineStep, nextStep?: PizzaSessionTimelineStep) {
   if (step.id === nextStep?.id) return "Next";
   if (step.status === "done") return "Done";
@@ -98,6 +119,15 @@ function formatYeastType(session: PizzaSession) {
   return session.recipeSnapshot?.yeastType?.toUpperCase() ?? "Not set";
 }
 
+type ShoppingCheckpointState = "Upcoming" | "Next" | "Done";
+
+function shoppingCheckpointState(session: PizzaSession | null, nextStep?: PizzaSessionTimelineStep): ShoppingCheckpointState {
+  if (session?.shoppingList) return "Done";
+  if (isDoughTimelineStep(nextStep)) return "Upcoming";
+  if (isServiceTimelineStep(nextStep) || !nextStep) return "Next";
+  return "Upcoming";
+}
+
 export default function SessionTimelinePage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -117,6 +147,8 @@ export default function SessionTimelinePage() {
   const targetTime = timeline?.targetEatTime ?? session?.targetEatTime ?? session?.targetBakeTime;
   const allStepsComplete = Boolean(timeline?.steps.length) && timeline?.steps.every((step) => step.status === "done");
   const preset = session ? getPizzaSessionPreset(session.pizzaPreset) : undefined;
+  const checkpointState = shoppingCheckpointState(session, nextStep);
+  const shoppingIsNext = checkpointState === "Next";
 
   const markDone = (stepId: string) => {
     if (!session) return;
@@ -197,7 +229,13 @@ export default function SessionTimelinePage() {
           </div>
           <div className="grid gap-3 lg:min-w-80">
             <div className="rounded-3xl bg-white/95 p-5 text-ink shadow-sm">
-              {nextStep ? (
+              {shoppingIsNext ? (
+                <>
+                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Next step</p>
+                  <h2 className="mt-2 font-display text-2xl font-semibold">Next step: Get pizza ingredients</h2>
+                  <p className="mt-1 text-sm font-extrabold text-ink/55">Check sauce, cheese and toppings before baking.</p>
+                </>
+              ) : nextStep ? (
                 <>
                   <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Next step</p>
                   <h2 className="mt-2 font-display text-2xl font-semibold">Next step: {nextStep.label}</h2>
@@ -212,10 +250,10 @@ export default function SessionTimelinePage() {
               )}
             </div>
             <Link
-              href="/session/kitchen"
+              href={shoppingIsNext ? "/session/shopping" : "/session/kitchen"}
               className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-leaf px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
             >
-              Open Kitchen Mode →
+              {shoppingIsNext ? "Open shopping list →" : "Open Kitchen Mode →"}
             </Link>
             <Link
               href="/session/recipe"
@@ -273,49 +311,82 @@ export default function SessionTimelinePage() {
 
           <section className="grid min-w-0 gap-3" aria-label="Pizza timeline steps">
             {timeline.steps.map((step, index) => (
-              <article
-                key={step.id}
-                className={`rounded-[1.5rem] border p-5 shadow-sm ${
-                  step.id === nextStep?.id
-                    ? "border-leaf/30 bg-leaf/[.08]"
-                    : step.id === "bake-pizza"
-                      ? "border-tomato/20 bg-tomato/[.05]"
-                      : "border-white/80 bg-white/80"
-                }`}
-              >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
-                      Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
-                    </p>
-                    <h3 className="mt-2 font-display text-2xl font-semibold">{step.label}</h3>
-                    <p className="mt-2 text-sm leading-6 text-ink/60">{step.description}</p>
-                    <p className="mt-3 text-sm leading-6 text-ink/65">{getTimelineNote(step, session.experienceLevel)}</p>
-                    {step.quietHoursWarning && (
-                      <p className="mt-3 rounded-2xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
-                        Quiet-hours warning: {step.quietHoursWarning}
+              <div key={step.id} className="grid gap-3">
+                {isServiceTimelineStep(step) && !isServiceTimelineStep(timeline.steps[index - 1]) && (
+                  <article
+                    className={`rounded-[1.5rem] border p-5 shadow-sm ${
+                      shoppingIsNext
+                        ? "border-leaf/30 bg-leaf/[.08]"
+                        : "border-white/80 bg-white/80"
+                    }`}
+                    aria-label="Shopping checkpoint"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
+                          Shopping checkpoint
+                        </p>
+                        <h3 className="mt-2 font-display text-2xl font-semibold">Get pizza ingredients</h3>
+                        <p className="mt-2 text-sm leading-6 text-ink/60">Check sauce, cheese and toppings before baking.</p>
+                        <p className="mt-3 text-sm leading-6 text-ink/65">You can do this while the dough is resting or fermenting.</p>
+                      </div>
+                      <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                        <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${shoppingIsNext ? "bg-leaf/10 text-leaf ring-leaf/20" : checkpointState === "Done" ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-cream text-ink/55 ring-ink/10"}`}>
+                          {checkpointState}
+                        </span>
+                        <Link
+                          href="/session/shopping"
+                          className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                        >
+                          Open shopping list →
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                )}
+                <article
+                  className={`rounded-[1.5rem] border p-5 shadow-sm ${
+                    step.id === nextStep?.id && !shoppingIsNext
+                      ? "border-leaf/30 bg-leaf/[.08]"
+                      : step.id === "bake-pizza"
+                        ? "border-tomato/20 bg-tomato/[.05]"
+                        : "border-white/80 bg-white/80"
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
+                        Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
                       </p>
-                    )}
+                      <h3 className="mt-2 font-display text-2xl font-semibold">{step.label}</h3>
+                      <p className="mt-2 text-sm leading-6 text-ink/60">{step.description}</p>
+                      <p className="mt-3 text-sm leading-6 text-ink/65">{getTimelineNote(step, session.experienceLevel)}</p>
+                      {step.quietHoursWarning && (
+                        <p className="mt-3 rounded-2xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
+                          Quiet-hours warning: {step.quietHoursWarning}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                      <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === nextStep?.id && !shoppingIsNext ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
+                        {statusLabel(step, shoppingIsNext ? undefined : nextStep)}
+                      </span>
+                      <span className="text-sm font-bold text-ink/55">
+                        {relativeFromTarget(step.scheduledAt, targetTime)}
+                      </span>
+                      {step.status === "todo" && (
+                        <button
+                          type="button"
+                          onClick={() => markDone(step.id)}
+                          className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                        >
+                          Mark done
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                    <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === nextStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
-                      {statusLabel(step, nextStep)}
-                    </span>
-                    <span className="text-sm font-bold text-ink/55">
-                      {relativeFromTarget(step.scheduledAt, targetTime)}
-                    </span>
-                    {step.status === "todo" && (
-                      <button
-                        type="button"
-                        onClick={() => markDone(step.id)}
-                        className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                      >
-                        Mark done
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </article>
+                </article>
+              </div>
             ))}
           </section>
         </section>

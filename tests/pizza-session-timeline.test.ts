@@ -55,14 +55,40 @@ describe("Pizza Session timeline", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("Next step: {nextStep.label}");
+    expect(page).toContain("Next step: Get pizza ingredients");
     expect(page).toContain("formatShortDateTime(nextStep.scheduledAt)");
-    expect(page).toContain("href=\"/session/kitchen\"");
+    expect(page).toContain("href={shoppingIsNext ? \"/session/shopping\" : \"/session/kitchen\"}");
     expect(page).toContain("Open Kitchen Mode →");
+    expect(page).toContain("Open shopping list →");
     expect(page).toContain("href=\"/session/recipe\"");
     expect(page).toContain("Review dough plan →");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("Shopping list");
     expect(page).not.toContain("recipeQuery ? `/plan?");
+  });
+
+  it("adds a shopping checkpoint before service and bake steps without changing timeline data", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("Shopping checkpoint");
+    expect(page).toContain("Get pizza ingredients");
+    expect(page).toContain("Check sauce, cheese and toppings before baking.");
+    expect(page).toContain("You can do this while the dough is resting or fermenting.");
+    expect(page).toContain("shoppingCheckpointState(session, nextStep)");
+    expect(page).toContain("isServiceTimelineStep(step) && !isServiceTimelineStep(timeline.steps[index - 1])");
+    expect(page).not.toContain("Create shopping list");
+    expect(page).not.toContain("Open full Planner");
+  });
+
+  it("allows the hero to treat shopping as the next step after dough work", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("const shoppingIsNext = checkpointState === \"Next\"");
+    expect(page).toContain("href={shoppingIsNext ? \"/session/shopping\" : \"/session/kitchen\"}");
+    expect(page).toContain("{shoppingIsNext ? \"Open shopping list →\" : \"Open Kitchen Mode →\"}");
+    expect(page).toContain("if (session?.shoppingList) return \"Done\"");
+    expect(page).toContain("if (isDoughTimelineStep(nextStep)) return \"Upcoming\"");
+    expect(page).toContain("if (isServiceTimelineStep(nextStep) || !nextStep) return \"Next\"");
   });
 
   it("shows a compact session summary without making oven a separate item", () => {
@@ -86,7 +112,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("formatShortDateTime(step.scheduledAt)");
     expect(page).toContain("{step.label}");
     expect(page).toContain("{step.description}");
-    expect(page).toContain("statusLabel(step, nextStep)");
+    expect(page).toContain("statusLabel(step, shoppingIsNext ? undefined : nextStep)");
     expect(page).toContain("relativeFromTarget(step.scheduledAt, targetTime)");
     expect(page).toContain("step.id === nextStep?.id");
   });
