@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AppSignature from "@/components/AppSignature";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
@@ -169,6 +169,7 @@ export default function StartPizzaSessionPage() {
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [step, setStep] = useState<WizardStep>("style");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const targetTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -225,7 +226,9 @@ export default function StartPizzaSessionPage() {
   const setTargetTime = (targetEatTime: string) => savePatch({ targetEatTime }, "time");
 
   const goToStep = (nextStep: WizardStep) => {
+    const targetEatTime = step === "time" ? targetTimeInputRef.current?.value ?? session?.targetEatTime : session?.targetEatTime;
     savePatch({
+      targetEatTime,
       recipeParams: nextStep === "summary" ? recipeParams : session?.recipeParams,
     }, nextStep);
     setStep(nextStep);
@@ -323,6 +326,7 @@ export default function StartPizzaSessionPage() {
             <label className="block max-w-md text-sm font-extrabold text-ink/65">
               Target eating or baking time
               <input
+                ref={targetTimeInputRef}
                 type="datetime-local"
                 value={session.targetEatTime ?? ""}
                 onChange={(event) => setTargetTime(event.target.value)}

@@ -103,6 +103,17 @@ describe("Start Pizza Session wizard", () => {
     expect(updated?.lastSavedAt).not.toBe(started.lastSavedAt);
   });
 
+  it("captures the current target time input before leaving the time step", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("useRef<HTMLInputElement>");
+    expect(page).toContain("const targetTimeInputRef");
+    expect(page).toContain("ref={targetTimeInputRef}");
+    expect(page).toContain("const targetEatTime = step === \"time\" ? targetTimeInputRef.current?.value ?? session?.targetEatTime : session?.targetEatTime");
+    expect(page).toContain("targetEatTime,");
+    expect(page).toContain("[\"Target time\", session.targetEatTime || \"Not set yet\"]");
+  });
+
   it("connects the homepage and Start Here page to the wizard without removing /start", () => {
     const startPage = source("app/start/page.tsx");
     const homepage = source("lib/homepage.ts");
