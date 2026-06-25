@@ -262,7 +262,7 @@ export default function StartPizzaSessionPage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-5 pb-28 text-ink sm:px-6 sm:py-8">
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[18rem_1fr]">
-        <aside className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur lg:sticky lg:top-6 lg:self-start">
+        <aside className="order-2 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur lg:order-1 lg:sticky lg:top-6 lg:self-start">
           <Link href="/" className="inline-flex items-center gap-3 text-sm font-extrabold" aria-label="DoughTools home">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white">○</span>
             Dough<span className="text-tomato">Tools</span>
@@ -289,7 +289,7 @@ export default function StartPizzaSessionPage() {
           </p>
         </aside>
 
-        <section className="min-w-0 rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card backdrop-blur sm:p-8" aria-live="polite">
+        <section className="order-1 min-w-0 rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card backdrop-blur sm:p-8 lg:order-2" aria-live="polite">
           <div className="mb-6 flex flex-col gap-3 border-b border-ink/10 pb-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Autosaved locally</p>
