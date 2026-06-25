@@ -83,7 +83,7 @@ describe("shared navigation model", () => {
     const makeGroup = navigationGroups.find((group) => group.id === "make");
     const primaryItem = navigationItems.find((item) => item.id === primaryNavigationItemId);
 
-    expect(primaryItem?.href).toBe("/");
+    expect(primaryItem?.href).toBe("/?calculator=1");
     expect(primaryItem?.label).toBe("Dough Calculator");
     expect(makeGroup?.items.some((item) => item.id === primaryNavigationItemId)).toBe(true);
   });

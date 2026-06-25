@@ -134,9 +134,9 @@ describe("Start Pizza Session wizard", () => {
     const startPage = source("app/start/page.tsx");
     const homepage = source("lib/homepage.ts");
 
-    expect(homepageContent.hero.startHereCta).toEqual({ label: "Start Pizza Session", href: "/session/start" });
-    expect(homepageContent.coreTools.some((tool) => tool.name === "Start Pizza Session" && tool.href === "/session/start")).toBe(true);
-    expect(homepageContent.coreTools.some((tool) => tool.name === "Start Here" && tool.href === "/start")).toBe(true);
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Start Pizza Session", href: "/session/start" });
+    expect(homepage).toContain("Start Pizza Session");
+    expect(homepage).toContain("/session/start");
     expect(startPage).toContain("Start Pizza Session");
     expect(startPage).toContain("href=\"/session/start\"");
   });

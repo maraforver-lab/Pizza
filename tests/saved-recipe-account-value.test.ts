@@ -73,7 +73,7 @@ describe("saved recipe account value UX", () => {
   });
 
   it("explains the value of saving recipes by experience level on the calculator", () => {
-    const page = source("app/page.tsx");
+    const page = source("components/HomeCalculatorWorkspace.tsx");
 
     expect(page).toContain("Save the setup that worked");
     expect(page).toContain("Beginner: save the recipe you used");
@@ -83,7 +83,7 @@ describe("saved recipe account value UX", () => {
   });
 
   it("exposes practical next actions on saved recipe cards without public sharing controls", () => {
-    const page = source("app/page.tsx");
+    const page = source("components/HomeCalculatorWorkspace.tsx");
 
     expect(page).toContain("savedRecipeActions");
     expect(page).toContain('recipeWorkflowQueryHref("/plan", savedRecipeQuery)');

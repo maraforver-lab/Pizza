@@ -97,21 +97,21 @@ describe("calculator progressive disclosure", () => {
   });
 
   it("wires the homepage to progressive disclosure without new routes or heavy dependencies", () => {
-    const homepage = source("app/page.tsx");
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
     const workflow = source("lib/recipe-workflow.ts");
     const packageJson = source("package.json");
 
-    expect(homepage).toContain("getCalculatorDisclosureMode(experienceLevel)");
-    expect(homepage).toContain("advancedOpen");
-    expect(homepage).toContain("recommendedOpen");
-    expect(homepage).toContain("aria-expanded={advancedOpen}");
-    expect(homepage).toContain("aria-controls=\"advanced-calculator-settings\"");
-    expect(homepage).toContain("id=\"advanced-calculator-settings\"");
-    expect(homepage).toContain("More settings are active in this recipe link.");
-    expect(homepage).toContain("getRecipeWorkflowHandoff(experienceLevel, recipeQuery)");
-    expect(homepage).toContain("recipeWorkflow.heading");
-    expect(homepage).toContain("Workflow handoff");
-    expect(homepage).toContain("Recipe context included");
+    expect(calculatorWorkspace).toContain("getCalculatorDisclosureMode(experienceLevel)");
+    expect(calculatorWorkspace).toContain("advancedOpen");
+    expect(calculatorWorkspace).toContain("recommendedOpen");
+    expect(calculatorWorkspace).toContain("aria-expanded={advancedOpen}");
+    expect(calculatorWorkspace).toContain("aria-controls=\"advanced-calculator-settings\"");
+    expect(calculatorWorkspace).toContain("id=\"advanced-calculator-settings\"");
+    expect(calculatorWorkspace).toContain("More settings are active in this recipe link.");
+    expect(calculatorWorkspace).toContain("getRecipeWorkflowHandoff(experienceLevel, recipeQuery)");
+    expect(calculatorWorkspace).toContain("recipeWorkflow.heading");
+    expect(calculatorWorkspace).toContain("Workflow handoff");
+    expect(calculatorWorkspace).toContain("Recipe context included");
     expect(workflow).toContain("Open Dough Doctor");
     expect(workflow).toContain("Calculate sauce");
     expect(workflow).toContain("Calculate toppings");
@@ -138,11 +138,11 @@ describe("calculator progressive disclosure", () => {
 
   it("preserves Start Here links and Patch 24 accessibility markers", () => {
     const startHere = source("lib/start-here.ts");
-    const homepage = source("app/page.tsx");
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
 
     expect(startHere).toContain("startHerePathHref");
     expect(startHere).toContain("recipeParams(path.settings)");
-    expect(homepage).toContain("focus-visible:ring");
-    expect(homepage).toContain("aria-pressed");
+    expect(calculatorWorkspace).toContain("focus-visible:ring");
+    expect(calculatorWorkspace).toContain("aria-pressed");
   });
 });

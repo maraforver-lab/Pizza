@@ -74,7 +74,6 @@ describe("install app / add to home screen foundation", () => {
     expect(homepage).toContain("InstallAppPrompt");
     expect(account).toContain("InstallAppPrompt");
     expect(homepage.indexOf("homepageContent.workflow.map")).toBeLessThan(homepage.indexOf("<InstallAppPrompt"));
-    expect(homepage.indexOf("<InstallAppPrompt")).toBeLessThan(homepage.indexOf("calculator-intro"));
     expect(account).toContain("Saved recipes and local bake notes stay in this browser");
     expect(account).toContain("<InstallAppPrompt");
   });

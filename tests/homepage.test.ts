@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { homepageContent } from "@/lib/homepage";
 import { getDefaultExperienceLevel } from "@/lib/experience-levels";
 import { getHomepageExperienceCopy, homepageExperienceCopy } from "@/lib/homepage-experience-copy";
 
+const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+
 const existingRoutes = new Set([
   "/",
+  "/?calculator=1",
   "/session/start",
   "/start",
   "/plan",
@@ -24,52 +29,49 @@ const existingRoutes = new Set([
 
 describe("homepage content model", () => {
   it("has one intended primary H1", () => {
-    expect(homepageContent.hero.h1).toBe("Make better pizza with better decisions.");
+    expect(homepageContent.hero.h1).toBe("Plan and bake better pizza without guessing.");
   });
 
-  it("keeps the primary CTA on the existing calculator anchor", () => {
-    expect(homepageContent.hero.primaryCta).toEqual({ label: "Calculate your dough", href: "#top" });
+  it("makes Start Pizza Session the primary homepage CTA", () => {
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Start Pizza Session", href: "/session/start" });
   });
 
-  it("keeps the secondary CTA on the experience-level anchor", () => {
-    expect(homepageContent.hero.secondaryCta).toEqual({ label: "Choose your guidance level", href: "#experience-level" });
+  it("keeps the full calculator available as a secondary action", () => {
+    expect(homepageContent.hero.secondaryCta).toEqual({ label: "Open calculator", href: "/?calculator=1" });
   });
 
-  it("adds a Start Pizza Session entry point without replacing the calculator CTA", () => {
-    expect(homepageContent.hero.startHereCta).toEqual({ label: "Start Pizza Session", href: "/session/start" });
-    expect(homepageContent.hero.primaryCta).toEqual({ label: "Calculate your dough", href: "#top" });
-    expect(homepageContent.coreTools.some((tool) => tool.href === "/session/start" && tool.name === "Start Pizza Session")).toBe(true);
-    expect(homepageContent.coreTools.some((tool) => tool.href === "/start" && tool.name === "Start Here")).toBe(true);
+  it("keeps learning available without making it the primary action", () => {
+    expect(homepageContent.hero.learnCta).toEqual({ label: "Learn how it works", href: "/guide" });
   });
 
-  it("contains the required four-step workflow", () => {
+  it("contains the required concise four-step session flow", () => {
     expect(homepageContent.workflow.map((step) => step.title)).toEqual([
-      "Choose your level",
-      "Calculate your dough",
-      "Plan fermentation and baking",
-      "Troubleshoot and improve",
+      "Choose your pizza",
+      "Get your dough plan",
+      "Follow your timeline",
+      "Shop, bake and improve",
     ]);
   });
 
-  it("positions DoughTools as a pizza-making workspace that adapts guidance", () => {
+  it("positions DoughTools as a session-first pizza-making workspace", () => {
     expect(homepageContent.hero.eyebrow).toBe("Pizza-making workspace");
-    expect(homepageContent.hero.intro).toContain("guidance level");
-    expect(homepageContent.hero.intro).toContain("calculate dough");
-    expect(homepageContent.hero.intro).toContain("plan fermentation");
+    expect(homepageContent.hero.intro).toContain("one pizza session");
+    expect(homepageContent.hero.intro).toContain("dough plan");
+    expect(homepageContent.hero.intro).toContain("timeline");
+    expect(homepageContent.hero.intro).toContain("kitchen steps");
     expect(homepageContent.trust.join(" ")).toContain("Beginner, Enthusiast and Pizza Nerd");
   });
 
-  it("explains the three visible experience levels", () => {
-    const workflowText = homepageContent.workflow.map((step) => `${step.title} ${step.description}`).join(" ");
+  it("explains the user benefit without claiming cloud sync or guarantees", () => {
+    const text = [homepageContent.hero.intro, ...homepageContent.benefits, ...homepageContent.trust].join(" ");
 
-    expect(workflowText).toContain("Beginner");
-    expect(workflowText).toContain("Enthusiast");
-    expect(workflowText).toContain("Pizza Nerd");
+    expect(text).toContain("Dough amounts calculated");
+    expect(text).toContain("Progress is saved in this browser on this device");
+    expect(text).not.toMatch(/cloud sync is active|cross-device sync|guaranteed results|perfect pizza/i);
   });
 
   it("uses valid existing routes for core workflow tools", () => {
     for (const tool of homepageContent.coreTools) {
-      if (tool.href.startsWith("#")) continue;
       expect(existingRoutes.has(tool.href)).toBe(true);
       expect(tool.name.trim()).toBeTruthy();
       expect(tool.description.trim()).toBeTruthy();
@@ -90,6 +92,52 @@ describe("homepage content model", () => {
     for (const href of hrefs) expect(existingRoutes.has(href)).toBe(true);
   });
 
+  it("renders a session-first homepage instead of the old calculator dashboard", () => {
+    const homepage = source("app/page.tsx");
+    const content = source("lib/homepage.ts");
+
+    expect(content).toContain("Start Pizza Session");
+    expect(homepage).toContain("How a Pizza Session works");
+    expect(homepage).toContain("Need a specific tool?");
+    expect(homepage).toContain("ContinuePizzaSessionCard");
+    expect(homepage).toContain("HomeCalculatorWorkspace");
+    expect(homepage).toContain("hasCalculatorRequest");
+    expect(homepage).not.toContain("Build the dough recipe.");
+    expect(homepage).not.toContain("Ready to mix");
+    expect(homepage).not.toContain("Share your pizza");
+    expect(homepage).not.toContain("WhatsApp");
+    expect(homepage).not.toContain("Save this bake");
+    expect(homepage).not.toContain("My recipes");
+    expect(homepage).not.toContain("Core pizza workflow tools");
+    expect(homepage).not.toContain("Explore the rest of the workshop");
+  });
+
+  it("keeps the full calculator workspace available for recipe query URLs", () => {
+    const homepage = source("app/page.tsx");
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
+
+    expect(homepage).toContain("if (hasCalculatorRequest(params))");
+    expect(homepage).toContain("return <HomeCalculatorWorkspace />");
+    expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
+    expect(calculatorWorkspace).toContain("Build the dough recipe.");
+    expect(calculatorWorkspace).toContain("Ready to mix");
+    expect(calculatorWorkspace).toContain("Save recipe");
+  });
+
+  it("documents the session-first homepage cleanup without launch or cloud claims", () => {
+    const doc = source("docs/homepage-session-first-cleanup.md");
+
+    expect(doc).toContain("Patch 37");
+    expect(doc).toContain("Start Pizza Session");
+    expect(doc).toContain("/session/recipe");
+    expect(doc).toContain("/session/timeline");
+    expect(doc).toContain("/session/shopping");
+    expect(doc).toContain("/session/kitchen");
+    expect(doc).toContain("/?calculator=1");
+    expect(doc).toContain("does not change dough formulas");
+    expect(doc).not.toMatch(/cloud sync is active|Google indexing is enabled|analytics added|tracking added/i);
+  });
+
   it("does not include Finnish or Swedish active homepage labels", () => {
     const forbidden = /\b(Laskuri|Pizzatyylit|Aikataulu|Kalkylator|Pizzastilar|Tidsplan)\b|[äöåÄÖÅ]/;
     const labels = [
@@ -98,9 +146,10 @@ describe("homepage content model", () => {
       homepageContent.hero.intro,
       homepageContent.hero.primaryCta.label,
       homepageContent.hero.secondaryCta.label,
-      homepageContent.hero.startHereCta.label,
+      homepageContent.hero.learnCta.label,
       ...homepageContent.workflow.flatMap((step) => [step.title, step.description]),
       ...homepageContent.coreTools.flatMap((tool) => [tool.name, tool.description, tool.action]),
+      ...homepageContent.benefits,
       ...homepageContent.trust,
       ...homepageContent.secondaryTools.map((tool) => tool.name),
     ];

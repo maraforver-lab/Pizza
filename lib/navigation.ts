@@ -45,7 +45,7 @@ export const navigationGroups = [
     description: "Choose a style, calculate dough, plan fermentation, prepare toppings and bake.",
     items: [
       { id: "start", label: "Start Here", href: "/start", description: "Choose a simple pizza path before tuning detailed settings." },
-      { id: "calculator", label: "Dough Calculator", href: "/", description: "Start with dough weight, hydration, salt, yeast and fermentation." },
+      { id: "calculator", label: "Dough Calculator", href: "/?calculator=1", description: "Start with dough weight, hydration, salt, yeast and fermentation." },
       { id: "planner", label: "Fermentation Planner", href: "/plan", description: "Turn the recipe into a timeline and preparation plan." },
       { id: "sauce", label: "Sauce Calculator", href: "/sauce", description: "Calculate tomato sauce for the number of pizzas." },
       { id: "toppings", label: "Toppings Calculator", href: "/toppings", description: "Balance cheese, toppings and moisture before baking." },
@@ -72,7 +72,7 @@ export const navigationGroups = [
     shortLabel: "My",
     description: "Return to saved recipes, journal entries and your account.",
     items: [
-      { id: "saved-recipes", label: "Saved Recipes", href: "/#my-recipes", description: "Open the saved recipe section on the calculator." },
+      { id: "saved-recipes", label: "Saved Recipes", href: "/?calculator=1#my-recipes", description: "Open the saved recipe section on the calculator." },
       { id: "journal", label: "Pizza Journal", href: "/journal", description: "Record what happened and what to improve next time." },
       { id: "account", label: "Account", href: "/account", description: "Sign in and manage your DoughTools account.", preserveQuery: false },
     ],

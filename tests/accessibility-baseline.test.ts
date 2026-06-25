@@ -60,8 +60,8 @@ describe("core accessibility baseline", () => {
     }
   });
 
-  it("keeps calculator steppers and save-bake rating controls accessible", () => {
-    const homepageSource = source("app/page.tsx");
+  it("keeps calculator steppers and save-bake rating controls accessible in the calculator workspace", () => {
+    const homepageSource = source("components/HomeCalculatorWorkspace.tsx");
 
     expect(homepageSource).toContain("aria-label={decreaseLabel}");
     expect(homepageSource).toContain("aria-label={increaseLabel}");

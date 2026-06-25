@@ -52,17 +52,17 @@ describe("core recipe workflow handoff", () => {
     expect(nerd.detail).toContain("receive the current recipe query");
   });
 
-  it("wires the homepage recipe result to a semantic next-step section with accessible link text", () => {
-    const homepage = source("app/page.tsx");
+  it("wires the calculator workspace recipe result to a semantic next-step section with accessible link text", () => {
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
 
-    expect(homepage).toContain("getRecipeWorkflowHandoff(experienceLevel, recipeQuery)");
-    expect(homepage).toContain("aria-labelledby=\"recipe-workflow-heading\"");
-    expect(homepage).toContain("id=\"recipe-workflow-heading\"");
-    expect(homepage).toContain("recipeWorkflow.actions.map");
-    expect(homepage).toContain("Recipe context included");
-    expect(homepage).toContain("Save recipe");
-    expect(homepage).toContain("Save this bake");
-    expect(homepage).toContain("focus-visible:ring");
+    expect(calculatorWorkspace).toContain("getRecipeWorkflowHandoff(experienceLevel, recipeQuery)");
+    expect(calculatorWorkspace).toContain("aria-labelledby=\"recipe-workflow-heading\"");
+    expect(calculatorWorkspace).toContain("id=\"recipe-workflow-heading\"");
+    expect(calculatorWorkspace).toContain("recipeWorkflow.actions.map");
+    expect(calculatorWorkspace).toContain("Recipe context included");
+    expect(calculatorWorkspace).toContain("Save recipe");
+    expect(calculatorWorkspace).toContain("Save this bake");
+    expect(calculatorWorkspace).toContain("focus-visible:ring");
   });
 
   it("preserves Start Here, calculations and route behavior while adding workflow documentation", () => {

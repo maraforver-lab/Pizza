@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "session-first-homepage-cleanup-2026-06-25",
+    title: "Session-first homepage cleanup",
+    date: "2026-06-25",
+    summary:
+      "The homepage now focuses on one clear Start Pizza Session path instead of showing many separate tool sections at once.",
+    category: "Product",
+    highlights: [
+      "Start Pizza Session becomes the clear homepage action",
+      "Homepage copy now explains what DoughTools does and why it helps",
+      "Session flow is summarized simply: choose, dough plan, timeline, shopping, kitchen steps",
+      "Old calculator, save, share and workshop-heavy homepage blocks were removed from the primary flow",
+      "Existing tools and routes remain available",
+      "No formulas, storage, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 37 simplifies the homepage so new users understand the guided Pizza Session path first.",
+      "Existing DoughTools tools remain available, but the homepage no longer acts as a crowded dashboard of every feature.",
+      "Recipe results, save and share actions, My Recipes and deeper tools are kept in their more appropriate workflow contexts.",
+    ],
+    userImpact:
+      "Users get a clearer first impression and one obvious place to start.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [37],
+    relatedPatchNumbers: [31, 32, 33, 34, 35, 36, 37],
+    href: "/updates",
+  },
+  {
     id: "session-kitchen-mode-2026-06-25",
     title: "Session Kitchen Mode",
     date: "2026-06-25",
@@ -1295,6 +1324,30 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users get a calmer kitchen view that tells them what to do now and what comes next while preserving the existing tools.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 37,
+    title: "Session-first homepage cleanup",
+    category: "Product",
+    summary:
+      "The homepage now focuses on one clear Start Pizza Session path instead of showing many separate tool sections at once.",
+    highlights: [
+      "Start Pizza Session becomes the clear homepage action",
+      "Homepage copy now explains what DoughTools does and why it helps",
+      "Session flow is summarized simply: choose, dough plan, timeline, shopping, kitchen steps",
+      "Old calculator, save, share and workshop-heavy homepage blocks were removed from the primary flow",
+      "Existing tools and routes remain available",
+      "No formulas, storage, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 37 simplifies the homepage so new users understand the guided Pizza Session path first.",
+      "Existing DoughTools tools remain available, but the homepage no longer acts as a crowded dashboard of every feature.",
+      "Recipe results, save and share actions, My Recipes and deeper tools are kept in their more appropriate workflow contexts.",
+    ],
+    userImpact:
+      "Users get a clearer first impression and one obvious place to start.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
   {
     patch: 35,
