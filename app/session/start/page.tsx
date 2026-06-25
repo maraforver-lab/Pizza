@@ -402,14 +402,14 @@ export default function StartPizzaSessionPage() {
               <div className="rounded-[1.5rem] bg-leaf/[.1] p-5">
                 <h3 className="font-display text-2xl font-semibold">Next recommended action</h3>
                 <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Build the dough recipe from this starting setup. Timeline, shopping list and kitchen mode will come later.
+                  Build the dough recipe from this starting setup, or open your session timeline to see the next preparation steps.
                 </p>
                 <div className="mt-4 grid gap-2 sm:grid-cols-3">
                   <Link href={`/?${recipeQuery}`} className="rounded-2xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                     Build recipe →
                   </Link>
-                  <Link href={`/plan?${recipeQuery}`} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Plan timeline →
+                  <Link href="/session/timeline" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                    Open timeline →
                   </Link>
                   <Link href={continueHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                     Continue later

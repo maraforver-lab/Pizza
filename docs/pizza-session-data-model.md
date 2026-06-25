@@ -8,6 +8,8 @@ Patch 31 created the data model, local storage helpers and a small Continue Sess
 
 Patch 32 adds the first guided `/session/start` wizard on top of this model. The wizard creates or recovers a local active Pizza Session and autosaves the first planning choices: style, target time, quantity, oven and flour.
 
+Patch 33 adds the first `/session/timeline` route. The route generates a local session timeline from the saved target time, stores it in the active Pizza Session and keeps the next-step indicator local to the same browser.
+
 ## Schema version
 
 Pizza Sessions use:
@@ -66,6 +68,8 @@ Allowed current steps:
 
 The current step is used by the Continue Session foundation to decide where the user should resume when a reliable existing route is available.
 
+When `currentStep` is `timeline`, Continue Session resumes at `/session/timeline`.
+
 ## Autosave foundation
 
 This patch does not add a background timer or autosave loop.
@@ -88,6 +92,21 @@ It does add helper behavior for future autosave:
 
 This does not change the recipe query format and does not change any calculator formulas.
 
+## Session timeline
+
+Patch 33 uses the optional `timeline` field.
+
+The timeline can contain:
+
+- `generatedAt`
+- `targetEatTime`
+- scheduling assumptions
+- step cards with labels, descriptions, scheduled times, status and level-aware notes
+
+The first generated timeline is a practical backward schedule, not a guarantee. It is designed to answer what to do next and when to start each preparation step.
+
+Timeline step status is local-only. Marking a step done updates the active browser session and does not send anything to Supabase or any external service.
+
 ## Local-first limitations
 
 Pizza Sessions are currently local to the browser on this device.
@@ -106,8 +125,7 @@ If the user clears browser site data, local Pizza Sessions may be lost.
 
 Patch 31 does not add:
 
-- full Start Pizza Session wizard
-- full timeline planner
+- account-connected timeline sync
 - shopping list generator
 - Kitchen Mode
 - review/result cards

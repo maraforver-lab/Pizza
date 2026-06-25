@@ -51,11 +51,19 @@ export type PizzaSessionRecipeSnapshot = {
 export type PizzaSessionTimelineStep = {
   id: string;
   label: string;
+  description?: string;
   scheduledAt?: string;
   status: "todo" | "done" | "skipped";
+  helperCopy?: string;
+  beginnerNote?: string;
+  enthusiastNote?: string;
+  pizzaNerdNote?: string;
 };
 
 export type PizzaSessionTimeline = {
+  generatedAt?: string;
+  targetEatTime?: string;
+  assumptions?: string[];
   steps: PizzaSessionTimelineStep[];
 };
 
@@ -178,11 +186,26 @@ function cloneTimeline(timeline?: PizzaSessionTimeline): PizzaSessionTimeline | 
     return [{
       id,
       label,
+      description: stringValue(record.description),
       scheduledAt: stringValue(record.scheduledAt),
       status: typeof record.status === "string" && timelineStatusSet.has(record.status) ? record.status as PizzaSessionTimelineStep["status"] : "todo",
+      helperCopy: stringValue(record.helperCopy),
+      beginnerNote: stringValue(record.beginnerNote),
+      enthusiastNote: stringValue(record.enthusiastNote),
+      pizzaNerdNote: stringValue(record.pizzaNerdNote),
     }];
   });
-  return steps.length ? { steps } : undefined;
+  return steps.length ? {
+    generatedAt: stringValue(timeline.generatedAt),
+    targetEatTime: stringValue(timeline.targetEatTime),
+    assumptions: Array.isArray(timeline.assumptions)
+      ? timeline.assumptions.flatMap((item) => {
+        const assumption = stringValue(item);
+        return assumption ? [assumption] : [];
+      })
+      : undefined,
+    steps,
+  } : undefined;
 }
 
 function cloneShoppingList(list?: PizzaSessionShoppingList): PizzaSessionShoppingList | undefined {
@@ -335,7 +358,7 @@ export function pizzaSessionRecipeQuery(session: PizzaSession) {
 
 export function pizzaSessionContinueHref(session: PizzaSession) {
   const query = pizzaSessionRecipeQuery(session);
-  if (session.currentStep === "timeline") return query ? `/plan?${query}` : "/plan";
+  if (session.currentStep === "timeline") return "/session/timeline";
   if (session.currentStep === "recipe") return query ? `/?${query}` : "/";
   if (["shopping", "prep", "bake"].includes(session.currentStep)) return query ? `/plan?${query}` : "/plan";
   return "/session/start";

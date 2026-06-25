@@ -198,7 +198,7 @@ describe("Pizza Session local storage", () => {
     const styleSession = createPizzaSession({ id: "style-link", currentStep: "style" });
 
     expect(pizzaSessionContinueHref(recipeSession)).toBe("/?balls=6&hydration=64");
-    expect(pizzaSessionContinueHref(timelineSession)).toBe("/plan?balls=6&hydration=64");
+    expect(pizzaSessionContinueHref(timelineSession)).toBe("/session/timeline");
     expect(pizzaSessionContinueHref(shoppingSession)).toBe("/plan?balls=6&hydration=64");
     expect(pizzaSessionContinueHref(styleSession)).toBe("/session/start");
   });

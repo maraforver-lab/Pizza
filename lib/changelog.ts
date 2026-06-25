@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "session-timeline-backward-schedule-2026-06-25",
+    title: "Session timeline and backward schedule",
+    date: "2026-06-25",
+    summary:
+      "Pizza sessions can now generate a practical timeline from the planned bake or eat time.",
+    category: "Product",
+    highlights: [
+      "New session timeline route",
+      "Backward-planned pizza preparation steps",
+      "Active session timeline saved locally",
+      "Next-step guidance added",
+      "Beginner, Enthusiast and Pizza Nerd timing guidance stays consistent",
+      "No reminders, tracking, cloud sync or indexing behavior added",
+    ],
+    details: [
+      "Patch 33 turns the target time from the Start Pizza Session wizard into a practical pizza timeline.",
+      "The timeline gives users a clearer view of what to do next, when to prepare dough, when to preheat and when to bake.",
+      "Timing remains a practical guide and can be refined in later Planner and Kitchen Mode patches.",
+    ],
+    userImpact:
+      "Users can move from “I want pizza at this time” to a concrete preparation schedule without guessing the order of tasks.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [33],
+    relatedPatchNumbers: [31, 32, 33],
+    href: "/updates",
+  },
+  {
     id: "start-pizza-session-wizard-2026-06-25",
     title: "Start Pizza Session wizard",
     date: "2026-06-25",
@@ -1100,6 +1129,30 @@ export const patchHistory: PatchHistoryEntry[] = [
     ],
     userImpact:
       "Users can start with one clear decision at a time instead of choosing from separate tools immediately.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 33,
+    title: "Session timeline and backward schedule",
+    category: "Product",
+    summary:
+      "Pizza sessions can now generate a practical timeline from the planned bake or eat time.",
+    highlights: [
+      "New session timeline route",
+      "Backward-planned pizza preparation steps",
+      "Active session timeline saved locally",
+      "Next-step guidance added",
+      "Beginner, Enthusiast and Pizza Nerd timing guidance stays consistent",
+      "No reminders, tracking, cloud sync or indexing behavior added",
+    ],
+    details: [
+      "Patch 33 turns the target time from the Start Pizza Session wizard into a practical pizza timeline.",
+      "The timeline gives users a clearer view of what to do next, when to prepare dough, when to preheat and when to bake.",
+      "Timing remains a practical guide and can be refined in later Planner and Kitchen Mode patches.",
+    ],
+    userImpact:
+      "Users can move from “I want pizza at this time” to a concrete preparation schedule without guessing the order of tasks.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
