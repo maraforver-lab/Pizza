@@ -12,6 +12,11 @@ import {
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
 import { EXPERIENCE_LEVEL_STORAGE_KEY } from "@/lib/experience-levels";
+import {
+  buildPizzaSessionTargetTime,
+  getPizzaSessionDayQuickChoices,
+  pizzaSessionTimeQuickChoices,
+} from "@/lib/session-time-quick-choices";
 
 function source(path: string) {
   return readFileSync(join(process.cwd(), path), "utf8");
@@ -38,7 +43,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("\"use client\"");
     expect(page).toContain("How will you bake your pizza?");
     expect(page).toContain("Which pizza are you planning?");
-    expect(page).toContain("When do you want to eat or bake?");
+    expect(page).toContain("When do you want pizza?");
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("What oven are you using?");
     expect(page).toContain("What flour do you have?");
@@ -126,8 +131,50 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("step === \"time\" && Boolean(targetTimeDraft || session?.targetEatTime)");
     expect(page).toContain("targetEatTime,");
     expect(page).toContain("[\"Target time\", session.targetEatTime || \"Not set yet\"]");
-    expect(page).toContain("We’ll use it to build your pizza timeline");
+    expect(page).toContain("DoughTools will build your dough, preparation and bake timeline backwards from this.");
     expect(page).not.toContain("Later planner patches can turn this into a full timeline");
+  });
+
+  it("offers quick day and time choices before the custom date/time input", () => {
+    const page = source("app/session/start/page.tsx");
+    const choices = getPizzaSessionDayQuickChoices(new Date("2026-06-25T10:00:00"));
+
+    expect(choices.map((choice) => choice.label)).toEqual([
+      "Today",
+      "Tomorrow",
+      "Day after tomorrow",
+      "Next Friday",
+      "Next Saturday",
+      "Next Sunday",
+      "Custom date",
+    ]);
+    expect(pizzaSessionTimeQuickChoices.map((choice) => choice.label)).toEqual([
+      "Lunch",
+      "Afternoon",
+      "Dinner",
+      "Evening",
+      "Custom time",
+    ]);
+    expect(page).toContain("getPizzaSessionDayQuickChoices");
+    expect(page).toContain("pizzaSessionTimeQuickChoices.map");
+    expect(page).toContain("Custom target date and time");
+  });
+
+  it("resolves next weekday choices from the current date instead of choosing today", () => {
+    const fridayChoices = getPizzaSessionDayQuickChoices(new Date("2026-06-26T10:00:00"));
+    const saturdayChoices = getPizzaSessionDayQuickChoices(new Date("2026-06-27T10:00:00"));
+    const sundayChoices = getPizzaSessionDayQuickChoices(new Date("2026-06-28T10:00:00"));
+
+    expect(fridayChoices.find((choice) => choice.id === "next-friday")?.date).toBe("2026-07-03");
+    expect(saturdayChoices.find((choice) => choice.id === "next-saturday")?.date).toBe("2026-07-04");
+    expect(sundayChoices.find((choice) => choice.id === "next-sunday")?.date).toBe("2026-07-05");
+  });
+
+  it("builds the same target datetime value from quick day and time choices", () => {
+    expect(buildPizzaSessionTargetTime("tomorrow", "dinner", new Date("2026-06-25T10:00:00"))).toBe("2026-06-26T18:00");
+    expect(buildPizzaSessionTargetTime("day-after-tomorrow", "lunch", new Date("2026-06-25T10:00:00"))).toBe("2026-06-27T12:00");
+    expect(buildPizzaSessionTargetTime("custom-date", "dinner", new Date("2026-06-25T10:00:00"))).toBe("");
+    expect(buildPizzaSessionTargetTime("tomorrow", "custom-time", new Date("2026-06-25T10:00:00"))).toBe("");
   });
 
   it("connects the homepage and Start Here page to the wizard without removing /start", () => {

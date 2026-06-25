@@ -16,6 +16,13 @@ import {
 } from "@/lib/pizza-session";
 import { pizzaSessionPresets, type PizzaPresetId } from "@/lib/pizza-session-presets";
 import {
+  buildPizzaSessionTargetTime,
+  getPizzaSessionDayQuickChoices,
+  pizzaSessionTimeQuickChoices,
+  type PizzaSessionDayQuickChoiceId,
+  type PizzaSessionTimeQuickChoiceId,
+} from "@/lib/session-time-quick-choices";
+import {
   createAndSavePizzaSession,
   getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
@@ -82,7 +89,7 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
   pizza_nerd: {
     path: "This sets the first bake-environment constraint. The exact formula still comes from the calculator model.",
     preset: "Preset choice is stored separately from baking path so dough setup and topping plan do not get mixed together.",
-    time: "Schedule times are rounded to practical 15-minute increments; active night tasks are avoided where possible while passive fermentation can continue overnight.",
+    time: "Pick the target pizza time. Timeline steps are rounded to practical 15-minute increments; active night tasks are avoided where possible while passive fermentation can continue overnight.",
     quantity: "This becomes the first batch-size variable before exact dough-ball and formula tuning.",
     oven: "Heat transfer and bake duration are downstream constraints; exact temperatures remain in the tools.",
     flour: "This is a coarse flour class, not a W-value or protein analysis. Fine tuning remains available later.",
@@ -121,6 +128,8 @@ export default function StartPizzaSessionPage() {
   const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
+  const [selectedDayChoice, setSelectedDayChoice] = useState<PizzaSessionDayQuickChoiceId | undefined>();
+  const [selectedTimeChoice, setSelectedTimeChoice] = useState<PizzaSessionTimeQuickChoiceId | undefined>();
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -137,6 +146,10 @@ export default function StartPizzaSessionPage() {
     setExperienceLevel(level);
     setSession(nextSession);
     setTargetTimeDraft(nextSession.targetEatTime ?? "");
+    if (nextSession.targetEatTime) {
+      setSelectedDayChoice("custom-date");
+      setSelectedTimeChoice("custom-time");
+    }
     setStep(initialWizardStep(nextSession));
     setReady(true);
   }, []);
@@ -174,6 +187,20 @@ export default function StartPizzaSessionPage() {
   const setTargetTime = (targetEatTime: string) => {
     setTargetTimeDraft(targetEatTime);
     savePatch({ targetEatTime }, "time");
+  };
+
+  const selectDayChoice = (choice: PizzaSessionDayQuickChoiceId) => {
+    setSelectedDayChoice(choice);
+    if (choice === "custom-date") return;
+    const targetEatTime = buildPizzaSessionTargetTime(choice, selectedTimeChoice);
+    if (targetEatTime) setTargetTime(targetEatTime);
+  };
+
+  const selectTimeChoice = (choice: PizzaSessionTimeQuickChoiceId) => {
+    setSelectedTimeChoice(choice);
+    if (choice === "custom-time") return;
+    const targetEatTime = buildPizzaSessionTargetTime(selectedDayChoice, choice);
+    if (targetEatTime) setTargetTime(targetEatTime);
   };
 
   const goToStep = (nextStep: WizardStep) => {
@@ -219,6 +246,8 @@ export default function StartPizzaSessionPage() {
   const selectedPreset = pizzaSessionPresets.find((option) => option.id === session.pizzaPreset);
   const selectedOven = ovenOptions.find((option) => option.id === session.ovenType);
   const selectedFlour = flourOptions.find((option) => option.id === session.flour);
+  const dayChoices = getPizzaSessionDayQuickChoices();
+  const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const lastSaved = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(session.lastSavedAt));
   const continueHref = pizzaSessionContinueHref({ ...session, currentStep: "recipe" });
 
@@ -259,7 +288,7 @@ export default function StartPizzaSessionPage() {
               <h2 className="mt-2 font-display text-4xl font-semibold leading-none">
                 {step === "path" && "How will you bake your pizza?"}
                 {step === "preset" && "Which pizza are you planning?"}
-                {step === "time" && "When do you want to eat or bake?"}
+                {step === "time" && "When do you want pizza?"}
                 {step === "quantity" && "How many pizzas?"}
                 {step === "oven" && "What oven are you using?"}
                 {step === "flour" && "What flour do you have?"}
@@ -296,20 +325,78 @@ export default function StartPizzaSessionPage() {
           )}
 
           {step === "time" && (
-            <label className="block max-w-md text-sm font-extrabold text-ink/65">
-              Target eating or baking time
-              <input
-                ref={targetTimeInputRef}
-                type="datetime-local"
-                value={targetTimeDraft}
-                onChange={(event) => setTargetTime(event.target.value)}
-                onInput={(event) => setTargetTime(event.currentTarget.value)}
-                className="mt-3 h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-bold text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
-              />
-              <span className="mt-3 block text-xs font-normal leading-5 text-ink/45">
-                A rough time is enough. We’ll use it to build your pizza timeline and plan the dough, preparation and bake steps backwards.
-              </span>
-            </label>
+            <div className="grid gap-6">
+              <p className="max-w-2xl text-sm leading-6 text-ink/60">
+                Choose a target eating or baking time. DoughTools will build your dough, preparation and bake timeline backwards from this.
+              </p>
+
+              <section aria-labelledby="session-day-choice-heading">
+                <h3 id="session-day-choice-heading" className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Choose day</h3>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  {dayChoices.map((choice) => (
+                    <button
+                      key={choice.id}
+                      type="button"
+                      onClick={() => selectDayChoice(choice.id)}
+                      aria-pressed={selectedDayChoice === choice.id}
+                      className={`min-h-20 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                        selectedDayChoice === choice.id ? "border-tomato bg-tomato/10 shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
+                      }`}
+                    >
+                      <span className="block text-sm font-extrabold text-ink">{choice.label}</span>
+                      {choice.displayDate && <span className="mt-1 block text-xs font-bold text-ink/45">{choice.displayDate}</span>}
+                      {selectedDayChoice === choice.id && <span className="mt-2 block text-[11px] font-extrabold uppercase tracking-[.12em] text-tomato">Selected</span>}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {selectedDayChoice && (
+                <section aria-labelledby="session-time-choice-heading">
+                  <h3 id="session-time-choice-heading" className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Choose time</h3>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                    {pizzaSessionTimeQuickChoices.map((choice) => (
+                      <button
+                        key={choice.id}
+                        type="button"
+                        onClick={() => selectTimeChoice(choice.id)}
+                        aria-pressed={selectedTimeChoice === choice.id}
+                        className={`min-h-20 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                          selectedTimeChoice === choice.id ? "border-tomato bg-tomato/10 shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
+                        }`}
+                      >
+                        <span className="block text-sm font-extrabold text-ink">{choice.label}</span>
+                        {choice.time && <span className="mt-1 block text-xs font-bold text-ink/45">{choice.time}</span>}
+                        {selectedTimeChoice === choice.id && <span className="mt-2 block text-[11px] font-extrabold uppercase tracking-[.12em] text-tomato">Selected</span>}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {showCustomTargetInput && (
+                <label className="block max-w-md text-sm font-extrabold text-ink/65">
+                  Custom target date and time
+                  <input
+                    ref={targetTimeInputRef}
+                    type="datetime-local"
+                    value={targetTimeDraft}
+                    onChange={(event) => setTargetTime(event.target.value)}
+                    onInput={(event) => setTargetTime(event.currentTarget.value)}
+                    className="mt-3 h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-bold text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
+                  />
+                  <span className="mt-3 block text-xs font-normal leading-5 text-ink/45">
+                    Use this when the quick choices are not exact enough.
+                  </span>
+                </label>
+              )}
+
+              {targetTimeDraft && (
+                <p className="rounded-2xl bg-leaf/[.08] px-4 py-3 text-sm font-bold text-leaf">
+                  Target pizza time: {targetTimeDraft.replace("T", " at ")}
+                </p>
+              )}
+            </div>
           )}
 
           {step === "quantity" && (
