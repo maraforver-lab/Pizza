@@ -39,6 +39,37 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "session-recipe-build-step-2026-06-25",
+    title: "Session recipe build step",
+    date: "2026-06-25",
+    summary:
+      "Pizza sessions can now turn the user’s choices into a clear dough plan before timeline and shopping.",
+    category: "Product",
+    highlights: [
+      "New session recipe route",
+      "Dough plan generated from active Pizza Session choices",
+      "Recipe snapshot saved locally into the active session",
+      "Wizard copy clarified for baking path and pizza preset choices",
+      "Clear next actions to Timeline, Shopping List and Calculator",
+      "Beginner, Enthusiast and Pizza Nerd guidance stays consistent",
+      "No formula, cloud sync, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 35 adds a dedicated dough plan step to the Pizza Session flow.",
+      "The session wizard now separates baking path from pizza preset choice, making the first decisions clearer.",
+      "The recipe step stores calculator-compatible recipe parameters and a recipe snapshot in the local session where safe.",
+      "Existing calculators and formulas remain unchanged.",
+    ],
+    userImpact:
+      "Users can see how much dough to make before moving to the timeline, shopping list and kitchen steps.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [35],
+    relatedPatchNumbers: [31, 32, 33, 34, 35],
+    href: "/updates",
+  },
+  {
     id: "session-shopping-list-presets-2026-06-25",
     title: "Session shopping list generator",
     date: "2026-06-25",
@@ -1208,6 +1239,32 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users can move from session planning and timeline into a simple grocery checklist without guessing the basic ingredients.",
     technicalNote:
       "This patch did not change dough formulas, planner timing logic, Dough Doctor diagnosis logic, saved recipe storage, Journal IndexedDB, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 35,
+    title: "Session recipe build step",
+    category: "Product",
+    summary:
+      "Pizza sessions can now turn the user’s choices into a clear dough plan before timeline and shopping.",
+    highlights: [
+      "New session recipe route",
+      "Dough plan generated from active Pizza Session choices",
+      "Recipe snapshot saved locally into the active session",
+      "Wizard copy clarified for baking path and pizza preset choices",
+      "Clear next actions to Timeline, Shopping List and Calculator",
+      "Beginner, Enthusiast and Pizza Nerd guidance stays consistent",
+      "No formula, cloud sync, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 35 adds a dedicated dough plan step to the Pizza Session flow.",
+      "The session wizard now separates baking path from pizza preset choice, making the first decisions clearer.",
+      "The recipe step stores calculator-compatible recipe parameters and a recipe snapshot in the local session where safe.",
+      "Existing calculators and formulas remain unchanged.",
+    ],
+    userImpact:
+      "Users can see how much dough to make before moving to the timeline, shopping list and kitchen steps.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
 ];
 

@@ -12,16 +12,32 @@ The wizard is a local-first planning flow for one pizza bake. It uses the Pizza 
 
 ## Steps
 
-The first version intentionally keeps the flow small:
+The current version keeps the flow focused on one practical decision at a time:
 
-1. Pizza style
-2. Target eat or bake time
-3. Pizza quantity
-4. Oven
-5. Flour
-6. Summary and next action
+1. Baking path
+2. Pizza preset
+3. Target eat or bake time
+4. Pizza quantity
+5. Oven
+6. Flour
+7. Summary and dough-plan handoff
 
-The goal is not to replace the calculator. The goal is to collect the first practical decisions before sending the user into recipe calculation or timeline planning.
+The goal is not to replace the calculator. The goal is to collect the first practical decisions before sending the user into a session recipe step, timeline and shopping list.
+
+Patch 35 clarifies that the first visible choices are baking paths, not pizza presets:
+
+- Home oven pizza
+- Pizza oven pizza
+- Pan / tray pizza
+
+Pizza preset is now a separate choice:
+
+- Margherita
+- Marinara
+- Diavola
+- Funghi
+- Pepperoni / Salami
+- Simple cheese pizza
 
 ## Autosave behavior
 
@@ -37,6 +53,7 @@ When the wizard opens, it reads the active Pizza Session. If there is no active 
 Each step updates:
 
 - selected pizza style
+- selected pizza preset
 - target time
 - pizza count
 - oven
@@ -84,10 +101,8 @@ doughtools.experienceLevel
 
 ## What is intentionally not implemented yet
 
-Patch 32 does not implement:
+Patch 35 adds the handoff to `/session/recipe`, but the wizard still does not implement:
 
-- full fermentation timeline generation
-- shopping list generation
 - kitchen mode
 - review/result cards
 - photo upload

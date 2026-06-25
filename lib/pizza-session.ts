@@ -46,6 +46,12 @@ export type PizzaSessionRecipeSnapshot = {
   flour?: string;
   oven?: string;
   pizzaStyle?: string;
+  pizzaPreset?: string;
+  totalDough?: number;
+  flourAmount?: number;
+  waterAmount?: number;
+  saltAmount?: number;
+  leavenerAmount?: number;
 };
 
 export type PizzaSessionTimelineStep = {
@@ -100,6 +106,7 @@ export type PizzaSession = {
   currentStep: PizzaSessionStep;
   experienceLevel: ExperienceLevel;
   pizzaStyle?: string;
+  pizzaPreset?: string;
   targetEatTime?: string;
   targetBakeTime?: string;
   pizzaCount?: number;
@@ -178,6 +185,12 @@ function cloneRecipeSnapshot(snapshot?: PizzaSessionRecipeSnapshot): PizzaSessio
     flour: stringValue(snapshot.flour),
     oven: stringValue(snapshot.oven),
     pizzaStyle: stringValue(snapshot.pizzaStyle),
+    pizzaPreset: stringValue(snapshot.pizzaPreset),
+    totalDough: positiveNumberValue(snapshot.totalDough),
+    flourAmount: positiveNumberValue(snapshot.flourAmount),
+    waterAmount: positiveNumberValue(snapshot.waterAmount),
+    saltAmount: positiveNumberValue(snapshot.saltAmount),
+    leavenerAmount: positiveNumberValue(snapshot.leavenerAmount),
   };
   return Object.values(next).some((value) => value !== undefined) ? next : undefined;
 }
@@ -274,6 +287,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     currentStep: normalizeStep(input.currentStep),
     experienceLevel: normalizeExperienceLevel(input.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL),
     pizzaStyle: stringValue(input.pizzaStyle),
+    pizzaPreset: stringValue(input.pizzaPreset),
     targetEatTime: stringValue(input.targetEatTime),
     targetBakeTime: stringValue(input.targetBakeTime),
     pizzaCount: positiveNumberValue(input.pizzaCount),
@@ -314,6 +328,7 @@ export function createSessionFromRecipeParams(
     ovenType: searchParams.get("oven") ?? undefined,
     flour: searchParams.get("flour") ?? undefined,
     pizzaStyle: searchParams.get("pizzaStyle") ?? searchParams.get("style") ?? undefined,
+    pizzaPreset: searchParams.get("pizzaPreset") ?? undefined,
     recipeParams,
     recipeSnapshot: {
       balls: numberFromParam("balls"),
@@ -326,6 +341,7 @@ export function createSessionFromRecipeParams(
       flour: searchParams.get("flour") ?? undefined,
       oven: searchParams.get("oven") ?? undefined,
       pizzaStyle: searchParams.get("pizzaStyle") ?? undefined,
+      pizzaPreset: searchParams.get("pizzaPreset") ?? undefined,
     },
   }, now);
 }
@@ -375,7 +391,7 @@ export function pizzaSessionContinueHref(session: PizzaSession) {
   const query = pizzaSessionRecipeQuery(session);
   if (session.currentStep === "timeline") return "/session/timeline";
   if (session.currentStep === "shopping") return "/session/shopping";
-  if (session.currentStep === "recipe") return query ? `/?${query}` : "/";
+  if (session.currentStep === "recipe") return "/session/recipe";
   if (["prep", "bake"].includes(session.currentStep)) return query ? `/plan?${query}` : "/plan";
   return "/session/start";
 }

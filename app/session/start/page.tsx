@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppSignature from "@/components/AppSignature";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
@@ -12,9 +12,9 @@ import {
 import {
   pizzaSessionContinueHref,
   type PizzaSession,
-  type PizzaSessionRecipeParams,
   type PizzaSessionStep,
 } from "@/lib/pizza-session";
+import { pizzaSessionPresets, type PizzaPresetId } from "@/lib/pizza-session-presets";
 import {
   createAndSavePizzaSession,
   getActivePizzaSession,
@@ -23,10 +23,10 @@ import {
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
 
-type WizardStep = "style" | "time" | "quantity" | "oven" | "flour" | "summary";
+type WizardStep = "path" | "preset" | "time" | "quantity" | "oven" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray";
 
-const wizardSteps: WizardStep[] = ["style", "time", "quantity", "oven", "flour", "summary"];
+const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "oven", "flour", "summary"];
 
 const styleOptions = [
   {
@@ -62,24 +62,27 @@ const flourOptions = [
 
 const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
   beginner: {
-    style: "Pick the pizza that feels closest to your plan. You can change details later.",
-    time: "Choose when you want to eat or bake. A rough time is enough for now.",
+    path: "Choose how you will bake. This sets the first safe defaults before the dough plan.",
+    preset: "Choose the pizza you want to shop and prepare for. You can still adjust details later.",
+    time: "Choose when you want to eat or bake. We’ll use this time to build your pizza timeline.",
     quantity: "Choose how many pizzas you want. Six small pizzas or one pan pizza are common starting points.",
     oven: "Choose the oven you will probably use. Not sure yet is okay.",
     flour: "Choose the closest flour. If you do not know, choose not sure yet.",
-    summary: "Your first decisions are saved. Next, build the dough recipe or come back later.",
+    summary: "Your first decisions are saved. Next, build the dough plan.",
   },
   enthusiast: {
-    style: "Style affects dough size, hydration, topping load and baking heat.",
-    time: "Target time lets DoughTools later build a practical fermentation and baking schedule.",
+    path: "The baking path controls bake heat, dough size and how forgiving the process should be.",
+    preset: "The pizza preset keeps the session practical: sauce, cheese and toppings can follow the same plan.",
+    time: "We’ll plan dough, preparation and bake steps backwards from this time.",
     quantity: "Pizza count controls total dough, sauce, cheese and prep work.",
     oven: "Oven choice changes bake time, moisture tolerance and how much topping is safe.",
     flour: "Flour strength affects hydration, fermentation length and handling.",
-    summary: "The session is ready for a recipe calculation and later timeline planning.",
+    summary: "The session is ready for a dough plan, timeline and shopping list.",
   },
   pizza_nerd: {
-    style: "This only sets the first planning direction. Deeper variables stay in the calculator and future labs.",
-    time: "Later patches can derive fermentation steps from this target, but Patch 32 stores only the target safely.",
+    path: "This sets the first bake-environment constraint. The exact formula still comes from the calculator model.",
+    preset: "Preset choice is stored separately from baking path so dough setup and topping plan do not get mixed together.",
+    time: "Schedule times are rounded to practical 15-minute increments; active night tasks are avoided where possible while passive fermentation can continue overnight.",
     quantity: "This becomes the first batch-size variable before exact dough-ball and formula tuning.",
     oven: "Heat transfer and bake duration are downstream constraints; exact temperatures remain in the tools.",
     flour: "This is a coarse flour class, not a W-value or protein analysis. Fine tuning remains available later.",
@@ -88,61 +91,8 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
 };
 
 function stepToSessionStep(step: WizardStep): PizzaSessionStep {
+  if (step === "path" || step === "preset") return "style";
   return step === "summary" ? "recipe" : step;
-}
-
-function styleToRecipeDefaults(style: string | undefined, pizzaCount: number | undefined, ovenType: string | undefined, flour: string | undefined): PizzaSessionRecipeParams {
-  const count = pizzaCount && pizzaCount > 0 ? pizzaCount : style === "pan-tray" ? 1 : 6;
-  const flourId = flour === "tipo-00" ? "caputo-pizzeria" : flour === "bread" ? "caputo-cuoco" : "caputo-pizzeria";
-
-  if (style === "pan-tray") {
-    return {
-      balls: count,
-      ballWeight: 650,
-      waste: 3,
-      hydration: 75,
-      salt: 2.8,
-      yeastType: "idy",
-      fermentation: "48h-cold",
-      temperature: 4,
-      style: "pan",
-      oven: "home",
-      flour: flourId,
-      pizzaStyle: "detroit",
-    };
-  }
-
-  if (style === "pizza-oven" || ovenType === "gas") {
-    return {
-      balls: count,
-      ballWeight: 260,
-      waste: 3,
-      hydration: 64,
-      salt: 2.8,
-      yeastType: "idy",
-      fermentation: "12h-room",
-      temperature: 22,
-      style: "balanced",
-      oven: "gas",
-      flour: flourId,
-      pizzaStyle: "neapolitan",
-    };
-  }
-
-  return {
-    balls: count,
-    ballWeight: 270,
-    waste: 3,
-    hydration: 64,
-    salt: 2.8,
-    yeastType: "idy",
-    fermentation: "24h-cold",
-    temperature: 4,
-    style: "balanced",
-    oven: "home",
-    flour: flourId,
-    pizzaStyle: "new-york",
-  };
 }
 
 function stepIndex(step: WizardStep) {
@@ -155,7 +105,8 @@ function initialWizardStep(session: PizzaSession): WizardStep {
   if (session.currentStep === "oven") return "oven";
   if (session.currentStep === "flour") return "flour";
   if (session.currentStep === "recipe") return "summary";
-  return "style";
+  if (session.pizzaStyle && !session.pizzaPreset) return "preset";
+  return "path";
 }
 
 function optionClass(active: boolean) {
@@ -167,8 +118,9 @@ function optionClass(active: boolean) {
 export default function StartPizzaSessionPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
-  const [step, setStep] = useState<WizardStep>("style");
+  const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [targetTimeDraft, setTargetTimeDraft] = useState("");
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -184,18 +136,13 @@ export default function StartPizzaSessionPage() {
     setActivePizzaSession(nextSession.id);
     setExperienceLevel(level);
     setSession(nextSession);
+    setTargetTimeDraft(nextSession.targetEatTime ?? "");
     setStep(initialWizardStep(nextSession));
     setReady(true);
   }, []);
 
   const experience = getExperienceLevelConfig(experienceLevel);
   const progress = stepIndex(step) + 1;
-
-  const recipeParams = useMemo(
-    () => styleToRecipeDefaults(session?.pizzaStyle, session?.pizzaCount, session?.ovenType, session?.flour),
-    [session?.flour, session?.ovenType, session?.pizzaCount, session?.pizzaStyle],
-  );
-  const recipeQuery = new URLSearchParams(Object.entries(recipeParams).map(([key, value]) => [key, String(value)])).toString();
 
   const savePatch = (
     patch: Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">>,
@@ -217,19 +164,22 @@ export default function StartPizzaSessionPage() {
   const selectStyle = (value: SessionStyle) => {
     const ovenType = value === "pizza-oven" ? "gas" : value === "pan-tray" ? "pan" : "home";
     const pizzaCount = value === "pan-tray" ? 1 : session?.pizzaCount ?? 6;
-    savePatch({ pizzaStyle: value, ovenType, pizzaCount }, "style");
+    savePatch({ pizzaStyle: value, ovenType, pizzaCount }, "path");
   };
 
+  const selectPreset = (pizzaPreset: PizzaPresetId) => savePatch({ pizzaPreset }, "preset");
   const selectOven = (ovenType: string) => savePatch({ ovenType }, "oven");
   const selectFlour = (flour: string) => savePatch({ flour }, "flour");
   const setQuantity = (pizzaCount: number) => savePatch({ pizzaCount }, "quantity");
-  const setTargetTime = (targetEatTime: string) => savePatch({ targetEatTime }, "time");
+  const setTargetTime = (targetEatTime: string) => {
+    setTargetTimeDraft(targetEatTime);
+    savePatch({ targetEatTime }, "time");
+  };
 
   const goToStep = (nextStep: WizardStep) => {
-    const targetEatTime = step === "time" ? targetTimeInputRef.current?.value ?? session?.targetEatTime : session?.targetEatTime;
+    const targetEatTime = step === "time" ? targetTimeDraft || targetTimeInputRef.current?.value || session?.targetEatTime : session?.targetEatTime;
     savePatch({
       targetEatTime,
-      recipeParams: nextStep === "summary" ? recipeParams : session?.recipeParams,
     }, nextStep);
     setStep(nextStep);
   };
@@ -246,6 +196,15 @@ export default function StartPizzaSessionPage() {
     goToStep(previousStep);
   };
 
+  const canContinue =
+    (step === "path" && Boolean(session?.pizzaStyle))
+    || (step === "preset" && Boolean(session?.pizzaPreset))
+    || (step === "time" && Boolean(targetTimeDraft || session?.targetEatTime))
+    || (step === "quantity" && Boolean(session?.pizzaCount))
+    || (step === "oven" && Boolean(session?.ovenType))
+    || (step === "flour" && Boolean(session?.flour))
+    || step === "summary";
+
   if (!ready || !session) {
     return (
       <main className="min-h-screen bg-cream px-4 py-10 text-ink">
@@ -257,10 +216,11 @@ export default function StartPizzaSessionPage() {
   }
 
   const selectedStyle = styleOptions.find((option) => option.id === session.pizzaStyle);
+  const selectedPreset = pizzaSessionPresets.find((option) => option.id === session.pizzaPreset);
   const selectedOven = ovenOptions.find((option) => option.id === session.ovenType);
   const selectedFlour = flourOptions.find((option) => option.id === session.flour);
   const lastSaved = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(session.lastSavedAt));
-  const continueHref = pizzaSessionContinueHref({ ...session, recipeParams, currentStep: "recipe" });
+  const continueHref = pizzaSessionContinueHref({ ...session, currentStep: "recipe" });
 
   return (
     <main className="min-h-screen bg-cream px-4 py-5 pb-28 text-ink sm:px-6 sm:py-8">
@@ -283,7 +243,7 @@ export default function StartPizzaSessionPage() {
             {wizardSteps.map((item, index) => (
               <li key={item} className={`rounded-xl px-3 py-2 text-xs font-bold ${item === step ? "bg-ink text-white" : index < stepIndex(step) ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`}>
                 <span className="sr-only">{item === step ? "Current step: " : index < stepIndex(step) ? "Completed step: " : "Upcoming step: "}</span>
-                {index + 1}. {item === "summary" ? "Summary" : item[0].toUpperCase() + item.slice(1)}
+                {index + 1}. {item === "path" ? "Baking path" : item === "preset" ? "Pizza preset" : item === "summary" ? "Dough plan" : item[0].toUpperCase() + item.slice(1)}
               </li>
             ))}
           </ol>
@@ -297,7 +257,8 @@ export default function StartPizzaSessionPage() {
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Autosaved locally</p>
               <h2 className="mt-2 font-display text-4xl font-semibold leading-none">
-                {step === "style" && "What pizza do you want to make?"}
+                {step === "path" && "How will you bake your pizza?"}
+                {step === "preset" && "Which pizza are you planning?"}
                 {step === "time" && "When do you want to eat or bake?"}
                 {step === "quantity" && "How many pizzas?"}
                 {step === "oven" && "What oven are you using?"}
@@ -310,7 +271,7 @@ export default function StartPizzaSessionPage() {
             </span>
           </div>
 
-          {step === "style" && (
+          {step === "path" && (
             <div className="grid gap-3 md:grid-cols-3">
               {styleOptions.map((option) => (
                 <button key={option.id} type="button" onClick={() => selectStyle(option.id)} aria-pressed={session.pizzaStyle === option.id} className={optionClass(session.pizzaStyle === option.id)}>
@@ -322,18 +283,31 @@ export default function StartPizzaSessionPage() {
             </div>
           )}
 
+          {step === "preset" && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {pizzaSessionPresets.map((preset) => (
+                <button key={preset.id} type="button" onClick={() => selectPreset(preset.id)} aria-pressed={session.pizzaPreset === preset.id} className={optionClass(session.pizzaPreset === preset.id)}>
+                  <span className="block text-lg font-extrabold">{preset.marker} {preset.name}</span>
+                  <span className="mt-2 block text-sm leading-6 text-ink/55">{preset.shortDescription}</span>
+                  {session.pizzaPreset === preset.id && <span className="mt-3 block text-xs font-extrabold text-tomato">Selected</span>}
+                </button>
+              ))}
+            </div>
+          )}
+
           {step === "time" && (
             <label className="block max-w-md text-sm font-extrabold text-ink/65">
               Target eating or baking time
               <input
                 ref={targetTimeInputRef}
                 type="datetime-local"
-                value={session.targetEatTime ?? ""}
+                value={targetTimeDraft}
                 onChange={(event) => setTargetTime(event.target.value)}
+                onInput={(event) => setTargetTime(event.currentTarget.value)}
                 className="mt-3 h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-bold text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
               />
               <span className="mt-3 block text-xs font-normal leading-5 text-ink/45">
-                A rough time is enough. Later planner patches can turn this into a full timeline.
+                A rough time is enough. We’ll use it to build your pizza timeline and plan the dough, preparation and bake steps backwards.
               </span>
             </label>
           )}
@@ -385,7 +359,8 @@ export default function StartPizzaSessionPage() {
             <div className="grid gap-5">
               <dl className="grid gap-3 sm:grid-cols-2">
                 {[
-                  ["Style", selectedStyle?.label ?? "Not selected yet"],
+                  ["Baking path", selectedStyle?.label ?? "Not selected yet"],
+                  ["Pizza preset", selectedPreset?.name ?? "Not selected yet"],
                   ["Target time", session.targetEatTime || "Not set yet"],
                   ["Pizza count", `${session.pizzaCount ?? 6}`],
                   ["Oven", selectedOven?.label ?? "Not sure yet"],
@@ -402,11 +377,11 @@ export default function StartPizzaSessionPage() {
               <div className="rounded-[1.5rem] bg-leaf/[.1] p-5">
                 <h3 className="font-display text-2xl font-semibold">Next recommended action</h3>
                 <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Build the dough recipe from this starting setup, or open your session timeline to see the next preparation steps.
+                  Build the dough plan from this starting setup, then continue to timeline and shopping.
                 </p>
                 <div className="mt-4 grid gap-2 sm:grid-cols-4">
-                  <Link href={`/?${recipeQuery}`} className="rounded-2xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Build recipe →
+                  <Link href="/session/recipe" className="rounded-2xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                    Build dough plan →
                   </Link>
                   <Link href="/session/timeline" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                     Open timeline →
@@ -423,13 +398,13 @@ export default function StartPizzaSessionPage() {
           )}
 
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-ink/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <button type="button" onClick={backStep} disabled={step === "style"} className="min-h-12 rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+            <button type="button" onClick={backStep} disabled={step === "path"} className="min-h-12 rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
               Back
             </button>
             <div className="flex flex-col gap-2 sm:items-end">
               <p className="text-xs font-bold text-ink/40">Last saved: {lastSaved}</p>
               {step !== "summary" ? (
-                <button type="button" onClick={continueStep} className="min-h-12 rounded-2xl bg-ink px-6 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white">
+                <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-12 rounded-2xl bg-ink px-6 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40">
                   Continue
                 </button>
               ) : (

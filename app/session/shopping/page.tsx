@@ -240,6 +240,9 @@ export default function SessionShoppingPage() {
               {SHOPPING_LIST_LOCAL_ONLY_COPY} No custom ingredient editor, cloud sync or public sharing is active yet.
             </p>
             <div className="mt-4 grid gap-2">
+              <Link href="/session/recipe" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Review dough plan →
+              </Link>
               <Link href={sauceHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 Open Sauce tool →
               </Link>

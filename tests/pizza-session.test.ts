@@ -197,7 +197,7 @@ describe("Pizza Session local storage", () => {
     const shoppingSession = createPizzaSession({ id: "shopping-link", currentStep: "shopping", recipeParams: recipeSession.recipeParams });
     const styleSession = createPizzaSession({ id: "style-link", currentStep: "style" });
 
-    expect(pizzaSessionContinueHref(recipeSession)).toBe("/?balls=6&hydration=64");
+    expect(pizzaSessionContinueHref(recipeSession)).toBe("/session/recipe");
     expect(pizzaSessionContinueHref(timelineSession)).toBe("/session/timeline");
     expect(pizzaSessionContinueHref(shoppingSession)).toBe("/session/shopping");
     expect(pizzaSessionContinueHref(styleSession)).toBe("/session/start");
@@ -214,6 +214,7 @@ describe("Pizza Session local storage", () => {
     expect(doc).toContain("uploaded to Supabase");
     expect(doc).toContain("cloud sync");
     expect(doc).toContain("Patch 32 adds the first guided `/session/start` wizard");
+    expect(doc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
     expect(persistence).toContain("Pizza Sessions");
     expect(persistence).toContain("Completed or archived sessions are not treated as the active session");
   });

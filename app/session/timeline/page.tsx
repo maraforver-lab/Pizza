@@ -160,6 +160,12 @@ export default function SessionTimelinePage() {
               Create shopping list →
             </Link>
             <Link
+              href="/session/recipe"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+            >
+              Review dough plan →
+            </Link>
+            <Link
               href={recipeQuery ? `/plan?${recipeQuery}` : "/plan"}
               className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
             >
@@ -209,6 +215,9 @@ export default function SessionTimelinePage() {
               {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
             </p>
             <div className="mt-4 grid gap-2">
+              <Link href="/session/recipe" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Review dough plan
+              </Link>
               <Link href="/session/start" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 Edit session choices
               </Link>

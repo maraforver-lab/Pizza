@@ -6,9 +6,11 @@ A Pizza Session represents one planned pizza bake from idea to final result. It 
 
 Patch 31 created the data model, local storage helpers and a small Continue Session foundation.
 
-Patch 32 adds the first guided `/session/start` wizard on top of this model. The wizard creates or recovers a local active Pizza Session and autosaves the first planning choices: style, target time, quantity, oven and flour.
+Patch 32 adds the first guided `/session/start` wizard on top of this model. The wizard creates or recovers a local active Pizza Session and autosaves the first planning choices: baking path, target time, quantity, oven and flour.
 
 Patch 33 adds the first `/session/timeline` route. The route generates a local session timeline from the saved target time, stores it in the active Pizza Session and keeps the next-step indicator local to the same browser.
+
+Patch 35 adds `/session/recipe`. The route turns the active local Pizza Session choices into calculator-compatible `recipeParams` and a copied `recipeSnapshot`, then stores them in the same active browser session before timeline and shopping.
 
 ## Schema version
 
@@ -70,6 +72,8 @@ The current step is used by the Continue Session foundation to decide where the 
 
 When `currentStep` is `timeline`, Continue Session resumes at `/session/timeline`.
 
+When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.
+
 ## Autosave foundation
 
 This patch does not add a background timer or autosave loop.
@@ -91,6 +95,8 @@ It does add helper behavior for future autosave:
 - `recipeSnapshot`
 
 This does not change the recipe query format and does not change any calculator formulas.
+
+Patch 35 can also generate `recipeParams` and `recipeSnapshot` from an active session. The recipe snapshot may include pizza preset, total dough, flour, water, salt and yeast amounts. It is a local copy of the generated dough plan, not a new formula system.
 
 ## Session timeline
 
