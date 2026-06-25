@@ -66,6 +66,19 @@ Allowed canonical values are `beginner`, `enthusiast` and `pizza_nerd`. Legacy v
 
 This preference is browser-local for now. It is not synced to Supabase, does not require login, does not change calculations, and does not alter saved recipe, BakeResult or Journal storage. A future account-based profile could move this setting into a user profile after separate schema and privacy review.
 
+## Pizza Sessions
+
+Patch 31 adds a local-first Pizza Session foundation with these dedicated `localStorage` keys:
+
+```text
+doughtools:pizza-sessions-v1
+doughtools:active-pizza-session-id
+```
+
+Pizza Sessions are separate from saved recipes, local BakeResults and the IndexedDB pizza journal. They are browser-local for now, are not uploaded to Supabase, and do not change the saved recipe storage key or journal database version.
+
+Malformed Pizza Session storage returns safe defaults instead of crashing the app. Completed or archived sessions are not treated as the active session by the active-session helper.
+
 ## Local data not covered by this patch
 
 - Existing real user browser data.

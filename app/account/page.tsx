@@ -149,6 +149,7 @@ export default function AccountPage() {
       </div>
       <p className="mt-5 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">
         Account sign-in currently handles authentication only. It does not upload saved recipes, local BakeResults or Journal photos to Supabase.
+        Pizza sessions are currently saved in this browser on this device, and cloud sync is not active yet.
       </p>
     </section>
     <InstallAppPrompt className="mt-8" />

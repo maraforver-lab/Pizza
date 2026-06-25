@@ -42,7 +42,7 @@ const publicCopy = [
 describe("updates changelog", () => {
   it("defines the latest public foundation update", () => {
     expect(latestPublicUpdate).toBeDefined();
-    expect(latestPublicUpdate?.title).toBe("Install DoughTools / Add to Home Screen");
+    expect(latestPublicUpdate?.title).toBe("Pizza Session data model and autosave foundation");
     expect(latestPublicUpdate?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(`${latestPublicUpdate?.date}T12:00:00Z`))).toBe(false);
   });
@@ -76,9 +76,9 @@ describe("updates changelog", () => {
     expect(getVisibleUpdates(source, 0)).toEqual([]);
   });
 
-  it("includes Patch 01 through Patch 30 in release history", () => {
+  it("includes Patch 01 through Patch 31 in release history", () => {
     expect([...patchHistory].sort((a, b) => a.patch - b.patch).map((entry) => entry.patch))
-      .toEqual(Array.from({ length: 30 }, (_, index) => index + 1));
+      .toEqual(Array.from({ length: 31 }, (_, index) => index + 1));
     for (const entry of patchHistory) {
       expect(entry.title.trim()).toBeTruthy();
       expect(entry.summary.trim()).toBeTruthy();
@@ -89,10 +89,10 @@ describe("updates changelog", () => {
   });
 
   it("exposes Patch history newest first for the updates page", () => {
-    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(visiblePatchHistory).toHaveLength(MAX_VISIBLE_UPDATES);
     expect(visiblePatchHistory.length).toBeLessThanOrEqual(MAX_VISIBLE_UPDATES);
-    expect(visiblePatchHistory[0].patch).toBe(30);
+    expect(visiblePatchHistory[0].patch).toBe(31);
   });
 
   it("keeps Patch 12, Patch 14, experience-level and onboarding details explicit", () => {
@@ -111,6 +111,7 @@ describe("updates changelog", () => {
     const patch28 = patchHistory.find((entry) => entry.patch === 28);
     const patch29 = patchHistory.find((entry) => entry.patch === 29);
     const patch30 = patchHistory.find((entry) => entry.patch === 30);
+    const patch31 = patchHistory.find((entry) => entry.patch === 31);
 
     expect(patch12?.details.join(" ")).toContain("doughtools:bake-results");
     expect(patch12?.technicalNote).toContain("photo upload");
@@ -159,6 +160,10 @@ describe("updates changelog", () => {
     expect(patch30?.details.join(" ")).toContain("install card");
     expect(patch30?.highlights.join(" ")).toContain("No tracking, push notifications, offline mode or indexing change was added");
     expect(patch30?.technicalNote).toContain("security headers");
+    expect(patch31?.summary).toContain("Pizza Session");
+    expect(patch31?.highlights.join(" ")).toContain("Dedicated localStorage keys");
+    expect(patch31?.details.join(" ")).toContain("Malformed localStorage data falls back safely");
+    expect(patch31?.technicalNote).toContain("install/PWA behavior");
   });
 
   it("uses the required new-update notice destination", () => {

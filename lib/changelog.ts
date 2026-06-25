@@ -39,6 +39,34 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "pizza-session-data-model-autosave-2026-06-25",
+    title: "Pizza Session data model and autosave foundation",
+    date: "2026-06-25",
+    summary:
+      "A local-first Pizza Session foundation was added so future guided pizza sessions can be saved and continued.",
+    category: "Technical foundation",
+    highlights: [
+      "Versioned Pizza Session model added",
+      "Local browser storage helpers added",
+      "Active session tracking foundation added",
+      "Last saved and continue-session behavior prepared",
+      "No cloud sync, tracking, reminders or indexing behavior added",
+    ],
+    details: [
+      "Patch 31 introduces the underlying data model for a pizza session: one planned bake from idea to recipe, timeline, preparation, baking and review.",
+      "Sessions are stored locally in the browser for now, with schema versioning and safe recovery from malformed stored data.",
+      "This prepares the next guided session wizard without changing existing calculators, recipes, saved recipe storage or account behavior.",
+    ],
+    userImpact:
+      "DoughTools is now technically prepared to let users continue a pizza session later on the same device.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [31],
+    relatedPatchNumbers: [12, 29, 30, 31],
+    href: "/updates",
+  },
+  {
     id: "install-add-to-home-screen-2026-06-25",
     title: "Install DoughTools / Add to Home Screen",
     date: "2026-06-25",
@@ -1000,6 +1028,29 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users can keep DoughTools easier to reach on a phone or desktop while recipes, saved bakes and account behavior stay local-first.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, calculator progressive disclosure, core recipe workflow handoff, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 31,
+    title: "Pizza Session data model and autosave foundation",
+    category: "Technical foundation",
+    summary:
+      "A versioned local-first Pizza Session model now prepares DoughTools for future guided session flows.",
+    highlights: [
+      "Versioned Pizza Session model added",
+      "Dedicated localStorage keys added for sessions and active session id",
+      "Active session helpers can recover an unfinished local session",
+      "Continue Session card foundation added without fake sessions",
+      "No cloud sync, tracking, reminders or indexing change was added",
+    ],
+    details: [
+      "Patch 31 defines Pizza Session as one planned bake from idea to recipe, timeline, preparation, baking and review.",
+      "Session helpers safely read, save, update, complete, archive and recover local sessions while preserving createdAt.",
+      "Malformed localStorage data falls back safely, and completed or archived sessions are not treated as active by default.",
+    ],
+    userImpact:
+      "DoughTools can now build toward a real continue-later pizza session experience on the same device.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, calculator progressive disclosure, core recipe workflow handoff, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, Journal IndexedDB, authentication, analytics, payments, security headers, install/PWA behavior or SEO indexing permissions.",
   },
 ];
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AppSignature from "@/components/AppSignature";
+import ContinuePizzaSessionCard from "@/components/ContinuePizzaSessionCard";
 import EditableNumberInput from "@/components/EditableNumberInput";
 import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
@@ -596,6 +597,8 @@ export default function Home() {
             </article>
           ))}
         </section>
+
+        <ContinuePizzaSessionCard className="mb-7" />
 
         <InstallAppPrompt compact className="mb-7" />
 
