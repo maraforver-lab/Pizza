@@ -30,6 +30,8 @@ export type KitchenIngredientLine = {
   value: string;
 };
 
+export type KitchenModeKind = "dough" | "service" | "complete" | "unknown";
+
 const defaultInstruction: KitchenTaskInstruction = {
   shortInstruction: "Follow the timeline step, then mark it done when you are ready to continue.",
   beginnerWhy: "One step at a time keeps the session calm.",
@@ -96,7 +98,7 @@ export const kitchenTaskInstructions: Record<string, KitchenTaskInstruction> = {
 
 function nextTodoAfter(steps: PizzaSessionTimelineStep[], stepId: string) {
   const index = steps.findIndex((step) => step.id === stepId);
-  return steps.slice(index + 1).find((step) => step.status === "todo");
+  return steps.slice(index + 1).find((step) => step.status === "todo" && step.id !== "review-result");
 }
 
 function currentStepForTimelineStep(step?: PizzaSessionTimelineStep): PizzaSessionStep {
@@ -117,7 +119,7 @@ export function getKitchenModeState(session?: PizzaSession): KitchenModeState {
   if (!session) return { ok: false, missingReason: "no-session" };
   if (!session.timeline?.steps.length) return { ok: false, missingReason: "missing-timeline" };
 
-  const currentStep = session.timeline.steps.find((step) => step.status === "todo");
+  const currentStep = session.timeline.steps.find((step) => step.status === "todo" && step.id !== "review-result");
   const currentIndex = currentStep
     ? session.timeline.steps.findIndex((step) => step.id === currentStep.id)
     : session.timeline.steps.length - 1;
@@ -137,6 +139,40 @@ export function getKitchenModeState(session?: PizzaSession): KitchenModeState {
 export function getKitchenTaskInstruction(step?: PizzaSessionTimelineStep): KitchenTaskInstruction {
   if (!step) return defaultInstruction;
   return kitchenTaskInstructions[step.id] ?? defaultInstruction;
+}
+
+export function getKitchenModeForStep(step?: PizzaSessionTimelineStep): KitchenModeKind {
+  if (!step) return "complete";
+  const haystack = `${step.id} ${step.label}`.toLowerCase();
+
+  if (
+    haystack.includes("mix")
+    || haystack.includes("rest-dough")
+    || haystack.includes("cold-ferment")
+    || haystack.includes("ferment")
+    || haystack.includes("ball")
+    || haystack.includes("room-temperature")
+    || haystack.includes("room temperature")
+    || haystack.includes("warm")
+  ) {
+    return "dough";
+  }
+
+  if (
+    haystack.includes("prepare-sauce")
+    || haystack.includes("prepare sauce")
+    || haystack.includes("topping")
+    || haystack.includes("preheat")
+    || haystack.includes("stretch")
+    || haystack.includes("top")
+    || haystack.includes("bake")
+    || haystack.includes("serve")
+    || haystack.includes("review")
+  ) {
+    return "service";
+  }
+
+  return "unknown";
 }
 
 export function completeKitchenTimelineStep(
@@ -186,6 +222,15 @@ export function recipeSnapshotIngredientLines(snapshot?: PizzaSessionRecipeSnaps
       ? { label: "Dough balls", value: `${snapshot.balls} × ${snapshot.ballWeight} g` }
       : undefined,
   ].flatMap((line) => line ? [line] : []);
+}
+
+export function doughKitchenIngredientLines(snapshot?: PizzaSessionRecipeSnapshot): KitchenIngredientLine[] {
+  return recipeSnapshotIngredientLines(snapshot).filter((line) => (
+    line.label === "Flour"
+    || line.label === "Water"
+    || line.label === "Salt"
+    || line.label === "Yeast / leavener"
+  ));
 }
 
 export function isMixDoughStep(step?: PizzaSessionTimelineStep) {

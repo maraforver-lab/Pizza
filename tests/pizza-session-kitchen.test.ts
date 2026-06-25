@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { createPizzaSession, pizzaSessionContinueHref } from "@/lib/pizza-session";
 import {
   completeKitchenTimelineStep,
+  doughKitchenIngredientLines,
+  getKitchenModeForStep,
   getKitchenModeState,
   getKitchenTaskInstruction,
   isMixDoughStep,
@@ -66,9 +68,10 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("\"use client\"");
     expect(page).toContain("Kitchen Mode");
-    expect(page).toContain("What to do now");
-    expect(page).toContain("Mark done");
-    expect(page).toContain("No active session yet");
+    expect(page).toContain("Dough Kitchen Mode");
+    expect(page).toContain("Pizza Service Mode");
+    expect(page).toContain("Mark step as done");
+    expect(page).toContain("No active pizza session");
     expect(page).toContain("Create a timeline first");
     expect(page).toContain("Dough plan details are missing");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
@@ -102,6 +105,32 @@ describe("Pizza Session Kitchen Mode", () => {
       timeline: { ...sampleTimeline, steps: sampleTimeline.steps.map((step) => ({ ...step, status: "done" as const })) },
     }));
     expect(completed.ok && completed.currentStep).toBeUndefined();
+  });
+
+  it("treats review-result as the post-kitchen completion transition", () => {
+    const state = getKitchenModeState(createPizzaSession({
+      id: "kitchen-review-transition",
+      timeline: {
+        ...sampleTimeline,
+        steps: [
+          { ...sampleTimeline.steps[0], status: "done" },
+          { ...sampleTimeline.steps[1], status: "done" },
+          { ...sampleTimeline.steps[2], status: "done" },
+          {
+            id: "review-result",
+            label: "Review result",
+            scheduledAt: "2026-06-27T19:00:00.000Z",
+            status: "todo" as const,
+            kind: "active" as const,
+          },
+        ],
+      },
+    }));
+
+    expect(state.ok).toBe(true);
+    if (!state.ok) throw new Error("Expected kitchen state");
+    expect(state.currentStep).toBeUndefined();
+    expect(state.nextStep).toBeUndefined();
   });
 
   it("returns safe missing states for missing active session and timeline", () => {
@@ -180,6 +209,44 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(lines.map((line) => line.value).join(" ")).toContain("4 × 260 g");
     expect(recipeSnapshotIngredientLines(undefined)).toEqual([]);
     expect(isMixDoughStep(sampleTimeline.steps[0])).toBe(true);
+  });
+
+  it("classifies kitchen tasks into Dough Kitchen Mode and Pizza Service Mode", () => {
+    expect(getKitchenModeForStep({ id: "mix-dough", label: "Mix dough", status: "todo" })).toBe("dough");
+    expect(getKitchenModeForStep({ id: "cold-ferment", label: "Cold ferment", status: "todo" })).toBe("dough");
+    expect(getKitchenModeForStep({ id: "ball-dough", label: "Ball dough", status: "todo" })).toBe("dough");
+    expect(getKitchenModeForStep({ id: "room-temperature-rest", label: "Room temperature rest", status: "todo" })).toBe("dough");
+    expect(getKitchenModeForStep({ id: "preheat-oven", label: "Preheat oven", status: "todo" })).toBe("service");
+    expect(getKitchenModeForStep({ id: "prepare-sauce-toppings", label: "Prepare sauce and toppings", status: "todo" })).toBe("service");
+    expect(getKitchenModeForStep({ id: "bake-pizza", label: "Bake pizza", status: "todo" })).toBe("service");
+    expect(getKitchenModeForStep(undefined)).toBe("complete");
+  });
+
+  it("limits Dough Kitchen Mode ingredient lines to dough ingredients", () => {
+    const lines = doughKitchenIngredientLines(recipeSnapshot);
+
+    expect(lines.map((line) => line.label)).toEqual(["Flour", "Water", "Salt", "Yeast / leavener"]);
+    expect(lines.map((line) => line.label)).not.toContain("Sauce");
+    expect(lines.map((line) => line.label)).not.toContain("Cheese");
+    expect(lines.map((line) => line.label)).not.toContain("Toppings");
+  });
+
+  it("renders a baseline service mode without a pizza-by-pizza order board", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("Pizza Service Mode baseline");
+    expect(page).toContain("Pizza count:");
+    expect(page).toContain("Later, this mode can guide each pizza one by one.");
+    expect(page).not.toMatch(/order board|ticket rail|table service/i);
+  });
+
+  it("prepares a completion transition to review and notes", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("Pizza session complete");
+    expect(page).toContain("review what worked, add notes and save this bake");
+    expect(page).toContain("Review and add notes");
+    expect(page).toContain("href=\"/session/review\"");
   });
 
   it("provides task instructions for required timeline labels and level-aware copy", () => {
