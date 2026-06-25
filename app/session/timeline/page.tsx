@@ -175,6 +175,11 @@ export default function SessionTimelinePage() {
                 <p className="mt-3 rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/65">
                   {getTimelineNote(nextStep, session.experienceLevel)}
                 </p>
+                {nextStep.quietHoursWarning && (
+                  <p className="mt-3 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
+                    Quiet-hours warning: {nextStep.quietHoursWarning}
+                  </p>
+                )}
                 <button
                   type="button"
                   onClick={() => markDone(nextStep.id)}
@@ -215,6 +220,11 @@ export default function SessionTimelinePage() {
                     <h3 className="mt-2 font-display text-2xl font-semibold">{step.label}</h3>
                     <p className="mt-2 text-sm leading-6 text-ink/60">{step.description}</p>
                     <p className="mt-3 text-sm leading-6 text-ink/65">{getTimelineNote(step, session.experienceLevel)}</p>
+                    {step.quietHoursWarning && (
+                      <p className="mt-3 rounded-2xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
+                        Quiet-hours warning: {step.quietHoursWarning}
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={`rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.status)}`}>

@@ -15,11 +15,20 @@ import {
   getNextTimelineStep,
   getTimelineNote,
   markPizzaSessionTimelineStepDone,
+  QUIET_HOURS_END,
+  QUIET_HOURS_START,
+  QUIET_HOURS_WARNING,
+  TIMELINE_ROUNDING_MINUTES,
 } from "@/lib/pizza-session-timeline";
 import { MemoryStorage } from "./helpers";
 
 function source(path: string) {
   return readFileSync(join(process.cwd(), path), "utf8");
+}
+
+function isQuietHours(value: string) {
+  const hour = new Date(value).getHours();
+  return hour >= QUIET_HOURS_START || hour < QUIET_HOURS_END;
 }
 
 describe("Pizza Session timeline", () => {
@@ -34,6 +43,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Open full Planner");
     expect(page).toContain("Copy schedule");
     expect(page).toContain("Mark done");
+    expect(page).toContain("Quiet-hours warning");
   });
 
   it("generates backward scheduled timeline steps from targetEatTime", () => {
@@ -69,6 +79,75 @@ describe("Pizza Session timeline", () => {
     expect(result.timeline?.steps.find((step) => step.id === "bake-pizza")?.scheduledAt).toBeDefined();
     expect(result.nextStep?.id).toBe("mix-dough");
     expect(result.assumptions.join(" ")).toContain("practical guide");
+  });
+
+  it("rounds user-facing scheduled times to practical 15-minute increments", () => {
+    const session = createPizzaSession({
+      id: "rounding-session",
+      targetEatTime: "2026-06-27T18:37",
+    });
+
+    const timeline = generatePizzaSessionTimeline(session).timeline!;
+
+    expect(TIMELINE_ROUNDING_MINUTES).toBe(15);
+    for (const step of timeline.steps) {
+      const minutes = new Date(step.scheduledAt!).getMinutes();
+      expect(minutes % 15).toBe(0);
+    }
+  });
+
+  it("keeps active tasks out of the 22:00–07:00 quiet window where practical", () => {
+    const session = createPizzaSession({
+      id: "quiet-avoid-session",
+      targetEatTime: "2026-06-27T08:30",
+    });
+
+    const timeline = generatePizzaSessionTimeline(session).timeline!;
+    const activeSteps = timeline.steps.filter((step) => step.kind === "active");
+
+    expect(activeSteps.map((step) => step.label)).toEqual([
+      "Mix dough",
+      "Ball dough",
+      "Preheat oven",
+      "Prepare sauce and toppings",
+      "Bake pizza",
+      "Review result",
+    ]);
+    expect(activeSteps.every((step) => !isQuietHours(step.scheduledAt!))).toBe(true);
+  });
+
+  it("allows passive fermentation and rest steps to cross the quiet window", () => {
+    const session = createPizzaSession({
+      id: "passive-overnight-session",
+      targetEatTime: "2026-06-27T08:30",
+    });
+
+    const timeline = generatePizzaSessionTimeline(session).timeline!;
+    const passiveSteps = timeline.steps.filter((step) => step.kind === "passive");
+
+    expect(passiveSteps.map((step) => step.label)).toEqual([
+      "Rest dough",
+      "Cold ferment",
+      "Room temperature rest",
+    ]);
+    expect(passiveSteps.some((step) => isQuietHours(step.scheduledAt!))).toBe(true);
+    expect(passiveSteps.every((step) => step.quietHoursWarning === undefined)).toBe(true);
+  });
+
+  it("adds a visible warning if an active overnight task cannot be avoided", () => {
+    const session = createPizzaSession({
+      id: "overnight-warning-session",
+      targetEatTime: "2026-06-27T06:30",
+    });
+
+    const timeline = generatePizzaSessionTimeline(session).timeline!;
+    const bake = timeline.steps.find((step) => step.id === "bake-pizza");
+    const review = timeline.steps.find((step) => step.id === "review-result");
+
+    expect(bake?.kind).toBe("active");
+    expect(bake?.scheduledAt && isQuietHours(bake.scheduledAt)).toBe(true);
+    expect(bake?.quietHoursWarning).toBe(QUIET_HOURS_WARNING);
+    expect(review?.quietHoursWarning).toBe(QUIET_HOURS_WARNING);
   });
 
   it("returns safe states for missing or invalid target time", () => {

@@ -67,6 +67,31 @@ The schedule is intentionally practical rather than scientifically exact. Real t
 
 The current assumptions are returned by the timeline helper and shown on the route.
 
+## Time rounding and quiet hours
+
+User-facing schedule times are rounded to practical 15-minute increments.
+
+Patch 33 also applies a simple quiet-hours protection for active user tasks. Active tasks try to avoid the usual 22:00–07:00 sleep window.
+
+Active tasks are:
+
+- Mix dough
+- Ball dough
+- Preheat oven
+- Prepare sauce and toppings
+- Bake pizza
+- Review result
+
+Passive steps may continue during the quiet window because they do not require the user to wake up or act at that exact moment.
+
+Passive steps are:
+
+- Rest dough
+- Cold ferment
+- Room temperature rest
+
+If an active overnight task cannot be avoided, the timeline shows a quiet-hours warning instead of silently creating an unrealistic night task.
+
 ## Missing target time behavior
 
 If the active session has no `targetEatTime` or `targetBakeTime`, `/session/timeline` shows a safe missing-time state and links back to `/session/start`.

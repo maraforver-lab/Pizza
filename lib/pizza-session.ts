@@ -54,6 +54,8 @@ export type PizzaSessionTimelineStep = {
   description?: string;
   scheduledAt?: string;
   status: "todo" | "done" | "skipped";
+  kind?: "active" | "passive";
+  quietHoursWarning?: string;
   helperCopy?: string;
   beginnerNote?: string;
   enthusiastNote?: string;
@@ -121,6 +123,7 @@ type CreatePizzaSessionInput = Partial<Omit<PizzaSession, "schemaVersion" | "cre
 const statusSet = new Set<string>(PIZZA_SESSION_STATUSES);
 const stepSet = new Set<string>(PIZZA_SESSION_STEPS);
 const timelineStatusSet = new Set(["todo", "done", "skipped"]);
+const timelineKindSet = new Set(["active", "passive"]);
 const shoppingGroupSet = new Set(["Dough", "Sauce", "Cheese", "Toppings", "Gear"]);
 const shoppingStatusSet = new Set(["already_have", "need_to_buy", "bought"]);
 
@@ -189,6 +192,8 @@ function cloneTimeline(timeline?: PizzaSessionTimeline): PizzaSessionTimeline | 
       description: stringValue(record.description),
       scheduledAt: stringValue(record.scheduledAt),
       status: typeof record.status === "string" && timelineStatusSet.has(record.status) ? record.status as PizzaSessionTimelineStep["status"] : "todo",
+      kind: typeof record.kind === "string" && timelineKindSet.has(record.kind) ? record.kind as PizzaSessionTimelineStep["kind"] : undefined,
+      quietHoursWarning: stringValue(record.quietHoursWarning),
       helperCopy: stringValue(record.helperCopy),
       beginnerNote: stringValue(record.beginnerNote),
       enthusiastNote: stringValue(record.enthusiastNote),

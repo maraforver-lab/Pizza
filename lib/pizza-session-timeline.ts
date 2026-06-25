@@ -15,16 +15,25 @@ type TimelineTemplateStep = {
   label: string;
   description: string;
   offsetMinutesFromTarget: number;
+  kind: "active" | "passive";
   helperCopy: string;
   beginnerNote: string;
   enthusiastNote: string;
   pizzaNerdNote: string;
 };
 
+export const TIMELINE_ROUNDING_MINUTES = 15;
+export const QUIET_HOURS_START = 22;
+export const QUIET_HOURS_END = 7;
+export const QUIET_HOURS_WARNING =
+  "This active task falls inside the usual 22:00–07:00 quiet window. If that is not realistic, move the target time or prepare this step earlier.";
+
 const DEFAULT_TIMELINE_ASSUMPTIONS = [
   "The target time is treated as the planned eating or baking moment saved in the Pizza Session.",
   "Timing is a practical guide, not a guarantee. Dough temperature, room temperature, flour strength and oven heat can shift the schedule.",
   "This first timeline version uses conservative default offsets and keeps detailed fermentation tuning in the existing tools.",
+  "User-facing times are rounded to practical 15-minute increments.",
+  "Active tasks try to avoid the 22:00–07:00 quiet window; passive fermentation or rest can continue overnight.",
 ];
 
 const timelineTemplate: TimelineTemplateStep[] = [
@@ -33,6 +42,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Mix dough",
     description: "Combine flour, water, salt and yeast from your recipe setup.",
     offsetMinutesFromTarget: -30 * 60,
+    kind: "active",
     helperCopy: "Start the dough early enough that it has time to rest and ferment before baking.",
     beginnerNote: "Do this first. Mix until there is no dry flour left.",
     enthusiastNote: "A short rest after mixing makes the dough easier to knead and handle.",
@@ -43,6 +53,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Rest dough",
     description: "Let the mixed dough relax before stronger handling.",
     offsetMinutesFromTarget: -(29 * 60 + 30),
+    kind: "passive",
     helperCopy: "Resting helps flour hydrate and makes the dough less tight.",
     beginnerNote: "Cover the dough and leave it alone for a short rest.",
     enthusiastNote: "This rest reduces kneading effort and improves handling.",
@@ -53,6 +64,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Cold ferment",
     description: "Move the dough into a cool fermentation phase if your plan uses cold time.",
     offsetMinutesFromTarget: -28 * 60,
+    kind: "passive",
     helperCopy: "Cold time slows fermentation and gives more scheduling flexibility.",
     beginnerNote: "Put the covered dough in the fridge if your recipe uses cold fermentation.",
     enthusiastNote: "Cold fermentation helps flavor and makes timing easier to control.",
@@ -63,6 +75,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Ball dough",
     description: "Divide the dough and shape it into balls or portions.",
     offsetMinutesFromTarget: -4 * 60,
+    kind: "active",
     helperCopy: "Balling creates the final portions and builds surface tension.",
     beginnerNote: "Make one dough ball per pizza, or one portion for pan pizza.",
     enthusiastNote: "Good balling makes opening the pizza easier later.",
@@ -73,6 +86,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Room temperature rest",
     description: "Let the dough warm and relax before opening.",
     offsetMinutesFromTarget: -3 * 60,
+    kind: "passive",
     helperCopy: "Cold dough is harder to open. Give it time to become relaxed and workable.",
     beginnerNote: "Take the dough out before baking so it is not fridge-cold.",
     enthusiastNote: "Room rest improves extensibility and reduces tearing.",
@@ -83,6 +97,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Preheat oven",
     description: "Heat the oven, stone, steel or pizza oven before baking.",
     offsetMinutesFromTarget: -60,
+    kind: "active",
     helperCopy: "A hot baking surface matters as much as the oven air temperature.",
     beginnerNote: "Start heating the oven before you open the pizza.",
     enthusiastNote: "Give stones and steels time to saturate with heat.",
@@ -93,6 +108,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Prepare sauce and toppings",
     description: "Get sauce, cheese and toppings ready before the dough is opened.",
     offsetMinutesFromTarget: -45,
+    kind: "active",
     helperCopy: "Preparation keeps the pizza from sitting wet on the bench.",
     beginnerNote: "Have everything ready before stretching the dough.",
     enthusiastNote: "Dry wet toppings and keep the topping load realistic for your oven.",
@@ -103,6 +119,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Bake pizza",
     description: "Open, top and bake the pizza.",
     offsetMinutesFromTarget: -10,
+    kind: "active",
     helperCopy: "Bake close to the planned target time so the pizza is eaten fresh.",
     beginnerNote: "Open, top and bake one pizza at a time.",
     enthusiastNote: "Watch the bottom and rotate when needed for even color.",
@@ -113,6 +130,7 @@ const timelineTemplate: TimelineTemplateStep[] = [
     label: "Review result",
     description: "After eating, write down what worked and what you would change.",
     offsetMinutesFromTarget: 20,
+    kind: "active",
     helperCopy: "A short note makes the next bake easier to improve.",
     beginnerNote: "Write one thing that worked and one thing to try next time.",
     enthusiastNote: "Note handling, bake color, topping moisture and timing.",
@@ -127,7 +145,43 @@ function parseTargetTime(value?: string): Date | undefined {
 }
 
 function scheduledAt(target: Date, offsetMinutes: number) {
-  return new Date(target.getTime() + offsetMinutes * 60_000).toISOString();
+  return new Date(target.getTime() + offsetMinutes * 60_000);
+}
+
+function roundToTimelineIncrement(date: Date) {
+  const incrementMs = TIMELINE_ROUNDING_MINUTES * 60_000;
+  return new Date(Math.round(date.getTime() / incrementMs) * incrementMs);
+}
+
+function isQuietHours(date: Date) {
+  const hour = date.getHours();
+  return hour >= QUIET_HOURS_START || hour < QUIET_HOURS_END;
+}
+
+function previousQuietHoursBoundary(date: Date) {
+  const adjusted = new Date(date);
+  if (adjusted.getHours() < QUIET_HOURS_END) adjusted.setDate(adjusted.getDate() - 1);
+  adjusted.setHours(QUIET_HOURS_START - 1, 45, 0, 0);
+  return adjusted;
+}
+
+function scheduleTemplateStep(target: Date, step: TimelineTemplateStep) {
+  const rounded = roundToTimelineIncrement(scheduledAt(target, step.offsetMinutesFromTarget));
+  if (step.kind === "passive" || !isQuietHours(rounded)) {
+    return { scheduledAt: rounded.toISOString(), quietHoursWarning: undefined };
+  }
+
+  if (step.id === "bake-pizza" || step.id === "review-result") {
+    return {
+      scheduledAt: rounded.toISOString(),
+      quietHoursWarning: QUIET_HOURS_WARNING,
+    };
+  }
+
+  return {
+    scheduledAt: previousQuietHoursBoundary(rounded).toISOString(),
+    quietHoursWarning: undefined,
+  };
 }
 
 export function getTimelineNote(step: PizzaSessionTimelineStep, level: ExperienceLevel) {
@@ -152,21 +206,27 @@ export function generatePizzaSessionTimeline(
   if (!target) return { ok: false, missingReason: "invalid-target-time", assumptions: DEFAULT_TIMELINE_ASSUMPTIONS };
 
   const existingStatuses = new Map(session.timeline?.steps.map((step) => [step.id, step.status]));
-  const timeline: PizzaSessionTimeline = {
-    generatedAt: now.toISOString(),
-    targetEatTime: session.targetEatTime ?? session.targetBakeTime,
-    assumptions: DEFAULT_TIMELINE_ASSUMPTIONS,
-    steps: timelineTemplate.map((step) => ({
+  const steps = timelineTemplate.map((step) => {
+    const schedule = scheduleTemplateStep(target, step);
+    return {
       id: step.id,
       label: step.label,
       description: step.description,
-      scheduledAt: scheduledAt(target, step.offsetMinutesFromTarget),
+      scheduledAt: schedule.scheduledAt,
       status: existingStatuses.get(step.id) ?? "todo",
+      kind: step.kind,
+      quietHoursWarning: schedule.quietHoursWarning,
       helperCopy: step.helperCopy,
       beginnerNote: step.beginnerNote,
       enthusiastNote: step.enthusiastNote,
       pizzaNerdNote: step.pizzaNerdNote,
-    })),
+    };
+  });
+  const timeline: PizzaSessionTimeline = {
+    generatedAt: now.toISOString(),
+    targetEatTime: session.targetEatTime ?? session.targetBakeTime,
+    assumptions: DEFAULT_TIMELINE_ASSUMPTIONS,
+    steps,
   };
 
   return {
