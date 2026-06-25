@@ -46,7 +46,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("When do you want pizza?");
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("What flour do you have?");
-    expect(page).toContain("Your Pizza Session is ready.");
+    expect(page).toContain("Your starting setup is ready.");
     expect(page).toContain("Home oven pizza");
     expect(page).toContain("Pizza oven pizza");
     expect(page).toContain("Pan / tray pizza");
@@ -81,6 +81,30 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('if (session.currentStep === "oven") return "flour";');
     expect(page).toContain("const ovenType = value === \"pizza-oven\" ? \"gas\" : value === \"pan-tray\" ? \"pan\" : \"home\";");
     expect(page).toContain("savePatch({ pizzaStyle: value, ovenType, pizzaCount }, \"path\")");
+  });
+
+  it("keeps the final guided step focused on one primary next action", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("Next: build your dough plan");
+    expect(page).toContain("We’ll calculate the dough amount, flour, water, salt, yeast and timing from your choices.");
+    expect(page).toContain("Build my dough plan →");
+    expect(page).toContain("Continue later");
+    expect(page).not.toContain("Open timeline →");
+    expect(page).not.toContain("Shopping list →");
+    expect(page).not.toContain("Back to DoughTools");
+    expect(page).not.toContain("[\"Oven\"");
+  });
+
+  it("formats the final target time for people instead of showing raw ISO text", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("function formatTargetTime");
+    expect(page).toContain("weekday: \"short\"");
+    expect(page).toContain("month: \"short\"");
+    expect(page).toContain("hour: \"2-digit\"");
+    expect(page).toContain("[\"Target time\", formatTargetTime(session.targetEatTime)]");
+    expect(page).not.toContain("[\"Target time\", session.targetEatTime || \"Not set yet\"]");
   });
 
   it("uses Patch 31 local storage helpers for creation, active id and autosave", () => {
@@ -150,7 +174,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const targetEatTime = step === \"time\" ? targetTimeDraft || targetTimeInputRef.current?.value || session?.targetEatTime : session?.targetEatTime");
     expect(page).toContain("step === \"time\" && Boolean(targetTimeDraft || session?.targetEatTime)");
     expect(page).toContain("targetEatTime,");
-    expect(page).toContain("[\"Target time\", session.targetEatTime || \"Not set yet\"]");
+    expect(page).toContain("[\"Target time\", formatTargetTime(session.targetEatTime)]");
     expect(page).toContain("DoughTools will build your dough, preparation and bake timeline backwards from this.");
     expect(page).not.toContain("Later planner patches can turn this into a full timeline");
   });

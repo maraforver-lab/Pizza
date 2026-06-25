@@ -164,7 +164,8 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
     expect(page).not.toMatch(/textarea|contentEditable|public link|upload photo|cloud sync is active/i);
     expect(timeline).toContain("/session/shopping");
-    expect(start).toContain("/session/shopping");
+    expect(start).toContain("Build my dough plan");
+    expect(start).not.toContain("Shopping list →");
   });
 
   it("documents Patch 34 shopping behavior and adds changelog history", () => {

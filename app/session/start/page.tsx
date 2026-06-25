@@ -112,6 +112,20 @@ function optionClass(active: boolean) {
   }`;
 }
 
+function formatTargetTime(value?: string) {
+  if (!value) return "Not set yet";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not set yet";
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export default function StartPizzaSessionPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -278,7 +292,7 @@ export default function StartPizzaSessionPage() {
                 {step === "time" && "When do you want pizza?"}
                 {step === "quantity" && "How many pizzas?"}
                 {step === "flour" && "What flour do you have?"}
-                {step === "summary" && "Your Pizza Session is ready."}
+                {step === "summary" && "Your starting setup is ready."}
               </h2>
             </div>
             <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${experience.badgeClassName}`}>
@@ -422,7 +436,7 @@ export default function StartPizzaSessionPage() {
                 {[
                   ["Baking path", selectedStyle?.label ?? "Not selected yet"],
                   ["Pizza preset", selectedPreset?.name ?? "Not selected yet"],
-                  ["Target time", session.targetEatTime || "Not set yet"],
+                  ["Target time", formatTargetTime(session.targetEatTime)],
                   ["Pizza count", `${session.pizzaCount ?? 6}`],
                   ["Flour", selectedFlour?.label ?? "Not sure yet"],
                   ["Session status", session.status],
@@ -435,19 +449,13 @@ export default function StartPizzaSessionPage() {
                 ))}
               </dl>
               <div className="rounded-[1.5rem] bg-leaf/[.1] p-5">
-                <h3 className="font-display text-2xl font-semibold">Next recommended action</h3>
+                <h3 className="font-display text-2xl font-semibold">Next: build your dough plan</h3>
                 <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Build the dough plan from this starting setup, then continue to timeline and shopping.
+                  We’ll calculate the dough amount, flour, water, salt, yeast and timing from your choices.
                 </p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-4">
+                <div className="mt-4 grid gap-2 sm:max-w-sm">
                   <Link href="/session/recipe" className="rounded-2xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Build dough plan →
-                  </Link>
-                  <Link href="/session/timeline" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Open timeline →
-                  </Link>
-                  <Link href="/session/shopping" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Shopping list →
+                    Build my dough plan →
                   </Link>
                   <Link href={continueHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                     Continue later
@@ -467,11 +475,7 @@ export default function StartPizzaSessionPage() {
                 <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-12 rounded-2xl bg-ink px-6 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40">
                   Continue
                 </button>
-              ) : (
-                <Link href="/" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-ink px-6 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white">
-                  Back to DoughTools
-                </Link>
-              )}
+              ) : null}
             </div>
           </div>
         </section>
