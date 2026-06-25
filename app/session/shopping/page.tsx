@@ -196,6 +196,12 @@ export default function SessionShoppingPage() {
               Copy shopping list
             </button>
             <Link
+              href="/session/kitchen"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+            >
+              Open Kitchen Mode →
+            </Link>
+            <Link
               href="/session/timeline"
               className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
             >
@@ -242,6 +248,9 @@ export default function SessionShoppingPage() {
             <div className="mt-4 grid gap-2">
               <Link href="/session/recipe" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 Review dough plan →
+              </Link>
+              <Link href="/session/kitchen" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Open Kitchen Mode →
               </Link>
               <Link href={sauceHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 Open Sauce tool →

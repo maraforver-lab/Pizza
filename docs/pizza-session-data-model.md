@@ -12,6 +12,8 @@ Patch 33 adds the first `/session/timeline` route. The route generates a local s
 
 Patch 35 adds `/session/recipe`. The route turns the active local Pizza Session choices into calculator-compatible `recipeParams` and a copied `recipeSnapshot`, then stores them in the same active browser session before timeline and shopping.
 
+Patch 36 adds `/session/kitchen`. The route reads the active session timeline and recipe snapshot, shows the first todo task as the current kitchen task and saves local progress as timeline steps are marked done.
+
 ## Schema version
 
 Pizza Sessions use:
@@ -70,9 +72,11 @@ Allowed current steps:
 
 The current step is used by the Continue Session foundation to decide where the user should resume when a reliable existing route is available.
 
-When `currentStep` is `timeline`, Continue Session resumes at `/session/timeline`.
+When `currentStep` is `timeline` and the session has unfinished timeline tasks, Continue Session resumes at `/session/kitchen`. If no active timeline task is available yet, it resumes at `/session/timeline`.
 
 When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.
+
+When `currentStep` is `prep` or `bake`, Continue Session resumes at `/session/kitchen`.
 
 ## Autosave foundation
 
@@ -115,6 +119,8 @@ The first generated timeline is a practical backward schedule, not a guarantee. 
 
 Timeline step status is local-only. Marking a step done updates the active browser session and does not send anything to Supabase or any external service.
 
+Kitchen Mode consumes the same timeline status data. It does not create a new storage key or a separate task database.
+
 ## Local-first limitations
 
 Pizza Sessions are currently local to the browser on this device.
@@ -135,7 +141,7 @@ Patch 31 does not add:
 
 - account-connected timeline sync
 - shopping list generator
-- Kitchen Mode
+- Kitchen Mode execution refinements
 - review/result cards
 - image upload
 - cloud sync
@@ -150,7 +156,7 @@ Future patches can build on this foundation:
 
 - timeline generation and editing
 - shopping list generation
-- Kitchen Mode for step-by-step preparation
+- Kitchen Mode refinements for step-by-step preparation
 - review/result cards
 - optional account sync after a separate schema and privacy review
 

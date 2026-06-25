@@ -194,12 +194,20 @@ describe("Pizza Session local storage", () => {
   it("maps Continue Session links to existing routes only", () => {
     const recipeSession = createSessionFromRecipeParams("balls=6&hydration=64", { id: "recipe-link" });
     const timelineSession = createPizzaSession({ id: "timeline-link", currentStep: "timeline", recipeParams: recipeSession.recipeParams });
+    const activeTimelineSession = createPizzaSession({
+      id: "active-timeline-link",
+      currentStep: "timeline",
+      timeline: { steps: [{ id: "mix-dough", label: "Mix dough", status: "todo" }] },
+    });
     const shoppingSession = createPizzaSession({ id: "shopping-link", currentStep: "shopping", recipeParams: recipeSession.recipeParams });
+    const prepSession = createPizzaSession({ id: "prep-link", currentStep: "prep", recipeParams: recipeSession.recipeParams });
     const styleSession = createPizzaSession({ id: "style-link", currentStep: "style" });
 
     expect(pizzaSessionContinueHref(recipeSession)).toBe("/session/recipe");
     expect(pizzaSessionContinueHref(timelineSession)).toBe("/session/timeline");
+    expect(pizzaSessionContinueHref(activeTimelineSession)).toBe("/session/kitchen");
     expect(pizzaSessionContinueHref(shoppingSession)).toBe("/session/shopping");
+    expect(pizzaSessionContinueHref(prepSession)).toBe("/session/kitchen");
     expect(pizzaSessionContinueHref(styleSession)).toBe("/session/start");
   });
 
@@ -215,6 +223,7 @@ describe("Pizza Session local storage", () => {
     expect(doc).toContain("cloud sync");
     expect(doc).toContain("Patch 32 adds the first guided `/session/start` wizard");
     expect(doc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
+    expect(doc).toContain("When `currentStep` is `prep` or `bake`, Continue Session resumes at `/session/kitchen`.");
     expect(persistence).toContain("Pizza Sessions");
     expect(persistence).toContain("Completed or archived sessions are not treated as the active session");
   });

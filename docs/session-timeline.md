@@ -120,6 +120,10 @@ Marking a step done:
 
 It does not notify the user, send data to a server or update any external calendar.
 
+Patch 36 adds `/session/kitchen`, which uses the same saved timeline as a focused kitchen view. The current Kitchen Mode task is the first timeline step with status `todo`, and marking it done updates the same local timeline status.
+
+Timeline remains the schedule overview. Kitchen Mode is the step-by-step execution view.
+
 ## Copy/export behavior
 
 Patch 33 includes a plain-text copy action for the schedule where the browser Clipboard API is available.

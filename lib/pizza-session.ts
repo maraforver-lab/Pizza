@@ -389,10 +389,12 @@ export function pizzaSessionRecipeQuery(session: PizzaSession) {
 
 export function pizzaSessionContinueHref(session: PizzaSession) {
   const query = pizzaSessionRecipeQuery(session);
+  const hasActiveTimelineTask = session.timeline?.steps.some((step) => step.status === "todo") ?? false;
+  if (hasActiveTimelineTask && ["timeline", "prep", "bake"].includes(session.currentStep)) return "/session/kitchen";
   if (session.currentStep === "timeline") return "/session/timeline";
   if (session.currentStep === "shopping") return "/session/shopping";
   if (session.currentStep === "recipe") return "/session/recipe";
-  if (["prep", "bake"].includes(session.currentStep)) return query ? `/plan?${query}` : "/plan";
+  if (["prep", "bake"].includes(session.currentStep)) return "/session/kitchen";
   return "/session/start";
 }
 

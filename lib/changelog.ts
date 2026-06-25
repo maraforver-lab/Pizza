@@ -39,6 +39,37 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "session-kitchen-mode-2026-06-25",
+    title: "Session Kitchen Mode",
+    date: "2026-06-25",
+    summary:
+      "Pizza sessions can now guide the user through the saved timeline one kitchen task at a time.",
+    category: "Product",
+    highlights: [
+      "New session kitchen route",
+      "Current task view based on the active Pizza Session timeline",
+      "Mark done saves timeline progress locally",
+      "Mix dough can show saved recipe snapshot ingredient amounts",
+      "Next task preview and links back to Timeline, Shopping List and Calculator",
+      "Beginner, Enthusiast and Pizza Nerd guidance stays consistent",
+      "No formula, cloud sync, reminder, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 36 adds a focused Kitchen Mode step to the local Pizza Session workflow.",
+      "The route reads the saved timeline, shows the first todo task and advances progress when the user marks a task done.",
+      "Recipe snapshot values are displayed where available, especially for the Mix dough step, without recalculating or changing formulas.",
+      "Existing timeline, shopping, calculator, timer and journal routes remain available.",
+    ],
+    userImpact:
+      "Users can move from planning into a calmer cooking view that answers what to do now while keeping progress local to the browser.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [36],
+    relatedPatchNumbers: [31, 32, 33, 34, 35, 36],
+    href: "/updates",
+  },
+  {
     id: "session-recipe-build-step-2026-06-25",
     title: "Session recipe build step",
     date: "2026-06-25",
@@ -1239,6 +1270,31 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users can move from session planning and timeline into a simple grocery checklist without guessing the basic ingredients.",
     technicalNote:
       "This patch did not change dough formulas, planner timing logic, Dough Doctor diagnosis logic, saved recipe storage, Journal IndexedDB, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 36,
+    title: "Session Kitchen Mode",
+    category: "Product",
+    summary:
+      "Pizza sessions can now guide the user through the saved timeline one kitchen task at a time.",
+    highlights: [
+      "New session kitchen route",
+      "Current task view based on the first todo timeline step",
+      "Mark done saves progress into the active local Pizza Session",
+      "Mix dough task can show saved recipe snapshot ingredient amounts",
+      "Links to Timeline, Shopping List, Timer and Journal stay available",
+      "No formula, cloud sync, reminder, tracking or indexing behavior changed",
+    ],
+    details: [
+      "Patch 36 adds `/session/kitchen` as the execution view after recipe, timeline and shopping planning.",
+      "Kitchen Mode reads the active session timeline, uses the first todo task as the current task and relies on the recipe snapshot and experience level instead of creating a separate task system.",
+      "Marking a task done updates the timeline status, timestamps and current session step locally in the same browser session.",
+      "Missing active sessions, missing timelines and missing recipe snapshots show safe recovery links instead of crashing or inventing data.",
+    ],
+    userImpact:
+      "Users get a calmer kitchen view that tells them what to do now and what comes next while preserving the existing tools.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
   {
     patch: 35,

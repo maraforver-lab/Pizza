@@ -41,6 +41,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Next step");
     expect(page).toContain("Saved in this browser");
     expect(page).toContain("Open full Planner");
+    expect(page).toContain("Open Kitchen Mode");
     expect(page).toContain("Copy schedule");
     expect(page).toContain("Mark done");
     expect(page).toContain("Quiet-hours warning");
