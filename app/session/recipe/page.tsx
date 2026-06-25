@@ -28,9 +28,31 @@ function formatDateTime(value?: string) {
     weekday: "short",
     day: "numeric",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function bakingPathLabel(value?: string) {
+  if (value === "pizza-oven") return "Pizza oven pizza";
+  if (value === "pan-tray") return "Pan / tray pizza";
+  if (value === "home-oven") return "Home oven pizza";
+  return "Not set";
+}
+
+function flourLabel(value?: string) {
+  if (value === "caputo-pizzeria") return "Caputo Pizzeria";
+  if (value === "caputo-cuoco") return "Strong bread flour";
+  if (value === "caputo-classica") return "All-purpose flour";
+  return value ?? "Not set";
+}
+
+function amountCardTone(label: string) {
+  if (label === "Water") return "text-sky-600";
+  if (label === "Salt") return "text-ink/55";
+  if (label === "Yeast") return "text-tomato";
+  return "text-leaf";
 }
 
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
@@ -71,12 +93,12 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
 
 function levelIntro(session: PizzaSession) {
   if (session.experienceLevel === "pizza_nerd") {
-    return "This snapshot stores calculator-compatible recipe parameters and ingredient amounts generated with the existing DoughTools formula.";
+    return "Your dough plan is ready. Advanced formula details are available below if you want to inspect the assumptions.";
   }
   if (session.experienceLevel === "enthusiast") {
-    return "These dough numbers give you a repeatable starting point before timeline, shopping and baking.";
+    return "These dough numbers give you a repeatable starting point before the timeline and baking steps.";
   }
-  return "Here is how much dough to make.";
+  return "Here are your dough amounts and what you need before you start.";
 }
 
 export default function SessionRecipePage() {
@@ -126,58 +148,75 @@ export default function SessionRecipePage() {
   const calculatorHref = query ? `/?${query}` : "/";
   const doctorHref = query ? `/doctor?${query}` : "/doctor";
   const rebuilt = buildSessionRecipe(session);
+  const targetTime = formatDateTime(session.targetEatTime ?? session.targetBakeTime);
+  const doughIngredients = [
+    ["Total dough", formatGram(result.ingredients.total)],
+    ["Flour", formatGram(result.ingredients.flour)],
+    ["Water", formatGram(result.ingredients.water)],
+    ["Salt", formatGram(result.ingredients.salt)],
+    ["Yeast", formatGram(result.ingredients.leavener)],
+  ];
+  const doughPrepIngredients = ["Flour", "Water", "Salt", "Yeast"];
+  const doughPrepTools = ["Digital scale", "Mixing bowl", "Dough scraper or sturdy spoon", "Covered container or bowl"];
 
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-6xl">
         <section
           aria-labelledby="session-recipe-heading"
-          className="grid gap-5 rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end"
+          className="rounded-[2rem] bg-white/90 p-6 shadow-card sm:p-8"
         >
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session recipe</p>
-            <h1 id="session-recipe-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your dough plan</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">{levelIntro(session)}</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <GuidanceModeBadge level={session.experienceLevel} />
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                {preset.marker} {preset.name}
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                Target: {formatDateTime(session.targetEatTime ?? session.targetBakeTime)}
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                Saved in this browser
-              </span>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Your dough plan</p>
+              <h1 id="session-recipe-heading" className="mt-3 max-w-3xl font-display text-5xl font-semibold leading-none sm:text-6xl">Your dough plan is ready.</h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">{levelIntro(session)}</p>
             </div>
+            <GuidanceModeBadge level={session.experienceLevel} />
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-72 lg:grid-cols-1">
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {[
+              ["Pizza preset", `${preset.marker} ${preset.name}`],
+              ["Target time", targetTime],
+              ["Pizza count", `${result.settings.pizzas} pizzas`],
+              ["Ball weight", `${result.settings.ballWeight} g`],
+              ["Flour", flourLabel(result.settings.flourId)],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl bg-cream p-4">
+                <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
+                <dd className="mt-1 text-base font-extrabold text-ink">{value}</dd>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/session/timeline"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
             >
               Continue to Timeline →
             </Link>
             <Link
-              href="/session/shopping"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+              href="/"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
             >
-              Open Shopping List →
+              Save and continue later
             </Link>
           </div>
         </section>
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[22rem_1fr]">
+        <section className="mt-6 grid gap-5 lg:grid-cols-[21rem_1fr]">
           <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session summary</p>
             <dl className="mt-4 grid gap-3 text-sm">
               {[
-                ["Baking path", session.pizzaStyle ?? "Not set"],
+                ["Baking path", bakingPathLabel(session.pizzaStyle)],
                 ["Pizza preset", preset.name],
+                ["Target time", targetTime],
                 ["Pizza count", `${result.settings.pizzas}`],
                 ["Ball weight", `${result.settings.ballWeight} g`],
-                ["Flour", result.settings.flourId],
-                ["Oven", result.settings.ovenType],
+                ["Flour", flourLabel(result.settings.flourId)],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-2xl bg-cream p-4">
                   <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
@@ -203,41 +242,57 @@ export default function SessionRecipePage() {
 
           <section className="grid min-w-0 gap-5" aria-label="Dough plan details">
             <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
-              <h2 className="font-display text-3xl font-semibold">Dough ingredients</h2>
+              <h2 className="font-display text-3xl font-semibold">Dough amounts</h2>
               <p className="mt-2 text-sm leading-6 text-ink/55">
-                You have your dough numbers. Next, plan when to mix, rest and bake.
+                Use these amounts when mixing your dough. We recommend weighing ingredients with a digital scale.
               </p>
               <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {[
-                  ["Total dough", formatGram(result.ingredients.total)],
-                  ["Flour", formatGram(result.ingredients.flour)],
-                  ["Water", formatGram(result.ingredients.water)],
-                  ["Salt", formatGram(result.ingredients.salt)],
-                  ["Yeast", formatGram(result.ingredients.leavener)],
-                ].map(([label, value]) => (
+                {doughIngredients.map(([label, value]) => (
                   <div key={label} className="rounded-2xl bg-cream p-4">
                     <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                    <dd className="mt-1 text-2xl font-extrabold text-ink">{value}</dd>
+                    <dd className={`mt-1 text-2xl font-extrabold ${amountCardTone(label)}`}>{value}</dd>
                   </div>
                 ))}
               </dl>
+              {result.ingredients.leavener > 0 && result.ingredients.leavener < 1 && (
+                <p className="mt-4 rounded-2xl bg-sky-50 p-4 text-sm leading-6 text-ink/60">
+                  Yeast can be a very small amount. A precision scale helps.
+                </p>
+              )}
             </article>
 
             <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
-              <h2 className="font-display text-3xl font-semibold">Dough basics</h2>
-              <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  ["Dough balls", `${result.settings.pizzas} × ${result.settings.ballWeight} g`],
-                  ["Hydration", `${result.settings.hydration} %`],
-                  ["Fermentation", result.settings.fermentation],
-                  ["Yeast type", result.settings.yeastType.toUpperCase()],
-                ].map(([label, value]) => (
-                  <div key={label} className="rounded-2xl bg-cream p-4">
-                    <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                    <dd className="mt-1 text-lg font-extrabold text-ink">{value}</dd>
-                  </div>
-                ))}
-              </dl>
+              <h2 className="font-display text-3xl font-semibold">Before you start: get these ready</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/55">
+                You only need the ingredients for the dough and a few basic tools.
+              </p>
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-extrabold text-leaf">Ingredients for the dough</h3>
+                  <ul className="mt-3 grid gap-3 text-sm font-bold text-ink/70">
+                    {doughPrepIngredients.map((item) => (
+                      <li key={item} className="flex items-center gap-3">
+                        <span className="grid h-5 w-5 place-items-center rounded-full bg-leaf/10 text-xs text-leaf" aria-hidden="true">✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-leaf">Tools</h3>
+                  <ul className="mt-3 grid gap-3 text-sm font-bold text-ink/70">
+                    {doughPrepTools.map((item) => (
+                      <li key={item} className="flex items-center gap-3">
+                        <span className="grid h-5 w-5 place-items-center rounded-full bg-leaf/10 text-xs text-leaf" aria-hidden="true">✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <p className="mt-6 rounded-2xl bg-sky-50 p-4 text-sm font-bold leading-6 text-ink/65">
+                That’s it. You don’t need anything else to make the dough.
+              </p>
             </article>
 
             {session.experienceLevel !== "beginner" && (
@@ -245,22 +300,39 @@ export default function SessionRecipePage() {
                 <h2 className="font-display text-3xl font-semibold">Why this matters</h2>
                 <p className="mt-3 text-sm leading-6 text-ink/60">
                   Hydration, flour and fermentation decide how repeatable the dough feels. This session snapshot gives you
-                  a stable baseline before you adjust handling, toppings or bake timing.
+                  a stable baseline before you adjust handling or bake timing.
                 </p>
               </article>
             )}
 
             {session.experienceLevel === "pizza_nerd" && rebuilt.ok && (
-              <article className="rounded-[2rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
-                <h2 className="font-display text-3xl font-semibold">Pizza Nerd notes</h2>
+              <details className="rounded-[2rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
+                <summary className="cursor-pointer font-display text-3xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                  Advanced formula details
+                </summary>
                 <p className="mt-3 text-sm leading-6 text-white/65">
-                  The session stores these calculator-compatible params without changing formula behavior.
+                  These calculator-compatible params are stored locally without changing formula behavior.
                 </p>
                 <pre className="mt-4 overflow-x-auto rounded-2xl bg-black/25 p-4 text-xs leading-5 text-white/80">
                   {JSON.stringify(rebuilt.recipeParams, null, 2)}
                 </pre>
-              </article>
+              </details>
             )}
+
+            <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
+              <h2 className="font-display text-3xl font-semibold">Next step</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/55">
+                Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.
+              </p>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link href="/session/timeline" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                  Continue to Timeline →
+                </Link>
+                <Link href="/" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                  Save and continue later
+                </Link>
+              </div>
+            </article>
           </section>
         </section>
 

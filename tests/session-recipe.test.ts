@@ -53,14 +53,65 @@ describe("Session recipe build step", () => {
     const page = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("\"use client\"");
-    expect(page).toContain("Your dough plan");
+    expect(page).toContain("Your dough plan is ready.");
     expect(page).toContain("Continue to Timeline");
-    expect(page).toContain("Open Shopping List");
+    expect(page).toContain("Save and continue later");
+    expect(page).not.toContain("Open Shopping List");
     expect(page).toContain("Open full Calculator");
     expect(page).toContain("Open Dough Doctor");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("No cloud sync, tracking or public sharing is active.");
     expect(page).not.toMatch(/Cloud sync is active|Tracking is active|Public sharing is active/);
+  });
+
+  it("shows practical dough amount cards and preparation guidance before timeline", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("Dough amounts");
+    expect(page).toContain("Total dough");
+    expect(page).toContain("Flour");
+    expect(page).toContain("Water");
+    expect(page).toContain("Salt");
+    expect(page).toContain("Yeast");
+    expect(page).toContain("Use these amounts when mixing your dough. We recommend weighing ingredients with a digital scale.");
+    expect(page).toContain("Yeast can be a very small amount. A precision scale helps.");
+    expect(page).toContain("Before you start: get these ready");
+    expect(page).toContain("You only need the ingredients for the dough and a few basic tools.");
+    expect(page).toContain("Ingredients for the dough");
+    expect(page).toContain("const doughPrepIngredients = [\"Flour\", \"Water\", \"Salt\", \"Yeast\"]");
+    expect(page).toContain("const doughPrepTools = [\"Digital scale\", \"Mixing bowl\", \"Dough scraper or sturdy spoon\", \"Covered container or bowl\"]");
+    expect(page).toContain("That’s it. You don’t need anything else to make the dough.");
+  });
+
+  it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).not.toMatch(/Ingredients for the dough[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|baking stone|baking steel)/i);
+    expect(page).not.toMatch(/const doughPrepIngredients[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
+    expect(page).not.toMatch(/const doughPrepTools[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
+  });
+
+  it("keeps target time human-readable and advanced formula details collapsed by default", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("year: \"numeric\"");
+    expect(page).toContain("Target time");
+    expect(page).toContain("targetTime");
+    expect(page).not.toContain("session.targetEatTime || session.targetBakeTime");
+    expect(page).toContain("<details");
+    expect(page).toContain("Advanced formula details");
+    expect(page).toContain("<summary");
+    expect(page).not.toContain("<pre className=\"mt-4 overflow-x-auto rounded-2xl bg-black/25 p-4 text-xs leading-5 text-white/80\">\n                  {JSON.stringify(rebuilt.recipeParams, null, 2)}\n                </pre>\n              </article>");
+  });
+
+  it("keeps Timeline as the primary next step from the dough plan page", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("Next step");
+    expect(page).toContain("Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.");
+    expect(page).toContain("Continue to Timeline →");
+    expect(page).toContain("href=\"/session/timeline\"");
+    expect(page).not.toContain("href=\"/session/shopping\"");
   });
 
   it("builds calculator-compatible recipe params and a copied recipe snapshot from a complete session", () => {
