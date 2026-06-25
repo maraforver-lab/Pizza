@@ -10,12 +10,19 @@ import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import {
-  completeSessionReview,
   getSessionReviewCopy,
   saveSessionReview,
   SESSION_REVIEW_LOCAL_ONLY_COPY,
   sessionSummaryLines,
 } from "@/lib/pizza-session-review";
+
+const ratingOptions = [
+  { value: 1, label: "1 — Poor" },
+  { value: 2, label: "2 — Okay" },
+  { value: 3, label: "3 — Good" },
+  { value: 4, label: "4 — Great" },
+  { value: 5, label: "5 — Excellent" },
+] as const;
 
 function formatMaybeDate(value: string) {
   const date = new Date(value);
@@ -24,26 +31,36 @@ function formatMaybeDate(value: string) {
     weekday: "short",
     day: "numeric",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function formatSummaryValue(label: string, value: string) {
+  return label.includes("time") ? formatMaybeDate(value) : value;
 }
 
 function MissingReviewState() {
   return (
     <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
       <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session review</p>
-        <h1 className="mt-3 font-display text-5xl font-semibold leading-none">No active session to review.</h1>
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza session review</p>
+        <h1 className="mt-3 font-display text-5xl font-semibold leading-none">No pizza session to review</h1>
         <p className="mt-4 text-sm leading-6 text-ink/60">
-          Start a Pizza Session first, then come back here after Kitchen Mode to save what happened.
+          Complete a Pizza Session first, then you can save notes and learn from your bake.
         </p>
         <p className="mt-4 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
           {PIZZA_SESSION_LOCAL_ONLY_COPY} Completed or archived sessions are not treated as active.
         </p>
-        <Link href="/session/start" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-          Start Pizza Session →
-        </Link>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/session/start" className="inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+            Start Pizza Session →
+          </Link>
+          <Link href="/" className="inline-flex min-h-12 items-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+            Back to DoughTools
+          </Link>
+        </div>
       </div>
     </main>
   );
@@ -56,8 +73,9 @@ export default function SessionReviewPage() {
   const [notes, setNotes] = useState("");
   const [whatWorked, setWhatWorked] = useState("");
   const [improveNextTime, setImproveNextTime] = useState("");
+  const [nextTimeTry, setNextTimeTry] = useState("");
   const [message, setMessage] = useState<string | null>(null);
-  const [completed, setCompleted] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -67,6 +85,7 @@ export default function SessionReviewPage() {
     setNotes(active?.notes ?? "");
     setWhatWorked(active?.review?.whatWorked ?? "");
     setImproveNextTime(active?.review?.improveNextTime ?? "");
+    setNextTimeTry(active?.review?.nextTimeTry ?? "");
     setReady(true);
   }, []);
 
@@ -84,7 +103,13 @@ export default function SessionReviewPage() {
 
   const copy = getSessionReviewCopy(session.experienceLevel);
   const summary = sessionSummaryLines(session);
-  const reviewInput = { rating: rating || undefined, notes, whatWorked, improveNextTime };
+  const reviewInput = {
+    rating: rating || undefined,
+    notes,
+    whatWorked,
+    improveNextTime,
+    nextTimeTry,
+  };
 
   const saveReview = () => {
     const updated = saveSessionReview(session, reviewInput);
@@ -93,18 +118,8 @@ export default function SessionReviewPage() {
       return;
     }
     setSession(updated);
-    setMessage("Review saved locally in this browser.");
-  };
-
-  const completeReview = () => {
-    const updated = completeSessionReview(session, reviewInput);
-    if (!updated) {
-      setMessage("Could not complete this local session. Please refresh and try again.");
-      return;
-    }
-    setSession(updated);
-    setCompleted(true);
-    setMessage("Session completed. Your review was saved locally.");
+    setSaved(true);
+    setMessage("Review saved in this browser.");
   };
 
   return (
@@ -112,85 +127,56 @@ export default function SessionReviewPage() {
       <div className="mx-auto max-w-6xl">
         <section
           aria-labelledby="session-review-heading"
-          className="grid gap-5 rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end"
+          className="rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8"
         >
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session review</p>
-            <h1 id="session-review-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">
-              {completed || session.status === "completed" ? "Session completed" : "Review this bake"}
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
-              Save what happened, what worked and what you want to change next time.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <GuidanceModeBadge level={session.experienceLevel} />
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                {SESSION_REVIEW_LOCAL_ONLY_COPY}
-              </span>
-            </div>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-72 lg:grid-cols-1">
-            <Link href="/session/kitchen" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]">
-              Open Kitchen Mode →
-            </Link>
-            <Link href="/journal" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]">
-              Open Journal →
-            </Link>
+          <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza session review</p>
+          <h1 id="session-review-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">
+            How did your pizza turn out?
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
+            Save what worked, what you would change and what you learned for next time.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <GuidanceModeBadge level={session.experienceLevel} />
+            {summary.slice(0, 6).map(([label, value]) => (
+              value !== "Not set" && (
+                <span key={label} className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
+                  {label}: {formatSummaryValue(label, value)}
+                </span>
+              )
+            ))}
           </div>
         </section>
 
         {message && (
-          <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status">
+          <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status" aria-live="polite">
             {message}
           </p>
         )}
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[22rem_1fr]">
-          <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session summary</p>
-            <dl className="mt-4 grid gap-3">
-              {summary.map(([label, value]) => (
-                <div key={label} className="rounded-2xl bg-cream p-4">
-                  <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                  <dd className="mt-1 text-sm font-bold text-ink/70">{label.includes("time") ? formatMaybeDate(value) : value}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
-              No cloud sync, account sync, public sharing, result cards or photo upload are active in this review step.
-            </p>
-            <div className="mt-4 grid gap-2">
-              <Link href="/session/recipe" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Review dough plan
-              </Link>
-              <Link href="/session/timeline" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Review timeline
-              </Link>
-            </div>
-          </aside>
-
+        <section className="mt-6 grid gap-5 lg:grid-cols-[1fr_22rem]">
           <section className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-7" aria-labelledby="review-form-heading">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Local bake notes</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Review and notes</p>
             <h2 id="review-form-heading" className="mt-2 font-display text-4xl font-semibold">{copy.heading}</h2>
             <p className="mt-3 text-sm leading-6 text-ink/60">{copy.intro}</p>
 
             <div className="mt-6">
-              <p id="rating-label" className="text-sm font-extrabold text-ink/70">Rate this bake</p>
-              <div className="mt-3 flex flex-wrap gap-2" role="group" aria-labelledby="rating-label">
-                {[1, 2, 3, 4, 5].map((value) => {
-                  const active = rating === value;
+              <p id="rating-label" className="text-sm font-extrabold text-ink/70">Overall result</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-5" role="group" aria-labelledby="rating-label">
+                {ratingOptions.map((option) => {
+                  const active = rating === option.value;
                   return (
                     <button
-                      key={value}
+                      key={option.value}
                       type="button"
                       aria-pressed={active}
-                      aria-label={`Rate this bake ${value} out of 5`}
-                      onClick={() => setRating(value)}
+                      aria-label={`Overall result: ${option.label}`}
+                      onClick={() => setRating(option.value)}
                       className={`min-h-12 rounded-2xl px-4 text-sm font-extrabold ring-1 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
                         active ? "bg-tomato text-white ring-tomato" : "bg-cream text-ink/65 ring-ink/10"
                       }`}
                     >
-                      {value} / 5
+                      {option.label}
                     </button>
                   );
                 })}
@@ -199,7 +185,7 @@ export default function SessionReviewPage() {
 
             <div className="mt-6 grid gap-5">
               <label className="block">
-                <span className="text-sm font-extrabold text-ink/70">What worked?</span>
+                <span className="text-sm font-extrabold text-ink/70">What worked well?</span>
                 <textarea
                   value={whatWorked}
                   onChange={(event) => setWhatWorked(event.target.value)}
@@ -217,7 +203,7 @@ export default function SessionReviewPage() {
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-extrabold text-ink/70">Notes</span>
+                <span className="text-sm font-extrabold text-ink/70">Free notes</span>
                 <textarea
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
@@ -225,50 +211,77 @@ export default function SessionReviewPage() {
                   className="mt-2 min-h-28 w-full rounded-2xl border border-ink/10 bg-cream p-4 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
                 />
               </label>
+              <label className="block">
+                <span className="text-sm font-extrabold text-ink/70">Next time, I want to try…</span>
+                <textarea
+                  value={nextTimeTry}
+                  onChange={(event) => setNextTimeTry(event.target.value)}
+                  placeholder={copy.nextTimeTryPlaceholder}
+                  className="mt-2 min-h-24 w-full rounded-2xl border border-ink/10 bg-cream p-4 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                />
+              </label>
             </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="mt-6">
               <button
                 type="button"
                 onClick={saveReview}
-                disabled={completed || session.status === "completed"}
-                className="min-h-14 rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:opacity-50"
+                className="min-h-14 w-full rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
               >
-                Save review
-              </button>
-              <button
-                type="button"
-                onClick={completeReview}
-                disabled={completed || session.status === "completed"}
-                className="min-h-14 rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:opacity-50"
-              >
-                Complete session
+                Save review →
               </button>
             </div>
 
-            {(completed || session.status === "completed") && (
-              <section className="mt-6 rounded-[1.5rem] bg-leaf/10 p-5" aria-labelledby="completed-session-heading">
-                <h3 id="completed-session-heading" className="font-display text-3xl font-semibold">Session completed</h3>
+            {saved && (
+              <section className="mt-6 rounded-[1.5rem] bg-leaf/10 p-5" aria-labelledby="after-save-heading">
+                <h3 id="after-save-heading" className="font-display text-3xl font-semibold">Review saved in this browser.</h3>
                 <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Your rating and notes were saved locally. This session will no longer appear as the active Continue Session card.
+                  Your notes are local to this browser for now. Use them to make the next pizza easier to improve.
                 </p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
                   <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
                     Start a new Pizza Session →
                   </Link>
-                  <Link href="/journal" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
-                    Open Journal →
+                  <Link href="/session/kitchen" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
+                    Back to Kitchen Mode
                   </Link>
-                  <Link href="/account" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
-                    Open My Pizzas →
-                  </Link>
-                  <Link href="/session/recipe" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
-                    Review dough plan →
+                  <Link href="/session/timeline" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
+                    View timeline
                   </Link>
                 </div>
               </section>
             )}
+
+            <section className="mt-6 rounded-[1.5rem] bg-cream p-5" aria-labelledby="photo-sharing-note-heading">
+              <h3 id="photo-sharing-note-heading" className="font-display text-2xl font-semibold">Photos and sharing</h3>
+              <p className="mt-2 text-sm leading-6 text-ink/60">
+                Photo notes and shareable bake summaries can be added later. For now, save your notes so you know what to improve next time.
+              </p>
+            </section>
           </section>
+
+          <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session summary</p>
+            <dl className="mt-4 grid gap-3">
+              {summary.map(([label, value]) => (
+                <div key={label} className="rounded-2xl bg-cream p-4">
+                  <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
+                  <dd className="mt-1 text-sm font-bold text-ink/70">{formatSummaryValue(label, value)}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
+              {SESSION_REVIEW_LOCAL_ONLY_COPY} No photo upload, social sharing, cloud sync, account sync or public result page is active.
+            </p>
+            <div className="mt-4 grid gap-2">
+              <Link href="/session/kitchen" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Back to Kitchen Mode
+              </Link>
+              <Link href="/session/timeline" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                View timeline
+              </Link>
+            </div>
+          </aside>
         </section>
 
         <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>

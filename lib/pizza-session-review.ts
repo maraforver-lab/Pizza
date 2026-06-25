@@ -1,4 +1,4 @@
-import { getExperienceLevelConfig, type ExperienceLevel } from "@/lib/experience-levels";
+import { type ExperienceLevel } from "@/lib/experience-levels";
 import type { PizzaSession } from "@/lib/pizza-session";
 import {
   clearActivePizzaSession,
@@ -12,6 +12,7 @@ export type PizzaSessionReviewInput = {
   notes?: string;
   whatWorked?: string;
   improveNextTime?: string;
+  nextTimeTry?: string;
 };
 
 export const SESSION_REVIEW_LOCAL_ONLY_COPY =
@@ -23,27 +24,31 @@ export const reviewCopyByLevel: Record<ExperienceLevel, {
   whatWorkedPlaceholder: string;
   improvePlaceholder: string;
   notesPlaceholder: string;
+  nextTimeTryPlaceholder: string;
 }> = {
   beginner: {
-    heading: "What went well?",
-    intro: "Keep it simple: save what you liked and one thing to change next time.",
-    whatWorkedPlaceholder: "The crust browned well, the dough was easy to stretch…",
-    improvePlaceholder: "Use a little less topping, bake longer, start earlier…",
-    notesPlaceholder: "Anything you want to remember from this pizza night.",
+    heading: "Save what you learned.",
+    intro: "Keep it simple: rate the result and save one thing to repeat or change next time.",
+    whatWorkedPlaceholder: "Example: The dough was easy to stretch, the crust browned well, or the timing felt calm.",
+    improvePlaceholder: "Example: Use less topping, preheat longer, make smaller dough balls, or ferment longer.",
+    notesPlaceholder: "Add any extra notes about dough feel, oven heat, toppings, timing or serving.",
+    nextTimeTryPlaceholder: "Example: 24h cold ferment, less cheese, hotter oven, or thinner stretch.",
   },
   enthusiast: {
-    heading: "What would make this bake easier to repeat?",
-    intro: "Note timing, dough feel, oven behavior and topping balance while it is fresh.",
-    whatWorkedPlaceholder: "The timeline worked, the dough handled well, the oven recovery was good…",
-    improvePlaceholder: "Adjust fermentation, preheat longer, dry toppings better…",
-    notesPlaceholder: "Practical observations about dough feel, oven heat, toppings and repeatability.",
+    heading: "Make the next bake easier to repeat.",
+    intro: "Save timing, dough feel, oven behavior and topping balance while the result is fresh.",
+    whatWorkedPlaceholder: "Example: The dough was easy to stretch, the crust browned well, or the timing felt calm.",
+    improvePlaceholder: "Example: Use less topping, preheat longer, make smaller dough balls, or ferment longer.",
+    notesPlaceholder: "Add any extra notes about dough feel, oven heat, toppings, timing or serving.",
+    nextTimeTryPlaceholder: "Example: 24h cold ferment, less cheese, hotter oven, or thinner stretch.",
   },
   pizza_nerd: {
-    heading: "Which variable should you test next?",
-    intro: "Capture the useful variables: hydration, fermentation time, flour, oven heat, topping load and bake time.",
-    whatWorkedPlaceholder: "70% hydration handled well, bottom heat was strong, fermentation timing was repeatable…",
-    improvePlaceholder: "Test lower hydration, longer cold ferment, different flour, less topping load…",
-    notesPlaceholder: "Technical notes, assumptions and variables for the next controlled bake.",
+    heading: "Capture the variables worth testing next.",
+    intro: "Save useful variables like hydration, fermentation time, flour, oven heat, topping load and bake timing.",
+    whatWorkedPlaceholder: "Example: The dough was easy to stretch, the crust browned well, or the timing felt calm.",
+    improvePlaceholder: "Example: Use less topping, preheat longer, make smaller dough balls, or ferment longer.",
+    notesPlaceholder: "Add any extra notes about dough feel, oven heat, toppings, timing or serving.",
+    nextTimeTryPlaceholder: "Example: 24h cold ferment, less cheese, hotter oven, or thinner stretch.",
   },
 };
 
@@ -65,6 +70,7 @@ export function normalizeSessionReviewInput(input: PizzaSessionReviewInput) {
     review: {
       whatWorked: cleanText(input.whatWorked),
       improveNextTime: cleanText(input.improveNextTime),
+      nextTimeTry: cleanText(input.nextTimeTry),
     },
   };
 }
@@ -74,16 +80,15 @@ export function getSessionReviewCopy(level: ExperienceLevel) {
 }
 
 export function sessionSummaryLines(session: PizzaSession) {
-  const experience = getExperienceLevelConfig(session.experienceLevel).label;
-  const timelineDone = session.timeline?.steps.filter((step) => step.status === "done").length ?? 0;
-  const timelineTotal = session.timeline?.steps.length ?? 0;
   return [
-    ["Pizza", session.pizzaPreset ?? session.recipeSnapshot?.pizzaPreset ?? session.pizzaStyle ?? "Not set"],
-    ["Quantity", session.pizzaCount ? `${session.pizzaCount} pizzas` : session.recipeSnapshot?.balls ? `${session.recipeSnapshot.balls} pizzas` : "Not set"],
+    ["Pizza preset", session.pizzaPreset ?? session.recipeSnapshot?.pizzaPreset ?? session.pizzaStyle ?? "Not set"],
+    ["Pizza count", session.pizzaCount ? `${session.pizzaCount} pizzas` : session.recipeSnapshot?.balls ? `${session.recipeSnapshot.balls} pizzas` : "Not set"],
+    ["Ball weight", session.recipeSnapshot?.ballWeight ? `${session.recipeSnapshot.ballWeight} g` : "Not set"],
+    ["Flour", session.flour ?? session.recipeSnapshot?.flour ?? "Not set"],
+    ["Hydration", typeof session.recipeSnapshot?.hydration === "number" ? `${session.recipeSnapshot.hydration} %` : "Not set"],
+    ["Fermentation", session.recipeSnapshot?.fermentation ?? "Not set"],
+    ["Yeast type", session.recipeSnapshot?.yeastType?.toUpperCase() ?? "Not set"],
     ["Target time", session.targetEatTime ?? session.targetBakeTime ?? "Not set"],
-    ["Oven / path", session.ovenType ?? session.recipeSnapshot?.oven ?? session.pizzaStyle ?? "Not set"],
-    ["Guidance", experience],
-    ["Timeline progress", timelineTotal ? `${timelineDone} of ${timelineTotal} steps done` : "No timeline yet"],
   ] as const;
 }
 
@@ -94,12 +99,16 @@ export function saveSessionReview(
   now = new Date(),
 ) {
   const normalized = normalizeSessionReviewInput(input);
+  const savedAt = now.toISOString();
   return updatePizzaSession(
     session.id,
     {
       rating: normalized.rating,
       notes: normalized.notes,
-      review: normalized.review,
+      review: {
+        ...normalized.review,
+        savedAt,
+      },
       status: session.status === "completed" ? "completed" : "reviewing",
       currentStep: "review",
     },
@@ -115,12 +124,16 @@ export function completeSessionReview(
   now = new Date(),
 ) {
   const normalized = normalizeSessionReviewInput(input);
+  const savedAt = now.toISOString();
   const completed = updatePizzaSession(
     session.id,
     {
       rating: normalized.rating,
       notes: normalized.notes,
-      review: normalized.review,
+      review: {
+        ...normalized.review,
+        savedAt,
+      },
       status: "completed",
       currentStep: "review",
     },

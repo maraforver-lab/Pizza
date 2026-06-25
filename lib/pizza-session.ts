@@ -121,6 +121,8 @@ export type PizzaSession = {
   review?: {
     whatWorked?: string;
     improveNextTime?: string;
+    nextTimeTry?: string;
+    savedAt?: string;
   };
 };
 
@@ -264,8 +266,10 @@ function cloneReview(review?: PizzaSession["review"]): PizzaSession["review"] | 
   const next = {
     whatWorked: stringValue(review.whatWorked),
     improveNextTime: stringValue(review.improveNextTime),
+    nextTimeTry: stringValue(review.nextTimeTry),
+    savedAt: stringValue(review.savedAt),
   };
-  return next.whatWorked || next.improveNextTime ? next : undefined;
+  return next.whatWorked || next.improveNextTime || next.nextTimeTry || next.savedAt ? next : undefined;
 }
 
 export function newPizzaSessionId(now = new Date()) {

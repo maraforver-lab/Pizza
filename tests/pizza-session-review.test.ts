@@ -38,13 +38,18 @@ describe("Pizza Session review and bake notes", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page).toContain("\"use client\"");
-    expect(page).toContain("Review this bake");
-    expect(page).toContain("No active session to review");
-    expect(page).toContain("Rate this bake");
-    expect(page).toContain("What worked?");
+    expect(page).toContain("How did your pizza turn out?");
+    expect(page).toContain("No pizza session to review");
+    expect(page).toContain("Overall result");
+    expect(page).toContain("1 — Poor");
+    expect(page).toContain("5 — Excellent");
+    expect(page).toContain("What worked well?");
     expect(page).toContain("What would you improve next time?");
-    expect(page).toContain("Notes");
-    expect(page).toContain("Complete session");
+    expect(page).toContain("Free notes");
+    expect(page).toContain("Next time, I want to try…");
+    expect(page).toContain("Save review →");
+    expect(page).toContain("Review saved in this browser.");
+    expect(page).toContain("Photos and sharing");
     expect(page).toContain("SESSION_REVIEW_LOCAL_ONLY_COPY");
     expect(page).not.toMatch(/upload photo|share result card|copy public link|cloud sync is active|Google indexing enabled/i);
   });
@@ -55,12 +60,14 @@ describe("Pizza Session review and bake notes", () => {
       notes: "  good bake ",
       whatWorked: "  crust ",
       improveNextTime: "  less sauce ",
+      nextTimeTry: "  hotter oven ",
     })).toEqual({
       rating: 5,
       notes: "good bake",
       review: {
         whatWorked: "crust",
         improveNextTime: "less sauce",
+        nextTimeTry: "hotter oven",
       },
     });
 
@@ -70,6 +77,7 @@ describe("Pizza Session review and bake notes", () => {
       review: {
         whatWorked: undefined,
         improveNextTime: undefined,
+        nextTimeTry: undefined,
       },
     });
   });
@@ -100,6 +108,7 @@ describe("Pizza Session review and bake notes", () => {
         notes: "Bottom was crisp.",
         whatWorked: "Timeline was useful.",
         improveNextTime: "Dry mushrooms better.",
+        nextTimeTry: "Use a hotter oven.",
       },
       storage,
       new Date("2026-06-25T11:00:00.000Z"),
@@ -114,6 +123,8 @@ describe("Pizza Session review and bake notes", () => {
       review: {
         whatWorked: "Timeline was useful.",
         improveNextTime: "Dry mushrooms better.",
+        nextTimeTry: "Use a hotter oven.",
+        savedAt: "2026-06-25T11:00:00.000Z",
       },
       updatedAt: "2026-06-25T11:00:00.000Z",
       lastSavedAt: "2026-06-25T11:00:00.000Z",
@@ -143,6 +154,7 @@ describe("Pizza Session review and bake notes", () => {
         notes: "Best batch so far.",
         whatWorked: "Long preheat.",
         improveNextTime: "Try less salami.",
+        nextTimeTry: "Bake one pizza hotter.",
       },
       storage,
       new Date("2026-06-25T12:00:00.000Z"),
@@ -153,6 +165,8 @@ describe("Pizza Session review and bake notes", () => {
     expect(completed?.rating).toBe(5);
     expect(completed?.review?.whatWorked).toBe("Long preheat.");
     expect(completed?.review?.improveNextTime).toBe("Try less salami.");
+    expect(completed?.review?.nextTimeTry).toBe("Bake one pizza hotter.");
+    expect(completed?.review?.savedAt).toBe("2026-06-25T12:00:00.000Z");
     expect(completed?.updatedAt).toBe("2026-06-25T12:00:00.000Z");
     expect(completed?.lastSavedAt).toBe("2026-06-25T12:00:00.000Z");
     expect(getActivePizzaSession(storage)).toBeUndefined();
@@ -178,11 +192,25 @@ describe("Pizza Session review and bake notes", () => {
 
     expect(summary).toContain("Margherita");
     expect(summary).toContain("6 pizzas");
-    expect(summary).toContain("1 of 3 steps done");
-    expect(beginner.intro).toContain("simple");
+    expect(summary).toContain("Target time");
+    expect(beginner.intro).toContain("rate");
     expect(enthusiast.intro).toContain("timing");
     expect(nerd.intro).toContain("hydration");
     expect(SESSION_REVIEW_LOCAL_ONLY_COPY).toContain("saved locally in this browser");
+  });
+
+  it("loads old sessions without review data safely", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "old-review-session",
+      status: "reviewing",
+      currentStep: "review",
+    }, storage);
+
+    const saved = saveSessionReview(session, {}, storage, new Date("2026-06-25T13:00:00.000Z"));
+
+    expect(session.review).toBeUndefined();
+    expect(saved?.review?.savedAt).toBe("2026-06-25T13:00:00.000Z");
   });
 
   it("connects Kitchen Mode and Timeline to review without changing Journal storage", () => {
