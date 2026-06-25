@@ -7,9 +7,9 @@ import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
-import { type PizzaSession, type PizzaSessionTimelineStep, pizzaSessionRecipeQuery } from "@/lib/pizza-session";
+import { type PizzaSession, type PizzaSessionTimelineStep } from "@/lib/pizza-session";
+import { getPizzaSessionPreset } from "@/lib/pizza-session-presets";
 import {
-  formatTimelinePlainText,
   generateAndSaveActivePizzaSessionTimeline,
   generatePizzaSessionTimeline,
   getNextTimelineStep,
@@ -25,22 +25,83 @@ function formatDateTime(value?: string) {
     weekday: "short",
     day: "numeric",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
 }
 
-function statusClass(status: PizzaSessionTimelineStep["status"]) {
+function formatShortDateTime(value?: string) {
+  if (!value) return "Time not set";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Time not set";
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function statusClass(status: "next" | "target" | PizzaSessionTimelineStep["status"]) {
+  if (status === "next") return "bg-leaf/10 text-leaf ring-leaf/20";
+  if (status === "target") return "bg-tomato/10 text-tomato ring-tomato/20";
   if (status === "done") return "bg-leaf/10 text-leaf ring-leaf/20";
   if (status === "skipped") return "bg-ink/[.05] text-ink/45 ring-ink/10";
-  return "bg-tomato/10 text-tomato ring-tomato/20";
+  return "bg-cream text-ink/55 ring-ink/10";
+}
+
+function statusLabel(step: PizzaSessionTimelineStep, nextStep?: PizzaSessionTimelineStep) {
+  if (step.id === nextStep?.id) return "Next";
+  if (step.status === "done") return "Done";
+  if (step.status === "skipped") return "Skipped";
+  if (step.id === "bake-pizza") return "Target time";
+  return "Upcoming";
+}
+
+function relativeFromTarget(stepTime?: string, targetTime?: string) {
+  if (!stepTime || !targetTime) return "Timing guide";
+  const step = new Date(stepTime);
+  const target = new Date(targetTime);
+  if (!Number.isFinite(step.getTime()) || !Number.isFinite(target.getTime())) return "Timing guide";
+  const diffMinutes = Math.round((step.getTime() - target.getTime()) / 60_000);
+  if (diffMinutes === 0) return "Target time";
+  const abs = Math.abs(diffMinutes);
+  const hours = Math.floor(abs / 60);
+  const minutes = abs % 60;
+  const parts = [
+    hours ? `${hours}h` : "",
+    minutes ? `${minutes}m` : "",
+  ].filter(Boolean).join(" ");
+  return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} target`;
+}
+
+function flourLabel(value?: string) {
+  if (value === "caputo-pizzeria" || value === "tipo-00") return "Caputo Pizzeria";
+  if (value === "caputo-cuoco" || value === "bread") return "Strong bread flour";
+  if (value === "caputo-classica" || value === "plain") return "All-purpose flour";
+  return value ?? "Not set";
+}
+
+function formatPercent(value?: number) {
+  return typeof value === "number" && Number.isFinite(value) ? `${value} %` : "Not set";
+}
+
+function formatBallWeight(session: PizzaSession) {
+  return typeof session.recipeSnapshot?.ballWeight === "number"
+    ? `${session.recipeSnapshot.ballWeight} g`
+    : "Not set";
+}
+
+function formatYeastType(session: PizzaSession) {
+  return session.recipeSnapshot?.yeastType?.toUpperCase() ?? "Not set";
 }
 
 export default function SessionTimelinePage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [missingReason, setMissingReason] = useState<string | null>(null);
-  const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -53,25 +114,14 @@ export default function SessionTimelinePage() {
   const timelineResult = useMemo(() => generatePizzaSessionTimeline(session ?? undefined), [session]);
   const timeline = session?.timeline ?? timelineResult.timeline;
   const nextStep = getNextTimelineStep(timeline);
-  const recipeQuery = session ? pizzaSessionRecipeQuery(session) : "";
+  const targetTime = timeline?.targetEatTime ?? session?.targetEatTime ?? session?.targetBakeTime;
+  const allStepsComplete = Boolean(timeline?.steps.length) && timeline?.steps.every((step) => step.status === "done");
+  const preset = session ? getPizzaSessionPreset(session.pizzaPreset) : undefined;
 
   const markDone = (stepId: string) => {
     if (!session) return;
     const updated = markPizzaSessionTimelineStepDone(session, stepId);
     if (updated) setSession(updated);
-  };
-
-  const copySchedule = async () => {
-    if (!session || !timeline || typeof navigator === "undefined" || !navigator.clipboard) {
-      setCopyMessage("Copy is not available in this browser.");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(formatTimelinePlainText(session, timeline));
-      setCopyMessage("Schedule copied as plain text.");
-    } catch {
-      setCopyMessage("Copy failed. You can still read the schedule here.");
-    }
   };
 
   if (!ready) {
@@ -132,38 +182,40 @@ export default function SessionTimelinePage() {
             <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session timeline</p>
             <h1 id="session-timeline-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your pizza timeline</h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
-              A practical backward schedule from your planned time. Timing is a guide, so adjust for your dough,
-              room temperature and oven.
+              A practical backwards schedule from your target time. Follow the steps in order and adjust as needed
+              for your dough, room temperature and oven.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <GuidanceModeBadge level={session.experienceLevel} />
               <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                Target: {formatDateTime(timeline.targetEatTime ?? session.targetEatTime)}
+                Target: {formatDateTime(targetTime)}
               </span>
               <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
                 Saved in this browser
               </span>
             </div>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-72 lg:grid-cols-1">
-            <button
-              type="button"
-              onClick={copySchedule}
-              className="min-h-12 rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-            >
-              Copy schedule
-            </button>
+          <div className="grid gap-3 lg:min-w-80">
+            <div className="rounded-3xl bg-white/95 p-5 text-ink shadow-sm">
+              {nextStep ? (
+                <>
+                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Next step</p>
+                  <h2 className="mt-2 font-display text-2xl font-semibold">Next step: {nextStep.label}</h2>
+                  <p className="mt-1 text-sm font-extrabold text-ink/55">{formatShortDateTime(nextStep.scheduledAt)}</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Ready</p>
+                  <h2 className="mt-2 font-display text-2xl font-semibold">{allStepsComplete ? "Timeline complete" : "Ready to bake"}</h2>
+                  <p className="mt-1 text-sm font-extrabold text-ink/55">You’re ready for the next part of the session.</p>
+                </>
+              )}
+            </div>
             <Link
               href="/session/kitchen"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+              className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-leaf px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
             >
               Open Kitchen Mode →
-            </Link>
-            <Link
-              href="/session/shopping"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-            >
-              Create shopping list →
             </Link>
             <Link
               href="/session/recipe"
@@ -171,81 +223,70 @@ export default function SessionTimelinePage() {
             >
               Review dough plan →
             </Link>
-            <Link
-              href={recipeQuery ? `/plan?${recipeQuery}` : "/plan"}
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-            >
-              Open full Planner →
-            </Link>
           </div>
         </section>
 
-        {copyMessage && (
-          <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status">
-            {copyMessage}
-          </p>
-        )}
-
         <section className="mt-6 grid gap-5 lg:grid-cols-[22rem_1fr]">
           <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Next step</p>
-            {nextStep ? (
-              <>
-                <h2 className="mt-2 font-display text-3xl font-semibold">{nextStep.label}</h2>
-                <p className="mt-2 text-sm leading-6 text-ink/60">{nextStep.description}</p>
-                <p className="mt-3 rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/65">
-                  {getTimelineNote(nextStep, session.experienceLevel)}
-                </p>
-                {nextStep.quietHoursWarning && (
-                  <p className="mt-3 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
-                    Quiet-hours warning: {nextStep.quietHoursWarning}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  onClick={() => markDone(nextStep.id)}
-                  className="mt-4 min-h-12 w-full rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                >
-                  Mark next step done
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="mt-2 font-display text-3xl font-semibold">Timeline complete</h2>
-                <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Nice. Add a journal note or save what worked after the bake.
-                </p>
-              </>
-            )}
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session summary</p>
+            <dl className="mt-4 grid gap-3 text-sm">
+              {[
+                ["Pizza preset", preset?.name ?? "Not set"],
+                ["Target time", formatDateTime(targetTime)],
+                ["Pizza count", session.recipeSnapshot?.balls ? `${session.recipeSnapshot.balls} pizzas` : session.pizzaCount ? `${session.pizzaCount} pizzas` : "Not set"],
+                ["Ball weight", formatBallWeight(session)],
+                ["Flour", flourLabel(session.recipeSnapshot?.flour ?? session.flour)],
+                ["Hydration", formatPercent(session.recipeSnapshot?.hydration)],
+                ["Fermentation", session.recipeSnapshot?.fermentation ?? "Not set"],
+                ["Yeast type", formatYeastType(session)],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-2xl bg-cream p-4">
+                  <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
+                  <dd className="mt-1 font-extrabold text-ink">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="mt-5 rounded-2xl bg-leaf/10 p-4">
+              <h2 className="text-sm font-extrabold text-leaf">How this timeline works</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/60">
+                This is a backwards schedule from your target time. Do each step in order. Timing is a guide, not a rule.
+                Adjust for your dough, room temperature and oven.
+              </p>
+            </div>
             <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
               {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
             </p>
-            <div className="mt-4 grid gap-2">
-              <Link href="/session/recipe" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Review dough plan
-              </Link>
-              <Link href="/session/kitchen" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open Kitchen Mode
-              </Link>
-              <Link href="/session/review" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Review session
-              </Link>
-              <Link href="/session/start" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Edit session choices
-              </Link>
-              <Link href="/" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open calculator
-              </Link>
-            </div>
-          </aside>
+             <div className="mt-4 grid gap-2">
+               <Link href="/session/start" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                 Edit session choices
+               </Link>
+               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                 <Link href="/session/shopping" className="rounded-2xl border border-ink/10 bg-white/70 px-4 py-3 text-center text-xs font-extrabold text-ink/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                   Shopping list
+                 </Link>
+                 <Link href="/session/review" className="rounded-2xl border border-ink/10 bg-white/70 px-4 py-3 text-center text-xs font-extrabold text-ink/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                   Review session
+                 </Link>
+               </div>
+             </div>
+           </aside>
 
           <section className="grid min-w-0 gap-3" aria-label="Pizza timeline steps">
             {timeline.steps.map((step, index) => (
-              <article key={step.id} className="rounded-[1.5rem] border border-white/80 bg-white/80 p-5 shadow-sm">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <article
+                key={step.id}
+                className={`rounded-[1.5rem] border p-5 shadow-sm ${
+                  step.id === nextStep?.id
+                    ? "border-leaf/30 bg-leaf/[.08]"
+                    : step.id === "bake-pizza"
+                      ? "border-tomato/20 bg-tomato/[.05]"
+                      : "border-white/80 bg-white/80"
+                }`}
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
-                      Step {index + 1} · {formatDateTime(step.scheduledAt)}
+                      Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
                     </p>
                     <h3 className="mt-2 font-display text-2xl font-semibold">{step.label}</h3>
                     <p className="mt-2 text-sm leading-6 text-ink/60">{step.description}</p>
@@ -256,9 +297,12 @@ export default function SessionTimelinePage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className={`rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.status)}`}>
-                      Status: {step.status}
+                  <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                    <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === nextStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
+                      {statusLabel(step, nextStep)}
+                    </span>
+                    <span className="text-sm font-bold text-ink/55">
+                      {relativeFromTarget(step.scheduledAt, targetTime)}
                     </span>
                     {step.status === "todo" && (
                       <button

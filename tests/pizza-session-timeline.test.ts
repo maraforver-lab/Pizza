@@ -40,11 +40,63 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Your pizza timeline");
     expect(page).toContain("Next step");
     expect(page).toContain("Saved in this browser");
-    expect(page).toContain("Open full Planner");
     expect(page).toContain("Open Kitchen Mode");
-    expect(page).toContain("Copy schedule");
+    expect(page).toContain("Review dough plan");
+    expect(page).toContain("Session summary");
+    expect(page).toContain("How this timeline works");
     expect(page).toContain("Mark done");
     expect(page).toContain("Quiet-hours warning");
+    expect(page).not.toContain("Copy schedule");
+    expect(page).not.toContain("Create shopping list");
+    expect(page).not.toContain("Open full Planner");
+  });
+
+  it("keeps the hero focused on the next timeline step and Kitchen Mode", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("Next step: {nextStep.label}");
+    expect(page).toContain("formatShortDateTime(nextStep.scheduledAt)");
+    expect(page).toContain("href=\"/session/kitchen\"");
+    expect(page).toContain("Open Kitchen Mode →");
+    expect(page).toContain("href=\"/session/recipe\"");
+    expect(page).toContain("Review dough plan →");
+    expect(page).toContain("href=\"/session/shopping\"");
+    expect(page).toContain("Shopping list");
+    expect(page).not.toContain("recipeQuery ? `/plan?");
+  });
+
+  it("shows a compact session summary without making oven a separate item", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("[\"Pizza preset\", preset?.name ?? \"Not set\"]");
+    expect(page).toContain("[\"Target time\", formatDateTime(targetTime)]");
+    expect(page).toContain("[\"Pizza count\"");
+    expect(page).toContain("[\"Ball weight\", formatBallWeight(session)]");
+    expect(page).toContain("[\"Flour\", flourLabel(session.recipeSnapshot?.flour ?? session.flour)]");
+    expect(page).toContain("[\"Hydration\", formatPercent(session.recipeSnapshot?.hydration)]");
+    expect(page).toContain("[\"Fermentation\", session.recipeSnapshot?.fermentation ?? \"Not set\"]");
+    expect(page).toContain("[\"Yeast type\", formatYeastType(session)]");
+    expect(page).not.toContain("[\"Oven\"");
+  });
+
+  it("renders timeline cards with step number, title, date/time, status and relative timing", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("Step {index + 1}");
+    expect(page).toContain("formatShortDateTime(step.scheduledAt)");
+    expect(page).toContain("{step.label}");
+    expect(page).toContain("{step.description}");
+    expect(page).toContain("statusLabel(step, nextStep)");
+    expect(page).toContain("relativeFromTarget(step.scheduledAt, targetTime)");
+    expect(page).toContain("step.id === nextStep?.id");
+  });
+
+  it("formats hero target time as a human-readable value with year", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("year: \"numeric\"");
+    expect(page).toContain("Target: {formatDateTime(targetTime)}");
+    expect(page).not.toContain("Target: {timeline.targetEatTime");
   });
 
   it("generates backward scheduled timeline steps from targetEatTime", () => {
