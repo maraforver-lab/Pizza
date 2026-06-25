@@ -51,6 +51,12 @@ export default function StartHerePage() {
                 {experience.bestFor}
               </span>
             </div>
+            <Link
+              href="/session/start"
+              className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98]"
+            >
+              Start Pizza Session →
+            </Link>
           </div>
           <ExperienceLevelSelector
             value={experienceLevel}

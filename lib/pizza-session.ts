@@ -338,6 +338,6 @@ export function pizzaSessionContinueHref(session: PizzaSession) {
   if (session.currentStep === "timeline") return query ? `/plan?${query}` : "/plan";
   if (session.currentStep === "recipe") return query ? `/?${query}` : "/";
   if (["shopping", "prep", "bake"].includes(session.currentStep)) return query ? `/plan?${query}` : "/plan";
-  return "/start";
+  return "/session/start";
 }
 

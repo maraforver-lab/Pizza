@@ -5,6 +5,7 @@ import { getHomepageExperienceCopy, homepageExperienceCopy } from "@/lib/homepag
 
 const existingRoutes = new Set([
   "/",
+  "/session/start",
   "/start",
   "/plan",
   "/sauce",
@@ -34,9 +35,10 @@ describe("homepage content model", () => {
     expect(homepageContent.hero.secondaryCta).toEqual({ label: "Choose your guidance level", href: "#experience-level" });
   });
 
-  it("adds a Start Here entry point without replacing the calculator CTA", () => {
-    expect(homepageContent.hero.startHereCta).toEqual({ label: "Start with a simple pizza path", href: "/start" });
+  it("adds a Start Pizza Session entry point without replacing the calculator CTA", () => {
+    expect(homepageContent.hero.startHereCta).toEqual({ label: "Start Pizza Session", href: "/session/start" });
     expect(homepageContent.hero.primaryCta).toEqual({ label: "Calculate your dough", href: "#top" });
+    expect(homepageContent.coreTools.some((tool) => tool.href === "/session/start" && tool.name === "Start Pizza Session")).toBe(true);
     expect(homepageContent.coreTools.some((tool) => tool.href === "/start" && tool.name === "Start Here")).toBe(true);
   });
 

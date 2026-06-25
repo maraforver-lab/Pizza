@@ -39,6 +39,34 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "start-pizza-session-wizard-2026-06-25",
+    title: "Start Pizza Session wizard",
+    date: "2026-06-25",
+    summary:
+      "A guided Start Pizza Session flow now helps users begin a pizza bake one step at a time.",
+    category: "Product",
+    highlights: [
+      "New guided Pizza Session start flow",
+      "Style, time, quantity, oven and flour decisions saved locally",
+      "Progress is autosaved to the active browser session",
+      "Beginner, Enthusiast and Pizza Nerd guidance stays consistent",
+      "No cloud sync, reminders, tracking or indexing behavior added",
+    ],
+    details: [
+      "Patch 32 uses the local Pizza Session model from Patch 31 to create the first guided session wizard.",
+      "Users can start a planned pizza bake, make the first key decisions and return later on the same browser.",
+      "The wizard prepares the next timeline, shopping list and kitchen mode patches without changing existing calculators or formulas.",
+    ],
+    userImpact:
+      "Users can start with one clear decision at a time instead of choosing from separate tools immediately.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [32],
+    relatedPatchNumbers: [22, 31, 32],
+    href: "/updates",
+  },
+  {
     id: "pizza-session-data-model-autosave-2026-06-25",
     title: "Pizza Session data model and autosave foundation",
     date: "2026-06-25",
@@ -1051,6 +1079,29 @@ export const patchHistory: PatchHistoryEntry[] = [
       "DoughTools can now build toward a real continue-later pizza session experience on the same device.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, calculator progressive disclosure, core recipe workflow handoff, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, Journal IndexedDB, authentication, analytics, payments, security headers, install/PWA behavior or SEO indexing permissions.",
+  },
+  {
+    patch: 32,
+    title: "Start Pizza Session wizard",
+    category: "Product",
+    summary:
+      "A guided Start Pizza Session flow now helps users begin a pizza bake one step at a time.",
+    highlights: [
+      "New guided Pizza Session start flow",
+      "Style, time, quantity, oven and flour decisions saved locally",
+      "Progress is autosaved to the active browser session",
+      "Beginner, Enthusiast and Pizza Nerd guidance stays consistent",
+      "No cloud sync, reminders, tracking or indexing behavior added",
+    ],
+    details: [
+      "Patch 32 uses the local Pizza Session model from Patch 31 to create the first guided session wizard.",
+      "Users can start a planned pizza bake, make the first key decisions and return later on the same browser.",
+      "The wizard prepares the next timeline, shopping list and kitchen mode patches without changing existing calculators or formulas.",
+    ],
+    userImpact:
+      "Users can start with one clear decision at a time instead of choosing from separate tools immediately.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
 ];
 

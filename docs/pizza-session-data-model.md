@@ -4,7 +4,9 @@ Patch 31 introduces the local-first Pizza Session foundation.
 
 A Pizza Session represents one planned pizza bake from idea to final result. It is the future container for style choice, timing, quantity, oven, flour, dough recipe, timeline, shopping list, prep steps, baking, notes and review.
 
-This patch creates the data model, local storage helpers and a small Continue Session foundation. It does not create the full session wizard.
+Patch 31 created the data model, local storage helpers and a small Continue Session foundation.
+
+Patch 32 adds the first guided `/session/start` wizard on top of this model. The wizard creates or recovers a local active Pizza Session and autosaves the first planning choices: style, target time, quantity, oven and flour.
 
 ## Schema version
 
@@ -120,7 +122,6 @@ Patch 31 does not add:
 
 Future patches can build on this foundation:
 
-- Patch 32: guided session wizard
 - timeline generation and editing
 - shopping list generation
 - Kitchen Mode for step-by-step preparation

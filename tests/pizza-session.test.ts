@@ -200,7 +200,7 @@ describe("Pizza Session local storage", () => {
     expect(pizzaSessionContinueHref(recipeSession)).toBe("/?balls=6&hydration=64");
     expect(pizzaSessionContinueHref(timelineSession)).toBe("/plan?balls=6&hydration=64");
     expect(pizzaSessionContinueHref(shoppingSession)).toBe("/plan?balls=6&hydration=64");
-    expect(pizzaSessionContinueHref(styleSession)).toBe("/start");
+    expect(pizzaSessionContinueHref(styleSession)).toBe("/session/start");
   });
 
   it("documents Pizza Session storage and local-first limitations", () => {
@@ -213,7 +213,7 @@ describe("Pizza Session local storage", () => {
     expect(doc).toContain("doughtools:active-pizza-session-id");
     expect(doc).toContain("uploaded to Supabase");
     expect(doc).toContain("cloud sync");
-    expect(doc).toContain("full Start Pizza Session wizard");
+    expect(doc).toContain("Patch 32 adds the first guided `/session/start` wizard");
     expect(persistence).toContain("Pizza Sessions");
     expect(persistence).toContain("Completed or archived sessions are not treated as the active session");
   });
