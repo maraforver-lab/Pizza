@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const nextSteps: Record<string, { route: string; label: string }> = {
-  "/": { route: "/plan", label: "Open instructions and schedule" },
   "/styles": { route: "/", label: "Fine-tune the selected recipe" },
   "/plan": { route: "/sauce", label: "Calculate the pizza sauce next" },
   "/sauce": { route: "/toppings", label: "Choose cheese and toppings" },

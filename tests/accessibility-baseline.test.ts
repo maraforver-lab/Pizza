@@ -42,14 +42,15 @@ describe("core accessibility baseline", () => {
     }
   });
 
-  it("keeps navigation controls named and active state available without color alone", () => {
+  it("keeps minimal global header controls named and active state available without color alone", () => {
     const navigationSource = source("components/GlobalToolNavigation.tsx");
 
-    expect(navigationSource).toContain("aria-label={copy.all}");
-    expect(navigationSource).toContain("aria-current={active ? \"page\" : undefined}");
-    expect(navigationSource).toContain("aria-expanded={expanded}");
-    expect(navigationSource).toContain("aria-controls={panelId}");
-    expect(navigationSource).toContain("copy.current");
+    expect(navigationSource).toContain("aria-label=\"DoughTools home\"");
+    expect(navigationSource).toContain("aria-label={signedIn ? copy.accountActive : copy.account}");
+    expect(navigationSource).toContain("aria-current={accountActive ? \"page\" : undefined}");
+    expect(navigationSource).toContain("focus-visible:ring");
+    expect(navigationSource).not.toContain("aria-expanded={expanded}");
+    expect(navigationSource).not.toContain("aria-controls={panelId}");
     for (const item of navigationItems) {
       expect(item.label.trim()).toBeTruthy();
       expect(item.description.trim()).toBeTruthy();

@@ -108,15 +108,16 @@ describe("homepage content model", () => {
     for (const href of hrefs) expect(existingRoutes.has(href)).toBe(true);
   });
 
-  it("renders a session-first homepage instead of the old calculator dashboard", () => {
+  it("renders the minimal beta front door instead of old homepage clutter", () => {
     const homepage = source("app/page.tsx");
     const content = source("lib/homepage.ts");
     const guidance = source("components/HomepageGuidanceLevelSection.tsx");
+    const header = source("components/GlobalToolNavigation.tsx");
+    const updateNotice = source("components/LatestUpdateNotice.tsx");
+    const nextStep = source("components/WorkflowNextStep.tsx");
 
     expect(content).toContain("Start Pizza Session");
     expect(content).toContain("Pizza-making made simple");
-    expect(homepage).toContain("Your pizza session in 8 steps");
-    expect(homepage).toContain("All tools at your fingertips");
     expect(homepage).toContain("ContinuePizzaSessionCard");
     expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("HomeCalculatorWorkspace");
@@ -124,6 +125,19 @@ describe("homepage content model", () => {
     expect(homepage).toContain("/pizza-styles/neapolitan.webp");
     expect(guidance).toContain("How much guidance do you want?");
     expect(guidance).toContain("You can change this anytime.");
+    expect(header).toContain("href=\"/\"");
+    expect(header).toContain("href=\"/account\"");
+    expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
+    expect(updateNotice).toContain('pathname === "/"');
+    expect(nextStep).not.toContain('"/":');
+    expect(homepage).not.toContain("homepageContent.hero.secondaryCta.href");
+    expect(homepage).not.toContain("homepageContent.hero.learnCta.href");
+    expect(homepage).not.toContain("Your pizza session in 8 steps");
+    expect(homepage).not.toContain("All tools at your fingertips");
+    expect(homepage).not.toContain("homepageContent.workflow.map");
+    expect(homepage).not.toContain("homepageContent.coreTools.map");
+    expect(homepage).not.toContain("homepageContent.secondaryTools");
+    expect(homepage).not.toContain("InstallAppPrompt");
     expect(homepage).not.toContain("Build the dough recipe.");
     expect(homepage).not.toContain("Ready to mix");
     expect(homepage).not.toContain("Share your pizza");
@@ -149,19 +163,23 @@ describe("homepage content model", () => {
   it("documents the session-first homepage cleanup without launch or cloud claims", () => {
     const doc = source("docs/homepage-session-first-cleanup.md");
     const visualDoc = source("docs/homepage-session-first-visual-cleanup.md");
+    const minimalDoc = source("docs/homepage-minimal-ux-lockdown.md");
 
     expect(doc).toContain("Patch 37");
     expect(visualDoc).toContain("Patch 39");
+    expect(minimalDoc).toContain("Patch 40");
     expect(doc).toContain("Start Pizza Session");
     expect(visualDoc).toContain("/session/start");
+    expect(minimalDoc).toContain("minimal beta front door");
     expect(doc).toContain("/session/recipe");
     expect(doc).toContain("/session/timeline");
     expect(doc).toContain("/session/shopping");
     expect(doc).toContain("/session/kitchen");
     expect(visualDoc).toContain("/session/review");
     expect(doc).toContain("/?calculator=1");
+    expect(minimalDoc).toContain("The DoughTools logo points to `/`");
     expect(visualDoc).toContain("does not change dough formulas");
-    expect([doc, visualDoc].join("\n")).not.toMatch(/cloud sync is active|Google indexing is enabled|analytics added|tracking added/i);
+    expect([doc, visualDoc, minimalDoc].join("\n")).not.toMatch(/cloud sync is active|Google indexing is enabled|analytics added|tracking added/i);
   });
 
   it("keeps the homepage primary and secondary CTAs pointed at the approved targets", () => {
@@ -170,7 +188,8 @@ describe("homepage content model", () => {
     expect(homepageContent.hero.primaryCta.href).toBe("/session/start");
     expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
     expect(homepage).toContain("href={homepageContent.hero.primaryCta.href}");
-    expect(homepage).toContain("href={homepageContent.hero.secondaryCta.href}");
+    expect(homepage).not.toContain("href={homepageContent.hero.secondaryCta.href}");
+    expect(homepage).not.toContain("Learn how it works");
   });
 
   it("does not include Finnish or Swedish active homepage labels", () => {

@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "homepage-minimal-ux-lockdown-2026-06-25",
+    title: "Homepage minimal UX lockdown",
+    date: "2026-06-25",
+    summary:
+      "The homepage was reduced to a minimal beta front door focused on Start Pizza Session.",
+    category: "Product",
+    highlights: [
+      "Removed visible homepage navigation clutter",
+      "Start Pizza Session is the only hero action",
+      "Open calculator and old secondary homepage links were removed from the visible homepage",
+      "Guidance level and Continue Session remain",
+      "Existing tools and routes were not deleted",
+      "No formulas, storage, tracking, cloud sync, payments, security or SEO behavior changed",
+    ],
+    details: [
+      "Patch 40 locks the homepage down to the minimal beta front door.",
+      "The visible homepage now keeps the brand header, hero, Start Pizza Session, local-first note, guidance level and real active-session continuation only.",
+      "Old navigation and secondary tool entry points remain available by direct route, but no longer compete with the first homepage action.",
+    ],
+    userImpact:
+      "Users see one clear first action instead of a page that feels like a toolbox.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [40],
+    relatedPatchNumbers: [37, 38, 39, 40],
+    href: "/updates",
+  },
+  {
     id: "homepage-session-first-visual-cleanup-2026-06-25",
     title: "Homepage session-first visual cleanup",
     date: "2026-06-25",
@@ -687,6 +716,30 @@ export function getVisibleUpdates<T extends Pick<UpdateEntry, "date">>(
 }
 
 export const patchHistory: PatchHistoryEntry[] = [
+  {
+    patch: 40,
+    title: "Homepage minimal UX lockdown",
+    category: "Product",
+    summary:
+      "The homepage was reduced to a minimal beta front door focused on Start Pizza Session.",
+    highlights: [
+      "Removed visible homepage navigation clutter",
+      "Start Pizza Session is the only hero action",
+      "Open calculator and old secondary homepage links were removed from the visible homepage",
+      "Guidance level and Continue Session remain",
+      "Existing tools and routes were not deleted",
+      "No formulas, storage, tracking, cloud sync, payments, security or SEO behavior changed",
+    ],
+    details: [
+      "Patch 40 locks the homepage down to the minimal beta front door.",
+      "The visible homepage now keeps the brand header, hero, Start Pizza Session, local-first note, guidance level and real active-session continuation only.",
+      "Old navigation and secondary tool entry points remain available by direct route, but no longer compete with the first homepage action.",
+    ],
+    userImpact:
+      "Users see one clear first action instead of a page that feels like a toolbox.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
   {
     patch: 39,
     title: "Homepage session-first visual cleanup",

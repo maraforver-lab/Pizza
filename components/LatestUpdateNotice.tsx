@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   isUpdateRecent,
@@ -10,9 +11,15 @@ import {
 } from "@/lib/changelog";
 
 export default function LatestUpdateNotice() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (pathname === "/") {
+      setVisible(false);
+      return;
+    }
+
     if (!isUpdateRecent(latestPublicUpdate?.date)) {
       setVisible(false);
       return;
@@ -24,7 +31,7 @@ export default function LatestUpdateNotice() {
     }, RECENT_UPDATE_NOTICE_VISIBLE_MS);
 
     return () => window.clearTimeout(timeout);
-  }, []);
+  }, [pathname]);
 
   if (!visible || !latestPublicUpdate) return null;
 

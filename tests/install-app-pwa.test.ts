@@ -67,13 +67,14 @@ describe("install app / add to home screen foundation", () => {
     expect(component).not.toMatch(/automatic installation|native app|works offline|push reminders/i);
   });
 
-  it("places install guidance as secondary UX on the homepage and account page", () => {
+  it("keeps install guidance available from account while the homepage stays minimal", () => {
     const homepage = source("app/page.tsx");
     const account = source("app/account/page.tsx");
 
-    expect(homepage).toContain("InstallAppPrompt");
+    expect(homepage).not.toContain("InstallAppPrompt");
     expect(account).toContain("InstallAppPrompt");
-    expect(homepage.indexOf("homepageContent.workflow.map")).toBeLessThan(homepage.indexOf("<InstallAppPrompt"));
+    expect(homepage).toContain("homepageContent.hero.primaryCta.label");
+    expect(homepage).not.toContain("homepageContent.workflow.map");
     expect(account).toContain("Saved recipes and local bake notes stay in this browser");
     expect(account).toContain("<InstallAppPrompt");
   });

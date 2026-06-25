@@ -42,7 +42,7 @@ const publicCopy = [
 describe("updates changelog", () => {
   it("defines the latest public foundation update", () => {
     expect(latestPublicUpdate).toBeDefined();
-    expect(latestPublicUpdate?.title).toBe("Homepage session-first visual cleanup");
+    expect(latestPublicUpdate?.title).toBe("Homepage minimal UX lockdown");
     expect(latestPublicUpdate?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(`${latestPublicUpdate?.date}T12:00:00Z`))).toBe(false);
   });
@@ -76,9 +76,9 @@ describe("updates changelog", () => {
     expect(getVisibleUpdates(source, 0)).toEqual([]);
   });
 
-  it("includes Patch 01 through Patch 39 in release history", () => {
+  it("includes Patch 01 through Patch 40 in release history", () => {
     expect([...patchHistory].sort((a, b) => a.patch - b.patch).map((entry) => entry.patch))
-      .toEqual(Array.from({ length: 39 }, (_, index) => index + 1));
+      .toEqual(Array.from({ length: 40 }, (_, index) => index + 1));
     for (const entry of patchHistory) {
       expect(entry.title.trim()).toBeTruthy();
       expect(entry.summary.trim()).toBeTruthy();
@@ -89,10 +89,10 @@ describe("updates changelog", () => {
   });
 
   it("exposes Patch history newest first for the updates page", () => {
-    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(visiblePatchHistory).toHaveLength(MAX_VISIBLE_UPDATES);
     expect(visiblePatchHistory.length).toBeLessThanOrEqual(MAX_VISIBLE_UPDATES);
-    expect(visiblePatchHistory[0].patch).toBe(39);
+    expect(visiblePatchHistory[0].patch).toBe(40);
   });
 
   it("keeps Patch 12, Patch 14, experience-level and onboarding details explicit", () => {
@@ -120,6 +120,7 @@ describe("updates changelog", () => {
     const patch37 = patchHistory.find((entry) => entry.patch === 37);
     const patch38 = patchHistory.find((entry) => entry.patch === 38);
     const patch39 = patchHistory.find((entry) => entry.patch === 39);
+    const patch40 = patchHistory.find((entry) => entry.patch === 40);
 
     expect(patch12?.details.join(" ")).toContain("doughtools:bake-results");
     expect(patch12?.technicalNote).toContain("photo upload");
@@ -207,6 +208,11 @@ describe("updates changelog", () => {
     expect(patch39?.details.join(" ")).toContain("approved session-first visual direction");
     expect(patch39?.technicalNote).toContain("Pizza Session storage");
     expect(patch39?.technicalNote).toContain("SEO indexing permissions");
+    expect(patch40?.title).toBe("Homepage minimal UX lockdown");
+    expect(patch40?.highlights.join(" ")).toContain("Start Pizza Session is the only hero action");
+    expect(patch40?.details.join(" ")).toContain("minimal beta front door");
+    expect(patch40?.technicalNote).toContain("Pizza Session storage");
+    expect(patch40?.technicalNote).toContain("SEO indexing permissions");
   });
 
   it("uses the required new-update notice destination", () => {

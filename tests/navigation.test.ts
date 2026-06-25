@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   isNavigationGroupActive,
   isNavigationItemActive,
@@ -90,6 +92,14 @@ describe("shared navigation model", () => {
 
   it("keeps desktop and mobile navigation on the same underlying groups", () => {
     expect(navigationGroups.map((group) => group.id)).toEqual(["make", "learn", "my", "support"]);
+  });
+
+  it("keeps the visible global header minimal for the homepage UX lockdown", () => {
+    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+
+    expect(header).toContain('href="/"');
+    expect(header).toContain('href="/account"');
+    expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
   });
 
   it("detects active pages and hash destinations without query strings", () => {
