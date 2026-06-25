@@ -11,6 +11,11 @@ const existingRoutes = new Set([
   "/",
   "/?calculator=1",
   "/session/start",
+  "/session/recipe",
+  "/session/timeline",
+  "/session/shopping",
+  "/session/kitchen",
+  "/session/review",
   "/start",
   "/plan",
   "/sauce",
@@ -25,6 +30,8 @@ const existingRoutes = new Set([
   "/community",
   "/coach",
   "/costs",
+  "/account",
+  "/updates",
 ]);
 
 describe("homepage content model", () => {
@@ -44,29 +51,38 @@ describe("homepage content model", () => {
     expect(homepageContent.hero.learnCta).toEqual({ label: "Learn how it works", href: "/guide" });
   });
 
-  it("contains the required concise four-step session flow", () => {
+  it("contains the required compact eight-step session flow", () => {
     expect(homepageContent.workflow.map((step) => step.title)).toEqual([
-      "Choose your pizza",
-      "Get your dough plan",
-      "Follow your timeline",
-      "Shop, bake and improve",
+      "How you bake",
+      "Pizza style",
+      "When to eat",
+      "How many",
+      "Flour",
+      "Dough plan",
+      "Timeline",
+      "Shopping list",
     ]);
   });
 
-  it("positions DoughTools as a session-first pizza-making workspace", () => {
-    expect(homepageContent.hero.eyebrow).toBe("Pizza-making workspace");
+  it("positions DoughTools as a clean session-first pizza-making homepage", () => {
+    expect(homepageContent.hero.eyebrow).toBe("Pizza-making made simple");
     expect(homepageContent.hero.intro).toContain("one pizza session");
     expect(homepageContent.hero.intro).toContain("dough plan");
     expect(homepageContent.hero.intro).toContain("timeline");
     expect(homepageContent.hero.intro).toContain("kitchen steps");
-    expect(homepageContent.trust.join(" ")).toContain("Beginner, Enthusiast and Pizza Nerd");
+    expect(homepageContent.trust).toEqual([
+      "Saved locally",
+      "Private",
+      "No tracking",
+      "You control your session data",
+    ]);
   });
 
   it("explains the user benefit without claiming cloud sync or guarantees", () => {
     const text = [homepageContent.hero.intro, ...homepageContent.benefits, ...homepageContent.trust].join(" ");
 
     expect(text).toContain("Dough amounts calculated");
-    expect(text).toContain("Progress is saved in this browser on this device");
+    expect(text).toContain("Local-first saved progress");
     expect(text).not.toMatch(/cloud sync is active|cross-device sync|guaranteed results|perfect pizza/i);
   });
 
@@ -95,13 +111,19 @@ describe("homepage content model", () => {
   it("renders a session-first homepage instead of the old calculator dashboard", () => {
     const homepage = source("app/page.tsx");
     const content = source("lib/homepage.ts");
+    const guidance = source("components/HomepageGuidanceLevelSection.tsx");
 
     expect(content).toContain("Start Pizza Session");
-    expect(homepage).toContain("How a Pizza Session works");
-    expect(homepage).toContain("Need a specific tool?");
+    expect(content).toContain("Pizza-making made simple");
+    expect(homepage).toContain("Your pizza session in 8 steps");
+    expect(homepage).toContain("All tools at your fingertips");
     expect(homepage).toContain("ContinuePizzaSessionCard");
+    expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("HomeCalculatorWorkspace");
     expect(homepage).toContain("hasCalculatorRequest");
+    expect(homepage).toContain("/pizza-styles/neapolitan.webp");
+    expect(guidance).toContain("How much guidance do you want?");
+    expect(guidance).toContain("You can change this anytime.");
     expect(homepage).not.toContain("Build the dough recipe.");
     expect(homepage).not.toContain("Ready to mix");
     expect(homepage).not.toContain("Share your pizza");
@@ -126,16 +148,29 @@ describe("homepage content model", () => {
 
   it("documents the session-first homepage cleanup without launch or cloud claims", () => {
     const doc = source("docs/homepage-session-first-cleanup.md");
+    const visualDoc = source("docs/homepage-session-first-visual-cleanup.md");
 
     expect(doc).toContain("Patch 37");
+    expect(visualDoc).toContain("Patch 39");
     expect(doc).toContain("Start Pizza Session");
+    expect(visualDoc).toContain("/session/start");
     expect(doc).toContain("/session/recipe");
     expect(doc).toContain("/session/timeline");
     expect(doc).toContain("/session/shopping");
     expect(doc).toContain("/session/kitchen");
+    expect(visualDoc).toContain("/session/review");
     expect(doc).toContain("/?calculator=1");
-    expect(doc).toContain("does not change dough formulas");
-    expect(doc).not.toMatch(/cloud sync is active|Google indexing is enabled|analytics added|tracking added/i);
+    expect(visualDoc).toContain("does not change dough formulas");
+    expect([doc, visualDoc].join("\n")).not.toMatch(/cloud sync is active|Google indexing is enabled|analytics added|tracking added/i);
+  });
+
+  it("keeps the homepage primary and secondary CTAs pointed at the approved targets", () => {
+    const homepage = source("app/page.tsx");
+
+    expect(homepageContent.hero.primaryCta.href).toBe("/session/start");
+    expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
+    expect(homepage).toContain("href={homepageContent.hero.primaryCta.href}");
+    expect(homepage).toContain("href={homepageContent.hero.secondaryCta.href}");
   });
 
   it("does not include Finnish or Swedish active homepage labels", () => {

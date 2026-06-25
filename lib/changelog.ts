@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "homepage-session-first-visual-cleanup-2026-06-25",
+    title: "Homepage session-first visual cleanup",
+    date: "2026-06-25",
+    summary:
+      "The homepage now follows a cleaner session-first layout with Start Pizza Session as the primary path.",
+    category: "Product",
+    highlights: [
+      "Start Pizza Session is the main homepage action",
+      "Open calculator remains available as a secondary action",
+      "Guidance level and Continue Session stay visible but controlled",
+      "The homepage explains the DoughTools session path more clearly",
+      "Existing tools and routes remain available",
+      "No formulas, storage, tracking, cloud sync or indexing behavior changed",
+    ],
+    details: [
+      "Patch 39 aligns the homepage with the approved session-first visual direction.",
+      "The page now focuses on the main user journey instead of showing a crowded tool dashboard.",
+      "Existing calculators, tools and session routes remain available through clear secondary links.",
+    ],
+    userImpact:
+      "Users get a clearer first impression and one obvious way to begin a pizza session.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [39],
+    relatedPatchNumbers: [37, 38, 39],
+    href: "/updates",
+  },
+  {
     id: "session-review-bake-notes-2026-06-25",
     title: "Session review and bake notes",
     date: "2026-06-25",
@@ -658,6 +687,30 @@ export function getVisibleUpdates<T extends Pick<UpdateEntry, "date">>(
 }
 
 export const patchHistory: PatchHistoryEntry[] = [
+  {
+    patch: 39,
+    title: "Homepage session-first visual cleanup",
+    category: "Product",
+    summary:
+      "The homepage now follows a cleaner session-first layout with Start Pizza Session as the primary path.",
+    highlights: [
+      "Start Pizza Session is the main homepage action",
+      "Open calculator remains available as a secondary action",
+      "Guidance level and Continue Session stay visible but controlled",
+      "The homepage explains the DoughTools session path more clearly",
+      "Existing tools and routes remain available",
+      "No formulas, storage, tracking, cloud sync or indexing behavior changed",
+    ],
+    details: [
+      "Patch 39 aligns the homepage with the approved session-first visual direction.",
+      "The page now focuses on the main user journey instead of showing a crowded tool dashboard.",
+      "Existing calculators, tools and session routes remain available through clear secondary links.",
+    ],
+    userImpact:
+      "Users get a clearer first impression and one obvious way to begin a pizza session.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
   {
     patch: 1,
     title: "English-only stabilization",
