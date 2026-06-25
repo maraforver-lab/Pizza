@@ -151,6 +151,12 @@ export default function SessionTimelinePage() {
               Copy schedule
             </button>
             <Link
+              href="/session/shopping"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+            >
+              Create shopping list →
+            </Link>
+            <Link
               href={recipeQuery ? `/plan?${recipeQuery}` : "/plan"}
               className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
             >

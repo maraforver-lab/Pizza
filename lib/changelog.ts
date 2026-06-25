@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "session-shopping-list-presets-2026-06-25",
+    title: "Session shopping list generator",
+    date: "2026-06-25",
+    summary:
+      "Pizza sessions can now create a practical shopping list from a selected pizza preset.",
+    category: "Product",
+    highlights: [
+      "New session shopping route",
+      "Pizza preset cards such as Margherita, Marinara and Diavola",
+      "Grouped shopping list for dough, sauce, cheese, toppings and gear",
+      "Already have, need to buy and bought item states",
+      "Local-first shopping list saved into the active session",
+      "No custom ingredient database, tracking, cloud sync or indexing behavior added",
+    ],
+    details: [
+      "Patch 34 adds a preset-based shopping list step to the local Pizza Session workflow.",
+      "Users can choose a familiar pizza style, review grouped ingredients and mark items by shopping status.",
+      "The feature stays intentionally practical: exact topping formulas and custom ingredient editing can come later.",
+    ],
+    userImpact:
+      "Users can turn a planned pizza session into a simple shopping checklist without leaving the local-first workflow.",
+    technicalNote:
+      "This patch did not change dough formulas, planner timing logic, Dough Doctor diagnosis logic, saved recipe storage, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [34],
+    relatedPatchNumbers: [31, 32, 33, 34],
+    href: "/updates",
+  },
+  {
     id: "session-timeline-backward-schedule-2026-06-25",
     title: "Session timeline and backward schedule",
     date: "2026-06-25",
@@ -1155,6 +1184,30 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users can move from “I want pizza at this time” to a concrete preparation schedule without guessing the order of tasks.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 34,
+    title: "Session shopping list generator",
+    category: "Product",
+    summary:
+      "Pizza sessions can now create a practical shopping list from a selected pizza preset.",
+    highlights: [
+      "New session shopping route",
+      "Pizza preset cards such as Margherita, Marinara and Diavola",
+      "Grouped shopping list for dough, sauce, cheese, toppings and gear",
+      "Already have, need to buy and bought item states",
+      "Local-first shopping list saved into the active session",
+      "No custom ingredient database, tracking, cloud sync or indexing behavior added",
+    ],
+    details: [
+      "Patch 34 adds a practical preset-based shopping list step to the local Pizza Session workflow.",
+      "The first presets cover Margherita, Marinara, Diavola, Funghi, Pepperoni / Salami and Simple cheese pizza.",
+      "The shopping list is grouped by dough, sauce, cheese, toppings and optional gear, and item status changes are saved into the active session.",
+    ],
+    userImpact:
+      "Users can move from session planning and timeline into a simple grocery checklist without guessing the basic ingredients.",
+    technicalNote:
+      "This patch did not change dough formulas, planner timing logic, Dough Doctor diagnosis logic, saved recipe storage, Journal IndexedDB, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
 ];
 

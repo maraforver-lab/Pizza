@@ -96,6 +96,8 @@ This does not change the recipe query format and does not change any calculator 
 
 Patch 33 uses the optional `timeline` field.
 
+Patch 34 uses the optional `shoppingList` field. The shopping list is generated from a selected pizza preset, saved into the active local Pizza Session and remains private to the same browser/device. Patch 34 does not add free-text ingredients, cloud sync, public sharing or a custom ingredient database.
+
 The timeline can contain:
 
 - `generatedAt`

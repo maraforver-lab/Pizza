@@ -79,6 +79,10 @@ export type PizzaSessionShoppingItem = {
 };
 
 export type PizzaSessionShoppingList = {
+  presetId?: string;
+  presetName?: string;
+  generatedAt?: string;
+  pizzaCount?: number;
   groups: Array<{
     group: PizzaSessionShoppingGroup;
     items: PizzaSessionShoppingItem[];
@@ -233,7 +237,13 @@ function cloneShoppingList(list?: PizzaSessionShoppingList): PizzaSessionShoppin
     });
     return items.length ? [{ group: record.group as PizzaSessionShoppingGroup, items }] : [];
   });
-  return groups.length ? { groups } : undefined;
+  return groups.length ? {
+    presetId: stringValue(list.presetId),
+    presetName: stringValue(list.presetName),
+    generatedAt: stringValue(list.generatedAt),
+    pizzaCount: positiveNumberValue(list.pizzaCount),
+    groups,
+  } : undefined;
 }
 
 function cloneReview(review?: PizzaSession["review"]): PizzaSession["review"] | undefined {
@@ -364,8 +374,9 @@ export function pizzaSessionRecipeQuery(session: PizzaSession) {
 export function pizzaSessionContinueHref(session: PizzaSession) {
   const query = pizzaSessionRecipeQuery(session);
   if (session.currentStep === "timeline") return "/session/timeline";
+  if (session.currentStep === "shopping") return "/session/shopping";
   if (session.currentStep === "recipe") return query ? `/?${query}` : "/";
-  if (["shopping", "prep", "bake"].includes(session.currentStep)) return query ? `/plan?${query}` : "/plan";
+  if (["prep", "bake"].includes(session.currentStep)) return query ? `/plan?${query}` : "/plan";
   return "/session/start";
 }
 

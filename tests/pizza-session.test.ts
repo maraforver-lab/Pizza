@@ -199,7 +199,7 @@ describe("Pizza Session local storage", () => {
 
     expect(pizzaSessionContinueHref(recipeSession)).toBe("/?balls=6&hydration=64");
     expect(pizzaSessionContinueHref(timelineSession)).toBe("/session/timeline");
-    expect(pizzaSessionContinueHref(shoppingSession)).toBe("/plan?balls=6&hydration=64");
+    expect(pizzaSessionContinueHref(shoppingSession)).toBe("/session/shopping");
     expect(pizzaSessionContinueHref(styleSession)).toBe("/session/start");
   });
 
