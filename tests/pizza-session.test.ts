@@ -184,6 +184,7 @@ describe("Pizza Session local storage", () => {
 
     completePizzaSession(session.id, storage, new Date("2026-06-25T13:00:00.000Z"));
     expect(getActivePizzaSession(storage)).toBeUndefined();
+    expect(storage.getItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY)).toBeNull();
 
     const second = createAndSavePizzaSession({ id: "archive-soon", status: "planning" }, storage);
     setActivePizzaSession(second.id, storage);
@@ -201,6 +202,7 @@ describe("Pizza Session local storage", () => {
     });
     const shoppingSession = createPizzaSession({ id: "shopping-link", currentStep: "shopping", recipeParams: recipeSession.recipeParams });
     const prepSession = createPizzaSession({ id: "prep-link", currentStep: "prep", recipeParams: recipeSession.recipeParams });
+    const reviewSession = createPizzaSession({ id: "review-link", currentStep: "review", recipeParams: recipeSession.recipeParams });
     const styleSession = createPizzaSession({ id: "style-link", currentStep: "style" });
 
     expect(pizzaSessionContinueHref(recipeSession)).toBe("/session/recipe");
@@ -208,6 +210,7 @@ describe("Pizza Session local storage", () => {
     expect(pizzaSessionContinueHref(activeTimelineSession)).toBe("/session/kitchen");
     expect(pizzaSessionContinueHref(shoppingSession)).toBe("/session/shopping");
     expect(pizzaSessionContinueHref(prepSession)).toBe("/session/kitchen");
+    expect(pizzaSessionContinueHref(reviewSession)).toBe("/session/review");
     expect(pizzaSessionContinueHref(styleSession)).toBe("/session/start");
   });
 
@@ -224,6 +227,7 @@ describe("Pizza Session local storage", () => {
     expect(doc).toContain("Patch 32 adds the first guided `/session/start` wizard");
     expect(doc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
     expect(doc).toContain("When `currentStep` is `prep` or `bake`, Continue Session resumes at `/session/kitchen`.");
+    expect(doc).toContain("When `currentStep` is `review`, Continue Session resumes at `/session/review`");
     expect(persistence).toContain("Pizza Sessions");
     expect(persistence).toContain("Completed or archived sessions are not treated as the active session");
   });

@@ -104,6 +104,8 @@ export function archivePizzaSession(id: string, storage?: StorageLike, now = new
 }
 
 export function completePizzaSession(id: string, storage?: StorageLike, now = new Date()) {
-  return updatePizzaSession(id, { status: "completed", currentStep: "review" }, storage, now);
+  const completed = updatePizzaSession(id, { status: "completed", currentStep: "review" }, storage, now);
+  if (completed) clearActivePizzaSession(storage);
+  return completed;
 }
 

@@ -14,6 +14,8 @@ Patch 35 adds `/session/recipe`. The route turns the active local Pizza Session 
 
 Patch 36 adds `/session/kitchen`. The route reads the active session timeline and recipe snapshot, shows the first todo task as the current kitchen task and saves local progress as timeline steps are marked done.
 
+Patch 38 adds `/session/review`. The route saves a local rating, notes, what worked and what to improve next time. Completing the review sets the session status to `completed`, keeps the session stored locally and clears the active session id so completed sessions do not appear as active Continue Session sessions.
+
 ## Schema version
 
 Pizza Sessions use:
@@ -77,6 +79,8 @@ When `currentStep` is `timeline` and the session has unfinished timeline tasks, 
 When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.
 
 When `currentStep` is `prep` or `bake`, Continue Session resumes at `/session/kitchen`.
+
+When `currentStep` is `review`, Continue Session resumes at `/session/review` while the session is still active. Completed and archived sessions are not returned as active sessions.
 
 ## Autosave foundation
 
@@ -157,6 +161,6 @@ Future patches can build on this foundation:
 - timeline generation and editing
 - shopping list generation
 - Kitchen Mode refinements for step-by-step preparation
-- review/result cards
+- review notes and result cards
 - optional account sync after a separate schema and privacy review
 

@@ -42,7 +42,7 @@ const publicCopy = [
 describe("updates changelog", () => {
   it("defines the latest public foundation update", () => {
     expect(latestPublicUpdate).toBeDefined();
-    expect(latestPublicUpdate?.title).toBe("Session-first homepage cleanup");
+    expect(latestPublicUpdate?.title).toBe("Session review and bake notes");
     expect(latestPublicUpdate?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(`${latestPublicUpdate?.date}T12:00:00Z`))).toBe(false);
   });
@@ -76,9 +76,9 @@ describe("updates changelog", () => {
     expect(getVisibleUpdates(source, 0)).toEqual([]);
   });
 
-  it("includes Patch 01 through Patch 37 in release history", () => {
+  it("includes Patch 01 through Patch 38 in release history", () => {
     expect([...patchHistory].sort((a, b) => a.patch - b.patch).map((entry) => entry.patch))
-      .toEqual(Array.from({ length: 37 }, (_, index) => index + 1));
+      .toEqual(Array.from({ length: 38 }, (_, index) => index + 1));
     for (const entry of patchHistory) {
       expect(entry.title.trim()).toBeTruthy();
       expect(entry.summary.trim()).toBeTruthy();
@@ -89,10 +89,10 @@ describe("updates changelog", () => {
   });
 
   it("exposes Patch history newest first for the updates page", () => {
-    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    expect(patchHistoryNewestFirst.map((entry) => entry.patch)).toEqual([38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(visiblePatchHistory).toHaveLength(MAX_VISIBLE_UPDATES);
     expect(visiblePatchHistory.length).toBeLessThanOrEqual(MAX_VISIBLE_UPDATES);
-    expect(visiblePatchHistory[0].patch).toBe(37);
+    expect(visiblePatchHistory[0].patch).toBe(38);
   });
 
   it("keeps Patch 12, Patch 14, experience-level and onboarding details explicit", () => {
@@ -118,6 +118,7 @@ describe("updates changelog", () => {
     const patch35 = patchHistory.find((entry) => entry.patch === 35);
     const patch36 = patchHistory.find((entry) => entry.patch === 36);
     const patch37 = patchHistory.find((entry) => entry.patch === 37);
+    const patch38 = patchHistory.find((entry) => entry.patch === 38);
 
     expect(patch12?.details.join(" ")).toContain("doughtools:bake-results");
     expect(patch12?.technicalNote).toContain("photo upload");
@@ -196,6 +197,10 @@ describe("updates changelog", () => {
     expect(patch37?.details.join(" ")).toContain("crowded dashboard");
     expect(patch37?.technicalNote).toContain("Pizza Session storage");
     expect(patch37?.technicalNote).toContain("SEO indexing permissions");
+    expect(patch38?.title).toBe("Session review and bake notes");
+    expect(patch38?.highlights.join(" ")).toContain("New session review route");
+    expect(patch38?.details.join(" ")).toContain("first review step");
+    expect(patch38?.technicalNote).toContain("SEO indexing permissions");
   });
 
   it("uses the required new-update notice destination", () => {

@@ -46,7 +46,7 @@ todo
 
 The next task preview is the next later `todo` step after the current task.
 
-If all tasks are done, Kitchen Mode shows a completion state and links to the Journal for a review note.
+If all tasks are done, Kitchen Mode shows a completion state and links to `/session/review` for local bake notes.
 
 ## Mark done behavior
 
@@ -106,7 +106,8 @@ Kitchen Mode links back to:
 - `/session/shopping`
 - `/session/recipe`
 - `/timer` during the Bake pizza step
-- `/journal` during or after Review result
+- `/session/review` during or after Review result
+- `/journal` from the review step when the user wants deeper notes
 
 The full calculator remains available and is not replaced.
 
@@ -135,7 +136,8 @@ Future patches can safely build on Kitchen Mode with:
 - richer task-specific visuals
 - better oven-specific bake guidance
 - optional timer handoff improvements
-- review/result cards
+- session review notes
+- result cards
 - photo capture
 - share-card generation
 - optional account sync after a separate privacy and schema review

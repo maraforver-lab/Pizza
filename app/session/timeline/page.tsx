@@ -227,6 +227,9 @@ export default function SessionTimelinePage() {
               <Link href="/session/kitchen" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 Open Kitchen Mode
               </Link>
+              <Link href="/session/review" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Review session
+              </Link>
               <Link href="/session/start" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 Edit session choices
               </Link>

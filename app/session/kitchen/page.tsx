@@ -250,8 +250,8 @@ export default function SessionKitchenPage() {
                       Open baking timer →
                     </Link>
                   ) : currentStep.id === "review-result" ? (
-                    <Link href="/journal" className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                      Open Journal →
+                    <Link href="/session/review" className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                      Review this bake →
                     </Link>
                   ) : (
                     <Link href="/session/timeline" className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
@@ -267,8 +267,8 @@ export default function SessionKitchenPage() {
                 <p className="mt-4 text-sm leading-6 text-ink/60">
                   Your local session timeline is complete. Add a note while the result is still fresh.
                 </p>
-                <Link href="/journal" className="mt-6 inline-flex min-h-14 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                  Open Journal →
+                <Link href="/session/review" className="mt-6 inline-flex min-h-14 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                  Review this bake →
                 </Link>
               </>
             )}

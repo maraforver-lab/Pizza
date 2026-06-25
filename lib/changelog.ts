@@ -39,6 +39,35 @@ export const MAX_VISIBLE_UPDATES = 20;
 
 export const updates: UpdateEntry[] = [
   {
+    id: "session-review-bake-notes-2026-06-25",
+    title: "Session review and bake notes",
+    date: "2026-06-25",
+    summary:
+      "Pizza sessions can now end with a local review, rating and improvement notes.",
+    category: "Product",
+    highlights: [
+      "New session review route",
+      "Rating, notes, what worked and improvement fields",
+      "Completed sessions are no longer treated as active sessions",
+      "Kitchen Mode can hand off to review",
+      "Beginner, Enthusiast and Pizza Nerd review guidance stays consistent",
+      "No photo upload, cloud sync, tracking or indexing behavior added",
+    ],
+    details: [
+      "Patch 38 adds the first review step to the Pizza Session flow.",
+      "Users can finish a session by saving a rating, notes and what to improve next time.",
+      "The review remains local to the browser and prepares future photo, result-card and richer Journal features.",
+    ],
+    userImpact:
+      "Users can learn from each bake instead of losing what they discovered.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+    isPublic: true,
+    patchNumbers: [38],
+    relatedPatchNumbers: [31, 32, 33, 34, 35, 36, 38],
+    href: "/updates",
+  },
+  {
     id: "session-first-homepage-cleanup-2026-06-25",
     title: "Session-first homepage cleanup",
     date: "2026-06-25",
@@ -1348,6 +1377,30 @@ export const patchHistory: PatchHistoryEntry[] = [
       "Users get a clearer first impression and one obvious place to start.",
     technicalNote:
       "This patch did not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
+  },
+  {
+    patch: 38,
+    title: "Session review and bake notes",
+    category: "Product",
+    summary:
+      "Pizza sessions can now end with a local review, rating and improvement notes.",
+    highlights: [
+      "New session review route",
+      "Rating, notes, what worked and improvement fields",
+      "Completed sessions are no longer treated as active sessions",
+      "Kitchen Mode can hand off to review",
+      "Beginner, Enthusiast and Pizza Nerd review guidance stays consistent",
+      "No photo upload, cloud sync, tracking or indexing behavior added",
+    ],
+    details: [
+      "Patch 38 adds the first review step to the Pizza Session flow.",
+      "Users can finish a session by saving a rating, notes and what to improve next time.",
+      "The review remains local to the browser and prepares future photo, result-card and richer Journal features.",
+    ],
+    userImpact:
+      "Users can learn from each bake instead of losing what they discovered.",
+    technicalNote:
+      "This patch did not change dough formulas, yeast calculations, saved recipe storage, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers or SEO indexing permissions.",
   },
   {
     patch: 35,

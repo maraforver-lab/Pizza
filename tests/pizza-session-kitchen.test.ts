@@ -210,6 +210,7 @@ describe("Pizza Session Kitchen Mode", () => {
     const dataDoc = source("docs/pizza-session-data-model.md");
 
     expect(timelinePage).toContain("/session/kitchen");
+    expect(timelinePage).toContain("/session/review");
     expect(shoppingPage).toContain("/session/kitchen");
     expect(dataDoc).toContain("When `currentStep` is `timeline` and the session has unfinished timeline tasks");
 
@@ -235,6 +236,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(doc).toContain("/session/kitchen");
     expect(doc).toContain("first timeline step with status");
     expect(doc).toContain("does not recalculate");
+    expect(doc).toContain("/session/review");
     expect(doc).toContain("does not add");
     expect(changelog).toContain("Session Kitchen Mode");
     expect(changelog).toContain("No formula, cloud sync, reminder, tracking or indexing behavior changed");
