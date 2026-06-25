@@ -124,10 +124,13 @@ export default function SessionTimelinePage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-6xl">
-        <header className="grid gap-5 rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <section
+          aria-labelledby="session-timeline-heading"
+          className="grid gap-5 rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end"
+        >
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session timeline</p>
-            <h1 className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your pizza timeline</h1>
+            <h1 id="session-timeline-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your pizza timeline</h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
               A practical backward schedule from your planned time. Timing is a guide, so adjust for your dough,
               room temperature and oven.
@@ -163,7 +166,7 @@ export default function SessionTimelinePage() {
               Open full Planner →
             </Link>
           </div>
-        </header>
+        </section>
 
         {copyMessage && (
           <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status">

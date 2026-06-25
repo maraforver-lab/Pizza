@@ -122,6 +122,20 @@ describe("Pizza Session shopping list presets", () => {
     expect(regenerated?.shoppingList?.groups.flatMap((group) => group.items).find((entry) => entry.id === item!.id)?.status).toBe("bought");
   });
 
+  it("uses the active session's existing preset on refresh instead of resetting to the default preset", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({ id: "refresh-preset", pizzaCount: 4, status: "planning" }, storage);
+    setActivePizzaSession(session.id, storage);
+    const first = generateAndSaveActiveShoppingList("diavola", storage).session;
+    const item = first?.shoppingList?.groups.flatMap((group) => group.items)[0];
+    updateShoppingItemStatus(first!, item!.id, "bought", storage);
+
+    const refreshed = generateAndSaveActiveShoppingList(undefined, storage).session;
+
+    expect(refreshed?.shoppingList?.presetId).toBe("diavola");
+    expect(refreshed?.shoppingList?.groups.flatMap((group) => group.items).find((entry) => entry.id === item!.id)?.status).toBe("bought");
+  });
+
   it("formats a plain-text copy without public sharing or cloud claims", () => {
     const session = createPizzaSession({ id: "copy-list", pizzaCount: 1 });
     const result = generatePizzaSessionShoppingList(session, "marinara");

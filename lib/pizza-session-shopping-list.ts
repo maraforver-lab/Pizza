@@ -87,7 +87,8 @@ export function generateAndSaveActiveShoppingList(
   now = new Date(),
 ) {
   const session = getActivePizzaSession(storage);
-  const result = generatePizzaSessionShoppingList(session, presetId, now);
+  const selectedPresetId = presetId ?? session?.shoppingList?.presetId ?? pizzaSessionPresets[0].id;
+  const result = generatePizzaSessionShoppingList(session, selectedPresetId, now);
   if (!session || !result.ok) return { session, result };
 
   const updatedSession = updatePizzaSession(
