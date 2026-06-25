@@ -45,7 +45,6 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Which pizza are you planning?");
     expect(page).toContain("When do you want pizza?");
     expect(page).toContain("How many pizzas?");
-    expect(page).toContain("What oven are you using?");
     expect(page).toContain("What flour do you have?");
     expect(page).toContain("Your Pizza Session is ready.");
     expect(page).toContain("Home oven pizza");
@@ -61,6 +60,27 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("All-purpose / plain flour");
     expect(page).toContain("Bread flour / strong flour");
     expect(page).toContain("Pizza flour / tipo 00");
+    expect(page).not.toContain("What oven are you using?");
+    expect(page).not.toContain("const ovenOptions");
+    expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
+  });
+
+  it("keeps the wizard to six steps and routes quantity directly to flour", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain('type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary"');
+    expect(page).toContain('const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"]');
+    expect(page).toContain("Step {progress} of {wizardSteps.length}");
+    expect(page.indexOf('"quantity"')).toBeLessThan(page.indexOf('"flour"'));
+    expect(page.indexOf('"flour"')).toBeLessThan(page.indexOf('"summary"'));
+  });
+
+  it("maps old saved sessions from the removed oven step safely to flour", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain('if (session.currentStep === "oven") return "flour";');
+    expect(page).toContain("const ovenType = value === \"pizza-oven\" ? \"gas\" : value === \"pan-tray\" ? \"pan\" : \"home\";");
+    expect(page).toContain("savePatch({ pizzaStyle: value, ovenType, pizzaCount }, \"path\")");
   });
 
   it("uses Patch 31 local storage helpers for creation, active id and autosave", () => {

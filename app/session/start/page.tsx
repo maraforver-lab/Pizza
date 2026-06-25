@@ -30,10 +30,10 @@ import {
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
 
-type WizardStep = "path" | "preset" | "time" | "quantity" | "oven" | "flour" | "summary";
+type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray";
 
-const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "oven", "flour", "summary"];
+const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"];
 
 const styleOptions = [
   {
@@ -53,13 +53,6 @@ const styleOptions = [
   },
 ] as const;
 
-const ovenOptions = [
-  { id: "home", label: "Home oven", description: "Electric oven with a tray, stone or baking steel." },
-  { id: "gas", label: "Pizza oven", description: "High-heat gas or outdoor pizza oven." },
-  { id: "pan", label: "Pan / tray bake", description: "A pan-supported bake in an oven." },
-  { id: "not-sure", label: "Not sure yet", description: "Keep the session flexible and decide later." },
-] as const;
-
 const flourOptions = [
   { id: "plain", label: "All-purpose / plain flour", description: "Easy to find. Best with moderate hydration." },
   { id: "bread", label: "Bread flour / strong flour", description: "Stronger gluten and a safer choice for longer rests." },
@@ -73,7 +66,6 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     preset: "Choose the pizza you want to shop and prepare for. You can still adjust details later.",
     time: "Choose when you want to eat or bake. We’ll use this time to build your pizza timeline.",
     quantity: "Choose how many pizzas you want. Six small pizzas or one pan pizza are common starting points.",
-    oven: "Choose the oven you will probably use. Not sure yet is okay.",
     flour: "Choose the closest flour. If you do not know, choose not sure yet.",
     summary: "Your first decisions are saved. Next, build the dough plan.",
   },
@@ -82,7 +74,6 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     preset: "The pizza preset keeps the session practical: sauce, cheese and toppings can follow the same plan.",
     time: "We’ll plan dough, preparation and bake steps backwards from this time.",
     quantity: "Pizza count controls total dough, sauce, cheese and prep work.",
-    oven: "Oven choice changes bake time, moisture tolerance and how much topping is safe.",
     flour: "Flour strength affects hydration, fermentation length and handling.",
     summary: "The session is ready for a dough plan, timeline and shopping list.",
   },
@@ -91,7 +82,6 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     preset: "Preset choice is stored separately from baking path so dough setup and topping plan do not get mixed together.",
     time: "Pick the target pizza time. Timeline steps are rounded to practical 15-minute increments; active night tasks are avoided where possible while passive fermentation can continue overnight.",
     quantity: "This becomes the first batch-size variable before exact dough-ball and formula tuning.",
-    oven: "Heat transfer and bake duration are downstream constraints; exact temperatures remain in the tools.",
     flour: "This is a coarse flour class, not a W-value or protein analysis. Fine tuning remains available later.",
     summary: "The local session now has enough context to hand off to recipe calculation without changing formulas.",
   },
@@ -109,7 +99,7 @@ function stepIndex(step: WizardStep) {
 function initialWizardStep(session: PizzaSession): WizardStep {
   if (session.currentStep === "time") return "time";
   if (session.currentStep === "quantity") return "quantity";
-  if (session.currentStep === "oven") return "oven";
+  if (session.currentStep === "oven") return "flour";
   if (session.currentStep === "flour") return "flour";
   if (session.currentStep === "recipe") return "summary";
   if (session.pizzaStyle && !session.pizzaPreset) return "preset";
@@ -181,7 +171,6 @@ export default function StartPizzaSessionPage() {
   };
 
   const selectPreset = (pizzaPreset: PizzaPresetId) => savePatch({ pizzaPreset }, "preset");
-  const selectOven = (ovenType: string) => savePatch({ ovenType }, "oven");
   const selectFlour = (flour: string) => savePatch({ flour }, "flour");
   const setQuantity = (pizzaCount: number) => savePatch({ pizzaCount }, "quantity");
   const setTargetTime = (targetEatTime: string) => {
@@ -228,7 +217,6 @@ export default function StartPizzaSessionPage() {
     || (step === "preset" && Boolean(session?.pizzaPreset))
     || (step === "time" && Boolean(targetTimeDraft || session?.targetEatTime))
     || (step === "quantity" && Boolean(session?.pizzaCount))
-    || (step === "oven" && Boolean(session?.ovenType))
     || (step === "flour" && Boolean(session?.flour))
     || step === "summary";
 
@@ -244,7 +232,6 @@ export default function StartPizzaSessionPage() {
 
   const selectedStyle = styleOptions.find((option) => option.id === session.pizzaStyle);
   const selectedPreset = pizzaSessionPresets.find((option) => option.id === session.pizzaPreset);
-  const selectedOven = ovenOptions.find((option) => option.id === session.ovenType);
   const selectedFlour = flourOptions.find((option) => option.id === session.flour);
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
@@ -290,7 +277,6 @@ export default function StartPizzaSessionPage() {
                 {step === "preset" && "Which pizza are you planning?"}
                 {step === "time" && "When do you want pizza?"}
                 {step === "quantity" && "How many pizzas?"}
-                {step === "oven" && "What oven are you using?"}
                 {step === "flour" && "What flour do you have?"}
                 {step === "summary" && "Your Pizza Session is ready."}
               </h2>
@@ -418,18 +404,6 @@ export default function StartPizzaSessionPage() {
             </div>
           )}
 
-          {step === "oven" && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {ovenOptions.map((option) => (
-                <button key={option.id} type="button" onClick={() => selectOven(option.id)} aria-pressed={session.ovenType === option.id} className={optionClass(session.ovenType === option.id)}>
-                  <span className="block text-lg font-extrabold">{option.label}</span>
-                  <span className="mt-2 block text-sm leading-6 text-ink/55">{option.description}</span>
-                  {session.ovenType === option.id && <span className="mt-3 block text-xs font-extrabold text-tomato">Selected</span>}
-                </button>
-              ))}
-            </div>
-          )}
-
           {step === "flour" && (
             <div className="grid gap-3 sm:grid-cols-2">
               {flourOptions.map((option) => (
@@ -450,7 +424,6 @@ export default function StartPizzaSessionPage() {
                   ["Pizza preset", selectedPreset?.name ?? "Not selected yet"],
                   ["Target time", session.targetEatTime || "Not set yet"],
                   ["Pizza count", `${session.pizzaCount ?? 6}`],
-                  ["Oven", selectedOven?.label ?? "Not sure yet"],
                   ["Flour", selectedFlour?.label ?? "Not sure yet"],
                   ["Session status", session.status],
                   ["Last saved", lastSaved],
