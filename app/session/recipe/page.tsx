@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import AppSignature from "@/components/AppSignature";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
@@ -59,14 +58,6 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
     action: "Return to session choices →",
   };
 }
-
-const sessionNavItems = [
-  ["Start", "/session/start"],
-  ["Timeline", "/session/timeline"],
-  ["Recipe", "/session/recipe"],
-  ["Shopping", "/session/shopping"],
-  ["Review", "/session/review"],
-] as const;
 
 export default function SessionRecipePage() {
   const [ready, setReady] = useState(false);
@@ -127,7 +118,7 @@ export default function SessionRecipePage() {
           href="/session/start"
           className="mb-5 inline-flex min-h-11 items-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/65 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
         >
-          ← Back to Start
+          Back
         </Link>
 
         <section
@@ -217,27 +208,6 @@ export default function SessionRecipePage() {
           </div>
         </section>
 
-        <nav className="mt-6 rounded-[2rem] border border-white/80 bg-white/75 p-3 shadow-card" aria-label="Pizza Session navigation">
-          <ul className="grid grid-cols-5 gap-2 text-center text-[0.68rem] font-extrabold text-ink/50 sm:text-sm">
-            {sessionNavItems.map(([label, href]) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  aria-current={label === "Recipe" ? "page" : undefined}
-                  className={`block rounded-2xl px-2 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                    label === "Recipe" ? "bg-ink text-white" : "hover:bg-cream"
-                  }`}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <footer className="mt-6">
-          <AppSignature />
-        </footer>
       </div>
     </main>
   );
