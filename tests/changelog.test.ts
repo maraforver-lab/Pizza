@@ -225,6 +225,7 @@ describe("updates changelog", () => {
     const noticeSource = readFileSync(join(process.cwd(), "components", "LatestUpdateNotice.tsx"), "utf8");
 
     expect(RECENT_UPDATE_NOTICE_VISIBLE_MS).toBe(30_000);
+    expect(noticeSource).toContain('pathname.startsWith("/session")');
     expect(noticeSource).toContain("setTimeout");
     expect(noticeSource).toContain("clearTimeout");
     expect(noticeSource).not.toMatch(/localStorage|sessionStorage|document\.cookie|analytics|gtag|posthog|plausible|trackEvent/i);

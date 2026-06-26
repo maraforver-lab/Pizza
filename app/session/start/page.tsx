@@ -209,6 +209,8 @@ export default function StartPizzaSessionPage() {
   const [selectedDayChoice, setSelectedDayChoice] = useState<PizzaSessionDayQuickChoiceId | undefined>();
   const [selectedTimeChoice, setSelectedTimeChoice] = useState<PizzaSessionTimeQuickChoiceId | undefined>();
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
+  const stepPanelRef = useRef<HTMLElement>(null);
+  const didRenderInitialStepRef = useRef(false);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -231,6 +233,20 @@ export default function StartPizzaSessionPage() {
     setStep(initialWizardStep(nextSession));
     setReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!didRenderInitialStepRef.current) {
+      didRenderInitialStepRef.current = true;
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    stepPanelRef.current?.scrollIntoView({
+      block: "start",
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }, [ready, step]);
 
   const experience = getExperienceLevelConfig(experienceLevel);
   const progress = stepIndex(step) + 1;
@@ -378,7 +394,7 @@ export default function StartPizzaSessionPage() {
           </div>
         </aside>
 
-        <section className="min-w-0 rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card backdrop-blur sm:p-8 lg:rounded-[2.5rem]" aria-live="polite">
+        <section ref={stepPanelRef} className="min-w-0 rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card backdrop-blur sm:p-8 lg:rounded-[2.5rem]" aria-live="polite">
           <div className="mb-6 lg:hidden">
             <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
               <span>Step {progress} of {wizardSteps.length}</span>

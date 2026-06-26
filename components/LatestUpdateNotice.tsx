@@ -15,7 +15,7 @@ export default function LatestUpdateNotice() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (pathname === "/") {
+    if (pathname === "/" || pathname.startsWith("/session")) {
       setVisible(false);
       return;
     }

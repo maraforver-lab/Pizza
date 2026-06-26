@@ -194,6 +194,18 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain("Later planner patches can turn this into a full timeline");
   });
 
+  it("scrolls the current decision panel into view after Continue or Back changes steps", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("const stepPanelRef = useRef<HTMLElement>(null)");
+    expect(page).toContain("const didRenderInitialStepRef = useRef(false)");
+    expect(page).toContain("stepPanelRef.current?.scrollIntoView");
+    expect(page).toContain("prefers-reduced-motion: reduce");
+    expect(page).toContain("behavior: prefersReducedMotion ? \"auto\" : \"smooth\"");
+    expect(page).toContain("}, [ready, step]);");
+    expect(page).toContain("ref={stepPanelRef}");
+  });
+
   it("offers quick day and time choices before the custom date/time input", () => {
     const page = source("app/session/start/page.tsx");
     const choices = getPizzaSessionDayQuickChoices(new Date("2026-06-26T10:00:00"));
