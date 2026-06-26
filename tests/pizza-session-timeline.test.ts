@@ -70,14 +70,31 @@ describe("Pizza Session timeline", () => {
   it("adds a shopping checkpoint before service and bake steps without changing timeline data", () => {
     const page = source("app/session/timeline/page.tsx");
 
+    expect(page).toContain("function ShoppingCheckpointCard");
     expect(page).toContain("Shopping checkpoint");
     expect(page).toContain("Get pizza ingredients");
     expect(page).toContain("Check sauce, cheese and toppings before baking.");
     expect(page).toContain("You can do this while the dough is resting or fermenting.");
+    expect(page).toContain("href=\"/session/shopping\"");
+    expect(page).toContain("Open shopping list →");
     expect(page).toContain("shoppingCheckpointState(session, nextStep)");
-    expect(page).toContain("isServiceTimelineStep(step) && !isServiceTimelineStep(timeline.steps[index - 1])");
+    expect(page).toContain("const firstServiceStepIndex = timeline?.steps.findIndex(isServiceTimelineStep) ?? -1");
+    expect(page).toContain("const shoppingCheckpointInsertIndex = timeline");
+    expect(page).toContain("index === shoppingCheckpointInsertIndex");
+    expect(page).toContain("shoppingCheckpointInsertIndex === timeline.steps.length");
+    expect(page.indexOf("index === shoppingCheckpointInsertIndex")).toBeLessThan(page.indexOf("Step {index + 1}"));
     expect(page).not.toContain("Create shopping list");
     expect(page).not.toContain("Open full Planner");
+  });
+
+  it("keeps the shopping checkpoint visible in normal timeline rendering instead of hiding it behind completion state", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("<ShoppingCheckpointCard checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />");
+    expect(page).not.toContain("session?.shoppingList && <ShoppingCheckpointCard");
+    expect(page).not.toContain("allStepsComplete && <ShoppingCheckpointCard");
+    expect(page).not.toContain("shoppingIsNext && <ShoppingCheckpointCard");
+    expect(page).not.toMatch(/\b(Avaa|Ostoskor|Juusto|Täytteet|Seuraava)\b/);
   });
 
   it("allows the hero to treat shopping as the next step after dough work", () => {

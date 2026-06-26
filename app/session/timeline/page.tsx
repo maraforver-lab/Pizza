@@ -128,6 +128,47 @@ function shoppingCheckpointState(session: PizzaSession | null, nextStep?: PizzaS
   return "Upcoming";
 }
 
+function ShoppingCheckpointCard({
+  checkpointState,
+  shoppingIsNext,
+}: {
+  checkpointState: ShoppingCheckpointState;
+  shoppingIsNext: boolean;
+}) {
+  return (
+    <article
+      className={`rounded-[1.5rem] border p-5 shadow-sm ${
+        shoppingIsNext
+          ? "border-leaf/35 bg-leaf/[.1]"
+          : "border-leaf/25 bg-leaf/[.06]"
+      }`}
+      aria-label="Shopping checkpoint"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
+            Shopping checkpoint
+          </p>
+          <h3 className="mt-2 font-display text-2xl font-semibold">Get pizza ingredients</h3>
+          <p className="mt-2 text-sm leading-6 text-ink/60">Check sauce, cheese and toppings before baking.</p>
+          <p className="mt-3 text-sm leading-6 text-ink/65">You can do this while the dough is resting or fermenting.</p>
+        </div>
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${checkpointState === "Done" || shoppingIsNext ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-white text-ink/55 ring-ink/10"}`}>
+            {checkpointState}
+          </span>
+          <Link
+            href="/session/shopping"
+            className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            Open shopping list →
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function SessionTimelinePage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -149,6 +190,12 @@ export default function SessionTimelinePage() {
   const preset = session ? getPizzaSessionPreset(session.pizzaPreset) : undefined;
   const checkpointState = shoppingCheckpointState(session, nextStep);
   const shoppingIsNext = checkpointState === "Next";
+  const firstServiceStepIndex = timeline?.steps.findIndex(isServiceTimelineStep) ?? -1;
+  const shoppingCheckpointInsertIndex = timeline
+    ? firstServiceStepIndex >= 0
+      ? firstServiceStepIndex
+      : timeline.steps.length
+    : -1;
 
   const markDone = (stepId: string) => {
     if (!session) return;
@@ -312,37 +359,8 @@ export default function SessionTimelinePage() {
           <section className="grid min-w-0 gap-3" aria-label="Pizza timeline steps">
             {timeline.steps.map((step, index) => (
               <div key={step.id} className="grid gap-3">
-                {isServiceTimelineStep(step) && !isServiceTimelineStep(timeline.steps[index - 1]) && (
-                  <article
-                    className={`rounded-[1.5rem] border p-5 shadow-sm ${
-                      shoppingIsNext
-                        ? "border-leaf/30 bg-leaf/[.08]"
-                        : "border-white/80 bg-white/80"
-                    }`}
-                    aria-label="Shopping checkpoint"
-                  >
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
-                          Shopping checkpoint
-                        </p>
-                        <h3 className="mt-2 font-display text-2xl font-semibold">Get pizza ingredients</h3>
-                        <p className="mt-2 text-sm leading-6 text-ink/60">Check sauce, cheese and toppings before baking.</p>
-                        <p className="mt-3 text-sm leading-6 text-ink/65">You can do this while the dough is resting or fermenting.</p>
-                      </div>
-                      <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                        <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${shoppingIsNext ? "bg-leaf/10 text-leaf ring-leaf/20" : checkpointState === "Done" ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-cream text-ink/55 ring-ink/10"}`}>
-                          {checkpointState}
-                        </span>
-                        <Link
-                          href="/session/shopping"
-                          className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                        >
-                          Open shopping list →
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
+                {index === shoppingCheckpointInsertIndex && (
+                  <ShoppingCheckpointCard checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
                 )}
                 <article
                   className={`rounded-[1.5rem] border p-5 shadow-sm ${
@@ -388,6 +406,9 @@ export default function SessionTimelinePage() {
                 </article>
               </div>
             ))}
+            {shoppingCheckpointInsertIndex === timeline.steps.length && (
+              <ShoppingCheckpointCard checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
+            )}
           </section>
         </section>
 
