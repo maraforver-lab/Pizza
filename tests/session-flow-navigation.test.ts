@@ -39,8 +39,9 @@ describe("Pizza Session flow navigation integrity", () => {
     expectTextLink(start, "Build my dough plan →", "/session/recipe");
     expectTextLink(recipe, "Continue to Timeline →", "/session/timeline");
     expectTextLink(timeline, "Open shopping list →", "/session/shopping");
-    expect(timeline).toContain('href={shoppingIsNext ? "/session/shopping" : "/session/kitchen"}');
-    expect(timeline).toContain('Open Kitchen Mode →');
+    expect(timeline).toContain('href={nextAction.href}');
+    expect(timeline).toContain('Start dough work →');
+    expect(timeline).toContain('Start baking →');
     expectTextLink(shopping, "Next →", "/session/kitchen");
     expectTextLink(shopping, "Back", "/session/timeline");
     expectTextLink(kitchen, "Back to timeline", "/session/timeline");
@@ -61,8 +62,9 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(timeline).toContain('href="/session/shopping"');
     expect(timeline).toContain("const firstServiceStepIndex = timeline?.steps.findIndex(isServiceTimelineStep) ?? -1");
     expect(timeline).toContain("index === shoppingCheckpointInsertIndex");
-    expect(timeline.indexOf("<ShoppingCheckpointCard")).toBeLessThan(timeline.indexOf("Step {index + 1}"));
+    expect(timeline.indexOf("<ShoppingCheckpointRow")).toBeLessThan(timeline.indexOf("Step {index + 1}"));
     expect(timeline).not.toMatch(/Copy schedule|Open full Planner|Create shopping list/);
+    expect(timeline).not.toMatch(/Mark done|Edit session choices|Review session/);
   });
 
   it("keeps the Shopping page as simple Next and Back navigation to Kitchen and Timeline", () => {

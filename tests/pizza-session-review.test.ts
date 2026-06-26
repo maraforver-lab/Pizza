@@ -221,7 +221,8 @@ describe("Pizza Session review and bake notes", () => {
     expect(kitchen).toContain("/session/review");
     expect(kitchen).toContain("Review this bake");
     expect(timelinePage).toContain("/session/review");
-    expect(timelinePage).toContain("Review session");
+    expect(timelinePage).toContain("Review and add notes →");
+    expect(timelinePage).not.toContain("Review session");
     expect(journal).toContain("@/lib/pizza-journal");
     expect(journal).toContain("loadJournalEntries");
     expect([kitchen, timelinePage].join("\n")).not.toMatch(/upload photo|share card|public link|analytics added|tracking added/i);

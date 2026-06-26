@@ -8,13 +8,11 @@ import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import { type PizzaSession, type PizzaSessionTimelineStep } from "@/lib/pizza-session";
-import { getPizzaSessionPreset } from "@/lib/pizza-session-presets";
 import {
   generateAndSaveActivePizzaSessionTimeline,
   generatePizzaSessionTimeline,
   getNextTimelineStep,
   getTimelineNote,
-  markPizzaSessionTimelineStepDone,
 } from "@/lib/pizza-session-timeline";
 
 function formatDateTime(value?: string) {
@@ -44,12 +42,46 @@ function formatShortDateTime(value?: string) {
   }).format(date);
 }
 
-function statusClass(status: "next" | "target" | PizzaSessionTimelineStep["status"]) {
-  if (status === "next") return "bg-leaf/10 text-leaf ring-leaf/20";
+function formatTimelineDate(value?: string) {
+  if (!value) return "Date not set";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Date not set";
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(date);
+}
+
+function formatTimelineTime(value?: string) {
+  if (!value) return "Time not set";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Time not set";
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function statusClass(status: "next" | "target" | "checkpoint" | PizzaSessionTimelineStep["status"]) {
+  if (status === "next" || status === "checkpoint") return "bg-leaf/10 text-leaf ring-leaf/20";
   if (status === "target") return "bg-tomato/10 text-tomato ring-tomato/20";
   if (status === "done") return "bg-leaf/10 text-leaf ring-leaf/20";
   if (status === "skipped") return "bg-ink/[.05] text-ink/45 ring-ink/10";
   return "bg-cream text-ink/55 ring-ink/10";
+}
+
+function timelineStepIcon(step: PizzaSessionTimelineStep) {
+  if (step.id === "mix-dough") return "🥣";
+  if (step.id === "rest-dough") return "⏳";
+  if (step.id === "cold-ferment") return "❄️";
+  if (step.id === "ball-dough") return "🍞";
+  if (step.id === "room-temperature-rest") return "🌡️";
+  if (step.id === "preheat-oven") return "🔥";
+  if (step.id === "prepare-sauce-toppings") return "🍅";
+  if (step.id === "bake-pizza") return "🍕";
+  if (step.id === "review-result") return "📝";
+  return "•";
 }
 
 function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {
@@ -98,27 +130,6 @@ function relativeFromTarget(stepTime?: string, targetTime?: string) {
   return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} target`;
 }
 
-function flourLabel(value?: string) {
-  if (value === "caputo-pizzeria" || value === "tipo-00") return "Caputo Pizzeria";
-  if (value === "caputo-cuoco" || value === "bread") return "Strong bread flour";
-  if (value === "caputo-classica" || value === "plain") return "All-purpose flour";
-  return value ?? "Not set";
-}
-
-function formatPercent(value?: number) {
-  return typeof value === "number" && Number.isFinite(value) ? `${value} %` : "Not set";
-}
-
-function formatBallWeight(session: PizzaSession) {
-  return typeof session.recipeSnapshot?.ballWeight === "number"
-    ? `${session.recipeSnapshot.ballWeight} g`
-    : "Not set";
-}
-
-function formatYeastType(session: PizzaSession) {
-  return session.recipeSnapshot?.yeastType?.toUpperCase() ?? "Not set";
-}
-
 type ShoppingCheckpointState = "Upcoming" | "Next" | "Done";
 
 function shoppingCheckpointState(session: PizzaSession | null, nextStep?: PizzaSessionTimelineStep): ShoppingCheckpointState {
@@ -128,7 +139,74 @@ function shoppingCheckpointState(session: PizzaSession | null, nextStep?: PizzaS
   return "Upcoming";
 }
 
-function ShoppingCheckpointCard({
+function nextActionForTimeline({
+  nextStep,
+  shoppingIsNext,
+  allStepsComplete,
+}: {
+  nextStep?: PizzaSessionTimelineStep;
+  shoppingIsNext: boolean;
+  allStepsComplete: boolean;
+}) {
+  if (shoppingIsNext) {
+    return {
+      href: "/session/shopping",
+      cta: "Open shopping list →",
+      title: "Get pizza ingredients",
+      subtext: "Get sauce, cheese and toppings before baking.",
+      kind: "shopping",
+    };
+  }
+
+  if (nextStep && isDoughTimelineStep(nextStep)) {
+    return {
+      href: "/session/kitchen",
+      cta: "Start dough work →",
+      title: nextStep.label,
+      subtext: "Opens Kitchen Mode.",
+      kind: "dough",
+    };
+  }
+
+  if (nextStep && isServiceTimelineStep(nextStep)) {
+    return {
+      href: "/session/kitchen",
+      cta: "Start baking →",
+      title: nextStep.label,
+      subtext: "Opens Kitchen Mode.",
+      kind: "service",
+    };
+  }
+
+  return {
+    href: "/session/review",
+    cta: "Review and add notes →",
+    title: allStepsComplete ? "Review and add notes" : "Review your session",
+    subtext: "Save what worked for next time.",
+    kind: "review",
+  };
+}
+
+function criticalMomentTitle(step: PizzaSessionTimelineStep) {
+  if (step.id === "cold-ferment") return "Put dough in fridge";
+  if (step.id === "room-temperature-rest") return "Take dough out";
+  return step.label;
+}
+
+function getCriticalMoments(steps: PizzaSessionTimelineStep[]) {
+  const preferredIds = [
+    "cold-ferment",
+    "room-temperature-rest",
+    "preheat-oven",
+    "bake-pizza",
+  ];
+  return preferredIds.flatMap((id) => {
+    const step = steps.find((candidate) => candidate.id === id);
+    return step ? [step] : [];
+  });
+}
+
+function ShoppingCheckpointRow({
   checkpointState,
   shoppingIsNext,
 }: {
@@ -146,13 +224,18 @@ function ShoppingCheckpointCard({
       aria-label="Shopping checkpoint"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
-            Shopping checkpoint
-          </p>
-          <h3 className="mt-2 font-display text-2xl font-semibold">Get pizza ingredients</h3>
-          <p className="mt-2 text-sm leading-6 text-ink/60">Check sauce, cheese and toppings before baking.</p>
-          <p className="mt-3 text-sm leading-6 text-ink/65">You can do this while the dough is resting or fermenting.</p>
+        <div className="flex min-w-0 gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm" aria-hidden="true">
+            🛒
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
+              Shopping checkpoint
+            </p>
+            <h3 className="mt-2 font-display text-2xl font-semibold">Get pizza ingredients</h3>
+            <p className="mt-2 text-sm leading-6 text-ink/60">Check sauce, cheese and toppings before baking.</p>
+            <p className="mt-3 text-sm leading-6 text-ink/65">You can do this while the dough is resting or fermenting.</p>
+          </div>
         </div>
         <div className="flex shrink-0 flex-col gap-3 sm:items-end">
           <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${checkpointState === "Done" || shoppingIsNext ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-white text-ink/55 ring-ink/10"}`}>
@@ -187,8 +270,7 @@ export default function SessionTimelinePage() {
   const timeline = session?.timeline ?? timelineResult.timeline;
   const nextStep = getNextTimelineStep(timeline);
   const targetTime = timeline?.targetEatTime ?? session?.targetEatTime ?? session?.targetBakeTime;
-  const allStepsComplete = Boolean(timeline?.steps.length) && timeline?.steps.every((step) => step.status === "done");
-  const preset = session ? getPizzaSessionPreset(session.pizzaPreset) : undefined;
+  const allStepsComplete = Boolean(timeline?.steps.length && timeline.steps.every((step) => step.status === "done"));
   const checkpointState = shoppingCheckpointState(session, nextStep);
   const shoppingIsNext = checkpointState === "Next";
   const firstServiceStepIndex = timeline?.steps.findIndex(isServiceTimelineStep) ?? -1;
@@ -197,12 +279,6 @@ export default function SessionTimelinePage() {
       ? firstServiceStepIndex
       : timeline.steps.length
     : -1;
-
-  const markDone = (stepId: string) => {
-    if (!session) return;
-    const updated = markPizzaSessionTimelineStepDone(session, stepId);
-    if (updated) setSession(updated);
-  };
 
   if (!ready) {
     return (
@@ -251,21 +327,25 @@ export default function SessionTimelinePage() {
     );
   }
 
+  const nextAction = nextActionForTimeline({ nextStep, shoppingIsNext, allStepsComplete });
+  const firstServiceStep = firstServiceStepIndex >= 0 ? timeline.steps[firstServiceStepIndex] : undefined;
+  const nextUpTime = shoppingIsNext ? firstServiceStep?.scheduledAt ?? targetTime : nextStep?.scheduledAt ?? targetTime;
+  const criticalMoments = getCriticalMoments(timeline.steps);
+
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
         <section
           aria-labelledby="session-timeline-heading"
-          className="grid gap-5 rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end"
+          className="rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8"
         >
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session timeline</p>
             <h1 id="session-timeline-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your pizza timeline</h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
-              A practical backwards schedule from your target time. Follow the steps in order and adjust as needed
-              for your dough, room temperature and oven.
+              Here’s your schedule. Follow the key moments and you’ll be ready on time.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-5 flex flex-wrap gap-2" aria-label="Timeline context">
               <GuidanceModeBadge level={session.experienceLevel} />
               <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
                 Target: {formatDateTime(targetTime)}
@@ -275,96 +355,68 @@ export default function SessionTimelinePage() {
               </span>
             </div>
           </div>
-          <div className="grid gap-3 lg:min-w-80">
-            <div className="rounded-3xl bg-white/95 p-5 text-ink shadow-sm">
-              {shoppingIsNext ? (
-                <>
-                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Next step</p>
-                  <h2 className="mt-2 font-display text-2xl font-semibold">Next step: Get pizza ingredients</h2>
-                  <p className="mt-1 text-sm font-extrabold text-ink/55">Check sauce, cheese and toppings before baking.</p>
-                </>
-              ) : nextStep ? (
-                <>
-                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Next step</p>
-                  <h2 className="mt-2 font-display text-2xl font-semibold">Next step: {nextStep.label}</h2>
-                  <p className="mt-1 text-sm font-extrabold text-ink/55">{formatShortDateTime(nextStep.scheduledAt)}</p>
-                </>
-              ) : (
-                <>
-                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Ready</p>
-                  <h2 className="mt-2 font-display text-2xl font-semibold">{allStepsComplete ? "Timeline complete" : "Ready to bake"}</h2>
-                  <p className="mt-1 text-sm font-extrabold text-ink/55">You’re ready for the next part of the session.</p>
-                </>
-              )}
+        </section>
+
+        <section aria-labelledby="next-up-heading" className="mt-6 rounded-[2rem] border border-leaf/20 bg-white p-5 shadow-card sm:p-6">
+          <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
+              <h2 id="next-up-heading" className="mt-2 font-display text-3xl font-semibold">{nextAction.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/60">
+                  {formatTimelineDate(nextUpTime)}
+                </span>
+                <span className="rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
+                  {shoppingIsNext ? `Before ${formatTimelineTime(nextUpTime)}` : formatTimelineTime(nextUpTime)}
+                </span>
+              </div>
             </div>
             <Link
-              href={shoppingIsNext ? "/session/shopping" : "/session/kitchen"}
-              className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-leaf px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
+              href={nextAction.href}
+              className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
             >
-              {shoppingIsNext ? "Open shopping list →" : "Open Kitchen Mode →"}
-            </Link>
-            <Link
-              href="/session/recipe"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-            >
-              Review dough plan →
+              {nextAction.cta}
             </Link>
           </div>
         </section>
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[22rem_1fr]">
-          <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session summary</p>
-            <dl className="mt-4 grid gap-3 text-sm">
-              {[
-                ["Pizza preset", preset?.name ?? "Not set"],
-                ["Target time", formatDateTime(targetTime)],
-                ["Pizza count", session.recipeSnapshot?.balls ? `${session.recipeSnapshot.balls} pizzas` : session.pizzaCount ? `${session.pizzaCount} pizzas` : "Not set"],
-                ["Ball weight", formatBallWeight(session)],
-                ["Flour", flourLabel(session.recipeSnapshot?.flour ?? session.flour)],
-                ["Hydration", formatPercent(session.recipeSnapshot?.hydration)],
-                ["Fermentation", session.recipeSnapshot?.fermentation ?? "Not set"],
-                ["Yeast type", formatYeastType(session)],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-2xl bg-cream p-4">
-                  <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                  <dd className="mt-1 font-extrabold text-ink">{value}</dd>
-                </div>
-              ))}
-            </dl>
-            <div className="mt-5 rounded-2xl bg-leaf/10 p-4">
-              <h2 className="text-sm font-extrabold text-leaf">How this timeline works</h2>
-              <p className="mt-2 text-sm leading-6 text-ink/60">
-                This is a backwards schedule from your target time. Do each step in order. Timing is a guide, not a rule.
-                Adjust for your dough, room temperature and oven.
-              </p>
+        {criticalMoments.length > 0 && (
+          <section aria-labelledby="critical-moments-heading" className="mt-6 rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Critical moments</p>
+                <h2 id="critical-moments-heading" className="mt-2 font-display text-3xl font-semibold">Don’t miss these moments</h2>
+              </div>
+              <p className="max-w-md text-sm leading-6 text-ink/55">These are pulled from your actual timeline, not a separate checklist.</p>
             </div>
-            <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
-              {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {criticalMoments.map((step) => (
+                <article key={step.id} className={`rounded-[1.25rem] border p-4 ${step.id === "bake-pizza" ? "border-tomato/20 bg-tomato/[.06]" : "border-leaf/15 bg-leaf/[.06]"}`}>
+                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{formatTimelineDate(step.scheduledAt)}</p>
+                  <h3 className="mt-2 font-display text-2xl font-semibold">{criticalMomentTitle(step)}</h3>
+                  <p className="mt-1 text-sm font-extrabold text-leaf">{formatTimelineTime(step.scheduledAt)}</p>
+                  <p className="mt-2 text-sm leading-6 text-ink/60">{step.beginnerNote ?? step.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section aria-labelledby="full-timeline-heading" className="mt-6">
+          <div className="mb-4">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Full timeline</p>
+            <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Your full schedule</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/55">
+              This overview is for planning. Use Kitchen Mode when you are ready to work through each task.
             </p>
-             <div className="mt-4 grid gap-2">
-               <Link href="/session/start" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                 Edit session choices
-               </Link>
-               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
-                 <a href="#shopping-checkpoint" className="rounded-2xl border border-leaf/20 bg-leaf/[.08] px-4 py-3 text-center text-xs font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                   Shopping checkpoint
-                 </a>
-                 <Link href="/session/shopping" className="rounded-2xl border border-ink/10 bg-white/70 px-4 py-3 text-center text-xs font-extrabold text-ink/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                   Shopping list
-                 </Link>
-                 <Link href="/session/review" className="rounded-2xl border border-ink/10 bg-white/70 px-4 py-3 text-center text-xs font-extrabold text-ink/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                   Review session
-                 </Link>
-               </div>
-             </div>
-           </aside>
+          </div>
 
           <section className="grid min-w-0 gap-3" aria-label="Pizza timeline steps">
             {timeline.steps.map((step, index) => (
               <div key={step.id} className="grid gap-3">
                 {index === shoppingCheckpointInsertIndex && (
-                  <ShoppingCheckpointCard checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
+                  <ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
                 )}
                 <article
                   className={`rounded-[1.5rem] border p-5 shadow-sm ${
@@ -376,13 +428,18 @@ export default function SessionTimelinePage() {
                   }`}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
-                        Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
-                      </p>
-                      <h3 className="mt-2 font-display text-2xl font-semibold">{step.label}</h3>
-                      <p className="mt-2 text-sm leading-6 text-ink/60">{step.description}</p>
-                      <p className="mt-3 text-sm leading-6 text-ink/65">{getTimelineNote(step, session.experienceLevel)}</p>
+                    <div className="flex min-w-0 gap-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cream text-2xl" aria-hidden="true">
+                        {timelineStepIcon(step)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
+                          Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
+                        </p>
+                        <h3 className="mt-2 font-display text-2xl font-semibold">{step.label}</h3>
+                        <p className="mt-2 text-sm leading-6 text-ink/60">{step.description}</p>
+                        <p className="mt-3 text-sm leading-6 text-ink/65">{getTimelineNote(step, session.experienceLevel)}</p>
+                      </div>
                       {step.quietHoursWarning && (
                         <p className="mt-3 rounded-2xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
                           Quiet-hours warning: {step.quietHoursWarning}
@@ -396,22 +453,13 @@ export default function SessionTimelinePage() {
                       <span className="text-sm font-bold text-ink/55">
                         {relativeFromTarget(step.scheduledAt, targetTime)}
                       </span>
-                      {step.status === "todo" && (
-                        <button
-                          type="button"
-                          onClick={() => markDone(step.id)}
-                          className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                        >
-                          Mark done
-                        </button>
-                      )}
                     </div>
                   </div>
                 </article>
               </div>
             ))}
             {shoppingCheckpointInsertIndex === timeline.steps.length && (
-              <ShoppingCheckpointCard checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
+              <ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
             )}
           </section>
         </section>
@@ -427,6 +475,27 @@ export default function SessionTimelinePage() {
             ))}
           </ul>
         </section>
+
+        <nav aria-label="Timeline navigation" className="mt-8 grid gap-3 sm:grid-cols-2">
+          <Link
+            href="/session/recipe"
+            className="rounded-[1.5rem] border border-ink/10 bg-white px-5 py-4 text-sm font-extrabold text-ink/70 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            <span className="block text-base text-ink">Back</span>
+            <span className="mt-1 block text-xs font-bold text-ink/45">Back to Recipe</span>
+          </Link>
+          <Link
+            href={nextAction.href}
+            className="rounded-[1.5rem] bg-tomato px-5 py-4 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:text-right"
+          >
+            <span className="block text-base">Next step →</span>
+            <span className="mt-1 block text-xs font-bold text-white/75">{nextAction.cta.replace(" →", "")}</span>
+          </Link>
+        </nav>
+
+        <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
+          {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
+        </p>
 
         <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
       </div>

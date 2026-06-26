@@ -38,39 +38,47 @@ describe("Pizza Session timeline", () => {
 
     const page = source("app/session/timeline/page.tsx");
     expect(page).toContain("Your pizza timeline");
-    expect(page).toContain("Next step");
+    expect(page).toContain("Here’s your schedule. Follow the key moments and you’ll be ready on time.");
+    expect(page).toContain("Next up");
+    expect(page).toContain("Critical moments");
+    expect(page).toContain("Full timeline");
     expect(page).toContain("Saved in this browser");
-    expect(page).toContain("Open Kitchen Mode");
-    expect(page).toContain("Review dough plan");
-    expect(page).toContain("Session summary");
-    expect(page).toContain("How this timeline works");
-    expect(page).toContain("Mark done");
+    expect(page).toContain("Start dough work →");
+    expect(page).toContain("Back to Recipe");
+    expect(page).toContain("Next step →");
+    expect(page).not.toContain("Session summary");
+    expect(page).not.toContain("How this timeline works");
+    expect(page).not.toContain("Mark done");
+    expect(page).not.toContain("Edit session choices");
+    expect(page).not.toContain("Review session");
     expect(page).toContain("Quiet-hours warning");
     expect(page).not.toContain("Copy schedule");
     expect(page).not.toContain("Create shopping list");
     expect(page).not.toContain("Open full Planner");
   });
 
-  it("keeps the hero focused on the next timeline step and Kitchen Mode", () => {
+  it("keeps Next up focused on the real next action", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("Next step: {nextStep.label}");
-    expect(page).toContain("Next step: Get pizza ingredients");
-    expect(page).toContain("formatShortDateTime(nextStep.scheduledAt)");
-    expect(page).toContain("href={shoppingIsNext ? \"/session/shopping\" : \"/session/kitchen\"}");
-    expect(page).toContain("Open Kitchen Mode →");
+    expect(page).toContain("function nextActionForTimeline");
+    expect(page).toContain("title: \"Get pizza ingredients\"");
+    expect(page).toContain("cta: \"Start dough work →\"");
+    expect(page).toContain("cta: \"Start baking →\"");
+    expect(page).toContain("cta: \"Review and add notes →\"");
+    expect(page).toContain("href={nextAction.href}");
+    expect(page).toContain("{nextAction.title}");
+    expect(page).toContain("{nextAction.subtext}");
     expect(page).toContain("Open shopping list →");
-    expect(page).toContain("href=\"/session/recipe\"");
-    expect(page).toContain("Review dough plan →");
+    expect(page).toContain("href: \"/session/kitchen\"");
+    expect(page).toContain("href: \"/session/review\"");
     expect(page).toContain("href=\"/session/shopping\"");
-    expect(page).toContain("Shopping list");
     expect(page).not.toContain("recipeQuery ? `/plan?");
   });
 
   it("adds a shopping checkpoint before service and bake steps without changing timeline data", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("function ShoppingCheckpointCard");
+    expect(page).toContain("function ShoppingCheckpointRow");
     expect(page).toContain("Shopping checkpoint");
     expect(page).toContain("Get pizza ingredients");
     expect(page).toContain("Check sauce, cheese and toppings before baking.");
@@ -90,35 +98,37 @@ describe("Pizza Session timeline", () => {
   it("keeps the shopping checkpoint visible in normal timeline rendering instead of hiding it behind completion state", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("<ShoppingCheckpointCard checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />");
-    expect(page).not.toContain("session?.shoppingList && <ShoppingCheckpointCard");
-    expect(page).not.toContain("allStepsComplete && <ShoppingCheckpointCard");
-    expect(page).not.toContain("shoppingIsNext && <ShoppingCheckpointCard");
+    expect(page).toContain("<ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />");
+    expect(page).not.toContain("session?.shoppingList && <ShoppingCheckpointRow");
+    expect(page).not.toContain("allStepsComplete && <ShoppingCheckpointRow");
+    expect(page).not.toContain("shoppingIsNext && <ShoppingCheckpointRow");
     expect(page).not.toMatch(/\b(Avaa|Ostoskor|Juusto|Täytteet|Seuraava)\b/);
   });
 
-  it("allows the hero to treat shopping as the next step after dough work", () => {
+  it("allows the next action to treat shopping as the next step after dough work", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("const shoppingIsNext = checkpointState === \"Next\"");
-    expect(page).toContain("href={shoppingIsNext ? \"/session/shopping\" : \"/session/kitchen\"}");
-    expect(page).toContain("{shoppingIsNext ? \"Open shopping list →\" : \"Open Kitchen Mode →\"}");
+    expect(page).toContain("if (shoppingIsNext)");
+    expect(page).toContain("cta: \"Open shopping list →\"");
+    expect(page).toContain("href: \"/session/shopping\"");
     expect(page).toContain("if (session?.shoppingList) return \"Done\"");
     expect(page).toContain("if (isDoughTimelineStep(nextStep)) return \"Upcoming\"");
     expect(page).toContain("if (isServiceTimelineStep(nextStep) || !nextStep) return \"Next\"");
   });
 
-  it("shows a compact session summary without making oven a separate item", () => {
+  it("removes the repeated summary/sidebar from the timeline overview", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("[\"Pizza preset\", preset?.name ?? \"Not set\"]");
-    expect(page).toContain("[\"Target time\", formatDateTime(targetTime)]");
-    expect(page).toContain("[\"Pizza count\"");
-    expect(page).toContain("[\"Ball weight\", formatBallWeight(session)]");
-    expect(page).toContain("[\"Flour\", flourLabel(session.recipeSnapshot?.flour ?? session.flour)]");
-    expect(page).toContain("[\"Hydration\", formatPercent(session.recipeSnapshot?.hydration)]");
-    expect(page).toContain("[\"Fermentation\", session.recipeSnapshot?.fermentation ?? \"Not set\"]");
-    expect(page).toContain("[\"Yeast type\", formatYeastType(session)]");
+    expect(page).not.toContain("Session summary");
+    expect(page).not.toContain("[\"Pizza preset\"");
+    expect(page).not.toContain("[\"Target time\"");
+    expect(page).not.toContain("[\"Pizza count\"");
+    expect(page).not.toContain("[\"Ball weight\"");
+    expect(page).not.toContain("[\"Flour\"");
+    expect(page).not.toContain("[\"Hydration\"");
+    expect(page).not.toContain("[\"Fermentation\"");
+    expect(page).not.toContain("[\"Yeast type\"");
     expect(page).not.toContain("[\"Oven\"");
   });
 
@@ -132,9 +142,35 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("statusLabel(step, shoppingIsNext ? undefined : nextStep)");
     expect(page).toContain("relativeFromTarget(step.scheduledAt, targetTime)");
     expect(page).toContain("step.id === nextStep?.id");
+    expect(page).toContain("timelineStepIcon(step)");
+    expect(page).not.toContain("onClick={() => markDone(step.id)}");
   });
 
-  it("formats hero target time as a human-readable value with year", () => {
+  it("renders critical moments only from timeline steps", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("function getCriticalMoments");
+    expect(page).toContain("\"cold-ferment\"");
+    expect(page).toContain("\"room-temperature-rest\"");
+    expect(page).toContain("\"preheat-oven\"");
+    expect(page).toContain("\"bake-pizza\"");
+    expect(page).toContain("criticalMoments.map((step)");
+    expect(page).toContain("criticalMomentTitle(step)");
+    expect(page).toContain("Put dough in fridge");
+    expect(page).toContain("Take dough out");
+  });
+
+  it("keeps Back and Next navigation aligned with the next action", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("Back to Recipe");
+    expect(page).toContain("href=\"/session/recipe\"");
+    expect(page).toContain("Next step →");
+    expect(page).toContain("href={nextAction.href}");
+    expect(page).not.toContain("Review dough plan →");
+  });
+
+  it("formats timeline target time as a human-readable value with year", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("year: \"numeric\"");
