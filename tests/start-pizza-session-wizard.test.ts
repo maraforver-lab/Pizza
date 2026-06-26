@@ -88,18 +88,31 @@ describe("Start Pizza Session wizard", () => {
     expect(page.indexOf('"flour"')).toBeLessThan(page.indexOf('"summary"'));
   });
 
-  it("keeps Step 1 option cards mobile-friendly and accessible", () => {
+  it("keeps Step 1, Step 2 and Step 5 option cards mobile-friendly and accessible", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
     expect(page).toContain("Pan / tray bake");
     expect(page).toContain("Not sure yet");
+    expect(page).toContain("Simple cheese");
+    expect(page).toContain("Margherita");
+    expect(page).toContain("Pepperoni");
+    expect(page).toContain("Veggie");
+    expect(page).toContain("I’ll decide toppings later");
+    expect(page).toContain("Pizza flour / Tipo 00");
+    expect(page).toContain("Bread flour / Strong flour");
+    expect(page).toContain("All-purpose flour");
     expect(page).toContain("grid min-h-24 grid-cols-[auto_1fr] items-start gap-3");
     expect(page).toContain("sm:block sm:min-h-28");
     expect(page).toContain("col-start-2 block pr-8");
     expect(page).toContain("aria-pressed={session.pizzaStyle === option.id}");
+    expect(page).toContain("aria-pressed={session.pizzaPreset === preset.id}");
+    expect(page).toContain("aria-pressed={session.flour === option.id}");
+    expect(page).toContain("step === \"preset\" && Boolean(session?.pizzaPreset)");
+    expect(page).toContain("step === \"flour\" && Boolean(session?.flour)");
     expect(page).toContain("disabled={!canContinue}");
+    expect(page).not.toContain("className={`${optionClass(session.flour === option.id)} flex min-h-24 items-center gap-4`}");
   });
 
   it("prevents duplicate guidance and mobile step indicators on the session start page", () => {

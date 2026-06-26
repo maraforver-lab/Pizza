@@ -588,13 +588,12 @@ export default function StartPizzaSessionPage() {
           {step === "flour" && (
             <div className="grid gap-3">
               {flourOptions.map((option) => (
-                <button key={option.id} type="button" onClick={() => selectFlour(option.id)} aria-pressed={session.flour === option.id} className={`${optionClass(session.flour === option.id)} flex min-h-24 items-center gap-4`}>
+                <button key={option.id} type="button" onClick={() => selectFlour(option.id)} aria-pressed={session.flour === option.id} className={optionClass(session.flour === option.id)}>
                   {selectedIndicator(session.flour === option.id)}
-                  <span aria-hidden="true" className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-cream text-3xl shadow-sm">{option.icon}</span>
-                  <span className="block pr-8">
-                    <span className="block text-lg font-extrabold">{option.label}</span>
-                    <span className="mt-1 block text-sm leading-6 text-ink/55">{option.description}</span>
-                  </span>
+                  {iconBadge(option.icon)}
+                  <span className="col-start-2 block pr-8 text-lg font-extrabold sm:col-auto">{option.label}</span>
+                  <span className="col-start-2 mt-1 block text-sm leading-6 text-ink/55 sm:col-auto sm:mt-2">{option.description}</span>
+                  {session.flour === option.id && <span className="col-start-2 mt-2 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-3">Selected</span>}
                 </button>
               ))}
             </div>
