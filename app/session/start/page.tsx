@@ -17,6 +17,7 @@ import {
 import { pizzaSessionPresets, type PizzaPresetId } from "@/lib/pizza-session-presets";
 import {
   buildPizzaSessionTargetTime,
+  getDefaultPizzaSessionTargetTime,
   getPizzaSessionDayQuickChoices,
   pizzaSessionTimeQuickChoices,
   type PizzaSessionDayQuickChoiceId,
@@ -200,6 +201,10 @@ function formatTargetTime(value?: string) {
   }).format(date);
 }
 
+function isValidTargetTime(value?: string) {
+  return Boolean(value && !Number.isNaN(new Date(value).getTime()));
+}
+
 export default function StartPizzaSessionPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -216,19 +221,32 @@ export default function StartPizzaSessionPage() {
     document.documentElement.lang = "en";
     const level = readExperienceLevelPreference();
     const active = getActivePizzaSession();
-    const nextSession = active ?? createAndSavePizzaSession({
+    const baseSession = active ?? createAndSavePizzaSession({
       status: "planning",
       currentStep: "style",
       experienceLevel: level,
     });
+    const hasSavedTargetTime = isValidTargetTime(baseSession.targetEatTime);
+    const defaultTargetEatTime = getDefaultPizzaSessionTargetTime();
+    const nextSession = hasSavedTargetTime
+      ? baseSession
+      : updatePizzaSession(baseSession.id, {
+        targetEatTime: defaultTargetEatTime,
+        status: "planning",
+        currentStep: baseSession.currentStep,
+        experienceLevel: level,
+      }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
 
     setActivePizzaSession(nextSession.id);
     setExperienceLevel(level);
     setSession(nextSession);
     setTargetTimeDraft(nextSession.targetEatTime ?? "");
-    if (nextSession.targetEatTime) {
+    if (hasSavedTargetTime) {
       setSelectedDayChoice("custom-date");
       setSelectedTimeChoice("custom-time");
+    } else {
+      setSelectedDayChoice("tomorrow");
+      setSelectedTimeChoice("dinner");
     }
     setStep(initialWizardStep(nextSession));
     setReady(true);

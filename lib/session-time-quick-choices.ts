@@ -94,3 +94,7 @@ export function buildPizzaSessionTargetTime(
   if (!day?.date || !time?.time) return "";
   return `${day.date}T${time.time}`;
 }
+
+export function getDefaultPizzaSessionTargetTime(today = new Date()) {
+  return buildPizzaSessionTargetTime("tomorrow", "dinner", today);
+}

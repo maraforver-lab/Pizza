@@ -14,6 +14,7 @@ import {
 import { EXPERIENCE_LEVEL_STORAGE_KEY } from "@/lib/experience-levels";
 import {
   buildPizzaSessionTargetTime,
+  getDefaultPizzaSessionTargetTime,
   getPizzaSessionDayQuickChoices,
   pizzaSessionTimeQuickChoices,
 } from "@/lib/session-time-quick-choices";
@@ -204,6 +205,21 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("[\"When\", formatTargetTime(session.targetEatTime)]");
     expect(page).toContain("DoughTools will build your dough, preparation and bake timeline backwards from this.");
     expect(page).not.toContain("Later planner patches can turn this into a full timeline");
+  });
+
+  it("defaults new sessions without a target time to tomorrow dinner without overwriting saved targets", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(getDefaultPizzaSessionTargetTime(new Date("2026-06-26T10:00:00"))).toBe("2026-06-27T18:00");
+    expect(page).toContain("function isValidTargetTime");
+    expect(page).toContain("const hasSavedTargetTime = isValidTargetTime(baseSession.targetEatTime)");
+    expect(page).toContain("const defaultTargetEatTime = getDefaultPizzaSessionTargetTime()");
+    expect(page).toContain("targetEatTime: defaultTargetEatTime");
+    expect(page).toContain('setSelectedDayChoice("tomorrow")');
+    expect(page).toContain('setSelectedTimeChoice("dinner")');
+    expect(page).toContain('setSelectedDayChoice("custom-date")');
+    expect(page).toContain('setSelectedTimeChoice("custom-time")');
+    expect(page).toContain("step === \"time\" && Boolean(targetTimeDraft || session?.targetEatTime)");
   });
 
   it("scrolls the current decision panel into view after Continue or Back changes steps", () => {
