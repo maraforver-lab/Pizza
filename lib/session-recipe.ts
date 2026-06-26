@@ -26,7 +26,8 @@ const presetToStyle: Partial<Record<string, PizzaStyleId>> = {
 };
 
 function safeFlourId(value?: string): FlourId | undefined {
-  if (!value || value === "not-sure") return undefined;
+  if (!value) return undefined;
+  if (value === "not-sure") return "caputo-pizzeria";
   if (flourIds.includes(value as FlourId)) return value as FlourId;
   return flourChoiceToId[value];
 }

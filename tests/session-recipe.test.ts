@@ -160,8 +160,9 @@ describe("Session recipe build step", () => {
       .toEqual({ ok: false, missingReason: "missing-preset" });
     expect(buildSessionRecipe(createPizzaSession({ pizzaStyle: "home-oven", pizzaPreset: "margherita", flour: "tipo-00" })))
       .toEqual({ ok: false, missingReason: "missing-quantity" });
-    expect(buildSessionRecipe(createPizzaSession({ pizzaStyle: "home-oven", pizzaPreset: "margherita", pizzaCount: 2, flour: "not-sure" })))
-      .toEqual({ ok: false, missingReason: "missing-flour" });
+    const safeDefault = buildSessionRecipe(createPizzaSession({ pizzaStyle: "home-oven", pizzaPreset: "margherita", pizzaCount: 2, flour: "not-sure" }));
+    expect(safeDefault.ok).toBe(true);
+    if (safeDefault.ok) expect(safeDefault.settings.flourId).toBe("caputo-pizzeria");
   });
 
   it("saves recipe params and snapshot into the active Pizza Session without changing other session fields", () => {
@@ -246,7 +247,7 @@ describe("Session recipe build step", () => {
 
     expect(startPage).toContain("href=\"/session/recipe\"");
     expect(startPage).toContain("How will you bake your pizza?");
-    expect(startPage).toContain("Which pizza are you planning?");
+    expect(startPage).toContain("What kind of pizza are you making?");
     expect(startPage).toContain("disabled={!canContinue}");
     expect(startPage).not.toContain("What pizza do you want to make?");
     expect(startPage).not.toContain("Later planner patches can turn this into a full timeline");

@@ -2,9 +2,7 @@ export type PizzaSessionDayQuickChoiceId =
   | "today"
   | "tomorrow"
   | "day-after-tomorrow"
-  | "next-friday"
-  | "next-saturday"
-  | "next-sunday"
+  | "three-days-from-now"
   | "custom-date";
 
 export type PizzaSessionTimeQuickChoiceId = "lunch" | "afternoon" | "dinner" | "evening" | "custom-time";
@@ -56,21 +54,20 @@ function formatQuickDate(date: Date) {
   }).format(date);
 }
 
-function nextWeekdayDate(today: Date, weekday: number) {
-  const base = startOfLocalDay(today);
-  const current = base.getDay();
-  const delta = (weekday - current + 7) % 7 || 7;
-  return addDays(base, delta);
+function weekdayLabel(date: Date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+  }).format(date);
 }
 
 export function getPizzaSessionDayQuickChoices(today = new Date()): PizzaSessionDayQuickChoice[] {
+  const twoDaysFromNow = addDays(today, 2);
+  const threeDaysFromNow = addDays(today, 3);
   const choices: Array<[PizzaSessionDayQuickChoiceId, string, Date | undefined]> = [
     ["today", "Today", startOfLocalDay(today)],
     ["tomorrow", "Tomorrow", addDays(today, 1)],
-    ["day-after-tomorrow", "Day after tomorrow", addDays(today, 2)],
-    ["next-friday", "Next Friday", nextWeekdayDate(today, 5)],
-    ["next-saturday", "Next Saturday", nextWeekdayDate(today, 6)],
-    ["next-sunday", "Next Sunday", nextWeekdayDate(today, 0)],
+    ["day-after-tomorrow", weekdayLabel(twoDaysFromNow), twoDaysFromNow],
+    ["three-days-from-now", weekdayLabel(threeDaysFromNow), threeDaysFromNow],
     ["custom-date", "Custom date", undefined],
   ];
 

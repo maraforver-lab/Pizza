@@ -31,42 +31,95 @@ import {
 } from "@/lib/pizza-session-storage";
 
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
-type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray";
+type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
 
 const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"];
 
 const styleOptions = [
   {
     id: "home-oven",
-    label: "Home oven pizza",
-    description: "A calm, reliable pizza path for a normal electric oven, stone, steel or sturdy tray.",
+    label: "Home oven",
+    icon: "▤",
+    description: "Use a normal home oven with a tray, stone or steel.",
+    badge: "Most popular",
   },
   {
     id: "pizza-oven",
-    label: "Pizza oven pizza",
-    description: "A higher-heat path for Ooni, Gozney, Chef Matteo or a similar pizza oven.",
+    label: "Pizza oven",
+    icon: "◠",
+    description: "Use a high-heat pizza oven like Ooni, Gozney or similar.",
+    badge: undefined,
   },
   {
     id: "pan-tray",
-    label: "Pan / tray pizza",
-    description: "A forgiving bake where the pan supports the dough and launch stress stays low.",
+    label: "Pan / tray bake",
+    icon: "▱",
+    description: "Easiest option. Bake in a tray or pan.",
+    badge: undefined,
+  },
+  {
+    id: "not-sure",
+    label: "Not sure yet",
+    icon: "?",
+    description: "Choose this if you want DoughTools to stay flexible.",
+    badge: undefined,
   },
 ] as const;
 
 const flourOptions = [
-  { id: "plain", label: "All-purpose / plain flour", description: "Easy to find. Best with moderate hydration." },
-  { id: "bread", label: "Bread flour / strong flour", description: "Stronger gluten and a safer choice for longer rests." },
-  { id: "tipo-00", label: "Pizza flour / tipo 00", description: "Designed for pizza, especially with hotter ovens." },
-  { id: "not-sure", label: "Not sure yet", description: "You can choose the exact flour later in the calculator." },
+  { id: "tipo-00", label: "Pizza flour / Tipo 00", icon: "▣", description: "The best choice for pizza. Strong and high protein." },
+  { id: "bread", label: "Bread flour / Strong flour", icon: "▥", description: "Great for chewy crusts and good rise." },
+  { id: "plain", label: "All-purpose flour", icon: "◒", description: "Works in a pinch. Results may vary." },
+  { id: "not-sure", label: "Not sure", icon: "?", description: "We’ll use a safe default." },
 ] as const;
+
+const wizardStepLabels: Record<WizardStep, string> = {
+  path: "Baking path",
+  preset: "Pizza style",
+  time: "When",
+  quantity: "How many",
+  flour: "Flour",
+  summary: "Your plan",
+};
+
+const wizardStepQuestions: Record<WizardStep, string> = {
+  path: "How will you bake your pizza?",
+  preset: "What kind of pizza are you making?",
+  time: "When do you want pizza?",
+  quantity: "How many pizzas?",
+  flour: "What flour do you have?",
+  summary: "Your starting setup is ready.",
+};
+
+const wizardStepHelpers: Record<WizardStep, string> = {
+  path: "This helps us suggest the right dough plan and timeline for you.",
+  preset: "This helps us suggest a better plan and shopping list.",
+  time: "We’ll work backwards and build the right timeline.",
+  quantity: "We’ll calculate the right amount of dough.",
+  flour: "This helps us suggest the right hydration and fermentation.",
+  summary: "Here’s what we’ll use to build your dough plan.",
+};
+
+const wizardPresetOptions: Array<{
+  id: PizzaPresetId;
+  label: string;
+  icon: string;
+  description: string;
+}> = [
+  { id: "simple-cheese", label: "Simple cheese", icon: "🧀", description: "Classic cheese pizza with tomato sauce." },
+  { id: "margherita", label: "Margherita", icon: "🍅", description: "Tomato, mozzarella and fresh basil." },
+  { id: "pepperoni-salami", label: "Pepperoni", icon: "🍕", description: "Pepperoni with tomato sauce." },
+  { id: "funghi", label: "Veggie", icon: "🥬", description: "Vegetables and tomato sauce." },
+  { id: "marinara", label: "I’ll decide toppings later", icon: "?", description: "No problem, we’ll keep it flexible." },
+];
 
 const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
   beginner: {
-    path: "Choose how you will bake. This sets the first safe defaults before the dough plan.",
-    preset: "Choose the pizza you want to shop and prepare for. You can still adjust details later.",
-    time: "Choose when you want to eat or bake. We’ll use this time to build your pizza timeline.",
-    quantity: "Choose how many pizzas you want. Six small pizzas or one pan pizza are common starting points.",
-    flour: "Choose the closest flour. If you do not know, choose not sure yet.",
+    path: "We’ll build your dough plan step by step.",
+    preset: "Pick the pizza you want to make. You can change this later.",
+    time: "Pick the time you want pizza. DoughTools will plan backwards from there.",
+    quantity: "Choose a simple number. You can tune exact dough size later.",
+    flour: "Choose the closest flour. If you are not sure, safe defaults keep going.",
     summary: "Your first decisions are saved. Next, build the dough plan.",
   },
   enthusiast: {
@@ -107,9 +160,30 @@ function initialWizardStep(session: PizzaSession): WizardStep {
 }
 
 function optionClass(active: boolean) {
-  return `min-h-24 rounded-2xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
-    active ? "border-tomato bg-tomato/10 shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
+  return `relative min-h-28 rounded-[1.35rem] border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:p-5 ${
+    active ? "border-tomato bg-tomato/[.06] shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30 hover:shadow-sm"
   }`;
+}
+
+function selectedIndicator(active: boolean) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`absolute right-4 top-4 grid h-6 w-6 place-items-center rounded-full border text-xs font-black ${
+        active ? "border-tomato bg-tomato text-white" : "border-ink/15 bg-white text-transparent"
+      }`}
+    >
+      ✓
+    </span>
+  );
+}
+
+function iconBadge(icon: string) {
+  return (
+    <span aria-hidden="true" className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-cream text-3xl shadow-sm">
+      {icon}
+    </span>
+  );
 }
 
 function formatTargetTime(value?: string) {
@@ -180,7 +254,7 @@ export default function StartPizzaSessionPage() {
 
   const selectStyle = (value: SessionStyle) => {
     const ovenType = value === "pizza-oven" ? "gas" : value === "pan-tray" ? "pan" : "home";
-    const pizzaCount = value === "pan-tray" ? 1 : session?.pizzaCount ?? 6;
+    const pizzaCount = value === "pan-tray" ? 1 : session?.pizzaCount ?? 4;
     savePatch({ pizzaStyle: value, ovenType, pizzaCount }, "path");
   };
 
@@ -246,6 +320,7 @@ export default function StartPizzaSessionPage() {
 
   const selectedStyle = styleOptions.find((option) => option.id === session.pizzaStyle);
   const selectedPreset = pizzaSessionPresets.find((option) => option.id === session.pizzaPreset);
+  const selectedWizardPreset = wizardPresetOptions.find((option) => option.id === session.pizzaPreset);
   const selectedFlour = flourOptions.find((option) => option.id === session.flour);
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
@@ -253,72 +328,110 @@ export default function StartPizzaSessionPage() {
   const continueHref = pizzaSessionContinueHref({ ...session, currentStep: "recipe" });
 
   return (
-    <main className="min-h-screen bg-cream px-4 py-5 pb-28 text-ink sm:px-6 sm:py-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-5 pb-28 text-ink sm:px-6 sm:py-8">
+      <header className="mx-auto mb-5 flex max-w-6xl items-center justify-between">
+        <Link href="/" className="inline-flex items-center gap-3 text-sm font-extrabold" aria-label="DoughTools home">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-sm">○</span>
+          <span className="text-lg">Dough<span className="text-tomato">Tools</span></span>
+        </Link>
+        <Link href="/account" className="rounded-full border border-ink/10 bg-white/80 px-4 py-3 text-xs font-extrabold text-ink/70 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+          Sign in
+        </Link>
+      </header>
+
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[18rem_1fr]">
-        <aside className="order-2 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur lg:order-1 lg:sticky lg:top-6 lg:self-start">
+        <aside className="hidden rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur lg:sticky lg:top-6 lg:block lg:self-start">
           <Link href="/" className="inline-flex items-center gap-3 text-sm font-extrabold" aria-label="DoughTools home">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white">○</span>
             Dough<span className="text-tomato">Tools</span>
           </Link>
           <p className="mt-6 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Start Pizza Session</p>
           <h1 className="mt-2 font-display text-4xl font-semibold leading-none">One clear decision at a time.</h1>
-          <p className="mt-4 text-sm leading-6 text-ink/55">{levelCopy[experienceLevel][step]}</p>
+          <p className="mt-4 text-sm leading-6 text-ink/55">We’ll build your dough plan step by step.</p>
           <div className="mt-5 flex flex-wrap gap-2">
             <GuidanceModeBadge level={experienceLevel} />
-            <span className="rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
-              Step {progress} of {wizardSteps.length}
-            </span>
+          </div>
+          <div className="mt-5 rounded-2xl border border-ink/10 bg-white p-4">
+            <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
+              <span>Step {progress} of {wizardSteps.length}</span>
+              <span>{Math.round((progress / wizardSteps.length) * 100)}%</span>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-ink/10">
+              <div className="h-full rounded-full bg-leaf transition-all" style={{ width: `${(progress / wizardSteps.length) * 100}%` }} />
+            </div>
           </div>
           <ol className="mt-6 grid gap-2" aria-label="Pizza Session progress">
             {wizardSteps.map((item, index) => (
-              <li key={item} className={`rounded-xl px-3 py-2 text-xs font-bold ${item === step ? "bg-ink text-white" : index < stepIndex(step) ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`}>
+              <li key={item} className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold ${item === step ? "bg-ink text-white" : index < stepIndex(step) ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`}>
                 <span className="sr-only">{item === step ? "Current step: " : index < stepIndex(step) ? "Completed step: " : "Upcoming step: "}</span>
-                {index + 1}. {item === "path" ? "Baking path" : item === "preset" ? "Pizza preset" : item === "summary" ? "Dough plan" : item[0].toUpperCase() + item.slice(1)}
+                <span className={`grid h-6 w-6 place-items-center rounded-full ${item === step ? "bg-white text-ink" : index < stepIndex(step) ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
+                  {index < stepIndex(step) ? "✓" : index + 1}
+                </span>
+                {wizardStepLabels[item]}
               </li>
             ))}
           </ol>
-          <p className="mt-6 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
-            {PIZZA_SESSION_LOCAL_ONLY_COPY} Cloud sync is not active yet, so return on the same device and browser.
-          </p>
+          <div className="mt-6 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/55">
+            <strong className="block text-sm text-ink">You can change anything later. No worries!</strong>
+            <span className="mt-2 block">{PIZZA_SESSION_LOCAL_ONLY_COPY}</span>
+            <span className="mt-1 block">No cloud sync.</span>
+          </div>
         </aside>
 
-        <section className="order-1 min-w-0 rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card backdrop-blur sm:p-8 lg:order-2" aria-live="polite">
-          <div className="mb-6 flex flex-col gap-3 border-b border-ink/10 pb-5 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Autosaved locally</p>
-              <h2 className="mt-2 font-display text-4xl font-semibold leading-none">
-                {step === "path" && "How will you bake your pizza?"}
-                {step === "preset" && "Which pizza are you planning?"}
-                {step === "time" && "When do you want pizza?"}
-                {step === "quantity" && "How many pizzas?"}
-                {step === "flour" && "What flour do you have?"}
-                {step === "summary" && "Your starting setup is ready."}
-              </h2>
+        <section className="min-w-0 rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card backdrop-blur sm:p-8 lg:rounded-[2.5rem]" aria-live="polite">
+          <div className="mb-6 lg:hidden">
+            <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
+              <span>Step {progress} of {wizardSteps.length}</span>
+              <GuidanceModeBadge level={experienceLevel} />
             </div>
-            <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${experience.badgeClassName}`}>
-              {experience.marker} {experience.label}
+            <div className="mt-4 flex gap-2" aria-label="Pizza Session progress">
+              {wizardSteps.map((item, index) => (
+                <span
+                  key={item}
+                  className={`h-2.5 flex-1 rounded-full ${item === step ? "bg-tomato" : index < stepIndex(step) ? "bg-tomato/45" : "bg-ink/12"}`}
+                  aria-label={`${index + 1}. ${wizardStepLabels[item]}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-6 flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Step {progress} of {wizardSteps.length}</p>
+              <h2 className="mt-2 font-display text-4xl font-semibold leading-none">
+                {wizardStepQuestions[step]}
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">{wizardStepHelpers[step]}</p>
+            </div>
+            <span className={`hidden w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 sm:inline-flex ${experience.badgeClassName}`}>
+              {experience.marker} Guidance mode: {experience.label}
             </span>
           </div>
 
           {step === "path" && (
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2">
               {styleOptions.map((option) => (
                 <button key={option.id} type="button" onClick={() => selectStyle(option.id)} aria-pressed={session.pizzaStyle === option.id} className={optionClass(session.pizzaStyle === option.id)}>
-                  <span className="block text-lg font-extrabold">{option.label}</span>
+                  {selectedIndicator(session.pizzaStyle === option.id)}
+                  {iconBadge(option.icon)}
+                  <span className="block pr-8 text-xl font-extrabold">{option.label}</span>
                   <span className="mt-2 block text-sm leading-6 text-ink/55">{option.description}</span>
-                  {session.pizzaStyle === option.id && <span className="mt-3 block text-xs font-extrabold text-tomato">Selected</span>}
+                  {option.badge && <span className="mt-4 inline-flex rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato">{option.badge}</span>}
+                  {session.pizzaStyle === option.id && <span className="mt-3 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
                 </button>
               ))}
             </div>
           )}
 
           {step === "preset" && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {pizzaSessionPresets.map((preset) => (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {wizardPresetOptions.map((preset) => (
                 <button key={preset.id} type="button" onClick={() => selectPreset(preset.id)} aria-pressed={session.pizzaPreset === preset.id} className={optionClass(session.pizzaPreset === preset.id)}>
-                  <span className="block text-lg font-extrabold">{preset.marker} {preset.name}</span>
-                  <span className="mt-2 block text-sm leading-6 text-ink/55">{preset.shortDescription}</span>
-                  {session.pizzaPreset === preset.id && <span className="mt-3 block text-xs font-extrabold text-tomato">Selected</span>}
+                  {selectedIndicator(session.pizzaPreset === preset.id)}
+                  {iconBadge(preset.icon)}
+                  <span className="block pr-8 text-lg font-extrabold">{preset.label}</span>
+                  <span className="mt-2 block text-sm leading-6 text-ink/55">{preset.description}</span>
+                  {session.pizzaPreset === preset.id && <span className="mt-3 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
                 </button>
               ))}
             </div>
@@ -327,25 +440,24 @@ export default function StartPizzaSessionPage() {
           {step === "time" && (
             <div className="grid gap-6">
               <p className="max-w-2xl text-sm leading-6 text-ink/60">
-                Choose a target eating or baking time. DoughTools will build your dough, preparation and bake timeline backwards from this.
+                Choose a target pizza time. DoughTools will build your dough, preparation and bake timeline backwards from this.
               </p>
 
               <section aria-labelledby="session-day-choice-heading">
-                <h3 id="session-day-choice-heading" className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Choose day</h3>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <h3 id="session-day-choice-heading" className="text-sm font-extrabold text-ink">Pick a day</h3>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
                   {dayChoices.map((choice) => (
                     <button
                       key={choice.id}
                       type="button"
                       onClick={() => selectDayChoice(choice.id)}
                       aria-pressed={selectedDayChoice === choice.id}
-                      className={`min-h-20 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
-                        selectedDayChoice === choice.id ? "border-tomato bg-tomato/10 shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
+                      className={`min-h-20 rounded-2xl border p-3 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                        selectedDayChoice === choice.id ? "border-tomato bg-tomato text-white shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
                       }`}
                     >
-                      <span className="block text-sm font-extrabold text-ink">{choice.label}</span>
-                      {choice.displayDate && <span className="mt-1 block text-xs font-bold text-ink/45">{choice.displayDate}</span>}
-                      {selectedDayChoice === choice.id && <span className="mt-2 block text-[11px] font-extrabold uppercase tracking-[.12em] text-tomato">Selected</span>}
+                      <span className="block text-sm font-extrabold">{choice.label}</span>
+                      {choice.displayDate && <span className={`mt-1 block text-xs font-bold ${selectedDayChoice === choice.id ? "text-white/75" : "text-ink/45"}`}>{choice.displayDate}</span>}
                     </button>
                   ))}
                 </div>
@@ -353,21 +465,21 @@ export default function StartPizzaSessionPage() {
 
               {selectedDayChoice && (
                 <section aria-labelledby="session-time-choice-heading">
-                  <h3 id="session-time-choice-heading" className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Choose time</h3>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                  <h3 id="session-time-choice-heading" className="text-sm font-extrabold text-ink">What time?</h3>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
                     {pizzaSessionTimeQuickChoices.map((choice) => (
                       <button
                         key={choice.id}
                         type="button"
                         onClick={() => selectTimeChoice(choice.id)}
                         aria-pressed={selectedTimeChoice === choice.id}
-                        className={`min-h-20 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
-                          selectedTimeChoice === choice.id ? "border-tomato bg-tomato/10 shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
+                        aria-label={choice.time ? `${choice.label} — ${choice.time}` : choice.label}
+                        className={`min-h-20 rounded-2xl border p-3 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                          selectedTimeChoice === choice.id ? "border-tomato bg-tomato text-white shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
                         }`}
                       >
-                        <span className="block text-sm font-extrabold text-ink">{choice.label}</span>
-                        {choice.time && <span className="mt-1 block text-xs font-bold text-ink/45">{choice.time}</span>}
-                        {selectedTimeChoice === choice.id && <span className="mt-2 block text-[11px] font-extrabold uppercase tracking-[.12em] text-tomato">Selected</span>}
+                        <span className="block text-sm font-extrabold">{choice.label}</span>
+                        {choice.time && <span className={`mt-1 block text-xs font-bold ${selectedTimeChoice === choice.id ? "text-white/75" : "text-ink/45"}`}>{choice.time}</span>}
                       </button>
                     ))}
                   </div>
@@ -393,38 +505,65 @@ export default function StartPizzaSessionPage() {
 
               {targetTimeDraft && (
                 <p className="rounded-2xl bg-leaf/[.08] px-4 py-3 text-sm font-bold text-leaf">
-                  Target pizza time: {targetTimeDraft.replace("T", " at ")}
+                  Target pizza time: {formatTargetTime(targetTimeDraft)}
                 </p>
               )}
             </div>
           )}
 
           {step === "quantity" && (
-            <div>
-              <div className="flex max-w-sm items-center gap-3">
-                <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 6) - 1))} className="grid h-14 w-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato" aria-label="Decrease pizza count">−</button>
+            <div className="mx-auto max-w-md">
+              <div className="flex items-center justify-center gap-5">
+                <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 4) - 1))} className="grid h-14 w-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato" aria-label="Decrease pizza count">−</button>
+                <div className="min-w-24 text-center">
+                  <div className="font-display text-7xl font-semibold leading-none text-tomato">{session.pizzaCount ?? 4}</div>
+                  <div className="mt-1 text-sm font-extrabold text-ink">pizzas</div>
+                </div>
+                <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 4) + 1))} className="grid h-14 w-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato" aria-label="Increase pizza count">+</button>
+              </div>
+              <div className="mt-8">
+                <p className="text-sm font-extrabold text-ink">Quick picks</p>
+                <div className="mt-3 grid grid-cols-4 gap-2">
+                  {[2, 4, 6, 8].map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => setQuantity(amount)}
+                      aria-pressed={(session.pizzaCount ?? 4) === amount}
+                      className={`min-h-12 rounded-2xl border text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                        (session.pizzaCount ?? 4) === amount ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-white text-ink/70"
+                      }`}
+                    >
+                      {amount}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <label className="mt-6 block text-center text-xs font-extrabold text-ink/45">
+                Custom amount
                 <input
                   type="number"
                   min={1}
                   max={24}
-                  value={session.pizzaCount ?? 6}
-                  onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
-                  className="h-14 min-w-0 flex-1 rounded-2xl border border-ink/10 bg-white px-4 text-center text-2xl font-extrabold outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
+                  value={session.pizzaCount ?? 4}
+                  onChange={(event) => setQuantity(Math.min(24, Math.max(1, Number(event.target.value) || 1)))}
+                  className="mx-auto mt-2 h-12 w-24 rounded-2xl border border-ink/10 bg-white px-3 text-center text-lg font-extrabold text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
                   aria-label="Pizza count"
                 />
-                <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 6) + 1))} className="grid h-14 w-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato" aria-label="Increase pizza count">+</button>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-ink/50">This is saved as the first batch-size decision. Exact dough-ball weight stays in the calculator.</p>
+              </label>
             </div>
           )}
 
           {step === "flour" && (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3">
               {flourOptions.map((option) => (
-                <button key={option.id} type="button" onClick={() => selectFlour(option.id)} aria-pressed={session.flour === option.id} className={optionClass(session.flour === option.id)}>
-                  <span className="block text-lg font-extrabold">{option.label}</span>
-                  <span className="mt-2 block text-sm leading-6 text-ink/55">{option.description}</span>
-                  {session.flour === option.id && <span className="mt-3 block text-xs font-extrabold text-tomato">Selected</span>}
+                <button key={option.id} type="button" onClick={() => selectFlour(option.id)} aria-pressed={session.flour === option.id} className={`${optionClass(session.flour === option.id)} flex min-h-24 items-center gap-4`}>
+                  {selectedIndicator(session.flour === option.id)}
+                  <span aria-hidden="true" className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-cream text-3xl shadow-sm">{option.icon}</span>
+                  <span className="block pr-8">
+                    <span className="block text-lg font-extrabold">{option.label}</span>
+                    <span className="mt-1 block text-sm leading-6 text-ink/55">{option.description}</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -432,19 +571,20 @@ export default function StartPizzaSessionPage() {
 
           {step === "summary" && (
             <div className="grid gap-5">
-              <dl className="grid gap-3 sm:grid-cols-2">
+              <dl className="grid gap-3">
                 {[
                   ["Baking path", selectedStyle?.label ?? "Not selected yet"],
-                  ["Pizza preset", selectedPreset?.name ?? "Not selected yet"],
-                  ["Target time", formatTargetTime(session.targetEatTime)],
-                  ["Pizza count", `${session.pizzaCount ?? 6}`],
+                  ["Pizza style", selectedWizardPreset?.label ?? selectedPreset?.name ?? "Not selected yet"],
+                  ["When", formatTargetTime(session.targetEatTime)],
+                  ["How many", `${session.pizzaCount ?? 4} pizzas`],
                   ["Flour", selectedFlour?.label ?? "Not sure yet"],
-                  ["Session status", session.status],
-                  ["Last saved", lastSaved],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-2xl bg-cream p-4">
-                    <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                    <dd className="mt-1 text-lg font-extrabold text-ink">{value}</dd>
+                  <div key={label} className="flex items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white p-4">
+                    <dt className="flex items-center gap-3 text-sm font-extrabold text-ink/65">
+                      <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-leaf text-xs text-white">✓</span>
+                      {label}
+                    </dt>
+                    <dd className="text-right text-sm font-extrabold text-ink">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -458,9 +598,10 @@ export default function StartPizzaSessionPage() {
                     Build my dough plan →
                   </Link>
                   <Link href={continueHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Continue later
+                    Save and continue later
                   </Link>
                 </div>
+                <p className="mt-4 text-xs font-bold text-ink/45">Last saved: {lastSaved}</p>
               </div>
             </div>
           )}
@@ -470,17 +611,17 @@ export default function StartPizzaSessionPage() {
               Back
             </button>
             <div className="flex flex-col gap-2 sm:items-end">
-              <p className="text-xs font-bold text-ink/40">Last saved: {lastSaved}</p>
+              <p className="text-xs font-bold text-ink/40">Saved locally ✓</p>
               {step !== "summary" ? (
-                <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-12 rounded-2xl bg-ink px-6 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40">
-                  Continue
+                <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-14 w-full rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:bg-ink/20 disabled:text-ink/40 sm:w-auto">
+                  Continue →
                 </button>
               ) : null}
             </div>
           </div>
         </section>
 
-        <footer className="lg:col-span-2">
+        <footer className="opacity-70 lg:col-span-2">
           <AppSignature />
         </footer>
       </div>

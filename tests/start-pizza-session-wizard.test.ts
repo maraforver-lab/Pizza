@@ -42,34 +42,46 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("\"use client\"");
     expect(page).toContain("How will you bake your pizza?");
-    expect(page).toContain("Which pizza are you planning?");
+    expect(page).toContain("What kind of pizza are you making?");
     expect(page).toContain("When do you want pizza?");
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("What flour do you have?");
     expect(page).toContain("Your starting setup is ready.");
-    expect(page).toContain("Home oven pizza");
-    expect(page).toContain("Pizza oven pizza");
-    expect(page).toContain("Pan / tray pizza");
-    expect(page).toContain("pizzaSessionPresets.map");
+    expect(page).toContain("Home oven");
+    expect(page).toContain("Pizza oven");
+    expect(page).toContain("Pan / tray bake");
+    expect(page).toContain("Not sure yet");
+    expect(page).toContain("wizardPresetOptions.map");
+    expect(page).toContain("Simple cheese");
+    expect(page).toContain("Margherita");
+    expect(page).toContain("Pepperoni");
+    expect(page).toContain("Veggie");
+    expect(page).toContain("I’ll decide toppings later");
     expect(source("lib/pizza-session-presets.ts")).toContain("Margherita");
     expect(source("lib/pizza-session-presets.ts")).toContain("Marinara");
     expect(source("lib/pizza-session-presets.ts")).toContain("Diavola");
     expect(source("lib/pizza-session-presets.ts")).toContain("Funghi");
     expect(source("lib/pizza-session-presets.ts")).toContain("Pepperoni / Salami");
     expect(source("lib/pizza-session-presets.ts")).toContain("Simple cheese pizza");
-    expect(page).toContain("All-purpose / plain flour");
-    expect(page).toContain("Bread flour / strong flour");
-    expect(page).toContain("Pizza flour / tipo 00");
+    expect(page).toContain("Pizza flour / Tipo 00");
+    expect(page).toContain("Bread flour / Strong flour");
+    expect(page).toContain("All-purpose flour");
     expect(page).not.toContain("What oven are you using?");
     expect(page).not.toContain("const ovenOptions");
     expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
   });
 
-  it("keeps the wizard to six steps and routes quantity directly to flour", () => {
+  it("keeps the wizard to six beginner-friendly steps and routes quantity directly to flour", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain('type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary"');
     expect(page).toContain('const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"]');
+    expect(page).toContain("Baking path");
+    expect(page).toContain("Pizza style");
+    expect(page).toContain("When");
+    expect(page).toContain("How many");
+    expect(page).toContain("Flour");
+    expect(page).toContain("Your plan");
     expect(page).toContain("Step {progress} of {wizardSteps.length}");
     expect(page.indexOf('"quantity"')).toBeLessThan(page.indexOf('"flour"'));
     expect(page.indexOf('"flour"')).toBeLessThan(page.indexOf('"summary"'));
@@ -89,10 +101,13 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Next: build your dough plan");
     expect(page).toContain("We’ll calculate the dough amount, flour, water, salt, yeast and timing from your choices.");
     expect(page).toContain("Build my dough plan →");
-    expect(page).toContain("Continue later");
+    expect(page).toContain("Save and continue later");
     expect(page).not.toContain("Open timeline →");
     expect(page).not.toContain("Shopping list →");
     expect(page).not.toContain("Back to DoughTools");
+    expect(page).not.toContain("Kitchen Mode");
+    expect(page).not.toContain("Open full Calculator");
+    expect(page).not.toContain("Open Dough Doctor");
     expect(page).not.toContain("[\"Oven\"");
   });
 
@@ -103,7 +118,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("weekday: \"short\"");
     expect(page).toContain("month: \"short\"");
     expect(page).toContain("hour: \"2-digit\"");
-    expect(page).toContain("[\"Target time\", formatTargetTime(session.targetEatTime)]");
+    expect(page).toContain("[\"When\", formatTargetTime(session.targetEatTime)]");
     expect(page).not.toContain("[\"Target time\", session.targetEatTime || \"Not set yet\"]");
   });
 
@@ -174,22 +189,20 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const targetEatTime = step === \"time\" ? targetTimeDraft || targetTimeInputRef.current?.value || session?.targetEatTime : session?.targetEatTime");
     expect(page).toContain("step === \"time\" && Boolean(targetTimeDraft || session?.targetEatTime)");
     expect(page).toContain("targetEatTime,");
-    expect(page).toContain("[\"Target time\", formatTargetTime(session.targetEatTime)]");
+    expect(page).toContain("[\"When\", formatTargetTime(session.targetEatTime)]");
     expect(page).toContain("DoughTools will build your dough, preparation and bake timeline backwards from this.");
     expect(page).not.toContain("Later planner patches can turn this into a full timeline");
   });
 
   it("offers quick day and time choices before the custom date/time input", () => {
     const page = source("app/session/start/page.tsx");
-    const choices = getPizzaSessionDayQuickChoices(new Date("2026-06-25T10:00:00"));
+    const choices = getPizzaSessionDayQuickChoices(new Date("2026-06-26T10:00:00"));
 
     expect(choices.map((choice) => choice.label)).toEqual([
       "Today",
       "Tomorrow",
-      "Day after tomorrow",
-      "Next Friday",
-      "Next Saturday",
-      "Next Sunday",
+      "Sunday",
+      "Monday",
       "Custom date",
     ]);
     expect(pizzaSessionTimeQuickChoices.map((choice) => choice.label)).toEqual([
@@ -202,16 +215,22 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("getPizzaSessionDayQuickChoices");
     expect(page).toContain("pizzaSessionTimeQuickChoices.map");
     expect(page).toContain("Custom target date and time");
+    expect(page).not.toContain("Next Friday");
+    expect(page).not.toContain("Next Saturday");
+    expect(page).not.toContain("Next Sunday");
   });
 
-  it("resolves next weekday choices from the current date instead of choosing today", () => {
+  it("uses rolling local calendar days instead of fixed next weekday choices", () => {
     const fridayChoices = getPizzaSessionDayQuickChoices(new Date("2026-06-26T10:00:00"));
-    const saturdayChoices = getPizzaSessionDayQuickChoices(new Date("2026-06-27T10:00:00"));
-    const sundayChoices = getPizzaSessionDayQuickChoices(new Date("2026-06-28T10:00:00"));
 
-    expect(fridayChoices.find((choice) => choice.id === "next-friday")?.date).toBe("2026-07-03");
-    expect(saturdayChoices.find((choice) => choice.id === "next-saturday")?.date).toBe("2026-07-04");
-    expect(sundayChoices.find((choice) => choice.id === "next-sunday")?.date).toBe("2026-07-05");
+    expect(fridayChoices.map((choice) => choice.date)).toEqual([
+      "2026-06-26",
+      "2026-06-27",
+      "2026-06-28",
+      "2026-06-29",
+      undefined,
+    ]);
+    expect(fridayChoices.map((choice) => choice.label)).toEqual(["Today", "Tomorrow", "Sunday", "Monday", "Custom date"]);
   });
 
   it("builds the same target datetime value from quick day and time choices", () => {
@@ -254,7 +273,7 @@ describe("Start Pizza Session wizard", () => {
     const combined = [page, doc, dataDoc].join("\n");
 
     expect(combined).toMatch(/Pizza [Ss]essions are currently saved in this browser on this device/);
-    expect(combined).toContain("Cloud sync is not active yet");
+    expect(combined).toMatch(/No cloud sync|Cloud sync is not active yet/);
     expect(doc).toContain("/session/start");
     expect(doc).toContain("doughtools:pizza-sessions-v1");
     expect(doc).toContain("doughtools:active-pizza-session-id");
