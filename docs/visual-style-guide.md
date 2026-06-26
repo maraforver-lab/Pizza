@@ -548,6 +548,13 @@ Mobile:
 - Back should be visibly secondary
 - avoid duplicate top and bottom primary buttons unless explicitly approved
 
+Flow action visual rule:
+
+- Back is secondary.
+- Primary forward action is visually strongest.
+- Desktop: Back left, primary right.
+- Mobile: primary prominent, Back secondary.
+
 The user should always understand:
 
 - where Back goes

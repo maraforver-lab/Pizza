@@ -407,6 +407,36 @@ Flow pages use Back / Next rhythm.
 - Avoid duplicate primary CTAs
 - Avoid secondary tool menus
 
+### Flow action placement rule
+
+On guided flow pages, Back and Next/Continue actions must follow a consistent placement pattern.
+
+Desktop:
+
+- Back is secondary and placed at the bottom-left of the action area.
+- The primary forward action is placed at the bottom-right of the action area.
+- The primary forward action uses the page-specific label, for example:
+  - Continue →
+  - Build my dough plan →
+  - Continue to Timeline →
+  - Open shopping list →
+  - Next step →
+  - Mark step as done →
+
+Mobile:
+
+- The primary forward action is large, visually dominant and easy to tap.
+- Back is secondary and visually quieter.
+- If actions are side by side, Back stays left and the primary action stays right.
+- If actions are stacked because of narrow width, the primary action appears first and Back appears below as secondary.
+
+Do not:
+
+- create page-specific action layouts unless explicitly approved
+- show multiple equal-weight forward actions
+- place Back as the dominant action
+- use “Save and continue later” as a competing action when autosave exists
+
 ### Desktop navigation
 
 - Header/global nav allowed
