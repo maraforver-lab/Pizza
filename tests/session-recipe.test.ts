@@ -54,17 +54,34 @@ describe("Session recipe build step", () => {
 
     expect(page).toContain("\"use client\"");
     expect(page).toContain("Your dough plan is ready.");
+    expect(page).toContain("Here are your dough amounts and what you need before you start.");
     expect(page).toContain("Continue to Timeline");
-    expect(page).toContain("Save and continue later");
+    expect(page).toContain("← Back to Start");
+    expect(page).toContain('href="/session/start"');
+    expect(page).not.toContain("Save and continue later");
     expect(page).not.toContain("Open Shopping List");
-    expect(page).toContain("Open full Calculator");
-    expect(page).toContain("Open Dough Doctor");
+    expect(page).not.toContain("Open full Calculator");
+    expect(page).not.toContain("Open Dough Doctor");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("No cloud sync, tracking or public sharing is active.");
     expect(page).not.toMatch(/Cloud sync is active|Tracking is active|Public sharing is active/);
   });
 
-  it("shows practical dough amount cards and preparation guidance before timeline", () => {
+  it("removes repeated hero setup chips and separate Session Summary", () => {
+    const page = source("app/session/recipe/page.tsx");
+    const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{session.experienceLevel\} \/>/g) ?? [];
+
+    expect(guidanceBadgeUses).toHaveLength(1);
+    expect(page).not.toContain("Session summary");
+    expect(page).not.toContain('["Pizza preset",');
+    expect(page).not.toContain('["Target time",');
+    expect(page).not.toContain('["Pizza count",');
+    expect(page).not.toContain('["Ball weight",');
+    expect(page).not.toContain('["Baking path",');
+    expect(page).not.toContain("lg:grid-cols-[21rem_1fr]");
+  });
+
+  it("shows practical dough amount cards and preparation guidance before the next step", () => {
     const page = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("Dough amounts");
@@ -81,6 +98,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("const doughPrepIngredients = [\"Flour\", \"Water\", \"Salt\", \"Yeast\"]");
     expect(page).toContain("const doughPrepTools = [\"Digital scale\", \"Mixing bowl\", \"Dough scraper or sturdy spoon\", \"Covered container or bowl\"]");
     expect(page).toContain("That’s it. You don’t need anything else to make the dough.");
+    expect(page.indexOf("Dough amounts")).toBeLessThan(page.indexOf("Before you start: get these ready"));
+    expect(page.indexOf("Before you start: get these ready")).toBeLessThan(page.indexOf("Next step"));
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {
@@ -91,19 +110,6 @@ describe("Session recipe build step", () => {
     expect(page).not.toMatch(/const doughPrepTools[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
   });
 
-  it("keeps target time human-readable and advanced formula details collapsed by default", () => {
-    const page = source("app/session/recipe/page.tsx");
-
-    expect(page).toContain("year: \"numeric\"");
-    expect(page).toContain("Target time");
-    expect(page).toContain("targetTime");
-    expect(page).not.toContain("session.targetEatTime || session.targetBakeTime");
-    expect(page).toContain("<details");
-    expect(page).toContain("Advanced formula details");
-    expect(page).toContain("<summary");
-    expect(page).not.toContain("<pre className=\"mt-4 overflow-x-auto rounded-2xl bg-black/25 p-4 text-xs leading-5 text-white/80\">\n                  {JSON.stringify(rebuilt.recipeParams, null, 2)}\n                </pre>\n              </article>");
-  });
-
   it("keeps Timeline as the primary next step from the dough plan page", () => {
     const page = source("app/session/recipe/page.tsx");
 
@@ -112,6 +118,21 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Continue to Timeline →");
     expect(page).toContain("href=\"/session/timeline\"");
     expect(page).not.toContain("href=\"/session/shopping\"");
+    expect(page.match(/Continue to Timeline →/g)).toHaveLength(1);
+    expect(page).not.toContain("Edit session choices");
+    expect(page).not.toContain("Review setup");
+  });
+
+  it("keeps the light bottom session navigation with Recipe active", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("Pizza Session navigation");
+    expect(page).toContain('["Start", "/session/start"]');
+    expect(page).toContain('["Timeline", "/session/timeline"]');
+    expect(page).toContain('["Recipe", "/session/recipe"]');
+    expect(page).toContain('["Shopping", "/session/shopping"]');
+    expect(page).toContain('["Review", "/session/review"]');
+    expect(page).toContain('aria-current={label === "Recipe" ? "page" : undefined}');
   });
 
   it("builds calculator-compatible recipe params and a copied recipe snapshot from a complete session", () => {
@@ -255,7 +276,7 @@ describe("Session recipe build step", () => {
     expect(shoppingPage).not.toContain("Review dough plan");
     expect(timelinePage).toContain("/session/kitchen");
     expect(shoppingPage).toContain("/session/kitchen");
-    expect(recipePage).toContain("sessionRecipeQuery");
+    expect(recipePage).not.toContain("sessionRecipeQuery");
     expect(recipeDoc).toContain("/session/recipe");
     expect(dataDoc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
     expect(wizardDoc).toContain("Pizza preset is now a separate choice");

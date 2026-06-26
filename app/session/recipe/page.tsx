@@ -6,11 +6,8 @@ import AppSignature from "@/components/AppSignature";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
-import { getPizzaSessionPreset } from "@/lib/pizza-session-presets";
 import {
-  buildSessionRecipe,
   generateAndSaveActiveSessionRecipe,
-  sessionRecipeQuery,
   type SessionRecipeBuildResult,
 } from "@/lib/session-recipe";
 
@@ -18,34 +15,6 @@ function formatGram(value?: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "—";
   if (value > 0 && value < 10) return `${value.toFixed(2)} g`;
   return `${Math.round(value)} g`;
-}
-
-function formatDateTime(value?: string) {
-  if (!value) return "Target time not set";
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Target time not set";
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function bakingPathLabel(value?: string) {
-  if (value === "pizza-oven") return "Pizza oven pizza";
-  if (value === "pan-tray") return "Pan / tray pizza";
-  if (value === "home-oven") return "Home oven pizza";
-  return "Not set";
-}
-
-function flourLabel(value?: string) {
-  if (value === "caputo-pizzeria") return "Caputo Pizzeria";
-  if (value === "caputo-cuoco") return "Strong bread flour";
-  if (value === "caputo-classica") return "All-purpose flour";
-  return value ?? "Not set";
 }
 
 function amountCardTone(label: string) {
@@ -91,15 +60,13 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
   };
 }
 
-function levelIntro(session: PizzaSession) {
-  if (session.experienceLevel === "pizza_nerd") {
-    return "Your dough plan is ready. Advanced formula details are available below if you want to inspect the assumptions.";
-  }
-  if (session.experienceLevel === "enthusiast") {
-    return "These dough numbers give you a repeatable starting point before the timeline and baking steps.";
-  }
-  return "Here are your dough amounts and what you need before you start.";
-}
+const sessionNavItems = [
+  ["Start", "/session/start"],
+  ["Timeline", "/session/timeline"],
+  ["Recipe", "/session/recipe"],
+  ["Shopping", "/session/shopping"],
+  ["Review", "/session/review"],
+] as const;
 
 export default function SessionRecipePage() {
   const [ready, setReady] = useState(false);
@@ -143,12 +110,6 @@ export default function SessionRecipePage() {
     );
   }
 
-  const preset = getPizzaSessionPreset(session.pizzaPreset);
-  const query = sessionRecipeQuery(result);
-  const calculatorHref = query ? `/?${query}` : "/";
-  const doctorHref = query ? `/doctor?${query}` : "/doctor";
-  const rebuilt = buildSessionRecipe(session);
-  const targetTime = formatDateTime(session.targetEatTime ?? session.targetBakeTime);
   const doughIngredients = [
     ["Total dough", formatGram(result.ingredients.total)],
     ["Flour", formatGram(result.ingredients.flour)],
@@ -161,7 +122,14 @@ export default function SessionRecipePage() {
 
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
+        <Link
+          href="/session/start"
+          className="mb-5 inline-flex min-h-11 items-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/65 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+        >
+          ← Back to Start
+        </Link>
+
         <section
           aria-labelledby="session-recipe-heading"
           className="rounded-[2rem] bg-white/90 p-6 shadow-card sm:p-8"
@@ -170,77 +138,14 @@ export default function SessionRecipePage() {
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Your dough plan</p>
               <h1 id="session-recipe-heading" className="mt-3 max-w-3xl font-display text-5xl font-semibold leading-none sm:text-6xl">Your dough plan is ready.</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">{levelIntro(session)}</p>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">Here are your dough amounts and what you need before you start.</p>
             </div>
             <GuidanceModeBadge level={session.experienceLevel} />
           </div>
-
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              ["Pizza preset", `${preset.marker} ${preset.name}`],
-              ["Target time", targetTime],
-              ["Pizza count", `${result.settings.pizzas} pizzas`],
-              ["Ball weight", `${result.settings.ballWeight} g`],
-              ["Flour", flourLabel(result.settings.flourId)],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-2xl bg-cream p-4">
-                <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                <dd className="mt-1 text-base font-extrabold text-ink">{value}</dd>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href="/session/timeline"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-            >
-              Continue to Timeline →
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-            >
-              Save and continue later
-            </Link>
-          </div>
         </section>
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[21rem_1fr]">
-          <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session summary</p>
-            <dl className="mt-4 grid gap-3 text-sm">
-              {[
-                ["Baking path", bakingPathLabel(session.pizzaStyle)],
-                ["Pizza preset", preset.name],
-                ["Target time", targetTime],
-                ["Pizza count", `${result.settings.pizzas}`],
-                ["Ball weight", `${result.settings.ballWeight} g`],
-                ["Flour", flourLabel(result.settings.flourId)],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-2xl bg-cream p-4">
-                  <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                  <dd className="mt-1 font-extrabold text-ink">{value}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
-              {PIZZA_SESSION_LOCAL_ONLY_COPY} This recipe snapshot is private and local for now.
-            </p>
-            <div className="mt-4 grid gap-2">
-              <Link href="/session/start" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Edit session choices
-              </Link>
-              <Link href={calculatorHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open full Calculator
-              </Link>
-              <Link href={doctorHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open Dough Doctor
-              </Link>
-            </div>
-          </aside>
-
-          <section className="grid min-w-0 gap-5" aria-label="Dough plan details">
+        <section className="mt-6" aria-label="Dough plan details">
+          <div className="grid min-w-0 gap-5">
             <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
               <h2 className="font-display text-3xl font-semibold">Dough amounts</h2>
               <p className="mt-2 text-sm leading-6 text-ink/55">
@@ -295,30 +200,6 @@ export default function SessionRecipePage() {
               </p>
             </article>
 
-            {session.experienceLevel !== "beginner" && (
-              <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
-                <h2 className="font-display text-3xl font-semibold">Why this matters</h2>
-                <p className="mt-3 text-sm leading-6 text-ink/60">
-                  Hydration, flour and fermentation decide how repeatable the dough feels. This session snapshot gives you
-                  a stable baseline before you adjust handling or bake timing.
-                </p>
-              </article>
-            )}
-
-            {session.experienceLevel === "pizza_nerd" && rebuilt.ok && (
-              <details className="rounded-[2rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
-                <summary className="cursor-pointer font-display text-3xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                  Advanced formula details
-                </summary>
-                <p className="mt-3 text-sm leading-6 text-white/65">
-                  These calculator-compatible params are stored locally without changing formula behavior.
-                </p>
-                <pre className="mt-4 overflow-x-auto rounded-2xl bg-black/25 p-4 text-xs leading-5 text-white/80">
-                  {JSON.stringify(rebuilt.recipeParams, null, 2)}
-                </pre>
-              </details>
-            )}
-
             <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
               <h2 className="font-display text-3xl font-semibold">Next step</h2>
               <p className="mt-2 text-sm leading-6 text-ink/55">
@@ -328,15 +209,33 @@ export default function SessionRecipePage() {
                 <Link href="/session/timeline" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                   Continue to Timeline →
                 </Link>
-                <Link href="/" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                  Save and continue later
-                </Link>
               </div>
+              <p className="mt-4 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
+                {PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.
+              </p>
             </article>
-          </section>
+          </div>
         </section>
 
-        <footer className="mt-8">
+        <nav className="mt-6 rounded-[2rem] border border-white/80 bg-white/75 p-3 shadow-card" aria-label="Pizza Session navigation">
+          <ul className="grid grid-cols-5 gap-2 text-center text-[0.68rem] font-extrabold text-ink/50 sm:text-sm">
+            {sessionNavItems.map(([label, href]) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  aria-current={label === "Recipe" ? "page" : undefined}
+                  className={`block rounded-2xl px-2 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                    label === "Recipe" ? "bg-ink text-white" : "hover:bg-cream"
+                  }`}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <footer className="mt-6">
           <AppSignature />
         </footer>
       </div>
