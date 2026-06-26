@@ -118,13 +118,16 @@ describe("Start Pizza Session wizard", () => {
   it("prevents duplicate guidance and mobile step indicators on the session start page", () => {
     const page = source("app/session/start/page.tsx");
     const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{experienceLevel\} \/>/g) ?? [];
+    const stepProgressUses = page.match(/Step \{progress\} of \{wizardSteps.length\}/g) ?? [];
 
     expect(guidanceBadgeUses).toHaveLength(2);
+    expect(stepProgressUses).toHaveLength(2);
     expect(page).toContain('<aside className="hidden rounded-[2rem]');
     expect(page).toContain('<div className="mb-6 lg:hidden">');
     expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
     expect(page).not.toContain("sm:inline-flex ${experience.badgeClassName}");
-    expect(page).toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>');
+    expect(page).not.toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>');
+    expect(page).toContain('<footer className="hidden opacity-70 lg:col-span-2 lg:block">');
   });
 
   it("maps old saved sessions from the removed oven step safely to flour", () => {
@@ -148,6 +151,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Back");
     expect(page).toContain("Saved locally ✓");
     expect(page).toContain("Last saved:");
+    expect(page.indexOf("Build my dough plan →")).toBeLessThan(page.indexOf("Saved locally ✓"));
     expect(page).not.toContain("Open timeline →");
     expect(page).not.toContain("Shopping list →");
     expect(page).not.toContain("Back to DoughTools");

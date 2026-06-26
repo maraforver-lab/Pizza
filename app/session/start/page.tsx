@@ -429,8 +429,7 @@ export default function StartPizzaSessionPage() {
 
           <div className="mb-6 flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>
-              <h2 className="mt-2 font-display text-4xl font-semibold leading-none">
+              <h2 className="font-display text-4xl font-semibold leading-none">
                 {wizardStepQuestions[step]}
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">{wizardStepHelpers[step]}</p>
@@ -631,7 +630,6 @@ export default function StartPizzaSessionPage() {
               Back
             </button>
             <div className="flex flex-col gap-2 sm:items-end">
-              <p className="text-xs font-bold text-ink/40">Saved locally ✓</p>
               {step !== "summary" ? (
                 <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-14 w-full rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:bg-ink/20 disabled:text-ink/40 sm:w-auto">
                   Continue →
@@ -641,11 +639,12 @@ export default function StartPizzaSessionPage() {
                   Build my dough plan →
                 </Link>
               )}
+              <p className="text-xs font-bold text-ink/40">Saved locally ✓</p>
             </div>
           </div>
         </section>
 
-        <footer className="opacity-70 lg:col-span-2">
+        <footer className="hidden opacity-70 lg:col-span-2 lg:block">
           <AppSignature />
         </footer>
       </div>
