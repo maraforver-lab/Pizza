@@ -147,26 +147,6 @@ export default function SessionRecipePage() {
         <section className="mt-6" aria-label="Dough plan details">
           <div className="grid min-w-0 gap-5">
             <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
-              <h2 className="font-display text-3xl font-semibold">Dough amounts</h2>
-              <p className="mt-2 text-sm leading-6 text-ink/55">
-                Use these amounts when mixing your dough. We recommend weighing ingredients with a digital scale.
-              </p>
-              <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {doughIngredients.map(([label, value]) => (
-                  <div key={label} className="rounded-2xl bg-cream p-4">
-                    <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                    <dd className={`mt-1 text-2xl font-extrabold ${amountCardTone(label)}`}>{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              {result.ingredients.leavener > 0 && result.ingredients.leavener < 1 && (
-                <p className="mt-4 rounded-2xl bg-sky-50 p-4 text-sm leading-6 text-ink/60">
-                  Yeast can be a very small amount. A precision scale helps.
-                </p>
-              )}
-            </article>
-
-            <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
               <h2 className="font-display text-3xl font-semibold">Before you start: get these ready</h2>
               <p className="mt-2 text-sm leading-6 text-ink/55">
                 You only need the ingredients for the dough and a few basic tools.
@@ -198,6 +178,26 @@ export default function SessionRecipePage() {
               <p className="mt-6 rounded-2xl bg-sky-50 p-4 text-sm font-bold leading-6 text-ink/65">
                 That’s it. You don’t need anything else to make the dough.
               </p>
+            </article>
+
+            <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
+              <h2 className="font-display text-3xl font-semibold">Dough amounts</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/55">
+                Use these amounts when mixing your dough. We recommend weighing ingredients with a digital scale.
+              </p>
+              <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {doughIngredients.map(([label, value]) => (
+                  <div key={label} className="rounded-2xl bg-cream p-4">
+                    <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
+                    <dd className={`mt-1 text-2xl font-extrabold ${amountCardTone(label)}`}>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              {result.ingredients.leavener > 0 && result.ingredients.leavener < 1 && (
+                <p className="mt-4 rounded-2xl bg-sky-50 p-4 text-sm leading-6 text-ink/60">
+                  Yeast can be a very small amount. A precision scale helps.
+                </p>
+              )}
             </article>
 
             <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">

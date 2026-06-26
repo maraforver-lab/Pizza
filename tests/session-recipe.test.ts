@@ -81,7 +81,7 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("lg:grid-cols-[21rem_1fr]");
   });
 
-  it("shows practical dough amount cards and preparation guidance before the next step", () => {
+  it("shows preparation guidance before dough amounts and the next step", () => {
     const page = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("Dough amounts");
@@ -98,8 +98,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("const doughPrepIngredients = [\"Flour\", \"Water\", \"Salt\", \"Yeast\"]");
     expect(page).toContain("const doughPrepTools = [\"Digital scale\", \"Mixing bowl\", \"Dough scraper or sturdy spoon\", \"Covered container or bowl\"]");
     expect(page).toContain("That’s it. You don’t need anything else to make the dough.");
-    expect(page.indexOf("Dough amounts")).toBeLessThan(page.indexOf("Before you start: get these ready"));
-    expect(page.indexOf("Before you start: get these ready")).toBeLessThan(page.indexOf("Next step"));
+    expect(page.indexOf("Before you start: get these ready")).toBeLessThan(page.indexOf("Dough amounts"));
+    expect(page.indexOf("Dough amounts")).toBeLessThan(page.indexOf("Next step"));
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {
