@@ -193,6 +193,8 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("GuidanceModeBadge");
     expect(page).toContain("formatSessionTime(targetTime)");
     expect(page).toContain("year: \"numeric\"");
+    expect(page).not.toContain("<AppSignature");
+    expect(page).not.toContain("border-t border-ink/10 py-6");
     expect(page).not.toContain("copyShoppingList");
     expect(page).not.toContain("formatShoppingListPlainText");
     expect(page).not.toContain("Open Kitchen Mode →");

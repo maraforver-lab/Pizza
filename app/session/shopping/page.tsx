@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AppSignature from "@/components/AppSignature";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
   type PizzaSession,
@@ -237,7 +236,6 @@ export default function SessionShoppingPage() {
           </p>
         </section>
 
-        <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
       </div>
     </main>
   );
