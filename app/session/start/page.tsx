@@ -161,7 +161,7 @@ function initialWizardStep(session: PizzaSession): WizardStep {
 }
 
 function optionClass(active: boolean) {
-  return `relative min-h-28 rounded-[1.35rem] border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:p-5 ${
+  return `relative grid min-h-24 grid-cols-[auto_1fr] items-start gap-3 rounded-[1.35rem] border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:block sm:min-h-28 sm:p-5 ${
     active ? "border-tomato bg-tomato/[.06] shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30 hover:shadow-sm"
   }`;
 }
@@ -181,7 +181,7 @@ function selectedIndicator(active: boolean) {
 
 function iconBadge(icon: string) {
   return (
-    <span aria-hidden="true" className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-cream text-3xl shadow-sm">
+    <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cream text-2xl shadow-sm sm:mb-4 sm:h-14 sm:w-14 sm:text-3xl">
       {icon}
     </span>
   );
@@ -445,10 +445,10 @@ export default function StartPizzaSessionPage() {
                 <button key={option.id} type="button" onClick={() => selectStyle(option.id)} aria-pressed={session.pizzaStyle === option.id} className={optionClass(session.pizzaStyle === option.id)}>
                   {selectedIndicator(session.pizzaStyle === option.id)}
                   {iconBadge(option.icon)}
-                  <span className="block pr-8 text-xl font-extrabold">{option.label}</span>
-                  <span className="mt-2 block text-sm leading-6 text-ink/55">{option.description}</span>
-                  {option.badge && <span className="mt-4 inline-flex rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato">{option.badge}</span>}
-                  {session.pizzaStyle === option.id && <span className="mt-3 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
+                  <span className="col-start-2 block pr-8 text-lg font-extrabold sm:col-auto sm:text-xl">{option.label}</span>
+                  <span className="col-start-2 mt-1 block text-sm leading-6 text-ink/55 sm:col-auto sm:mt-2">{option.description}</span>
+                  {option.badge && <span className="col-start-2 mt-3 inline-flex w-fit rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato sm:col-auto sm:mt-4">{option.badge}</span>}
+                  {session.pizzaStyle === option.id && <span className="col-start-2 mt-2 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-3">Selected</span>}
                 </button>
               ))}
             </div>
@@ -460,9 +460,9 @@ export default function StartPizzaSessionPage() {
                 <button key={preset.id} type="button" onClick={() => selectPreset(preset.id)} aria-pressed={session.pizzaPreset === preset.id} className={optionClass(session.pizzaPreset === preset.id)}>
                   {selectedIndicator(session.pizzaPreset === preset.id)}
                   {iconBadge(preset.icon)}
-                  <span className="block pr-8 text-lg font-extrabold">{preset.label}</span>
-                  <span className="mt-2 block text-sm leading-6 text-ink/55">{preset.description}</span>
-                  {session.pizzaPreset === preset.id && <span className="mt-3 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
+                  <span className="col-start-2 block pr-8 text-lg font-extrabold sm:col-auto">{preset.label}</span>
+                  <span className="col-start-2 mt-1 block text-sm leading-6 text-ink/55 sm:col-auto sm:mt-2">{preset.description}</span>
+                  {session.pizzaPreset === preset.id && <span className="col-start-2 mt-2 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-3">Selected</span>}
                 </button>
               ))}
             </div>

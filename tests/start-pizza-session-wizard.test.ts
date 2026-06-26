@@ -88,6 +88,20 @@ describe("Start Pizza Session wizard", () => {
     expect(page.indexOf('"flour"')).toBeLessThan(page.indexOf('"summary"'));
   });
 
+  it("keeps Step 1 option cards mobile-friendly and accessible", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("Home oven");
+    expect(page).toContain("Pizza oven");
+    expect(page).toContain("Pan / tray bake");
+    expect(page).toContain("Not sure yet");
+    expect(page).toContain("grid min-h-24 grid-cols-[auto_1fr] items-start gap-3");
+    expect(page).toContain("sm:block sm:min-h-28");
+    expect(page).toContain("col-start-2 block pr-8");
+    expect(page).toContain("aria-pressed={session.pizzaStyle === option.id}");
+    expect(page).toContain("disabled={!canContinue}");
+  });
+
   it("prevents duplicate guidance and mobile step indicators on the session start page", () => {
     const page = source("app/session/start/page.tsx");
     const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{experienceLevel\} \/>/g) ?? [];
