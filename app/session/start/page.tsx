@@ -413,15 +413,12 @@ export default function StartPizzaSessionPage() {
 
           <div className="mb-6 flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Step {progress} of {wizardSteps.length}</p>
+              <p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>
               <h2 className="mt-2 font-display text-4xl font-semibold leading-none">
                 {wizardStepQuestions[step]}
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">{wizardStepHelpers[step]}</p>
             </div>
-            <span className={`hidden w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 sm:inline-flex ${experience.badgeClassName}`}>
-              {experience.marker} Guidance mode: {experience.label}
-            </span>
           </div>
 
           {step === "path" && (

@@ -87,6 +87,18 @@ describe("Start Pizza Session wizard", () => {
     expect(page.indexOf('"flour"')).toBeLessThan(page.indexOf('"summary"'));
   });
 
+  it("prevents duplicate guidance and mobile step indicators on the session start page", () => {
+    const page = source("app/session/start/page.tsx");
+    const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{experienceLevel\} \/>/g) ?? [];
+
+    expect(guidanceBadgeUses).toHaveLength(2);
+    expect(page).toContain('<aside className="hidden rounded-[2rem]');
+    expect(page).toContain('<div className="mb-6 lg:hidden">');
+    expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
+    expect(page).not.toContain("sm:inline-flex ${experience.badgeClassName}");
+    expect(page).toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>');
+  });
+
   it("maps old saved sessions from the removed oven step safely to flour", () => {
     const page = source("app/session/start/page.tsx");
 
