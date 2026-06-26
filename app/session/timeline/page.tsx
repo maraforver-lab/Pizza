@@ -137,10 +137,11 @@ function ShoppingCheckpointCard({
 }) {
   return (
     <article
+      id="shopping-checkpoint"
       className={`rounded-[1.5rem] border p-5 shadow-sm ${
         shoppingIsNext
-          ? "border-leaf/35 bg-leaf/[.1]"
-          : "border-leaf/25 bg-leaf/[.06]"
+          ? "border-leaf/40 bg-leaf/[.12]"
+          : "border-leaf/30 bg-leaf/[.08]"
       }`}
       aria-label="Shopping checkpoint"
     >
@@ -153,13 +154,13 @@ function ShoppingCheckpointCard({
           <p className="mt-2 text-sm leading-6 text-ink/60">Check sauce, cheese and toppings before baking.</p>
           <p className="mt-3 text-sm leading-6 text-ink/65">You can do this while the dough is resting or fermenting.</p>
         </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+        <div className="flex shrink-0 flex-col gap-3 sm:items-end">
           <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${checkpointState === "Done" || shoppingIsNext ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-white text-ink/55 ring-ink/10"}`}>
             {checkpointState}
           </span>
           <Link
             href="/session/shopping"
-            className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
           >
             Open shopping list →
           </Link>
@@ -346,6 +347,9 @@ export default function SessionTimelinePage() {
                  Edit session choices
                </Link>
                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                 <a href="#shopping-checkpoint" className="rounded-2xl border border-leaf/20 bg-leaf/[.08] px-4 py-3 text-center text-xs font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                   Shopping checkpoint
+                 </a>
                  <Link href="/session/shopping" className="rounded-2xl border border-ink/10 bg-white/70 px-4 py-3 text-center text-xs font-extrabold text-ink/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                    Shopping list
                  </Link>
