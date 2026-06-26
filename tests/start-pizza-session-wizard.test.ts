@@ -138,10 +138,16 @@ describe("Start Pizza Session wizard", () => {
   it("keeps the final guided step focused on one primary next action", () => {
     const page = source("app/session/start/page.tsx");
 
+    expect(page).toContain("Your starting setup is ready.");
     expect(page).toContain("Next: build your dough plan");
     expect(page).toContain("We’ll calculate the dough amount, flour, water, salt, yeast and timing from your choices.");
     expect(page).toContain("Build my dough plan →");
-    expect(page).toContain("Save and continue later");
+    expect(page).toContain('href="/session/recipe"');
+    expect(page).not.toContain("Save and continue later");
+    expect(page.match(/Build my dough plan →/g)).toHaveLength(1);
+    expect(page).toContain("Back");
+    expect(page).toContain("Saved locally ✓");
+    expect(page).toContain("Last saved:");
     expect(page).not.toContain("Open timeline →");
     expect(page).not.toContain("Shopping list →");
     expect(page).not.toContain("Back to DoughTools");
@@ -172,7 +178,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("status: \"planning\"");
     expect(page).toContain("currentStep");
     expect(page).toContain("lastSavedAt");
-    expect(page).toContain("pizzaSessionContinueHref");
+    expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
   });
 
   it("persists wizard-like session choices locally and updates the active session", () => {

@@ -10,7 +10,6 @@ import {
   type ExperienceLevel,
 } from "@/lib/experience-levels";
 import {
-  pizzaSessionContinueHref,
   type PizzaSession,
   type PizzaSessionStep,
 } from "@/lib/pizza-session";
@@ -359,7 +358,6 @@ export default function StartPizzaSessionPage() {
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const lastSaved = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(session.lastSavedAt));
-  const continueHref = pizzaSessionContinueHref({ ...session, currentStep: "recipe" });
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-5 pb-28 text-ink sm:px-6 sm:py-8">
@@ -623,14 +621,6 @@ export default function StartPizzaSessionPage() {
                 <p className="mt-2 text-sm leading-6 text-ink/60">
                   We’ll calculate the dough amount, flour, water, salt, yeast and timing from your choices.
                 </p>
-                <div className="mt-4 grid gap-2 sm:max-w-sm">
-                  <Link href="/session/recipe" className="rounded-2xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Build my dough plan →
-                  </Link>
-                  <Link href={continueHref} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                    Save and continue later
-                  </Link>
-                </div>
                 <p className="mt-4 text-xs font-bold text-ink/45">Last saved: {lastSaved}</p>
               </div>
             </div>
@@ -646,7 +636,11 @@ export default function StartPizzaSessionPage() {
                 <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-14 w-full rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:bg-ink/20 disabled:text-ink/40 sm:w-auto">
                   Continue →
                 </button>
-              ) : null}
+              ) : (
+                <Link href="/session/recipe" className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:w-auto">
+                  Build my dough plan →
+                </Link>
+              )}
             </div>
           </div>
         </section>
