@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
+import { BottomActionBar, StatusPill } from "@/components/design-system";
 import {
   type PizzaSession,
   type PizzaSessionShoppingItem,
@@ -12,7 +13,6 @@ import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import {
-  getPizzaSessionPreset,
   findPizzaSessionPreset,
   pizzaSessionPresets,
   type PizzaPresetId,
@@ -23,20 +23,6 @@ import {
   SHOPPING_LIST_LOCAL_ONLY_COPY,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
-
-function formatSessionTime(value?: string) {
-  if (!value) return "Target time not set";
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Target time not set";
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 function isItemReady(status: PizzaSessionShoppingItem["status"]) {
   return status === "already_have" || status === "bought";
@@ -85,9 +71,7 @@ export default function SessionShoppingPage() {
     : generationResult.ok
       ? generationResult.shoppingList
       : undefined;
-  const preset = getPizzaSessionPreset(presetId);
   const pizzaCount = session?.pizzaCount ?? shoppingList?.pizzaCount ?? session?.recipeSnapshot?.balls;
-  const targetTime = session?.targetEatTime ?? session?.targetBakeTime;
 
   const toggleReady = (item: PizzaSessionShoppingItem) => {
     if (!session) return;
@@ -151,27 +135,28 @@ export default function SessionShoppingPage() {
       <div className="mx-auto max-w-5xl">
         <section
           aria-labelledby="session-shopping-heading"
-          className="rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8"
+          className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-8"
         >
-          <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza session shopping</p>
-          <h1 id="session-shopping-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your shopping list</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70">
-            Everything you need for {pizzaCount ?? shoppingList?.pizzaCount ?? "your"} pizzas.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
+            <StatusPill className="bg-tomato/10 text-tomato">Step 8 of 10</StatusPill>
+            <StatusPill>Shopping list</StatusPill>
+            <StatusPill>Checklist page</StatusPill>
             <GuidanceModeBadge level={session.experienceLevel} />
-            <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-              {pizzaCount ?? shoppingList?.pizzaCount ?? 0} pizzas
-            </span>
-            <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-              {formatSessionTime(targetTime)}
-            </span>
           </div>
+          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
+          <h1 id="session-shopping-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">Your shopping list</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
+            Check what you already have before you start cooking. Everything here is a preparation checklist for your pizza session.
+          </p>
+          <p className="mt-4 text-xs font-bold text-ink/45">
+            {pizzaCount ? `Built for ${pizzaCount} ${pizzaCount === 1 ? "pizza" : "pizzas"}. ` : ""}
+            Saved locally in this browser.
+          </p>
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[2rem] border border-white/80 bg-white/85 shadow-card" aria-label="Grouped shopping list">
           <div className="border-b border-ink/10 p-5">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{preset.name}</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Checklist groups</p>
             <h2 className="mt-2 font-display text-3xl font-semibold">Check what you already have.</h2>
             <p className="mt-2 text-sm leading-6 text-ink/60">
               Mark items as Have when they are ready. Unchecked items stay marked as Need.
@@ -189,7 +174,7 @@ export default function SessionShoppingPage() {
                   return (
                     <label
                       key={item.id}
-                      className="grid cursor-pointer grid-cols-[1fr_auto] gap-4 px-5 py-4 transition hover:bg-cream/70 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,auto)_5rem_auto] sm:items-center"
+                      className="grid min-h-16 cursor-pointer grid-cols-[1fr_auto] gap-4 px-5 py-4 transition hover:bg-cream/70 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,auto)_5rem_auto] sm:items-center"
                     >
                       <span className="min-w-0">
                         <span className="block text-sm font-extrabold text-ink">{item.label}</span>
@@ -214,27 +199,33 @@ export default function SessionShoppingPage() {
           ))}
         </section>
 
-        <section className="mt-6 grid gap-3">
-          <Link
-            href="/session/kitchen"
-            className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-5 text-base font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-          >
-            Next →
-          </Link>
-          <Link
-            href="/session/timeline"
-            className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-          >
-            Back
-          </Link>
-          <div className="rounded-2xl bg-leaf/10 p-5">
-            <h2 className="text-base font-extrabold text-leaf">Next up: Kitchen Mode</h2>
-            <p className="mt-1 text-sm leading-6 text-ink/60">You’ll cook your pizzas step by step.</p>
-          </div>
-          <p className="rounded-2xl bg-white/75 p-4 text-xs leading-5 text-ink/50">
+        <section className="mt-6 rounded-[2rem] border border-leaf/15 bg-leaf/10 p-5">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
+          <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Kitchen Mode</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/60">You’ll cook your pizzas step by step.</p>
+          <p className="mt-4 rounded-2xl bg-white/75 p-4 text-xs leading-5 text-ink/50">
             {SHOPPING_LIST_LOCAL_ONLY_COPY} No cloud sync, tracking, public sharing or account sync is active.
           </p>
         </section>
+
+        <BottomActionBar
+          back={(
+            <Link
+              href="/session/timeline"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
+            >
+              Back
+            </Link>
+          )}
+          primary={(
+            <Link
+              href="/session/kitchen"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
+            >
+              Next →
+            </Link>
+          )}
+        />
 
       </div>
     </main>
