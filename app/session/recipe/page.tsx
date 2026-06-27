@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import type { PizzaSession } from "@/lib/pizza-session";
@@ -28,7 +29,7 @@ function amountCardTone(label: string) {
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
   if (reason === "no-session") {
     return {
-      title: "No active session yet.",
+      title: "No active pizza session",
       body: "Start a Pizza Session first. DoughTools will save the session locally in this browser on this device.",
       action: "Start Pizza Session →",
     };
@@ -87,19 +88,14 @@ export default function SessionRecipePage() {
   if (!result.ok || !session) {
     const copy = missingCopy(result.ok ? "no-session" : result.missingReason);
     return (
-      <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session recipe</p>
-          <h1 className="mt-3 font-display text-5xl font-semibold leading-none">{copy.title}</h1>
-          <p className="mt-4 text-sm leading-6 text-ink/60">{copy.body}</p>
-          <p className="mt-4 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
-            {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.
-          </p>
-          <Link href="/session/start" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            {copy.action}
-          </Link>
-        </div>
-      </main>
+      <SessionEmptyState
+        eyebrow="Pizza Session recipe"
+        title={copy.title}
+        body={copy.body}
+        actionHref="/session/start"
+        actionLabel={copy.action}
+        localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.`}
+      />
     );
   }
 

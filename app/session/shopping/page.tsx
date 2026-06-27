@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import {
@@ -96,38 +97,23 @@ export default function SessionShoppingPage() {
 
   if (!session || missingReason === "no-session") {
     return (
-      <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session shopping</p>
-          <h1 className="mt-3 font-display text-5xl font-semibold leading-none">No active session yet.</h1>
-          <p className="mt-4 text-sm leading-6 text-ink/60">
-            Start a Pizza Session first. DoughTools will save your shopping list locally in this browser on this device.
-          </p>
-          <Link href="/session/start" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            Start Pizza Session →
-          </Link>
-        </div>
-      </main>
+      <SessionEmptyState
+        eyebrow="Pizza Session shopping"
+        title="No active pizza session"
+        body="Start a Pizza Session first. DoughTools will save your shopping list locally in this browser on this device."
+      />
     );
   }
 
   if (missingReason === "missing-pizza-count") {
     return (
-      <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session shopping</p>
-          <h1 className="mt-3 font-display text-5xl font-semibold leading-none">Choose pizza count first.</h1>
-          <p className="mt-4 text-sm leading-6 text-ink/60">
-            A shopping list needs to know how many pizzas you are making. Return to the session starter and choose the quantity.
-          </p>
-          <p className="mt-4 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
-            {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.
-          </p>
-          <Link href="/session/start" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            Return to Start Pizza Session →
-          </Link>
-        </div>
-      </main>
+      <SessionEmptyState
+        eyebrow="Pizza Session shopping"
+        title="Choose pizza count first."
+        body="A shopping list needs to know how many pizzas you are making. Return to the session starter and choose the quantity."
+        actionLabel="Return to Start Pizza Session →"
+        localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.`}
+      />
     );
   }
 

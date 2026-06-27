@@ -38,7 +38,8 @@ describe("Pizza Session review and bake notes", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page).toContain("\"use client\"");
-    expect(page).toContain("Step 10 of 10");
+    expect(page).toContain("SessionStepHero");
+    expect(page).toContain("step={10}");
     expect(page).toContain("Review your pizza");
     expect(page).toContain("How did your pizza turn out?");
     expect(page).toContain("Learning page");

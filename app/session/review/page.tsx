@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BottomActionBar, StatusPill } from "@/components/design-system";
+import { BottomActionBar } from "@/components/design-system";
+import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import type { PizzaSession } from "@/lib/pizza-session";
@@ -26,30 +27,12 @@ const ratingOptions = [
 
 function MissingReviewState() {
   return (
-    <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
-      <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-        <div className="flex flex-wrap gap-2">
-          <StatusPill className="bg-tomato/10 text-tomato">Step 10 of 10</StatusPill>
-          <StatusPill>Review</StatusPill>
-        </div>
-        <p className="mt-5 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>
-        <h1 className="mt-3 font-display text-5xl font-semibold leading-none">No pizza session to review</h1>
-        <p className="mt-4 text-sm leading-6 text-ink/60">
-          Start a Pizza Session first.
-        </p>
-        <p className="mt-4 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
-          {PIZZA_SESSION_LOCAL_ONLY_COPY} Completed or archived sessions are not treated as active.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/session/start" className="inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            Start Pizza Session →
-          </Link>
-          <Link href="/" className="inline-flex min-h-12 items-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            Back to DoughTools
-          </Link>
-        </div>
-      </div>
-    </main>
+    <SessionEmptyState
+      eyebrow="Pizza Session review"
+      title="No pizza session to review"
+      body="Start a Pizza Session first."
+      localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} Completed or archived sessions are not treated as active.`}
+    />
   );
 }
 

@@ -41,7 +41,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={7}");
     expect(page).toContain("Timeline");
-    expect(page).toContain("Reference page");
+    expect(page).toContain("Timeline page");
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).toContain("Next up");
     expect(page).toContain("Critical moments");

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar, StatusPill } from "@/components/design-system";
+import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import {
@@ -60,34 +61,6 @@ function levelWhy(session: PizzaSession, step?: PizzaSessionTimelineStep) {
   return instruction.beginnerWhy;
 }
 
-function MissingState({
-  title,
-  copy,
-  href,
-  action,
-}: {
-  title: string;
-  copy: string;
-  href: string;
-  action: string;
-}) {
-  return (
-    <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
-      <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Kitchen Mode</p>
-        <h1 className="mt-3 font-display text-5xl font-semibold leading-none">{title}</h1>
-        <p className="mt-4 text-sm leading-6 text-ink/60">{copy}</p>
-        <p className="mt-4 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
-          {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications or account sync are active.
-        </p>
-        <Link href={href} className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-          {action}
-        </Link>
-      </div>
-    </main>
-  );
-}
-
 export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -113,22 +86,24 @@ export default function SessionKitchenPage() {
 
   if (!session || !kitchenState.ok && kitchenState.missingReason === "no-session") {
     return (
-      <MissingState
+      <SessionEmptyState
+        eyebrow="Kitchen Mode"
         title="No active pizza session"
-        copy="Start a Pizza Session first, then Kitchen Mode will guide you through the next step."
-        href="/session/start"
-        action="Start Pizza Session →"
+        body="Start a Pizza Session first, then Kitchen Mode will guide you through the next step."
+        localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications or account sync are active.`}
       />
     );
   }
 
   if (!kitchenState.ok && kitchenState.missingReason === "missing-timeline") {
     return (
-      <MissingState
+      <SessionEmptyState
+        eyebrow="Kitchen Mode"
         title="Create a timeline first."
-        copy="Kitchen Mode needs a session timeline so it knows the next practical task."
-        href="/session/timeline"
-        action="Create session timeline →"
+        body="Kitchen Mode needs a session timeline so it knows the next practical task."
+        actionHref="/session/timeline"
+        actionLabel="Create session timeline →"
+        localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications or account sync are active.`}
       />
     );
   }

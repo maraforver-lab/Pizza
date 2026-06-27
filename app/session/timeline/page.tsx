@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import {
@@ -293,38 +294,22 @@ export default function SessionTimelinePage() {
 
   if (!session) {
     return (
-      <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session</p>
-          <h1 className="mt-3 font-display text-5xl font-semibold leading-none">No active session yet.</h1>
-          <p className="mt-4 text-sm leading-6 text-ink/60">
-            Start a Pizza Session first. DoughTools will save the session locally in this browser on this device.
-          </p>
-          <Link href="/session/start" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            Start Pizza Session →
-          </Link>
-        </div>
-      </main>
+      <SessionEmptyState
+        title="No active pizza session"
+        body="Start a Pizza Session first. DoughTools will save the session locally in this browser on this device."
+      />
     );
   }
 
   if (!timeline || missingReason) {
     return (
-      <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white/85 p-6 shadow-card sm:p-8">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Your pizza timeline</p>
-          <h1 className="mt-3 font-display text-5xl font-semibold leading-none">Choose a target time first.</h1>
-          <p className="mt-4 text-sm leading-6 text-ink/60">
-            A backward schedule needs a planned eating or baking time. Return to the session starter and set a target time.
-          </p>
-          <p className="mt-4 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
-            {PIZZA_SESSION_LOCAL_ONLY_COPY} No reminders, cloud sync or account sync are active yet.
-          </p>
-          <Link href="/session/start" className="mt-6 inline-flex min-h-12 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            Return to Start Pizza Session →
-          </Link>
-        </div>
-      </main>
+      <SessionEmptyState
+        eyebrow="Your pizza timeline"
+        title="Choose a target time first."
+        body="A backward schedule needs a planned eating or baking time. Return to the session starter and set a target time."
+        actionLabel="Return to Start Pizza Session →"
+        localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No reminders, cloud sync or account sync are active yet.`}
+      />
     );
   }
 
@@ -339,7 +324,7 @@ export default function SessionTimelinePage() {
         <SessionStepHero
           step={7}
           label="Timeline"
-          pageType="Reference page"
+          pageType="Timeline page"
           title="Your pizza timeline"
           body="Follow the key moments and you’ll always know what to do next."
           level={session.experienceLevel}
