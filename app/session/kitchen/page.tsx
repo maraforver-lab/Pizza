@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AppSignature from "@/components/AppSignature";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
+import { BottomActionBar, StatusPill } from "@/components/design-system";
 import {
   type PizzaSession,
   type PizzaSessionTimelineStep,
-  pizzaSessionRecipeQuery,
 } from "@/lib/pizza-session";
 import {
   completeKitchenTimelineStep,
@@ -100,7 +99,6 @@ export default function SessionKitchenPage() {
   }, []);
 
   const kitchenState = useMemo(() => getKitchenModeState(session ?? undefined), [session]);
-  const recipeQuery = session ? pizzaSessionRecipeQuery(session) : "";
 
   if (!ready) {
     return (
@@ -140,7 +138,6 @@ export default function SessionKitchenPage() {
   const kitchenMode = getKitchenModeForStep(currentStep);
   const instruction = getKitchenTaskInstruction(currentStep);
   const ingredients = doughKitchenIngredientLines(session.recipeSnapshot);
-  const missingRecipeSnapshot = !session.recipeSnapshot;
   const targetTime = session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime;
   const modeEyebrow = kitchenMode === "service" ? "Pizza Service Mode" : "Dough Kitchen Mode";
   const progressText = currentStep
@@ -149,6 +146,8 @@ export default function SessionKitchenPage() {
   const donePercent = kitchenState.totalCount > 0
     ? Math.round((kitchenState.doneCount / kitchenState.totalCount) * 100)
     : 0;
+  const heroProgressText = currentStep ? progressText : "All kitchen steps done";
+  const heroDoneText = currentStep ? `${donePercent}% done` : "Ready for review";
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
 
   const markDone = () => {
@@ -162,40 +161,32 @@ export default function SessionKitchenPage() {
     setSaveMessage(`${currentStep.label} marked done. Progress saved in this browser.`);
   };
 
-  const timerHref = recipeQuery ? `/timer?${recipeQuery}` : "/timer";
-
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-6xl">
         <section
           aria-labelledby="kitchen-mode-heading"
-          className="grid gap-5 rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end"
+          className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-8"
         >
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session kitchen mode</p>
-            <h1 id="kitchen-mode-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">
-              {currentStep ? modeEyebrow : "Pizza session complete"}
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
-              Kitchen Mode opens the next practical action from your timeline and saves progress in this browser only.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <GuidanceModeBadge level={session.experienceLevel} />
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                Target: {formatDateTime(targetTime)}
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                {progressText}
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                {donePercent}% done
-              </span>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <StatusPill className="bg-tomato/10 text-tomato">Step 9 of 10</StatusPill>
+            <StatusPill>Kitchen Mode</StatusPill>
+            <StatusPill>Execution page</StatusPill>
+            <GuidanceModeBadge level={session.experienceLevel} />
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-72 lg:grid-cols-1">
-            <Link href="/session/timeline" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]">
-              Back to timeline
-            </Link>
+          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
+          <h1 id="kitchen-mode-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">
+            Kitchen Mode
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
+            Follow one step at a time.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <StatusPill className={kitchenMode === "service" ? "bg-tomato/10 text-tomato" : undefined}>
+              {currentStep ? modeEyebrow : "Pizza session complete"}
+            </StatusPill>
+            <StatusPill>{heroProgressText}</StatusPill>
+            <StatusPill>{heroDoneText}</StatusPill>
           </div>
         </section>
 
@@ -205,57 +196,26 @@ export default function SessionKitchenPage() {
           </p>
         )}
 
-        {missingRecipeSnapshot && (
-          <section className="mt-5 rounded-[1.5rem] border border-tomato/15 bg-tomato/10 p-5">
-            <h2 className="font-display text-2xl font-semibold">Dough plan details are missing.</h2>
-            <p className="mt-2 text-sm leading-6 text-ink/65">
-              Kitchen Mode can still show your timeline tasks, but exact ingredient amounts need a saved recipe snapshot.
-            </p>
-            <Link href="/session/recipe" className="mt-4 inline-flex min-h-11 items-center rounded-2xl bg-white px-4 text-sm font-extrabold text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-              Review dough plan →
-            </Link>
-          </section>
-        )}
-
-        <section className="mt-6 grid gap-5 lg:grid-cols-[1fr_22rem]">
+        <section className="mt-6">
           <article className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-7">
             {currentStep ? (
               <>
-                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
-                  {modeEyebrow} · {formatDateTime(currentStep.scheduledAt)}
-                </p>
-                <h2 className="mt-3 font-display text-5xl font-semibold leading-none">{currentStep.label}</h2>
-                <p className="mt-4 text-lg font-bold leading-7 text-ink/75">{instruction.shortInstruction}</p>
-                {currentStep.description && (
-                  <p className="mt-3 text-sm leading-6 text-ink/55">{currentStep.description}</p>
-                )}
-
-                <section className="mt-6 rounded-[1.5rem] bg-cream p-5">
-                  <h3 className="font-display text-2xl font-semibold">{currentStep.label}</h3>
-                  <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl bg-white p-4">
-                      <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">Status</dt>
-                      <dd className="mt-1 text-lg font-extrabold">Next step</dd>
-                    </div>
-                    <div className="rounded-2xl bg-white p-4">
-                      <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">Timing</dt>
-                      <dd className="mt-1 text-lg font-extrabold">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</dd>
-                    </div>
-                    <div className="rounded-2xl bg-white p-4">
-                      <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">Saved</dt>
-                      <dd className="mt-1 text-lg font-extrabold">This browser</dd>
-                    </div>
-                  </dl>
-                  {new Date(currentStep.scheduledAt ?? "").getTime() > Date.now() && (
-                    <p className="mt-4 text-sm leading-6 text-ink/55">
-                      You can wait until the scheduled time, or do it earlier if your dough is ready.
-                    </p>
-                  )}
+                <section aria-labelledby="current-kitchen-task">
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Current task</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <StatusPill>{modeEyebrow}</StatusPill>
+                    <StatusPill>Current step</StatusPill>
+                    <StatusPill>{formatDateTime(currentStep.scheduledAt)}</StatusPill>
+                  </div>
+                  <h2 id="current-kitchen-task" className="mt-4 font-display text-5xl font-semibold leading-none sm:text-6xl">{currentStep.label}</h2>
+                  <p className="mt-4 text-lg font-bold leading-7 text-ink/75">{instruction.shortInstruction}</p>
+                  <p className="mt-3 text-sm leading-6 text-ink/55">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
                 </section>
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length > 0 && (
                   <section className="mt-6 rounded-[1.5rem] bg-cream p-5">
-                    <h3 className="font-display text-2xl font-semibold">You need</h3>
+                    <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
+                    <h3 className="mt-2 font-display text-2xl font-semibold">Dough ingredients</h3>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       {ingredients.map((line) => (
                         <div key={line.label} className="rounded-2xl bg-white p-4">
@@ -269,24 +229,24 @@ export default function SessionKitchenPage() {
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length === 0 && (
                   <section className="mt-6 rounded-[1.5rem] bg-cream p-5">
-                    <h3 className="font-display text-2xl font-semibold">Ingredient amounts</h3>
-                    <p className="mt-2 text-sm leading-6 text-ink/60">Review your dough plan for ingredient amounts.</p>
-                    <Link href="/session/recipe" className="mt-4 inline-flex min-h-11 items-center rounded-2xl bg-white px-4 text-sm font-extrabold text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                      Review dough plan →
-                    </Link>
+                    <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
+                    <h3 className="mt-2 font-display text-2xl font-semibold">Ingredient amounts unavailable</h3>
+                    <p className="mt-2 text-sm leading-6 text-ink/60">Kitchen Mode can still guide the current task. Exact dough amounts need a saved recipe snapshot.</p>
                   </section>
                 )}
 
                 {kitchenMode === "service" && (
                   <section className="mt-6 rounded-[1.5rem] bg-cream p-5">
-                    <h3 className="font-display text-2xl font-semibold">Pizza Service Mode baseline</h3>
+                    <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
+                    <h3 className="mt-2 font-display text-2xl font-semibold">Pizza Service Mode</h3>
                     {pizzaCount && <p className="mt-2 text-sm font-extrabold text-ink/70">Pizza count: {pizzaCount} pizzas</p>}
-                    <p className="mt-2 text-sm leading-6 text-ink/60">Later, this mode can guide each pizza one by one.</p>
+                    <p className="mt-2 text-sm leading-6 text-ink/60">Keep sauce, cheese and toppings ready, then follow the current task.</p>
                   </section>
                 )}
 
                 <section className="mt-6 rounded-[1.5rem] bg-leaf/10 p-5">
-                  <h3 className="font-display text-2xl font-semibold">Why this matters</h3>
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Instruction</p>
+                  <h3 className="mt-2 font-display text-2xl font-semibold">Do this now</h3>
                   <p className="mt-2 text-sm leading-6 text-ink/65">{levelWhy(session, currentStep)}</p>
                 </section>
 
@@ -296,79 +256,50 @@ export default function SessionKitchenPage() {
                   </p>
                 )}
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={markDone}
-                    className="min-h-14 rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                  >
-                    Mark step as done →
-                  </button>
-                  {currentStep.id === "bake-pizza" ? (
-                    <Link href={timerHref} className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                      Open baking timer →
-                    </Link>
-                  ) : currentStep.id === "review-result" ? (
-                    <Link href="/session/review" className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                      Review this bake →
-                    </Link>
-                  ) : (
-                    <Link href="/session/timeline" className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                      Back to timeline
+                <BottomActionBar
+                  back={(
+                    <Link href="/session/shopping" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+                      Back
                     </Link>
                   )}
-                </div>
-                {kitchenMode === "dough" && (
-                  <div className="mt-3">
-                    <Link href="/session/recipe" className="inline-flex min-h-12 items-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                      Review dough plan
-                    </Link>
-                  </div>
-                )}
+                  primary={(
+                    <button
+                      type="button"
+                      onClick={markDone}
+                      className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
+                    >
+                      Mark step as done →
+                    </button>
+                  )}
+                />
               </>
             ) : (
               <>
                 <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">All steps done</p>
                 <h2 className="mt-3 font-display text-5xl font-semibold leading-none">Pizza session complete</h2>
                 <p className="mt-4 text-sm leading-6 text-ink/60">
-                  Nice work. Next, you can review what worked, add notes and save this bake for next time.
+                  Save what worked and what you want to improve next time.
                 </p>
-                <Link href="/session/review" className="mt-6 inline-flex min-h-14 items-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                  Review and add notes →
-                </Link>
+                <BottomActionBar
+                  back={(
+                    <Link href="/session/shopping" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+                      Back
+                    </Link>
+                  )}
+                  primary={(
+                    <Link href="/session/review" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+                      Review your pizza →
+                    </Link>
+                  )}
+                />
               </>
             )}
           </article>
-
-          <aside className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card lg:sticky lg:top-6 lg:self-start">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Next task</p>
-            {kitchenState.nextStep ? (
-              <>
-                <h2 className="mt-2 font-display text-3xl font-semibold">{kitchenState.nextStep.label}</h2>
-                <p className="mt-2 text-sm leading-6 text-ink/60">
-                  {formatDateTime(kitchenState.nextStep.scheduledAt)}
-                </p>
-                <p className="mt-3 rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/65">
-                  {getKitchenTaskInstruction(kitchenState.nextStep).shortInstruction}
-                </p>
-              </>
-            ) : (
-              <p className="mt-3 text-sm leading-6 text-ink/60">
-                No later todo task is available. Finish the current step and review the result.
-              </p>
-            )}
-            <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
-              {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications, tracking or public sharing is active.
-            </p>
-            <div className="mt-4 grid gap-2">
-              <Link href={recipeQuery ? `/?${recipeQuery}` : "/"} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-center text-sm font-extrabold text-ink/65 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Open full Calculator
-              </Link>
-            </div>
-          </aside>
         </section>
 
-        <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
+        <p className="mt-5 rounded-2xl bg-white/75 p-4 text-xs leading-5 text-ink/50">
+          {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications, tracking or public sharing is active.
+        </p>
       </div>
     </main>
   );

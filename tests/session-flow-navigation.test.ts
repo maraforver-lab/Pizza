@@ -44,9 +44,8 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(timeline).toContain('Continue baking →');
     expectTextLink(shopping, "Next →", "/session/kitchen");
     expectTextLink(shopping, "Back", "/session/timeline");
-    expectTextLink(kitchen, "Back to timeline", "/session/timeline");
-    expectTextLink(kitchen, "Review dough plan", "/session/recipe");
-    expectTextLink(kitchen, "Review and add notes →", "/session/review");
+    expectTextLink(kitchen, "Back", "/session/shopping");
+    expectTextLink(kitchen, "Review your pizza →", "/session/review");
     expectTextLink(review, "Start a new Pizza Session →", "/session/start");
     expectTextLink(review, "Back to Kitchen Mode", "/session/kitchen");
     expectTextLink(review, "View timeline", "/session/timeline");
@@ -89,8 +88,9 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("Pizza Service Mode");
     expect(kitchen).toContain("Mark step as done →");
     expect(kitchen).toContain("Pizza session complete");
-    expect(kitchen).toContain("Review and add notes →");
+    expect(kitchen).toContain("Review your pizza →");
     expect(kitchen).toContain('href="/session/review"');
+    expect(kitchen).not.toMatch(/Review dough plan|Open shopping list|Save and continue later|Open full Calculator/);
     expect(review).toContain("How did your pizza turn out?");
     expect(review).toContain("Save review →");
     expect(review).toContain("Review saved in this browser.");

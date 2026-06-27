@@ -219,7 +219,7 @@ describe("Pizza Session review and bake notes", () => {
     const journal = source("app/journal/page.tsx");
 
     expect(kitchen).toContain("/session/review");
-    expect(kitchen).toContain("Review this bake");
+    expect(kitchen).toContain("Review your pizza →");
     expect(timelinePage).toContain("/session/review");
     expect(timelinePage).toContain("Review your pizza →");
     expect(timelinePage).not.toContain("Review session");
