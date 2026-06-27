@@ -103,8 +103,10 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Pizza flour / Tipo 00");
     expect(page).toContain("Bread flour / Strong flour");
     expect(page).toContain("All-purpose flour");
-    expect(page).toContain("grid min-h-24 grid-cols-[auto_1fr] items-start gap-3");
-    expect(page).toContain("sm:block sm:min-h-28");
+    expect(page).toContain("grid min-h-[4.75rem] grid-cols-[auto_1fr] items-start gap-3");
+    expect(page).toContain("sm:block sm:min-h-[7rem]");
+    expect(page).toContain("grid h-9 w-9 shrink-0");
+    expect(page).toContain("sm:h-11 sm:w-11");
     expect(page).toContain("col-start-2 block pr-8");
     expect(page).toContain("aria-pressed={session.pizzaStyle === option.id}");
     expect(page).toContain("aria-pressed={session.pizzaPreset === preset.id}");
@@ -122,8 +124,8 @@ describe("Start Pizza Session wizard", () => {
 
     expect(guidanceBadgeUses).toHaveLength(2);
     expect(stepProgressUses).toHaveLength(2);
-    expect(page).toContain('<aside className="hidden rounded-[2rem]');
-    expect(page).toContain('<div className="mb-6 lg:hidden">');
+    expect(page).toContain('<aside className="hidden rounded-[1.75rem]');
+    expect(page).toContain('<div className="mb-4 lg:hidden">');
     expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
     expect(page).not.toContain("sm:inline-flex ${experience.badgeClassName}");
     expect(page).not.toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>');
