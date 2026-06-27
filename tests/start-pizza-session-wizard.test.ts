@@ -80,7 +80,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
     expect(page).toContain("Pan / tray");
-    expect(page).toContain("Not sure yet");
+    expect(page).not.toContain("Not sure yet");
+    expect(page).toContain("grid gap-3 sm:grid-cols-3");
     expect(page).toContain("wizardPresetOptions.map");
     expect(page).toContain("Simple cheese");
     expect(page).toContain("Margherita");
@@ -137,7 +138,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
     expect(page).toContain("Pan / tray");
-    expect(page).toContain("Not sure yet");
+    expect(page).not.toContain("Not sure yet");
+    expect(page).toContain("grid gap-3 sm:grid-cols-3");
     expect(page).toContain("Simple cheese");
     expect(page).toContain("Margherita");
     expect(page).toContain("Pepperoni");
@@ -193,6 +195,15 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('if (session.currentStep === "oven") return "flour";');
     expect(page).toContain("const ovenType = value === \"pizza-oven\" ? \"gas\" : value === \"pan-tray\" ? \"pan\" : \"home\";");
     expect(page).toContain("savePatch({ pizzaStyle: value, ovenType, pizzaCount }, \"path\")");
+  });
+
+  it("maps old removed oven fallback choices to Home oven safely", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain('nextSession.pizzaStyle === "not-sure"');
+    expect(page).toContain('pizzaStyle: "home-oven"');
+    expect(page).toContain('ovenType: "home"');
+    expect(page).not.toContain('label: "Not sure yet"');
   });
 
   it("keeps the final guided step focused on one primary next action", () => {

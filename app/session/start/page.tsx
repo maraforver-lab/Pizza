@@ -70,13 +70,6 @@ const styleOptions = [
     description: "Easiest option. Bake in a tray or pan.",
     badge: undefined,
   },
-  {
-    id: "not-sure",
-    label: "Not sure yet",
-    icon: "?",
-    description: "Choose this if you want DoughTools to stay flexible.",
-    badge: undefined,
-  },
 ] as const;
 
 const flourOptions = [
@@ -263,10 +256,20 @@ export default function StartPizzaSessionPage() {
         experienceLevel: level,
       }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
 
-    setActivePizzaSession(nextSession.id);
+    const supportedSession = nextSession.pizzaStyle === "not-sure"
+      ? updatePizzaSession(nextSession.id, {
+        pizzaStyle: "home-oven",
+        ovenType: "home",
+        status: "planning",
+        currentStep: nextSession.currentStep,
+        experienceLevel: level,
+      }) ?? { ...nextSession, pizzaStyle: "home-oven", ovenType: "home" }
+      : nextSession;
+
+    setActivePizzaSession(supportedSession.id);
     setExperienceLevel(level);
-    setSession(nextSession);
-    setTargetTimeDraft(nextSession.targetEatTime ?? "");
+    setSession(supportedSession);
+    setTargetTimeDraft(supportedSession.targetEatTime ?? "");
     if (hasSavedTargetTime) {
       setSelectedDayChoice("custom-date");
       setSelectedTimeChoice("custom-time");
@@ -274,7 +277,7 @@ export default function StartPizzaSessionPage() {
       setSelectedDayChoice("tomorrow");
       setSelectedTimeChoice("dinner");
     }
-    setStep(initialWizardStep(nextSession));
+    setStep(initialWizardStep(supportedSession));
     setReady(true);
   }, []);
 
@@ -457,7 +460,7 @@ export default function StartPizzaSessionPage() {
           </div>
 
           {step === "path" && (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               {styleOptions.map((option) => (
                 <button key={option.id} type="button" onClick={() => selectStyle(option.id)} aria-pressed={session.pizzaStyle === option.id} className={optionClass(session.pizzaStyle === option.id)}>
                   {selectedIndicator(session.pizzaStyle === option.id)}
@@ -624,7 +627,7 @@ export default function StartPizzaSessionPage() {
                   ["Pizza style", selectedWizardPreset?.label ?? selectedPreset?.name ?? "Not selected yet"],
                   ["When", formatTargetTime(session.targetEatTime)],
                   ["How many", `${session.pizzaCount ?? 4} pizzas`],
-                  ["Flour", selectedFlour?.label ?? "Not sure yet"],
+                  ["Flour", selectedFlour?.label ?? "Not selected yet"],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white p-3.5">
                     <dt className="flex items-center gap-3 text-sm font-extrabold text-ink/65">
