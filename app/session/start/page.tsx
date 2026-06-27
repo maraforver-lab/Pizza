@@ -76,7 +76,6 @@ const flourOptions = [
   { id: "tipo-00", label: "Pizza flour / Tipo 00", icon: "▣", description: "The best choice for pizza. Strong and high protein." },
   { id: "bread", label: "Bread flour / Strong flour", icon: "▥", description: "Great for chewy crusts and good rise." },
   { id: "plain", label: "All-purpose flour", icon: "◒", description: "Works in a pinch. Results may vary." },
-  { id: "not-sure", label: "Not sure", icon: "?", description: "We’ll use a safe default." },
 ] as const;
 
 const wizardStepLabels: Record<WizardStep, string> = {
@@ -278,14 +277,18 @@ export default function StartPizzaSessionPage() {
         experienceLevel: level,
       }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
 
-    const supportedSession = nextSession.pizzaStyle === "not-sure"
+    const supportedSession = nextSession.pizzaStyle === "not-sure" || nextSession.flour === "not-sure"
       ? updatePizzaSession(nextSession.id, {
-        pizzaStyle: "home-oven",
-        ovenType: "home",
+        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "home-oven", ovenType: "home" } : {}),
+        ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
         status: "planning",
         currentStep: nextSession.currentStep,
         experienceLevel: level,
-      }) ?? { ...nextSession, pizzaStyle: "home-oven", ovenType: "home" }
+      }) ?? {
+        ...nextSession,
+        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "home-oven", ovenType: "home" } : {}),
+        ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
+      }
       : nextSession;
 
     setActivePizzaSession(supportedSession.id);

@@ -105,6 +105,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Pizza flour / Tipo 00");
     expect(page).toContain("Bread flour / Strong flour");
     expect(page).toContain("All-purpose flour");
+    expect(page).not.toContain('label: "Not sure"');
     expect(page).not.toContain("What oven are you using?");
     expect(page).not.toContain("const ovenOptions");
     expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
@@ -152,6 +153,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Pizza flour / Tipo 00");
     expect(page).toContain("Bread flour / Strong flour");
     expect(page).toContain("All-purpose flour");
+    expect(page).not.toContain('label: "Not sure"');
     expect(page).toContain("grid min-h-[4rem] grid-cols-[auto_1fr] items-start gap-2.5");
     expect(page).toContain("sm:block sm:min-h-[7rem]");
     expect(page).toContain("grid h-8 w-8 shrink-0");
@@ -204,6 +206,15 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('pizzaStyle: "home-oven"');
     expect(page).toContain('ovenType: "home"');
     expect(page).not.toContain('label: "Not sure yet"');
+  });
+
+  it("maps old removed flour fallback choices to Tipo 00 safely", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain('nextSession.flour === "not-sure"');
+    expect(page).toContain('flour: "tipo-00"');
+    expect(page).not.toContain('label: "Not sure"');
+    expect(page).toContain('step === "flour" && Boolean(session?.flour)');
   });
 
   it("keeps the final guided step focused on one primary next action", () => {
