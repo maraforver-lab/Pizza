@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import { BottomActionBar, StatusPill } from "@/components/design-system";
+import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
+import { SessionStepHero } from "@/components/session/SessionStepHero";
 import {
   type PizzaSession,
   type PizzaSessionTimelineStep,
@@ -164,31 +165,28 @@ export default function SessionKitchenPage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-6xl">
-        <section
-          aria-labelledby="kitchen-mode-heading"
-          className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-8"
+        <SessionStepHero
+          step={9}
+          label="Kitchen Mode"
+          pageType="Execution page"
+          title="Kitchen Mode"
+          body="Follow one step at a time."
+          level={session.experienceLevel}
+          desktopAside={(
+            <>
+              <strong className="block text-ink">Step 9: Kitchen Mode</strong>
+              This page is for doing the next task. The full schedule stays in Timeline.
+            </>
+          )}
         >
           <div className="flex flex-wrap gap-2">
-            <StatusPill className="bg-tomato/10 text-tomato">Step 9 of 10</StatusPill>
-            <StatusPill>Kitchen Mode</StatusPill>
-            <StatusPill>Execution page</StatusPill>
-            <GuidanceModeBadge level={session.experienceLevel} />
-          </div>
-          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
-          <h1 id="kitchen-mode-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">
-            Kitchen Mode
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
-            Follow one step at a time.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
             <StatusPill className={kitchenMode === "service" ? "bg-tomato/10 text-tomato" : undefined}>
               {currentStep ? modeEyebrow : "Pizza session complete"}
             </StatusPill>
             <StatusPill>{heroProgressText}</StatusPill>
             <StatusPill>{heroDoneText}</StatusPill>
           </div>
-        </section>
+        </SessionStepHero>
 
         {saveMessage && (
           <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status">
@@ -297,9 +295,9 @@ export default function SessionKitchenPage() {
           </article>
         </section>
 
-        <p className="mt-5 rounded-2xl bg-white/75 p-4 text-xs leading-5 text-ink/50">
+        <SessionLocalOnlyNote>
           {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications, tracking or public sharing is active.
-        </p>
+        </SessionLocalOnlyNote>
       </div>
     </main>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { BottomActionBar, StatusPill } from "@/components/design-system";
+import { BottomActionBar } from "@/components/design-system";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
   getExperienceLevelConfig,
@@ -408,7 +408,6 @@ export default function StartPizzaSessionPage() {
           <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, timeline, shopping, kitchen mode and review come next.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <GuidanceModeBadge level={experienceLevel} />
-            <StatusPill>Saved locally</StatusPill>
           </div>
           <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
             <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
@@ -436,7 +435,7 @@ export default function StartPizzaSessionPage() {
               </li>
             )})}
           </ol>
-          <div className="mt-5 rounded-2xl bg-cream p-3 text-xs leading-5 text-ink/55">
+          <div className="mt-5 rounded-2xl bg-cream/70 p-3 text-xs leading-5 text-ink/50">
             <strong className="block text-sm text-ink">You can change anything later. No worries!</strong>
             <span className="mt-2 block">{PIZZA_SESSION_LOCAL_ONLY_COPY}</span>
             <span className="mt-1 block">No cloud sync.</span>

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
-import { BottomActionBar, StatusPill } from "@/components/design-system";
+import { BottomActionBar } from "@/components/design-system";
+import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
+import { SessionStepHero } from "@/components/session/SessionStepHero";
 import {
   type PizzaSession,
   type PizzaSessionShoppingItem,
@@ -133,26 +134,21 @@ export default function SessionShoppingPage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-5xl">
-        <section
-          aria-labelledby="session-shopping-heading"
-          className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-8"
-        >
-          <div className="flex flex-wrap gap-2">
-            <StatusPill className="bg-tomato/10 text-tomato">Step 8 of 10</StatusPill>
-            <StatusPill>Shopping list</StatusPill>
-            <StatusPill>Checklist page</StatusPill>
-            <GuidanceModeBadge level={session.experienceLevel} />
-          </div>
-          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
-          <h1 id="session-shopping-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">Your shopping list</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
-            Check what you already have before you start cooking. Everything here is a preparation checklist for your pizza session.
-          </p>
-          <p className="mt-4 text-xs font-bold text-ink/45">
-            {pizzaCount ? `Built for ${pizzaCount} ${pizzaCount === 1 ? "pizza" : "pizzas"}. ` : ""}
-            Saved locally in this browser.
-          </p>
-        </section>
+        <SessionStepHero
+          step={8}
+          label="Shopping list"
+          pageType="Checklist page"
+          title="Your shopping list"
+          body="Check what you already have before you start cooking."
+          level={session.experienceLevel}
+          desktopAside={(
+            <>
+              <strong className="block text-ink">Step 8: Shopping list</strong>
+              {pizzaCount ? `Built for ${pizzaCount} ${pizzaCount === 1 ? "pizza" : "pizzas"}. ` : ""}
+              This is a preparation checklist for your kitchen.
+            </>
+          )}
+        />
 
         <section className="mt-6 overflow-hidden rounded-[2rem] border border-white/80 bg-white/85 shadow-card" aria-label="Grouped shopping list">
           <div className="border-b border-ink/10 p-5">
@@ -203,9 +199,9 @@ export default function SessionShoppingPage() {
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
           <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Kitchen Mode</h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">You’ll cook your pizzas step by step.</p>
-          <p className="mt-4 rounded-2xl bg-white/75 p-4 text-xs leading-5 text-ink/50">
+          <SessionLocalOnlyNote>
             {SHOPPING_LIST_LOCAL_ONLY_COPY} No cloud sync, tracking, public sharing or account sync is active.
-          </p>
+          </SessionLocalOnlyNote>
         </section>
 
         <BottomActionBar

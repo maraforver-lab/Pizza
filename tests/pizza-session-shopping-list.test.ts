@@ -158,7 +158,8 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(page).toContain("Your shopping list");
     expect(page).toContain("Check what you already have before you start cooking.");
-    expect(page).toContain("Step 8 of 10");
+    expect(page).toContain("SessionStepHero");
+    expect(page).toContain("step={8}");
     expect(page).toContain("Checklist page");
     expect(page).toContain("Next →");
     expect(page).toContain("Back");
@@ -192,9 +193,9 @@ describe("Pizza Session shopping list presets", () => {
   it("keeps the shopping hero focused by removing competing prominent actions", () => {
     const page = source("app/session/shopping/page.tsx");
 
-    expect(page).toContain("Pizza Session V2");
-    expect(page).toContain("Step 8 of 10");
-    expect(page).toContain("GuidanceModeBadge");
+    expect(page).toContain("SessionStepHero");
+    expect(page).toContain("step={8}");
+    expect(page).toContain("level={session.experienceLevel}");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain('href="/session/timeline"');
     expect(page).toContain('href="/session/kitchen"');
@@ -212,7 +213,7 @@ describe("Pizza Session shopping list presets", () => {
   it("aligns the shopping page with Pizza Session V2 checklist structure", () => {
     const page = source("app/session/shopping/page.tsx");
 
-    expect(page).toContain("Step 8 of 10");
+    expect(page).toContain("step={8}");
     expect(page).toContain("Checklist groups");
     expect(page).toContain("Next up");
     expect(page).toContain("Kitchen Mode");

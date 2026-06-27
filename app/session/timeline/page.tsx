@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { BottomActionBar, StatusPill } from "@/components/design-system";
-import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
+import { BottomActionBar } from "@/components/design-system";
+import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
+import { SessionStepHero } from "@/components/session/SessionStepHero";
 import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
@@ -335,31 +336,20 @@ export default function SessionTimelinePage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-5xl">
-        <section
-          aria-labelledby="session-timeline-heading"
-          className="rounded-[2rem] bg-white/90 p-5 text-ink shadow-card sm:p-8"
-        >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
-            <div className="mt-3 flex flex-wrap gap-2" aria-label="Timeline context">
-              <StatusPill className="bg-tomato/10 text-tomato">Step 7 of 10</StatusPill>
-              <StatusPill>Timeline</StatusPill>
-              <StatusPill>Reference page</StatusPill>
-              <GuidanceModeBadge level={session.experienceLevel} />
-            </div>
-            <h1 id="session-timeline-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your pizza timeline</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
-              Follow the key moments and you’ll always know what to do next.
-            </p>
-            <p className="mt-4 text-xs font-bold text-ink/45">Saved locally in this browser.</p>
-            </div>
-            <div className="hidden rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/60 lg:block">
+        <SessionStepHero
+          step={7}
+          label="Timeline"
+          pageType="Reference page"
+          title="Your pizza timeline"
+          body="Follow the key moments and you’ll always know what to do next."
+          level={session.experienceLevel}
+          desktopAside={(
+            <>
               <strong className="block text-ink">Step 7: Timeline</strong>
               This page is for timing. Kitchen Mode is where you do the active cooking steps.
-            </div>
-          </div>
-        </section>
+            </>
+          )}
+        />
 
         <section aria-labelledby="next-up-heading" className="mt-6 rounded-[2rem] border border-leaf/20 bg-white p-5 shadow-card sm:p-6">
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
@@ -466,7 +456,7 @@ export default function SessionTimelinePage() {
           </section>
         </section>
 
-        <section className="mt-8 rounded-[1.5rem] border border-ink/10 bg-white/70 p-5">
+        <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-white/60 p-4 lg:p-5">
           <h2 className="font-display text-2xl font-semibold">Timing assumptions</h2>
           <ul className="mt-3 grid gap-2 text-sm leading-6 text-ink/60">
             {(timeline.assumptions ?? []).map((assumption) => (
@@ -497,9 +487,9 @@ export default function SessionTimelinePage() {
           )}
         />
 
-        <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
+        <SessionLocalOnlyNote>
           {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
-        </p>
+        </SessionLocalOnlyNote>
       </div>
     </main>
   );
