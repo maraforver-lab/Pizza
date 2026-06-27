@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import { BottomActionBar, StatusPill } from "@/components/design-system";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
@@ -161,9 +161,9 @@ function nextActionForTimeline({
   if (nextStep && isDoughTimelineStep(nextStep)) {
     return {
       href: "/session/kitchen",
-      cta: "Start dough work →",
+      cta: "Start dough →",
       title: nextStep.label,
-      subtext: "Opens Kitchen Mode.",
+      subtext: "This is your next dough preparation step.",
       kind: "dough",
     };
   }
@@ -171,17 +171,17 @@ function nextActionForTimeline({
   if (nextStep && isServiceTimelineStep(nextStep)) {
     return {
       href: "/session/kitchen",
-      cta: "Start baking →",
+      cta: "Continue baking →",
       title: nextStep.label,
-      subtext: "Opens Kitchen Mode.",
+      subtext: "Kitchen Mode will guide the active cooking steps.",
       kind: "service",
     };
   }
 
   return {
     href: "/session/review",
-    cta: "Review and add notes →",
-    title: allStepsComplete ? "Review and add notes" : "Review your session",
+    cta: "Review your pizza →",
+    title: allStepsComplete ? "Review your pizza" : "Review your session",
     subtext: "Save what worked for next time.",
     kind: "review",
   };
@@ -333,26 +333,30 @@ export default function SessionTimelinePage() {
   const criticalMoments = getCriticalMoments(timeline.steps);
 
   return (
-    <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
+    <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-5xl">
         <section
           aria-labelledby="session-timeline-heading"
-          className="rounded-[2rem] bg-ink p-6 text-white shadow-2xl sm:p-8"
+          className="rounded-[2rem] bg-white/90 p-5 text-ink shadow-card sm:p-8"
         >
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-[#e8c98a]">Pizza Session timeline</p>
-            <h1 id="session-timeline-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your pizza timeline</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
-              Here’s your schedule. Follow the key moments and you’ll be ready on time.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2" aria-label="Timeline context">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
+            <div className="mt-3 flex flex-wrap gap-2" aria-label="Timeline context">
+              <StatusPill className="bg-tomato/10 text-tomato">Step 7 of 10</StatusPill>
+              <StatusPill>Timeline</StatusPill>
+              <StatusPill>Reference page</StatusPill>
               <GuidanceModeBadge level={session.experienceLevel} />
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                Target: {formatDateTime(targetTime)}
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-2 text-xs font-extrabold text-white/70">
-                Saved in this browser
-              </span>
+            </div>
+            <h1 id="session-timeline-heading" className="mt-3 font-display text-5xl font-semibold leading-none sm:text-6xl">Your pizza timeline</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
+              Follow the key moments and you’ll always know what to do next.
+            </p>
+            <p className="mt-4 text-xs font-bold text-ink/45">Saved locally in this browser.</p>
+            </div>
+            <div className="hidden rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/60 lg:block">
+              <strong className="block text-ink">Step 7: Timeline</strong>
+              This page is for timing. Kitchen Mode is where you do the active cooking steps.
             </div>
           </div>
         </section>
@@ -372,12 +376,10 @@ export default function SessionTimelinePage() {
                 </span>
               </div>
             </div>
-            <Link
-              href={nextAction.href}
-              className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-            >
-              {nextAction.cta}
-            </Link>
+            <div className="rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/65">
+              <span className="block text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Recommended action</span>
+              <span className="mt-1 block font-extrabold text-ink">{nextAction.cta}</span>
+            </div>
           </div>
         </section>
 
@@ -392,7 +394,7 @@ export default function SessionTimelinePage() {
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {criticalMoments.map((step) => (
-                <article key={step.id} className={`rounded-[1.25rem] border p-4 ${step.id === "bake-pizza" ? "border-tomato/20 bg-tomato/[.06]" : "border-leaf/15 bg-leaf/[.06]"}`}>
+                <article key={step.id} className={`rounded-[1.25rem] border p-4 ${step.id === "room-temperature-rest" ? "border-tomato/30 bg-tomato/[.08]" : step.id === "bake-pizza" ? "border-tomato/20 bg-tomato/[.06]" : "border-leaf/15 bg-leaf/[.06]"}`}>
                   <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{formatTimelineDate(step.scheduledAt)}</p>
                   <h3 className="mt-2 font-display text-2xl font-semibold">{criticalMomentTitle(step)}</h3>
                   <p className="mt-1 text-sm font-extrabold text-leaf">{formatTimelineTime(step.scheduledAt)}</p>
@@ -406,7 +408,7 @@ export default function SessionTimelinePage() {
         <section aria-labelledby="full-timeline-heading" className="mt-6">
           <div className="mb-4">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Full timeline</p>
-            <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Your full schedule</h2>
+            <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Full timeline</h2>
             <p className="mt-2 text-sm leading-6 text-ink/55">
               This overview is for planning. Use Kitchen Mode when you are ready to work through each task.
             </p>
@@ -476,28 +478,28 @@ export default function SessionTimelinePage() {
           </ul>
         </section>
 
-        <nav aria-label="Timeline navigation" className="mt-8 grid gap-3 sm:grid-cols-2">
-          <Link
-            href="/session/recipe"
-            className="rounded-[1.5rem] border border-ink/10 bg-white px-5 py-4 text-sm font-extrabold text-ink/70 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-          >
-            <span className="block text-base text-ink">Back</span>
-            <span className="mt-1 block text-xs font-bold text-ink/45">Back to Recipe</span>
-          </Link>
-          <Link
-            href={nextAction.href}
-            className="rounded-[1.5rem] bg-tomato px-5 py-4 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:text-right"
-          >
-            <span className="block text-base">Next step →</span>
-            <span className="mt-1 block text-xs font-bold text-white/75">{nextAction.cta.replace(" →", "")}</span>
-          </Link>
-        </nav>
+        <BottomActionBar
+          back={(
+            <Link
+              href="/session/recipe"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
+            >
+              Back
+            </Link>
+          )}
+          primary={(
+            <Link
+              href={nextAction.href}
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
+            >
+              {nextAction.cta}
+            </Link>
+          )}
+        />
 
         <p className="mt-5 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
           {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
         </p>
-
-        <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
       </div>
     </main>
   );

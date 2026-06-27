@@ -40,8 +40,8 @@ describe("Pizza Session flow navigation integrity", () => {
     expectTextLink(recipe, "Continue to Timeline →", "/session/timeline");
     expectTextLink(timeline, "Open shopping list →", "/session/shopping");
     expect(timeline).toContain('href={nextAction.href}');
-    expect(timeline).toContain('Start dough work →');
-    expect(timeline).toContain('Start baking →');
+    expect(timeline).toContain('Start dough →');
+    expect(timeline).toContain('Continue baking →');
     expectTextLink(shopping, "Next →", "/session/kitchen");
     expectTextLink(shopping, "Back", "/session/timeline");
     expectTextLink(kitchen, "Back to timeline", "/session/timeline");

@@ -38,14 +38,18 @@ describe("Pizza Session timeline", () => {
 
     const page = source("app/session/timeline/page.tsx");
     expect(page).toContain("Your pizza timeline");
-    expect(page).toContain("Here’s your schedule. Follow the key moments and you’ll be ready on time.");
+    expect(page).toContain("Step 7 of 10");
+    expect(page).toContain("Timeline");
+    expect(page).toContain("Reference page");
+    expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).toContain("Next up");
     expect(page).toContain("Critical moments");
     expect(page).toContain("Full timeline");
-    expect(page).toContain("Saved in this browser");
-    expect(page).toContain("Start dough work →");
-    expect(page).toContain("Back to Recipe");
-    expect(page).toContain("Next step →");
+    expect(page).toContain("Saved locally in this browser.");
+    expect(page).toContain("Start dough →");
+    expect(page).toContain("BottomActionBar");
+    expect(page).toContain("href=\"/session/recipe\"");
+    expect(page).toContain("href={nextAction.href}");
     expect(page).not.toContain("Session summary");
     expect(page).not.toContain("How this timeline works");
     expect(page).not.toContain("Mark done");
@@ -55,6 +59,7 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("Copy schedule");
     expect(page).not.toContain("Create shopping list");
     expect(page).not.toContain("Open full Planner");
+    expect(page).not.toContain("<AppSignature");
   });
 
   it("keeps Next up focused on the real next action", () => {
@@ -62,12 +67,13 @@ describe("Pizza Session timeline", () => {
 
     expect(page).toContain("function nextActionForTimeline");
     expect(page).toContain("title: \"Get pizza ingredients\"");
-    expect(page).toContain("cta: \"Start dough work →\"");
-    expect(page).toContain("cta: \"Start baking →\"");
-    expect(page).toContain("cta: \"Review and add notes →\"");
+    expect(page).toContain("cta: \"Start dough →\"");
+    expect(page).toContain("cta: \"Continue baking →\"");
+    expect(page).toContain("cta: \"Review your pizza →\"");
     expect(page).toContain("href={nextAction.href}");
     expect(page).toContain("{nextAction.title}");
     expect(page).toContain("{nextAction.subtext}");
+    expect(page).toContain("Recommended action");
     expect(page).toContain("Open shopping list →");
     expect(page).toContain("href: \"/session/kitchen\"");
     expect(page).toContain("href: \"/session/review\"");
@@ -158,24 +164,29 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("criticalMomentTitle(step)");
     expect(page).toContain("Put dough in fridge");
     expect(page).toContain("Take dough out");
+    expect(page).toContain("step.id === \"room-temperature-rest\"");
   });
 
   it("keeps Back and Next navigation aligned with the next action", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("Back to Recipe");
     expect(page).toContain("href=\"/session/recipe\"");
-    expect(page).toContain("Next step →");
     expect(page).toContain("href={nextAction.href}");
+    expect(page).toContain("{nextAction.cta}");
+    expect(page).toContain("BottomActionBar");
     expect(page).not.toContain("Review dough plan →");
   });
 
-  it("formats timeline target time as a human-readable value with year", () => {
+  it("keeps timeline page focused without repeated metadata or footer clutter", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("year: \"numeric\"");
-    expect(page).toContain("Target: {formatDateTime(targetTime)}");
+    expect(page).not.toContain("Target: {formatDateTime(targetTime)}");
     expect(page).not.toContain("Target: {timeline.targetEatTime");
+    expect(page).not.toContain("Pizza preset");
+    expect(page).not.toContain("Pizza count");
+    expect(page).not.toContain("Ball weight");
+    expect(page).not.toContain("<AppSignature");
   });
 
   it("generates backward scheduled timeline steps from targetEatTime", () => {
