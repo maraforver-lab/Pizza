@@ -6,6 +6,7 @@ import { BottomActionBar, StatusPill } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
+import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
   type PizzaSession,
   type PizzaSessionTimelineStep,
@@ -139,6 +140,7 @@ export default function SessionKitchenPage() {
 
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
+      <SessionViewportReset />
       <div className="mx-auto max-w-6xl">
         <SessionStepHero
           step={9}

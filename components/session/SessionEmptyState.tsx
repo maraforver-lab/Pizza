@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
+import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 
 type SessionEmptyStateProps = {
   actionHref?: string;
@@ -21,6 +22,7 @@ export function SessionEmptyState({
 }: SessionEmptyStateProps) {
   return (
     <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6">
+      <SessionViewportReset />
       <section className="mx-auto max-w-3xl rounded-[1.5rem] border border-white/80 bg-white/85 p-5 shadow-card sm:rounded-[2rem] sm:p-8">
         <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{eyebrow}</p>
         <h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">{title}</h1>

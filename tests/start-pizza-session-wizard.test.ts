@@ -316,20 +316,12 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("step === \"time\" && Boolean(targetTimeDraft || session?.targetEatTime)");
   });
 
-  it("scrolls the current decision panel into view after Continue or Back changes steps", () => {
+  it("resets the session viewport after Continue or Back changes steps", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("const sessionShellRef = useRef<HTMLDivElement>(null)");
-    expect(page).toContain("const stepPanelRef = useRef<HTMLElement>(null)");
-    expect(page).toContain("const didRenderInitialStepRef = useRef(false)");
-    expect(page).toContain('const desktopLayout = window.matchMedia?.("(min-width: 1024px)").matches');
-    expect(page).toContain("sessionShellRef.current?.scrollIntoView");
-    expect(page).toContain("stepPanelRef.current?.scrollIntoView");
-    expect(page).toContain("prefers-reduced-motion: reduce");
-    expect(page).toContain("behavior: prefersReducedMotion ? \"auto\" : \"smooth\"");
-    expect(page).toContain("}, [ready, step]);");
-    expect(page).toContain("ref={sessionShellRef}");
-    expect(page).toContain("ref={stepPanelRef}");
+    expect(page).toContain("SessionViewportReset");
+    expect(page).toContain("<SessionViewportReset watchKey={step} />");
+    expect(page).not.toContain("scrollIntoView");
   });
 
   it("offers quick day and time choices before the custom date/time input", () => {

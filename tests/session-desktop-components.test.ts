@@ -32,6 +32,19 @@ describe("Pizza Session desktop refinement components", () => {
     expect(component).not.toContain("role=\"button\"");
   });
 
+  it("adds a shared viewport reset for session route and step openings", () => {
+    const component = source("components/session/SessionViewportReset.tsx");
+    const emptyState = source("components/session/SessionEmptyState.tsx");
+
+    expect(component).toContain("export function SessionViewportReset");
+    expect(component).toContain("usePathname");
+    expect(component).toContain("watchKey");
+    expect(component).toContain('window.history.scrollRestoration = "manual"');
+    expect(component).toContain("window.scrollTo({ top: 0, left: 0, behavior: \"auto\" })");
+    expect(component).toContain("window.requestAnimationFrame(reset)");
+    expect(emptyState).toContain("SessionViewportReset");
+  });
+
   it("uses the shared desktop step hero on Pizza Session steps 6 through 10", () => {
     const pages = [
       "app/session/recipe/page.tsx",
@@ -44,6 +57,7 @@ describe("Pizza Session desktop refinement components", () => {
     for (const pagePath of pages) {
       const page = source(pagePath);
       expect(page).toContain("SessionStepHero");
+      expect(page).toContain("SessionViewportReset");
     }
   });
 });

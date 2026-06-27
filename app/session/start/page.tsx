@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
   getExperienceLevelCornerAccentStyle,
   readExperienceLevelPreference,
@@ -241,9 +242,6 @@ export default function StartPizzaSessionPage() {
   const [selectedDayChoice, setSelectedDayChoice] = useState<PizzaSessionDayQuickChoiceId | undefined>();
   const [selectedTimeChoice, setSelectedTimeChoice] = useState<PizzaSessionTimeQuickChoiceId | undefined>();
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
-  const sessionShellRef = useRef<HTMLDivElement>(null);
-  const stepPanelRef = useRef<HTMLElement>(null);
-  const didRenderInitialStepRef = useRef(false);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -279,29 +277,6 @@ export default function StartPizzaSessionPage() {
     setStep(initialWizardStep(nextSession));
     setReady(true);
   }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (!didRenderInitialStepRef.current) {
-      didRenderInitialStepRef.current = true;
-      return;
-    }
-
-    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const desktopLayout = window.matchMedia?.("(min-width: 1024px)").matches;
-    if (desktopLayout) {
-      sessionShellRef.current?.scrollIntoView({
-        block: "start",
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-      });
-      return;
-    }
-
-    stepPanelRef.current?.scrollIntoView({
-      block: "start",
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-    });
-  }, [ready, step]);
 
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);
@@ -403,6 +378,7 @@ export default function StartPizzaSessionPage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-4 pb-16 text-ink sm:px-6 sm:py-6">
+      <SessionViewportReset watchKey={step} />
       <header className="mx-auto mb-4 flex max-w-6xl items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-3 text-sm font-extrabold" aria-label="DoughTools home">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-sm">○</span>
@@ -413,7 +389,7 @@ export default function StartPizzaSessionPage() {
         </Link>
       </header>
 
-      <div ref={sessionShellRef} className="mx-auto grid max-w-6xl scroll-mt-4 gap-4 lg:grid-cols-[16rem_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[16rem_1fr]">
         <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
           <h1 className="font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
           <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, timeline, shopping, kitchen mode and review come next.</p>
@@ -451,8 +427,7 @@ export default function StartPizzaSessionPage() {
         </aside>
 
         <section
-          ref={stepPanelRef}
-          className="min-w-0 scroll-mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]"
+          className="min-w-0 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]"
           style={levelMainAccent}
           aria-live="polite"
         >
