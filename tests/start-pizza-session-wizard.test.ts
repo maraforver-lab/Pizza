@@ -233,11 +233,25 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("function formatTargetTime");
+    expect(page).toContain("function formatTargetDate");
+    expect(page).toContain("function formatTargetClockTime");
     expect(page).toContain("weekday: \"short\"");
     expect(page).toContain("month: \"short\"");
     expect(page).toContain("hour: \"2-digit\"");
     expect(page).toContain("[\"When\", formatTargetTime(session.targetEatTime)]");
     expect(page).not.toContain("[\"Target time\", session.targetEatTime || \"Not set yet\"]");
+  });
+
+  it("shows target pizza time as a compact time-step summary instead of a full-width bar", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain('step === "time" && targetTimeDraft');
+    expect(page).toContain("Target pizza time</p>");
+    expect(page).toContain("{formatTargetDate(targetTimeDraft)}");
+    expect(page).toContain("{formatTargetClockTime(targetTimeDraft)}");
+    expect(page).toContain("sm:w-auto sm:min-w-48 sm:text-right");
+    expect(page).not.toContain("Target pizza time: {formatTargetTime(targetTimeDraft)}");
+    expect(page).not.toContain("rounded-2xl bg-leaf/[.08] px-4 py-3 text-sm font-bold text-leaf");
   });
 
   it("uses Patch 31 local storage helpers for creation, active id and autosave", () => {

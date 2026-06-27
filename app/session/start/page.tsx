@@ -222,6 +222,28 @@ function formatTargetTime(value?: string) {
   }).format(date);
 }
 
+function formatTargetDate(value?: string) {
+  if (!value) return "Not set yet";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not set yet";
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatTargetClockTime(value?: string) {
+  if (!value) return "--:--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--:--";
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function isValidTargetTime(value?: string) {
   return Boolean(value && !Number.isNaN(new Date(value).getTime()));
 }
@@ -450,13 +472,20 @@ export default function StartPizzaSessionPage() {
             <p className="mt-1.5 text-[11px] font-bold normal-case tracking-normal text-ink/40">{setupPercent}% setup complete. Dough plan next.</p>
           </div>
 
-          <div className="mb-4 flex flex-col gap-1.5 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
-            <div>
+          <div className="mb-4 flex flex-col gap-3 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
               <h2 className="font-display text-3xl font-semibold leading-none sm:text-4xl">
                 {wizardStepQuestions[step]}
               </h2>
               <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-3 sm:text-sm">{wizardStepHelpers[step]}</p>
             </div>
+            {step === "time" && targetTimeDraft && (
+              <div className="w-full rounded-2xl border border-leaf/15 bg-leaf/[.07] px-4 py-3 text-left shadow-sm sm:w-auto sm:min-w-48 sm:text-right" aria-live="polite">
+                <p className="text-[0.65rem] font-black uppercase tracking-[.16em] text-leaf/75">Target pizza time</p>
+                <p className="mt-1 text-sm font-extrabold leading-5 text-ink">{formatTargetDate(targetTimeDraft)}</p>
+                <p className="font-display text-2xl font-semibold leading-none text-leaf">{formatTargetClockTime(targetTimeDraft)}</p>
+              </div>
+            )}
           </div>
 
           {step === "path" && (
@@ -552,12 +581,6 @@ export default function StartPizzaSessionPage() {
                     Use this when the quick choices are not exact enough.
                   </span>
                 </label>
-              )}
-
-              {targetTimeDraft && (
-                <p className="rounded-2xl bg-leaf/[.08] px-4 py-3 text-sm font-bold text-leaf">
-                  Target pizza time: {formatTargetTime(targetTimeDraft)}
-                </p>
               )}
             </div>
           )}
