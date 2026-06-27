@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
-import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
-  getExperienceLevelConfig,
+  getExperienceLevelCornerAccentStyle,
   readExperienceLevelPreference,
   type ExperienceLevel,
 } from "@/lib/experience-levels";
@@ -304,7 +303,6 @@ export default function StartPizzaSessionPage() {
     });
   }, [ready, step]);
 
-  const experience = getExperienceLevelConfig(experienceLevel);
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);
   const setupPercent = Math.round((progress / wizardSteps.length) * 100);
@@ -401,12 +399,7 @@ export default function StartPizzaSessionPage() {
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const lastSaved = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(session.lastSavedAt));
-  const beginnerMainAccent = experienceLevel === "beginner"
-    ? {
-        backgroundImage:
-          "radial-gradient(circle at 100% 0%, rgba(58, 163, 106, 0.16), rgba(255, 255, 255, 0.92) 38%, rgba(255, 255, 255, 0.85) 68%)",
-      }
-    : undefined;
+  const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-4 pb-16 text-ink sm:px-6 sm:py-6">
@@ -422,12 +415,8 @@ export default function StartPizzaSessionPage() {
 
       <div ref={sessionShellRef} className="mx-auto grid max-w-6xl scroll-mt-4 gap-4 lg:grid-cols-[16rem_1fr]">
         <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>
-          <h1 className="mt-2 font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
+          <h1 className="font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
           <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, timeline, shopping, kitchen mode and review come next.</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <GuidanceModeBadge level={experienceLevel} />
-          </div>
           <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
             <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
               <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>
@@ -438,7 +427,7 @@ export default function StartPizzaSessionPage() {
             </div>
             <p className="mt-2 text-[11px] font-bold text-ink/45">Setup is steps 1–5 of the full pizza journey.</p>
           </div>
-          <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session V2 journey">
+          <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session journey">
             {journeySteps.map((item, index) => {
               const state = journeyStepState(index, journeyProgress);
               return (
@@ -464,7 +453,7 @@ export default function StartPizzaSessionPage() {
         <section
           ref={stepPanelRef}
           className="min-w-0 scroll-mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]"
-          style={beginnerMainAccent}
+          style={levelMainAccent}
           aria-live="polite"
         >
           <div className="mb-3 lg:hidden">

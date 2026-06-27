@@ -8,6 +8,7 @@ import {
   EXPERIENCE_LEVELS,
   LEGACY_EXPERIENCE_LEVEL_MIGRATIONS,
   getDefaultExperienceLevel,
+  getExperienceLevelCornerAccentStyle,
   getExperienceLevelConfig,
   getExperienceLevelCopyMode,
   getExperienceLevelOrder,
@@ -86,6 +87,16 @@ describe("experience levels foundation", () => {
     expect(getExperienceLevelConfig("beginner").label).toBe("Beginner");
     expect(getExperienceLevelConfig("enthusiast").label).toBe("Enthusiast");
     expect(getExperienceLevelConfig("pizza_nerd").label).toBe("Pizza Nerd");
+    expect(getExperienceLevelConfig("beginner").accent).toBe("green");
+    expect(getExperienceLevelConfig("enthusiast").accent).toBe("orange");
+    expect(getExperienceLevelConfig("pizza_nerd").accent).toBe("pink-red");
+  });
+
+  it("maps each experience level to a shared subtle corner accent", () => {
+    expect(getExperienceLevelCornerAccentStyle("beginner").backgroundImage).toContain("rgba(58, 163, 106");
+    expect(getExperienceLevelCornerAccentStyle("enthusiast").backgroundImage).toContain("rgba(242, 161, 95");
+    expect(getExperienceLevelCornerAccentStyle("pizza_nerd").backgroundImage).toContain("rgba(235, 87, 127");
+    expect(getExperienceLevelCornerAccentStyle("missing").backgroundImage).toBe(getExperienceLevelCornerAccentStyle("beginner").backgroundImage);
   });
 
   it("exports the documented localStorage key", () => {

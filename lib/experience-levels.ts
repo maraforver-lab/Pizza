@@ -2,7 +2,7 @@ export type ExperienceLevel = "beginner" | "enthusiast" | "pizza_nerd";
 
 export type LegacyExperienceLevel = "intermediate" | "advanced";
 
-export type ExperienceLevelAccent = "green" | "orange" | "dark-red";
+export type ExperienceLevelAccent = "green" | "orange" | "pink-red";
 
 export type ExperienceLevelConfig = {
   id: ExperienceLevel;
@@ -62,9 +62,9 @@ export const EXPERIENCE_LEVELS = [
     marker: "🟠",
     badgeLabel: "Enthusiast",
     accent: "orange",
-    badgeClassName: "bg-tomato/10 text-tomato ring-tomato/20",
-    cardClassName: "border-tomato/30 bg-tomato/[.06]",
-    markerClassName: "bg-tomato",
+    badgeClassName: "bg-[#f2a15f]/15 text-[#b85f20] ring-[#f2a15f]/25",
+    cardClassName: "border-[#f2a15f]/35 bg-[#f2a15f]/[.08]",
+    markerClassName: "bg-[#f2a15f]",
   },
   {
     id: "pizza_nerd",
@@ -79,10 +79,10 @@ export const EXPERIENCE_LEVELS = [
     guidanceTone: "Precise, technical, transparent and not unnecessarily simplified.",
     marker: "🔴",
     badgeLabel: "Pizza Nerd",
-    accent: "dark-red",
-    badgeClassName: "bg-[#5d3025]/10 text-[#5d3025] ring-[#5d3025]/20",
-    cardClassName: "border-[#5d3025]/30 bg-[#5d3025]/[.06]",
-    markerClassName: "bg-[#5d3025]",
+    accent: "pink-red",
+    badgeClassName: "bg-[#eb577f]/10 text-[#b8325d] ring-[#eb577f]/20",
+    cardClassName: "border-[#eb577f]/30 bg-[#eb577f]/[.07]",
+    markerClassName: "bg-[#eb577f]",
   },
 ] as const satisfies readonly ExperienceLevelConfig[];
 
@@ -115,6 +115,21 @@ export function normalizeExperienceLevel(value: unknown): ExperienceLevel {
 export function getExperienceLevelConfig(level: unknown): ExperienceLevelConfig {
   const normalized = normalizeExperienceLevel(level);
   return EXPERIENCE_LEVELS.find((item) => item.id === normalized) ?? EXPERIENCE_LEVELS[0];
+}
+
+const EXPERIENCE_LEVEL_CORNER_ACCENTS: Record<ExperienceLevel, string> = {
+  beginner:
+    "radial-gradient(circle at 100% 0%, rgba(58, 163, 106, 0.16), rgba(255, 255, 255, 0.92) 38%, rgba(255, 255, 255, 0.85) 68%)",
+  enthusiast:
+    "radial-gradient(circle at 100% 0%, rgba(242, 161, 95, 0.18), rgba(255, 255, 255, 0.92) 38%, rgba(255, 255, 255, 0.85) 68%)",
+  pizza_nerd:
+    "radial-gradient(circle at 100% 0%, rgba(235, 87, 127, 0.16), rgba(255, 255, 255, 0.92) 38%, rgba(255, 255, 255, 0.85) 68%)",
+};
+
+export function getExperienceLevelCornerAccentStyle(level: unknown) {
+  return {
+    backgroundImage: EXPERIENCE_LEVEL_CORNER_ACCENTS[normalizeExperienceLevel(level)],
+  };
 }
 
 export function getDefaultExperienceLevel(): ExperienceLevel {

@@ -170,16 +170,17 @@ describe("Start Pizza Session wizard", () => {
 
   it("prevents duplicate guidance and mobile step indicators on the session start page", () => {
     const page = source("app/session/start/page.tsx");
-    const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{experienceLevel\} \/>/g) ?? [];
     const journeyProgressUses = page.match(/Step \$\{journeyProgress\} of \$\{journeySteps.length\}/g) ?? [];
 
-    expect(guidanceBadgeUses).toHaveLength(1);
     expect(journeyProgressUses).toHaveLength(1);
     expect(page).toContain('<aside className="hidden rounded-[1.75rem]');
     expect(page).toContain('<div className="mb-3 lg:hidden">');
-    expect(page).toContain('aria-label="Pizza Session V2 journey"');
+    expect(page).toContain('aria-label="Pizza Session journey"');
     expect(page).toContain('aria-label="Pizza Session setup progress"');
     expect(page).toContain("setup complete. Dough plan next.");
+    expect(page).not.toContain("GuidanceModeBadge");
+    expect(page).not.toContain("Guidance mode:");
+    expect(page).not.toContain("Pizza Session V2");
     expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
     expect(page).not.toContain("sm:inline-flex ${experience.badgeClassName}");
     expect(page).not.toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>');
@@ -396,13 +397,14 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("beginner");
     expect(page).toContain("enthusiast");
     expect(page).toContain("pizza_nerd");
-    expect(page).toContain("GuidanceModeBadge");
-    expect(page).toContain('experienceLevel === "beginner"');
-    expect(page).toContain("radial-gradient(circle at 100% 0%");
-    expect(page).toContain("rgba(58, 163, 106");
+    expect(page).toContain("getExperienceLevelCornerAccentStyle");
+    expect(page).toContain("const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel)");
     expect(levels).toContain("Beginner");
     expect(levels).toContain("Enthusiast");
     expect(levels).toContain("Pizza Nerd");
+    expect(levels).toContain("rgba(58, 163, 106");
+    expect(levels).toContain("rgba(242, 161, 95");
+    expect(levels).toContain("rgba(235, 87, 127");
     expect(page).not.toMatch(/Home Pizza Maker|intermediate|advanced/);
   });
 
@@ -410,13 +412,12 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
     const headerLogoIndex = page.indexOf('aria-label="DoughTools home"');
     const sidebarIndex = page.indexOf("<aside");
-    const sidebarSessionLabelIndex = page.indexOf("Pizza Session V2", sidebarIndex);
 
     expect(headerLogoIndex).toBeGreaterThan(-1);
     expect(sidebarIndex).toBeGreaterThan(-1);
-    expect(sidebarSessionLabelIndex).toBeGreaterThan(sidebarIndex);
     expect(page.indexOf('aria-label="DoughTools home"', sidebarIndex)).toBe(-1);
-    expect(page).toContain('<p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>');
+    expect(page).toContain('<h1 className="font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>');
+    expect(page).not.toContain('<p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>');
   });
 
   it("is honest about local-first behavior and avoids unavailable claims", () => {
