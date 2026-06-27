@@ -6,7 +6,11 @@ export type PizzaPresetId =
   | "diavola"
   | "funghi"
   | "pepperoni-salami"
-  | "simple-cheese";
+  | "simple-cheese"
+  | "hawaiian"
+  | "mushroom"
+  | "meat-lovers"
+  | "white-pizza";
 
 export type PizzaPresetIngredient = {
   id: string;
@@ -38,6 +42,10 @@ export const REQUIRED_PIZZA_PRESET_IDS: PizzaPresetId[] = [
   "funghi",
   "pepperoni-salami",
   "simple-cheese",
+  "hawaiian",
+  "mushroom",
+  "meat-lovers",
+  "white-pizza",
 ];
 
 const doughItems: PizzaPresetIngredient[] = [
@@ -175,6 +183,81 @@ export const pizzaSessionPresets: PizzaSessionPreset[] = [
       { group: "Sauce", items: [tomatoSauce] },
       { group: "Cheese", items: [mozzarella] },
       { group: "Toppings", items: [] },
+      { group: "Gear", items: [] },
+    ],
+  },
+  {
+    id: "hawaiian",
+    name: "Hawaiian",
+    marker: "🍍",
+    shortDescription: "Ham and pineapple with tomato sauce and cheese.",
+    bestFor: "A sweet-salty pizza night with familiar toppings.",
+    beginnerCopy: "Buy ham, pineapple, mozzarella and tomato sauce.",
+    enthusiastCopy: "Drain pineapple well so the center does not get too wet.",
+    pizzaNerdCopy: "A moisture-sensitive preset: pineapple brings sweetness and water, so topping load matters.",
+    ingredientGroups: [
+      { group: "Dough", items: doughItems },
+      { group: "Sauce", items: [tomatoSauce] },
+      { group: "Cheese", items: [mozzarella] },
+      { group: "Toppings", items: [
+        { id: "ham", label: "Ham", amountHint: "thin slices or small pieces" },
+        { id: "pineapple", label: "Pineapple", amountHint: "drained well" },
+      ] },
+      { group: "Gear", items: [] },
+    ],
+  },
+  {
+    id: "mushroom",
+    name: "Mushroom",
+    marker: "🍄",
+    shortDescription: "Mushrooms with mozzarella and tomato sauce.",
+    bestFor: "A simple mushroom pizza with classic sauce and cheese.",
+    beginnerCopy: "Use sliced mushrooms, mozzarella and tomato sauce.",
+    enthusiastCopy: "Slice mushrooms thinly or pre-cook them if they are very wet.",
+    pizzaNerdCopy: "Mushrooms add water during the bake; even slicing and moderate topping load help the crust.",
+    ingredientGroups: [
+      { group: "Dough", items: doughItems },
+      { group: "Sauce", items: [tomatoSauce] },
+      { group: "Cheese", items: [mozzarella] },
+      { group: "Toppings", items: [{ id: "mushrooms", label: "Mushrooms", amountHint: "thinly sliced" }] },
+      { group: "Gear", items: [] },
+    ],
+  },
+  {
+    id: "meat-lovers",
+    name: "Meat lovers",
+    marker: "🥓",
+    shortDescription: "Pepperoni, ham and sausage.",
+    bestFor: "A heavier topping pizza where keeping the layer even matters.",
+    beginnerCopy: "Use pepperoni, ham and sausage, but keep the layer light.",
+    enthusiastCopy: "Cured and cooked meats release fat, so avoid overloading the center.",
+    pizzaNerdCopy: "A fat-rendering preset: balance meat quantity with bake heat and cheese moisture.",
+    ingredientGroups: [
+      { group: "Dough", items: doughItems },
+      { group: "Sauce", items: [tomatoSauce] },
+      { group: "Cheese", items: [mozzarella] },
+      { group: "Toppings", items: [
+        { id: "pepperoni", label: "Pepperoni", amountHint: "thin, even layer" },
+        { id: "ham", label: "Ham", amountHint: "small pieces" },
+        { id: "sausage", label: "Sausage", amountHint: "cooked or ready-to-bake pieces" },
+      ] },
+      { group: "Gear", items: [] },
+    ],
+  },
+  {
+    id: "white-pizza",
+    name: "White pizza",
+    marker: "⚪",
+    shortDescription: "No tomato sauce, just cheese and a creamy white base.",
+    bestFor: "A no-tomato pizza with a softer, creamy flavor.",
+    beginnerCopy: "Use mozzarella and a simple white base instead of tomato sauce.",
+    enthusiastCopy: "Keep the white base thin so the dough still bakes cleanly.",
+    pizzaNerdCopy: "A no-tomato preset: watch moisture from cheese and creamy base more than sauce acidity.",
+    ingredientGroups: [
+      { group: "Dough", items: doughItems },
+      { group: "Sauce", items: [{ id: "white-base", label: "Creamy white base", amountHint: "thin layer" }] },
+      { group: "Cheese", items: [mozzarella] },
+      { group: "Toppings", items: [{ ...oliveOil, id: "optional-olive-oil" }] },
       { group: "Gear", items: [] },
     ],
   },

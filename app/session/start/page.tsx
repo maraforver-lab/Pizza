@@ -123,7 +123,10 @@ const wizardPresetOptions: Array<{
   { id: "margherita", label: "Margherita", icon: "🍅", description: "Tomato, mozzarella and fresh basil." },
   { id: "pepperoni-salami", label: "Pepperoni", icon: "🍕", description: "Pepperoni with tomato sauce." },
   { id: "funghi", label: "Veggie", icon: "🥬", description: "Vegetables and tomato sauce." },
-  { id: "marinara", label: "I’ll decide toppings later", icon: "?", description: "No problem, we’ll keep it flexible." },
+  { id: "hawaiian", label: "Hawaiian", icon: "🍍", description: "Ham and pineapple." },
+  { id: "mushroom", label: "Mushroom", icon: "🍄", description: "Mushrooms, mozzarella and tomato sauce." },
+  { id: "meat-lovers", label: "Meat lovers", icon: "🥓", description: "Pepperoni, ham and sausage." },
+  { id: "white-pizza", label: "White pizza", icon: "⚪", description: "Cheese with a creamy white base." },
 ];
 
 const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
@@ -182,8 +185,11 @@ function initialWizardStep(session: PizzaSession): WizardStep {
   return "path";
 }
 
-function optionClass(active: boolean) {
-  return `relative grid min-h-[4rem] grid-cols-[auto_1fr] items-start gap-2.5 rounded-[1.1rem] border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:block sm:min-h-[7rem] sm:rounded-[1.25rem] sm:p-4 ${
+function optionClass(active: boolean, density: "default" | "compact" = "default") {
+  const sizeClass = density === "compact"
+    ? "min-h-[6.75rem] rounded-[1rem] p-2.5 sm:min-h-[7rem] sm:rounded-[1.1rem] sm:p-3"
+    : "grid min-h-[4rem] grid-cols-[auto_1fr] items-start gap-2.5 rounded-[1.1rem] p-3 sm:block sm:min-h-[7rem] sm:rounded-[1.25rem] sm:p-4";
+  return `relative border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${sizeClass} ${
     active ? "border-tomato bg-tomato/[.06] shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30 hover:shadow-sm"
   }`;
 }
@@ -201,9 +207,9 @@ function selectedIndicator(active: boolean) {
   );
 }
 
-function iconBadge(icon: string) {
+function iconBadge(icon: string, density: "default" | "compact" = "default") {
   return (
-    <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-lg shadow-sm sm:mb-3 sm:h-11 sm:w-11 sm:text-2xl">
+    <span aria-hidden="true" className={density === "compact" ? "mb-2 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-lg shadow-sm sm:h-9 sm:w-9 sm:text-xl" : "grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-lg shadow-sm sm:mb-3 sm:h-11 sm:w-11 sm:text-2xl"}>
       {icon}
     </span>
   );
@@ -485,14 +491,14 @@ export default function StartPizzaSessionPage() {
           )}
 
           {step === "preset" && (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
               {wizardPresetOptions.map((preset) => (
-                <button key={preset.id} type="button" onClick={() => selectPreset(preset.id)} aria-pressed={session.pizzaPreset === preset.id} className={optionClass(session.pizzaPreset === preset.id)}>
+                <button key={preset.id} type="button" onClick={() => selectPreset(preset.id)} aria-pressed={session.pizzaPreset === preset.id} className={optionClass(session.pizzaPreset === preset.id, "compact")}>
                   {selectedIndicator(session.pizzaPreset === preset.id)}
-                  {iconBadge(preset.icon)}
-                  <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{preset.label}</span>
-                  <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{preset.description}</span>
-                  {session.pizzaPreset === preset.id && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
+                  {iconBadge(preset.icon, "compact")}
+                  <span className="block pr-7 text-sm font-extrabold leading-tight text-ink">{preset.label}</span>
+                  <span className="mt-1 block text-[11px] leading-4 text-ink/55 sm:text-xs">{preset.description}</span>
+                  {session.pizzaPreset === preset.id && <span className="mt-1.5 block text-[10px] font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
                 </button>
               ))}
             </div>

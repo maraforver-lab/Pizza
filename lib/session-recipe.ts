@@ -23,6 +23,10 @@ const presetToStyle: Partial<Record<string, PizzaStyleId>> = {
   funghi: "new-york",
   "pepperoni-salami": "new-york",
   "simple-cheese": "neapolitan",
+  hawaiian: "new-york",
+  mushroom: "new-york",
+  "meat-lovers": "new-york",
+  "white-pizza": "new-york",
 };
 
 function safeFlourId(value?: string): FlourId | undefined {
