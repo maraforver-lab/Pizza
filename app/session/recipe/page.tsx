@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BottomActionBar, StatusPill } from "@/components/design-system";
-import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
+import { BottomActionBar } from "@/components/design-system";
+import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
+import { SessionStepHero } from "@/components/session/SessionStepHero";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
 import {
@@ -111,36 +112,24 @@ export default function SessionRecipePage() {
   ];
   const doughPrepIngredients = ["Flour", "Water", "Salt", "Yeast"];
   const doughPrepTools = ["Digital scale", "Mixing bowl", "Dough scraper or sturdy spoon", "Covered container or bowl"];
-  const journeyContext = ["Step 6 of 10", "Dough plan", "Reference page"];
 
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-5xl">
-        <section
-          aria-labelledby="session-recipe-heading"
-          className="rounded-[2rem] bg-white/90 p-5 shadow-card sm:p-8"
-        >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {journeyContext.map((item) => (
-                  <StatusPill key={item} className={item === "Step 6 of 10" ? "bg-tomato/10 text-tomato" : undefined}>
-                    {item}
-                  </StatusPill>
-                ))}
-                <GuidanceModeBadge level={session.experienceLevel} />
-              </div>
-              <h1 id="session-recipe-heading" className="mt-3 max-w-3xl font-display text-5xl font-semibold leading-none sm:text-6xl">Your dough plan is ready.</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">Get your dough ingredients and amounts ready before you start.</p>
-              <p className="mt-4 text-xs font-bold text-ink/45">Saved locally in this browser.</p>
-            </div>
-            <div className="hidden rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/60 lg:block">
+        <SessionStepHero
+          step={6}
+          label="Dough plan"
+          pageType="Reference page"
+          title="Your dough plan is ready."
+          body="Get your dough ingredients and amounts ready before you start."
+          level={session.experienceLevel}
+          desktopAside={(
+            <>
               <strong className="block text-ink">Step 6: Dough plan</strong>
               Before this, you set up the basics. After this, the timeline, shopping list, kitchen mode and review come next.
-            </div>
-          </div>
-        </section>
+            </>
+          )}
+        />
 
         <section className="mt-6" aria-label="Dough plan details">
           <div className="grid min-w-0 gap-5">
@@ -203,9 +192,9 @@ export default function SessionRecipePage() {
               <p className="mt-2 text-sm leading-6 text-ink/55">
                 Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.
               </p>
-              <p className="mt-4 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
+              <SessionLocalOnlyNote>
                 {PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.
-              </p>
+              </SessionLocalOnlyNote>
             </article>
           </div>
         </section>

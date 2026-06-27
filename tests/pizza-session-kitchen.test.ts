@@ -68,7 +68,8 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("\"use client\"");
     expect(page).toContain("Kitchen Mode");
-    expect(page).toContain("Step 9 of 10");
+    expect(page).toContain("SessionStepHero");
+    expect(page).toContain("step={9}");
     expect(page).toContain("Execution page");
     expect(page).toContain("Dough Kitchen Mode");
     expect(page).toContain("Pizza Service Mode");
@@ -256,7 +257,7 @@ describe("Pizza Session Kitchen Mode", () => {
   it("aligns Kitchen Mode with Pizza Session V2 execution structure", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("Step 9 of 10");
+    expect(page).toContain("step={9}");
     expect(page).toContain("Current task");
     expect(page).toContain("Needed now");
     expect(page).toContain("Instruction");

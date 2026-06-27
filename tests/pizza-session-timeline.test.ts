@@ -38,14 +38,15 @@ describe("Pizza Session timeline", () => {
 
     const page = source("app/session/timeline/page.tsx");
     expect(page).toContain("Your pizza timeline");
-    expect(page).toContain("Step 7 of 10");
+    expect(page).toContain("SessionStepHero");
+    expect(page).toContain("step={7}");
     expect(page).toContain("Timeline");
     expect(page).toContain("Reference page");
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).toContain("Next up");
     expect(page).toContain("Critical moments");
     expect(page).toContain("Full timeline");
-    expect(page).toContain("Saved locally in this browser.");
+    expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("Start dough →");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/recipe\"");

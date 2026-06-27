@@ -53,8 +53,8 @@ describe("Session recipe build step", () => {
     const page = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("\"use client\"");
-    expect(page).toContain("Pizza Session V2");
-    expect(page).toContain("Step 6 of 10");
+    expect(page).toContain("SessionStepHero");
+    expect(page).toContain("step={6}");
     expect(page).toContain("Dough plan");
     expect(page).toContain("Reference page");
     expect(page).toContain("Your dough plan is ready.");
@@ -74,9 +74,10 @@ describe("Session recipe build step", () => {
 
   it("removes repeated hero setup chips and separate Session Summary", () => {
     const page = source("app/session/recipe/page.tsx");
-    const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{session.experienceLevel\} \/>/g) ?? [];
+    const heroUses = page.match(/<SessionStepHero/g) ?? [];
 
-    expect(guidanceBadgeUses).toHaveLength(1);
+    expect(heroUses).toHaveLength(1);
+    expect(page).toContain("level={session.experienceLevel}");
     expect(page).not.toContain("Session summary");
     expect(page).not.toContain('["Pizza preset",');
     expect(page).not.toContain('["Target time",');
@@ -90,7 +91,7 @@ describe("Session recipe build step", () => {
     const page = source("app/session/recipe/page.tsx");
     const journeyDoc = source("docs/pizza-session-v2-journey.md");
 
-    expect(page).toContain("Step 6 of 10");
+    expect(page).toContain("step={6}");
     expect(page).toContain("Step 6: Dough plan");
     expect(page).toContain("After this, the timeline, shopping list, kitchen mode and review come next.");
     expect(page).not.toContain("Current journey step");

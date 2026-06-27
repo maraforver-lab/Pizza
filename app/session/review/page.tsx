@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import { BottomActionBar, StatusPill } from "@/components/design-system";
+import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
+import { SessionStepHero } from "@/components/session/SessionStepHero";
 import type { PizzaSession } from "@/lib/pizza-session";
 import {
   getActivePizzaSession,
@@ -110,24 +111,20 @@ export default function SessionReviewPage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-6xl">
-        <section
-          aria-labelledby="session-review-heading"
-          className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-8"
-        >
-          <div className="flex flex-wrap gap-2">
-            <StatusPill className="bg-tomato/10 text-tomato">Step 10 of 10</StatusPill>
-            <StatusPill>Review</StatusPill>
-            <StatusPill>Learning page</StatusPill>
-            <GuidanceModeBadge level={session.experienceLevel} />
-          </div>
-          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
-          <h1 id="session-review-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">
-            Review your pizza
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
-            Save what worked and what you want to improve next time.
-          </p>
-        </section>
+        <SessionStepHero
+          step={10}
+          label="Review"
+          pageType="Learning page"
+          title="Review your pizza"
+          body="Save what worked and what you want to improve next time."
+          level={session.experienceLevel}
+          desktopAside={(
+            <>
+              <strong className="block text-ink">Step 10: Review</strong>
+              Finish the session by saving what worked and what to try next time.
+            </>
+          )}
+        />
 
         {message && (
           <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status" aria-live="polite">
@@ -248,9 +245,9 @@ export default function SessionReviewPage() {
               </section>
             )}
 
-            <p className="mt-6 rounded-[1.5rem] bg-cream p-4 text-xs leading-5 text-ink/50">
+            <SessionLocalOnlyNote>
               {SESSION_REVIEW_LOCAL_ONLY_COPY} No photo upload, social sharing, cloud sync, account sync or public result page is active.
-            </p>
+            </SessionLocalOnlyNote>
           </section>
         </section>
       </div>
