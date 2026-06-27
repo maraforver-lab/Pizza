@@ -138,9 +138,9 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Pizza flour / Tipo 00");
     expect(page).toContain("Bread flour / Strong flour");
     expect(page).toContain("All-purpose flour");
-    expect(page).toContain("grid min-h-[4.75rem] grid-cols-[auto_1fr] items-start gap-3");
+    expect(page).toContain("grid min-h-[4rem] grid-cols-[auto_1fr] items-start gap-2.5");
     expect(page).toContain("sm:block sm:min-h-[7rem]");
-    expect(page).toContain("grid h-9 w-9 shrink-0");
+    expect(page).toContain("grid h-8 w-8 shrink-0");
     expect(page).toContain("sm:h-11 sm:w-11");
     expect(page).toContain("col-start-2 block pr-8");
     expect(page).toContain("aria-pressed={session.pizzaStyle === option.id}");
@@ -157,12 +157,13 @@ describe("Start Pizza Session wizard", () => {
     const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{experienceLevel\} \/>/g) ?? [];
     const journeyProgressUses = page.match(/Step \$\{journeyProgress\} of \$\{journeySteps.length\}/g) ?? [];
 
-    expect(guidanceBadgeUses).toHaveLength(2);
-    expect(journeyProgressUses).toHaveLength(2);
+    expect(guidanceBadgeUses).toHaveLength(1);
+    expect(journeyProgressUses).toHaveLength(1);
     expect(page).toContain('<aside className="hidden rounded-[1.75rem]');
-    expect(page).toContain('<div className="mb-4 lg:hidden">');
+    expect(page).toContain('<div className="mb-3 lg:hidden">');
     expect(page).toContain('aria-label="Pizza Session V2 journey"');
-    expect(page).toContain("Setup choices now, dough plan next.");
+    expect(page).toContain('aria-label="Pizza Session setup progress"');
+    expect(page).toContain("setup complete. Dough plan next.");
     expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
     expect(page).not.toContain("sm:inline-flex ${experience.badgeClassName}");
     expect(page).not.toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>');
@@ -402,7 +403,7 @@ describe("Start Pizza Session wizard", () => {
   it("keeps accessibility markers and keyboard-friendly controls visible in source", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("aria-label=\"Pizza Session progress\"");
+    expect(page).toContain("aria-label=\"Pizza Session setup progress\"");
     expect(page).toContain("Current journey step:");
     expect(page).toContain("Completed journey step:");
     expect(page).toContain("Upcoming journey step:");

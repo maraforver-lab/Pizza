@@ -183,7 +183,7 @@ function initialWizardStep(session: PizzaSession): WizardStep {
 }
 
 function optionClass(active: boolean) {
-  return `relative grid min-h-[4.75rem] grid-cols-[auto_1fr] items-start gap-3 rounded-[1.25rem] border p-3.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:block sm:min-h-[7rem] sm:p-4 ${
+  return `relative grid min-h-[4rem] grid-cols-[auto_1fr] items-start gap-2.5 rounded-[1.1rem] border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:block sm:min-h-[7rem] sm:rounded-[1.25rem] sm:p-4 ${
     active ? "border-tomato bg-tomato/[.06] shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30 hover:shadow-sm"
   }`;
 }
@@ -203,7 +203,7 @@ function selectedIndicator(active: boolean) {
 
 function iconBadge(icon: string) {
   return (
-    <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-xl shadow-sm sm:mb-3 sm:h-11 sm:w-11 sm:text-2xl">
+    <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-lg shadow-sm sm:mb-3 sm:h-11 sm:w-11 sm:text-2xl">
       {icon}
     </span>
   );
@@ -293,6 +293,7 @@ export default function StartPizzaSessionPage() {
   const journeyProgress = journeyProgressForStep(step);
   const setupPercent = Math.round((progress / wizardSteps.length) * 100);
   const journeyPercent = Math.round((journeyProgress / journeySteps.length) * 100);
+  const setupProgress = step === "summary" ? wizardSteps.length : progress;
 
   const savePatch = (
     patch: Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">>,
@@ -442,30 +443,29 @@ export default function StartPizzaSessionPage() {
           </div>
         </aside>
 
-        <section ref={stepPanelRef} className="min-w-0 rounded-[1.75rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]" aria-live="polite">
-          <div className="mb-4 lg:hidden">
+        <section ref={stepPanelRef} className="min-w-0 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]" aria-live="polite">
+          <div className="mb-3 lg:hidden">
             <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
-              <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>
-              <GuidanceModeBadge level={experienceLevel} />
+              <span>{step === "summary" ? "Setup ready" : `Setup step ${setupProgress} of ${wizardSteps.length}`}</span>
             </div>
-            <div className="mt-3 flex gap-2" aria-label="Pizza Session progress">
-              {journeySteps.map((item, index) => (
+            <div className="mt-2 flex gap-1.5" aria-label="Pizza Session setup progress">
+              {wizardSteps.map((item, index) => (
                 <span
-                  key={item.label}
-                  className={`h-2.5 flex-1 rounded-full ${index + 1 === journeyProgress ? "bg-tomato" : index + 1 < journeyProgress ? "bg-tomato/45" : "bg-ink/12"}`}
-                  aria-label={`${index + 1}. ${item.label}`}
+                  key={item}
+                  className={`h-2 flex-1 rounded-full ${index + 1 === setupProgress ? "bg-tomato" : index + 1 < setupProgress ? "bg-tomato/45" : "bg-ink/12"}`}
+                  aria-label={`${index + 1}. ${wizardStepLabels[item]}`}
                 />
               ))}
             </div>
-            <p className="mt-2 text-[11px] font-bold normal-case tracking-normal text-ink/40">Setup choices now, dough plan next.</p>
+            <p className="mt-1.5 text-[11px] font-bold normal-case tracking-normal text-ink/40">{setupPercent}% setup complete. Dough plan next.</p>
           </div>
 
-          <div className="mb-5 flex flex-col gap-2 pb-1 sm:flex-row sm:items-start sm:justify-between">
+          <div className="mb-4 flex flex-col gap-1.5 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="font-display text-3xl font-semibold leading-none sm:text-4xl">
                 {wizardStepQuestions[step]}
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-5 text-ink/60">{wizardStepHelpers[step]}</p>
+              <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-3 sm:text-sm">{wizardStepHelpers[step]}</p>
             </div>
           </div>
 
@@ -475,9 +475,9 @@ export default function StartPizzaSessionPage() {
                 <button key={option.id} type="button" onClick={() => selectStyle(option.id)} aria-pressed={session.pizzaStyle === option.id} className={optionClass(session.pizzaStyle === option.id)}>
                   {selectedIndicator(session.pizzaStyle === option.id)}
                   {iconBadge(option.icon)}
-                  <span className="col-start-2 block pr-8 text-base font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
-                  <span className="col-start-2 mt-1 block text-sm leading-5 text-ink/55 sm:col-auto">{option.description}</span>
-                  {option.badge && <span className="col-start-2 mt-2 inline-flex w-fit rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato sm:col-auto">{option.badge}</span>}
+                  <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
+                  <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{option.description}</span>
+                  {option.badge && <span className="col-start-2 mt-1.5 inline-flex w-fit rounded-full bg-tomato/10 px-2.5 py-1 text-[11px] font-extrabold text-tomato sm:col-auto sm:mt-2 sm:text-xs">{option.badge}</span>}
                   {session.pizzaStyle === option.id && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
                 </button>
               ))}
@@ -490,8 +490,8 @@ export default function StartPizzaSessionPage() {
                 <button key={preset.id} type="button" onClick={() => selectPreset(preset.id)} aria-pressed={session.pizzaPreset === preset.id} className={optionClass(session.pizzaPreset === preset.id)}>
                   {selectedIndicator(session.pizzaPreset === preset.id)}
                   {iconBadge(preset.icon)}
-                  <span className="col-start-2 block pr-8 text-base font-extrabold sm:col-auto sm:text-lg">{preset.label}</span>
-                  <span className="col-start-2 mt-1 block text-sm leading-5 text-ink/55 sm:col-auto">{preset.description}</span>
+                  <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{preset.label}</span>
+                  <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{preset.description}</span>
                   {session.pizzaPreset === preset.id && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
                 </button>
               ))}
@@ -500,7 +500,7 @@ export default function StartPizzaSessionPage() {
 
           {step === "time" && (
             <div className="grid gap-4">
-              <p className="max-w-2xl text-sm leading-5 text-ink/60">
+              <p className="max-w-2xl text-xs leading-5 text-ink/60 sm:text-sm">
                 Choose a target pizza time. DoughTools will build your dough, preparation and bake timeline backwards from this.
               </p>
 
@@ -513,7 +513,7 @@ export default function StartPizzaSessionPage() {
                       type="button"
                       onClick={() => selectDayChoice(choice.id)}
                       aria-pressed={selectedDayChoice === choice.id}
-                      className={`min-h-16 rounded-2xl border p-2.5 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                      className={`min-h-14 rounded-2xl border p-2 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-16 sm:p-2.5 ${
                         selectedDayChoice === choice.id ? "border-tomato bg-tomato text-white shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
                       }`}
                     >
@@ -535,7 +535,7 @@ export default function StartPizzaSessionPage() {
                         onClick={() => selectTimeChoice(choice.id)}
                         aria-pressed={selectedTimeChoice === choice.id}
                         aria-label={choice.time ? `${choice.label} — ${choice.time}` : choice.label}
-                        className={`min-h-16 rounded-2xl border p-2.5 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                      className={`min-h-14 rounded-2xl border p-2 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-16 sm:p-2.5 ${
                           selectedTimeChoice === choice.id ? "border-tomato bg-tomato text-white shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
                         }`}
                       >
@@ -575,12 +575,12 @@ export default function StartPizzaSessionPage() {
           {step === "quantity" && (
             <div className="mx-auto max-w-md">
               <div className="flex items-center justify-center gap-4">
-                <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 4) - 1))} className="grid h-12 w-12 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato" aria-label="Decrease pizza count">−</button>
+                <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 4) - 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Decrease pizza count">−</button>
                 <div className="min-w-20 text-center">
-                  <div className="font-display text-6xl font-semibold leading-none text-tomato">{session.pizzaCount ?? 4}</div>
+                  <div className="font-display text-5xl font-semibold leading-none text-tomato sm:text-6xl">{session.pizzaCount ?? 4}</div>
                   <div className="mt-1 text-sm font-extrabold text-ink">pizzas</div>
                 </div>
-                <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 4) + 1))} className="grid h-12 w-12 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato" aria-label="Increase pizza count">+</button>
+                <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 4) + 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Increase pizza count">+</button>
               </div>
               <div className="mt-6">
                 <p className="text-sm font-extrabold text-ink">Quick picks</p>
@@ -621,8 +621,8 @@ export default function StartPizzaSessionPage() {
                 <button key={option.id} type="button" onClick={() => selectFlour(option.id)} aria-pressed={session.flour === option.id} className={optionClass(session.flour === option.id)}>
                   {selectedIndicator(session.flour === option.id)}
                   {iconBadge(option.icon)}
-                  <span className="col-start-2 block pr-8 text-base font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
-                  <span className="col-start-2 mt-1 block text-sm leading-5 text-ink/55 sm:col-auto">{option.description}</span>
+                  <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
+                  <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{option.description}</span>
                   {session.flour === option.id && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
                 </button>
               ))}

@@ -29,22 +29,22 @@ export function SessionStepHero({
   return (
     <section
       aria-labelledby="session-step-heading"
-      className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-7 lg:p-8"
+      className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7 lg:p-8"
     >
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:justify-between">
+      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap gap-2">
             <StatusPill className="bg-tomato/10 text-tomato">Step {step} of 10</StatusPill>
-            <StatusPill>{label}</StatusPill>
-            <StatusPill>{pageType}</StatusPill>
-            {level && <GuidanceModeBadge level={level} />}
+            <StatusPill className="hidden sm:inline-flex">{label}</StatusPill>
+            <StatusPill className="hidden sm:inline-flex">{pageType}</StatusPill>
+            {level && <GuidanceModeBadge level={level} className="hidden sm:inline-flex" />}
           </div>
-          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
-          <h1 id="session-step-heading" className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-none sm:text-6xl">
+          <p className="mt-4 hidden text-xs font-extrabold uppercase tracking-[.22em] text-tomato sm:block">Pizza Session V2</p>
+          <h1 id="session-step-heading" className="mt-3 max-w-3xl font-display text-3xl font-semibold leading-none sm:text-6xl">
             {title}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">{body}</p>
-          {children && <div className="mt-5">{children}</div>}
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-4 sm:text-base sm:leading-6">{body}</p>
+          {children && <div className="mt-4 sm:mt-5">{children}</div>}
         </div>
         {desktopAside && (
           <aside className="hidden rounded-2xl bg-cream/80 p-4 text-sm leading-6 text-ink/60 lg:block">

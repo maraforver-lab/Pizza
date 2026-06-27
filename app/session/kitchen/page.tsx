@@ -179,7 +179,7 @@ export default function SessionKitchenPage() {
             </>
           )}
         >
-          <div className="flex flex-wrap gap-2">
+          <div className="hidden flex-wrap gap-2 sm:flex">
             <StatusPill className={kitchenMode === "service" ? "bg-tomato/10 text-tomato" : undefined}>
               {currentStep ? modeEyebrow : "Pizza session complete"}
             </StatusPill>
@@ -194,29 +194,29 @@ export default function SessionKitchenPage() {
           </p>
         )}
 
-        <section className="mt-6">
-          <article className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-7">
+        <section className="mt-4 sm:mt-6">
+          <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7">
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
                   <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Current task</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <StatusPill>{modeEyebrow}</StatusPill>
+                   <div className="mt-3 flex flex-wrap gap-2">
+                     <StatusPill>{modeEyebrow}</StatusPill>
                     <StatusPill>Current step</StatusPill>
                     <StatusPill>{formatDateTime(currentStep.scheduledAt)}</StatusPill>
                   </div>
-                  <h2 id="current-kitchen-task" className="mt-4 font-display text-5xl font-semibold leading-none sm:text-6xl">{currentStep.label}</h2>
-                  <p className="mt-4 text-lg font-bold leading-7 text-ink/75">{instruction.shortInstruction}</p>
+                   <h2 id="current-kitchen-task" className="mt-3 font-display text-4xl font-semibold leading-none sm:mt-4 sm:text-6xl">{currentStep.label}</h2>
+                   <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{instruction.shortInstruction}</p>
                   <p className="mt-3 text-sm leading-6 text-ink/55">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
                 </section>
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length > 0 && (
-                  <section className="mt-6 rounded-[1.5rem] bg-cream p-5">
+                   <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
                     <h3 className="mt-2 font-display text-2xl font-semibold">Dough ingredients</h3>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      {ingredients.map((line) => (
-                        <div key={line.label} className="rounded-2xl bg-white p-4">
+                     <div className="mt-3 grid gap-2 sm:mt-4 sm:grid-cols-2 sm:gap-3">
+                       {ingredients.map((line) => (
+                         <div key={line.label} className="rounded-2xl bg-white p-3.5 sm:p-4">
                           <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{line.label}</p>
                           <p className="mt-1 text-2xl font-extrabold">{line.value}</p>
                         </div>
@@ -226,7 +226,7 @@ export default function SessionKitchenPage() {
                 )}
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length === 0 && (
-                  <section className="mt-6 rounded-[1.5rem] bg-cream p-5">
+                   <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
                     <h3 className="mt-2 font-display text-2xl font-semibold">Ingredient amounts unavailable</h3>
                     <p className="mt-2 text-sm leading-6 text-ink/60">Kitchen Mode can still guide the current task. Exact dough amounts need a saved recipe snapshot.</p>
@@ -234,7 +234,7 @@ export default function SessionKitchenPage() {
                 )}
 
                 {kitchenMode === "service" && (
-                  <section className="mt-6 rounded-[1.5rem] bg-cream p-5">
+                   <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
                     <h3 className="mt-2 font-display text-2xl font-semibold">Pizza Service Mode</h3>
                     {pizzaCount && <p className="mt-2 text-sm font-extrabold text-ink/70">Pizza count: {pizzaCount} pizzas</p>}
@@ -242,7 +242,7 @@ export default function SessionKitchenPage() {
                   </section>
                 )}
 
-                <section className="mt-6 rounded-[1.5rem] bg-leaf/10 p-5">
+                 <section className="mt-5 rounded-[1.5rem] bg-leaf/10 p-4 sm:mt-6 sm:p-5">
                   <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Instruction</p>
                   <h3 className="mt-2 font-display text-2xl font-semibold">Do this now</h3>
                   <p className="mt-2 text-sm leading-6 text-ink/65">{levelWhy(session, currentStep)}</p>
@@ -274,7 +274,7 @@ export default function SessionKitchenPage() {
             ) : (
               <>
                 <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">All steps done</p>
-                <h2 className="mt-3 font-display text-5xl font-semibold leading-none">Pizza session complete</h2>
+                 <h2 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">Pizza session complete</h2>
                 <p className="mt-4 text-sm leading-6 text-ink/60">
                   Save what worked and what you want to improve next time.
                 </p>

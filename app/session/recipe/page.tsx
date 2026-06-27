@@ -131,17 +131,17 @@ export default function SessionRecipePage() {
           )}
         />
 
-        <section className="mt-6" aria-label="Dough plan details">
-          <div className="grid min-w-0 gap-5">
-            <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
+        <section className="mt-4 sm:mt-6" aria-label="Dough plan details">
+          <div className="grid min-w-0 gap-4 sm:gap-5">
+            <article className="rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:rounded-[2rem] sm:p-6">
               <h2 className="font-display text-3xl font-semibold">Before you start</h2>
-              <p className="mt-2 text-sm leading-6 text-ink/55">
+              <p className="mt-1 text-xs leading-5 text-ink/55 sm:mt-2 sm:text-sm sm:leading-6">
                 Get these ready before mixing your dough.
               </p>
-              <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <div className="mt-4 grid gap-5 sm:mt-6 md:grid-cols-2 md:gap-6">
                 <div>
                   <h3 className="text-sm font-extrabold text-leaf">Ingredients for the dough</h3>
-                  <ul className="mt-3 grid gap-3 text-sm font-bold text-ink/70">
+                  <ul className="mt-3 grid gap-2 text-sm font-bold text-ink/70 sm:gap-3">
                     {doughPrepIngredients.map((item) => (
                       <li key={item} className="flex items-center gap-3">
                         <span className="grid h-5 w-5 place-items-center rounded-full bg-leaf/10 text-xs text-leaf" aria-hidden="true">✓</span>
@@ -152,7 +152,7 @@ export default function SessionRecipePage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-extrabold text-leaf">Tools</h3>
-                  <ul className="mt-3 grid gap-3 text-sm font-bold text-ink/70">
+                  <ul className="mt-3 grid gap-2 text-sm font-bold text-ink/70 sm:gap-3">
                     {doughPrepTools.map((item) => (
                       <li key={item} className="flex items-center gap-3">
                         <span className="grid h-5 w-5 place-items-center rounded-full bg-leaf/10 text-xs text-leaf" aria-hidden="true">✓</span>
@@ -162,19 +162,19 @@ export default function SessionRecipePage() {
                   </ul>
                 </div>
               </div>
-              <p className="mt-6 rounded-2xl bg-sky-50 p-4 text-sm font-bold leading-6 text-ink/65">
+              <p className="mt-4 rounded-2xl bg-sky-50 p-3 text-sm font-bold leading-6 text-ink/65 sm:mt-6 sm:p-4">
                 That’s enough to start the dough.
               </p>
             </article>
 
-            <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
+            <article className="rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:rounded-[2rem] sm:p-6">
               <h2 className="font-display text-3xl font-semibold">Dough amounts</h2>
-              <p className="mt-2 text-sm leading-6 text-ink/55">
+              <p className="mt-1 text-xs leading-5 text-ink/55 sm:mt-2 sm:text-sm sm:leading-6">
                 Use these amounts when mixing your dough. We recommend weighing ingredients with a digital scale.
               </p>
-              <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <dl className="mt-4 grid gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-5">
                 {doughIngredients.map(([label, value]) => (
-                  <div key={label} className="rounded-2xl bg-cream p-4">
+                  <div key={label} className="rounded-2xl bg-cream p-3.5 sm:p-4">
                     <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
                     <dd className={`mt-1 text-2xl font-extrabold ${amountCardTone(label)}`}>{value}</dd>
                   </div>
@@ -187,9 +187,9 @@ export default function SessionRecipePage() {
               )}
             </article>
 
-            <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
+            <article className="rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:rounded-[2rem] sm:p-6">
               <h2 className="font-display text-3xl font-semibold">Next step</h2>
-              <p className="mt-2 text-sm leading-6 text-ink/55">
+              <p className="mt-1 text-sm leading-6 text-ink/55 sm:mt-2">
                 Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.
               </p>
               <SessionLocalOnlyNote>

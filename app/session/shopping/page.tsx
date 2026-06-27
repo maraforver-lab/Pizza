@@ -150,17 +150,17 @@ export default function SessionShoppingPage() {
           )}
         />
 
-        <section className="mt-6 overflow-hidden rounded-[2rem] border border-white/80 bg-white/85 shadow-card" aria-label="Grouped shopping list">
-          <div className="border-b border-ink/10 p-5">
+        <section className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/85 shadow-card sm:mt-6 sm:rounded-[2rem]" aria-label="Grouped shopping list">
+          <div className="border-b border-ink/10 p-4 sm:p-5">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Checklist groups</p>
             <h2 className="mt-2 font-display text-3xl font-semibold">Check what you already have.</h2>
-            <p className="mt-2 text-sm leading-6 text-ink/60">
+            <p className="mt-1 text-xs leading-5 text-ink/60 sm:mt-2 sm:text-sm sm:leading-6">
               Mark items as Have when they are ready. Unchecked items stay marked as Need.
             </p>
           </div>
           {shoppingList?.groups.map((group) => (
             <section key={group.group} className="border-b border-ink/10 last:border-b-0">
-              <div className="flex items-center justify-between gap-4 px-5 py-4">
+              <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5 sm:py-4">
                 <h3 className="text-sm font-extrabold uppercase tracking-[.14em] text-ink/70">{sectionLabel(group.group)}</h3>
                 <span className="text-sm font-bold text-ink/45">{group.items.length} {group.items.length === 1 ? "item" : "items"}</span>
               </div>
@@ -170,7 +170,7 @@ export default function SessionShoppingPage() {
                   return (
                     <label
                       key={item.id}
-                      className="grid min-h-16 cursor-pointer grid-cols-[1fr_auto] gap-4 px-5 py-4 transition hover:bg-cream/70 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,auto)_5rem_auto] sm:items-center"
+                      className="grid min-h-14 cursor-pointer grid-cols-[1fr_auto] gap-3 px-4 py-3 transition hover:bg-cream/70 sm:min-h-16 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,auto)_5rem_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-4"
                     >
                       <span className="min-w-0">
                         <span className="block text-sm font-extrabold text-ink">{item.label}</span>
@@ -185,7 +185,7 @@ export default function SessionShoppingPage() {
                         checked={readyItem}
                         onChange={() => toggleReady(item)}
                         aria-label={`Mark ${item.label} as ${readyItem ? "needed" : "ready"}`}
-                        className="h-6 w-6 rounded-md border-ink/20 text-leaf focus:ring-2 focus:ring-tomato"
+                        className="h-7 w-7 rounded-md border-ink/20 text-leaf focus:ring-2 focus:ring-tomato sm:h-6 sm:w-6"
                       />
                     </label>
                   );
@@ -195,7 +195,7 @@ export default function SessionShoppingPage() {
           ))}
         </section>
 
-        <section className="mt-6 rounded-[2rem] border border-leaf/15 bg-leaf/10 p-5">
+        <section className="mt-4 rounded-[1.5rem] border border-leaf/15 bg-leaf/10 p-4 sm:mt-6 sm:rounded-[2rem] sm:p-5">
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
           <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Kitchen Mode</h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">You’ll cook your pizzas step by step.</p>

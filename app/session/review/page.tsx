@@ -132,17 +132,17 @@ export default function SessionReviewPage() {
           </p>
         )}
 
-        <section className="mt-6">
-          <section className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-card sm:p-7" aria-labelledby="review-form-heading">
+        <section className="mt-4 sm:mt-6">
+          <section className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7" aria-labelledby="review-form-heading">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Review and notes</p>
-            <h2 id="review-form-heading" className="mt-2 font-display text-4xl font-semibold">{copy.heading}</h2>
-            <p className="mt-3 text-sm leading-6 text-ink/60">
+            <h2 id="review-form-heading" className="mt-2 font-display text-3xl font-semibold sm:text-4xl">{copy.heading}</h2>
+            <p className="mt-2 text-xs leading-5 text-ink/60 sm:mt-3 sm:text-sm sm:leading-6">
               How did your pizza turn out? {copy.intro}
             </p>
 
             <div className="mt-6">
               <p id="rating-label" className="text-sm font-extrabold text-ink/70">Overall result</p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-5" role="group" aria-labelledby="rating-label">
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5" role="group" aria-labelledby="rating-label">
                 {ratingOptions.map((option) => {
                   const active = rating === option.value;
                   return (
@@ -163,14 +163,14 @@ export default function SessionReviewPage() {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-5">
+            <div className="mt-5 grid gap-4 sm:mt-6 sm:gap-5">
               <label className="block">
                 <span className="text-sm font-extrabold text-ink/70">What worked well?</span>
                 <textarea
                   value={whatWorked}
                   onChange={(event) => setWhatWorked(event.target.value)}
                   placeholder={copy.whatWorkedPlaceholder}
-                  className="mt-2 min-h-28 w-full rounded-2xl border border-ink/10 bg-cream p-4 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                  className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-28 sm:p-4"
                 />
               </label>
               <label className="block">
@@ -179,7 +179,7 @@ export default function SessionReviewPage() {
                   value={improveNextTime}
                   onChange={(event) => setImproveNextTime(event.target.value)}
                   placeholder={copy.improvePlaceholder}
-                  className="mt-2 min-h-28 w-full rounded-2xl border border-ink/10 bg-cream p-4 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                  className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-28 sm:p-4"
                 />
               </label>
               <label className="block">
@@ -188,7 +188,7 @@ export default function SessionReviewPage() {
                   value={nextTimeTry}
                   onChange={(event) => setNextTimeTry(event.target.value)}
                   placeholder={copy.nextTimeTryPlaceholder}
-                  className="mt-2 min-h-24 w-full rounded-2xl border border-ink/10 bg-cream p-4 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                  className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-24 sm:p-4"
                 />
               </label>
               <label className="block">
@@ -197,7 +197,7 @@ export default function SessionReviewPage() {
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
                   placeholder={copy.notesPlaceholder}
-                  className="mt-2 min-h-28 w-full rounded-2xl border border-ink/10 bg-cream p-4 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                  className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-28 sm:p-4"
                 />
               </label>
             </div>

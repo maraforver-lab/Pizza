@@ -206,7 +206,7 @@ export function BottomActionBar({ back, children, className, primary, ...props }
   return (
     <div
       className={cx(
-        "mt-6 flex flex-col gap-3 border-t border-ink/10 pt-4 sm:flex-row sm:items-center sm:justify-between",
+        "sticky bottom-0 z-20 -mx-4 mt-5 flex flex-col gap-3 border-t border-ink/10 bg-cream/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4 sm:backdrop-blur-none",
         className,
       )}
       {...props}

@@ -217,25 +217,25 @@ function ShoppingCheckpointRow({
   return (
     <article
       id="shopping-checkpoint"
-      className={`rounded-[1.5rem] border p-5 shadow-sm ${
+      className={`rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
         shoppingIsNext
           ? "border-leaf/40 bg-leaf/[.12]"
           : "border-leaf/30 bg-leaf/[.08]"
       }`}
       aria-label="Shopping checkpoint"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm" aria-hidden="true">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-xl shadow-sm sm:h-12 sm:w-12 sm:text-2xl" aria-hidden="true">
             🛒
           </div>
           <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
               Shopping checkpoint
             </p>
-            <h3 className="mt-2 font-display text-2xl font-semibold">Get pizza ingredients</h3>
-            <p className="mt-2 text-sm leading-6 text-ink/60">Check sauce, cheese and toppings before baking.</p>
-            <p className="mt-3 text-sm leading-6 text-ink/65">You can do this while the dough is resting or fermenting.</p>
+            <h3 className="mt-1.5 font-display text-2xl font-semibold">Get pizza ingredients</h3>
+            <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">Check sauce, cheese and toppings before baking.</p>
+            <p className="mt-2 hidden text-sm leading-6 text-ink/65 sm:block">You can do this while the dough is resting or fermenting.</p>
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-3 sm:items-end">
@@ -351,12 +351,12 @@ export default function SessionTimelinePage() {
           )}
         />
 
-        <section aria-labelledby="next-up-heading" className="mt-6 rounded-[2rem] border border-leaf/20 bg-white p-5 shadow-card sm:p-6">
+        <section aria-labelledby="next-up-heading" className="mt-4 rounded-[1.5rem] border border-leaf/20 bg-white p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
               <h2 id="next-up-heading" className="mt-2 font-display text-3xl font-semibold">{nextAction.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+              <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">{nextAction.subtext}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/60">
                   {formatTimelineDate(nextUpTime)}
@@ -366,7 +366,7 @@ export default function SessionTimelinePage() {
                 </span>
               </div>
             </div>
-            <div className="rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/65">
+            <div className="hidden rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/65 sm:block">
               <span className="block text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Recommended action</span>
               <span className="mt-1 block font-extrabold text-ink">{nextAction.cta}</span>
             </div>
@@ -374,21 +374,21 @@ export default function SessionTimelinePage() {
         </section>
 
         {criticalMoments.length > 0 && (
-          <section aria-labelledby="critical-moments-heading" className="mt-6 rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
+          <section aria-labelledby="critical-moments-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Critical moments</p>
                 <h2 id="critical-moments-heading" className="mt-2 font-display text-3xl font-semibold">Don’t miss these moments</h2>
               </div>
-              <p className="max-w-md text-sm leading-6 text-ink/55">These are pulled from your actual timeline, not a separate checklist.</p>
+              <p className="hidden max-w-md text-sm leading-6 text-ink/55 sm:block">These are pulled from your actual timeline, not a separate checklist.</p>
             </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-3">
               {criticalMoments.map((step) => (
-                <article key={step.id} className={`rounded-[1.25rem] border p-4 ${step.id === "room-temperature-rest" ? "border-tomato/30 bg-tomato/[.08]" : step.id === "bake-pizza" ? "border-tomato/20 bg-tomato/[.06]" : "border-leaf/15 bg-leaf/[.06]"}`}>
+                <article key={step.id} className={`rounded-[1.25rem] border p-3.5 sm:p-4 ${step.id === "room-temperature-rest" ? "border-tomato/30 bg-tomato/[.08]" : step.id === "bake-pizza" ? "border-tomato/20 bg-tomato/[.06]" : "border-leaf/15 bg-leaf/[.06]"}`}>
                   <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{formatTimelineDate(step.scheduledAt)}</p>
                   <h3 className="mt-2 font-display text-2xl font-semibold">{criticalMomentTitle(step)}</h3>
                   <p className="mt-1 text-sm font-extrabold text-leaf">{formatTimelineTime(step.scheduledAt)}</p>
-                  <p className="mt-2 text-sm leading-6 text-ink/60">{step.beginnerNote ?? step.description}</p>
+                  <p className="mt-1 text-xs leading-5 text-ink/60 sm:mt-2 sm:text-sm sm:leading-6">{step.beginnerNote ?? step.description}</p>
                 </article>
               ))}
             </div>
@@ -399,7 +399,7 @@ export default function SessionTimelinePage() {
           <div className="mb-4">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Full timeline</p>
             <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Full timeline</h2>
-            <p className="mt-2 text-sm leading-6 text-ink/55">
+            <p className="mt-2 hidden text-sm leading-6 text-ink/55 sm:block">
               This overview is for planning. Use Kitchen Mode when you are ready to work through each task.
             </p>
           </div>
@@ -411,7 +411,7 @@ export default function SessionTimelinePage() {
                   <ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
                 )}
                 <article
-                  className={`rounded-[1.5rem] border p-5 shadow-sm ${
+                  className={`rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
                     step.id === nextStep?.id && !shoppingIsNext
                       ? "border-leaf/30 bg-leaf/[.08]"
                       : step.id === "bake-pizza"
@@ -419,18 +419,18 @@ export default function SessionTimelinePage() {
                         : "border-white/80 bg-white/80"
                   }`}
                 >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex min-w-0 gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cream text-2xl" aria-hidden="true">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                    <div className="flex min-w-0 gap-3 sm:gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cream text-xl sm:h-12 sm:w-12 sm:text-2xl" aria-hidden="true">
                         {timelineStepIcon(step)}
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
                           Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
                         </p>
-                        <h3 className="mt-2 font-display text-2xl font-semibold">{step.label}</h3>
-                        <p className="mt-2 text-sm leading-6 text-ink/60">{step.description}</p>
-                        <p className="mt-3 text-sm leading-6 text-ink/65">{getTimelineNote(step, session.experienceLevel)}</p>
+                        <h3 className="mt-1.5 font-display text-2xl font-semibold">{step.label}</h3>
+                        <p className="mt-1 text-xs leading-5 text-ink/60 sm:mt-2 sm:text-sm sm:leading-6">{step.description}</p>
+                        <p className="mt-3 hidden text-sm leading-6 text-ink/65 sm:block">{getTimelineNote(step, session.experienceLevel)}</p>
                       </div>
                       {step.quietHoursWarning && (
                         <p className="mt-3 rounded-2xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
@@ -456,7 +456,19 @@ export default function SessionTimelinePage() {
           </section>
         </section>
 
-        <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-white/60 p-4 lg:p-5">
+        <details className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white/60 p-4 lg:hidden">
+          <summary className="cursor-pointer font-display text-2xl font-semibold">Timing assumptions</summary>
+          <ul className="mt-3 grid gap-2 text-sm leading-6 text-ink/60">
+            {(timeline.assumptions ?? []).map((assumption) => (
+              <li key={assumption} className="flex gap-2">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" />
+                <span>{assumption}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+
+        <section className="mt-6 hidden rounded-[1.5rem] border border-ink/10 bg-white/60 p-4 lg:block lg:p-5">
           <h2 className="font-display text-2xl font-semibold">Timing assumptions</h2>
           <ul className="mt-3 grid gap-2 text-sm leading-6 text-ink/60">
             {(timeline.assumptions ?? []).map((assumption) => (
