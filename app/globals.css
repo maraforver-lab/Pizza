@@ -2,7 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+  --dt-primary: #0F3D2E;
+  --dt-primary-dark: #09291F;
+  --dt-background-warm: #FFF8F1;
+  --dt-flour: #F1E6D8;
+  --dt-card: #FFFFFF;
+  --dt-tomato: #E94B2E;
+  --dt-orange: #F2A541;
+  --dt-basil: #3BA66B;
+  --dt-text-main: #1F1F1F;
+  --dt-text-muted: #6B645D;
+}
 
 * { box-sizing: border-box; }
 
