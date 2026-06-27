@@ -37,20 +37,49 @@ class MemoryStorage {
 }
 
 describe("Start Pizza Session wizard", () => {
+  it("documents the canonical Pizza Session V2 journey", () => {
+    const docPath = join(process.cwd(), "docs", "pizza-session-v2-journey.md");
+    expect(existsSync(docPath)).toBe(true);
+    const doc = source("docs/pizza-session-v2-journey.md");
+
+    for (const label of [
+      "How you bake",
+      "Pizza style",
+      "When to eat",
+      "How many",
+      "Flour",
+      "Dough plan",
+      "Timeline",
+      "Shopping list",
+      "Kitchen mode",
+      "Review",
+    ]) {
+      expect(doc).toContain(label);
+    }
+
+    expect(doc).toContain("`/session/start`");
+    expect(doc).toContain("`/session/recipe`");
+    expect(doc).toContain("`/session/timeline`");
+    expect(doc).toContain("`/session/shopping`");
+    expect(doc).toContain("`/session/kitchen`");
+    expect(doc).toContain("`/session/review`");
+    expect(doc).toContain("Build my dough plan →");
+  });
+
   it("adds the /session/start route with the expected wizard steps", () => {
     expect(existsSync(join(process.cwd(), "app", "session", "start", "page.tsx"))).toBe(true);
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("\"use client\"");
     expect(page).toContain("How will you bake your pizza?");
-    expect(page).toContain("What kind of pizza are you making?");
+    expect(page).toContain("What pizza are you making?");
     expect(page).toContain("When do you want pizza?");
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("What flour do you have?");
-    expect(page).toContain("Your starting setup is ready.");
+    expect(page).toContain("Your setup is ready.");
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
-    expect(page).toContain("Pan / tray bake");
+    expect(page).toContain("Pan / tray");
     expect(page).toContain("Not sure yet");
     expect(page).toContain("wizardPresetOptions.map");
     expect(page).toContain("Simple cheese");
@@ -72,18 +101,24 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
   });
 
-  it("keeps the wizard to six beginner-friendly steps and routes quantity directly to flour", () => {
+  it("keeps the setup to the first five V2 choices and routes quantity directly to flour", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain('type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary"');
     expect(page).toContain('const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"]');
-    expect(page).toContain("Baking path");
+    expect(page).toContain("const journeySteps = [");
+    expect(page).toContain("How you bake");
     expect(page).toContain("Pizza style");
-    expect(page).toContain("When");
+    expect(page).toContain("When to eat");
     expect(page).toContain("How many");
     expect(page).toContain("Flour");
-    expect(page).toContain("Your plan");
-    expect(page).toContain("Step {progress} of {wizardSteps.length}");
+    expect(page).toContain("Dough plan");
+    expect(page).toContain("Shopping list");
+    expect(page).toContain("Kitchen mode");
+    expect(page).toContain("Review");
+    expect(page).toContain("journeyProgressForStep");
+    expect(page).toContain("Setup is steps 1–5 of the full pizza journey.");
+    expect(page).toContain("Step ${journeyProgress} of ${journeySteps.length}");
     expect(page.indexOf('"quantity"')).toBeLessThan(page.indexOf('"flour"'));
     expect(page.indexOf('"flour"')).toBeLessThan(page.indexOf('"summary"'));
   });
@@ -93,7 +128,7 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
-    expect(page).toContain("Pan / tray bake");
+    expect(page).toContain("Pan / tray");
     expect(page).toContain("Not sure yet");
     expect(page).toContain("Simple cheese");
     expect(page).toContain("Margherita");
@@ -120,16 +155,18 @@ describe("Start Pizza Session wizard", () => {
   it("prevents duplicate guidance and mobile step indicators on the session start page", () => {
     const page = source("app/session/start/page.tsx");
     const guidanceBadgeUses = page.match(/<GuidanceModeBadge level=\{experienceLevel\} \/>/g) ?? [];
-    const stepProgressUses = page.match(/Step \{progress\} of \{wizardSteps.length\}/g) ?? [];
+    const journeyProgressUses = page.match(/Step \$\{journeyProgress\} of \$\{journeySteps.length\}/g) ?? [];
 
     expect(guidanceBadgeUses).toHaveLength(2);
-    expect(stepProgressUses).toHaveLength(2);
+    expect(journeyProgressUses).toHaveLength(2);
     expect(page).toContain('<aside className="hidden rounded-[1.75rem]');
     expect(page).toContain('<div className="mb-4 lg:hidden">');
+    expect(page).toContain('aria-label="Pizza Session V2 journey"');
+    expect(page).toContain("Setup choices now, dough plan next.");
     expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
     expect(page).not.toContain("sm:inline-flex ${experience.badgeClassName}");
     expect(page).not.toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.2em] text-tomato lg:block">Step {progress} of {wizardSteps.length}</p>');
-    expect(page).toContain('<footer className="hidden opacity-70 lg:col-span-2 lg:block">');
+    expect(page).not.toContain('<footer className="hidden opacity-70 lg:col-span-2 lg:block">');
   });
 
   it("maps old saved sessions from the removed oven step safely to flour", () => {
@@ -143,9 +180,9 @@ describe("Start Pizza Session wizard", () => {
   it("keeps the final guided step focused on one primary next action", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("Your starting setup is ready.");
+    expect(page).toContain("Your setup is ready.");
     expect(page).toContain("Next: build your dough plan");
-    expect(page).toContain("We’ll calculate the dough amount, flour, water, salt, yeast and timing from your choices.");
+    expect(page).toContain("Next, we’ll build your dough plan.");
     expect(page).toContain("Build my dough plan →");
     expect(page).toContain('href="/session/recipe"');
     expect(page).not.toContain("Save and continue later");
@@ -366,9 +403,9 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("aria-label=\"Pizza Session progress\"");
-    expect(page).toContain("Current step:");
-    expect(page).toContain("Completed step:");
-    expect(page).toContain("Upcoming step:");
+    expect(page).toContain("Current journey step:");
+    expect(page).toContain("Completed journey step:");
+    expect(page).toContain("Upcoming journey step:");
     expect(page).toContain("aria-pressed");
     expect(page).toContain("disabled={!canContinue}");
     expect(page).toContain("aria-label=\"Decrease pizza count\"");

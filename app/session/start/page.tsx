@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import { BottomActionBar, StatusPill } from "@/components/design-system";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
   getExperienceLevelConfig,
@@ -35,6 +35,19 @@ type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
 
 const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"];
 
+const journeySteps = [
+  { label: "How you bake", route: "/session/start", phase: "Setup" },
+  { label: "Pizza style", route: "/session/start", phase: "Setup" },
+  { label: "When to eat", route: "/session/start", phase: "Setup" },
+  { label: "How many", route: "/session/start", phase: "Setup" },
+  { label: "Flour", route: "/session/start", phase: "Setup" },
+  { label: "Dough plan", route: "/session/recipe", phase: "Plan" },
+  { label: "Timeline", route: "/session/timeline", phase: "Plan" },
+  { label: "Shopping list", route: "/session/shopping", phase: "Prepare" },
+  { label: "Kitchen mode", route: "/session/kitchen", phase: "Bake" },
+  { label: "Review", route: "/session/review", phase: "Improve" },
+] as const;
+
 const styleOptions = [
   {
     id: "home-oven",
@@ -52,7 +65,7 @@ const styleOptions = [
   },
   {
     id: "pan-tray",
-    label: "Pan / tray bake",
+    label: "Pan / tray",
     icon: "▱",
     description: "Easiest option. Bake in a tray or pan.",
     badge: undefined,
@@ -74,30 +87,30 @@ const flourOptions = [
 ] as const;
 
 const wizardStepLabels: Record<WizardStep, string> = {
-  path: "Baking path",
+  path: "How you bake",
   preset: "Pizza style",
-  time: "When",
+  time: "When to eat",
   quantity: "How many",
   flour: "Flour",
-  summary: "Your plan",
+  summary: "Setup ready",
 };
 
 const wizardStepQuestions: Record<WizardStep, string> = {
   path: "How will you bake your pizza?",
-  preset: "What kind of pizza are you making?",
+  preset: "What pizza are you making?",
   time: "When do you want pizza?",
   quantity: "How many pizzas?",
   flour: "What flour do you have?",
-  summary: "Your starting setup is ready.",
+  summary: "Your setup is ready.",
 };
 
 const wizardStepHelpers: Record<WizardStep, string> = {
-  path: "This helps us suggest the right dough plan and timeline for you.",
-  preset: "This helps us suggest a better plan and shopping list.",
+  path: "Choose your oven or cooking method.",
+  preset: "Pick the pizza style you want to make.",
   time: "We’ll work backwards and build the right timeline.",
   quantity: "We’ll calculate the right amount of dough.",
   flour: "This helps us suggest the right hydration and fermentation.",
-  summary: "Here’s what we’ll use to build your dough plan.",
+  summary: "Next, we’ll build your dough plan.",
 };
 
 const wizardPresetOptions: Array<{
@@ -147,6 +160,16 @@ function stepToSessionStep(step: WizardStep): PizzaSessionStep {
 
 function stepIndex(step: WizardStep) {
   return Math.max(0, wizardSteps.indexOf(step));
+}
+
+function journeyProgressForStep(step: WizardStep) {
+  return step === "summary" ? 5 : stepIndex(step) + 1;
+}
+
+function journeyStepState(index: number, currentJourneyStep: number) {
+  if (index + 1 < currentJourneyStep) return "complete";
+  if (index + 1 === currentJourneyStep) return "current";
+  return "upcoming";
 }
 
 function initialWizardStep(session: PizzaSession): WizardStep {
@@ -267,6 +290,9 @@ export default function StartPizzaSessionPage() {
 
   const experience = getExperienceLevelConfig(experienceLevel);
   const progress = stepIndex(step) + 1;
+  const journeyProgress = journeyProgressForStep(step);
+  const setupPercent = Math.round((progress / wizardSteps.length) * 100);
+  const journeyPercent = Math.round((journeyProgress / journeySteps.length) * 100);
 
   const savePatch = (
     patch: Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">>,
@@ -377,31 +403,38 @@ export default function StartPizzaSessionPage() {
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white">○</span>
             Dough<span className="text-tomato">Tools</span>
           </Link>
-          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Start Pizza Session</p>
-          <h1 className="mt-2 font-display text-3xl font-semibold leading-none">One clear decision at a time.</h1>
-          <p className="mt-3 text-sm leading-5 text-ink/55">We’ll build your dough plan step by step.</p>
+          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>
+          <h1 className="mt-2 font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
+          <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, timeline, shopping, kitchen mode and review come next.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <GuidanceModeBadge level={experienceLevel} />
+            <StatusPill>Saved locally</StatusPill>
           </div>
           <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
             <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
-              <span>Step {progress} of {wizardSteps.length}</span>
-              <span>{Math.round((progress / wizardSteps.length) * 100)}%</span>
+              <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>
+              <span>{journeyPercent}%</span>
             </div>
             <div className="mt-3 h-2 rounded-full bg-ink/10">
-              <div className="h-full rounded-full bg-leaf transition-all" style={{ width: `${(progress / wizardSteps.length) * 100}%` }} />
+              <div className="h-full rounded-full bg-leaf transition-all" style={{ width: `${journeyPercent}%` }} />
             </div>
+            <p className="mt-2 text-[11px] font-bold text-ink/45">Setup is steps 1–5 of the full pizza journey.</p>
           </div>
-          <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session progress">
-            {wizardSteps.map((item, index) => (
-              <li key={item} className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${item === step ? "bg-ink text-white" : index < stepIndex(step) ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`}>
-                <span className="sr-only">{item === step ? "Current step: " : index < stepIndex(step) ? "Completed step: " : "Upcoming step: "}</span>
-                <span className={`grid h-6 w-6 place-items-center rounded-full ${item === step ? "bg-white text-ink" : index < stepIndex(step) ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
-                  {index < stepIndex(step) ? "✓" : index + 1}
+          <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session V2 journey">
+            {journeySteps.map((item, index) => {
+              const state = journeyStepState(index, journeyProgress);
+              return (
+              <li key={item.label} className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`}>
+                <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
+                <span className={`grid h-6 w-6 place-items-center rounded-full ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
+                  {state === "complete" ? "✓" : index + 1}
                 </span>
-                {wizardStepLabels[item]}
+                <span className="min-w-0">
+                  <span className="block truncate">{item.label}</span>
+                  <span className={`block text-[10px] ${state === "current" ? "text-white/55" : "text-ink/35"}`}>{item.phase}</span>
+                </span>
               </li>
-            ))}
+            )})}
           </ol>
           <div className="mt-5 rounded-2xl bg-cream p-3 text-xs leading-5 text-ink/55">
             <strong className="block text-sm text-ink">You can change anything later. No worries!</strong>
@@ -413,18 +446,19 @@ export default function StartPizzaSessionPage() {
         <section ref={stepPanelRef} className="min-w-0 rounded-[1.75rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]" aria-live="polite">
           <div className="mb-4 lg:hidden">
             <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
-              <span>Step {progress} of {wizardSteps.length}</span>
+              <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>
               <GuidanceModeBadge level={experienceLevel} />
             </div>
             <div className="mt-3 flex gap-2" aria-label="Pizza Session progress">
-              {wizardSteps.map((item, index) => (
+              {journeySteps.map((item, index) => (
                 <span
-                  key={item}
-                  className={`h-2.5 flex-1 rounded-full ${item === step ? "bg-tomato" : index < stepIndex(step) ? "bg-tomato/45" : "bg-ink/12"}`}
-                  aria-label={`${index + 1}. ${wizardStepLabels[item]}`}
+                  key={item.label}
+                  className={`h-2.5 flex-1 rounded-full ${index + 1 === journeyProgress ? "bg-tomato" : index + 1 < journeyProgress ? "bg-tomato/45" : "bg-ink/12"}`}
+                  aria-label={`${index + 1}. ${item.label}`}
                 />
               ))}
             </div>
+            <p className="mt-2 text-[11px] font-bold normal-case tracking-normal text-ink/40">Setup choices now, dough plan next.</p>
           </div>
 
           <div className="mb-5 flex flex-col gap-2 pb-1 sm:flex-row sm:items-start sm:justify-between">
@@ -552,7 +586,7 @@ export default function StartPizzaSessionPage() {
               <div className="mt-6">
                 <p className="text-sm font-extrabold text-ink">Quick picks</p>
                 <div className="mt-3 grid grid-cols-4 gap-2">
-                  {[2, 4, 6, 8].map((amount) => (
+                  {[1, 2, 3, 4, 6, 8].map((amount) => (
                     <button
                       key={amount}
                       type="button"
@@ -600,7 +634,7 @@ export default function StartPizzaSessionPage() {
             <div className="grid gap-4">
               <dl className="grid gap-3">
                 {[
-                  ["Baking path", selectedStyle?.label ?? "Not selected yet"],
+                  ["How you bake", selectedStyle?.label ?? "Not selected yet"],
                   ["Pizza style", selectedWizardPreset?.label ?? selectedPreset?.name ?? "Not selected yet"],
                   ["When", formatTargetTime(session.targetEatTime)],
                   ["How many", `${session.pizzaCount ?? 4} pizzas`],
@@ -618,18 +652,21 @@ export default function StartPizzaSessionPage() {
               <div className="rounded-[1.5rem] bg-leaf/[.1] p-4">
                 <h3 className="font-display text-2xl font-semibold">Next: build your dough plan</h3>
                 <p className="mt-2 text-sm leading-5 text-ink/60">
-                  We’ll calculate the dough amount, flour, water, salt, yeast and timing from your choices.
+                  Next, we’ll build your dough plan.
                 </p>
                 <p className="mt-4 text-xs font-bold text-ink/45">Last saved: {lastSaved}</p>
               </div>
             </div>
           )}
 
-          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-ink/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <button type="button" onClick={backStep} disabled={step === "path"} className="min-h-12 rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-              Back
-            </button>
-            <div className="flex flex-col gap-2 sm:items-end">
+          <BottomActionBar
+            back={(
+              <button type="button" onClick={backStep} disabled={step === "path"} className="min-h-12 w-full rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+                Back
+              </button>
+            )}
+            primary={(
+              <div className="flex flex-col gap-2 sm:items-end">
               {step !== "summary" ? (
                 <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-14 w-full rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:bg-ink/20 disabled:text-ink/40 sm:w-auto">
                   Continue →
@@ -641,12 +678,9 @@ export default function StartPizzaSessionPage() {
               )}
               <p className="text-xs font-bold text-ink/40">Saved locally ✓</p>
             </div>
-          </div>
+            )}
+          />
         </section>
-
-        <footer className="hidden opacity-70 lg:col-span-2 lg:block">
-          <AppSignature />
-        </footer>
       </div>
     </main>
   );

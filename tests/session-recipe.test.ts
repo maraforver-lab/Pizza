@@ -268,7 +268,7 @@ describe("Session recipe build step", () => {
 
     expect(startPage).toContain("href=\"/session/recipe\"");
     expect(startPage).toContain("How will you bake your pizza?");
-    expect(startPage).toContain("What kind of pizza are you making?");
+    expect(startPage).toContain("What pizza are you making?");
     expect(startPage).toContain("disabled={!canContinue}");
     expect(startPage).not.toContain("What pizza do you want to make?");
     expect(startPage).not.toContain("Later planner patches can turn this into a full timeline");
