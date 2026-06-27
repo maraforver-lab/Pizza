@@ -242,6 +242,7 @@ export default function StartPizzaSessionPage() {
   const [selectedDayChoice, setSelectedDayChoice] = useState<PizzaSessionDayQuickChoiceId | undefined>();
   const [selectedTimeChoice, setSelectedTimeChoice] = useState<PizzaSessionTimeQuickChoiceId | undefined>();
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
+  const sessionShellRef = useRef<HTMLDivElement>(null);
   const stepPanelRef = useRef<HTMLElement>(null);
   const didRenderInitialStepRef = useRef(false);
 
@@ -288,6 +289,15 @@ export default function StartPizzaSessionPage() {
     }
 
     const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const desktopLayout = window.matchMedia?.("(min-width: 1024px)").matches;
+    if (desktopLayout) {
+      sessionShellRef.current?.scrollIntoView({
+        block: "start",
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+      return;
+    }
+
     stepPanelRef.current?.scrollIntoView({
       block: "start",
       behavior: prefersReducedMotion ? "auto" : "smooth",
@@ -391,6 +401,12 @@ export default function StartPizzaSessionPage() {
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const lastSaved = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(session.lastSavedAt));
+  const beginnerMainAccent = experienceLevel === "beginner"
+    ? {
+        backgroundImage:
+          "radial-gradient(circle at 100% 0%, rgba(58, 163, 106, 0.16), rgba(255, 255, 255, 0.92) 38%, rgba(255, 255, 255, 0.85) 68%)",
+      }
+    : undefined;
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-4 pb-16 text-ink sm:px-6 sm:py-6">
@@ -404,13 +420,9 @@ export default function StartPizzaSessionPage() {
         </Link>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[16rem_1fr]">
+      <div ref={sessionShellRef} className="mx-auto grid max-w-6xl scroll-mt-4 gap-4 lg:grid-cols-[16rem_1fr]">
         <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
-          <Link href="/" className="inline-flex items-center gap-3 text-sm font-extrabold" aria-label="DoughTools home">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white">○</span>
-            Dough<span className="text-tomato">Tools</span>
-          </Link>
-          <p className="mt-5 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>
           <h1 className="mt-2 font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
           <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, timeline, shopping, kitchen mode and review come next.</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -449,7 +461,12 @@ export default function StartPizzaSessionPage() {
           </div>
         </aside>
 
-        <section ref={stepPanelRef} className="min-w-0 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]" aria-live="polite">
+        <section
+          ref={stepPanelRef}
+          className="min-w-0 scroll-mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]"
+          style={beginnerMainAccent}
+          aria-live="polite"
+        >
           <div className="mb-3 lg:hidden">
             <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
               <span>{step === "summary" ? "Setup ready" : `Setup step ${setupProgress} of ${wizardSteps.length}`}</span>

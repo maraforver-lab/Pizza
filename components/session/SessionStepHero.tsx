@@ -26,10 +26,18 @@ export function SessionStepHero({
   step,
   title,
 }: SessionStepHeroProps) {
+  const beginnerAccent = level === "beginner"
+    ? {
+        backgroundImage:
+          "radial-gradient(circle at 100% 0%, rgba(58, 163, 106, 0.16), rgba(255, 255, 255, 0.92) 38%, rgba(255, 255, 255, 0.85) 68%)",
+      }
+    : undefined;
+
   return (
     <section
       aria-labelledby="session-step-heading"
       className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7 lg:p-8"
+      style={beginnerAccent}
     >
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:justify-between">
         <div className="min-w-0">

@@ -318,12 +318,16 @@ describe("Start Pizza Session wizard", () => {
   it("scrolls the current decision panel into view after Continue or Back changes steps", () => {
     const page = source("app/session/start/page.tsx");
 
+    expect(page).toContain("const sessionShellRef = useRef<HTMLDivElement>(null)");
     expect(page).toContain("const stepPanelRef = useRef<HTMLElement>(null)");
     expect(page).toContain("const didRenderInitialStepRef = useRef(false)");
+    expect(page).toContain('const desktopLayout = window.matchMedia?.("(min-width: 1024px)").matches');
+    expect(page).toContain("sessionShellRef.current?.scrollIntoView");
     expect(page).toContain("stepPanelRef.current?.scrollIntoView");
     expect(page).toContain("prefers-reduced-motion: reduce");
     expect(page).toContain("behavior: prefersReducedMotion ? \"auto\" : \"smooth\"");
     expect(page).toContain("}, [ready, step]);");
+    expect(page).toContain("ref={sessionShellRef}");
     expect(page).toContain("ref={stepPanelRef}");
   });
 
@@ -393,10 +397,26 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("enthusiast");
     expect(page).toContain("pizza_nerd");
     expect(page).toContain("GuidanceModeBadge");
+    expect(page).toContain('experienceLevel === "beginner"');
+    expect(page).toContain("radial-gradient(circle at 100% 0%");
+    expect(page).toContain("rgba(58, 163, 106");
     expect(levels).toContain("Beginner");
     expect(levels).toContain("Enthusiast");
     expect(levels).toContain("Pizza Nerd");
     expect(page).not.toMatch(/Home Pizza Maker|intermediate|advanced/);
+  });
+
+  it("keeps the global brand in the header without duplicating it inside the desktop session sidebar", () => {
+    const page = source("app/session/start/page.tsx");
+    const headerLogoIndex = page.indexOf('aria-label="DoughTools home"');
+    const sidebarIndex = page.indexOf("<aside");
+    const sidebarSessionLabelIndex = page.indexOf("Pizza Session V2", sidebarIndex);
+
+    expect(headerLogoIndex).toBeGreaterThan(-1);
+    expect(sidebarIndex).toBeGreaterThan(-1);
+    expect(sidebarSessionLabelIndex).toBeGreaterThan(sidebarIndex);
+    expect(page.indexOf('aria-label="DoughTools home"', sidebarIndex)).toBe(-1);
+    expect(page).toContain('<p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>');
   });
 
   it("is honest about local-first behavior and avoids unavailable claims", () => {

@@ -18,6 +18,9 @@ describe("Pizza Session desktop refinement components", () => {
     expect(component).toContain("{body}");
     expect(component).toContain("GuidanceModeBadge");
     expect(component).toContain("desktopAside");
+    expect(component).toContain('level === "beginner"');
+    expect(component).toContain("radial-gradient(circle at 100% 0%");
+    expect(component).toContain("rgba(58, 163, 106");
   });
 
   it("adds a passive local-only note that is not rendered as a button", () => {
