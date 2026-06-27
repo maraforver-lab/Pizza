@@ -221,7 +221,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(kitchen).toContain("/session/review");
     expect(kitchen).toContain("Review this bake");
     expect(timelinePage).toContain("/session/review");
-    expect(timelinePage).toContain("Review and add notes →");
+    expect(timelinePage).toContain("Review your pizza →");
     expect(timelinePage).not.toContain("Review session");
     expect(journal).toContain("@/lib/pizza-journal");
     expect(journal).toContain("loadJournalEntries");
