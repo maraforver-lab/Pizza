@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { BottomActionBar, StatusPill } from "@/components/design-system";
 import { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
@@ -110,37 +111,43 @@ export default function SessionRecipePage() {
   ];
   const doughPrepIngredients = ["Flour", "Water", "Salt", "Yeast"];
   const doughPrepTools = ["Digital scale", "Mixing bowl", "Dough scraper or sturdy spoon", "Covered container or bowl"];
+  const journeyContext = ["Step 6 of 10", "Dough plan", "Reference page"];
 
   return (
-    <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
+    <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <div className="mx-auto max-w-5xl">
-        <Link
-          href="/session/start"
-          className="mb-5 inline-flex min-h-11 items-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/65 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-        >
-          Back
-        </Link>
-
         <section
           aria-labelledby="session-recipe-heading"
-          className="rounded-[2rem] bg-white/90 p-6 shadow-card sm:p-8"
+          className="rounded-[2rem] bg-white/90 p-5 shadow-card sm:p-8"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Your dough plan</p>
+              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza Session V2</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {journeyContext.map((item) => (
+                  <StatusPill key={item} className={item === "Step 6 of 10" ? "bg-tomato/10 text-tomato" : undefined}>
+                    {item}
+                  </StatusPill>
+                ))}
+                <GuidanceModeBadge level={session.experienceLevel} />
+              </div>
               <h1 id="session-recipe-heading" className="mt-3 max-w-3xl font-display text-5xl font-semibold leading-none sm:text-6xl">Your dough plan is ready.</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">Here are your dough amounts and what you need before you start.</p>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">Get your dough ingredients and amounts ready before you start.</p>
+              <p className="mt-4 text-xs font-bold text-ink/45">Saved locally in this browser.</p>
             </div>
-            <GuidanceModeBadge level={session.experienceLevel} />
+            <div className="hidden rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/60 lg:block">
+              <strong className="block text-ink">Step 6: Dough plan</strong>
+              Before this, you set up the basics. After this, the timeline, shopping list, kitchen mode and review come next.
+            </div>
           </div>
         </section>
 
         <section className="mt-6" aria-label="Dough plan details">
           <div className="grid min-w-0 gap-5">
             <article className="rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-card sm:p-6">
-              <h2 className="font-display text-3xl font-semibold">Before you start: get these ready</h2>
+              <h2 className="font-display text-3xl font-semibold">Before you start</h2>
               <p className="mt-2 text-sm leading-6 text-ink/55">
-                You only need the ingredients for the dough and a few basic tools.
+                Get these ready before mixing your dough.
               </p>
               <div className="mt-6 grid gap-6 md:grid-cols-2">
                 <div>
@@ -167,7 +174,7 @@ export default function SessionRecipePage() {
                 </div>
               </div>
               <p className="mt-6 rounded-2xl bg-sky-50 p-4 text-sm font-bold leading-6 text-ink/65">
-                That’s it. You don’t need anything else to make the dough.
+                That’s enough to start the dough.
               </p>
             </article>
 
@@ -196,11 +203,6 @@ export default function SessionRecipePage() {
               <p className="mt-2 text-sm leading-6 text-ink/55">
                 Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.
               </p>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link href="/session/timeline" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                  Continue to Timeline →
-                </Link>
-              </div>
               <p className="mt-4 rounded-2xl bg-leaf/10 p-4 text-xs leading-5 text-ink/50">
                 {PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.
               </p>
@@ -208,6 +210,24 @@ export default function SessionRecipePage() {
           </div>
         </section>
 
+        <BottomActionBar
+          back={(
+            <Link
+              href="/session/start"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
+            >
+              Back
+            </Link>
+          )}
+          primary={(
+            <Link
+              href="/session/timeline"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
+            >
+              Continue to Timeline →
+            </Link>
+          )}
+        />
       </div>
     </main>
   );
