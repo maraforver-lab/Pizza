@@ -38,20 +38,43 @@ describe("Pizza Session review and bake notes", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page).toContain("\"use client\"");
+    expect(page).toContain("Step 10 of 10");
+    expect(page).toContain("Review your pizza");
     expect(page).toContain("How did your pizza turn out?");
+    expect(page).toContain("Learning page");
     expect(page).toContain("No pizza session to review");
     expect(page).toContain("Overall result");
     expect(page).toContain("1 — Poor");
     expect(page).toContain("5 — Excellent");
     expect(page).toContain("What worked well?");
-    expect(page).toContain("What would you improve next time?");
+    expect(page).toContain("What would you improve?");
+    expect(page).toContain("Next time I want to try…");
     expect(page).toContain("Free notes");
-    expect(page).toContain("Next time, I want to try…");
     expect(page).toContain("Save review →");
     expect(page).toContain("Review saved in this browser.");
-    expect(page).toContain("Photos and sharing");
     expect(page).toContain("SESSION_REVIEW_LOCAL_ONLY_COPY");
+    expect(page).toContain("BottomActionBar");
+    expect(page).toContain("href=\"/session/kitchen\"");
+    expect(page).not.toContain("Session summary");
+    expect(page).not.toContain("Photos and sharing");
+    expect(page).not.toContain("<AppSignature");
     expect(page).not.toMatch(/upload photo|share result card|copy public link|cloud sync is active|Google indexing enabled/i);
+  });
+
+  it("orders Review V2 fields and keeps after-save actions clear", () => {
+    const page = source("app/session/review/page.tsx");
+
+    expect(page.indexOf("Overall result")).toBeLessThan(page.indexOf("What worked well?"));
+    expect(page.indexOf("What worked well?")).toBeLessThan(page.indexOf("What would you improve?"));
+    expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Next time I want to try…"));
+    expect(page.indexOf("Next time I want to try…")).toBeLessThan(page.indexOf("Free notes"));
+    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Save review →"));
+    expect(page).toContain("Review saved");
+    expect(page).toContain("Your notes are saved in this browser.");
+    expect(page).toContain("Start a new Pizza Session →");
+    expect(page).toContain("Back to Kitchen Mode");
+    expect(page).toContain("View timeline");
+    expect(page).not.toMatch(/full timeline|shopping list|dough amounts|recipe snapshot/i);
   });
 
   it("normalizes rating and text review input safely", () => {
