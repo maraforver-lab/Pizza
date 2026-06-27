@@ -157,10 +157,13 @@ describe("Pizza Session shopping list presets", () => {
     const start = source("app/session/start/page.tsx");
 
     expect(page).toContain("Your shopping list");
-    expect(page).toContain("Everything you need for");
+    expect(page).toContain("Check what you already have before you start cooking.");
+    expect(page).toContain("Step 8 of 10");
+    expect(page).toContain("Checklist page");
     expect(page).toContain("Next →");
     expect(page).toContain("Back");
-    expect(page).toContain("Next up: Kitchen Mode");
+    expect(page).toContain("Next up");
+    expect(page).toContain("Kitchen Mode");
     expect(page).toContain("You’ll cook your pizzas step by step.");
     expect(page).toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
     expect(page).not.toMatch(/textarea|contentEditable|public link|upload photo|cloud sync is active|Copy shopping list|Open Sauce tool|Open Toppings tool|Back to timeline|Review dough plan/i);
@@ -189,10 +192,14 @@ describe("Pizza Session shopping list presets", () => {
   it("keeps the shopping hero focused by removing competing prominent actions", () => {
     const page = source("app/session/shopping/page.tsx");
 
-    expect(page).toContain("Pizza session shopping");
+    expect(page).toContain("Pizza Session V2");
+    expect(page).toContain("Step 8 of 10");
     expect(page).toContain("GuidanceModeBadge");
-    expect(page).toContain("formatSessionTime(targetTime)");
-    expect(page).toContain("year: \"numeric\"");
+    expect(page).toContain("BottomActionBar");
+    expect(page).toContain('href="/session/timeline"');
+    expect(page).toContain('href="/session/kitchen"');
+    expect(page).not.toContain("formatSessionTime");
+    expect(page).not.toContain("targetTime");
     expect(page).not.toContain("<AppSignature");
     expect(page).not.toContain("border-t border-ink/10 py-6");
     expect(page).not.toContain("copyShoppingList");
@@ -200,6 +207,21 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).not.toContain("Open Kitchen Mode →");
     expect(page).not.toContain("Back to timeline →");
     expect(page).not.toContain("Review dough plan →");
+  });
+
+  it("aligns the shopping page with Pizza Session V2 checklist structure", () => {
+    const page = source("app/session/shopping/page.tsx");
+
+    expect(page).toContain("Step 8 of 10");
+    expect(page).toContain("Checklist groups");
+    expect(page).toContain("Next up");
+    expect(page).toContain("Kitchen Mode");
+    expect(page).toContain("BottomActionBar");
+    expect(page.indexOf("Checklist groups")).toBeLessThan(page.indexOf("Next up"));
+    expect(page.indexOf("Next up")).toBeLessThan(page.indexOf("<BottomActionBar"));
+    expect(page).toContain("Shopping list");
+    expect(page).toContain("Checklist page");
+    expect(page).not.toMatch(/checkout|cart total|store link|price|ecommerce/i);
   });
 
   it("keeps active session preset compatibility when generating the list", () => {
