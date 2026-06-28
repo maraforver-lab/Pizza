@@ -7,6 +7,7 @@ import { getActivePizzaSession, PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizz
 
 type ContinuePizzaSessionCardProps = {
   className?: string;
+  variant?: "default" | "hero";
 };
 
 const stepLabels: Record<PizzaSession["currentStep"], string> = {
@@ -23,7 +24,7 @@ const stepLabels: Record<PizzaSession["currentStep"], string> = {
   review: "Review result",
 };
 
-export default function ContinuePizzaSessionCard({ className = "" }: ContinuePizzaSessionCardProps) {
+export default function ContinuePizzaSessionCard({ className = "", variant = "default" }: ContinuePizzaSessionCardProps) {
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -38,6 +39,35 @@ export default function ContinuePizzaSessionCard({ className = "" }: ContinuePiz
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(session.lastSavedAt));
+
+  if (variant === "hero") {
+    return (
+      <section
+        className={`rounded-[1.75rem] border border-white/70 bg-white/75 p-4 shadow-card backdrop-blur-md sm:p-5 ${className}`}
+        aria-labelledby="continue-pizza-session-heading"
+      >
+        <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-leaf/10 text-xl text-leaf" aria-hidden="true">◌</span>
+          <div className="min-w-0">
+            <p className="text-[0.65rem] font-extrabold uppercase tracking-[.22em] text-ink/50">Local session</p>
+            <h2 id="continue-pizza-session-heading" className="mt-1 font-display text-2xl font-semibold leading-none text-ink">
+              Continue Pizza Session
+            </h2>
+            <p className="mt-2 text-sm leading-5 text-ink/60">
+              Next step: <strong className="text-ink">{stepLabels[session.currentStep]}</strong>
+            </p>
+            <p className="text-sm leading-5 text-ink/50">Last saved: {lastSaved}</p>
+          </div>
+          <Link
+            href={pizzaSessionContinueHref(session)}
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 py-3 text-xs font-extrabold text-white transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          >
+            Continue session →
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section

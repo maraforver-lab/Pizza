@@ -112,6 +112,7 @@ describe("homepage content model", () => {
     const homepage = source("app/page.tsx");
     const content = source("lib/homepage.ts");
     const guidance = source("components/HomepageGuidanceLevelSection.tsx");
+    const continueCard = source("components/ContinuePizzaSessionCard.tsx");
     const header = source("components/GlobalToolNavigation.tsx");
     const updateNotice = source("components/LatestUpdateNotice.tsx");
     const nextStep = source("components/WorkflowNextStep.tsx");
@@ -119,12 +120,20 @@ describe("homepage content model", () => {
     expect(content).toContain("Start Pizza Session");
     expect(content).toContain("Pizza-making made simple");
     expect(homepage).toContain("ContinuePizzaSessionCard");
+    expect(homepage).toContain('variant="hero"');
     expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("HomeCalculatorWorkspace");
     expect(homepage).toContain("hasCalculatorRequest");
     expect(homepage).toContain("/pizza-styles/neapolitan.webp");
+    expect(homepage).toContain("min-h-[calc(100vh-4rem)]");
+    expect(homepage).toContain("bg-[linear-gradient(90deg");
+    expect(homepage).toContain("object-[62%_center]");
     expect(guidance).toContain("How much guidance do you want?");
     expect(guidance).toContain("You can change this anytime.");
+    expect(continueCard).toContain('variant = "default"');
+    expect(continueCard).toContain('variant === "hero"');
+    expect(continueCard).toContain("Continue Pizza Session");
+    expect(continueCard).toContain("pizzaSessionContinueHref(session)");
     expect(header).toContain("href=\"/\"");
     expect(header).toContain("href=\"/account\"");
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
