@@ -17,6 +17,8 @@ describe("Pizza Session desktop refinement components", () => {
     expect(component).toContain("{title}");
     expect(component).toContain("{body}");
     expect(component).toContain("desktopAside");
+    expect(component).toContain("hideMeta");
+    expect(component).toContain("!hideMeta");
     expect(component).toContain("getExperienceLevelCornerAccentStyle");
     expect(component).toContain("const levelAccent = level ? getExperienceLevelCornerAccentStyle(level) : undefined");
     expect(component).not.toContain("GuidanceModeBadge");

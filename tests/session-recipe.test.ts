@@ -55,8 +55,7 @@ describe("Session recipe build step", () => {
     expect(page).toContain("\"use client\"");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={6}");
-    expect(page).toContain("Dough plan");
-    expect(page).toContain("Reference page");
+    expect(page).toContain("hideMeta");
     expect(page).toContain("Your dough plan is ready.");
     expect(page).toContain("Get your dough ingredients and amounts ready before you start.");
     expect(page).toContain("Continue to Timeline");
@@ -114,8 +113,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Salt");
     expect(page).toContain("Yeast");
     expect(page).toContain("Use these amounts when mixing your dough.");
-    expect(page).toContain("Use a digital scale for best accuracy. That’s enough to start the dough.");
-    expect(page).toContain("Yeast can be a very small amount. A precision scale helps.");
+    expect(page).not.toContain("Use a digital scale for best accuracy. That’s enough to start the dough.");
+    expect(page).not.toContain("Yeast can be a very small amount. A precision scale helps.");
     expect(page).toContain("Tools");
     expect(page).toContain("Have these ready");
     expect(page).toContain('label: "Digital scale"');
@@ -123,7 +122,6 @@ describe("Session recipe build step", () => {
     expect(page).toContain('label: "Dough scraper or sturdy spoon"');
     expect(page).toContain('label: "Covered container or bowl"');
     expect(page.indexOf("Get ready to mix")).toBeLessThan(page.indexOf("Ingredients & amounts"));
-    expect(page.indexOf("Ingredients & amounts")).toBeLessThan(page.indexOf("Next step"));
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {
@@ -136,11 +134,11 @@ describe("Session recipe build step", () => {
   it("keeps Timeline as the primary next step from the dough plan page", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).toContain("Next step");
-    expect(page).toContain("Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.");
     expect(page).toContain("Continue to Timeline →");
     expect(page).toContain("href=\"/session/timeline\"");
     expect(page).toContain("BottomActionBar");
+    expect(page).not.toContain("Next step");
+    expect(page).not.toContain("Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.");
     expect(page).not.toContain("SessionLocalOnlyNote");
     expect(page).not.toContain("{PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.");
     expect(page).not.toContain("href=\"/session/shopping\"");

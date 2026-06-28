@@ -11,6 +11,7 @@ type SessionStepHeroProps = {
   body: ReactNode;
   children?: ReactNode;
   desktopAside?: ReactNode;
+  hideMeta?: boolean;
   label: string;
   level?: ExperienceLevel;
   pageType: string;
@@ -22,6 +23,7 @@ export function SessionStepHero({
   body,
   children,
   desktopAside,
+  hideMeta = false,
   label,
   level,
   pageType,
@@ -38,12 +40,14 @@ export function SessionStepHero({
     >
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <div className="flex flex-wrap gap-2">
-            <StatusPill className="bg-tomato/10 text-tomato">Step {step} of 10</StatusPill>
-            <StatusPill className="hidden sm:inline-flex">{label}</StatusPill>
-            <StatusPill className="hidden sm:inline-flex">{pageType}</StatusPill>
-          </div>
-          <h1 id="session-step-heading" className="mt-4 max-w-3xl font-display text-3xl font-semibold leading-none sm:text-6xl">
+          {!hideMeta && (
+            <div className="flex flex-wrap gap-2">
+              <StatusPill className="bg-tomato/10 text-tomato">Step {step} of 10</StatusPill>
+              <StatusPill className="hidden sm:inline-flex">{label}</StatusPill>
+              <StatusPill className="hidden sm:inline-flex">{pageType}</StatusPill>
+            </div>
+          )}
+          <h1 id="session-step-heading" className={`${hideMeta ? "" : "mt-4"} max-w-3xl font-display text-3xl font-semibold leading-none sm:text-6xl`}>
             {title}
           </h1>
           <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-4 sm:text-base sm:leading-6">{body}</p>

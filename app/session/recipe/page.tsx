@@ -125,6 +125,7 @@ export default function SessionRecipePage() {
           title="Your dough plan is ready."
           body="Get your dough ingredients and amounts ready before you start."
           level={session.experienceLevel}
+          hideMeta
         />
 
         <section className="mt-4 sm:mt-6" aria-label="Dough plan details">
@@ -132,8 +133,7 @@ export default function SessionRecipePage() {
             <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Get ready to mix</p>
-                  <h2 className="mt-2 font-display text-3xl font-semibold">Get ready to mix</h2>
+                  <h2 className="font-display text-3xl font-semibold">Get ready to mix</h2>
                   <p className="mt-1 text-sm leading-6 text-ink/55">
                     Gather your ingredients and tools, and measure everything before you start.
                   </p>
@@ -183,22 +183,6 @@ export default function SessionRecipePage() {
                   </ul>
                 </section>
               </div>
-
-              <p className="mt-5 rounded-2xl bg-sky-50 p-3 text-sm font-bold leading-6 text-ink/65 sm:p-4">
-                Use a digital scale for best accuracy. That’s enough to start the dough.
-              </p>
-              {result.ingredients.leavener > 0 && result.ingredients.leavener < 1 && (
-                <p className="mt-4 rounded-2xl bg-sky-50 p-4 text-sm leading-6 text-ink/60">
-                  Yeast can be a very small amount. A precision scale helps.
-                </p>
-              )}
-            </article>
-
-            <article className="rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:rounded-[2rem] sm:p-6">
-              <h2 className="font-display text-3xl font-semibold">Next step</h2>
-              <p className="mt-1 text-sm leading-6 text-ink/55 sm:mt-2">
-                Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.
-              </p>
             </article>
           </div>
         </section>
