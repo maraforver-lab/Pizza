@@ -201,6 +201,15 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("savePatch({ pizzaStyle: value, ovenType, pizzaCount }, \"path\")");
   });
 
+  it("supports desktop sidebar links back to completed setup steps", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("function wizardStepFromQuery");
+    expect(page).toContain('new URLSearchParams(window.location.search).get("step")');
+    expect(page).toContain("setStep(requestedStep ?? initialWizardStep(supportedSession))");
+    expect(page).toContain('value !== "summary"');
+  });
+
   it("maps old removed oven fallback choices to Home oven safely", () => {
     const page = source("app/session/start/page.tsx");
 

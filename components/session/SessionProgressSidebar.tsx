@@ -1,18 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
 
 const sessionJourneySteps = [
-  { label: "How you bake", phase: "Setup" },
-  { label: "Pizza style", phase: "Setup" },
-  { label: "When to eat", phase: "Setup" },
-  { label: "How many", phase: "Setup" },
-  { label: "Flour", phase: "Setup" },
-  { label: "Dough plan", phase: "Plan" },
-  { label: "Timeline", phase: "Plan" },
-  { label: "Shopping list", phase: "Prepare" },
-  { label: "Kitchen mode", phase: "Bake" },
-  { label: "Review", phase: "Improve" },
+  { label: "How you bake", phase: "Setup", href: "/session/start?step=path" },
+  { label: "Pizza style", phase: "Setup", href: "/session/start?step=preset" },
+  { label: "When to eat", phase: "Setup", href: "/session/start?step=time" },
+  { label: "How many", phase: "Setup", href: "/session/start?step=quantity" },
+  { label: "Flour", phase: "Setup", href: "/session/start?step=flour" },
+  { label: "Dough plan", phase: "Plan", href: "/session/recipe" },
+  { label: "Timeline", phase: "Plan", href: "/session/timeline" },
+  { label: "Shopping list", phase: "Prepare", href: "/session/shopping" },
+  { label: "Kitchen mode", phase: "Bake", href: "/session/kitchen" },
+  { label: "Review", phase: "Improve", href: "/session/review" },
 ] as const;
 
 type SessionProgressSidebarProps = {
@@ -45,8 +46,8 @@ export function SessionProgressSidebar({ activeStep }: SessionProgressSidebarPro
       <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session journey">
         {sessionJourneySteps.map((item, index) => {
           const state = stepState(index, activeStep);
-          return (
-            <li key={item.label} className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`}>
+          const content = (
+            <>
               <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
               <span className={`grid h-6 w-6 place-items-center rounded-full ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
                 {state === "complete" ? "✓" : index + 1}
@@ -55,6 +56,20 @@ export function SessionProgressSidebar({ activeStep }: SessionProgressSidebarPro
                 <span className="block truncate">{item.label}</span>
                 <span className={`block text-[10px] ${state === "current" ? "text-white/55" : "text-ink/35"}`}>{item.phase}</span>
               </span>
+            </>
+          );
+          const className = `flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`;
+          return (
+            <li key={item.label}>
+              {state === "complete" ? (
+                <Link href={item.href} className={`${className} cursor-pointer transition hover:bg-leaf/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream`} aria-label={`Go to ${item.label}`}>
+                  {content}
+                </Link>
+              ) : (
+                <div className={className} aria-current={state === "current" ? "step" : undefined}>
+                  {content}
+                </div>
+              )}
             </li>
           );
         })}

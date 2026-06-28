@@ -177,6 +177,11 @@ function initialWizardStep(session: PizzaSession): WizardStep {
   return "path";
 }
 
+function wizardStepFromQuery(value: string | null): WizardStep | undefined {
+  if (!value) return undefined;
+  return wizardSteps.includes(value as WizardStep) && value !== "summary" ? value as WizardStep : undefined;
+}
+
 function optionClass(active: boolean, density: "default" | "compact" = "default") {
   const sizeClass = density === "compact"
     ? "min-h-[6.75rem] rounded-[1rem] p-2.5 sm:min-h-[7rem] sm:rounded-[1.1rem] sm:p-3"
@@ -320,7 +325,8 @@ export default function StartPizzaSessionPage() {
       setSelectedDayChoice("tomorrow");
       setSelectedTimeChoice("dinner");
     }
-    setStep(initialWizardStep(supportedSession));
+    const requestedStep = wizardStepFromQuery(new URLSearchParams(window.location.search).get("step"));
+    setStep(requestedStep ?? initialWizardStep(supportedSession));
     setReady(true);
   }, []);
 

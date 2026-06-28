@@ -73,9 +73,23 @@ describe("Pizza Session desktop refinement components", () => {
     ];
 
     expect(sidebar).toContain("export function SessionProgressSidebar");
+    expect(sidebar).toContain('import Link from "next/link"');
     expect(sidebar).toContain("Pizza Session journey");
     expect(sidebar).toContain("hidden rounded-[1.75rem]");
     expect(sidebar).toContain("lg:block");
+    expect(sidebar).toContain('href: "/session/start?step=path"');
+    expect(sidebar).toContain('href: "/session/start?step=preset"');
+    expect(sidebar).toContain('href: "/session/start?step=time"');
+    expect(sidebar).toContain('href: "/session/start?step=quantity"');
+    expect(sidebar).toContain('href: "/session/start?step=flour"');
+    expect(sidebar).toContain('href: "/session/recipe"');
+    expect(sidebar).toContain('href: "/session/timeline"');
+    expect(sidebar).toContain('href: "/session/shopping"');
+    expect(sidebar).toContain('href: "/session/kitchen"');
+    expect(sidebar).toContain('href: "/session/review"');
+    expect(sidebar).toContain('state === "complete" ? (');
+    expect(sidebar).toContain('aria-label={`Go to ${item.label}`}');
+    expect(sidebar).toContain("focus-visible:ring-2");
     expect(sidebar).toContain("Current journey step");
     expect(sidebar).toContain("Dough plan");
     expect(sidebar).toContain("Timeline");
