@@ -262,6 +262,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Mark step as done →");
     expect(page).toContain("kitchenBackHrefFromSource(source)");
     expect(page).toContain("kitchenBackHrefFromReferrer(document.referrer)");
+    expect(page).toContain("setSession(updated)");
     expect(page).toContain("if (value === \"timeline\") return \"/session/timeline\"");
     expect(page).toContain("if (value === \"review\") return \"/session/review\"");
     expect(page).toContain("return \"/session/shopping\"");
@@ -270,6 +271,9 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("Current step");
     expect(page).not.toContain("Do this now");
     expect(page).not.toContain("SessionLocalOnlyNote");
+    expect(page).not.toContain("saveMessage");
+    expect(page).not.toContain("marked done. Progress saved in this browser.");
+    expect(page).not.toContain('role="status"');
     expect(page).not.toContain("<AppSignature");
     expect(page).not.toContain("Open full Calculator");
     expect(page).not.toContain("Open baking timer");

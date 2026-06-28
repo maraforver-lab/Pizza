@@ -78,7 +78,6 @@ function kitchenBackHrefFromReferrer(value?: string) {
 export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [backHref, setBackHref] = useState("/session/shopping");
 
   useEffect(() => {
@@ -137,12 +136,8 @@ export default function SessionKitchenPage() {
   const markDone = () => {
     if (!session || !currentStep) return;
     const updated = completeKitchenTimelineStep(session, currentStep.id);
-    if (!updated) {
-      setSaveMessage("Could not update this local session. Please refresh and try again.");
-      return;
-    }
+    if (!updated) return;
     setSession(updated);
-    setSaveMessage(`${currentStep.label} marked done. Progress saved in this browser.`);
   };
 
   return (
@@ -158,12 +153,6 @@ export default function SessionKitchenPage() {
           level={session.experienceLevel}
           hideMeta
         />
-
-        {saveMessage && (
-          <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status">
-            {saveMessage}
-          </p>
-        )}
 
         <section className="mt-4 sm:mt-6">
           <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7">
