@@ -91,9 +91,13 @@ describe("Pizza Session desktop refinement components", () => {
     expect(sidebar).toContain('href: "/session/shopping"');
     expect(sidebar).toContain('href: "/session/kitchen"');
     expect(sidebar).toContain('href: "/session/review"');
-    expect(sidebar).toContain('state === "complete" ? (');
+    expect(sidebar).toContain('const canNavigate = state === "complete"');
+    expect(sidebar).toContain("{canNavigate ? (");
     expect(sidebar).toContain('aria-label={`Go to ${item.label}`}');
     expect(sidebar).toContain("focus-visible:ring-2");
+    expect(sidebar).toContain("cursor-pointer transition hover:bg-leaf/15");
+    expect(sidebar).toContain("cursor-default select-none");
+    expect(sidebar).toContain('aria-disabled={state === "upcoming" ? true : undefined}');
     expect(sidebar).toContain("Current journey step");
     expect(sidebar).toContain("Dough plan");
     expect(sidebar).toContain("Timeline");

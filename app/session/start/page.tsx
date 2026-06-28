@@ -36,16 +36,16 @@ type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
 const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"];
 
 const journeySteps = [
-  { label: "How you bake", route: "/session/start", phase: "Setup" },
-  { label: "Pizza style", route: "/session/start", phase: "Setup" },
-  { label: "When to eat", route: "/session/start", phase: "Setup" },
-  { label: "How many", route: "/session/start", phase: "Setup" },
-  { label: "Flour", route: "/session/start", phase: "Setup" },
-  { label: "Dough plan", route: "/session/recipe", phase: "Plan" },
-  { label: "Timeline", route: "/session/timeline", phase: "Plan" },
-  { label: "Shopping list", route: "/session/shopping", phase: "Prepare" },
-  { label: "Kitchen mode", route: "/session/kitchen", phase: "Bake" },
-  { label: "Review", route: "/session/review", phase: "Improve" },
+  { label: "How you bake", href: "/session/start?step=path", phase: "Setup" },
+  { label: "Pizza style", href: "/session/start?step=preset", phase: "Setup" },
+  { label: "When to eat", href: "/session/start?step=time", phase: "Setup" },
+  { label: "How many", href: "/session/start?step=quantity", phase: "Setup" },
+  { label: "Flour", href: "/session/start?step=flour", phase: "Setup" },
+  { label: "Dough plan", href: "/session/recipe", phase: "Plan" },
+  { label: "Timeline", href: "/session/timeline", phase: "Plan" },
+  { label: "Shopping list", href: "/session/shopping", phase: "Prepare" },
+  { label: "Kitchen mode", href: "/session/kitchen", phase: "Bake" },
+  { label: "Review", href: "/session/review", phase: "Improve" },
 ] as const;
 
 const styleOptions = [
@@ -158,7 +158,7 @@ function stepIndex(step: WizardStep) {
 }
 
 function journeyProgressForStep(step: WizardStep) {
-  return step === "summary" ? 5 : stepIndex(step) + 1;
+  return step === "summary" ? 6 : stepIndex(step) + 1;
 }
 
 function journeyStepState(index: number, currentJourneyStep: number) {
@@ -464,18 +464,34 @@ export default function StartPizzaSessionPage() {
           <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session journey">
             {journeySteps.map((item, index) => {
               const state = journeyStepState(index, journeyProgress);
+              const canNavigate = state === "complete";
+              const content = (
+                <>
+                  <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
+                  <span className={`grid h-6 w-6 place-items-center rounded-full ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
+                    {state === "complete" ? "✓" : index + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{item.label}</span>
+                    <span className={`block text-[10px] ${state === "current" ? "text-white/55" : "text-ink/35"}`}>{item.phase}</span>
+                  </span>
+                </>
+              );
+              const className = `flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`;
               return (
-              <li key={item.label} className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`}>
-                <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
-                <span className={`grid h-6 w-6 place-items-center rounded-full ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
-                  {state === "complete" ? "✓" : index + 1}
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate">{item.label}</span>
-                  <span className={`block text-[10px] ${state === "current" ? "text-white/55" : "text-ink/35"}`}>{item.phase}</span>
-                </span>
-              </li>
-            )})}
+                <li key={item.label}>
+                  {canNavigate ? (
+                    <Link href={item.href} className={`${className} cursor-pointer transition hover:bg-leaf/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream`} aria-label={`Go to ${item.label}`}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className={`${className} cursor-default select-none`} aria-current={state === "current" ? "step" : undefined} aria-disabled={state === "upcoming" ? true : undefined}>
+                      {content}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ol>
           <div className="mt-5 rounded-2xl bg-cream/70 p-3 text-xs leading-5 text-ink/50">
             <strong className="block text-sm text-ink">You can change anything later. No worries!</strong>

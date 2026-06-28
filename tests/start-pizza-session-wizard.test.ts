@@ -205,9 +205,20 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("function wizardStepFromQuery");
+    expect(page).toContain('href: "/session/start?step=path"');
+    expect(page).toContain('href: "/session/start?step=preset"');
+    expect(page).toContain('href: "/session/start?step=time"');
+    expect(page).toContain('href: "/session/start?step=quantity"');
+    expect(page).toContain('href: "/session/start?step=flour"');
     expect(page).toContain('new URLSearchParams(window.location.search).get("step")');
     expect(page).toContain("setStep(requestedStep ?? initialWizardStep(supportedSession))");
     expect(page).toContain('value !== "summary"');
+    expect(page).toContain("const canNavigate = state === \"complete\"");
+    expect(page).toContain("<Link href={item.href}");
+    expect(page).toContain("aria-label={`Go to ${item.label}`}");
+    expect(page).toContain("cursor-pointer transition hover:bg-leaf/15");
+    expect(page).toContain("cursor-default select-none");
+    expect(page).toContain("aria-disabled={state === \"upcoming\" ? true : undefined}");
   });
 
   it("maps old removed oven fallback choices to Home oven safely", () => {

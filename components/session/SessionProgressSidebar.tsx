@@ -46,6 +46,7 @@ export function SessionProgressSidebar({ activeStep }: SessionProgressSidebarPro
       <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session journey">
         {sessionJourneySteps.map((item, index) => {
           const state = stepState(index, activeStep);
+          const canNavigate = state === "complete";
           const content = (
             <>
               <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
@@ -61,12 +62,12 @@ export function SessionProgressSidebar({ activeStep }: SessionProgressSidebarPro
           const className = `flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`;
           return (
             <li key={item.label}>
-              {state === "complete" ? (
+              {canNavigate ? (
                 <Link href={item.href} className={`${className} cursor-pointer transition hover:bg-leaf/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream`} aria-label={`Go to ${item.label}`}>
                   {content}
                 </Link>
               ) : (
-                <div className={className} aria-current={state === "current" ? "step" : undefined}>
+                <div className={`${className} cursor-default select-none`} aria-current={state === "current" ? "step" : undefined} aria-disabled={state === "upcoming" ? true : undefined}>
                   {content}
                 </div>
               )}
