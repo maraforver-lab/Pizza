@@ -47,7 +47,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("href={backHref}");
     expect(kitchen).toContain("kitchenBackHrefFromSource");
     expectTextLink(kitchen, "Review your pizza →", "/session/review");
-    expectTextLink(review, "Start a new Pizza Session →", "/session/start");
+    expectTextLink(review, "Start a new Pizza Session →", "/session/start?new=1");
     expect(review).not.toContain("Back to Kitchen Mode");
     expect(review).not.toContain("View timeline");
   });

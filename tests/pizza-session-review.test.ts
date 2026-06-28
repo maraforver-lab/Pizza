@@ -113,6 +113,7 @@ describe("Pizza Session review and bake notes", () => {
 
     expect(page).toContain("Review saved");
     expect(page).toContain("Start a new Pizza Session →");
+    expect(page).toContain('href="/session/start?new=1"');
     expect(page).not.toContain("Saved locally");
     expect(page).not.toContain("Your notes are saved in this browser.");
     expect(page).not.toContain("Back to Kitchen Mode");

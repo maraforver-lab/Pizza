@@ -259,7 +259,7 @@ export default function SessionReviewPage() {
                   Review saved in this browser.
                 </p>
                 <div className="mt-4">
-                  <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
+                  <Link href="/session/start?new=1" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
                     Start a new Pizza Session →
                   </Link>
                 </div>

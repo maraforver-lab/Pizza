@@ -213,7 +213,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('href: "/session/start?step=time"');
     expect(page).toContain('href: "/session/start?step=quantity"');
     expect(page).toContain('href: "/session/start?step=flour"');
-    expect(page).toContain('new URLSearchParams(window.location.search).get("step")');
+    expect(page).toContain("const query = new URLSearchParams(window.location.search)");
+    expect(page).toContain('const requestedStep = wizardStepFromQuery(query.get("step"))');
     expect(page).toContain('const requestedStep = wizardStepFromQuery(searchParams.get("step"))');
     expect(page).toContain("if (requestedStep && requestedStep !== step)");
     expect(page).toContain("setStep(requestedStep ?? initialWizardStep(supportedSession))");
@@ -316,8 +317,12 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("getActivePizzaSession");
     expect(page).toContain("createAndSavePizzaSession");
+    expect(page).toContain("clearActivePizzaSession");
     expect(page).toContain("setActivePizzaSession");
     expect(page).toContain("updatePizzaSession");
+    expect(page).toContain('const shouldStartNewSession = query.get("new") === "1"');
+    expect(page).toContain("if (shouldStartNewSession)");
+    expect(page).toContain("const active = shouldStartNewSession ? undefined : getActivePizzaSession()");
     expect(page).toContain("status: \"planning\"");
     expect(page).toContain("currentStep");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");

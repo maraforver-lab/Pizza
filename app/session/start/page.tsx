@@ -24,6 +24,7 @@ import {
   type PizzaSessionTimeQuickChoiceId,
 } from "@/lib/session-time-quick-choices";
 import {
+  clearActivePizzaSession,
   createAndSavePizzaSession,
   getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
@@ -295,7 +296,12 @@ function StartPizzaSessionContent() {
   useEffect(() => {
     document.documentElement.lang = "en";
     const level = readExperienceLevelPreference();
-    const active = getActivePizzaSession();
+    const query = new URLSearchParams(window.location.search);
+    const shouldStartNewSession = query.get("new") === "1";
+    if (shouldStartNewSession) {
+      clearActivePizzaSession();
+    }
+    const active = shouldStartNewSession ? undefined : getActivePizzaSession();
     const baseSession = active ?? createAndSavePizzaSession({
       status: "planning",
       currentStep: "style",
@@ -337,7 +343,7 @@ function StartPizzaSessionContent() {
       setSelectedDayChoice("tomorrow");
       setSelectedTimeChoice("dinner");
     }
-    const requestedStep = wizardStepFromQuery(new URLSearchParams(window.location.search).get("step"));
+    const requestedStep = wizardStepFromQuery(query.get("step"));
     setStep(requestedStep ?? initialWizardStep(supportedSession));
     setReady(true);
   }, []);
