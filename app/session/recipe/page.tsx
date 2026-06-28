@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
-import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import type { PizzaSession } from "@/lib/pizza-session";
@@ -121,12 +120,6 @@ export default function SessionRecipePage() {
           title="Your dough plan is ready."
           body="Get your dough ingredients and amounts ready before you start."
           level={session.experienceLevel}
-          desktopAside={(
-            <>
-              <strong className="block text-ink">Step 6: Dough plan</strong>
-              Before this, you set up the basics. After this, the timeline, shopping list, kitchen mode and review come next.
-            </>
-          )}
         />
 
         <section className="mt-4 sm:mt-6" aria-label="Dough plan details">
@@ -190,9 +183,6 @@ export default function SessionRecipePage() {
               <p className="mt-1 text-sm leading-6 text-ink/55 sm:mt-2">
                 Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.
               </p>
-              <SessionLocalOnlyNote>
-                {PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.
-              </SessionLocalOnlyNote>
             </article>
           </div>
         </section>

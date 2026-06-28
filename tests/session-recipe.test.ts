@@ -92,8 +92,9 @@ describe("Session recipe build step", () => {
     const journeyDoc = source("docs/pizza-session-v2-journey.md");
 
     expect(page).toContain("step={6}");
-    expect(page).toContain("Step 6: Dough plan");
-    expect(page).toContain("After this, the timeline, shopping list, kitchen mode and review come next.");
+    expect(page).not.toContain("Step 6: Dough plan");
+    expect(page).not.toContain("Before this, you set up the basics.");
+    expect(page).not.toContain("After this, the timeline, shopping list, kitchen mode and review come next.");
     expect(page).not.toContain("Current journey step");
     expect(page).not.toContain("Pizza Session V2 journey");
     expect(journeyDoc).toContain("| 6 | Dough plan | `/session/recipe`");
@@ -137,6 +138,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Continue to Timeline →");
     expect(page).toContain("href=\"/session/timeline\"");
     expect(page).toContain("BottomActionBar");
+    expect(page).not.toContain("SessionLocalOnlyNote");
+    expect(page).not.toContain("{PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.");
     expect(page).not.toContain("href=\"/session/shopping\"");
     expect(page.match(/Continue to Timeline →/g)).toHaveLength(1);
     expect(page).not.toContain("Edit session choices");
