@@ -8,7 +8,7 @@ import {
 } from "@/lib/experience-levels";
 
 type SessionStepHeroProps = {
-  body: ReactNode;
+  body?: ReactNode;
   children?: ReactNode;
   desktopAside?: ReactNode;
   hideMeta?: boolean;
@@ -50,7 +50,7 @@ export function SessionStepHero({
           <h1 id="session-step-heading" className={`${hideMeta ? "" : "mt-4"} max-w-3xl font-display text-3xl font-semibold leading-none sm:text-6xl`}>
             {title}
           </h1>
-          <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-4 sm:text-base sm:leading-6">{body}</p>
+          {body && <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-4 sm:text-base sm:leading-6">{body}</p>}
           {children && <div className="mt-4 sm:mt-5">{children}</div>}
         </div>
         {desktopAside && (

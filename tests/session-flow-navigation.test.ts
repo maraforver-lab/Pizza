@@ -48,8 +48,8 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("kitchenBackHrefFromSource");
     expectTextLink(kitchen, "Review your pizza →", "/session/review");
     expectTextLink(review, "Start a new Pizza Session →", "/session/start");
-    expectTextLink(review, "Back to Kitchen Mode", "/session/kitchen?from=review");
-    expectTextLink(review, "View timeline", "/session/timeline");
+    expect(review).not.toContain("Back to Kitchen Mode");
+    expect(review).not.toContain("View timeline");
   });
 
   it("keeps the Timeline shopping checkpoint visible before service and bake steps", () => {
@@ -95,10 +95,10 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).not.toContain("Current step");
     expect(kitchen).not.toContain("Do this now");
     expect(kitchen).not.toMatch(/Review dough plan|Open shopping list|Save and continue later|Open full Calculator/);
-    expect(review).toContain("How did your pizza turn out?");
     expect(review).toContain("Save review →");
     expect(review).toContain("Review saved in this browser.");
     expect(review).toContain("No pizza session to review");
+    expect(review).not.toContain("How did your pizza turn out?");
   });
 
   it("maps Continue Session to the same flow destinations", () => {

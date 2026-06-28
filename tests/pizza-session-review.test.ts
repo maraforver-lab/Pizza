@@ -41,27 +41,31 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={10}");
     expect(page).toContain("Review your pizza");
-    expect(page).toContain("How did your pizza turn out? Save useful variables like hydration, fermentation time, flour, oven heat, topping load and bake timing.");
     expect(page).toContain("hideMeta");
+    expect(page).toContain("hideLocalSaveNote");
     expect(page).not.toContain("desktopAside");
     expect(page).not.toContain("Step 10: Review");
     expect(page).not.toContain("Learning page</");
+    expect(page).not.toContain("How did your pizza turn out?");
+    expect(page).not.toContain("Save what worked and what you want to improve next time.");
     expect(page).toContain("No pizza session to review");
     expect(page).toContain("Overall result");
     expect(page).toContain("1 — Poor");
     expect(page).toContain("5 — Excellent");
     expect(page).toContain("What worked well?");
     expect(page).toContain("What would you improve?");
-    expect(page).toContain("Additional notes");
+    expect(page).toContain("Free notes");
     expect(page).toContain("Save review →");
     expect(page).toContain("Review saved in this browser.");
-    expect(page).toContain("SESSION_REVIEW_LOCAL_ONLY_COPY");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/kitchen\"");
     expect(page).not.toContain("Review and notes");
     expect(page).not.toContain("Capture the variables worth testing next.");
     expect(page).not.toContain("Next time I want to try…");
-    expect(page).not.toContain("Free notes");
+    expect(page).not.toContain("Additional notes");
+    expect(page).not.toContain("SessionLocalOnlyNote");
+    expect(page).not.toContain("SESSION_REVIEW_LOCAL_ONLY_COPY");
+    expect(page).not.toContain("No photo upload, social sharing");
     expect(page).not.toContain("Session summary");
     expect(page).not.toContain("Photos and sharing");
     expect(page).not.toContain("<AppSignature");
@@ -73,8 +77,8 @@ describe("Pizza Session review and bake notes", () => {
 
     expect(page.indexOf("Overall result")).toBeLessThan(page.indexOf("What worked well?"));
     expect(page.indexOf("What worked well?")).toBeLessThan(page.indexOf("What would you improve?"));
-    expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Additional notes"));
-    expect(page.indexOf("Additional notes")).toBeLessThan(page.indexOf("Save review →"));
+    expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Free notes"));
+    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Save review →"));
     [
       "Great crust",
       "Good oven spring",
@@ -108,10 +112,11 @@ describe("Pizza Session review and bake notes", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page).toContain("Review saved");
-    expect(page).toContain("Your notes are saved in this browser.");
     expect(page).toContain("Start a new Pizza Session →");
-    expect(page).toContain("Back to Kitchen Mode");
-    expect(page).toContain("View timeline");
+    expect(page).not.toContain("Saved locally");
+    expect(page).not.toContain("Your notes are saved in this browser.");
+    expect(page).not.toContain("Back to Kitchen Mode");
+    expect(page).not.toContain("View timeline");
     expect(page).not.toMatch(/full timeline|shopping list|dough amounts|recipe snapshot/i);
   });
 

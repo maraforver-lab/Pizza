@@ -18,6 +18,7 @@ const sessionJourneySteps = [
 
 type SessionProgressSidebarProps = {
   activeStep: number;
+  hideLocalSaveNote?: boolean;
 };
 
 function stepState(index: number, activeStep: number) {
@@ -26,7 +27,7 @@ function stepState(index: number, activeStep: number) {
   return "upcoming";
 }
 
-export function SessionProgressSidebar({ activeStep }: SessionProgressSidebarProps) {
+export function SessionProgressSidebar({ activeStep, hideLocalSaveNote = false }: SessionProgressSidebarProps) {
   const progress = Math.round((activeStep / sessionJourneySteps.length) * 100);
 
   return (
@@ -75,10 +76,12 @@ export function SessionProgressSidebar({ activeStep }: SessionProgressSidebarPro
           );
         })}
       </ol>
-      <div className="mt-5 rounded-2xl bg-cream/70 p-3 text-xs leading-5 text-ink/50">
-        <strong className="block text-sm text-ink">Saved as you go.</strong>
-        <span className="mt-2 block">{PIZZA_SESSION_LOCAL_ONLY_COPY}</span>
-      </div>
+      {!hideLocalSaveNote && (
+        <div className="mt-5 rounded-2xl bg-cream/70 p-3 text-xs leading-5 text-ink/50">
+          <strong className="block text-sm text-ink">Saved as you go.</strong>
+          <span className="mt-2 block">{PIZZA_SESSION_LOCAL_ONLY_COPY}</span>
+        </div>
+      )}
     </aside>
   );
 }

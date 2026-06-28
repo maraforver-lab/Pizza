@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
-import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -14,9 +13,7 @@ import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import {
-  getSessionReviewCopy,
   saveSessionReview,
-  SESSION_REVIEW_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-review";
 
 const ratingOptions = [
@@ -148,9 +145,6 @@ export default function SessionReviewPage() {
 
   if (!session) return <MissingReviewState />;
 
-  const copy = getSessionReviewCopy(session.experienceLevel);
-  const heroSubtitle =
-    "How did your pizza turn out? Save useful variables like hydration, fermentation time, flour, oven heat, topping load and bake timing.";
   const reviewInput = {
     rating: rating || undefined,
     notes,
@@ -167,24 +161,23 @@ export default function SessionReviewPage() {
     }
     setSession(updated);
     setSaved(true);
-    setMessage("Review saved in this browser.");
+    setMessage(null);
   };
 
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
-      <SessionWorkspaceLayout activeStep={10}>
+      <SessionWorkspaceLayout activeStep={10} hideLocalSaveNote>
         <SessionStepHero
           step={10}
           label="Review"
           pageType="Learning page"
           title="Review your pizza"
-          body={heroSubtitle}
           level={session.experienceLevel}
           hideMeta
         />
 
-        {message && (
+        {message && !saved && (
           <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status" aria-live="polite">
             {message}
           </p>
@@ -230,11 +223,11 @@ export default function SessionReviewPage() {
                 onChange={setImproveNextTime}
               />
               <label className="block">
-                <span className="text-sm font-extrabold text-ink/70">Additional notes</span>
+                <span className="text-sm font-extrabold text-ink/70">Free notes</span>
                 <textarea
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
-                  placeholder={copy.notesPlaceholder}
+                  placeholder="Add any extra notes about dough feel, oven heat, toppings, timing or serving."
                   className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-28 sm:p-4"
                 />
               </label>
@@ -261,31 +254,17 @@ export default function SessionReviewPage() {
 
             {saved && (
               <section className="mt-6 rounded-[1.5rem] bg-leaf/10 p-5" aria-labelledby="after-save-heading">
-                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Saved locally</p>
-                <h3 id="after-save-heading" className="mt-2 font-display text-3xl font-semibold">Review saved</h3>
-                <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Your notes are saved in this browser.
-                </p>
+                <h3 id="after-save-heading" className="font-display text-3xl font-semibold">Review saved</h3>
                 <p className="mt-2 text-sm font-bold text-leaf" role="status" aria-live="polite">
                   Review saved in this browser.
                 </p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+                <div className="mt-4">
                   <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
                     Start a new Pizza Session →
-                  </Link>
-                  <Link href="/session/kitchen?from=review" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
-                    Back to Kitchen Mode
-                  </Link>
-                  <Link href="/session/timeline" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
-                    View timeline
                   </Link>
                 </div>
               </section>
             )}
-
-            <SessionLocalOnlyNote>
-              {SESSION_REVIEW_LOCAL_ONLY_COPY} No photo upload, social sharing, cloud sync, account sync or public result page is active.
-            </SessionLocalOnlyNote>
           </section>
         </section>
       </SessionWorkspaceLayout>
