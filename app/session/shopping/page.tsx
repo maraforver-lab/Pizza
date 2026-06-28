@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
-import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -24,7 +23,6 @@ import {
 import {
   generateAndSaveActiveShoppingList,
   generatePizzaSessionShoppingList,
-  SHOPPING_LIST_LOCAL_ONLY_COPY,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
 
@@ -75,7 +73,19 @@ export default function SessionShoppingPage() {
     : generationResult.ok
       ? generationResult.shoppingList
       : undefined;
-  const pizzaCount = session?.pizzaCount ?? shoppingList?.pizzaCount ?? session?.recipeSnapshot?.balls;
+  const renderNextActionCard = () => (
+    <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
+      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
+      <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Kitchen Mode</h2>
+      <p className="mt-2 text-sm leading-6 text-ink/60">You’ll cook your pizzas step by step.</p>
+      <Link
+        href="/session/kitchen?from=shopping"
+        className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+      >
+        Next →
+      </Link>
+    </div>
+  );
 
   const toggleReady = (item: PizzaSessionShoppingItem) => {
     if (!session) return;
@@ -130,23 +140,15 @@ export default function SessionShoppingPage() {
           title="Your shopping list"
           body="Check what you already have before you start cooking."
           level={session.experienceLevel}
-          desktopAside={(
-            <>
-              <strong className="block text-ink">Step 8: Shopping list</strong>
-              {pizzaCount ? `Built for ${pizzaCount} ${pizzaCount === 1 ? "pizza" : "pizzas"}. ` : ""}
-              This is a preparation checklist for your kitchen.
-            </>
-          )}
-        />
+          hideMeta
+          desktopAside={renderNextActionCard()}
+        >
+          <div className="lg:hidden">
+            {renderNextActionCard()}
+          </div>
+        </SessionStepHero>
 
         <section className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/85 shadow-card sm:mt-6 sm:rounded-[2rem]" aria-label="Grouped shopping list">
-          <div className="border-b border-ink/10 p-4 sm:p-5">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Checklist groups</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold">Check what you already have.</h2>
-            <p className="mt-1 text-xs leading-5 text-ink/60 sm:mt-2 sm:text-sm sm:leading-6">
-              Mark items as Have when they are ready. Unchecked items stay marked as Need.
-            </p>
-          </div>
           {shoppingList?.groups.map((group) => (
             <section key={group.group} className="border-b border-ink/10 last:border-b-0">
               <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5 sm:py-4">
@@ -182,15 +184,6 @@ export default function SessionShoppingPage() {
               </div>
             </section>
           ))}
-        </section>
-
-        <section className="mt-4 rounded-[1.5rem] border border-leaf/15 bg-leaf/10 p-4 sm:mt-6 sm:rounded-[2rem] sm:p-5">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Kitchen Mode</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/60">You’ll cook your pizzas step by step.</p>
-          <SessionLocalOnlyNote>
-            {SHOPPING_LIST_LOCAL_ONLY_COPY} No cloud sync, tracking, public sharing or account sync is active.
-          </SessionLocalOnlyNote>
         </section>
 
         <BottomActionBar
