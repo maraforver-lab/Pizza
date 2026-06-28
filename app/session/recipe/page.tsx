@@ -131,16 +131,7 @@ export default function SessionRecipePage() {
         <section className="mt-4 sm:mt-6" aria-label="Dough plan details">
           <div className="grid min-w-0 gap-4 sm:gap-5">
             <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h2 className="font-display text-3xl font-semibold">Get ready to mix</h2>
-                  <p className="mt-1 text-sm leading-6 text-ink/55">
-                    Gather your ingredients and tools, and measure everything before you start.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(17rem,.85fr)] lg:gap-6">
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(17rem,.85fr)] lg:gap-6">
                 <section aria-labelledby="ingredients-amounts-heading" className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 id="ingredients-amounts-heading" className="font-display text-2xl font-semibold">Ingredients & amounts</h3>

@@ -103,8 +103,8 @@ describe("Session recipe build step", () => {
   it("shows preparation guidance before dough amounts and the next step", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).toContain("Get ready to mix");
-    expect(page).toContain("Gather your ingredients and tools, and measure everything before you start.");
+    expect(page).not.toContain("Get ready to mix");
+    expect(page).not.toContain("Gather your ingredients and tools, and measure everything before you start.");
     expect(page).toContain("Ingredients & amounts");
     expect(page).toContain("Weigh for best results");
     expect(page).toContain("Total dough");
@@ -121,7 +121,7 @@ describe("Session recipe build step", () => {
     expect(page).toContain('label: "Mixing bowl"');
     expect(page).toContain('label: "Dough scraper or sturdy spoon"');
     expect(page).toContain('label: "Covered container or bowl"');
-    expect(page.indexOf("Get ready to mix")).toBeLessThan(page.indexOf("Ingredients & amounts"));
+    expect(page.indexOf("Your dough plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {
