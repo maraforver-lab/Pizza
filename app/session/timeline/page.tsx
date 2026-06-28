@@ -183,7 +183,7 @@ function nextActionForTimeline({
 
   if (nextStep && isDoughTimelineStep(nextStep)) {
     return {
-      href: "/session/kitchen",
+      href: "/session/kitchen?from=timeline",
       cta: "Start dough →",
       title: nextStep.label,
       subtext: "This is your next dough preparation step.",
@@ -193,7 +193,7 @@ function nextActionForTimeline({
 
   if (nextStep && isServiceTimelineStep(nextStep)) {
     return {
-      href: "/session/kitchen",
+      href: "/session/kitchen?from=timeline",
       cta: "Continue baking →",
       title: nextStep.label,
       subtext: "Kitchen Mode will guide the active cooking steps.",

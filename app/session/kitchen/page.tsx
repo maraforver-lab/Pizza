@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { BottomActionBar, StatusPill } from "@/components/design-system";
+import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
-import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -56,21 +55,37 @@ function relativeFromTarget(stepTime?: string, targetTime?: string) {
   return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} target`;
 }
 
-function levelWhy(session: PizzaSession, step?: PizzaSessionTimelineStep) {
-  const instruction = getKitchenTaskInstruction(step);
-  if (session.experienceLevel === "pizza_nerd") return instruction.pizzaNerdWhy;
-  if (session.experienceLevel === "enthusiast") return instruction.enthusiastWhy;
-  return instruction.beginnerWhy;
+function kitchenBackHrefFromSource(value?: string | null) {
+  if (value === "timeline") return "/session/timeline";
+  if (value === "review") return "/session/review";
+  return "/session/shopping";
+}
+
+function kitchenBackHrefFromReferrer(value?: string) {
+  if (!value || typeof window === "undefined") return "/session/shopping";
+  try {
+    const url = new URL(value);
+    if (url.origin !== window.location.origin) return "/session/shopping";
+    if (url.pathname === "/session/timeline") return "/session/timeline";
+    if (url.pathname === "/session/review") return "/session/review";
+    if (url.pathname === "/session/shopping") return "/session/shopping";
+  } catch {
+    return "/session/shopping";
+  }
+  return "/session/shopping";
 }
 
 export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [backHref, setBackHref] = useState("/session/shopping");
 
   useEffect(() => {
     document.documentElement.lang = "en";
     setSession(getActivePizzaSession() ?? null);
+    const source = new URLSearchParams(window.location.search).get("from");
+    setBackHref(source ? kitchenBackHrefFromSource(source) : kitchenBackHrefFromReferrer(document.referrer));
     setReady(true);
   }, []);
 
@@ -117,15 +132,6 @@ export default function SessionKitchenPage() {
   const instruction = getKitchenTaskInstruction(currentStep);
   const ingredients = doughKitchenIngredientLines(session.recipeSnapshot);
   const targetTime = session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime;
-  const modeEyebrow = kitchenMode === "service" ? "Pizza Service Mode" : "Dough Kitchen Mode";
-  const progressText = currentStep
-    ? `Step ${kitchenState.currentIndex + 1} of ${kitchenState.totalCount}`
-    : `${kitchenState.doneCount} of ${kitchenState.totalCount} steps done`;
-  const donePercent = kitchenState.totalCount > 0
-    ? Math.round((kitchenState.doneCount / kitchenState.totalCount) * 100)
-    : 0;
-  const heroProgressText = currentStep ? progressText : "All kitchen steps done";
-  const heroDoneText = currentStep ? `${donePercent}% done` : "Ready for review";
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
 
   const markDone = () => {
@@ -150,21 +156,8 @@ export default function SessionKitchenPage() {
           title="Kitchen Mode"
           body="Follow one step at a time."
           level={session.experienceLevel}
-          desktopAside={(
-            <>
-              <strong className="block text-ink">Step 9: Kitchen Mode</strong>
-              This page is for doing the next task. The full schedule stays in Timeline.
-            </>
-          )}
-        >
-          <div className="hidden flex-wrap gap-2 sm:flex">
-            <StatusPill className={kitchenMode === "service" ? "bg-tomato/10 text-tomato" : undefined}>
-              {currentStep ? modeEyebrow : "Pizza session complete"}
-            </StatusPill>
-            <StatusPill>{heroProgressText}</StatusPill>
-            <StatusPill>{heroDoneText}</StatusPill>
-          </div>
-        </SessionStepHero>
+          hideMeta
+        />
 
         {saveMessage && (
           <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status">
@@ -177,14 +170,9 @@ export default function SessionKitchenPage() {
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
-                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Current task</p>
-                   <div className="mt-3 flex flex-wrap gap-2">
-                     <StatusPill>{modeEyebrow}</StatusPill>
-                    <StatusPill>Current step</StatusPill>
-                    <StatusPill>{formatDateTime(currentStep.scheduledAt)}</StatusPill>
-                  </div>
-                   <h2 id="current-kitchen-task" className="mt-3 font-display text-4xl font-semibold leading-none sm:mt-4 sm:text-6xl">{currentStep.label}</h2>
-                   <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{instruction.shortInstruction}</p>
+                  <h2 id="current-kitchen-task" className="font-display text-4xl font-semibold leading-none sm:text-6xl">{currentStep.label}</h2>
+                  <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{instruction.shortInstruction}</p>
+                  <p className="mt-3 text-sm font-bold text-ink/55">{formatDateTime(currentStep.scheduledAt)}</p>
                   <p className="mt-3 text-sm leading-6 text-ink/55">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
                 </section>
 
@@ -214,17 +202,11 @@ export default function SessionKitchenPage() {
                 {kitchenMode === "service" && (
                    <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
-                    <h3 className="mt-2 font-display text-2xl font-semibold">Pizza Service Mode</h3>
+                    <h3 className="mt-2 font-display text-2xl font-semibold">Service reminders</h3>
                     {pizzaCount && <p className="mt-2 text-sm font-extrabold text-ink/70">Pizza count: {pizzaCount} pizzas</p>}
                     <p className="mt-2 text-sm leading-6 text-ink/60">Keep sauce, cheese and toppings ready, then follow the current task.</p>
                   </section>
                 )}
-
-                 <section className="mt-5 rounded-[1.5rem] bg-leaf/10 p-4 sm:mt-6 sm:p-5">
-                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Instruction</p>
-                  <h3 className="mt-2 font-display text-2xl font-semibold">Do this now</h3>
-                  <p className="mt-2 text-sm leading-6 text-ink/65">{levelWhy(session, currentStep)}</p>
-                </section>
 
                 {currentStep.quietHoursWarning && (
                   <p className="mt-5 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
@@ -234,7 +216,7 @@ export default function SessionKitchenPage() {
 
                 <BottomActionBar
                   back={(
-                    <Link href="/session/shopping" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+                    <Link href={backHref} className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
                       Back
                     </Link>
                   )}
@@ -258,7 +240,7 @@ export default function SessionKitchenPage() {
                 </p>
                 <BottomActionBar
                   back={(
-                    <Link href="/session/shopping" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+                    <Link href={backHref} className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
                       Back
                     </Link>
                   )}
@@ -272,10 +254,6 @@ export default function SessionKitchenPage() {
             )}
           </article>
         </section>
-
-        <SessionLocalOnlyNote>
-          {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications, tracking or public sharing is active.
-        </SessionLocalOnlyNote>
       </SessionWorkspaceLayout>
     </main>
   );

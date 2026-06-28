@@ -42,12 +42,13 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(timeline).toContain('href={nextAction.href}');
     expect(timeline).toContain('Start dough →');
     expect(timeline).toContain('Continue baking →');
-    expectTextLink(shopping, "Next →", "/session/kitchen");
+    expectTextLink(shopping, "Next →", "/session/kitchen?from=shopping");
     expectTextLink(shopping, "Back", "/session/timeline");
-    expectTextLink(kitchen, "Back", "/session/shopping");
+    expect(kitchen).toContain("href={backHref}");
+    expect(kitchen).toContain("kitchenBackHrefFromSource");
     expectTextLink(kitchen, "Review your pizza →", "/session/review");
     expectTextLink(review, "Start a new Pizza Session →", "/session/start");
-    expectTextLink(review, "Back to Kitchen Mode", "/session/kitchen");
+    expectTextLink(review, "Back to Kitchen Mode", "/session/kitchen?from=review");
     expectTextLink(review, "View timeline", "/session/timeline");
   });
 
@@ -75,7 +76,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(shopping).toContain("Cheese");
     expect(shopping).toContain("Toppings");
     expect(shopping).toContain("Optional gear");
-    expectTextLink(shopping, "Next →", "/session/kitchen");
+    expectTextLink(shopping, "Next →", "/session/kitchen?from=shopping");
     expectTextLink(shopping, "Back", "/session/timeline");
     expect(shopping).not.toMatch(/Copy shopping list|Review dough plan|Back to timeline|Open Kitchen Mode/i);
   });
@@ -84,12 +85,15 @@ describe("Pizza Session flow navigation integrity", () => {
     const kitchen = source("app/session/kitchen/page.tsx");
     const review = source("app/session/review/page.tsx");
 
-    expect(kitchen).toContain("Dough Kitchen Mode");
-    expect(kitchen).toContain("Pizza Service Mode");
+    expect(kitchen).toContain("hideMeta");
     expect(kitchen).toContain("Mark step as done →");
     expect(kitchen).toContain("Pizza session complete");
     expect(kitchen).toContain("Review your pizza →");
     expect(kitchen).toContain('href="/session/review"');
+    expect(kitchen).toContain("href={backHref}");
+    expect(kitchen).not.toContain("Step 9: Kitchen Mode");
+    expect(kitchen).not.toContain("Current step");
+    expect(kitchen).not.toContain("Do this now");
     expect(kitchen).not.toMatch(/Review dough plan|Open shopping list|Save and continue later|Open full Calculator/);
     expect(review).toContain("How did your pizza turn out?");
     expect(review).toContain("Save review →");

@@ -198,7 +198,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("level={session.experienceLevel}");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain('href="/session/timeline"');
-    expect(page).toContain('href="/session/kitchen"');
+    expect(page).toContain('href="/session/kitchen?from=shopping"');
     expect(page).not.toContain("formatSessionTime");
     expect(page).not.toContain("targetTime");
     expect(page).not.toContain("<AppSignature");

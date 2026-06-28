@@ -70,15 +70,13 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Kitchen Mode");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={9}");
-    expect(page).toContain("Execution page");
-    expect(page).toContain("Dough Kitchen Mode");
-    expect(page).toContain("Pizza Service Mode");
+    expect(page).toContain("hideMeta");
     expect(page).toContain("Mark step as done");
     expect(page).toContain("No active pizza session");
     expect(page).toContain("Create a timeline first");
     expect(page).toContain("Ingredient amounts unavailable");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
-    expect(page).toContain("No cloud sync, reminders, notifications");
+    expect(page).toContain("kitchenBackHrefFromSource");
     expect(page).not.toMatch(/Cloud sync is active|push notifications enabled|Google indexing enabled/i);
   });
 
@@ -237,7 +235,7 @@ describe("Pizza Session Kitchen Mode", () => {
   it("renders a baseline service mode without a pizza-by-pizza order board", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("Pizza Service Mode");
+    expect(page).toContain("Service reminders");
     expect(page).toContain("Pizza count:");
     expect(page).toContain("Keep sauce, cheese and toppings ready, then follow the current task.");
     expect(page).not.toMatch(/order board|ticket rail|table service/i);
@@ -247,24 +245,31 @@ describe("Pizza Session Kitchen Mode", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("Pizza session complete");
-    expect(page).toContain("All kitchen steps done");
-    expect(page).toContain("Ready for review");
     expect(page).toContain("Save what worked and what you want to improve next time.");
     expect(page).toContain("Review your pizza →");
     expect(page).toContain("href=\"/session/review\"");
+    expect(page).not.toContain("All kitchen steps done");
+    expect(page).not.toContain("Ready for review");
   });
 
   it("aligns Kitchen Mode with Pizza Session V2 execution structure", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("step={9}");
-    expect(page).toContain("Current task");
     expect(page).toContain("Needed now");
-    expect(page).toContain("Instruction");
-    expect(page).toContain("Do this now");
     expect(page).toContain("BottomActionBar");
-    expect(page).toContain("href=\"/session/shopping\"");
+    expect(page).toContain("href={backHref}");
     expect(page).toContain("Mark step as done →");
+    expect(page).toContain("kitchenBackHrefFromSource(source)");
+    expect(page).toContain("kitchenBackHrefFromReferrer(document.referrer)");
+    expect(page).toContain("if (value === \"timeline\") return \"/session/timeline\"");
+    expect(page).toContain("if (value === \"review\") return \"/session/review\"");
+    expect(page).toContain("return \"/session/shopping\"");
+    expect(page).not.toContain("<StatusPill");
+    expect(page).not.toContain("Step 9: Kitchen Mode");
+    expect(page).not.toContain("Current step");
+    expect(page).not.toContain("Do this now");
+    expect(page).not.toContain("SessionLocalOnlyNote");
     expect(page).not.toContain("<AppSignature");
     expect(page).not.toContain("Open full Calculator");
     expect(page).not.toContain("Open baking timer");

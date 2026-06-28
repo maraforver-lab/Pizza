@@ -77,7 +77,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("{nextAction.subtext}");
     expect(page).toContain("Recommended action");
     expect(page).toContain("Open shopping list →");
-    expect(page).toContain("href: \"/session/kitchen\"");
+    expect(page).toContain("href: \"/session/kitchen?from=timeline\"");
     expect(page).toContain("href: \"/session/review\"");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).not.toContain("recipeQuery ? `/plan?");

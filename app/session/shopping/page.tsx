@@ -204,7 +204,7 @@ export default function SessionShoppingPage() {
           )}
           primary={(
             <Link
-              href="/session/kitchen"
+              href="/session/kitchen?from=shopping"
               className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
             >
               Next →
