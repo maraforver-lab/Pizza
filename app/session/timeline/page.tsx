@@ -134,6 +134,25 @@ function relativeFromTarget(stepTime?: string, targetTime?: string) {
   return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} target`;
 }
 
+function relativeFromNow(stepTime?: string) {
+  if (!stepTime) return "Timing guide";
+  const step = new Date(stepTime);
+  const now = new Date();
+  if (!Number.isFinite(step.getTime())) return "Timing guide";
+  const diffMinutes = Math.round((step.getTime() - now.getTime()) / 60_000);
+  if (Math.abs(diffMinutes) < 1) return "Now";
+  const abs = Math.abs(diffMinutes);
+  const days = Math.floor(abs / 1440);
+  const hours = Math.floor((abs % 1440) / 60);
+  const minutes = abs % 60;
+  const parts = [
+    days ? `${days}d` : "",
+    hours ? `${hours}h` : "",
+    !days && minutes ? `${minutes}m` : "",
+  ].filter(Boolean).join(" ");
+  return diffMinutes > 0 ? `In ${parts}` : `${parts} ago`;
+}
+
 type ShoppingCheckpointState = "Upcoming" | "Next" | "Done";
 
 function shoppingCheckpointState(session: PizzaSession | null, nextStep?: PizzaSessionTimelineStep): ShoppingCheckpointState {
@@ -207,6 +226,10 @@ function getCriticalMoments(steps: PizzaSessionTimelineStep[]) {
   return preferredIds.flatMap((id) => {
     const step = steps.find((candidate) => candidate.id === id);
     return step ? [step] : [];
+  }).sort((a, b) => {
+    const aTime = a.scheduledAt ? new Date(a.scheduledAt).getTime() : Number.POSITIVE_INFINITY;
+    const bTime = b.scheduledAt ? new Date(b.scheduledAt).getTime() : Number.POSITIVE_INFINITY;
+    return aTime - bTime;
   });
 }
 
@@ -362,21 +385,28 @@ export default function SessionTimelinePage() {
         </section>
 
         {criticalMoments.length > 0 && (
-          <section aria-labelledby="critical-moments-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
+          <section aria-labelledby="what-happens-when-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Critical moments</p>
-                <h2 id="critical-moments-heading" className="mt-2 font-display text-3xl font-semibold">Don’t miss these moments</h2>
+                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Timing highlights</p>
+                <h2 id="what-happens-when-heading" className="mt-2 font-display text-3xl font-semibold">What happens when</h2>
               </div>
-              <p className="hidden max-w-md text-sm leading-6 text-ink/55 sm:block">These are pulled from your actual timeline, not a separate checklist.</p>
+              <p className="hidden max-w-md text-sm leading-6 text-ink/55 sm:block">The most important moments from your actual pizza timeline.</p>
             </div>
-            <div className="mt-4 grid gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-3">
+            <div className="mt-4 overflow-hidden rounded-[1.25rem] border border-ink/10 bg-white sm:mt-5">
               {criticalMoments.map((step) => (
-                <article key={step.id} className={`rounded-[1.25rem] border p-3.5 sm:p-4 ${step.id === "room-temperature-rest" ? "border-tomato/30 bg-tomato/[.08]" : step.id === "bake-pizza" ? "border-tomato/20 bg-tomato/[.06]" : "border-leaf/15 bg-leaf/[.06]"}`}>
-                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{formatTimelineDate(step.scheduledAt)}</p>
-                  <h3 className="mt-2 font-display text-2xl font-semibold">{criticalMomentTitle(step)}</h3>
-                  <p className="mt-1 text-sm font-extrabold text-leaf">{formatTimelineTime(step.scheduledAt)}</p>
-                  <p className="mt-1 text-xs leading-5 text-ink/60 sm:mt-2 sm:text-sm sm:leading-6">{step.beginnerNote ?? step.description}</p>
+                <article key={step.id} className="grid gap-3 border-b border-ink/10 p-4 last:border-b-0 sm:grid-cols-[8rem_1fr_auto] sm:items-center sm:gap-5 sm:p-5">
+                  <div className="flex items-center justify-between gap-3 sm:block">
+                    <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{formatTimelineDate(step.scheduledAt)}</p>
+                    <p className="text-sm font-extrabold text-leaf sm:mt-1">{formatTimelineTime(step.scheduledAt)}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-2xl font-semibold">{criticalMomentTitle(step)}</h3>
+                    <p className="mt-1 text-sm leading-6 text-ink/60">{step.beginnerNote ?? step.description}</p>
+                  </div>
+                  <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 sm:justify-self-end ${step.id === "bake-pizza" ? "bg-tomato/10 text-tomato ring-tomato/20" : "bg-leaf/10 text-leaf ring-leaf/20"}`}>
+                    {relativeFromNow(step.scheduledAt)}
+                  </span>
                 </article>
               ))}
             </div>

@@ -44,7 +44,8 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Timeline page");
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).toContain("Next up");
-    expect(page).toContain("Critical moments");
+    expect(page).toContain("What happens when");
+    expect(page).toContain("Timing highlights");
     expect(page).toContain("Full timeline");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("Start dough →");
@@ -153,10 +154,11 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("onClick={() => markDone(step.id)}");
   });
 
-  it("renders critical moments only from timeline steps", () => {
+  it("renders critical moments as a chronological what-happens-when list", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("function getCriticalMoments");
+    expect(page).toContain("function relativeFromNow");
     expect(page).toContain("\"cold-ferment\"");
     expect(page).toContain("\"room-temperature-rest\"");
     expect(page).toContain("\"preheat-oven\"");
@@ -165,7 +167,16 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("criticalMomentTitle(step)");
     expect(page).toContain("Put dough in fridge");
     expect(page).toContain("Take dough out");
-    expect(page).toContain("step.id === \"room-temperature-rest\"");
+    expect(page).toContain("formatTimelineDate(step.scheduledAt)");
+    expect(page).toContain("formatTimelineTime(step.scheduledAt)");
+    expect(page).toContain("relativeFromNow(step.scheduledAt)");
+    expect(page).toContain("What happens when");
+    expect(page).toContain("The most important moments from your actual pizza timeline.");
+    expect(page).toContain("return diffMinutes > 0 ? `In ${parts}` : `${parts} ago`");
+    expect(page).toContain("return aTime - bTime");
+    expect(page).not.toContain("Don’t miss these moments");
+    expect(page).not.toContain("These are pulled from your actual timeline, not a separate checklist.");
+    expect(page).not.toContain("sm:grid-cols-2 sm:gap-3");
   });
 
   it("keeps Back and Next navigation aligned with the next action", () => {
