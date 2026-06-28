@@ -93,7 +93,7 @@ const wizardStepQuestions: Record<WizardStep, string> = {
   time: "When do you want pizza?",
   quantity: "How many pizzas?",
   flour: "What flour do you have?",
-  summary: "Your setup is ready.",
+  summary: "You’re ready for your dough plan.",
 };
 
 const wizardStepHelpers: Record<WizardStep, string> = {
@@ -102,7 +102,7 @@ const wizardStepHelpers: Record<WizardStep, string> = {
   time: "We’ll work backwards and build the right timeline.",
   quantity: "We’ll calculate the right amount of dough.",
   flour: "This helps us suggest the right hydration and fermentation.",
-  summary: "Next, we’ll build your dough plan.",
+  summary: "You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.",
 };
 
 const wizardPresetOptions: Array<{
@@ -241,6 +241,24 @@ function formatTargetClockTime(value?: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function formatSetupSummaryTime(value?: string) {
+  if (!value) return "Not set yet";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not set yet";
+  const showYear = date.getFullYear() !== new Date().getFullYear();
+  const dateText = new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    ...(showYear ? { year: "numeric" } : {}),
+  }).format(date).replace(",", "");
+  const timeText = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+  return `${dateText} · ${timeText}`;
 }
 
 function isValidTargetTime(value?: string) {
@@ -401,8 +419,14 @@ export default function StartPizzaSessionPage() {
   const selectedFlour = flourOptions.find((option) => option.id === session.flour);
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
-  const lastSaved = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(session.lastSavedAt));
   const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel);
+  const setupSummaryCards = [
+    { label: "Bake", value: selectedStyle?.label ?? "Not selected yet", icon: "🔥" },
+    { label: "Style", value: selectedWizardPreset?.label ?? selectedPreset?.name ?? "Not selected yet", icon: "🍕" },
+    { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "🕒" },
+    { label: "How many", value: `${session.pizzaCount ?? 4} pizzas`, icon: "◌" },
+    { label: "Flour", value: selectedFlour?.label ?? "Not selected yet", icon: "▣" },
+  ];
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-4 pb-16 text-ink sm:px-6 sm:py-6">
@@ -647,30 +671,17 @@ export default function StartPizzaSessionPage() {
 
           {step === "summary" && (
             <div className="grid gap-4">
-              <dl className="grid gap-3">
-                {[
-                  ["How you bake", selectedStyle?.label ?? "Not selected yet"],
-                  ["Pizza style", selectedWizardPreset?.label ?? selectedPreset?.name ?? "Not selected yet"],
-                  ["When", formatTargetTime(session.targetEatTime)],
-                  ["How many", `${session.pizzaCount ?? 4} pizzas`],
-                  ["Flour", selectedFlour?.label ?? "Not selected yet"],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white p-3.5">
-                    <dt className="flex items-center gap-3 text-sm font-extrabold text-ink/65">
-                      <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-leaf text-xs text-white">✓</span>
-                      {label}
+              <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                {setupSummaryCards.map((item) => (
+                  <div key={item.label} className="min-w-0 rounded-[1.25rem] border border-ink/10 bg-white p-3 shadow-sm sm:p-3.5">
+                    <dt className="flex items-center justify-between gap-2">
+                      <span className="text-[0.65rem] font-black uppercase tracking-[.16em] text-ink/40">{item.label}</span>
+                      <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-cream text-sm">{item.icon}</span>
                     </dt>
-                    <dd className="text-right text-sm font-extrabold text-ink">{value}</dd>
+                    <dd className="mt-2 text-sm font-extrabold leading-5 text-ink">{item.value}</dd>
                   </div>
                 ))}
               </dl>
-              <div className="rounded-[1.5rem] bg-leaf/[.1] p-4">
-                <h3 className="font-display text-2xl font-semibold">Next: build your dough plan</h3>
-                <p className="mt-2 text-sm leading-5 text-ink/60">
-                  Next, we’ll build your dough plan.
-                </p>
-                <p className="mt-4 text-xs font-bold text-ink/45">Last saved: {lastSaved}</p>
-              </div>
             </div>
           )}
 

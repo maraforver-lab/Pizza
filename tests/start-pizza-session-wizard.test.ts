@@ -76,7 +76,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("When do you want pizza?");
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("What flour do you have?");
-    expect(page).toContain("Your setup is ready.");
+    expect(page).toContain("You’re ready for your dough plan.");
+    expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.");
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
     expect(page).toContain("Pan / tray");
@@ -220,17 +221,17 @@ describe("Start Pizza Session wizard", () => {
   it("keeps the final guided step focused on one primary next action", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("Your setup is ready.");
-    expect(page).toContain("Next: build your dough plan");
-    expect(page).toContain("Next, we’ll build your dough plan.");
+    expect(page).toContain("You’re ready for your dough plan.");
+    expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.");
     expect(page).toContain("Build my dough plan →");
     expect(page).toContain('href="/session/recipe"');
     expect(page).not.toContain("Save and continue later");
     expect(page.match(/Build my dough plan →/g)).toHaveLength(1);
     expect(page).toContain("Back");
     expect(page).toContain("Saved locally ✓");
-    expect(page).toContain("Last saved:");
     expect(page.indexOf("Build my dough plan →")).toBeLessThan(page.indexOf("Saved locally ✓"));
+    expect(page).not.toContain("Next: build your dough plan");
+    expect(page).not.toContain("Last saved:");
     expect(page).not.toContain("Open timeline →");
     expect(page).not.toContain("Shopping list →");
     expect(page).not.toContain("Back to DoughTools");
@@ -240,16 +241,34 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain("[\"Oven\"");
   });
 
+  it("shows setup summary choices as five compact cards", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("const setupSummaryCards = [");
+    expect(page).toContain('label: "Bake"');
+    expect(page).toContain('label: "Style"');
+    expect(page).toContain('label: "When"');
+    expect(page).toContain('label: "How many"');
+    expect(page).toContain('label: "Flour"');
+    expect(page).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5");
+    expect(page).not.toContain("[\"How you bake\"");
+    expect(page).not.toContain("[\"Pizza style\"");
+    expect(page).not.toContain("flex items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white p-3.5");
+  });
+
   it("formats the final target time for people instead of showing raw ISO text", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("function formatTargetTime");
     expect(page).toContain("function formatTargetDate");
     expect(page).toContain("function formatTargetClockTime");
+    expect(page).toContain("function formatSetupSummaryTime");
+    expect(page).toContain("date.getFullYear() !== new Date().getFullYear()");
+    expect(page).toContain("return `${dateText} · ${timeText}`");
     expect(page).toContain("weekday: \"short\"");
     expect(page).toContain("month: \"short\"");
     expect(page).toContain("hour: \"2-digit\"");
-    expect(page).toContain("[\"When\", formatTargetTime(session.targetEatTime)]");
+    expect(page).toContain("value: formatSetupSummaryTime(session.targetEatTime)");
     expect(page).not.toContain("[\"Target time\", session.targetEatTime || \"Not set yet\"]");
   });
 
@@ -274,7 +293,6 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("updatePizzaSession");
     expect(page).toContain("status: \"planning\"");
     expect(page).toContain("currentStep");
-    expect(page).toContain("lastSavedAt");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
   });
 
@@ -332,7 +350,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const targetEatTime = step === \"time\" ? targetTimeDraft || targetTimeInputRef.current?.value || session?.targetEatTime : session?.targetEatTime");
     expect(page).toContain("step === \"time\" && Boolean(targetTimeDraft || session?.targetEatTime)");
     expect(page).toContain("targetEatTime,");
-    expect(page).toContain("[\"When\", formatTargetTime(session.targetEatTime)]");
+    expect(page).toContain("value: formatSetupSummaryTime(session.targetEatTime)");
     expect(page).toContain("DoughTools will build your dough, preparation and bake timeline backwards from this.");
     expect(page).not.toContain("Later planner patches can turn this into a full timeline");
   });
