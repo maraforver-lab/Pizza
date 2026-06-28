@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
@@ -270,7 +271,18 @@ function isValidTargetTime(value?: string) {
   return Boolean(value && !Number.isNaN(new Date(value).getTime()));
 }
 
-export default function StartPizzaSessionPage() {
+function StartPizzaSessionLoading() {
+  return (
+    <main className="min-h-screen bg-cream px-4 py-10 text-ink">
+      <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
+        Loading your local pizza session…
+      </div>
+    </main>
+  );
+}
+
+function StartPizzaSessionContent() {
+  const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [step, setStep] = useState<WizardStep>("path");
@@ -329,6 +341,14 @@ export default function StartPizzaSessionPage() {
     setStep(requestedStep ?? initialWizardStep(supportedSession));
     setReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const requestedStep = wizardStepFromQuery(searchParams.get("step"));
+    if (requestedStep && requestedStep !== step) {
+      setStep(requestedStep);
+    }
+  }, [ready, searchParams, step]);
 
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);
@@ -410,13 +430,7 @@ export default function StartPizzaSessionPage() {
     || step === "summary";
 
   if (!ready || !session) {
-    return (
-      <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
-          Loading your local pizza session…
-        </div>
-      </main>
-    );
+    return <StartPizzaSessionLoading />;
   }
 
   const selectedStyle = styleOptions.find((option) => option.id === session.pizzaStyle);
@@ -731,5 +745,13 @@ export default function StartPizzaSessionPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function StartPizzaSessionPage() {
+  return (
+    <Suspense fallback={<StartPizzaSessionLoading />}>
+      <StartPizzaSessionContent />
+    </Suspense>
   );
 }

@@ -205,12 +205,17 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("function wizardStepFromQuery");
+    expect(page).toContain("useSearchParams");
+    expect(page).toContain("Suspense");
+    expect(page).toContain("<StartPizzaSessionContent />");
     expect(page).toContain('href: "/session/start?step=path"');
     expect(page).toContain('href: "/session/start?step=preset"');
     expect(page).toContain('href: "/session/start?step=time"');
     expect(page).toContain('href: "/session/start?step=quantity"');
     expect(page).toContain('href: "/session/start?step=flour"');
     expect(page).toContain('new URLSearchParams(window.location.search).get("step")');
+    expect(page).toContain('const requestedStep = wizardStepFromQuery(searchParams.get("step"))');
+    expect(page).toContain("if (requestedStep && requestedStep !== step)");
     expect(page).toContain("setStep(requestedStep ?? initialWizardStep(supportedSession))");
     expect(page).toContain('value !== "summary"');
     expect(page).toContain("const canNavigate = state === \"complete\"");
