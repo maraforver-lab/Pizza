@@ -656,7 +656,7 @@ export default function StartPizzaSessionPage() {
           )}
 
           {step === "flour" && (
-            <div className="grid gap-3">
+            <div className="grid gap-3 lg:grid-cols-3">
               {flourOptions.map((option) => (
                 <button key={option.id} type="button" onClick={() => selectFlour(option.id)} aria-pressed={session.flour === option.id} className={optionClass(session.flour === option.id)}>
                   {selectedIndicator(session.flour === option.id)}

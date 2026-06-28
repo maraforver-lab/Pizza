@@ -107,6 +107,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Bread flour / Strong flour");
     expect(page).toContain("All-purpose flour");
     expect(page).not.toContain('label: "Not sure"');
+    expect(page).toContain("grid gap-3 lg:grid-cols-3");
     expect(page).not.toContain("What oven are you using?");
     expect(page).not.toContain("const ovenOptions");
     expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
