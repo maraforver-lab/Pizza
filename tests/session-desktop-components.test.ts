@@ -60,4 +60,35 @@ describe("Pizza Session desktop refinement components", () => {
       expect(page).toContain("SessionViewportReset");
     }
   });
+
+  it("adds persistent desktop session progress sidebar to steps 6 through 10", () => {
+    const sidebar = source("components/session/SessionProgressSidebar.tsx");
+    const layout = source("components/session/SessionWorkspaceLayout.tsx");
+    const pages = [
+      ["app/session/recipe/page.tsx", "activeStep={6}"],
+      ["app/session/timeline/page.tsx", "activeStep={7}"],
+      ["app/session/shopping/page.tsx", "activeStep={8}"],
+      ["app/session/kitchen/page.tsx", "activeStep={9}"],
+      ["app/session/review/page.tsx", "activeStep={10}"],
+    ];
+
+    expect(sidebar).toContain("export function SessionProgressSidebar");
+    expect(sidebar).toContain("Pizza Session journey");
+    expect(sidebar).toContain("hidden rounded-[1.75rem]");
+    expect(sidebar).toContain("lg:block");
+    expect(sidebar).toContain("Current journey step");
+    expect(sidebar).toContain("Dough plan");
+    expect(sidebar).toContain("Timeline");
+    expect(sidebar).toContain("Shopping list");
+    expect(sidebar).toContain("Kitchen mode");
+    expect(sidebar).toContain("Review");
+    expect(layout).toContain("export function SessionWorkspaceLayout");
+    expect(layout).toContain("SessionProgressSidebar");
+
+    for (const [pagePath, activeStep] of pages) {
+      const page = source(pagePath);
+      expect(page).toContain("SessionWorkspaceLayout");
+      expect(page).toContain(activeStep);
+    }
+  });
 });

@@ -104,30 +104,33 @@ describe("Session recipe build step", () => {
   it("shows preparation guidance before dough amounts and the next step", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).toContain("Dough amounts");
+    expect(page).toContain("Get ready to mix");
+    expect(page).toContain("Gather your ingredients and tools, and measure everything before you start.");
+    expect(page).toContain("Ingredients & amounts");
+    expect(page).toContain("Weigh for best results");
     expect(page).toContain("Total dough");
     expect(page).toContain("Flour");
     expect(page).toContain("Water");
     expect(page).toContain("Salt");
     expect(page).toContain("Yeast");
-    expect(page).toContain("Use these amounts when mixing your dough. We recommend weighing ingredients with a digital scale.");
+    expect(page).toContain("Use these amounts when mixing your dough.");
+    expect(page).toContain("Use a digital scale for best accuracy. That’s enough to start the dough.");
     expect(page).toContain("Yeast can be a very small amount. A precision scale helps.");
-    expect(page).toContain("Before you start");
-    expect(page).toContain("Get these ready before mixing your dough.");
-    expect(page).toContain("Ingredients for the dough");
-    expect(page).toContain("const doughPrepIngredients = [\"Flour\", \"Water\", \"Salt\", \"Yeast\"]");
-    expect(page).toContain("const doughPrepTools = [\"Digital scale\", \"Mixing bowl\", \"Dough scraper or sturdy spoon\", \"Covered container or bowl\"]");
-    expect(page).toContain("That’s enough to start the dough.");
-    expect(page.indexOf("Before you start")).toBeLessThan(page.indexOf("Dough amounts"));
-    expect(page.indexOf("Dough amounts")).toBeLessThan(page.indexOf("Next step"));
+    expect(page).toContain("Tools");
+    expect(page).toContain("Have these ready");
+    expect(page).toContain('label: "Digital scale"');
+    expect(page).toContain('label: "Mixing bowl"');
+    expect(page).toContain('label: "Dough scraper or sturdy spoon"');
+    expect(page).toContain('label: "Covered container or bowl"');
+    expect(page.indexOf("Get ready to mix")).toBeLessThan(page.indexOf("Ingredients & amounts"));
+    expect(page.indexOf("Ingredients & amounts")).toBeLessThan(page.indexOf("Next step"));
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).not.toMatch(/Ingredients for the dough[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|baking stone|baking steel)/i);
-    expect(page).not.toMatch(/const doughPrepIngredients[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
     expect(page).not.toMatch(/const doughPrepTools[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
+    expect(page).not.toMatch(/doughIngredientRows[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
   });
 
   it("keeps Timeline as the primary next step from the dough plan page", () => {

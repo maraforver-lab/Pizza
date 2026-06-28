@@ -6,6 +6,7 @@ import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
+import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
 import {
@@ -99,20 +100,24 @@ export default function SessionRecipePage() {
     );
   }
 
-  const doughIngredients = [
-    ["Total dough", formatGram(result.ingredients.total)],
-    ["Flour", formatGram(result.ingredients.flour)],
-    ["Water", formatGram(result.ingredients.water)],
-    ["Salt", formatGram(result.ingredients.salt)],
-    ["Yeast", formatGram(result.ingredients.leavener)],
+  const doughIngredientRows = [
+    { label: "Flour", value: formatGram(result.ingredients.flour), icon: "▣", description: "The base of your dough." },
+    { label: "Water", value: formatGram(result.ingredients.water), icon: "💧", description: "Hydrates the flour." },
+    { label: "Salt", value: formatGram(result.ingredients.salt), icon: "◌", description: "Adds flavor and strength." },
+    { label: "Yeast", value: formatGram(result.ingredients.leavener), icon: "✺", description: "Helps the dough rise." },
+    { label: "Total dough", value: formatGram(result.ingredients.total), icon: "🥣", description: "Your full dough batch.", summary: true },
   ];
-  const doughPrepIngredients = ["Flour", "Water", "Salt", "Yeast"];
-  const doughPrepTools = ["Digital scale", "Mixing bowl", "Dough scraper or sturdy spoon", "Covered container or bowl"];
+  const doughPrepTools = [
+    { label: "Digital scale", icon: "⚖️", description: "Weigh ingredients accurately." },
+    { label: "Mixing bowl", icon: "🥣", description: "Big enough for mixing." },
+    { label: "Dough scraper or sturdy spoon", icon: "🥄", description: "Helpful for mixing and handling." },
+    { label: "Covered container or bowl", icon: "◒", description: "Keeps dough covered while it rests." },
+  ];
 
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
-      <div className="mx-auto max-w-5xl">
+      <SessionWorkspaceLayout activeStep={6}>
         <SessionStepHero
           step={6}
           label="Dough plan"
@@ -124,53 +129,64 @@ export default function SessionRecipePage() {
 
         <section className="mt-4 sm:mt-6" aria-label="Dough plan details">
           <div className="grid min-w-0 gap-4 sm:gap-5">
-            <article className="rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:rounded-[2rem] sm:p-6">
-              <h2 className="font-display text-3xl font-semibold">Before you start</h2>
-              <p className="mt-1 text-xs leading-5 text-ink/55 sm:mt-2 sm:text-sm sm:leading-6">
-                Get these ready before mixing your dough.
-              </p>
-              <div className="mt-4 grid gap-5 sm:mt-6 md:grid-cols-2 md:gap-6">
+            <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h3 className="text-sm font-extrabold text-leaf">Ingredients for the dough</h3>
-                  <ul className="mt-3 grid gap-2 text-sm font-bold text-ink/70 sm:gap-3">
-                    {doughPrepIngredients.map((item) => (
-                      <li key={item} className="flex items-center gap-3">
-                        <span className="grid h-5 w-5 place-items-center rounded-full bg-leaf/10 text-xs text-leaf" aria-hidden="true">✓</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-leaf">Tools</h3>
-                  <ul className="mt-3 grid gap-2 text-sm font-bold text-ink/70 sm:gap-3">
-                    {doughPrepTools.map((item) => (
-                      <li key={item} className="flex items-center gap-3">
-                        <span className="grid h-5 w-5 place-items-center rounded-full bg-leaf/10 text-xs text-leaf" aria-hidden="true">✓</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Get ready to mix</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold">Get ready to mix</h2>
+                  <p className="mt-1 text-sm leading-6 text-ink/55">
+                    Gather your ingredients and tools, and measure everything before you start.
+                  </p>
                 </div>
               </div>
-              <p className="mt-4 rounded-2xl bg-sky-50 p-3 text-sm font-bold leading-6 text-ink/65 sm:mt-6 sm:p-4">
-                That’s enough to start the dough.
-              </p>
-            </article>
 
-            <article className="rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:rounded-[2rem] sm:p-6">
-              <h2 className="font-display text-3xl font-semibold">Dough amounts</h2>
-              <p className="mt-1 text-xs leading-5 text-ink/55 sm:mt-2 sm:text-sm sm:leading-6">
-                Use these amounts when mixing your dough. We recommend weighing ingredients with a digital scale.
-              </p>
-              <dl className="mt-4 grid gap-2 sm:mt-5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-5">
-                {doughIngredients.map(([label, value]) => (
-                  <div key={label} className="rounded-2xl bg-cream p-3.5 sm:p-4">
-                    <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{label}</dt>
-                    <dd className={`mt-1 text-2xl font-extrabold ${amountCardTone(label)}`}>{value}</dd>
+              <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(17rem,.85fr)] lg:gap-6">
+                <section aria-labelledby="ingredients-amounts-heading" className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 id="ingredients-amounts-heading" className="font-display text-2xl font-semibold">Ingredients & amounts</h3>
+                    <span className="rounded-full bg-leaf/10 px-3 py-1.5 text-xs font-extrabold text-leaf">Weigh for best results</span>
                   </div>
-                ))}
-              </dl>
+                  <p className="mt-2 text-sm leading-6 text-ink/55">
+                    Use these amounts when mixing your dough.
+                  </p>
+                  <dl className="mt-4 grid gap-2.5">
+                    {doughIngredientRows.map((item) => (
+                      <div key={item.label} className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3.5 ${item.summary ? "border-leaf/25 bg-leaf/[.08]" : "border-white/80 bg-white"}`}>
+                        <dt className="contents">
+                          <span aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-2xl bg-cream text-xl shadow-sm">{item.icon}</span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-extrabold text-ink">{item.label}</span>
+                            <span className="mt-0.5 block text-xs leading-4 text-ink/45">{item.description}</span>
+                          </span>
+                        </dt>
+                        <dd className={`text-right text-xl font-extrabold sm:text-2xl ${amountCardTone(item.label)}`}>{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+
+                <section aria-labelledby="dough-tools-heading" className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 id="dough-tools-heading" className="font-display text-2xl font-semibold">Tools</h3>
+                    <span className="rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato">Have these ready</span>
+                  </div>
+                  <ul className="mt-4 grid gap-2.5">
+                    {doughPrepTools.map((item) => (
+                      <li key={item.label} className="grid grid-cols-[auto_1fr] items-center gap-3 rounded-2xl border border-white/80 bg-white p-3.5">
+                        <span aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-2xl bg-cream text-xl shadow-sm">{item.icon}</span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-extrabold text-ink">{item.label}</span>
+                          <span className="mt-0.5 block text-xs leading-4 text-ink/45">{item.description}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+
+              <p className="mt-5 rounded-2xl bg-sky-50 p-3 text-sm font-bold leading-6 text-ink/65 sm:p-4">
+                Use a digital scale for best accuracy. That’s enough to start the dough.
+              </p>
               {result.ingredients.leavener > 0 && result.ingredients.leavener < 1 && (
                 <p className="mt-4 rounded-2xl bg-sky-50 p-4 text-sm leading-6 text-ink/60">
                   Yeast can be a very small amount. A precision scale helps.
@@ -205,7 +221,7 @@ export default function SessionRecipePage() {
             </Link>
           )}
         />
-      </div>
+      </SessionWorkspaceLayout>
     </main>
   );
 }
