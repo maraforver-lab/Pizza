@@ -41,35 +41,72 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={10}");
     expect(page).toContain("Review your pizza");
-    expect(page).toContain("How did your pizza turn out?");
-    expect(page).toContain("Learning page");
+    expect(page).toContain("How did your pizza turn out? Save useful variables like hydration, fermentation time, flour, oven heat, topping load and bake timing.");
+    expect(page).toContain("hideMeta");
+    expect(page).not.toContain("desktopAside");
+    expect(page).not.toContain("Step 10: Review");
+    expect(page).not.toContain("Learning page</");
     expect(page).toContain("No pizza session to review");
     expect(page).toContain("Overall result");
     expect(page).toContain("1 — Poor");
     expect(page).toContain("5 — Excellent");
     expect(page).toContain("What worked well?");
     expect(page).toContain("What would you improve?");
-    expect(page).toContain("Next time I want to try…");
-    expect(page).toContain("Free notes");
+    expect(page).toContain("Additional notes");
     expect(page).toContain("Save review →");
     expect(page).toContain("Review saved in this browser.");
     expect(page).toContain("SESSION_REVIEW_LOCAL_ONLY_COPY");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/kitchen\"");
+    expect(page).not.toContain("Review and notes");
+    expect(page).not.toContain("Capture the variables worth testing next.");
+    expect(page).not.toContain("Next time I want to try…");
+    expect(page).not.toContain("Free notes");
     expect(page).not.toContain("Session summary");
     expect(page).not.toContain("Photos and sharing");
     expect(page).not.toContain("<AppSignature");
     expect(page).not.toMatch(/upload photo|share result card|copy public link|cloud sync is active|Google indexing enabled/i);
   });
 
-  it("orders Review V2 fields and keeps after-save actions clear", () => {
+  it("replaces large review textareas with optional multi-select feedback chips", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page.indexOf("Overall result")).toBeLessThan(page.indexOf("What worked well?"));
     expect(page.indexOf("What worked well?")).toBeLessThan(page.indexOf("What would you improve?"));
-    expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Next time I want to try…"));
-    expect(page.indexOf("Next time I want to try…")).toBeLessThan(page.indexOf("Free notes"));
-    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Save review →"));
+    expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Additional notes"));
+    expect(page.indexOf("Additional notes")).toBeLessThan(page.indexOf("Save review →"));
+    [
+      "Great crust",
+      "Good oven spring",
+      "Nice chew",
+      "Good flavour",
+      "Right amount of toppings",
+      "Good cheese melt",
+      "Easy to handle dough",
+      "Timing worked well",
+      "More fermentation",
+      "Less fermentation",
+      "Higher hydration",
+      "Lower hydration",
+      "Hotter oven",
+      "Less toppings",
+      "More salt",
+      "Thinner stretch",
+    ].forEach((option) => {
+      expect(page).toContain(option);
+    });
+    expect(page).toContain("FeedbackChipGroup");
+    expect(page).toContain("aria-pressed={active}");
+    expect(page).toContain("whatWorked.length ? whatWorked.join(\"; \") : legacyWhatWorked");
+    expect(page).toContain("improveNextTime.length ? improveNextTime.join(\"; \") : legacyImproveNextTime");
+    expect(page).not.toContain("placeholder={copy.whatWorkedPlaceholder}");
+    expect(page).not.toContain("placeholder={copy.improvePlaceholder}");
+    expect(page).not.toContain("placeholder={copy.nextTimeTryPlaceholder}");
+  });
+
+  it("keeps after-save actions clear", () => {
+    const page = source("app/session/review/page.tsx");
+
     expect(page).toContain("Review saved");
     expect(page).toContain("Your notes are saved in this browser.");
     expect(page).toContain("Start a new Pizza Session →");

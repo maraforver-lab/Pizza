@@ -27,6 +27,77 @@ const ratingOptions = [
   { value: 5, label: "5 — Excellent" },
 ] as const;
 
+const workedWellOptions = [
+  "Great crust",
+  "Good oven spring",
+  "Nice chew",
+  "Good flavour",
+  "Right amount of toppings",
+  "Good cheese melt",
+  "Easy to handle dough",
+  "Timing worked well",
+] as const;
+
+const improveOptions = [
+  "More fermentation",
+  "Less fermentation",
+  "Higher hydration",
+  "Lower hydration",
+  "Hotter oven",
+  "Less toppings",
+  "More salt",
+  "Thinner stretch",
+] as const;
+
+function selectionsFromSavedText(savedText: string | undefined, options: readonly string[]) {
+  if (!savedText) return [];
+  return options.filter((option) => savedText.split(/[;,]/).map((part) => part.trim()).includes(option));
+}
+
+function toggleSelection(current: string[], option: string) {
+  return current.includes(option)
+    ? current.filter((value) => value !== option)
+    : [...current, option];
+}
+
+function FeedbackChipGroup({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: readonly string[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+}) {
+  return (
+    <fieldset className="block">
+      <legend className="text-sm font-extrabold text-ink/70">{label}</legend>
+      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={label}>
+        {options.map((option) => {
+          const active = selected.includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onChange(toggleSelection(selected, option))}
+              className={`min-h-11 rounded-full px-4 py-2 text-left text-xs font-extrabold ring-1 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                active
+                  ? "bg-tomato text-white ring-tomato"
+                  : "bg-cream text-ink/65 ring-ink/10 hover:bg-tomato/10 hover:text-tomato"
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 function MissingReviewState() {
   return (
     <SessionEmptyState
@@ -43,9 +114,11 @@ export default function SessionReviewPage() {
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState("");
-  const [whatWorked, setWhatWorked] = useState("");
-  const [improveNextTime, setImproveNextTime] = useState("");
-  const [nextTimeTry, setNextTimeTry] = useState("");
+  const [whatWorked, setWhatWorked] = useState<string[]>([]);
+  const [improveNextTime, setImproveNextTime] = useState<string[]>([]);
+  const [legacyWhatWorked, setLegacyWhatWorked] = useState("");
+  const [legacyImproveNextTime, setLegacyImproveNextTime] = useState("");
+  const [legacyNextTimeTry, setLegacyNextTimeTry] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -55,9 +128,11 @@ export default function SessionReviewPage() {
     setSession(active);
     setRating(active?.rating ?? 0);
     setNotes(active?.notes ?? "");
-    setWhatWorked(active?.review?.whatWorked ?? "");
-    setImproveNextTime(active?.review?.improveNextTime ?? "");
-    setNextTimeTry(active?.review?.nextTimeTry ?? "");
+    setLegacyWhatWorked(active?.review?.whatWorked ?? "");
+    setLegacyImproveNextTime(active?.review?.improveNextTime ?? "");
+    setLegacyNextTimeTry(active?.review?.nextTimeTry ?? "");
+    setWhatWorked(selectionsFromSavedText(active?.review?.whatWorked, workedWellOptions));
+    setImproveNextTime(selectionsFromSavedText(active?.review?.improveNextTime, improveOptions));
     setReady(true);
   }, []);
 
@@ -74,12 +149,14 @@ export default function SessionReviewPage() {
   if (!session) return <MissingReviewState />;
 
   const copy = getSessionReviewCopy(session.experienceLevel);
+  const heroSubtitle =
+    "How did your pizza turn out? Save useful variables like hydration, fermentation time, flour, oven heat, topping load and bake timing.";
   const reviewInput = {
     rating: rating || undefined,
     notes,
-    whatWorked,
-    improveNextTime,
-    nextTimeTry,
+    whatWorked: whatWorked.length ? whatWorked.join("; ") : legacyWhatWorked,
+    improveNextTime: improveNextTime.length ? improveNextTime.join("; ") : legacyImproveNextTime,
+    nextTimeTry: legacyNextTimeTry,
   };
 
   const saveReview = () => {
@@ -102,14 +179,9 @@ export default function SessionReviewPage() {
           label="Review"
           pageType="Learning page"
           title="Review your pizza"
-          body="Save what worked and what you want to improve next time."
+          body={heroSubtitle}
           level={session.experienceLevel}
-          desktopAside={(
-            <>
-              <strong className="block text-ink">Step 10: Review</strong>
-              Finish the session by saving what worked and what to try next time.
-            </>
-          )}
+          hideMeta
         />
 
         {message && (
@@ -120,13 +192,8 @@ export default function SessionReviewPage() {
 
         <section className="mt-4 sm:mt-6">
           <section className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7" aria-labelledby="review-form-heading">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Review and notes</p>
-            <h2 id="review-form-heading" className="mt-2 font-display text-3xl font-semibold sm:text-4xl">{copy.heading}</h2>
-            <p className="mt-2 text-xs leading-5 text-ink/60 sm:mt-3 sm:text-sm sm:leading-6">
-              How did your pizza turn out? {copy.intro}
-            </p>
-
-            <div className="mt-6">
+            <h2 id="review-form-heading" className="sr-only">Review form</h2>
+            <div>
               <p id="rating-label" className="text-sm font-extrabold text-ink/70">Overall result</p>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5" role="group" aria-labelledby="rating-label">
                 {ratingOptions.map((option) => {
@@ -150,35 +217,20 @@ export default function SessionReviewPage() {
             </div>
 
             <div className="mt-5 grid gap-4 sm:mt-6 sm:gap-5">
+              <FeedbackChipGroup
+                label="What worked well?"
+                options={workedWellOptions}
+                selected={whatWorked}
+                onChange={setWhatWorked}
+              />
+              <FeedbackChipGroup
+                label="What would you improve?"
+                options={improveOptions}
+                selected={improveNextTime}
+                onChange={setImproveNextTime}
+              />
               <label className="block">
-                <span className="text-sm font-extrabold text-ink/70">What worked well?</span>
-                <textarea
-                  value={whatWorked}
-                  onChange={(event) => setWhatWorked(event.target.value)}
-                  placeholder={copy.whatWorkedPlaceholder}
-                  className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-28 sm:p-4"
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-extrabold text-ink/70">What would you improve?</span>
-                <textarea
-                  value={improveNextTime}
-                  onChange={(event) => setImproveNextTime(event.target.value)}
-                  placeholder={copy.improvePlaceholder}
-                  className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-28 sm:p-4"
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-extrabold text-ink/70">Next time I want to try…</span>
-                <textarea
-                  value={nextTimeTry}
-                  onChange={(event) => setNextTimeTry(event.target.value)}
-                  placeholder={copy.nextTimeTryPlaceholder}
-                  className="mt-2 min-h-20 w-full rounded-2xl border border-ink/10 bg-cream p-3.5 text-sm leading-6 outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 sm:min-h-24 sm:p-4"
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-extrabold text-ink/70">Free notes</span>
+                <span className="text-sm font-extrabold text-ink/70">Additional notes</span>
                 <textarea
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
