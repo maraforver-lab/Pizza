@@ -708,7 +708,7 @@ export default function StartPizzaSessionPage() {
                   Build my dough plan →
                 </Link>
               )}
-              <p className="text-xs font-bold text-ink/40">Saved locally ✓</p>
+              <p className="hidden text-xs font-bold text-ink/40 sm:block">Saved locally ✓</p>
             </div>
             )}
           />

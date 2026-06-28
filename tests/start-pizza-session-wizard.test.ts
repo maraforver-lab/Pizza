@@ -239,6 +239,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page.match(/Build my dough plan →/g)).toHaveLength(1);
     expect(page).toContain("Back");
     expect(page).toContain("Saved locally ✓");
+    expect(page).toContain("hidden text-xs font-bold text-ink/40 sm:block");
     expect(page.indexOf("Build my dough plan →")).toBeLessThan(page.indexOf("Saved locally ✓"));
     expect(page).not.toContain("Next: build your dough plan");
     expect(page).not.toContain("Last saved:");

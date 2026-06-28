@@ -30,6 +30,8 @@ describe("Pizza Session desktop refinement components", () => {
 
     expect(component).toContain("export function SessionLocalOnlyNote");
     expect(component).toContain("children");
+    expect(component).toContain("hidden rounded-2xl");
+    expect(component).toContain("sm:block");
     expect(component).not.toContain("<button");
     expect(component).not.toContain("role=\"button\"");
   });

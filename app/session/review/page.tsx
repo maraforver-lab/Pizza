@@ -209,7 +209,7 @@ export default function SessionReviewPage() {
 
             {saved && (
               <section className="mt-6 rounded-[1.5rem] bg-leaf/10 p-5" aria-labelledby="after-save-heading">
-                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Saved locally</p>
+                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Saved locally</p>
                 <h3 id="after-save-heading" className="mt-2 font-display text-3xl font-semibold">Review saved</h3>
                 <p className="mt-2 text-sm leading-6 text-ink/60">
                   Your notes are saved in this browser.
