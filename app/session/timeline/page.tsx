@@ -342,6 +342,27 @@ export default function SessionTimelinePage() {
   const firstServiceStep = firstServiceStepIndex >= 0 ? timeline.steps[firstServiceStepIndex] : undefined;
   const nextUpTime = shoppingIsNext ? firstServiceStep?.scheduledAt ?? targetTime : nextStep?.scheduledAt ?? targetTime;
   const criticalMoments = getCriticalMoments(timeline.steps);
+  const renderNextActionCard = () => (
+    <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
+      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
+      <h2 className="mt-2 font-display text-3xl font-semibold text-ink">{nextAction.title}</h2>
+      <p className="mt-2 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <span className="rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/60">
+          {formatTimelineDate(nextUpTime)}
+        </span>
+        <span className="rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
+          {shoppingIsNext ? `Before ${formatTimelineTime(nextUpTime)}` : formatTimelineTime(nextUpTime)}
+        </span>
+      </div>
+      <Link
+        href={nextAction.href}
+        className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+      >
+        {nextAction.cta}
+      </Link>
+    </div>
+  );
 
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
@@ -354,35 +375,13 @@ export default function SessionTimelinePage() {
           title="Your pizza timeline"
           body="Follow the key moments and you’ll always know what to do next."
           level={session.experienceLevel}
-          desktopAside={(
-            <>
-              <strong className="block text-ink">Step 7: Timeline</strong>
-              This page is for timing. Kitchen Mode is where you do the active cooking steps.
-            </>
-          )}
-        />
-
-        <section aria-labelledby="next-up-heading" className="mt-4 rounded-[1.5rem] border border-leaf/20 bg-white p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
-          <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
-              <h2 id="next-up-heading" className="mt-2 font-display text-3xl font-semibold">{nextAction.title}</h2>
-              <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">{nextAction.subtext}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/60">
-                  {formatTimelineDate(nextUpTime)}
-                </span>
-                <span className="rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
-                  {shoppingIsNext ? `Before ${formatTimelineTime(nextUpTime)}` : formatTimelineTime(nextUpTime)}
-                </span>
-              </div>
-            </div>
-            <div className="hidden rounded-2xl bg-cream p-4 text-sm leading-6 text-ink/65 sm:block">
-              <span className="block text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Recommended action</span>
-              <span className="mt-1 block font-extrabold text-ink">{nextAction.cta}</span>
-            </div>
+          hideMeta
+          desktopAside={renderNextActionCard()}
+        >
+          <div className="lg:hidden">
+            {renderNextActionCard()}
           </div>
-        </section>
+        </SessionStepHero>
 
         {criticalMoments.length > 0 && (
           <section aria-labelledby="what-happens-when-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">

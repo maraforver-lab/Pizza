@@ -40,8 +40,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Your pizza timeline");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={7}");
-    expect(page).toContain("Timeline");
-    expect(page).toContain("Timeline page");
+    expect(page).toContain("hideMeta");
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).toContain("Next up");
     expect(page).toContain("What happens when");
@@ -52,7 +51,11 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/recipe\"");
     expect(page).toContain("href={nextAction.href}");
+    expect(page).toContain("desktopAside={renderNextActionCard()}");
+    expect(page).toContain("<div className=\"lg:hidden\">");
     expect(page).not.toContain("Session summary");
+    expect(page).not.toContain("Step 7: Timeline");
+    expect(page).not.toContain("This page is for timing. Kitchen Mode is where you do the active cooking steps.");
     expect(page).not.toContain("How this timeline works");
     expect(page).not.toContain("Mark done");
     expect(page).not.toContain("Edit session choices");
@@ -75,11 +78,14 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("href={nextAction.href}");
     expect(page).toContain("{nextAction.title}");
     expect(page).toContain("{nextAction.subtext}");
-    expect(page).toContain("Recommended action");
+    expect(page).toContain("const renderNextActionCard");
+    expect(page).not.toContain("timeline-next-action-heading");
     expect(page).toContain("Open shopping list →");
     expect(page).toContain("href: \"/session/kitchen?from=timeline\"");
     expect(page).toContain("href: \"/session/review\"");
     expect(page).toContain("href=\"/session/shopping\"");
+    expect(page).not.toContain("Recommended action");
+    expect(page).not.toContain("aria-labelledby=\"next-up-heading\"");
     expect(page).not.toContain("recipeQuery ? `/plan?");
   });
 
