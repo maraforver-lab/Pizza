@@ -8,6 +8,9 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 const copy = {
   account: "Sign in",
   accountActive: "Your account",
+  tools: "Tools",
+  calculator: "Pizza dough calculator",
+  calculatorDescription: "Calculate flour, water, salt and yeast.",
 } as const;
 
 export default function GlobalToolNavigation() {
@@ -55,29 +58,49 @@ export default function GlobalToolNavigation() {
           <strong className="text-lg tracking-tight">Dough<span className="text-tomato">Tools</span></strong>
         </Link>
 
-        <Link
-          href="/account"
-          aria-label={signedIn ? copy.accountActive : copy.account}
-          aria-current={accountActive ? "page" : undefined}
-          className={`group relative flex h-10 items-center gap-2 rounded-full border px-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
-            accountActive
-              ? "border-ink bg-ink text-white"
-              : signedIn
-                ? "border-leaf/20 bg-leaf/[.08] text-leaf"
-                : "border-ink/10 bg-white text-ink/55 hover:border-tomato/30 hover:text-tomato"
-          }`}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8">
-            <circle cx="12" cy="8" r="3.5" />
-            <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" strokeLinecap="round" />
-          </svg>
-          <span className="text-[11px] font-extrabold">{signedIn ? copy.accountActive : copy.account}</span>
-          {signedIn && (
-            <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf" aria-hidden="true">
-              <span className={`absolute h-full w-full rounded-full bg-leaf ${authPulse ? "animate-ping" : ""}`} />
-            </span>
-          )}
-        </Link>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <details className="group relative">
+            <summary className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream [&::-webkit-details-marker]:hidden">
+              {copy.tools}
+              <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2">
+                <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </summary>
+            <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur">
+              <Link
+                href="/?calculator=1"
+                className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+              >
+                <span className="block text-sm font-extrabold">{copy.calculator}</span>
+                <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorDescription}</span>
+              </Link>
+            </div>
+          </details>
+
+          <Link
+            href="/account"
+            aria-label={signedIn ? copy.accountActive : copy.account}
+            aria-current={accountActive ? "page" : undefined}
+            className={`group relative flex h-10 items-center gap-2 rounded-full border px-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+              accountActive
+                ? "border-ink bg-ink text-white"
+                : signedIn
+                  ? "border-leaf/20 bg-leaf/[.08] text-leaf"
+                  : "border-ink/10 bg-white text-ink/55 hover:border-tomato/30 hover:text-tomato"
+            }`}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8">
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" strokeLinecap="round" />
+            </svg>
+            <span className="text-[11px] font-extrabold">{signedIn ? copy.accountActive : copy.account}</span>
+            {signedIn && (
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf" aria-hidden="true">
+                <span className={`absolute h-full w-full rounded-full bg-leaf ${authPulse ? "animate-ping" : ""}`} />
+              </span>
+            )}
+          </Link>
+        </div>
       </div>
     </header>
   );

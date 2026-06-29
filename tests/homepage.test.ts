@@ -142,6 +142,10 @@ describe("homepage content model", () => {
     expect(continueCard).toContain("Cloud sync is not active yet.");
     expect(header).toContain("href=\"/\"");
     expect(header).toContain("href=\"/account\"");
+    expect(header).toContain("Tools");
+    expect(header).toContain("Pizza dough calculator");
+    expect(header).toContain("Calculate flour, water, salt and yeast.");
+    expect(header).toContain('href="/?calculator=1"');
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
     expect(updateNotice).toContain('pathname === "/"');
     expect(nextStep).not.toContain('"/":');
@@ -205,6 +209,20 @@ describe("homepage content model", () => {
     expect(homepage).toContain("href={homepageContent.hero.primaryCta.href}");
     expect(homepage).not.toContain("href={homepageContent.hero.secondaryCta.href}");
     expect(homepage).not.toContain("Learn how it works");
+  });
+
+  it("restores a compact Tools menu that opens the existing calculator route", () => {
+    const header = source("components/GlobalToolNavigation.tsx");
+    const homepage = source("app/page.tsx");
+
+    expect(header).toContain("<details");
+    expect(header).toContain("Tools");
+    expect(header).toContain("Pizza dough calculator");
+    expect(header).toContain("Calculate flour, water, salt and yeast.");
+    expect(header).toContain('href="/?calculator=1"');
+    expect(homepage).toContain("hasCalculatorRequest");
+    expect(homepage).toContain("return <HomeCalculatorWorkspace />");
+    expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
   });
 
   it("does not include Finnish or Swedish active homepage labels", () => {
