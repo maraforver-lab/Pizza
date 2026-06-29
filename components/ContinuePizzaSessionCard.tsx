@@ -43,14 +43,14 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
   if (variant === "hero") {
     return (
       <section
-        className={`rounded-[1.75rem] border border-white/70 bg-white/75 p-4 shadow-card backdrop-blur-md sm:p-5 ${className}`}
+        className={`rounded-[1.75rem] border border-white/70 bg-white/80 p-5 shadow-card backdrop-blur-md sm:p-6 ${className}`}
         aria-labelledby="continue-pizza-session-heading"
       >
-        <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-leaf/10 text-xl text-leaf" aria-hidden="true">◌</span>
+        <div className="grid gap-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+          <span className="grid h-14 w-14 place-items-center rounded-full bg-leaf/10 text-2xl text-leaf" aria-hidden="true">◌</span>
           <div className="min-w-0">
-            <p className="text-[0.65rem] font-extrabold uppercase tracking-[.22em] text-ink/50">Local session</p>
-            <h2 id="continue-pizza-session-heading" className="mt-1 font-display text-2xl font-semibold leading-none text-ink">
+            <p className="text-[0.65rem] font-extrabold uppercase tracking-[.28em] text-ink/50">Local session</p>
+            <h2 id="continue-pizza-session-heading" className="mt-2 font-display text-2xl font-semibold leading-none text-ink">
               Continue Pizza Session
             </h2>
             <p className="mt-2 text-sm leading-5 text-ink/60">
@@ -64,6 +64,10 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
           >
             Continue session →
           </Link>
+        </div>
+        <div className="mt-4 border-t border-ink/10 pt-4 text-sm leading-6 text-ink/55">
+          <p>{PIZZA_SESSION_LOCAL_ONLY_COPY}</p>
+          <p>Cloud sync is not active yet.</p>
         </div>
       </section>
     );
