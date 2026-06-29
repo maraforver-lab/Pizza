@@ -25,7 +25,7 @@ export default function HomepageGuidanceLevelSection() {
     <section aria-labelledby="homepage-experience-level-heading" className="w-full">
       <p id="homepage-experience-level-heading" className="text-xs font-extrabold uppercase tracking-[.34em] text-tomato">Experience level</p>
       <div className="mt-3 rounded-[1.35rem] border border-white/75 bg-white/75 p-2 shadow-card backdrop-blur-md">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {EXPERIENCE_LEVELS.map((level) => {
             const selected = experienceLevel === level.id;
             const config = getExperienceLevelConfig(level.id);
@@ -38,7 +38,7 @@ export default function HomepageGuidanceLevelSection() {
                 data-experience-level={level.id}
                 data-selected={selected}
                 onClick={() => handleChange(level.id)}
-                className={`flex min-h-16 items-center justify-center gap-2 rounded-2xl border px-2.5 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:gap-3 sm:px-4 ${
+                className={`flex min-h-14 items-center justify-start gap-3 rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-16 sm:justify-center ${
                   selected
                     ? `${config.cardClassName} text-ink shadow-sm`
                     : "border-transparent bg-white/45 text-ink/75 hover:border-ink/10 hover:bg-white/75"

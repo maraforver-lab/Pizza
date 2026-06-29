@@ -268,6 +268,16 @@ describe("homepage content model", () => {
     expect(guidance).not.toContain("bg-ink/15");
   });
 
+  it("uses a stacked mobile homepage experience selector while preserving the desktop three-column layout", () => {
+    const guidance = source("components/HomepageGuidanceLevelSection.tsx");
+
+    expect(guidance).toContain("grid grid-cols-1 gap-2 sm:grid-cols-3");
+    expect(guidance).toContain("min-h-14");
+    expect(guidance).toContain("justify-start");
+    expect(guidance).toContain("sm:min-h-16 sm:justify-center");
+    expect(guidance).toContain("data-active-indicator={selected}");
+  });
+
   it("adds more technical result guidance for Pizza Nerd users without changing tools", () => {
     const beginner = getHomepageExperienceCopy("beginner");
     const pizzaNerd = getHomepageExperienceCopy("pizza_nerd");
