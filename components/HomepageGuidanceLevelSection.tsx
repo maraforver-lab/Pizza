@@ -35,15 +35,22 @@ export default function HomepageGuidanceLevelSection() {
                 key={level.id}
                 type="button"
                 aria-pressed={selected}
+                data-experience-level={level.id}
+                data-selected={selected}
                 onClick={() => handleChange(level.id)}
                 className={`flex min-h-16 items-center justify-center gap-2 rounded-2xl border px-2.5 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:gap-3 sm:px-4 ${
                   selected
-                    ? "border-tomato bg-white text-ink shadow-sm"
+                    ? `${config.cardClassName} text-ink shadow-sm`
                     : "border-transparent bg-white/45 text-ink/75 hover:border-ink/10 hover:bg-white/75"
                 }`}
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-sm text-ink/60" aria-hidden="true">
-                  <span className={`h-3 w-3 rounded-full ${config.markerClassName}`} />
+                  <span
+                    data-active-indicator={selected}
+                    className={`h-3 w-3 rounded-full transition ${
+                      selected ? config.markerClassName : "bg-ink/15"
+                    }`}
+                  />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-extrabold leading-tight text-ink sm:text-base">

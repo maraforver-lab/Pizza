@@ -235,6 +235,19 @@ describe("homepage content model", () => {
     expect(defaultCopy.saveBakeHelp).toContain("compare next time");
   });
 
+  it("keeps homepage experience card and indicator state tied to the same selected level", () => {
+    const guidance = source("components/HomepageGuidanceLevelSection.tsx");
+
+    expect(guidance).toContain("const selected = experienceLevel === level.id");
+    expect(guidance).toContain("aria-pressed={selected}");
+    expect(guidance).toContain("data-experience-level={level.id}");
+    expect(guidance).toContain("data-selected={selected}");
+    expect(guidance).toContain("data-active-indicator={selected}");
+    expect(guidance).toContain("selected ? config.markerClassName : \"bg-ink/15\"");
+    expect(guidance).toContain("`${config.cardClassName} text-ink shadow-sm`");
+    expect(guidance).not.toContain("className={`h-3 w-3 rounded-full ${config.markerClassName}`}");
+  });
+
   it("adds more technical result guidance for Pizza Nerd users without changing tools", () => {
     const beginner = getHomepageExperienceCopy("beginner");
     const pizzaNerd = getHomepageExperienceCopy("pizza_nerd");
