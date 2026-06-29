@@ -205,6 +205,8 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("function wizardStepFromQuery");
+    expect(page).toContain("function wizardStepHref");
+    expect(page).toContain("useRouter");
     expect(page).toContain("useSearchParams");
     expect(page).toContain("Suspense");
     expect(page).toContain("<StartPizzaSessionContent />");
@@ -216,10 +218,12 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const query = new URLSearchParams(window.location.search)");
     expect(page).toContain('const requestedStep = wizardStepFromQuery(query.get("step"))');
     expect(page).toContain('const requestedStep = wizardStepFromQuery(searchParams.get("step"))');
-    expect(page).toContain("if (requestedStep && requestedStep !== step)");
+    expect(page).toContain("setStep((currentStep) => requestedStep === currentStep ? currentStep : requestedStep)");
+    expect(page).toContain("router.replace(wizardStepHref(nextStep), { scroll: false })");
     expect(page).toContain("setStep(requestedStep ?? initialWizardStep(supportedSession))");
     expect(page).toContain('value !== "summary"');
     expect(page).toContain("const canNavigate = state === \"complete\"");
+    expect(page).toContain("onClick={() => goToStep(wizardSteps[index])}");
     expect(page).toContain("<Link href={item.href}");
     expect(page).toContain("aria-label={`Go to ${item.label}`}");
     expect(page).toContain("cursor-pointer transition hover:bg-leaf/15");

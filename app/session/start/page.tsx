@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
@@ -184,6 +184,10 @@ function wizardStepFromQuery(value: string | null): WizardStep | undefined {
   return wizardSteps.includes(value as WizardStep) && value !== "summary" ? value as WizardStep : undefined;
 }
 
+function wizardStepHref(step: WizardStep) {
+  return `/session/start?step=${step}`;
+}
+
 function optionClass(active: boolean, density: "default" | "compact" = "default") {
   const sizeClass = density === "compact"
     ? "min-h-[6.75rem] rounded-[1rem] p-2.5 sm:min-h-[7rem] sm:rounded-[1.1rem] sm:p-3"
@@ -283,6 +287,7 @@ function StartPizzaSessionLoading() {
 }
 
 function StartPizzaSessionContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -351,10 +356,10 @@ function StartPizzaSessionContent() {
   useEffect(() => {
     if (!ready) return;
     const requestedStep = wizardStepFromQuery(searchParams.get("step"));
-    if (requestedStep && requestedStep !== step) {
-      setStep(requestedStep);
+    if (requestedStep) {
+      setStep((currentStep) => requestedStep === currentStep ? currentStep : requestedStep);
     }
-  }, [ready, searchParams, step]);
+  }, [ready, searchParams]);
 
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);
@@ -413,6 +418,7 @@ function StartPizzaSessionContent() {
       targetEatTime,
     }, nextStep);
     setStep(nextStep);
+    router.replace(wizardStepHref(nextStep), { scroll: false });
   };
 
   const continueStep = () => {
@@ -501,9 +507,15 @@ function StartPizzaSessionContent() {
               return (
                 <li key={item.label}>
                   {canNavigate ? (
-                    <Link href={item.href} className={`${className} cursor-pointer transition hover:bg-leaf/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream`} aria-label={`Go to ${item.label}`}>
-                      {content}
-                    </Link>
+                    index < wizardSteps.length ? (
+                      <button type="button" onClick={() => goToStep(wizardSteps[index])} className={`${className} w-full cursor-pointer transition hover:bg-leaf/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream`} aria-label={`Go to ${item.label}`}>
+                        {content}
+                      </button>
+                    ) : (
+                      <Link href={item.href} className={`${className} cursor-pointer transition hover:bg-leaf/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream`} aria-label={`Go to ${item.label}`}>
+                        {content}
+                      </Link>
+                    )
                   ) : (
                     <div className={`${className} cursor-default select-none`} aria-current={state === "current" ? "step" : undefined} aria-disabled={state === "upcoming" ? true : undefined}>
                       {content}
