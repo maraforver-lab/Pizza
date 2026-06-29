@@ -44,11 +44,16 @@ export default function HomepageGuidanceLevelSection() {
                     : "border-transparent bg-white/45 text-ink/75 hover:border-ink/10 hover:bg-white/75"
                 }`}
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-sm text-ink/60" aria-hidden="true">
+                <span
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border transition ${
+                    selected ? "border-transparent bg-cream" : "border-ink/10 bg-white/65"
+                  }`}
+                  aria-hidden="true"
+                >
                   <span
                     data-active-indicator={selected}
                     className={`h-3 w-3 rounded-full transition ${
-                      selected ? config.markerClassName : "bg-ink/15"
+                      selected ? `${config.markerClassName} opacity-100 scale-100` : "scale-0 bg-transparent opacity-0"
                     }`}
                   />
                 </span>

@@ -261,9 +261,11 @@ describe("homepage content model", () => {
     expect(guidance).toContain("data-experience-level={level.id}");
     expect(guidance).toContain("data-selected={selected}");
     expect(guidance).toContain("data-active-indicator={selected}");
-    expect(guidance).toContain("selected ? config.markerClassName : \"bg-ink/15\"");
+    expect(guidance).toContain("selected ? `${config.markerClassName} opacity-100 scale-100`");
+    expect(guidance).toContain("\"scale-0 bg-transparent opacity-0\"");
     expect(guidance).toContain("`${config.cardClassName} text-ink shadow-sm`");
     expect(guidance).not.toContain("className={`h-3 w-3 rounded-full ${config.markerClassName}`}");
+    expect(guidance).not.toContain("bg-ink/15");
   });
 
   it("adds more technical result guidance for Pizza Nerd users without changing tools", () => {
