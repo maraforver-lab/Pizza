@@ -124,8 +124,12 @@ describe("homepage content model", () => {
     expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("HomeCalculatorWorkspace");
     expect(homepage).toContain("hasCalculatorRequest");
-    expect(homepage).toContain("/images/homepage-hero-desktop.png");
-    expect(homepage).toContain("/images/homepage-hero-mobile.png");
+    expect(homepage).toContain("/images/homepage/hero-desktop-bg.png");
+    expect(homepage).toContain("/images/homepage/hero-mobile-bg.png");
+    expect(homepage).toContain("supplied Image 3 is the desktop background asset");
+    expect(homepage).toContain("supplied Image 4 is the mobile background asset");
+    expect(homepage).not.toContain("/images/homepage-hero-desktop.png");
+    expect(homepage).not.toContain("/images/homepage-hero-mobile.png");
     expect(homepage).toContain("min-h-[calc(100vh-4rem)]");
     expect(homepage).toContain("bg-[linear-gradient(90deg");
     expect(guidance).toContain("Experience level");
