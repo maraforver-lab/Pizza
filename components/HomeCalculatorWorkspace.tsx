@@ -224,7 +224,12 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
   );
 }
 
-export default function Home() {
+type HomeCalculatorWorkspaceProps = {
+  variant?: "full" | "entry";
+};
+
+export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalculatorWorkspaceProps) {
+  const focusedEntry = variant === "entry";
   const locale: Locale = "en";
   const [goal, setGoal] = useState<PizzaGoal>("balanced");
   const [pizzaStyleId, setPizzaStyleId] = useState<PizzaStyleId>("neapolitan");
@@ -258,7 +263,7 @@ export default function Home() {
   const ovenTemperature = activeBake.temperature;
   const activePreset = presetFor(goal, ovenTemperature, fermentation);
   const disclosure = getCalculatorDisclosureMode(experienceLevel);
-  const advancedOpen = disclosure.showAdvancedByDefault || showAdvanced;
+  const advancedOpen = !focusedEntry && (disclosure.showAdvancedByDefault || showAdvanced);
   const recommendedOpen = disclosure.showRecommendedByDefault || advancedOpen;
   const activeFlour = flourById(flourId);
   const activePizzaStyle = pizzaStyleById(pizzaStyleId, goal);
@@ -278,6 +283,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (focusedEntry) {
+      setUrlReady(false);
+      return;
+    }
+
     const shared = settingsFromUrl(window.location.search);
     if (shared.pizzas !== undefined) setPizzas(shared.pizzas);
     if (shared.ballWeight !== undefined) setBallWeight(shared.ballWeight);
@@ -294,7 +304,7 @@ export default function Home() {
     else if (shared.ovenType !== undefined) setOvenType(shared.ovenType);
     if (shared.flourId !== undefined) setFlourId(shared.flourId);
     setUrlReady(true);
-  }, []);
+  }, [focusedEntry]);
 
   const applyPreset = (nextGoal: PizzaGoal, nextOvenType = ovenType, nextFermentation = fermentation) => {
     const safeOvenType: OvenType = nextGoal === "pan" ? "home" : nextOvenType;
@@ -368,11 +378,12 @@ export default function Home() {
   const journalHref = `/journal?${recipeQuery}`;
 
   useEffect(() => {
+    if (focusedEntry) return;
     if (!urlReady) return;
     const query = recipeParams(currentSettings).toString();
     window.history.replaceState(null, "", `${window.location.pathname}?${query}`);
     window.dispatchEvent(new Event("doughtools:urlchange"));
-  }, [currentSettings, urlReady]);
+  }, [currentSettings, focusedEntry, urlReady]);
 
   const copyRecipeLink = async () => {
     await navigator.clipboard.writeText(recipeUrl(currentSettings));
@@ -495,7 +506,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
-      <div className="mx-auto max-w-6xl">
+      <div className={`mx-auto ${focusedEntry ? "max-w-3xl" : "max-w-6xl"}`}>
+        {!focusedEntry && (
+        <>
         <header className="mb-7 flex items-center justify-between sm:mb-10">
           <a href="#top" className="flex items-center gap-3" aria-label="DoughTools home">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-lg shadow-tomato/20">
@@ -610,8 +623,10 @@ export default function Home() {
             The calculator gives the numbers. The guidance explains what they mean, then Planner and Dough Doctor help with timing and troubleshooting.
           </p>
         </section>
+        </>
+        )}
 
-        <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[1.2fr_.8fr] lg:gap-7">
+        <div className={`grid min-w-0 items-start gap-5 ${focusedEntry ? "" : "lg:grid-cols-[1.2fr_.8fr] lg:gap-7"}`}>
           <section id="top" tabIndex={-1} className="scroll-mt-24 min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur outline-none sm:p-7" aria-labelledby="recipe-settings">
             <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
             <p className="text-sm leading-6 text-ink/55">{levelCopy.quickIntro}</p>
@@ -685,7 +700,7 @@ export default function Home() {
                 </div>
               </section>
             )}
-            {experienceLevel !== "pizza_nerd" && (
+            {!focusedEntry && experienceLevel !== "pizza_nerd" && (
               <button
                 type="button"
                 onClick={() => setShowAdvanced((current) => !current)}
@@ -756,6 +771,7 @@ export default function Home() {
             </div>}
           </section>
 
+          {!focusedEntry && (
           <aside className="overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card lg:sticky lg:top-7" aria-live="polite">
             <div className="p-5 sm:p-7">
               <div className="mb-6 flex items-start justify-between gap-4">
@@ -888,8 +904,11 @@ export default function Home() {
               <p className="flex items-start gap-2 text-xs leading-5 text-white/45"><svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8v.01"/></svg>{levelCopy.resultNote}</p>
             </div>
           </aside>
+          )}
         </div>
 
+        {!focusedEntry && (
+        <>
         <section id="instructions" className="mt-8 rounded-[1.75rem] bg-leaf p-5 text-white shadow-card sm:p-7">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="text-xs font-extrabold uppercase tracking-[.18em] text-white/50">03 · DoughTools</p><h2 className="mt-2 font-display text-3xl font-semibold">{t.instructionsTitle}</h2><p className="mt-2 max-w-xl text-sm leading-6 text-white/65">{t.instructionsIntro} {t.startClock}</p></div>
@@ -987,6 +1006,8 @@ export default function Home() {
           <div className="flex flex-col gap-3 text-xs text-ink/45 sm:flex-row sm:items-center sm:justify-between"><p>{t.footer}</p><Link href="/guide" className="font-bold text-tomato sm:hidden">{t.guide} →</Link><p>{t.bakers}</p></div>
           <div className="mt-4 border-t border-ink/5 pt-4"><AppSignature /></div>
         </footer>
+        </>
+        )}
       </div>
     </main>
   );

@@ -123,7 +123,9 @@ describe("homepage content model", () => {
     expect(homepage).toContain('variant="hero"');
     expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("HomeCalculatorWorkspace");
-    expect(homepage).toContain("hasCalculatorRequest");
+    expect(homepage).toContain("calculatorViewFor");
+    expect(homepage).toContain('return "entry"');
+    expect(homepage).toContain('return "full"');
     expect(homepage).toContain("/images/homepage/hero-desktop-bg.png");
     expect(homepage).toContain("/images/homepage/hero-mobile-bg.png");
     expect(homepage).toContain("supplied Image 3 is the desktop background asset");
@@ -171,8 +173,9 @@ describe("homepage content model", () => {
     const homepage = source("app/page.tsx");
     const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
 
-    expect(homepage).toContain("if (hasCalculatorRequest(params))");
-    expect(homepage).toContain("return <HomeCalculatorWorkspace />");
+    expect(homepage).toContain("calculatorViewFor(params)");
+    expect(homepage).toContain('return "full"');
+    expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
     expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
     expect(calculatorWorkspace).toContain("Build the dough recipe.");
     expect(calculatorWorkspace).toContain("Ready to mix");
@@ -220,9 +223,26 @@ describe("homepage content model", () => {
     expect(header).toContain("Pizza dough calculator");
     expect(header).toContain("Calculate flour, water, salt and yeast.");
     expect(header).toContain('href="/?calculator=1"');
-    expect(homepage).toContain("hasCalculatorRequest");
-    expect(homepage).toContain("return <HomeCalculatorWorkspace />");
+    expect(homepage).toContain("calculatorViewFor");
+    expect(homepage).toContain('params.calculator !== undefined) return "entry"');
+    expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
     expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
+  });
+
+  it("opens the Tools calculator link into a focused existing calculator entry view", () => {
+    const homepage = source("app/page.tsx");
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
+
+    expect(homepage).toContain('if (keys.length === 1 && params.calculator !== undefined) return "entry"');
+    expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
+    expect(calculatorWorkspace).toContain('variant?: "full" | "entry"');
+    expect(calculatorWorkspace).toContain('const focusedEntry = variant === "entry"');
+    expect(calculatorWorkspace).toContain("What kind of pizza do you want?");
+    expect(calculatorWorkspace).toContain("if (focusedEntry) return;");
+    expect(calculatorWorkspace).toContain("const advancedOpen = !focusedEntry &&");
+    expect(calculatorWorkspace).toContain('focusedEntry ? "max-w-3xl" : "max-w-6xl"');
+    expect(calculatorWorkspace).toContain("{!focusedEntry && (");
+    expect(calculatorWorkspace).toContain("lg:grid-cols-[1.2fr_.8fr]");
   });
 
   it("does not include Finnish or Swedish active homepage labels", () => {
@@ -257,14 +277,18 @@ describe("homepage content model", () => {
     const guidance = source("components/HomepageGuidanceLevelSection.tsx");
 
     expect(guidance).toContain("const selected = experienceLevel === level.id");
+    expect(guidance).toContain("hasUserSelectedLevel.current");
     expect(guidance).toContain("aria-pressed={selected}");
     expect(guidance).toContain("data-experience-level={level.id}");
     expect(guidance).toContain("data-selected={selected}");
     expect(guidance).toContain("data-active-indicator={selected}");
-    expect(guidance).toContain("selected ? `${config.markerClassName} opacity-100 scale-100`");
+    expect(guidance).toContain("ACTIVE_DOT_CLASS");
+    expect(guidance).toContain("bg-leaf shadow-[0_0_0_3px_rgba(58,163,106,0.18)]");
+    expect(guidance).toContain("selected ? `${ACTIVE_DOT_CLASS} opacity-100 scale-100`");
     expect(guidance).toContain("\"scale-0 bg-transparent opacity-0\"");
-    expect(guidance).toContain("`${config.cardClassName} text-ink shadow-sm`");
+    expect(guidance).toContain("selectedCardClassByLevel[level.id]");
     expect(guidance).not.toContain("className={`h-3 w-3 rounded-full ${config.markerClassName}`}");
+    expect(guidance).not.toContain("data-active-indicator={level.id === \"beginner\"}");
     expect(guidance).not.toContain("bg-ink/15");
   });
 
