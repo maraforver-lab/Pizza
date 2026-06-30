@@ -1,16 +1,18 @@
 import type {
-  PlanningFermentationMode,
-  PlanningFlourCategory,
+  FermentationMode,
+  FlourCategory,
+  PlanningTemperatureAssumptions,
   PlanningQualityScore,
   PlanningTechnicalDetails,
   PlanningWarning,
   PlanningYeastRecommendation,
 } from "@/lib/planning-types";
+import type { PlanningInput } from "@/lib/planning-input";
 
 export type PlanningResult = {
   availableFermentationHours: number;
-  recommendedFermentationMode: PlanningFermentationMode;
-  recommendedFlourCategory: PlanningFlourCategory;
+  recommendedFermentationMode: FermentationMode;
+  recommendedFlourCategory: FlourCategory;
   recommendedHydration: number | null;
   recommendedSalt: number | null;
   recommendedYeast: PlanningYeastRecommendation;
@@ -20,12 +22,19 @@ export type PlanningResult = {
 };
 
 export function createPlanningFoundationResult(input: {
+  planningInput: PlanningInput;
   availableFermentationHours: number;
   warnings?: PlanningWarning[];
 }): PlanningResult {
+  const temperatureAssumptions: PlanningTemperatureAssumptions = {
+    roomTemperature: input.planningInput.roomTemperature,
+    fridgeTemperature: input.planningInput.fridgeTemperature,
+    note: "Temperatures are captured for future planning rules only.",
+  };
+
   return {
     availableFermentationHours: input.availableFermentationHours,
-    recommendedFermentationMode: "not-recommended-yet",
+    recommendedFermentationMode: "not_recommended",
     recommendedFlourCategory: "unknown",
     recommendedHydration: null,
     recommendedSalt: null,
@@ -36,20 +45,39 @@ export function createPlanningFoundationResult(input: {
     },
     warnings: input.warnings ?? [],
     qualityScore: {
-      value: null,
-      label: "not-scored-yet",
-      rationale: "Quality scoring will be added after planning rules exist.",
+      score: null,
+      label: "not_scored_yet",
+      reasons: ["Quality scoring will be added after planning rules exist."],
     },
     technicalDetails: {
       engineVersion: 1,
-      notes: [
+      selectedTimeWindow: {
+        currentDateTime: input.planningInput.currentDateTime.toISOString(),
+        desiredBakeDateTime: input.planningInput.desiredBakeDateTime.toISOString(),
+      },
+      availableFermentationHours: input.availableFermentationHours,
+      assumptions: [
         "Planning Engine foundation only.",
         "No fermentation rules, flour recommendations or yeast calculations are implemented yet.",
         "Ingredient gram calculations remain owned by calculateDoughIngredients.",
-      ],
-      calculationBasis: [
         "availableFermentationHours is calculated from desiredBakeDateTime minus currentDateTime.",
       ],
+      sourceConfidence: {
+        fermentation: "placeholder",
+        flour: "placeholder",
+        yeast: "placeholder",
+        schedule: "placeholder",
+      },
+      temperatureAssumptions,
+      flourAssumptions: {
+        flourSelection: input.planningInput.flourSelection,
+        category: "unknown",
+        note: "Flour category recommendation is not implemented yet.",
+      },
+      yeastAssumptions: {
+        yeastType: null,
+        note: "Yeast model is not implemented yet.",
+      },
     },
   };
 }

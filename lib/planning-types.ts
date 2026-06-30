@@ -1,27 +1,35 @@
-import type { ExperienceLevel } from "@/lib/experience-levels";
 import type { FlourId } from "@/lib/flours";
-import type { Fermentation, OvenType, YeastType } from "@/lib/saved-recipes";
+import type { YeastType } from "@/lib/saved-recipes";
 
-export type PlanningUserLevel = ExperienceLevel;
+export type UserLevel = "beginner" | "enthusiast" | "pizza_nerd";
 
-export type PlanningOvenType = OvenType;
+export type OvenType = "home_oven" | "pizza_oven";
 
-export type PlanningFlourSelection = FlourId | "unknown";
+export type FermentationMode = "room" | "cold" | "hybrid" | "not_recommended";
 
-export type PlanningFermentationMode = Fermentation | "not-recommended-yet";
+export type FlourSelection =
+  | { type: "unknown" }
+  | { type: "standard_pizza_flour" }
+  | { type: "medium_strong_pizza_flour" }
+  | { type: "strong_pizza_flour" }
+  | { type: "known_flour_id"; flourId: FlourId };
 
-export type PlanningFlourCategory =
-  | "pizza-flour"
-  | "bread-flour"
-  | "all-purpose"
+export type FlourCategory =
+  | "standard"
+  | "medium_strong"
+  | "strong"
+  | "very_strong"
   | "unknown";
 
-export type PlanningWarningSeverity = "info" | "warning";
+export type PlanningWarningSeverity = "info" | "caution" | "high_risk";
 
 export type PlanningWarning = {
-  code: string;
-  message: string;
+  id: string;
   severity: PlanningWarningSeverity;
+  userMessage: string;
+  technicalReason: string;
+  suggestedFix: string;
+  visibleForLevels: UserLevel[];
 };
 
 export type PlanningYeastRecommendation = {
@@ -31,13 +39,51 @@ export type PlanningYeastRecommendation = {
 };
 
 export type PlanningQualityScore = {
-  value: number | null;
-  label: "not-scored-yet";
-  rationale: string;
+  score: number | null;
+  label: "not_scored_yet";
+  reasons: string[];
+};
+
+export type PlanningSourceConfidence = {
+  fermentation: "placeholder";
+  flour: "placeholder";
+  yeast: "placeholder";
+  schedule: "placeholder";
+};
+
+export type PlanningTemperatureAssumptions = {
+  roomTemperature: number;
+  fridgeTemperature: number;
+  note: string;
+};
+
+export type PlanningFlourAssumptions = {
+  flourSelection: FlourSelection;
+  category: FlourCategory;
+  note: string;
+};
+
+export type PlanningYeastAssumptions = {
+  yeastType: YeastType | null;
+  note: string;
 };
 
 export type PlanningTechnicalDetails = {
   engineVersion: 1;
-  notes: string[];
-  calculationBasis: string[];
+  selectedTimeWindow: {
+    currentDateTime: string;
+    desiredBakeDateTime: string;
+  };
+  availableFermentationHours: number;
+  assumptions: string[];
+  sourceConfidence: PlanningSourceConfidence;
+  temperatureAssumptions: PlanningTemperatureAssumptions;
+  flourAssumptions: PlanningFlourAssumptions;
+  yeastAssumptions: PlanningYeastAssumptions;
 };
+
+export const USER_LEVELS = ["beginner", "enthusiast", "pizza_nerd"] as const satisfies readonly UserLevel[];
+
+export const OVEN_TYPES = ["home_oven", "pizza_oven"] as const satisfies readonly OvenType[];
+
+export const FERMENTATION_MODES = ["room", "cold", "hybrid", "not_recommended"] as const satisfies readonly FermentationMode[];

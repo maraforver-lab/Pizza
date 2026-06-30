@@ -10,13 +10,17 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
 
   if (availableFermentationHours === 0) {
     warnings.push({
-      code: "no-positive-fermentation-window",
-      message: "The desired bake time does not leave a positive fermentation window.",
-      severity: "warning",
+      id: "no-positive-fermentation-window",
+      severity: "high_risk",
+      userMessage: "The desired bake time does not leave a positive fermentation window.",
+      technicalReason: "desiredBakeDateTime is not later than currentDateTime.",
+      suggestedFix: "Choose a later bake time before applying fermentation planning rules.",
+      visibleForLevels: ["beginner", "enthusiast", "pizza_nerd"],
     });
   }
 
   return createPlanningFoundationResult({
+    planningInput: input,
     availableFermentationHours,
     warnings,
   });

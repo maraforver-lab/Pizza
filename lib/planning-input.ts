@@ -1,13 +1,13 @@
-import type { PlanningFlourSelection, PlanningOvenType, PlanningUserLevel } from "@/lib/planning-types";
+import type { FlourSelection, OvenType, UserLevel } from "@/lib/planning-types";
 
 export type PlanningInput = {
   currentDateTime: Date;
   desiredBakeDateTime: Date;
-  userLevel: PlanningUserLevel;
-  ovenType: PlanningOvenType;
+  userLevel: UserLevel;
+  ovenType: OvenType;
   roomTemperature: number;
   fridgeTemperature: number;
-  flourSelection: PlanningFlourSelection;
+  flourSelection: FlourSelection;
   doughBallCount: number;
   doughBallWeight: number;
 };
