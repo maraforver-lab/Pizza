@@ -24,27 +24,38 @@ export type PlanningResult = {
 export function createPlanningFoundationResult(input: {
   planningInput: PlanningInput;
   availableFermentationHours: number;
+  recommendedFermentationMode?: FermentationMode;
+  recommendedFlourCategory?: FlourCategory;
+  recommendedHydration?: number | null;
+  recommendedSalt?: number | null;
+  recommendedYeast?: PlanningYeastRecommendation;
   warnings?: PlanningWarning[];
+  qualityScore?: PlanningQualityScore;
+  assumptions?: string[];
+  flourAssumptionCategory?: FlourCategory;
+  flourAssumptionNote?: string;
+  yeastAssumptionNote?: string;
 }): PlanningResult {
   const temperatureAssumptions: PlanningTemperatureAssumptions = {
     roomTemperature: input.planningInput.roomTemperature,
     fridgeTemperature: input.planningInput.fridgeTemperature,
-    note: "Temperatures are captured for future planning rules only.",
+    note: "Temperatures are used by conservative v1 planning rules and remain broad assumptions.",
   };
 
   return {
     availableFermentationHours: input.availableFermentationHours,
-    recommendedFermentationMode: "not_recommended",
-    recommendedFlourCategory: "unknown",
-    recommendedHydration: null,
-    recommendedSalt: null,
-    recommendedYeast: {
+    recommendedFermentationMode: input.recommendedFermentationMode ?? "not_recommended",
+    recommendedFlourCategory: input.recommendedFlourCategory ?? "unknown",
+    recommendedHydration: input.recommendedHydration ?? null,
+    recommendedSalt: input.recommendedSalt ?? null,
+    recommendedYeast: input.recommendedYeast ?? {
       yeastType: null,
       amountGrams: null,
-      note: "Yeast recommendation is intentionally not calculated in the foundation patch.",
+      placeholderPercent: null,
+      note: "Yeast recommendation is intentionally not calculated in grams by the planning engine.",
     },
     warnings: input.warnings ?? [],
-    qualityScore: {
+    qualityScore: input.qualityScore ?? {
       score: null,
       label: "not_scored_yet",
       reasons: ["Quality scoring will be added after planning rules exist."],
@@ -56,9 +67,10 @@ export function createPlanningFoundationResult(input: {
         desiredBakeDateTime: input.planningInput.desiredBakeDateTime.toISOString(),
       },
       availableFermentationHours: input.availableFermentationHours,
-      assumptions: [
-        "Planning Engine foundation only.",
-        "No fermentation rules, flour recommendations or yeast calculations are implemented yet.",
+      assumptions: input.assumptions ?? [
+        "Planning Engine foundation with conservative v1 fermentation windows.",
+        "Recommendations are broad planning placeholders, not production recipe formulas.",
+        "Yeast values are placeholder baker percentages and not gram calculations.",
         "Ingredient gram calculations remain owned by calculateDoughIngredients.",
         "availableFermentationHours is calculated from desiredBakeDateTime minus currentDateTime.",
       ],
@@ -71,12 +83,12 @@ export function createPlanningFoundationResult(input: {
       temperatureAssumptions,
       flourAssumptions: {
         flourSelection: input.planningInput.flourSelection,
-        category: "unknown",
-        note: "Flour category recommendation is not implemented yet.",
+        category: input.flourAssumptionCategory ?? "unknown",
+        note: input.flourAssumptionNote ?? "Flour category is interpreted only at a broad v1 planning level.",
       },
       yeastAssumptions: {
         yeastType: null,
-        note: "Yeast model is not implemented yet.",
+        note: input.yeastAssumptionNote ?? "Yeast model is a monotonic placeholder percentage only.",
       },
     },
   };

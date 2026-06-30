@@ -21,7 +21,21 @@ const basePlanningInput: PlanningInput = {
   doughBallWeight: 260,
 };
 
-describe("Planning Engine foundation", () => {
+function planningInputWithHours(
+  hours: number,
+  overrides: Partial<PlanningInput> = {},
+): PlanningInput {
+  const currentDateTime = overrides.currentDateTime ?? basePlanningInput.currentDateTime;
+  return {
+    ...basePlanningInput,
+    ...overrides,
+    currentDateTime,
+    desiredBakeDateTime: overrides.desiredBakeDateTime
+      ?? new Date(currentDateTime.getTime() + hours * 3_600_000),
+  };
+}
+
+describe("Planning Engine fermentation rules v1", () => {
   it("defines the supported v1 planning domain values", () => {
     expect(USER_LEVELS).toEqual(["beginner", "enthusiast", "pizza_nerd"]);
     expect(OVEN_TYPES).toEqual(["home_oven", "pizza_oven"]);
@@ -38,49 +52,28 @@ describe("Planning Engine foundation", () => {
         });
 
         expect(result.availableFermentationHours).toBe(36);
-        expect(result.warnings).toEqual([]);
+        expect(result.recommendedFermentationMode).toMatch(/cold|hybrid/);
+        expect(result.technicalDetails.engineVersion).toBe(PLANNING_ENGINE_VERSION);
       }
     }
   });
 
-  it("represents every supported flour selection shape without adding flour rules yet", () => {
-    const selections: FlourSelection[] = [
-      { type: "unknown" },
-      { type: "standard_pizza_flour" },
-      { type: "medium_strong_pizza_flour" },
-      { type: "strong_pizza_flour" },
-      { type: "known_flour_id", flourId: "caputo-pizzeria" },
+  it("represents every supported flour selection shape with a broad v1 flour assumption category", () => {
+    const selections: Array<[FlourSelection, string]> = [
+      [{ type: "unknown" }, "unknown"],
+      [{ type: "standard_pizza_flour" }, "standard"],
+      [{ type: "medium_strong_pizza_flour" }, "medium_strong"],
+      [{ type: "strong_pizza_flour" }, "strong"],
+      [{ type: "known_flour_id", flourId: "caputo-pizzeria" }, "medium_strong"],
+      [{ type: "known_flour_id", flourId: "caputo-nuvola-super" }, "very_strong"],
     ];
 
-    for (const flourSelection of selections) {
+    for (const [flourSelection, expectedCategory] of selections) {
       const result = buildPlanningResult({ ...basePlanningInput, flourSelection });
 
-      expect(result.recommendedFlourCategory).toBe("unknown");
       expect(result.technicalDetails.flourAssumptions.flourSelection).toEqual(flourSelection);
-      expect(result.technicalDetails.flourAssumptions.category).toBe("unknown");
+      expect(result.technicalDetails.flourAssumptions.category).toBe(expectedCategory);
     }
-  });
-
-  it("processes a PlanningInput and returns a PlanningResult", () => {
-    const result = buildPlanningResult(basePlanningInput);
-
-    expect(result.availableFermentationHours).toBe(36);
-    expect(result.recommendedFermentationMode).toBe("not_recommended");
-    expect(result.recommendedFlourCategory).toBe("unknown");
-    expect(result.recommendedHydration).toBeNull();
-    expect(result.recommendedSalt).toBeNull();
-    expect(result.recommendedYeast).toEqual({
-      yeastType: null,
-      amountGrams: null,
-      note: "Yeast recommendation is intentionally not calculated in the foundation patch.",
-    });
-    expect(result.warnings).toEqual([]);
-    expect(result.qualityScore).toMatchObject({
-      score: null,
-      label: "not_scored_yet",
-    });
-    expect(result.technicalDetails.engineVersion).toBe(PLANNING_ENGINE_VERSION);
-    expect(result.technicalDetails.assumptions.join(" ")).toContain("foundation only");
   });
 
   it("calculates available fermentation hours from current time to desired bake time", () => {
@@ -91,46 +84,175 @@ describe("Planning Engine foundation", () => {
     })).toBe(6.5);
   });
 
-  it("returns a safe zero-hour foundation result and warning when no positive fermentation window exists", () => {
+  it("returns not_recommended and a high-risk warning when the fermentation window is zero or negative", () => {
     const result = buildPlanningResult({
       ...basePlanningInput,
       desiredBakeDateTime: new Date("2026-06-30T08:00:00.000Z"),
     });
 
     expect(result.availableFermentationHours).toBe(0);
-    expect(result.warnings).toEqual([{
+    expect(result.recommendedFermentationMode).toBe("not_recommended");
+    expect(result.qualityScore).toMatchObject({ score: 5, label: "low" });
+    expect(result.warnings).toEqual([expect.objectContaining({
       id: "no-positive-fermentation-window",
       severity: "high_risk",
-      userMessage: "The desired bake time does not leave a positive fermentation window.",
-      technicalReason: "desiredBakeDateTime is not later than currentDateTime.",
-      suggestedFix: "Choose a later bake time before applying fermentation planning rules.",
-      visibleForLevels: ["beginner", "enthusiast", "pizza_nerd"],
-    }]);
+    })]);
+    expect(result.recommendedYeast.placeholderPercent).toBeNull();
+  });
+
+  it("returns not_recommended and a high-risk warning for the 0-3 hour window", () => {
+    const result = buildPlanningResult(planningInputWithHours(2));
+
+    expect(result.availableFermentationHours).toBe(2);
     expect(result.recommendedFermentationMode).toBe("not_recommended");
-    expect(result.recommendedYeast.amountGrams).toBeNull();
+    expect(result.qualityScore).toMatchObject({ score: 10, label: "low" });
+    expect(result.warnings).toEqual([expect.objectContaining({
+      id: "insufficient-fermentation-window",
+      severity: "high_risk",
+      userMessage: expect.stringContaining("not enough time"),
+    })]);
+  });
+
+  it("recommends a fast room-temperature dough for 5 hours with beginner-safe hydration", () => {
+    const result = buildPlanningResult(planningInputWithHours(5, {
+      userLevel: "beginner",
+      ovenType: "home_oven",
+      flourSelection: { type: "unknown" },
+    }));
+
+    expect(result.recommendedFermentationMode).toBe("room");
+    expect(result.recommendedFlourCategory).toBe("standard");
+    expect(result.recommendedHydration).toBe(60);
+    expect(result.recommendedSalt).toBe(2.8);
+    expect(result.recommendedYeast.placeholderPercent).toBe(0.25);
+    expect(result.warnings).toEqual([expect.objectContaining({
+      id: "fast-dough-compromise",
+      severity: "caution",
+    })]);
+    expect(result.qualityScore).toMatchObject({ score: 45, label: "moderate_low" });
+  });
+
+  it("recommends room fermentation and medium-strong flour for a 10 hour window", () => {
+    const result = buildPlanningResult(planningInputWithHours(10));
+
+    expect(result.recommendedFermentationMode).toBe("room");
+    expect(result.recommendedFlourCategory).toBe("medium_strong");
+    expect(result.recommendedHydration).toBe(64);
+    expect(result.recommendedYeast.placeholderPercent).toBe(0.14);
+    expect(result.qualityScore).toMatchObject({ score: 60, label: "moderate" });
+  });
+
+  it("marks the 18 hour window as the best classic v1 time window with a good score", () => {
+    const result = buildPlanningResult(planningInputWithHours(18));
+
+    expect(["room", "hybrid"]).toContain(result.recommendedFermentationMode);
+    expect(result.recommendedFlourCategory).toBe("medium_strong");
+    expect(result.recommendedHydration).toBe(64);
+    expect(result.recommendedYeast.placeholderPercent).toBe(0.08);
+    expect(result.qualityScore).toMatchObject({ score: 82, label: "good" });
+    expect(result.qualityScore.reasons.join(" ")).toContain("best classic v1");
+    expect(result.technicalDetails.assumptions.join(" ")).toContain("best classic v1");
+  });
+
+  it("recommends hybrid or cold fermentation and strong flour for a 36 hour window", () => {
+    const result = buildPlanningResult(planningInputWithHours(36));
+
+    expect(["hybrid", "cold"]).toContain(result.recommendedFermentationMode);
+    expect(result.recommendedFlourCategory).toBe("strong");
+    expect(result.recommendedYeast.placeholderPercent).toBe(0.04);
+    expect(result.qualityScore.label).toBe("good");
+  });
+
+  it("recommends cold or hybrid fermentation and strong flour for a 60 hour window", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      flourSelection: { type: "strong_pizza_flour" },
+    }));
+
+    expect(["hybrid", "cold"]).toContain(result.recommendedFermentationMode);
+    expect(["strong", "very_strong"]).toContain(result.recommendedFlourCategory);
+    expect(result.recommendedYeast.placeholderPercent).toBe(0.02);
+    expect(result.qualityScore).toMatchObject({ score: 78, label: "good" });
+  });
+
+  it("warns when 48-72 hour fermentation uses unknown or weak flour", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      flourSelection: { type: "unknown" },
+    }));
+
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      id: "weak-or-unknown-flour-long-fermentation",
+      severity: "caution",
+    }));
+    expect(result.qualityScore).toMatchObject({ score: 58, label: "moderate" });
+  });
+
+  it("returns cautious not_recommended behavior above 72 hours", () => {
+    const beginnerResult = buildPlanningResult(planningInputWithHours(96, {
+      userLevel: "beginner",
+    }));
+    const nerdResult = buildPlanningResult(planningInputWithHours(96, {
+      userLevel: "pizza_nerd",
+    }));
+
+    expect(beginnerResult.recommendedFermentationMode).toBe("not_recommended");
+    expect(beginnerResult.warnings).toContainEqual(expect.objectContaining({
+      id: "advanced-long-fermentation-window",
+      severity: "high_risk",
+    }));
+    expect(beginnerResult.qualityScore).toMatchObject({ score: 25, label: "low" });
+
+    expect(nerdResult.recommendedFermentationMode).toBe("not_recommended");
+    expect(nerdResult.warnings).toContainEqual(expect.objectContaining({
+      id: "advanced-long-fermentation-window",
+      severity: "caution",
+    }));
+    expect(nerdResult.warnings).toContainEqual(expect.objectContaining({
+      id: "pizza-nerd-long-fermentation-note",
+      severity: "info",
+      visibleForLevels: ["pizza_nerd"],
+    }));
+  });
+
+  it("adds a warm-fridge warning for long cold or hybrid planning windows", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      fridgeTemperature: 9,
+    }));
+
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      id: "warm-fridge-long-fermentation",
+      severity: "caution",
+      userMessage: expect.stringContaining("fridge temperature is warm"),
+    }));
+  });
+
+  it("keeps yeast placeholder percentages monotonic as fermentation time increases", () => {
+    const yeastPercentages = [5, 10, 18, 36, 60, 96].map((hours) => {
+      const result = buildPlanningResult(planningInputWithHours(hours, {
+        userLevel: "pizza_nerd",
+        flourSelection: { type: "strong_pizza_flour" },
+      }));
+
+      return result.recommendedYeast.placeholderPercent;
+    });
+
+    expect(yeastPercentages).toEqual([0.25, 0.14, 0.08, 0.04, 0.02, 0.01]);
   });
 
   it("returns a stable quality score and technical details shape", () => {
     const result = buildPlanningResult(basePlanningInput);
 
-    expect(result.qualityScore).toEqual({
-      score: null,
-      label: "not_scored_yet",
-      reasons: ["Quality scoring will be added after planning rules exist."],
+    expect(result.qualityScore).toMatchObject({
+      score: 80,
+      label: "good",
+      reasons: [expect.stringContaining("Long fermentation")],
     });
-    expect(result.technicalDetails).toEqual({
+    expect(result.technicalDetails).toMatchObject({
       engineVersion: 1,
       selectedTimeWindow: {
         currentDateTime: "2026-06-30T09:00:00.000Z",
         desiredBakeDateTime: "2026-07-01T21:00:00.000Z",
       },
       availableFermentationHours: 36,
-      assumptions: [
-        "Planning Engine foundation only.",
-        "No fermentation rules, flour recommendations or yeast calculations are implemented yet.",
-        "Ingredient gram calculations remain owned by calculateDoughIngredients.",
-        "availableFermentationHours is calculated from desiredBakeDateTime minus currentDateTime.",
-      ],
       sourceConfidence: {
         fermentation: "placeholder",
         flour: "placeholder",
@@ -140,18 +262,17 @@ describe("Planning Engine foundation", () => {
       temperatureAssumptions: {
         roomTemperature: 22,
         fridgeTemperature: 4,
-        note: "Temperatures are captured for future planning rules only.",
       },
       flourAssumptions: {
         flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
-        category: "unknown",
-        note: "Flour category recommendation is not implemented yet.",
+        category: "medium_strong",
       },
       yeastAssumptions: {
         yeastType: null,
-        note: "Yeast model is not implemented yet.",
       },
     });
+    expect(result.technicalDetails.assumptions.join(" ")).toContain("conservative broad fermentation time windows");
+    expect(result.technicalDetails.assumptions.join(" ")).toContain("not gram calculations");
   });
 
   it("keeps existing dough calculator gram calculations untouched", () => {

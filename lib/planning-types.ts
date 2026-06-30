@@ -35,12 +35,20 @@ export type PlanningWarning = {
 export type PlanningYeastRecommendation = {
   yeastType: YeastType | null;
   amountGrams: number | null;
+  placeholderPercent: number | null;
   note: string;
 };
 
+export type PlanningQualityLabel =
+  | "not_scored_yet"
+  | "low"
+  | "moderate_low"
+  | "moderate"
+  | "good";
+
 export type PlanningQualityScore = {
   score: number | null;
-  label: "not_scored_yet";
+  label: PlanningQualityLabel;
   reasons: string[];
 };
 
