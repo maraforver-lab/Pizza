@@ -1,4 +1,4 @@
-import type { FlourId } from "@/lib/flours";
+import { resolvePlanningFlourProfile, type PlanningFlourProfile } from "@/lib/planning-flour-profiles";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { createPlanningFoundationResult, type PlanningResult } from "@/lib/planning-result";
 import type {
@@ -25,20 +25,10 @@ type RuleRecommendation = {
 
 const ALL_LEVELS = ["beginner", "enthusiast", "pizza_nerd"] as const;
 
-const KNOWN_FLOUR_CATEGORIES: Record<FlourId, FlourCategory> = {
-  "caputo-classica": "standard",
-  "caputo-pizzeria": "medium_strong",
-  "caputo-nuvola": "strong",
-  "caputo-nuvola-super": "very_strong",
-  "caputo-cuoco": "strong",
-  "le5-napoletana": "strong",
-  "petra-5037": "strong",
-};
-
 export function buildPlanningResult(input: PlanningInput): PlanningResult {
   const availableFermentationHours = calculateAvailableFermentationHours(input);
-  const selectedFlourCategory = getSelectedFlourCategory(input.flourSelection);
-  const recommendation = recommendForTimeWindow(input, availableFermentationHours, selectedFlourCategory);
+  const flourProfile = resolvePlanningFlourProfile(input.flourSelection);
+  const recommendation = recommendForTimeWindow(input, availableFermentationHours, flourProfile);
   const recommendedYeast: PlanningYeastRecommendation = {
     yeastType: null,
     amountGrams: null,
@@ -64,8 +54,11 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
       "Ingredient gram calculations remain owned by calculateDoughIngredients.",
       ...recommendation.assumptions,
     ],
-    flourAssumptionCategory: selectedFlourCategory,
-    flourAssumptionNote: "Flour selection is mapped to a broad category for conservative v1 planning only.",
+    flourAssumptionCategory: flourProfile.category,
+    flourAssumptionProfileId: flourProfile.flourId,
+    flourAssumptionDisplayName: flourProfile.displayName,
+    flourAssumptionSourceConfidence: flourProfile.sourceConfidence,
+    flourAssumptionNote: "Flour selection is resolved to an internal v1 planning profile only; it is not exposed in production UI.",
     yeastAssumptionNote: "Yeast recommendation is a monotonic placeholder percentage for future rule work.",
   });
 }
@@ -73,11 +66,14 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
 function recommendForTimeWindow(
   input: PlanningInput,
   hours: number,
-  selectedFlourCategory: FlourCategory,
+  flourProfile: PlanningFlourProfile,
 ): RuleRecommendation {
   const warnings: PlanningWarning[] = [];
+  const selectedFlourCategory = flourProfile.category;
   const assumptions: string[] = [
+    `Input flour resolved to ${flourProfile.displayName} (${flourProfile.flourId}).`,
     `Input flour category interpreted as ${selectedFlourCategory}.`,
+    `Flour profile source confidence is ${flourProfile.sourceConfidence}.`,
     `Oven type considered as ${input.ovenType}.`,
     `User level considered as ${input.userLevel}.`,
   ];
@@ -137,6 +133,8 @@ function recommendForTimeWindow(
   }
 
   if (hours < 6) {
+    addFlourFitWarnings(warnings, hours, flourProfile);
+
     warnings.push({
       id: "fast-dough-compromise",
       severity: "caution",
@@ -201,6 +199,7 @@ function recommendForTimeWindow(
 
   if (hours < 48) {
     addWarmFridgeWarning(warnings, input, hours);
+    addFlourFitWarnings(warnings, hours, flourProfile);
 
     return {
       mode: input.ovenType === "pizza_oven" ? "cold" : "hybrid",
@@ -221,17 +220,7 @@ function recommendForTimeWindow(
 
   if (hours <= 72) {
     addWarmFridgeWarning(warnings, input, hours);
-
-    if (selectedFlourCategory === "unknown" || selectedFlourCategory === "standard") {
-      warnings.push({
-        id: "weak-or-unknown-flour-long-fermentation",
-        severity: "caution",
-        userMessage: "A very long fermentation works best with stronger flour.",
-        technicalReason: `The selected flour category is ${selectedFlourCategory} for a 48–72 hour window.`,
-        suggestedFix: "Use a strong pizza flour when planning a very long fermentation.",
-        visibleForLevels: [...ALL_LEVELS],
-      });
-    }
+    addFlourFitWarnings(warnings, hours, flourProfile);
 
     const safeAssumptions = input.fridgeTemperature <= 6
       && selectedFlourCategory !== "unknown"
@@ -279,6 +268,7 @@ function recommendForTimeWindow(
   }
 
   addWarmFridgeWarning(warnings, input, hours);
+  addFlourFitWarnings(warnings, hours, flourProfile);
 
   return {
     mode: "not_recommended",
@@ -297,25 +287,56 @@ function recommendForTimeWindow(
   };
 }
 
-function getSelectedFlourCategory(flourSelection: PlanningInput["flourSelection"]): FlourCategory {
-  switch (flourSelection.type) {
-    case "standard_pizza_flour":
-      return "standard";
-    case "medium_strong_pizza_flour":
-      return "medium_strong";
-    case "strong_pizza_flour":
-      return "strong";
-    case "known_flour_id":
-      return KNOWN_FLOUR_CATEGORIES[flourSelection.flourId];
-    case "unknown":
-      return "unknown";
-  }
-}
-
 function beginnerSafeHydration(input: PlanningInput, beginnerHydration: number, defaultHydration: number): number {
   if (input.userLevel === "beginner") return beginnerHydration;
   if (input.ovenType === "home_oven") return Math.min(defaultHydration, 63);
   return defaultHydration;
+}
+
+function addFlourFitWarnings(warnings: PlanningWarning[], hours: number, flourProfile: PlanningFlourProfile): void {
+  if (hours >= 3 && hours < 6 && flourProfile.category === "very_strong") {
+    warnings.push({
+      id: "very-strong-flour-fast-dough",
+      severity: "caution",
+      userMessage: "This flour may be stronger than needed for a fast dough.",
+      technicalReason: `${flourProfile.displayName} is categorized as very_strong for a ${hours} hour window.`,
+      suggestedFix: "Use a medium-strong or standard pizza flour for short same-day doughs.",
+      visibleForLevels: [...ALL_LEVELS],
+    });
+  }
+
+  if (hours >= 24 && hours < 48 && flourProfile.category === "medium_strong") {
+    warnings.push({
+      id: "medium-strong-flour-long-fermentation-caution",
+      severity: "caution",
+      userMessage: "Medium-strong flour can work here, but stronger flour is safer for long fermentation.",
+      technicalReason: `${flourProfile.displayName} is categorized as medium_strong beyond its strongest v1 window.`,
+      suggestedFix: "Use strong pizza flour when planning long hybrid or cold fermentation.",
+      visibleForLevels: [...ALL_LEVELS],
+    });
+  }
+
+  if (hours >= 48 && hours <= 72 && flourProfile.category === "unknown") {
+    warnings.push({
+      id: "weak-or-unknown-flour-long-fermentation",
+      severity: "caution",
+      userMessage: "A very long fermentation works best with known strong flour.",
+      technicalReason: `${flourProfile.displayName} has unknown strength for a 48–72 hour window.`,
+      suggestedFix: "Use a strong pizza flour when planning a very long fermentation.",
+      visibleForLevels: [...ALL_LEVELS],
+    });
+  }
+
+  if (hours >= 48 && hours <= 72 && flourProfile.category === "standard") {
+    warnings.push({
+      id: "standard-flour-too-weak-for-long-fermentation",
+      severity: "high_risk",
+      userMessage: "Standard flour is risky for a 48–72 hour fermentation.",
+      technicalReason: `${flourProfile.displayName} is categorized as standard for a ${hours} hour window.`,
+      suggestedFix: "Use strong or very strong pizza flour for this fermentation window.",
+      visibleForLevels: [...ALL_LEVELS],
+    });
+  }
 }
 
 function addWarmFridgeWarning(warnings: PlanningWarning[], input: PlanningInput, hours: number): void {

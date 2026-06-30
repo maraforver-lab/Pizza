@@ -3,6 +3,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { buildPlanningResult, PLANNING_ENGINE_VERSION } from "@/lib/planning-engine";
+import {
+  getPlanningFlourProfile,
+  planningFlourProfiles,
+  resolvePlanningFlourProfile,
+} from "@/lib/planning-flour-profiles";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { FERMENTATION_MODES, OVEN_TYPES, USER_LEVELS, type FlourSelection } from "@/lib/planning-types";
 import { baseSettings } from "./helpers";
@@ -42,6 +47,25 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(FERMENTATION_MODES).toEqual(["room", "cold", "hybrid", "not_recommended"]);
   });
 
+  it("defines the initial background flour profiles without exposing them to UI", () => {
+    expect(planningFlourProfiles.map((profile) => profile.flourId)).toEqual([
+      "unknown_basic_flour",
+      "standard_pizza_flour",
+      "medium_strong_pizza_flour",
+      "strong_pizza_flour",
+      "caputo_pizzeria",
+      "caputo_nuvola",
+      "caputo_saccorosso",
+      "pirkka_w260",
+      "pirkka_w350",
+    ]);
+    expect(getPlanningFlourProfile("unknown_basic_flour")).toMatchObject({
+      category: "unknown",
+      sourceConfidence: "inferred",
+      beginnerSafe: true,
+    });
+  });
+
   it("accepts every supported user level and oven type through PlanningInput", () => {
     for (const userLevel of USER_LEVELS) {
       for (const ovenType of OVEN_TYPES) {
@@ -73,7 +97,58 @@ describe("Planning Engine fermentation rules v1", () => {
 
       expect(result.technicalDetails.flourAssumptions.flourSelection).toEqual(flourSelection);
       expect(result.technicalDetails.flourAssumptions.category).toBe(expectedCategory);
+      expect(result.technicalDetails.flourAssumptions.profileId).toBeTruthy();
+      expect(result.technicalDetails.flourAssumptions.displayName).toBeTruthy();
+      expect(result.technicalDetails.flourAssumptions.sourceConfidence).toMatch(/official|trusted_secondary|inferred/);
     }
+  });
+
+  it("resolves known planning flour profiles and legacy app flour ids safely", () => {
+    expect(resolvePlanningFlourProfile({ type: "known_flour_id", flourId: "pirkka_w260" })).toMatchObject({
+      flourId: "pirkka_w260",
+      category: "medium_strong",
+    });
+    expect(resolvePlanningFlourProfile({ type: "known_flour_id", flourId: "pirkka_w350" })).toMatchObject({
+      flourId: "pirkka_w350",
+      category: "very_strong",
+    });
+    expect(resolvePlanningFlourProfile({ type: "known_flour_id", flourId: "caputo_pizzeria" })).toMatchObject({
+      flourId: "caputo_pizzeria",
+      category: "medium_strong",
+      wMin: 260,
+      wMax: 280,
+    });
+    expect(resolvePlanningFlourProfile({ type: "known_flour_id", flourId: "caputo_saccorosso" })).toMatchObject({
+      flourId: "caputo_saccorosso",
+      category: "strong",
+      wMin: 300,
+      wMax: 320,
+    });
+    expect(resolvePlanningFlourProfile({ type: "known_flour_id", flourId: "caputo-pizzeria" })).toMatchObject({
+      flourId: "caputo_pizzeria",
+      category: "medium_strong",
+    });
+  });
+
+  it("falls back safely when a known flour id is not in the planning profile registry", () => {
+    const profile = resolvePlanningFlourProfile({
+      type: "known_flour_id",
+      flourId: "mystery-local-flour",
+    });
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      flourSelection: { type: "known_flour_id", flourId: "mystery-local-flour" },
+    }));
+
+    expect(profile).toMatchObject({
+      flourId: "unknown_basic_flour",
+      category: "unknown",
+      sourceConfidence: "inferred",
+    });
+    expect(result.technicalDetails.flourAssumptions).toMatchObject({
+      profileId: "unknown_basic_flour",
+      category: "unknown",
+      displayName: "Unknown basic flour",
+    });
   });
 
   it("calculates available fermentation hours from current time to desired bake time", () => {
@@ -186,6 +261,50 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.qualityScore).toMatchObject({ score: 58, label: "moderate" });
   });
 
+  it("creates a high-risk warning for standard flour in a 60 hour fermentation window", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      flourSelection: { type: "standard_pizza_flour" },
+    }));
+
+    expect(result.technicalDetails.flourAssumptions).toMatchObject({
+      profileId: "standard_pizza_flour",
+      category: "standard",
+    });
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      id: "standard-flour-too-weak-for-long-fermentation",
+      severity: "high_risk",
+    }));
+  });
+
+  it("creates a caution warning for very strong flour in a 5 hour fast dough window", () => {
+    const result = buildPlanningResult(planningInputWithHours(5, {
+      flourSelection: { type: "known_flour_id", flourId: "pirkka_w350" },
+    }));
+
+    expect(result.technicalDetails.flourAssumptions).toMatchObject({
+      profileId: "pirkka_w350",
+      category: "very_strong",
+    });
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      id: "very-strong-flour-fast-dough",
+      severity: "caution",
+    }));
+  });
+
+  it("treats medium-strong flour as a good fit for an 18 hour planning window", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      flourSelection: { type: "known_flour_id", flourId: "pirkka_w260" },
+    }));
+
+    expect(result.technicalDetails.flourAssumptions).toMatchObject({
+      profileId: "pirkka_w260",
+      category: "medium_strong",
+    });
+    expect(result.recommendedFlourCategory).toBe("medium_strong");
+    expect(result.qualityScore.label).toBe("good");
+    expect(result.warnings).toEqual([]);
+  });
+
   it("returns cautious not_recommended behavior above 72 hours", () => {
     const beginnerResult = buildPlanningResult(planningInputWithHours(96, {
       userLevel: "beginner",
@@ -292,10 +411,12 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    expect(calculator).not.toMatch(/planning-engine|planning-input|planning-result|planning-types/);
-    expect(homepageWorkspace).not.toMatch(/planning-engine|planning-input|planning-result|planning-types/);
-    expect(sessionRecipe).not.toMatch(/planning-engine|planning-input|planning-result|planning-types/);
-    expect(sessionTimeline).not.toMatch(/planning-engine|planning-input|planning-result|planning-types/);
-    expect(plannerPage).not.toMatch(/planning-engine|planning-input|planning-result|planning-types/);
+    const planningImports = /planning-engine|planning-flour-profiles|planning-input|planning-result|planning-types/;
+
+    expect(calculator).not.toMatch(planningImports);
+    expect(homepageWorkspace).not.toMatch(planningImports);
+    expect(sessionRecipe).not.toMatch(planningImports);
+    expect(sessionTimeline).not.toMatch(planningImports);
+    expect(plannerPage).not.toMatch(planningImports);
   });
 });

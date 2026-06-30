@@ -12,7 +12,7 @@ export type FlourSelection =
   | { type: "standard_pizza_flour" }
   | { type: "medium_strong_pizza_flour" }
   | { type: "strong_pizza_flour" }
-  | { type: "known_flour_id"; flourId: FlourId };
+  | { type: "known_flour_id"; flourId: PlanningFlourId };
 
 export type FlourCategory =
   | "standard"
@@ -20,6 +20,20 @@ export type FlourCategory =
   | "strong"
   | "very_strong"
   | "unknown";
+
+export type PlanningKnownFlourId =
+  | FlourId
+  | "unknown_basic_flour"
+  | "standard_pizza_flour"
+  | "medium_strong_pizza_flour"
+  | "strong_pizza_flour"
+  | "caputo_pizzeria"
+  | "caputo_nuvola"
+  | "caputo_saccorosso"
+  | "pirkka_w260"
+  | "pirkka_w350";
+
+export type PlanningFlourId = PlanningKnownFlourId | (string & {});
 
 export type PlanningWarningSeverity = "info" | "caution" | "high_risk";
 
@@ -68,6 +82,9 @@ export type PlanningTemperatureAssumptions = {
 export type PlanningFlourAssumptions = {
   flourSelection: FlourSelection;
   category: FlourCategory;
+  profileId: PlanningFlourId | null;
+  displayName: string | null;
+  sourceConfidence: "official" | "trusted_secondary" | "inferred" | null;
   note: string;
 };
 

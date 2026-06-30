@@ -1,6 +1,7 @@
 import type {
   FermentationMode,
   FlourCategory,
+  PlanningFlourId,
   PlanningTemperatureAssumptions,
   PlanningQualityScore,
   PlanningTechnicalDetails,
@@ -33,6 +34,9 @@ export function createPlanningFoundationResult(input: {
   qualityScore?: PlanningQualityScore;
   assumptions?: string[];
   flourAssumptionCategory?: FlourCategory;
+  flourAssumptionProfileId?: PlanningFlourId | null;
+  flourAssumptionDisplayName?: string | null;
+  flourAssumptionSourceConfidence?: "official" | "trusted_secondary" | "inferred" | null;
   flourAssumptionNote?: string;
   yeastAssumptionNote?: string;
 }): PlanningResult {
@@ -84,6 +88,9 @@ export function createPlanningFoundationResult(input: {
       flourAssumptions: {
         flourSelection: input.planningInput.flourSelection,
         category: input.flourAssumptionCategory ?? "unknown",
+        profileId: input.flourAssumptionProfileId ?? null,
+        displayName: input.flourAssumptionDisplayName ?? null,
+        sourceConfidence: input.flourAssumptionSourceConfidence ?? null,
         note: input.flourAssumptionNote ?? "Flour category is interpreted only at a broad v1 planning level.",
       },
       yeastAssumptions: {
