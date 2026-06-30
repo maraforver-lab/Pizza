@@ -193,6 +193,13 @@ describe("Session recipe build step", () => {
     expect(result.recipeSnapshot.waterAmount).toBeGreaterThan(0);
     expect(result.recipeSnapshot.saltAmount).toBeGreaterThan(0);
     expect(result.recipeSnapshot.leavenerAmount).toBeGreaterThan(0);
+    const canonicalIngredients = calculateDoughIngredients(result.settings);
+    expect(result.ingredients).toEqual(canonicalIngredients);
+    expect(result.recipeSnapshot.totalDough).toBeCloseTo(canonicalIngredients.total, 6);
+    expect(result.recipeSnapshot.flourAmount).toBeCloseTo(canonicalIngredients.flour, 6);
+    expect(result.recipeSnapshot.waterAmount).toBeCloseTo(canonicalIngredients.water, 6);
+    expect(result.recipeSnapshot.saltAmount).toBeCloseTo(canonicalIngredients.salt, 6);
+    expect(result.recipeSnapshot.leavenerAmount).toBeCloseTo(canonicalIngredients.leavener, 6);
     expect(sessionRecipeQuery(result)).toContain("balls=4");
     expect(sessionRecipeQuery(result)).toContain("pizzaPreset=diavola");
   });
