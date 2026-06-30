@@ -96,6 +96,17 @@ describe("calculator progressive disclosure", () => {
     expectIngredientTotal(ingredients);
   });
 
+  it("uses the canonical dough calculator helper in the homepage workspace instead of owning a duplicate formula", () => {
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
+
+    expect(calculatorWorkspace).toContain('import { calculateDoughIngredients } from "@/lib/dough-calculator";');
+    expect(calculatorWorkspace).toContain("calculateDoughIngredients(currentSettings)");
+    expect(calculatorWorkspace).not.toContain("const cyPercent = 0.14335");
+    expect(calculatorWorkspace).not.toContain("commercialFactors");
+    expect(calculatorWorkspace).not.toContain("const starterHydration = yeastType");
+    expect(calculatorWorkspace).not.toContain("const flour = total / (1 + hydration / 100");
+  });
+
   it("wires the homepage to progressive disclosure without new routes or heavy dependencies", () => {
     const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
     const workflow = source("lib/recipe-workflow.ts");

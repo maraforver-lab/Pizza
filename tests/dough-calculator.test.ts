@@ -30,6 +30,27 @@ describe("calculateDoughIngredients", () => {
     }
   });
 
+  it("applies waste percentage to total dough before splitting ingredients", () => {
+    const withoutWaste = calculateDoughIngredients({ ...baseSettings, waste: 0 });
+    const withWaste = calculateDoughIngredients({ ...baseSettings, waste: 10 });
+
+    expect(withoutWaste.total).toBeCloseTo(baseSettings.pizzas * baseSettings.ballWeight, 6);
+    expect(withWaste.total).toBeCloseTo(baseSettings.pizzas * baseSettings.ballWeight * 1.1, 6);
+    expect(withWaste.total).toBeGreaterThan(withoutWaste.total);
+    expectIngredientTotal(withoutWaste);
+    expectIngredientTotal(withWaste);
+  });
+
+  it("applies hydration, salt and commercial yeast as baker percentages of flour weight", () => {
+    const result = calculateDoughIngredients({ ...baseSettings, yeastType: "idy" });
+
+    expect(result.water / result.flour).toBeCloseTo(baseSettings.hydration / 100, 6);
+    expect(result.salt / result.flour).toBeCloseTo(baseSettings.salt / 100, 6);
+    expect(result.leavener / result.flour).toBeGreaterThan(0);
+    expect(result.leavener).toBeLessThan(result.total * 0.01);
+    expectIngredientTotal(result);
+  });
+
   it("keeps sourdough starter totals consistent for stiff and liquid starters", () => {
     for (const yeastType of ["ssd", "lsd"] as const) {
       const result = calculateDoughIngredients({ ...baseSettings, yeastType });
