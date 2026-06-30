@@ -26,6 +26,7 @@ import {
   getCalculatorDisclosureMode,
   hasAdvancedCalculatorValues,
 } from "@/lib/calculator-progressive-disclosure";
+import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
@@ -324,47 +325,10 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     setYeastType("idy");
   };
 
-  const recipe = useMemo(() => {
-    const total = pizzas * ballWeight * (1 + waste / 100);
-    const option = fermentationOptions.find((item) => item.value === fermentation)!;
-    // Calibrated to the supplied reference: CY 0.14335% at 12 h / 22°C.
-    // Fermentation activity roughly doubles for every 10°C rise (Q10 model).
-    const effectiveHours = option.hours * Math.pow(2, (temperature - 22) / 10);
-    const cyPercent = 0.14335 * (12 / Math.max(effectiveHours, 0.25));
-    const commercialFactors = { cy: 1, ady: 0.52, idy: 0.414 } as const;
-    const isSourdough = yeastType === "ssd" || yeastType === "lsd";
-
-    if (isSourdough) {
-      const totalFlour = total / (1 + hydration / 100 + salt / 100);
-      const referenceStarterPercent = yeastType === "ssd" ? 11 : 8.39;
-      const starterPercent = referenceStarterPercent * (cyPercent / 0.14335);
-      const starterHydration = yeastType === "ssd" ? 0.5 : 1;
-      const leavener = totalFlour * starterPercent / 100;
-      const starterFlour = leavener / (1 + starterHydration);
-      const starterWater = leavener - starterFlour;
-      return {
-        total,
-        flour: Math.max(0, totalFlour - starterFlour),
-        water: Math.max(0, totalFlour * hydration / 100 - starterWater),
-        salt: totalFlour * salt / 100,
-        leavener,
-      };
-    }
-
-    const yeastPercent = cyPercent * commercialFactors[yeastType];
-    const flour = total / (1 + hydration / 100 + salt / 100 + yeastPercent / 100);
-    return {
-      total,
-      flour,
-      water: flour * hydration / 100,
-      salt: flour * salt / 100,
-      leavener: flour * yeastPercent / 100,
-    };
-  }, [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature]);
-
   const currentSettings = useMemo(() => ({
     pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId,
   }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId]);
+  const recipe = useMemo(() => calculateDoughIngredients(currentSettings), [currentSettings]);
 
   const recipeQuery = recipeParams(currentSettings).toString();
   const toolHref = (tool: HomepageTool) => tool.preserveRecipe ? `${tool.href}?${recipeQuery}` : tool.href;
