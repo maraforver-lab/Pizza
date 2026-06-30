@@ -44,4 +44,17 @@ describe("recipe URL state", () => {
       expect(settingsFromUrl(`?yeastType=${yeastType}`).yeastType).toBe(yeastType);
     }
   });
+
+  it("round-trips every supported yeast type and fermentation preset", () => {
+    for (const yeastType of ["cy", "ady", "idy", "ssd", "lsd"] as const) {
+      for (const fermentation of ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"] as const) {
+        const settings = { ...baseSettings, yeastType, fermentation };
+        const params = recipeParams(settings);
+        const parsed = settingsFromUrl(`?${params.toString()}`);
+
+        expect(parsed.yeastType).toBe(yeastType);
+        expect(parsed.fermentation).toBe(fermentation);
+      }
+    }
+  });
 });
