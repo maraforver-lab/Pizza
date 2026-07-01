@@ -107,6 +107,22 @@ export type PlanningDoughTypeFitLevel =
   | "high_risk"
   | "not_enough_information";
 
+export type PlanningStartWindowCategory =
+  | "start_now"
+  | "same_day_window"
+  | "evening_before"
+  | "day_before"
+  | "one_to_three_days_before"
+  | "too_late"
+  | "not_enough_information";
+
+export type PlanningStartWindowFitLevel =
+  | "good_fit"
+  | "workable"
+  | "caution"
+  | "high_risk"
+  | "not_enough_information";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -182,6 +198,26 @@ export type PlanningDoughTypeGuidance = {
   fitLevel: PlanningDoughTypeFitLevel;
   riskLevel: PlanningDoughTypeFitLevel;
   title: string;
+  summary: string;
+  cautions: string[];
+  suggestedAdjustments: string[];
+  technicalNote: string | null;
+};
+
+export type PlanningStartWindowRecommendation = {
+  version: 1;
+  category: PlanningStartWindowCategory;
+  startWindowLabel: string;
+  relativeStartRecommendation: string;
+  currentDateTimeIso: string | null;
+  desiredBakeDateTimeIso: string | null;
+  availableFermentationHours: number;
+  earliestRecommendedStartIso: string | null;
+  latestRecommendedStartIso: string | null;
+  selectedFermentationMode: FermentationMode | null;
+  recommendedFermentationMode: FermentationMode;
+  fitLevel: PlanningStartWindowFitLevel;
+  riskLevel: PlanningStartWindowFitLevel;
   summary: string;
   cautions: string[];
   suggestedAdjustments: string[];

@@ -114,6 +114,16 @@ const readablePlanningValue = (value: string | null | undefined) => (
   value ? value.replaceAll("_", " ") : "not selected"
 );
 
+const formatPlanningDateTime = (value: string | null, locale: Locale) => {
+  if (!value) return "Not available";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Not available";
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
+
 const planningInputFromCalculator = (input: {
   currentDateTime: Date;
   desiredBakeDateTime: Date;
@@ -662,6 +672,7 @@ function AdvancedCalculatorPlanningShell({
   const mixing = planningResult.mixingGuidance;
   const timeline = planningResult.fermentationTimeline;
   const fermentationSetup = planningResult.fermentationSetupRecommendation;
+  const startWindow = planningResult.startWindowRecommendation;
   const doughTypeGuidance = planningResult.doughTypeGuidance;
   const flourGuidance = planningResult.flourGuidance;
   const yeastGuidance = planningResult.yeastGuidance;
@@ -697,6 +708,61 @@ function AdvancedCalculatorPlanningShell({
           ))}
         </div>
       </section>
+
+      {startWindow && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-start-window">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Start window</p>
+              <h3 id="advanced-start-window" className="mt-2 font-display text-2xl font-semibold">When to start</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{startWindow.summary}</p>
+            </div>
+            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-48">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Bake target</span>
+              <strong className="mt-1 block text-xl text-ink">{formatPlanningDateTime(startWindow.desiredBakeDateTimeIso, locale)}</strong>
+              <span className="mt-1 block text-xs text-ink/45">{startWindow.availableFermentationHours} h available</span>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Recommended window</span>
+              <strong className="mt-2 block text-sm text-ink">{startWindow.startWindowLabel}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Window fit</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(startWindow.fitLevel)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Window risk</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(startWindow.riskLevel)}</strong>
+            </div>
+          </div>
+          <div className="mt-4 rounded-2xl bg-ink/[.04] p-4">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Broad start range</span>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              {formatPlanningDateTime(startWindow.earliestRecommendedStartIso, locale)} – {formatPlanningDateTime(startWindow.latestRecommendedStartIso, locale)}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-ink/45">{startWindow.relativeStartRecommendation}</p>
+          </div>
+          {(startWindow.cautions.length > 0 || startWindow.suggestedAdjustments.length > 0) && (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {startWindow.cautions.length > 0 && (
+                <div className="rounded-2xl bg-tomato/[.06] p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">Watch out</span>
+                  <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-ink/55">
+                    {startWindow.cautions.slice(0, 2).map((caution) => <li key={caution}>• {caution}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="rounded-2xl bg-leaf/[.08] p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Suggested adjustment</span>
+                <p className="mt-2 text-xs leading-5 text-ink/55">{startWindow.suggestedAdjustments[0]}</p>
+              </div>
+            </div>
+          )}
+          {startWindow.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{startWindow.technicalNote}</p>}
+        </section>
+      )}
 
       {fermentationSetup && (
         <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-fermentation-setup">

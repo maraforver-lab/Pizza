@@ -249,6 +249,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Advanced dough planning");
     expect(calculatorWorkspace).toContain("Ingredient amounts");
     expect(calculatorWorkspace).toContain("Planning warnings");
+    expect(calculatorWorkspace).toContain("Start window");
+    expect(calculatorWorkspace).toContain("When to start");
     expect(calculatorWorkspace).toContain("Fermentation setup");
     expect(calculatorWorkspace).toContain("Recommended setup");
     expect(calculatorWorkspace).toContain("Dough style guidance");
@@ -302,6 +304,11 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("planningRoomTemperature");
     expect(calculatorWorkspace).toContain("planningFridgeTemperature");
     expect(calculatorWorkspace).toContain("Ingredient grams still come from the existing calculator");
+    expect(calculatorWorkspace).toContain("startWindowRecommendation");
+    expect(calculatorWorkspace).toContain("Recommended window");
+    expect(calculatorWorkspace).toContain("Broad start range");
+    expect(calculatorWorkspace).toContain("Window fit");
+    expect(calculatorWorkspace).toContain("Window risk");
     expect(calculatorWorkspace).toContain("Available time until bake");
     expect(calculatorWorkspace).toContain("Selected setup fit");
     expect(calculatorWorkspace).toContain("Risk level");
@@ -322,6 +329,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("calculatedYeastGrams: recipe.leavener");
     expect(calculatorWorkspace).toContain("calculatedFlourGrams: recipe.flour");
     expect(sessionStart).not.toContain("AdvancedCalculatorStandaloneControls");
+    expect(sessionStart).not.toContain("Start window");
+    expect(sessionStart).not.toContain("When to start");
     expect(sessionStart).not.toContain("Fermentation setup");
     expect(sessionStart).not.toContain("Dough style guidance");
     expect(sessionStart).not.toContain("Flour guidance");

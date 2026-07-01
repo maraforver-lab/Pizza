@@ -530,6 +530,108 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.doughTypeGuidance?.summary).toContain("context");
   });
 
+  it("returns not_enough_information start window when bake target is invalid", () => {
+    const result = buildPlanningResult({
+      ...basePlanningInput,
+      desiredBakeDateTime: new Date("not-a-date"),
+    });
+
+    expect(result.startWindowRecommendation).toMatchObject({
+      category: "not_enough_information",
+      fitLevel: "not_enough_information",
+      riskLevel: "not_enough_information",
+      earliestRecommendedStartIso: null,
+      latestRecommendedStartIso: null,
+    });
+    expect(result.startWindowRecommendation?.summary).toContain("valid bake target");
+  });
+
+  it("flags very short available time as a start-now high-risk window", () => {
+    const result = buildPlanningResult(planningInputWithHours(2, {
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.startWindowRecommendation).toMatchObject({
+      category: "too_late",
+      startWindowLabel: "Start now, but timing is tight",
+      riskLevel: "high_risk",
+      fitLevel: "high_risk",
+    });
+    expect(result.startWindowRecommendation?.summary).toContain("Start now");
+    expect(result.startWindowRecommendation?.suggestedAdjustments.join(" ")).toContain("later bake target");
+  });
+
+  it("recommends a same-day start window for same-day room fermentation", () => {
+    const result = buildPlanningResult(planningInputWithHours(10, {
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.startWindowRecommendation).toMatchObject({
+      category: "same_day_window",
+      selectedFermentationMode: "room",
+      recommendedFermentationMode: "room",
+      fitLevel: "good_fit",
+    });
+    expect(result.startWindowRecommendation?.relativeStartRecommendation).toContain("same day");
+    expect(result.startWindowRecommendation?.earliestRecommendedStartIso).toBeTruthy();
+    expect(result.startWindowRecommendation?.latestRecommendedStartIso).toBeTruthy();
+  });
+
+  it("recommends a day-before start window for 24-48h cold or hybrid-friendly timing", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 4,
+    }));
+
+    expect(result.startWindowRecommendation).toMatchObject({
+      category: "day_before",
+      selectedFermentationMode: "cold",
+      riskLevel: "workable",
+    });
+    expect(result.startWindowRecommendation?.relativeStartRecommendation).toContain("day before");
+  });
+
+  it("recommends a one-to-three-day start window for long cold-friendly timing", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 4,
+      flourSelection: { type: "strong_pizza_flour" },
+    }));
+
+    expect(result.startWindowRecommendation).toMatchObject({
+      category: "one_to_three_days_before",
+      selectedFermentationMode: "cold",
+    });
+    expect(result.startWindowRecommendation?.relativeStartRecommendation).toContain("one to three days");
+  });
+
+  it("warns when cold fermentation is selected but bake time is too soon", () => {
+    const result = buildPlanningResult(planningInputWithHours(5, {
+      selectedFermentationMode: "cold",
+    }));
+
+    expect(result.startWindowRecommendation).toMatchObject({
+      category: "start_now",
+      riskLevel: "high_risk",
+    });
+    expect(result.startWindowRecommendation?.cautions.join(" ")).toContain("Cold fermentation is selected");
+    expect(result.startWindowRecommendation?.suggestedAdjustments.join(" ")).toContain("room-temperature same-day");
+  });
+
+  it("reflects warm fridge risk in a long cold start window", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 8,
+    }));
+
+    expect(result.startWindowRecommendation).toMatchObject({
+      category: "one_to_three_days_before",
+      riskLevel: "high_risk",
+    });
+    expect(result.startWindowRecommendation?.cautions.join(" ")).toContain("Warm fridge");
+    expect(result.startWindowRecommendation?.suggestedAdjustments.join(" ")).toContain("colder fridge");
+  });
+
   it("flags a short available time as not enough for reliable fermentation setup", () => {
     const result = buildPlanningResult(planningInputWithHours(2, {
       selectedFermentationMode: "room",
