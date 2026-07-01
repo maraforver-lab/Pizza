@@ -1,12 +1,12 @@
 import { resolvePlanningFlourProfile, type PlanningFlourProfile } from "@/lib/planning-flour-profiles";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { createPlanningFoundationResult, type PlanningResult } from "@/lib/planning-result";
+import { calculatePlanningYeastRecommendation } from "@/lib/planning-yeast-model";
 import type {
   FermentationMode,
   FlourCategory,
   PlanningQualityScore,
   PlanningWarning,
-  PlanningYeastRecommendation,
 } from "@/lib/planning-types";
 
 export const PLANNING_ENGINE_VERSION = 1;
@@ -16,8 +16,6 @@ type RuleRecommendation = {
   flourCategory: FlourCategory;
   hydration: number | null;
   salt: number | null;
-  yeastPercent: number | null;
-  yeastNote: string;
   qualityScore: PlanningQualityScore;
   warnings: PlanningWarning[];
   assumptions: string[];
@@ -29,12 +27,14 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
   const availableFermentationHours = calculateAvailableFermentationHours(input);
   const flourProfile = resolvePlanningFlourProfile(input.flourSelection);
   const recommendation = recommendForTimeWindow(input, availableFermentationHours, flourProfile);
-  const recommendedYeast: PlanningYeastRecommendation = {
-    yeastType: null,
-    amountGrams: null,
-    placeholderPercent: recommendation.yeastPercent,
-    note: recommendation.yeastNote,
-  };
+  const recommendedYeast = calculatePlanningYeastRecommendation({
+    availableFermentationHours,
+    fermentationMode: recommendation.mode,
+    roomTemperature: input.roomTemperature,
+    fridgeTemperature: input.fridgeTemperature,
+    flourProfile,
+    userLevel: input.userLevel,
+  });
 
   return createPlanningFoundationResult({
     planningInput: input,
@@ -49,7 +49,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     assumptions: [
       "Planning Engine v1 uses conservative broad fermentation time windows.",
       "Recommendations are planning placeholders and are not connected to production UI.",
-      "Yeast values are placeholder baker percentages, not gram calculations.",
+      "Yeast values come from the conservative Planning Engine v1 yeast model and are not gram calculations.",
       "Shorter fermentation windows use higher yeast placeholders; longer windows use lower yeast placeholders.",
       "Ingredient gram calculations remain owned by calculateDoughIngredients.",
       ...recommendation.assumptions,
@@ -59,7 +59,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     flourAssumptionDisplayName: flourProfile.displayName,
     flourAssumptionSourceConfidence: flourProfile.sourceConfidence,
     flourAssumptionNote: "Flour selection is resolved to an internal v1 planning profile only; it is not exposed in production UI.",
-    yeastAssumptionNote: "Yeast recommendation is a monotonic placeholder percentage for future rule work.",
+    yeastAssumptionNote: "Yeast recommendation uses fresh yeast equivalent as the internal base, with dry yeast equivalents derived from it.",
   });
 }
 
@@ -93,8 +93,6 @@ function recommendForTimeWindow(
       flourCategory: "unknown",
       hydration: null,
       salt: null,
-      yeastPercent: null,
-      yeastNote: "No yeast placeholder is recommended without a positive fermentation window.",
       warnings,
       assumptions,
       qualityScore: {
@@ -120,8 +118,6 @@ function recommendForTimeWindow(
       flourCategory: "unknown",
       hydration: null,
       salt: null,
-      yeastPercent: null,
-      yeastNote: "No yeast placeholder is recommended for under 3 hours in v1 rules.",
       warnings,
       assumptions,
       qualityScore: {
@@ -149,8 +145,6 @@ function recommendForTimeWindow(
       flourCategory: input.userLevel === "beginner" || input.ovenType === "home_oven" ? "standard" : "medium_strong",
       hydration: beginnerSafeHydration(input, 60, 62),
       salt: 2.8,
-      yeastPercent: 0.25,
-      yeastNote: "Higher placeholder yeast percentage for a short room-temperature dough.",
       warnings,
       assumptions,
       qualityScore: {
@@ -167,8 +161,6 @@ function recommendForTimeWindow(
       flourCategory: "medium_strong",
       hydration: beginnerSafeHydration(input, 62, input.ovenType === "pizza_oven" ? 64 : 63),
       salt: 2.8,
-      yeastPercent: 0.14,
-      yeastNote: "Moderate placeholder yeast percentage for a same-day room-temperature dough.",
       warnings,
       assumptions,
       qualityScore: {
@@ -185,8 +177,6 @@ function recommendForTimeWindow(
       flourCategory: "medium_strong",
       hydration: input.ovenType === "pizza_oven" ? 64 : 63,
       salt: 2.8,
-      yeastPercent: 0.08,
-      yeastNote: "Lower placeholder yeast percentage for the classic 12–24 hour window.",
       warnings,
       assumptions: [...assumptions, "The 12–24 hour window is marked as the best classic v1 time window."],
       qualityScore: {
@@ -206,8 +196,6 @@ function recommendForTimeWindow(
       flourCategory: "strong",
       hydration: input.ovenType === "pizza_oven" ? 65 : 64,
       salt: 2.8,
-      yeastPercent: 0.04,
-      yeastNote: "Lower placeholder yeast percentage for a long hybrid or cold plan.",
       warnings,
       assumptions,
       qualityScore: {
@@ -231,8 +219,6 @@ function recommendForTimeWindow(
       flourCategory: selectedFlourCategory === "very_strong" ? "very_strong" : "strong",
       hydration: input.ovenType === "pizza_oven" ? 65 : 64,
       salt: 2.8,
-      yeastPercent: 0.02,
-      yeastNote: "Very low placeholder yeast percentage for a 48–72 hour plan.",
       warnings,
       assumptions,
       qualityScore: {
@@ -275,8 +261,6 @@ function recommendForTimeWindow(
     flourCategory: selectedFlourCategory === "very_strong" ? "very_strong" : "strong",
     hydration: input.userLevel === "beginner" ? 64 : 65,
     salt: 2.8,
-    yeastPercent: 0.01,
-    yeastNote: "Extremely low placeholder yeast percentage for an over-72-hour technical placeholder.",
     warnings,
     assumptions,
     qualityScore: {

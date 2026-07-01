@@ -10,6 +10,10 @@ import {
 } from "@/lib/planning-flour-profiles";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { FERMENTATION_MODES, OVEN_TYPES, USER_LEVELS, type FlourSelection } from "@/lib/planning-types";
+import {
+  ACTIVE_DRY_YEAST_FROM_FRESH_FACTOR,
+  INSTANT_DRY_YEAST_FROM_FRESH_FACTOR,
+} from "@/lib/planning-yeast-model";
 import { baseSettings } from "./helpers";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -357,6 +361,104 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(yeastPercentages).toEqual([0.25, 0.14, 0.08, 0.04, 0.02, 0.01]);
   });
 
+  it("uses the v1 yeast model so shorter plans recommend more yeast than longer plans", () => {
+    const fiveHour = buildPlanningResult(planningInputWithHours(5));
+    const eighteenHour = buildPlanningResult(planningInputWithHours(18));
+    const fortyEightHour = buildPlanningResult(planningInputWithHours(48, {
+      flourSelection: { type: "strong_pizza_flour" },
+    }));
+    const seventyTwoHour = buildPlanningResult(planningInputWithHours(72, {
+      flourSelection: { type: "strong_pizza_flour" },
+    }));
+
+    expect(fiveHour.recommendedYeast.recommendedFreshYeastPercent).toBeGreaterThan(
+      eighteenHour.recommendedYeast.recommendedFreshYeastPercent ?? 0,
+    );
+    expect(eighteenHour.recommendedYeast.recommendedFreshYeastPercent).toBeGreaterThan(
+      fortyEightHour.recommendedYeast.recommendedFreshYeastPercent ?? 0,
+    );
+    expect(fortyEightHour.recommendedYeast.recommendedFreshYeastPercent).toBe(
+      seventyTwoHour.recommendedYeast.recommendedFreshYeastPercent,
+    );
+    expect(fortyEightHour.recommendedYeast.note).toContain("fresh yeast equivalent");
+  });
+
+  it("reduces yeast for a warm room and increases yeast for a cool room", () => {
+    const defaultRoom = buildPlanningResult(planningInputWithHours(18, { roomTemperature: 22 }));
+    const warmRoom = buildPlanningResult(planningInputWithHours(18, { roomTemperature: 26 }));
+    const coolRoom = buildPlanningResult(planningInputWithHours(18, { roomTemperature: 18 }));
+
+    expect(warmRoom.recommendedYeast.recommendedFreshYeastPercent).toBeLessThan(
+      defaultRoom.recommendedYeast.recommendedFreshYeastPercent ?? 0,
+    );
+    expect(coolRoom.recommendedYeast.recommendedFreshYeastPercent).toBeGreaterThan(
+      defaultRoom.recommendedYeast.recommendedFreshYeastPercent ?? 0,
+    );
+  });
+
+  it("returns stable fresh, instant dry and active dry yeast equivalent percentages", () => {
+    const result = buildPlanningResult(planningInputWithHours(18));
+    const fresh = result.recommendedYeast.recommendedFreshYeastPercent ?? 0;
+
+    expect(result.recommendedYeast.placeholderPercent).toBe(fresh);
+    expect(result.recommendedYeast.instantDryYeastEquivalentPercent).toBeCloseTo(
+      fresh * INSTANT_DRY_YEAST_FROM_FRESH_FACTOR,
+      4,
+    );
+    expect(result.recommendedYeast.activeDryYeastEquivalentPercent).toBeCloseTo(
+      fresh * ACTIVE_DRY_YEAST_FROM_FRESH_FACTOR,
+      4,
+    );
+    expect(result.technicalDetails.yeastAssumptions.supportedYeastTypes).toEqual([
+      "fresh_yeast",
+      "instant_dry_yeast",
+      "active_dry_yeast",
+    ]);
+    expect(result.technicalDetails.yeastAssumptions.yeastConfidence).toBe("medium");
+  });
+
+  it("returns safe yeast recommendation fields for not_recommended short windows", () => {
+    const result = buildPlanningResult(planningInputWithHours(2));
+
+    expect(result.recommendedFermentationMode).toBe("not_recommended");
+    expect(result.recommendedYeast).toMatchObject({
+      placeholderPercent: null,
+      recommendedFreshYeastPercent: null,
+      instantDryYeastEquivalentPercent: null,
+      activeDryYeastEquivalentPercent: null,
+      yeastConfidence: "none",
+    });
+  });
+
+  it("keeps over-72-hour yeast cautious and low confidence", () => {
+    const result = buildPlanningResult(planningInputWithHours(96, {
+      userLevel: "pizza_nerd",
+      flourSelection: { type: "strong_pizza_flour" },
+    }));
+
+    expect(result.recommendedFermentationMode).toBe("not_recommended");
+    expect(result.recommendedYeast.recommendedFreshYeastPercent).toBe(0.01);
+    expect(result.recommendedYeast.instantDryYeastEquivalentPercent).toBeCloseTo(0.01 / 3, 4);
+    expect(result.recommendedYeast.yeastConfidence).toBe("low");
+  });
+
+  it("records yeast model assumptions and warm-fridge warnings for long plans", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      fridgeTemperature: 9,
+    }));
+
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      id: "warm-fridge-long-fermentation",
+    }));
+    expect(result.technicalDetails.yeastAssumptions.yeastModelAssumptions.join(" ")).toContain(
+      "Fresh yeast equivalent",
+    );
+    expect(result.technicalDetails.yeastAssumptions.yeastModelAssumptions.join(" ")).toContain(
+      "Instant dry yeast equivalent",
+    );
+    expect(result.technicalDetails.yeastAssumptions.yeastConfidence).toBe("low");
+  });
+
   it("returns a stable quality score and technical details shape", () => {
     const result = buildPlanningResult(basePlanningInput);
 
@@ -411,7 +513,7 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    const planningImports = /planning-engine|planning-flour-profiles|planning-input|planning-result|planning-types/;
+    const planningImports = /planning-engine|planning-flour-profiles|planning-input|planning-result|planning-types|planning-yeast-model/;
 
     expect(calculator).not.toMatch(planningImports);
     expect(homepageWorkspace).not.toMatch(planningImports);

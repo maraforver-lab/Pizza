@@ -37,6 +37,13 @@ export type PlanningFlourId = PlanningKnownFlourId | (string & {});
 
 export type PlanningWarningSeverity = "info" | "caution" | "high_risk";
 
+export type PlanningYeastType =
+  | "fresh_yeast"
+  | "instant_dry_yeast"
+  | "active_dry_yeast";
+
+export type PlanningYeastConfidence = "none" | "low" | "medium";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -50,6 +57,10 @@ export type PlanningYeastRecommendation = {
   yeastType: YeastType | null;
   amountGrams: number | null;
   placeholderPercent: number | null;
+  recommendedFreshYeastPercent: number | null;
+  instantDryYeastEquivalentPercent: number | null;
+  activeDryYeastEquivalentPercent: number | null;
+  yeastConfidence: PlanningYeastConfidence;
   note: string;
 };
 
@@ -90,6 +101,12 @@ export type PlanningFlourAssumptions = {
 
 export type PlanningYeastAssumptions = {
   yeastType: YeastType | null;
+  supportedYeastTypes: PlanningYeastType[];
+  recommendedFreshYeastPercent: number | null;
+  instantDryYeastEquivalentPercent: number | null;
+  activeDryYeastEquivalentPercent: number | null;
+  yeastConfidence: PlanningYeastConfidence;
+  yeastModelAssumptions: string[];
   note: string;
 };
 
