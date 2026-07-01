@@ -124,7 +124,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("HomeCalculatorWorkspace");
     expect(homepage).toContain("calculatorViewFor");
-    expect(homepage).toContain('return "entry"');
+    expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).toContain('return "full"');
     expect(homepage).toContain("/images/homepage/hero-desktop-bg.png");
     expect(homepage).toContain("/images/homepage/hero-mobile-bg.png");
@@ -150,6 +150,9 @@ describe("homepage content model", () => {
     expect(header).toContain("Calculator v1");
     expect(header).toContain("Full-control planning lab for dough variables and risk.");
     expect(header).toContain('href="/?calculator=1"');
+    expect(header).toContain("Calculator v2");
+    expect(header).toContain("Guided recommendation from bake time and ingredients.");
+    expect(header).toContain('href="/?calculator=2"');
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
     expect(updateNotice).toContain('pathname === "/"');
     expect(nextStep).not.toContain('"/":');
@@ -227,8 +230,11 @@ describe("homepage content model", () => {
     expect(header).toContain("Calculator v1");
     expect(header).toContain("Full-control planning lab for dough variables and risk.");
     expect(header).toContain('href="/?calculator=1"');
+    expect(header).toContain("Calculator v2");
+    expect(header).toContain("Guided recommendation from bake time and ingredients.");
+    expect(header).toContain('href="/?calculator=2"');
     expect(homepage).toContain("calculatorViewFor");
-    expect(homepage).toContain('params.calculator !== undefined) return "entry"');
+    expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
     expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
   });
@@ -237,15 +243,17 @@ describe("homepage content model", () => {
     const homepage = source("app/page.tsx");
     const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
 
-    expect(homepage).toContain('if (keys.length === 1 && params.calculator !== undefined) return "entry"');
+    expect(homepage).toContain('if (keys.length === 1 && params.calculator !== undefined) return params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
-    expect(calculatorWorkspace).toContain('variant?: "full" | "entry"');
+    expect(calculatorWorkspace).toContain('variant?: "full" | "entry" | "guided"');
     expect(calculatorWorkspace).toContain('const focusedEntry = variant === "entry"');
+    expect(calculatorWorkspace).toContain('const guidedEntry = variant === "guided"');
+    expect(calculatorWorkspace).toContain("const standaloneEntry = focusedEntry || guidedEntry");
     expect(calculatorWorkspace).toContain("When do you want to bake pizza?");
-    expect(calculatorWorkspace).toContain("if (focusedEntry) return;");
-    expect(calculatorWorkspace).toContain("const advancedOpen = !focusedEntry &&");
+    expect(calculatorWorkspace).toContain("if (standaloneEntry) return;");
+    expect(calculatorWorkspace).toContain("const advancedOpen = !standaloneEntry &&");
     expect(calculatorWorkspace).toContain("mx-auto max-w-6xl");
-    expect(calculatorWorkspace).toContain("{!focusedEntry && (");
+    expect(calculatorWorkspace).toContain("{!standaloneEntry && (");
     expect(calculatorWorkspace).toContain("lg:grid-cols-[1.2fr_.8fr]");
     expect(calculatorWorkspace).toContain("xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)]");
     expect(calculatorWorkspace).toContain("AdvancedCalculatorStandaloneControls");
@@ -272,6 +280,44 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Temperature guidance");
     expect(calculatorWorkspace).toContain("buildPlanningResult(planningInputFromCalculator");
     expect(calculatorWorkspace).toContain("Secondary guidance is available below without turning this into a full workflow.");
+  });
+
+  it("opens the Tools Calculator v2 link into a guided standalone calculator view without changing Pizza Session", () => {
+    const header = source("components/GlobalToolNavigation.tsx");
+    const homepage = source("app/page.tsx");
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
+    const sessionStart = source("app/session/start/page.tsx");
+
+    expect(header).toContain("Calculator v2");
+    expect(header).toContain("Guided recommendation from bake time and ingredients.");
+    expect(header).toContain('href="/?calculator=2"');
+    expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
+    expect(calculatorWorkspace).toContain('variant?: "full" | "entry" | "guided"');
+    expect(calculatorWorkspace).toContain("GuidedCalculatorV2");
+    expect(calculatorWorkspace).toContain("Calculator v2");
+    expect(calculatorWorkspace).toContain("Guided dough plan");
+    expect(calculatorWorkspace).toContain("Starting information");
+    expect(calculatorWorkspace).toContain("Bake date");
+    expect(calculatorWorkspace).toContain("Bake time");
+    expect(calculatorWorkspace).toContain("Default for Calculator v2.");
+    expect(calculatorWorkspace).toContain("Available yeast options");
+    expect(calculatorWorkspace).toContain("Available flour options / active flour");
+    expect(calculatorWorkspace).toContain("Current active flour");
+    expect(calculatorWorkspace).toContain("Number of pizzas / dough balls");
+    expect(calculatorWorkspace).toContain("Dough ball weight");
+    expect(calculatorWorkspace).toContain("Estimated pizza diameter");
+    expect(calculatorWorkspace).toContain("Fermentation place and temperature");
+    expect(calculatorWorkspace).toContain("Advanced tuning");
+    expect(calculatorWorkspace).toContain("One recommended plan");
+    expect(calculatorWorkspace).toContain("Recommended dough plan");
+    expect(calculatorWorkspace).toContain("Ingredient amounts");
+    expect(calculatorWorkspace).toContain("What to adjust first");
+    expect(calculatorWorkspace).toContain("Key guidance");
+    expect(calculatorWorkspace).toContain("existing calculator and planning engine");
+    expect(calculatorWorkspace).not.toContain("Pizza Session integration");
+    expect(sessionStart).not.toContain("GuidedCalculatorV2");
+    expect(sessionStart).not.toContain("Calculator v2");
+    expect(sessionStart).not.toContain("One recommended plan");
   });
 
   it("adds a standalone advanced calculator variable view without changing Pizza Session", () => {

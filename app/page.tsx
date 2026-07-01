@@ -14,7 +14,7 @@ function calculatorViewFor(params: Record<string, string | string[] | undefined>
 
   const keys = Object.keys(params);
   if (keys.length === 0) return null;
-  if (keys.length === 1 && params.calculator !== undefined) return "entry";
+  if (keys.length === 1 && params.calculator !== undefined) return params.calculator === "2" ? "guided" : "entry";
 
   return "full";
 }

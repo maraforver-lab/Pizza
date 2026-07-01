@@ -1663,9 +1663,10 @@ describe("Planning Engine fermentation rules v1", () => {
     const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-guidance|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-guidance|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
-    expect(homepageWorkspace).toContain('variant?: "full" | "entry"');
+    expect(homepageWorkspace).toContain('variant?: "full" | "entry" | "guided"');
     expect(homepageWorkspace).toContain("buildPlanningResult");
     expect(homepageWorkspace).toContain("AdvancedCalculatorPlanningShell");
+    expect(homepageWorkspace).toContain("GuidedCalculatorV2");
     expect(homepageWorkspace).toContain("Secondary guidance is available below without turning this into a full workflow.");
     expect(sessionRecipe).not.toMatch(planningImports);
     expect(sessionTimeline).not.toMatch(planningImports);

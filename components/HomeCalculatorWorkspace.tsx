@@ -453,6 +453,299 @@ function AdvancedCalculatorTopSummary({
   );
 }
 
+const estimatedPizzaDiameter = (ballWeight: number) => {
+  if (ballWeight < 220) return `${ballWeight} g ball ≈ about 24–27 cm pizza`;
+  if (ballWeight < 260) return `${ballWeight} g ball ≈ about 27–29 cm pizza`;
+  if (ballWeight < 300) return `${ballWeight} g ball ≈ about 28–31 cm pizza`;
+  if (ballWeight < 380) return `${ballWeight} g ball ≈ about 30–33 cm pizza`;
+  return `${ballWeight} g ball ≈ about 32 cm+ pizza or pan-style portion`;
+};
+
+function GuidedCalculatorV2({
+  bakeDate,
+  onBakeDateChange,
+  bakeTime,
+  onBakeTimeChange,
+  doughType,
+  onDoughTypeChange,
+  pizzas,
+  onPizzasChange,
+  ballWeight,
+  onBallWeightChange,
+  ovenType,
+  onOvenTypeChange,
+  fermentation,
+  onFermentationChange,
+  mixingMethod,
+  onMixingMethodChange,
+  yeastType,
+  onYeastTypeChange,
+  flourId,
+  onFlourIdChange,
+  hydration,
+  onHydrationChange,
+  salt,
+  onSaltChange,
+  roomTemperature,
+  onRoomTemperatureChange,
+  fridgeTemperature,
+  onFridgeTemperatureChange,
+  targetDoughTemperature,
+  onTargetDoughTemperatureChange,
+  mixerFrictionHeat,
+  onMixerFrictionHeatChange,
+  proteinPercent,
+  onProteinPercentChange,
+  wValue,
+  onWValueChange,
+  activeFlour,
+  recipe,
+  planningResult,
+  yeastLabel,
+  locale,
+}: {
+  bakeDate: string;
+  onBakeDateChange: (value: string) => void;
+  bakeTime: string;
+  onBakeTimeChange: (value: string) => void;
+  doughType: AdvancedDoughType;
+  onDoughTypeChange: (type: AdvancedDoughType) => void;
+  pizzas: number;
+  onPizzasChange: (value: number) => void;
+  ballWeight: number;
+  onBallWeightChange: (value: number) => void;
+  ovenType: OvenType;
+  onOvenTypeChange: (ovenType: OvenType) => void;
+  fermentation: Fermentation;
+  onFermentationChange: (fermentation: Fermentation) => void;
+  mixingMethod: PlanningMixingMethod;
+  onMixingMethodChange: (method: PlanningMixingMethod) => void;
+  yeastType: YeastType;
+  onYeastTypeChange: (yeastType: YeastType) => void;
+  flourId: FlourId;
+  onFlourIdChange: (flourId: FlourId) => void;
+  hydration: number;
+  onHydrationChange: (value: number) => void;
+  salt: number;
+  onSaltChange: (value: number) => void;
+  roomTemperature: number;
+  onRoomTemperatureChange: (value: number) => void;
+  fridgeTemperature: number;
+  onFridgeTemperatureChange: (value: number) => void;
+  targetDoughTemperature: string;
+  onTargetDoughTemperatureChange: (value: string) => void;
+  mixerFrictionHeat: string;
+  onMixerFrictionHeatChange: (value: string) => void;
+  proteinPercent: string;
+  onProteinPercentChange: (value: string) => void;
+  wValue: string;
+  onWValueChange: (value: string) => void;
+  activeFlour: ReturnType<typeof flourById>;
+  recipe: ReturnType<typeof calculateDoughIngredients>;
+  planningResult: ReturnType<typeof buildPlanningResult>;
+  yeastLabel: string;
+  locale: Locale;
+}) {
+  const selectedDoughType = advancedDoughTypes.find((type) => type.value === doughType) ?? advancedDoughTypes[0];
+  const combinedRisk = planningResult.combinedRiskSummary;
+  const fermentationSetup = planningResult.fermentationSetupRecommendation;
+  const startWindow = planningResult.startWindowRecommendation;
+  const flourGuidance = planningResult.flourGuidance;
+  const yeastGuidance = planningResult.yeastGuidance;
+  const doughTypeGuidance = planningResult.doughTypeGuidance;
+  const formulaFitGuidance = planningResult.formulaFitGuidance;
+  const temperatureGuidance = planningResult.temperatureGuidance;
+  const mode = planningResult.recommendedFermentationMode;
+  const showRoomTemperature = mode === "room" || mode === "hybrid";
+  const showFridgeTemperature = mode === "cold" || mode === "hybrid";
+
+  return (
+    <div className="grid gap-5" aria-labelledby="calculator-v2-title">
+      <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${guidanceCardClasses(combinedRisk?.overallRiskLevel)}`}>
+        <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Calculator v2</p>
+            <h1 id="calculator-v2-title" className="mt-2 font-display text-4xl font-semibold leading-tight">Guided dough plan</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">Tell us your bake time and ingredients. DoughTools shows one recommended plan using the existing calculator and planning engine.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl bg-white/80 p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Available time until bake</span>
+              <strong className="mt-2 block text-2xl tabular-nums text-ink">{planningResult.availableFermentationHours} h</strong>
+            </div>
+            <div className="rounded-2xl bg-white/80 p-4">
+              <RiskBadge value={combinedRisk?.overallRiskLevel} label="Overall risk" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(360px,.85fr)]">
+        <div className="grid gap-5">
+          <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="calculator-v2-starting-info">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Starting information</p>
+            <h2 id="calculator-v2-starting-info" className="mt-2 font-display text-2xl font-semibold">Your goal and ingredients</h2>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-ink/70">Bake date</span>
+                <input type="date" value={bakeDate} onChange={(event) => onBakeDateChange(event.target.value)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10" />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-ink/70">Bake time</span>
+                <input type="time" value={bakeTime} onChange={(event) => onBakeTimeChange(event.target.value)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10" />
+              </label>
+            </div>
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <fieldset>
+                <legend className="mb-2 text-sm font-semibold text-ink/70">Oven type</legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(["gas", "home"] as OvenType[]).map((option) => (
+                    <button key={option} type="button" onClick={() => onOvenTypeChange(option)} aria-pressed={ovenType === option} className={`rounded-2xl border p-3 text-left transition ${ovenType === option ? "border-leaf bg-leaf/[.09]" : "border-ink/10 bg-white hover:border-ink/25"}`}>
+                      <span className="block text-sm font-extrabold">{option === "home" ? "Home oven" : "Pizza oven"}</span>
+                      <span className="mt-1 block text-xs leading-5 text-ink/50">{option === "home" ? "Stone, steel or tray." : "Default for Calculator v2."}</span>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend className="mb-2 text-sm font-semibold text-ink/70">Available yeast options</legend>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["idy", "ady", "cy"] as YeastType[]).map((type) => (
+                    <button key={type} type="button" aria-pressed={yeastType === type} onClick={() => onYeastTypeChange(type)} className={`rounded-2xl border p-3 text-left text-xs font-extrabold transition ${yeastType === type ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-white text-ink hover:border-ink/25"}`}>
+                      {type === "idy" ? "Instant dry yeast" : type === "ady" ? "Active dry yeast" : "Fresh yeast"}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+            <label className="mt-5 block">
+              <span className="mb-2 block text-sm font-semibold text-ink/70">Available flour options / active flour</span>
+              <select value={flourId} onChange={(event) => onFlourIdChange(event.target.value as FlourId)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
+                {flourProfiles.map((flour) => <option key={flour.id} value={flour.id}>{flour.brand} {flour.name} · {flour.type} · {flour.strength}</option>)}
+              </select>
+              <span className="mt-2 block rounded-2xl bg-ink/[.04] p-3 text-xs leading-5 text-ink/55">Current active flour: {activeFlour.brand} {activeFlour.name}. Multi-flour ranking can come later; v2 uses the selected flour for this recommended plan.</span>
+            </label>
+            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              <NumberField id="guided-pizzas" label="Number of pizzas / dough balls" value={pizzas} min={1} max={50} stepper onChange={onPizzasChange} />
+              <NumberField id="guided-ball-weight" label="Dough ball weight" value={ballWeight} min={100} max={1000} step={5} suffix="g" stepper onChange={onBallWeightChange} />
+              <div className="rounded-2xl border border-ink/10 bg-ink/[.035] p-4">
+                <span className="block text-sm font-semibold text-ink/70">Estimated pizza diameter</span>
+                <strong className="mt-2 block text-lg leading-6 text-ink">{estimatedPizzaDiameter(ballWeight)}</strong>
+                <span className="mt-2 block text-xs leading-5 text-ink/45">Approximate only; stretching, rim size, style and thickness affect the result.</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="calculator-v2-place-temp">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Fermentation place and temperature</p>
+            <h2 id="calculator-v2-place-temp" className="mt-2 font-display text-2xl font-semibold">Where the dough develops</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <PlanningMetric label="Recommended place" value={readablePlanningValue(mode)} risk={combinedRisk?.overallRiskLevel} />
+              <PlanningMetric label="Room temperature" value={`${roomTemperature} °C`} risk={temperatureGuidance?.riskLevel} />
+              <PlanningMetric label="Fridge temperature" value={`${fridgeTemperature} °C`} risk={temperatureGuidance?.riskLevel} />
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {showRoomTemperature && <NumberField id="guided-room-temperature" label="Room temperature" value={roomTemperature} min={10} max={35} step={1} suffix="°C" stepper onChange={onRoomTemperatureChange} />}
+              {showFridgeTemperature && <NumberField id="guided-fridge-temperature" label="Fridge temperature" value={fridgeTemperature} min={0} max={12} step={1} suffix="°C" stepper onChange={onFridgeTemperatureChange} />}
+              {!showRoomTemperature && !showFridgeTemperature && <p className="rounded-2xl bg-ink/[.04] p-4 text-sm leading-6 text-ink/55">Temperature guidance will become more specific once the selected bake target creates a recommended fermentation place.</p>}
+            </div>
+          </section>
+
+          <details className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6">
+            <summary className="cursor-pointer list-none">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Advanced tuning</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">Optional controls</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/60">Hydration, salt %, dough style, fermentation mode, mixing method and technical assumptions stay accessible without dominating the guided view.</p>
+              <span className="mt-3 inline-flex rounded-full bg-ink/[.06] px-3 py-1.5 text-xs font-extrabold text-ink/55">Show advanced tuning ↓</span>
+            </summary>
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <NumberField id="guided-hydration" label="Hydration" value={hydration} min={40} max={100} step={0.5} suffix="%" stepper onChange={onHydrationChange} />
+              <NumberField id="guided-salt" label="Salt %" value={salt} min={0} max={10} step={0.1} suffix="%" stepper onChange={onSaltChange} />
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-ink/70">Dough type / style</span>
+                <select value={doughType} onChange={(event) => onDoughTypeChange(event.target.value as AdvancedDoughType)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
+                  {advancedDoughTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-ink/70">Fermentation mode</span>
+                <select value={fermentation} onChange={(event) => onFermentationChange(event.target.value as Fermentation)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
+                  {fermentationOptions.map((option) => <option key={option.value} value={option.value}>{option.value.replace("-", " ")}</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-ink/70">Mixing method</span>
+                <select value={mixingMethod} onChange={(event) => onMixingMethodChange(event.target.value as PlanningMixingMethod)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
+                  {planningMixingMethods.map((method) => <option key={method.value} value={method.value}>{method.label}</option>)}
+                </select>
+              </label>
+              <NumberField id="guided-room-temperature-advanced" label="Room temperature" value={roomTemperature} min={10} max={35} step={1} suffix="°C" stepper onChange={onRoomTemperatureChange} />
+              <NumberField id="guided-fridge-temperature-advanced" label="Fridge temperature" value={fridgeTemperature} min={0} max={12} step={1} suffix="°C" stepper onChange={onFridgeTemperatureChange} />
+              <label className="block"><span className="mb-2 block text-sm font-semibold text-ink/70">Target dough temperature</span><input value={targetDoughTemperature} onChange={(event) => onTargetDoughTemperatureChange(event.target.value)} placeholder="optional" className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10" /></label>
+              <label className="block"><span className="mb-2 block text-sm font-semibold text-ink/70">Mixer friction heat</span><input value={mixerFrictionHeat} onChange={(event) => onMixerFrictionHeatChange(event.target.value)} placeholder="optional" className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10" /></label>
+              <label className="block"><span className="mb-2 block text-sm font-semibold text-ink/70">Protein %</span><input value={proteinPercent} onChange={(event) => onProteinPercentChange(event.target.value)} placeholder="optional" className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10" /></label>
+              <label className="block"><span className="mb-2 block text-sm font-semibold text-ink/70">W-value</span><input value={wValue} onChange={(event) => onWValueChange(event.target.value)} placeholder="optional" className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10" /></label>
+            </div>
+          </details>
+        </div>
+
+        <div className="grid gap-5">
+          <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(combinedRisk?.overallRiskLevel)}`} aria-labelledby="calculator-v2-plan">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">One recommended plan</p>
+            <h2 id="calculator-v2-plan" className="mt-2 font-display text-3xl font-semibold">Recommended dough plan</h2>
+            <p className="mt-3 text-sm leading-6 text-ink/60">{combinedRisk?.summary}</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <PlanningMetric label="Recommended setup" value={readablePlanningValue(fermentationSetup?.recommendedSetup)} risk={fermentationSetup?.riskLevel} />
+              <PlanningMetric label="Start window" value={startWindow?.startWindowLabel ?? "not available" } risk={startWindow?.riskLevel} />
+              <PlanningMetric label="Available time" value={`${planningResult.availableFermentationHours} h`} risk={combinedRisk?.overallRiskLevel} />
+              <PlanningMetric label="Fermentation place" value={readablePlanningValue(mode)} risk={combinedRisk?.overallRiskLevel} />
+            </div>
+            <div className="mt-5 grid gap-3 md:grid-cols-[1.1fr_.9fr]">
+              <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Main reason</span>
+                <p className="mt-2 text-sm leading-6 text-ink/60">{combinedRisk?.primaryRiskReason ?? "No major risk reason detected."}</p>
+              </div>
+              <div className="rounded-2xl bg-leaf/[.08] p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">What to adjust first</span>
+                <p className="mt-2 text-sm leading-6 text-ink/60">{combinedRisk?.suggestedFirstAdjustment ?? "No immediate adjustment needed."}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="calculator-v2-ingredients">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Ingredient amounts</p>
+            <h2 id="calculator-v2-ingredients" className="mt-2 font-display text-2xl font-semibold">What to weigh</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {[
+                { name: "Flour", value: recipe.flour, precise: false },
+                { name: "Water", value: recipe.water, precise: false },
+                { name: "Salt", value: recipe.salt, precise: false },
+                { name: yeastLabel, value: recipe.leavener, precise: true },
+                { name: "Total dough", value: recipe.total, precise: false },
+              ].map((ingredient) => (
+                <div key={ingredient.name} className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">{ingredient.name}</span>
+                  <strong className="mt-2 block text-2xl font-extrabold tabular-nums text-ink">{grams(ingredient.value, locale, ingredient.precise)} <span className="text-sm text-ink/40">g</span></strong>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="calculator-v2-key-guidance">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Key guidance</p>
+            <h2 id="calculator-v2-key-guidance" className="mt-2 font-display text-2xl font-semibold">Why this plan fits</h2>
+            <div className="mt-4 grid gap-3">
+              {[fermentationSetup?.summary, startWindow?.summary, yeastGuidance?.summary, flourGuidance?.summary, doughTypeGuidance?.summary, temperatureGuidance?.summary, formulaFitGuidance?.summary].filter(Boolean).slice(0, 7).map((item) => (
+                <p key={item} className="rounded-2xl bg-ink/[.04] p-3 text-xs leading-5 text-ink/55">{item}</p>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AdvancedCalculatorStandaloneControls({
   bakeDate,
   onBakeDateChange,
@@ -1240,11 +1533,13 @@ function AdvancedCalculatorPlanningShell({
 }
 
 type HomeCalculatorWorkspaceProps = {
-  variant?: "full" | "entry";
+  variant?: "full" | "entry" | "guided";
 };
 
 export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalculatorWorkspaceProps) {
   const focusedEntry = variant === "entry";
+  const guidedEntry = variant === "guided";
+  const standaloneEntry = focusedEntry || guidedEntry;
   const locale: Locale = "en";
   const [goal, setGoal] = useState<PizzaGoal>("balanced");
   const [pizzaStyleId, setPizzaStyleId] = useState<PizzaStyleId>("neapolitan");
@@ -1288,7 +1583,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   const ovenTemperature = activeBake.temperature;
   const activePreset = presetFor(goal, ovenTemperature, fermentation);
   const disclosure = getCalculatorDisclosureMode(experienceLevel);
-  const advancedOpen = !focusedEntry && (disclosure.showAdvancedByDefault || showAdvanced);
+  const advancedOpen = !standaloneEntry && (disclosure.showAdvancedByDefault || showAdvanced);
   const recommendedOpen = disclosure.showRecommendedByDefault || advancedOpen;
   const activeFlour = flourById(flourId);
   const activePizzaStyle = pizzaStyleById(pizzaStyleId, goal);
@@ -1309,7 +1604,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   }, []);
 
   useEffect(() => {
-    if (focusedEntry) {
+    if (standaloneEntry) {
       setUrlReady(false);
       return;
     }
@@ -1330,7 +1625,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     else if (shared.ovenType !== undefined) setOvenType(shared.ovenType);
     if (shared.flourId !== undefined) setFlourId(shared.flourId);
     setUrlReady(true);
-  }, [focusedEntry]);
+  }, [standaloneEntry]);
 
   const applyPreset = (nextGoal: PizzaGoal, nextOvenType = ovenType, nextFermentation = fermentation) => {
     const safeOvenType: OvenType = nextGoal === "pan" ? "home" : nextOvenType;
@@ -1418,12 +1713,12 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   const journalHref = `/journal?${recipeQuery}`;
 
   useEffect(() => {
-    if (focusedEntry) return;
+    if (standaloneEntry) return;
     if (!urlReady) return;
     const query = recipeParams(currentSettings).toString();
     window.history.replaceState(null, "", `${window.location.pathname}?${query}`);
     window.dispatchEvent(new Event("doughtools:urlchange"));
-  }, [currentSettings, focusedEntry, urlReady]);
+  }, [currentSettings, standaloneEntry, urlReady]);
 
   const copyRecipeLink = async () => {
     await navigator.clipboard.writeText(recipeUrl(currentSettings));
@@ -1547,7 +1842,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
       <div className="mx-auto max-w-6xl">
-        {!focusedEntry && (
+        {!standaloneEntry && (
         <>
         <header className="mb-7 flex items-center justify-between sm:mb-10">
           <a href="#top" className="flex items-center gap-3" aria-label="DoughTools home">
@@ -1676,8 +1971,8 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           />
         )}
 
-        <div className={`grid min-w-0 items-start gap-5 ${focusedEntry ? "xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)] xl:gap-6" : "lg:grid-cols-[1.2fr_.8fr] lg:gap-7"}`}>
-          {!focusedEntry && (
+        <div className={`grid min-w-0 items-start gap-5 ${focusedEntry ? "xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)] xl:gap-6" : guidedEntry ? "" : "lg:grid-cols-[1.2fr_.8fr] lg:gap-7"}`}>
+          {!standaloneEntry && (
           <section id="top" tabIndex={-1} className="scroll-mt-24 min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur outline-none sm:p-7" aria-labelledby="recipe-settings">
             <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
             <p className="text-sm leading-6 text-ink/55">{levelCopy.quickIntro}</p>
@@ -1751,7 +2046,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
                 </div>
               </section>
             )}
-            {!focusedEntry && experienceLevel !== "pizza_nerd" && (
+            {!standaloneEntry && experienceLevel !== "pizza_nerd" && (
               <button
                 type="button"
                 onClick={() => setShowAdvanced((current) => !current)}
@@ -1878,7 +2173,53 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
             </>
           )}
 
-          {!focusedEntry && (
+          {guidedEntry && (
+            <GuidedCalculatorV2
+              bakeDate={advancedBakeDate}
+              onBakeDateChange={setAdvancedBakeDate}
+              bakeTime={advancedBakeTime}
+              onBakeTimeChange={setAdvancedBakeTime}
+              doughType={advancedDoughType}
+              onDoughTypeChange={applyAdvancedDoughType}
+              pizzas={pizzas}
+              onPizzasChange={setPizzas}
+              ballWeight={ballWeight}
+              onBallWeightChange={setBallWeight}
+              ovenType={ovenType}
+              onOvenTypeChange={(nextOven) => applyPreset(goal, nextOven)}
+              fermentation={fermentation}
+              onFermentationChange={(nextFermentation) => applyPreset(goal, ovenType, nextFermentation)}
+              mixingMethod={planningMixingMethod}
+              onMixingMethodChange={setPlanningMixingMethod}
+              yeastType={yeastType}
+              onYeastTypeChange={setYeastType}
+              flourId={flourId}
+              onFlourIdChange={setFlourId}
+              hydration={hydration}
+              onHydrationChange={setHydration}
+              salt={salt}
+              onSaltChange={setSalt}
+              roomTemperature={planningRoomTemperature}
+              onRoomTemperatureChange={setPlanningRoomTemperature}
+              fridgeTemperature={planningFridgeTemperature}
+              onFridgeTemperatureChange={setPlanningFridgeTemperature}
+              targetDoughTemperature={targetDoughTemperature}
+              onTargetDoughTemperatureChange={setTargetDoughTemperature}
+              mixerFrictionHeat={mixerFrictionHeat}
+              onMixerFrictionHeatChange={setMixerFrictionHeat}
+              proteinPercent={proteinPercent}
+              onProteinPercentChange={setProteinPercent}
+              wValue={wValue}
+              onWValueChange={setWValue}
+              activeFlour={activeFlour}
+              recipe={recipe}
+              planningResult={planningResult}
+              yeastLabel={t.yeasts[yeastType][1]}
+              locale={locale}
+            />
+          )}
+
+          {!standaloneEntry && (
           <aside className="overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card lg:sticky lg:top-7" aria-live="polite">
             <div className="p-5 sm:p-7">
               <div className="mb-6 flex items-start justify-between gap-4">
@@ -2014,7 +2355,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           )}
         </div>
 
-        {!focusedEntry && (
+        {!standaloneEntry && (
         <>
         <section id="instructions" className="mt-8 rounded-[1.75rem] bg-leaf p-5 text-white shadow-card sm:p-7">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
