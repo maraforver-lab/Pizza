@@ -123,6 +123,12 @@ export type PlanningStartWindowFitLevel =
   | "high_risk"
   | "not_enough_information";
 
+export type PlanningCombinedRiskLevel =
+  | "low"
+  | "caution"
+  | "high_risk"
+  | "not_enough_information";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -221,6 +227,17 @@ export type PlanningStartWindowRecommendation = {
   summary: string;
   cautions: string[];
   suggestedAdjustments: string[];
+  technicalNote: string | null;
+};
+
+export type PlanningCombinedRiskSummary = {
+  version: 1;
+  overallRiskLevel: PlanningCombinedRiskLevel;
+  primaryRiskReason: string;
+  secondaryRiskReasons: string[];
+  summary: string;
+  suggestedFirstAdjustment: string | null;
+  additionalAdjustments: string[];
   technicalNote: string | null;
 };
 

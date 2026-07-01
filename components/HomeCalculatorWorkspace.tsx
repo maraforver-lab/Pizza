@@ -673,6 +673,7 @@ function AdvancedCalculatorPlanningShell({
   const timeline = planningResult.fermentationTimeline;
   const fermentationSetup = planningResult.fermentationSetupRecommendation;
   const startWindow = planningResult.startWindowRecommendation;
+  const combinedRisk = planningResult.combinedRiskSummary;
   const doughTypeGuidance = planningResult.doughTypeGuidance;
   const flourGuidance = planningResult.flourGuidance;
   const yeastGuidance = planningResult.yeastGuidance;
@@ -708,6 +709,41 @@ function AdvancedCalculatorPlanningShell({
           ))}
         </div>
       </section>
+
+      {combinedRisk && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-combined-risk">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Plan risk summary</p>
+              <h3 id="advanced-combined-risk" className="mt-2 font-display text-2xl font-semibold">What to adjust first</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{combinedRisk.summary}</p>
+            </div>
+            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-44">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Overall risk</span>
+              <strong className="mt-1 block text-xl text-ink">{readablePlanningValue(combinedRisk.overallRiskLevel)}</strong>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-[1.2fr_.8fr]">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Main reason</span>
+              <p className="mt-2 text-sm leading-6 text-ink/60">{combinedRisk.primaryRiskReason}</p>
+            </div>
+            <div className="rounded-2xl bg-leaf/[.08] p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Suggested first adjustment</span>
+              <p className="mt-2 text-sm leading-6 text-ink/60">{combinedRisk.suggestedFirstAdjustment ?? "No immediate adjustment needed."}</p>
+            </div>
+          </div>
+          {combinedRisk.secondaryRiskReasons.length > 0 && (
+            <div className="mt-4 rounded-2xl bg-tomato/[.06] p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">Other signals</span>
+              <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-ink/55">
+                {combinedRisk.secondaryRiskReasons.slice(0, 3).map((reason) => <li key={reason}>• {reason}</li>)}
+              </ul>
+            </div>
+          )}
+          {combinedRisk.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{combinedRisk.technicalNote}</p>}
+        </section>
+      )}
 
       {startWindow && (
         <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-start-window">

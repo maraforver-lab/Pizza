@@ -632,6 +632,91 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.startWindowRecommendation?.suggestedAdjustments.join(" ")).toContain("colder fridge");
   });
 
+  it("returns not enough information combined risk when bake target is invalid", () => {
+    const result = buildPlanningResult({
+      ...basePlanningInput,
+      desiredBakeDateTime: new Date("not-a-date"),
+    });
+
+    expect(result.combinedRiskSummary).toMatchObject({
+      overallRiskLevel: "not_enough_information",
+      primaryRiskReason: "Add a valid bake date and time to get a stronger planning risk summary.",
+      suggestedFirstAdjustment: "Set the bake target first.",
+    });
+    expect(result.combinedRiskSummary?.summary).toContain("bake date and time");
+  });
+
+  it("summarizes a balanced plan as low risk", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      selectedFermentationMode: "room",
+      yeastType: "cy",
+      calculatedFlourGrams: 1000,
+      calculatedYeastGrams: 1.1,
+      hydration: 64,
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+      roomTemperature: 22,
+      fridgeTemperature: 4,
+    }));
+
+    expect(result.combinedRiskSummary).toMatchObject({
+      overallRiskLevel: "low",
+      primaryRiskReason: "No major risk signals were detected.",
+      suggestedFirstAdjustment: "Keep the plan as-is, then judge the dough by condition instead of the clock alone.",
+    });
+    expect(result.combinedRiskSummary?.summary).toContain("broadly balanced");
+  });
+
+  it("summarizes warm fridge or flour-hydration concerns as caution", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      selectedFermentationMode: "cold",
+      hydration: 72,
+      flourSelection: { type: "medium_strong_pizza_flour" },
+    }));
+
+    expect(result.combinedRiskSummary?.overallRiskLevel).toBe("caution");
+    expect(result.combinedRiskSummary?.primaryRiskReason).toMatch(/flour|hydration/i);
+    expect(result.combinedRiskSummary?.suggestedFirstAdjustment).toMatch(/flour|dough strength|hydration/i);
+  });
+
+  it("prioritizes too little time for selected cold fermentation as high risk", () => {
+    const result = buildPlanningResult(planningInputWithHours(5, {
+      selectedFermentationMode: "cold",
+    }));
+
+    expect(result.combinedRiskSummary).toMatchObject({
+      overallRiskLevel: "high_risk",
+    });
+    expect(result.combinedRiskSummary?.primaryRiskReason).toContain("Cold fermentation");
+    expect(result.combinedRiskSummary?.suggestedFirstAdjustment).toContain("room");
+  });
+
+  it("prioritizes high yeast with warm conditions as high risk", () => {
+    const result = buildPlanningResult(planningInputWithHours(24, {
+      selectedFermentationMode: "room",
+      yeastType: "cy",
+      calculatedFlourGrams: 1000,
+      calculatedYeastGrams: 8,
+      roomTemperature: 28,
+    }));
+
+    expect(result.yeastGuidance?.riskLevel).toBe("high_risk");
+    expect(result.combinedRiskSummary).toMatchObject({
+      overallRiskLevel: "high_risk",
+      primaryRiskReason: "Yeast guidance is high risk and warm conditions may make the dough move faster.",
+    });
+  });
+
+  it("summarizes multiple caution signals without overwhelming the user", () => {
+    const result = buildPlanningResult(planningInputWithHours(10, {
+      selectedFermentationMode: "hybrid",
+      roomTemperature: 25,
+    }));
+
+    expect(result.combinedRiskSummary?.overallRiskLevel).toBe("caution");
+    expect(result.combinedRiskSummary?.secondaryRiskReasons.length).toBeLessThanOrEqual(4);
+    expect(result.combinedRiskSummary?.summary).toContain("multiple caution signals");
+  });
+
   it("flags a short available time as not enough for reliable fermentation setup", () => {
     const result = buildPlanningResult(planningInputWithHours(2, {
       selectedFermentationMode: "room",

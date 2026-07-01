@@ -1,4 +1,5 @@
 import { resolvePlanningFlourProfile, type PlanningFlourProfile } from "@/lib/planning-flour-profiles";
+import { buildPlanningCombinedRiskSummary } from "@/lib/planning-combined-risk-summary";
 import { buildPlanningFermentationSetupRecommendation } from "@/lib/planning-fermentation-setup";
 import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-timeline";
 import { buildPlanningDoughTypeGuidance } from "@/lib/planning-dough-type-guidance";
@@ -134,6 +135,21 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     userLevel: input.userLevel,
     yeastRecommendation: recommendedYeast,
   });
+  const combinedRiskSummary = buildPlanningCombinedRiskSummary({
+    warnings,
+    fermentationSetupRecommendation,
+    yeastGuidance,
+    flourGuidance,
+    doughTypeGuidance,
+    temperatureGuidance,
+    startWindowRecommendation,
+    mixingGuidance,
+    availableFermentationHours,
+    selectedFermentationMode: input.selectedFermentationMode,
+    roomTemperature: input.roomTemperature,
+    fridgeTemperature: input.fridgeTemperature,
+    userLevel: input.userLevel,
+  });
 
   return createPlanningFoundationResult({
     planningInput: input,
@@ -150,6 +166,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     flourGuidance,
     doughTypeGuidance,
     startWindowRecommendation,
+    combinedRiskSummary,
     temperatureGuidance,
     warnings,
     qualityScore: recommendation.qualityScore,

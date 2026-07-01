@@ -1,5 +1,6 @@
 import type {
   FermentationMode,
+  PlanningCombinedRiskSummary,
   PlanningFlourGuidance,
   PlanningDoughTypeGuidance,
   PlanningStartWindowRecommendation,
@@ -32,6 +33,7 @@ export type PlanningResult = {
   flourGuidance: PlanningFlourGuidance | null;
   doughTypeGuidance: PlanningDoughTypeGuidance | null;
   startWindowRecommendation: PlanningStartWindowRecommendation | null;
+  combinedRiskSummary: PlanningCombinedRiskSummary | null;
   temperatureGuidance: PlanningTemperatureGuidance | null;
   warnings: PlanningWarning[];
   qualityScore: PlanningQualityScore;
@@ -53,6 +55,7 @@ export function createPlanningFoundationResult(input: {
   flourGuidance?: PlanningFlourGuidance | null;
   doughTypeGuidance?: PlanningDoughTypeGuidance | null;
   startWindowRecommendation?: PlanningStartWindowRecommendation | null;
+  combinedRiskSummary?: PlanningCombinedRiskSummary | null;
   temperatureGuidance?: PlanningTemperatureGuidance | null;
   warnings?: PlanningWarning[];
   qualityScore?: PlanningQualityScore;
@@ -103,6 +106,7 @@ export function createPlanningFoundationResult(input: {
     flourGuidance: input.flourGuidance ?? null,
     doughTypeGuidance: input.doughTypeGuidance ?? null,
     startWindowRecommendation: input.startWindowRecommendation ?? null,
+    combinedRiskSummary: input.combinedRiskSummary ?? null,
     temperatureGuidance: input.temperatureGuidance ?? null,
     warnings: input.warnings ?? [],
     qualityScore: input.qualityScore ?? {
