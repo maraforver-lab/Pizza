@@ -96,6 +96,51 @@ export type PlanningMixingGuidance = {
   technicalNotes: string[];
 };
 
+export type PlanningFermentationTimelineStepType =
+  | "mix_dough"
+  | "initial_rest"
+  | "bulk_fermentation"
+  | "cold_fermentation"
+  | "ball_dough"
+  | "final_proof"
+  | "room_temperature_rest"
+  | "bake";
+
+export type PlanningFermentationTimelinePhase =
+  | "mixing"
+  | "fermentation"
+  | "shaping"
+  | "proofing"
+  | "baking";
+
+export type PlanningFermentationTimelineStep = {
+  id: string;
+  stepType: PlanningFermentationTimelineStepType;
+  phase: PlanningFermentationTimelinePhase;
+  title: string;
+  instruction: string;
+  relativeTiming: string;
+  durationMinutes: number | null;
+  note: string | null;
+  caution: string | null;
+  experienceNote: string;
+  metadata: {
+    fermentationMode: FermentationMode;
+    temperatureRole: "room" | "fridge" | "ambient" | "oven" | "none";
+    usesExactClockTime: false;
+  };
+};
+
+export type PlanningFermentationTimeline = {
+  version: 1;
+  userLevel: UserLevel;
+  fermentationMode: FermentationMode;
+  totalAvailableHours: number;
+  usesExactClockTimes: false;
+  assumptions: string[];
+  steps: PlanningFermentationTimelineStep[];
+};
+
 export type PlanningSourceConfidence = {
   fermentation: "placeholder";
   flour: "placeholder";

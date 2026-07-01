@@ -14,6 +14,7 @@ import {
   ACTIVE_DRY_YEAST_FROM_FRESH_FACTOR,
   INSTANT_DRY_YEAST_FROM_FRESH_FACTOR,
 } from "@/lib/planning-yeast-model";
+import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-timeline";
 import { PLANNING_MIXING_METHODS, buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
 import { baseSettings } from "./helpers";
 
@@ -601,6 +602,122 @@ describe("Planning Engine fermentation rules v1", () => {
     }));
   });
 
+  it("builds a safe default relative fermentation timeline", () => {
+    const timeline = buildPlanningFermentationTimeline({
+      userLevel: "beginner",
+      ovenType: "home_oven",
+      fermentationMode: "room",
+      availableFermentationHours: 18,
+      roomTemperature: 22,
+      fridgeTemperature: 4,
+    });
+
+    expect(timeline).toMatchObject({
+      version: 1,
+      userLevel: "beginner",
+      fermentationMode: "room",
+      totalAvailableHours: 18,
+      usesExactClockTimes: false,
+    });
+    expect(timeline.steps.map((step) => step.stepType)).toEqual([
+      "mix_dough",
+      "initial_rest",
+      "bulk_fermentation",
+      "ball_dough",
+      "final_proof",
+      "bake",
+    ]);
+    expect(timeline.steps[0]).toMatchObject({
+      id: "1-mix_dough",
+      title: "Mix dough",
+      relativeTiming: "First",
+      metadata: {
+        usesExactClockTime: false,
+      },
+    });
+    expect(timeline.assumptions.join(" ")).toContain("structured action sequence");
+  });
+
+  it("integrates fermentation timeline v1 into buildPlanningResult", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      userLevel: "enthusiast",
+    }));
+
+    expect(result.fermentationTimeline).toBeTruthy();
+    expect(result.fermentationTimeline?.steps.map((step) => step.stepType)).toEqual([
+      "mix_dough",
+      "initial_rest",
+      "bulk_fermentation",
+      "ball_dough",
+      "final_proof",
+      "bake",
+    ]);
+    expect(result.fermentationTimeline?.steps[2]).toMatchObject({
+      stepType: "bulk_fermentation",
+      phase: "fermentation",
+      instruction: expect.stringContaining("ferment"),
+    });
+  });
+
+  it("adds cold and room-temperature preparation steps when cold or hybrid fermentation is safely derivable", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      ovenType: "pizza_oven",
+    }));
+
+    expect(result.recommendedFermentationMode).toBe("cold");
+    expect(result.fermentationTimeline?.steps.map((step) => step.stepType)).toEqual([
+      "mix_dough",
+      "initial_rest",
+      "bulk_fermentation",
+      "cold_fermentation",
+      "ball_dough",
+      "final_proof",
+      "room_temperature_rest",
+      "bake",
+    ]);
+    expect(result.fermentationTimeline?.steps.find((step) => step.stepType === "cold_fermentation")).toMatchObject({
+      metadata: {
+        fermentationMode: "cold",
+        temperatureRole: "fridge",
+      },
+    });
+  });
+
+  it("keeps a fallback action sequence for not-recommended planning windows", () => {
+    const result = buildPlanningResult(planningInputWithHours(2));
+
+    expect(result.recommendedFermentationMode).toBe("not_recommended");
+    expect(result.fermentationTimeline).toMatchObject({
+      fermentationMode: "not_recommended",
+      usesExactClockTimes: false,
+    });
+    expect(result.fermentationTimeline?.steps.map((step) => step.stepType)).toContain("mix_dough");
+    expect(result.fermentationTimeline?.steps[0].caution).toContain("not recommended");
+  });
+
+  it("varies fermentation timeline notes by experience level", () => {
+    const beginner = buildPlanningFermentationTimeline({
+      userLevel: "beginner",
+      ovenType: "home_oven",
+      fermentationMode: "room",
+      availableFermentationHours: 18,
+      roomTemperature: 22,
+      fridgeTemperature: 4,
+    });
+    const nerd = buildPlanningFermentationTimeline({
+      userLevel: "pizza_nerd",
+      ovenType: "home_oven",
+      fermentationMode: "room",
+      availableFermentationHours: 18,
+      roomTemperature: 22,
+      fridgeTemperature: 4,
+    });
+
+    expect(beginner.steps[0].experienceNote).toContain("combining everything evenly");
+    expect(nerd.steps[0].experienceNote).toContain("future planning");
+    expect(nerd.steps[0].experienceNote).toContain("dough temperature");
+  });
+
   it("returns a stable quality score and technical details shape", () => {
     const result = buildPlanningResult(basePlanningInput);
 
@@ -655,7 +772,7 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    const planningImports = /planning-engine|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-types|planning-yeast-model|planning-warning-engine/;
+    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-types|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
     expect(homepageWorkspace).not.toMatch(planningImports);
