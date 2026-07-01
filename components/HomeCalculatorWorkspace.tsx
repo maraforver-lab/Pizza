@@ -29,6 +29,7 @@ import {
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { buildPlanningResult } from "@/lib/planning-engine";
 import type { PlanningInput } from "@/lib/planning-input";
+import type { PlanningMixingMethod } from "@/lib/planning-types";
 import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
@@ -59,19 +60,33 @@ const saveRecipeValueByLevel: Record<ExperienceLevel, string> = {
 
 const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"];
 
+const planningMixingMethods: { value: PlanningMixingMethod; label: string; description: string }[] = [
+  { value: "hand_mixing", label: "Hand mixing", description: "Best for learning dough feel." },
+  { value: "stand_mixer", label: "Stand mixer / kitchen machine", description: "Useful, but keep it gentle." },
+  { value: "spiral_mixer", label: "Spiral mixer", description: "Repeatable for larger batches." },
+];
+
 const fermentationHoursFor = (fermentation: Fermentation) => fermentationOptions.find((option) => option.value === fermentation)?.hours ?? 24;
+
+const optionalPlanningNumber = (value: string) => {
+  if (value.trim() === "") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
 
 const planningInputFromCalculator = (input: {
   currentDateTime: Date;
-  goal: PizzaGoal;
   ovenType: OvenType;
   fermentation: Fermentation;
-  temperature: number;
   experienceLevel: ExperienceLevel;
   flourId: FlourId;
   pizzas: number;
   ballWeight: number;
-  isColdFermentation: boolean;
+  planningMixingMethod: PlanningMixingMethod;
+  planningRoomTemperature: number;
+  planningFridgeTemperature: number;
+  targetDoughTemperature?: number;
+  mixerFrictionHeat?: number;
 }): PlanningInput => {
   const fermentationHours = fermentationHoursFor(input.fermentation);
 
@@ -80,12 +95,14 @@ const planningInputFromCalculator = (input: {
     desiredBakeDateTime: new Date(input.currentDateTime.getTime() + fermentationHours * 3_600_000),
     userLevel: input.experienceLevel,
     ovenType: input.ovenType === "gas" ? "pizza_oven" : "home_oven",
-    roomTemperature: input.isColdFermentation ? 22 : input.temperature,
-    fridgeTemperature: input.isColdFermentation ? input.temperature : 4,
+    roomTemperature: input.planningRoomTemperature,
+    fridgeTemperature: input.planningFridgeTemperature,
     flourSelection: { type: "known_flour_id", flourId: input.flourId },
     doughBallCount: input.pizzas,
     doughBallWeight: input.ballWeight,
-    mixingMethod: "hand_mixing",
+    mixingMethod: input.planningMixingMethod,
+    targetDoughTemperature: input.targetDoughTemperature,
+    mixerFrictionHeat: input.mixerFrictionHeat,
   };
 };
 
@@ -254,6 +271,120 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
         {stepper && <button type="button" aria-label={increaseLabel} disabled={value >= max} onClick={() => onChange(steppedValue(value, 1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream active:scale-95 disabled:opacity-30">+</button>}
       </div>
     </div>
+  );
+}
+
+function AdvancedCalculatorPlanningSettings({
+  experienceLevel,
+  onExperienceLevelChange,
+  mixingMethod,
+  onMixingMethodChange,
+  roomTemperature,
+  onRoomTemperatureChange,
+  fridgeTemperature,
+  onFridgeTemperatureChange,
+  targetDoughTemperature,
+  onTargetDoughTemperatureChange,
+  mixerFrictionHeat,
+  onMixerFrictionHeatChange,
+}: {
+  experienceLevel: ExperienceLevel;
+  onExperienceLevelChange: (level: ExperienceLevel) => void;
+  mixingMethod: PlanningMixingMethod;
+  onMixingMethodChange: (method: PlanningMixingMethod) => void;
+  roomTemperature: number;
+  onRoomTemperatureChange: (value: number) => void;
+  fridgeTemperature: number;
+  onFridgeTemperatureChange: (value: number) => void;
+  targetDoughTemperature: string;
+  onTargetDoughTemperatureChange: (value: string) => void;
+  mixerFrictionHeat: string;
+  onMixerFrictionHeatChange: (value: string) => void;
+}) {
+  return (
+    <section className="mt-5 rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-planning-settings">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning settings</p>
+          <h2 id="advanced-planning-settings" className="mt-2 font-display text-2xl font-semibold">Tune the planning guidance</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+            These controls affect warnings and guidance only. Ingredient amounts still use the existing calculator formula.
+          </p>
+        </div>
+        <span className="w-fit rounded-full bg-leaf/[.1] px-3 py-1.5 text-xs font-extrabold text-leaf">Defaults are safe</span>
+      </div>
+
+      <div className="mt-5 grid gap-5">
+        <fieldset>
+          <legend className="mb-2 text-sm font-semibold text-ink/70">Experience level</legend>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {(["beginner", "enthusiast", "pizza_nerd"] as ExperienceLevel[]).map((level) => {
+              const config = getExperienceLevelConfig(level);
+              return (
+                <button
+                  key={level}
+                  type="button"
+                  aria-pressed={experienceLevel === level}
+                  onClick={() => onExperienceLevelChange(level)}
+                  className={`rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${experienceLevel === level ? "border-tomato bg-tomato/[.08]" : "border-ink/10 bg-white hover:border-ink/25"}`}
+                >
+                  <span className="flex items-center gap-2 text-sm font-extrabold text-ink">
+                    <span aria-hidden="true">{config.marker}</span>
+                    {config.label}
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/50">{level === "beginner" ? "Short, practical guidance." : level === "enthusiast" ? "More dough feel and timing context." : "Technical notes and assumptions."}</span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-2 text-sm font-semibold text-ink/70">Mixing method</legend>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {planningMixingMethods.map((method) => (
+              <button
+                key={method.value}
+                type="button"
+                aria-pressed={mixingMethod === method.value}
+                onClick={() => onMixingMethodChange(method.value)}
+                className={`rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${mixingMethod === method.value ? "border-leaf bg-leaf/[.09]" : "border-ink/10 bg-white hover:border-ink/25"}`}
+              >
+                <span className="block text-sm font-extrabold text-ink">{method.label}</span>
+                <span className="mt-1 block text-xs leading-5 text-ink/50">{method.description}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <NumberField id="planning-room-temperature" label="Room temperature" value={roomTemperature} min={10} max={35} step={1} suffix="°C" stepper onChange={onRoomTemperatureChange} />
+          <NumberField id="planning-fridge-temperature" label="Fridge temperature" value={fridgeTemperature} min={0} max={12} step={1} suffix="°C" stepper onChange={onFridgeTemperatureChange} />
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink/70">Target dough temperature <span className="text-ink/35">(optional)</span></span>
+            <input
+              id="planning-target-dough-temperature"
+              inputMode="decimal"
+              value={targetDoughTemperature}
+              onChange={(event) => onTargetDoughTemperatureChange(event.target.value)}
+              placeholder="e.g. 24"
+              className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink/70">Mixer friction heat <span className="text-ink/35">(optional)</span></span>
+            <input
+              id="planning-mixer-friction-heat"
+              inputMode="decimal"
+              value={mixerFrictionHeat}
+              onChange={(event) => onMixerFrictionHeatChange(event.target.value)}
+              placeholder="e.g. 2"
+              className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+            />
+          </label>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -427,6 +558,11 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   const [recipeNotice, setRecipeNotice] = useState("");
   const [urlReady, setUrlReady] = useState(false);
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [planningMixingMethod, setPlanningMixingMethod] = useState<PlanningMixingMethod>("hand_mixing");
+  const [planningRoomTemperature, setPlanningRoomTemperature] = useState(22);
+  const [planningFridgeTemperature, setPlanningFridgeTemperature] = useState(4);
+  const [targetDoughTemperature, setTargetDoughTemperature] = useState("");
+  const [mixerFrictionHeat, setMixerFrictionHeat] = useState("");
   const t = copy.en;
   const levelCopy = getHomepageExperienceCopy(experienceLevel);
   const experienceConfig = getExperienceLevelConfig(experienceLevel);
@@ -502,16 +638,30 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   const recipe = useMemo(() => calculateDoughIngredients(currentSettings), [currentSettings]);
   const planningResult = useMemo(() => buildPlanningResult(planningInputFromCalculator({
     currentDateTime: new Date(),
-    goal,
     ovenType,
     fermentation,
-    temperature,
     experienceLevel,
     flourId,
     pizzas,
     ballWeight,
-    isColdFermentation,
-  })), [goal, ovenType, fermentation, temperature, experienceLevel, flourId, pizzas, ballWeight, isColdFermentation]);
+    planningMixingMethod,
+    planningRoomTemperature,
+    planningFridgeTemperature,
+    targetDoughTemperature: optionalPlanningNumber(targetDoughTemperature),
+    mixerFrictionHeat: optionalPlanningNumber(mixerFrictionHeat),
+  })), [
+    ovenType,
+    fermentation,
+    experienceLevel,
+    flourId,
+    pizzas,
+    ballWeight,
+    planningMixingMethod,
+    planningRoomTemperature,
+    planningFridgeTemperature,
+    targetDoughTemperature,
+    mixerFrictionHeat,
+  ]);
 
   const recipeQuery = recipeParams(currentSettings).toString();
   const toolHref = (tool: HomepageTool) => tool.preserveRecipe ? `${tool.href}?${recipeQuery}` : tool.href;
@@ -919,12 +1069,28 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           </section>
 
           {focusedEntry && (
-            <AdvancedCalculatorPlanningShell
-              recipe={recipe}
-              planningResult={planningResult}
-              yeastLabel={t.yeasts[yeastType][1]}
-              locale={locale}
-            />
+            <>
+              <AdvancedCalculatorPlanningSettings
+                experienceLevel={experienceLevel}
+                onExperienceLevelChange={setExperienceLevel}
+                mixingMethod={planningMixingMethod}
+                onMixingMethodChange={setPlanningMixingMethod}
+                roomTemperature={planningRoomTemperature}
+                onRoomTemperatureChange={setPlanningRoomTemperature}
+                fridgeTemperature={planningFridgeTemperature}
+                onFridgeTemperatureChange={setPlanningFridgeTemperature}
+                targetDoughTemperature={targetDoughTemperature}
+                onTargetDoughTemperatureChange={setTargetDoughTemperature}
+                mixerFrictionHeat={mixerFrictionHeat}
+                onMixerFrictionHeatChange={setMixerFrictionHeat}
+              />
+              <AdvancedCalculatorPlanningShell
+                recipe={recipe}
+                planningResult={planningResult}
+                yeastLabel={t.yeasts[yeastType][1]}
+                locale={locale}
+              />
+            </>
           )}
 
           {!focusedEntry && (

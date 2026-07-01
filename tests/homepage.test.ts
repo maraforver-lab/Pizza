@@ -254,6 +254,39 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("guidance is conservative and separate from Pizza Session");
   });
 
+  it("adds calculator-specific planning controls without changing Pizza Session", () => {
+    const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
+    const sessionStart = source("app/session/start/page.tsx");
+
+    expect(calculatorWorkspace).toContain("AdvancedCalculatorPlanningSettings");
+    expect(calculatorWorkspace).toContain("Planning settings");
+    expect(calculatorWorkspace).toContain("Tune the planning guidance");
+    expect(calculatorWorkspace).toContain("Defaults are safe");
+    expect(calculatorWorkspace).toContain("Experience level");
+    expect(calculatorWorkspace).toContain("Beginner");
+    expect(calculatorWorkspace).toContain("Enthusiast");
+    expect(calculatorWorkspace).toContain("Pizza Nerd");
+    expect(calculatorWorkspace).toContain("Mixing method");
+    expect(calculatorWorkspace).toContain("Hand mixing");
+    expect(calculatorWorkspace).toContain("Stand mixer / kitchen machine");
+    expect(calculatorWorkspace).toContain("Spiral mixer");
+    expect(calculatorWorkspace).toContain("Room temperature");
+    expect(calculatorWorkspace).toContain("Fridge temperature");
+    expect(calculatorWorkspace).toContain("Target dough temperature");
+    expect(calculatorWorkspace).toContain("Mixer friction heat");
+    expect(calculatorWorkspace).toContain('useState<PlanningMixingMethod>("hand_mixing")');
+    expect(calculatorWorkspace).toContain("useState(22)");
+    expect(calculatorWorkspace).toContain("useState(4)");
+    expect(calculatorWorkspace).toContain("optionalPlanningNumber(targetDoughTemperature)");
+    expect(calculatorWorkspace).toContain("optionalPlanningNumber(mixerFrictionHeat)");
+    expect(calculatorWorkspace).toContain("planningMixingMethod");
+    expect(calculatorWorkspace).toContain("planningRoomTemperature");
+    expect(calculatorWorkspace).toContain("planningFridgeTemperature");
+    expect(calculatorWorkspace).toContain("These controls affect warnings and guidance only. Ingredient amounts still use the existing calculator formula.");
+    expect(sessionStart).not.toContain("AdvancedCalculatorPlanningSettings");
+    expect(sessionStart).not.toContain("planningMixingMethod");
+  });
+
   it("does not include Finnish or Swedish active homepage labels", () => {
     const forbidden = /\b(Laskuri|Pizzatyylit|Aikataulu|Kalkylator|Pizzastilar|Tidsplan)\b|[äöåÄÖÅ]/;
     const labels = [
