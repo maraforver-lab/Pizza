@@ -59,6 +59,13 @@ export type PlanningYeastType =
 
 export type PlanningYeastConfidence = "none" | "low" | "medium";
 
+export type PlanningYeastRiskLevel =
+  | "low"
+  | "reasonable"
+  | "caution"
+  | "high_risk"
+  | "not_enough_information";
+
 export type PlanningMixingMethod =
   | "hand_mixing"
   | "stand_mixer"
@@ -98,6 +105,24 @@ export type PlanningYeastRecommendation = {
   activeDryYeastEquivalentPercent: number | null;
   yeastConfidence: PlanningYeastConfidence;
   note: string;
+};
+
+export type PlanningYeastGuidance = {
+  version: 1;
+  yeastType: YeastType | null;
+  calculatedYeastGrams: number | null;
+  flourGrams: number | null;
+  calculatedYeastPercentOfFlour: number | null;
+  calculatedFreshYeastEquivalentPercent: number | null;
+  recommendedFreshYeastPercent: number | null;
+  selectedFermentationMode: FermentationMode | null;
+  recommendedFermentationMode: FermentationMode;
+  riskLevel: PlanningYeastRiskLevel;
+  title: string;
+  summary: string;
+  cautions: string[];
+  suggestedAdjustments: string[];
+  technicalNote: string | null;
 };
 
 export type PlanningQualityLabel =

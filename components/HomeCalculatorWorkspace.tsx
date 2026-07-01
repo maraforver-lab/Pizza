@@ -123,6 +123,9 @@ const planningInputFromCalculator = (input: {
   flourId: FlourId;
   pizzas: number;
   ballWeight: number;
+  yeastType: YeastType;
+  calculatedFlourGrams?: number;
+  calculatedYeastGrams?: number;
   planningMixingMethod: PlanningMixingMethod;
   planningRoomTemperature: number;
   planningFridgeTemperature: number;
@@ -141,6 +144,9 @@ const planningInputFromCalculator = (input: {
     doughBallWeight: input.ballWeight,
     selectedFermentationMode: planningFermentationModeFromRecipe(input.fermentation),
     mixingMethod: input.planningMixingMethod,
+    yeastType: input.yeastType,
+    calculatedFlourGrams: input.calculatedFlourGrams,
+    calculatedYeastGrams: input.calculatedYeastGrams,
     targetDoughTemperature: input.targetDoughTemperature,
     mixerFrictionHeat: input.mixerFrictionHeat,
   };
@@ -236,6 +242,13 @@ const steppedValue = (value: number, direction: -1 | 1, step: number, min: numbe
 const grams = (value: number, locale: Locale, precise = false) => new Intl.NumberFormat(locale === "fi" ? "fi-FI" : locale === "sv" ? "sv-SE" : "en-US", {
   maximumFractionDigits: precise ? (value < 10 ? 2 : 1) : (value < 10 ? 1 : 0),
 }).format(value);
+
+const percentValue = (value: number | null | undefined, locale: Locale) => {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "not available";
+  return `${new Intl.NumberFormat(locale === "fi" ? "fi-FI" : locale === "sv" ? "sv-SE" : "en-US", {
+    maximumFractionDigits: value < 0.1 ? 4 : 2,
+  }).format(value)}%`;
+};
 
 const loadCardImage = (source: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new window.Image();
@@ -641,6 +654,7 @@ function AdvancedCalculatorPlanningShell({
   const mixing = planningResult.mixingGuidance;
   const timeline = planningResult.fermentationTimeline;
   const fermentationSetup = planningResult.fermentationSetupRecommendation;
+  const yeastGuidance = planningResult.yeastGuidance;
   const temperature = planningResult.temperatureGuidance;
 
   return (
@@ -718,6 +732,56 @@ function AdvancedCalculatorPlanningShell({
             </div>
           )}
           {fermentationSetup.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{fermentationSetup.technicalNote}</p>}
+        </section>
+      )}
+
+      {yeastGuidance && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-yeast-guidance">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Yeast guidance</p>
+              <h3 id="advanced-yeast-guidance" className="mt-2 font-display text-2xl font-semibold">{yeastGuidance.title}</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{yeastGuidance.summary}</p>
+            </div>
+            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-48">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Selected yeast</span>
+              <strong className="mt-1 block text-xl text-ink">{yeastLabel}</strong>
+              <span className="mt-1 block text-xs text-ink/45">
+                {yeastGuidance.calculatedYeastGrams === null ? "Amount not available" : `${grams(yeastGuidance.calculatedYeastGrams, locale, true)} g`}
+              </span>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Broad fit / risk</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(yeastGuidance.riskLevel)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Recipe yeast %</span>
+              <strong className="mt-2 block text-sm text-ink">{percentValue(yeastGuidance.calculatedYeastPercentOfFlour, locale)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Fresh yeast equivalent</span>
+              <strong className="mt-2 block text-sm text-ink">{percentValue(yeastGuidance.calculatedFreshYeastEquivalentPercent, locale)}</strong>
+            </div>
+          </div>
+          {(yeastGuidance.cautions.length > 0 || yeastGuidance.suggestedAdjustments.length > 0) && (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {yeastGuidance.cautions.length > 0 && (
+                <div className="rounded-2xl bg-tomato/[.06] p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">Watch out</span>
+                  <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-ink/55">
+                    {yeastGuidance.cautions.slice(0, 2).map((caution) => <li key={caution}>• {caution}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="rounded-2xl bg-leaf/[.08] p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Suggested adjustment</span>
+                <p className="mt-2 text-xs leading-5 text-ink/55">{yeastGuidance.suggestedAdjustments[0]}</p>
+              </div>
+            </div>
+          )}
+          {yeastGuidance.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{yeastGuidance.technicalNote}</p>}
         </section>
       )}
 
@@ -952,6 +1016,9 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     flourId,
     pizzas,
     ballWeight,
+    yeastType,
+    calculatedFlourGrams: recipe.flour,
+    calculatedYeastGrams: recipe.leavener,
     planningMixingMethod,
     planningRoomTemperature,
     planningFridgeTemperature,
@@ -964,6 +1031,9 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     flourId,
     pizzas,
     ballWeight,
+    yeastType,
+    recipe.flour,
+    recipe.leavener,
     planningMixingMethod,
     planningRoomTemperature,
     planningFridgeTemperature,

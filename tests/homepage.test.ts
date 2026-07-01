@@ -251,6 +251,7 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Planning warnings");
     expect(calculatorWorkspace).toContain("Fermentation setup");
     expect(calculatorWorkspace).toContain("Recommended setup");
+    expect(calculatorWorkspace).toContain("Yeast guidance");
     expect(calculatorWorkspace).toContain("Planning summary");
     expect(calculatorWorkspace).toContain("Variables that affect this plan");
     expect(calculatorWorkspace).toContain("Temperature guidance");
@@ -304,8 +305,14 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Risk level");
     expect(calculatorWorkspace).toContain("planningFermentationModeFromRecipe");
     expect(calculatorWorkspace).toContain("fermentationSetupRecommendation");
+    expect(calculatorWorkspace).toContain("yeastGuidance");
+    expect(calculatorWorkspace).toContain("Broad fit / risk");
+    expect(calculatorWorkspace).toContain("Fresh yeast equivalent");
+    expect(calculatorWorkspace).toContain("calculatedYeastGrams: recipe.leavener");
+    expect(calculatorWorkspace).toContain("calculatedFlourGrams: recipe.flour");
     expect(sessionStart).not.toContain("AdvancedCalculatorStandaloneControls");
     expect(sessionStart).not.toContain("Fermentation setup");
+    expect(sessionStart).not.toContain("Yeast guidance");
     expect(sessionStart).not.toContain("planningMixingMethod");
   });
 

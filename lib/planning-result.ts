@@ -9,6 +9,7 @@ import type {
   PlanningTemperatureAssumptions,
   PlanningQualityScore,
   PlanningTechnicalDetails,
+  PlanningYeastGuidance,
   PlanningWarning,
   PlanningYeastRecommendation,
 } from "@/lib/planning-types";
@@ -24,6 +25,7 @@ export type PlanningResult = {
   mixingGuidance: PlanningMixingGuidance | null;
   fermentationTimeline: PlanningFermentationTimeline | null;
   fermentationSetupRecommendation: PlanningFermentationSetupRecommendation | null;
+  yeastGuidance: PlanningYeastGuidance | null;
   temperatureGuidance: PlanningTemperatureGuidance | null;
   warnings: PlanningWarning[];
   qualityScore: PlanningQualityScore;
@@ -41,6 +43,7 @@ export function createPlanningFoundationResult(input: {
   mixingGuidance?: PlanningMixingGuidance | null;
   fermentationTimeline?: PlanningFermentationTimeline | null;
   fermentationSetupRecommendation?: PlanningFermentationSetupRecommendation | null;
+  yeastGuidance?: PlanningYeastGuidance | null;
   temperatureGuidance?: PlanningTemperatureGuidance | null;
   warnings?: PlanningWarning[];
   qualityScore?: PlanningQualityScore;
@@ -87,6 +90,7 @@ export function createPlanningFoundationResult(input: {
     mixingGuidance: input.mixingGuidance ?? null,
     fermentationTimeline: input.fermentationTimeline ?? null,
     fermentationSetupRecommendation: input.fermentationSetupRecommendation ?? null,
+    yeastGuidance: input.yeastGuidance ?? null,
     temperatureGuidance: input.temperatureGuidance ?? null,
     warnings: input.warnings ?? [],
     qualityScore: input.qualityScore ?? {

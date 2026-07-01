@@ -6,6 +6,7 @@ import { buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
 import { createPlanningFoundationResult, type PlanningResult } from "@/lib/planning-result";
 import { buildPlanningTemperatureGuidance } from "@/lib/planning-temperature-guidance";
 import { buildPlanningWarnings } from "@/lib/planning-warning-engine";
+import { buildPlanningYeastGuidance } from "@/lib/planning-yeast-guidance";
 import { calculatePlanningYeastRecommendation } from "@/lib/planning-yeast-model";
 import type {
   FermentationMode,
@@ -58,6 +59,19 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     userLevel: input.userLevel,
     ovenType: input.ovenType,
   });
+  const yeastGuidance = buildPlanningYeastGuidance({
+    yeastType: input.yeastType,
+    calculatedYeastGrams: input.calculatedYeastGrams,
+    calculatedFlourGrams: input.calculatedFlourGrams,
+    availableFermentationHours,
+    selectedFermentationMode: input.selectedFermentationMode,
+    recommendedFermentationMode: recommendation.mode,
+    fermentationSetupRecommendation,
+    recommendedYeast,
+    roomTemperature: input.roomTemperature,
+    fridgeTemperature: input.fridgeTemperature,
+    userLevel: input.userLevel,
+  });
   const temperatureGuidance = buildPlanningTemperatureGuidance({
     userLevel: input.userLevel,
     fermentationMode: recommendation.mode,
@@ -89,6 +103,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     mixingGuidance,
     fermentationTimeline,
     fermentationSetupRecommendation,
+    yeastGuidance,
     temperatureGuidance,
     warnings,
     qualityScore: recommendation.qualityScore,

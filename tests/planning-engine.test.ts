@@ -188,6 +188,111 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.fermentationSetupRecommendation?.summary).toContain("too short");
   });
 
+  it("returns safe default yeast guidance when calculator yeast context is missing", () => {
+    const result = buildPlanningResult(basePlanningInput);
+
+    expect(result.yeastGuidance).toMatchObject({
+      version: 1,
+      yeastType: null,
+      calculatedYeastGrams: null,
+      flourGrams: null,
+      riskLevel: "not_enough_information",
+    });
+    expect(result.yeastGuidance?.summary).toContain("needs a commercial yeast amount");
+  });
+
+  it("treats a same-day commercial yeast amount as broadly reasonable when it matches the time window", () => {
+    const ingredients = calculateDoughIngredients({
+      ...baseSettings,
+      fermentation: "6h-room",
+      temperature: 22,
+      yeastType: "idy",
+    });
+    const result = buildPlanningResult(planningInputWithHours(5, {
+      selectedFermentationMode: "room",
+      yeastType: "idy",
+      calculatedFlourGrams: ingredients.flour,
+      calculatedYeastGrams: ingredients.leavener,
+    }));
+
+    expect(result.yeastGuidance).toMatchObject({
+      yeastType: "idy",
+      riskLevel: "reasonable",
+      selectedFermentationMode: "room",
+      recommendedFermentationMode: "room",
+    });
+    expect(result.yeastGuidance?.summary).toContain("broadly close");
+  });
+
+  it("warns when current yeast looks high for a long cold fermentation plan", () => {
+    const ingredients = calculateDoughIngredients({
+      ...baseSettings,
+      fermentation: "24h-cold",
+      temperature: 4,
+      yeastType: "idy",
+    });
+    const result = buildPlanningResult(planningInputWithHours(48, {
+      selectedFermentationMode: "cold",
+      yeastType: "idy",
+      calculatedFlourGrams: ingredients.flour,
+      calculatedYeastGrams: ingredients.leavener,
+    }));
+
+    expect(result.yeastGuidance).toMatchObject({
+      riskLevel: "high_risk",
+      selectedFermentationMode: "cold",
+    });
+    expect(result.yeastGuidance?.cautions.join(" ")).toContain("High yeast");
+    expect(result.yeastGuidance?.suggestedAdjustments.join(" ")).toContain("reducing yeast");
+  });
+
+  it("reflects warm room and warm fridge risk in yeast guidance", () => {
+    const ingredients = calculateDoughIngredients({
+      ...baseSettings,
+      fermentation: "24h-room",
+      temperature: 22,
+      yeastType: "idy",
+    });
+    const warmRoom = buildPlanningResult(planningInputWithHours(36, {
+      selectedFermentationMode: "room",
+      roomTemperature: 28,
+      yeastType: "idy",
+      calculatedFlourGrams: ingredients.flour,
+      calculatedYeastGrams: ingredients.leavener,
+    }));
+    const warmFridge = buildPlanningResult(planningInputWithHours(36, {
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 8,
+      yeastType: "idy",
+      calculatedFlourGrams: ingredients.flour,
+      calculatedYeastGrams: ingredients.leavener,
+    }));
+
+    expect(warmRoom.yeastGuidance?.riskLevel).toBe("high_risk");
+    expect(warmRoom.yeastGuidance?.cautions.join(" ")).toContain("Warm room");
+    expect(warmFridge.yeastGuidance?.cautions.join(" ")).toContain("Warm fridge");
+  });
+
+  it("keeps sourdough yeast guidance conservative instead of comparing starter grams as yeast", () => {
+    const ingredients = calculateDoughIngredients({
+      ...baseSettings,
+      yeastType: "lsd",
+    });
+    const result = buildPlanningResult(planningInputWithHours(24, {
+      selectedFermentationMode: "cold",
+      yeastType: "lsd",
+      calculatedFlourGrams: ingredients.flour,
+      calculatedYeastGrams: ingredients.leavener,
+    }));
+
+    expect(result.yeastGuidance).toMatchObject({
+      yeastType: "lsd",
+      calculatedFreshYeastEquivalentPercent: null,
+      riskLevel: "not_enough_information",
+    });
+    expect(result.yeastGuidance?.summary).toContain("Sourdough starter activity varies");
+  });
+
   it("flags a short available time as not enough for reliable fermentation setup", () => {
     const result = buildPlanningResult(planningInputWithHours(2, {
       selectedFermentationMode: "room",
@@ -972,6 +1077,9 @@ describe("Planning Engine fermentation rules v1", () => {
         yeastType: null,
       },
     });
+    expect(result.yeastGuidance).toMatchObject({
+      riskLevel: "not_enough_information",
+    });
     expect(result.technicalDetails.assumptions.join(" ")).toContain("conservative broad fermentation time windows");
     expect(result.technicalDetails.assumptions.join(" ")).toContain("not gram calculations");
   });
@@ -993,7 +1101,7 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-model|planning-warning-engine/;
+    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-guidance|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
     expect(homepageWorkspace).toContain('variant?: "full" | "entry"');
