@@ -250,6 +250,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Ingredient amounts");
     expect(calculatorWorkspace).toContain("Plan risk summary");
     expect(calculatorWorkspace).toContain("What to adjust first");
+    expect(calculatorWorkspace).toContain("Dough formula fit");
+    expect(calculatorWorkspace).toContain("Hydration, salt &amp; oven fit");
     expect(calculatorWorkspace).toContain("Planning warnings");
     expect(calculatorWorkspace).toContain("Start window");
     expect(calculatorWorkspace).toContain("When to start");
@@ -311,6 +313,11 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Overall risk");
     expect(calculatorWorkspace).toContain("Main reason");
     expect(calculatorWorkspace).toContain("Suggested first adjustment");
+    expect(calculatorWorkspace).toContain("formulaFitGuidance");
+    expect(calculatorWorkspace).toContain("Overall formula fit");
+    expect(calculatorWorkspace).toContain("Hydration fit");
+    expect(calculatorWorkspace).toContain("Salt fit");
+    expect(calculatorWorkspace).toContain("Oven fit");
     expect(calculatorWorkspace).toContain("startWindowRecommendation");
     expect(calculatorWorkspace).toContain("Recommended window");
     expect(calculatorWorkspace).toContain("Broad start range");
@@ -338,6 +345,8 @@ describe("homepage content model", () => {
     expect(sessionStart).not.toContain("AdvancedCalculatorStandaloneControls");
     expect(sessionStart).not.toContain("Plan risk summary");
     expect(sessionStart).not.toContain("What to adjust first");
+    expect(sessionStart).not.toContain("Dough formula fit");
+    expect(sessionStart).not.toContain("Hydration, salt &amp; oven fit");
     expect(sessionStart).not.toContain("Start window");
     expect(sessionStart).not.toContain("When to start");
     expect(sessionStart).not.toContain("Fermentation setup");

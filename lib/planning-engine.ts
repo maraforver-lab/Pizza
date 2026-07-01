@@ -4,6 +4,7 @@ import { buildPlanningFermentationSetupRecommendation } from "@/lib/planning-fer
 import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-timeline";
 import { buildPlanningDoughTypeGuidance } from "@/lib/planning-dough-type-guidance";
 import { buildPlanningFlourGuidance } from "@/lib/planning-flour-guidance";
+import { buildPlanningFormulaFitGuidance } from "@/lib/planning-formula-fit-guidance";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
 import { createPlanningFoundationResult, type PlanningResult } from "@/lib/planning-result";
@@ -112,6 +113,18 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     mixerFrictionHeat: input.mixerFrictionHeat,
     mixingMethod: input.mixingMethod,
   });
+  const formulaFitGuidance = buildPlanningFormulaFitGuidance({
+    hydration: input.hydration,
+    salt: input.salt,
+    ovenType: input.ovenType,
+    doughStyle: input.doughStyle,
+    flourProfile,
+    availableFermentationHours,
+    selectedFermentationMode: input.selectedFermentationMode,
+    flourGuidance,
+    doughTypeGuidance,
+    userLevel: input.userLevel,
+  });
   const startWindowRecommendation = buildPlanningStartWindowRecommendation({
     currentDateTime: input.currentDateTime,
     desiredBakeDateTime: input.desiredBakeDateTime,
@@ -141,6 +154,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     yeastGuidance,
     flourGuidance,
     doughTypeGuidance,
+    formulaFitGuidance,
     temperatureGuidance,
     startWindowRecommendation,
     mixingGuidance,
@@ -165,6 +179,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     yeastGuidance,
     flourGuidance,
     doughTypeGuidance,
+    formulaFitGuidance,
     startWindowRecommendation,
     combinedRiskSummary,
     temperatureGuidance,

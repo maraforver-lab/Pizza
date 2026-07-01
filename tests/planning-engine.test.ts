@@ -717,6 +717,119 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.combinedRiskSummary?.summary).toContain("multiple caution signals");
   });
 
+  it("returns workable formula fit for moderate hydration and normal salt", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      selectedFermentationMode: "room",
+      hydration: 64,
+      salt: 2.8,
+      ovenType: "pizza_oven",
+      doughStyle: "neapolitan_direct",
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+    }));
+
+    expect(result.formulaFitGuidance).toMatchObject({
+      hydrationFit: "good_fit",
+      saltFit: "good_fit",
+      ovenFit: "good_fit",
+      overallFit: "good_fit",
+    });
+    expect(result.formulaFitGuidance?.summary).toContain("strong broad v1 fit");
+  });
+
+  it("cautions for high hydration with all-purpose or weaker flour", () => {
+    const result = buildPlanningResult(planningInputWithHours(10, {
+      selectedFermentationMode: "room",
+      hydration: 72,
+      salt: 2.8,
+      flourSelection: { type: "standard_pizza_flour" },
+    }));
+
+    expect(result.formulaFitGuidance).toMatchObject({
+      hydrationFit: "high_risk",
+      overallFit: "high_risk",
+    });
+    expect(result.formulaFitGuidance?.cautions.join(" ")).toContain("all-purpose or weaker flour");
+  });
+
+  it("cautions for high hydration in a home oven", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      selectedFermentationMode: "room",
+      hydration: 70,
+      salt: 2.8,
+      ovenType: "home_oven",
+      flourSelection: { type: "medium_strong_pizza_flour" },
+    }));
+
+    expect(result.formulaFitGuidance).toMatchObject({
+      hydrationFit: "caution",
+      ovenFit: "workable",
+      overallFit: "caution",
+    });
+    expect(result.formulaFitGuidance?.cautions.join(" ")).toContain("home oven");
+  });
+
+  it("cautions for low salt", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      hydration: 64,
+      salt: 1.5,
+    }));
+
+    expect(result.formulaFitGuidance).toMatchObject({
+      saltFit: "caution",
+      overallFit: "caution",
+    });
+    expect(result.formulaFitGuidance?.cautions.join(" ")).toContain("Low salt");
+  });
+
+  it("cautions for high salt", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      hydration: 64,
+      salt: 3.8,
+    }));
+
+    expect(result.formulaFitGuidance).toMatchObject({
+      saltFit: "caution",
+      overallFit: "caution",
+    });
+    expect(result.formulaFitGuidance?.cautions.join(" ")).toContain("High salt");
+  });
+
+  it("treats Neapolitan-style dough in a home oven as workable with expectation guidance", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      selectedFermentationMode: "room",
+      hydration: 64,
+      salt: 2.8,
+      ovenType: "home_oven",
+      doughStyle: "neapolitan_direct",
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+    }));
+
+    expect(result.formulaFitGuidance).toMatchObject({
+      ovenFit: "workable",
+      overallFit: "workable",
+    });
+    expect(result.formulaFitGuidance?.summary).toContain("home oven");
+    expect(result.formulaFitGuidance?.suggestedAdjustments.join(" ")).toContain("preheating");
+  });
+
+  it("treats Neapolitan-style dough with pizza flour and pizza oven as a good fit", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      selectedFermentationMode: "room",
+      hydration: 64,
+      salt: 2.8,
+      ovenType: "pizza_oven",
+      doughStyle: "neapolitan_direct",
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+    }));
+
+    expect(result.formulaFitGuidance).toMatchObject({
+      hydrationFit: "good_fit",
+      saltFit: "good_fit",
+      ovenFit: "good_fit",
+      overallFit: "good_fit",
+    });
+  });
+
   it("flags a short available time as not enough for reliable fermentation setup", () => {
     const result = buildPlanningResult(planningInputWithHours(2, {
       selectedFermentationMode: "room",

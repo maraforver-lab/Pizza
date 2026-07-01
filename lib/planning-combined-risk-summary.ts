@@ -5,6 +5,7 @@ import type {
   PlanningDoughTypeGuidance,
   PlanningFermentationSetupRecommendation,
   PlanningFlourGuidance,
+  PlanningFormulaFitGuidance,
   PlanningMixingGuidance,
   PlanningStartWindowRecommendation,
   PlanningTemperatureGuidance,
@@ -21,6 +22,7 @@ type RiskSignal = {
     | "yeast"
     | "flour"
     | "dough_type"
+    | "formula"
     | "temperature"
     | "mixing";
   level: PlanningCombinedRiskLevel;
@@ -35,6 +37,7 @@ type PlanningCombinedRiskSummaryInput = {
   yeastGuidance?: PlanningYeastGuidance | null;
   flourGuidance?: PlanningFlourGuidance | null;
   doughTypeGuidance?: PlanningDoughTypeGuidance | null;
+  formulaFitGuidance?: PlanningFormulaFitGuidance | null;
   temperatureGuidance?: PlanningTemperatureGuidance | null;
   startWindowRecommendation?: PlanningStartWindowRecommendation | null;
   mixingGuidance?: PlanningMixingGuidance | null;
@@ -108,6 +111,7 @@ function buildSignals(input: PlanningCombinedRiskSummaryInput): RiskSignal[] {
     yeastSignal(input.yeastGuidance, input),
     flourSignal(input.flourGuidance),
     doughTypeSignal(input.doughTypeGuidance),
+    formulaFitSignal(input.formulaFitGuidance),
     temperatureSignal(input.temperatureGuidance),
     mixingSignal(input.mixingGuidance),
   ].filter((signal): signal is RiskSignal => signal !== null);
@@ -272,6 +276,30 @@ function doughTypeSignal(guidance?: PlanningDoughTypeGuidance | null): RiskSigna
       reason: guidance.cautions[0] ?? "Dough style guidance has cautions.",
       adjustment: guidance.suggestedAdjustments[0] ?? "Choose a timing window that better fits the dough style.",
       priority: 40,
+    };
+  }
+  return null;
+}
+
+function formulaFitSignal(guidance?: PlanningFormulaFitGuidance | null): RiskSignal | null {
+  if (!guidance) return null;
+  if (guidance.overallFit === "not_enough_information") return null;
+  if (guidance.overallFit === "high_risk") {
+    return {
+      source: "formula",
+      level: "high_risk",
+      reason: guidance.cautions[0] ?? "Formula fit has a high-risk hydration, salt or oven signal.",
+      adjustment: guidance.suggestedAdjustments[0] ?? "Review hydration, salt and oven fit together.",
+      priority: 74,
+    };
+  }
+  if (guidance.overallFit === "caution") {
+    return {
+      source: "formula",
+      level: "caution",
+      reason: guidance.cautions[0] ?? "Formula fit has a hydration, salt or oven caution.",
+      adjustment: guidance.suggestedAdjustments[0] ?? "Adjust one formula variable at a time.",
+      priority: 44,
     };
   }
   return null;

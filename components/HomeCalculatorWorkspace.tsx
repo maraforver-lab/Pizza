@@ -134,6 +134,7 @@ const planningInputFromCalculator = (input: {
   pizzas: number;
   ballWeight: number;
   hydration: number;
+  salt: number;
   doughStyle: AdvancedDoughType;
   yeastType: YeastType;
   calculatedFlourGrams?: number;
@@ -157,6 +158,7 @@ const planningInputFromCalculator = (input: {
     doughBallCount: input.pizzas,
     doughBallWeight: input.ballWeight,
     hydration: input.hydration,
+    salt: input.salt,
     doughStyle: input.doughStyle,
     selectedFermentationMode: planningFermentationModeFromRecipe(input.fermentation),
     mixingMethod: input.planningMixingMethod,
@@ -675,6 +677,7 @@ function AdvancedCalculatorPlanningShell({
   const startWindow = planningResult.startWindowRecommendation;
   const combinedRisk = planningResult.combinedRiskSummary;
   const doughTypeGuidance = planningResult.doughTypeGuidance;
+  const formulaFitGuidance = planningResult.formulaFitGuidance;
   const flourGuidance = planningResult.flourGuidance;
   const yeastGuidance = planningResult.yeastGuidance;
   const temperature = planningResult.temperatureGuidance;
@@ -742,6 +745,53 @@ function AdvancedCalculatorPlanningShell({
             </div>
           )}
           {combinedRisk.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{combinedRisk.technicalNote}</p>}
+        </section>
+      )}
+
+      {formulaFitGuidance && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-formula-fit">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough formula fit</p>
+              <h3 id="advanced-formula-fit" className="mt-2 font-display text-2xl font-semibold">Hydration, salt &amp; oven fit</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{formulaFitGuidance.summary}</p>
+            </div>
+            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-44">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Overall formula fit</span>
+              <strong className="mt-1 block text-xl text-ink">{readablePlanningValue(formulaFitGuidance.overallFit)}</strong>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Hydration fit</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(formulaFitGuidance.hydrationFit)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Salt fit</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(formulaFitGuidance.saltFit)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Oven fit</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(formulaFitGuidance.ovenFit)}</strong>
+            </div>
+          </div>
+          {(formulaFitGuidance.cautions.length > 0 || formulaFitGuidance.suggestedAdjustments.length > 0) && (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {formulaFitGuidance.cautions.length > 0 && (
+                <div className="rounded-2xl bg-tomato/[.06] p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">Watch out</span>
+                  <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-ink/55">
+                    {formulaFitGuidance.cautions.slice(0, 2).map((caution) => <li key={caution}>• {caution}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="rounded-2xl bg-leaf/[.08] p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Suggested adjustment</span>
+                <p className="mt-2 text-xs leading-5 text-ink/55">{formulaFitGuidance.suggestedAdjustments[0]}</p>
+              </div>
+            </div>
+          )}
+          {formulaFitGuidance.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{formulaFitGuidance.technicalNote}</p>}
         </section>
       )}
 
@@ -1230,6 +1280,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     pizzas,
     ballWeight,
     hydration,
+    salt,
     doughStyle: advancedDoughType,
     yeastType,
     calculatedFlourGrams: recipe.flour,
@@ -1249,6 +1300,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     pizzas,
     ballWeight,
     hydration,
+    salt,
     advancedDoughType,
     yeastType,
     recipe.flour,

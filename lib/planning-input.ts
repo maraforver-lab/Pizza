@@ -12,6 +12,7 @@ export type PlanningInput = {
   doughBallCount: number;
   doughBallWeight: number;
   hydration?: number;
+  salt?: number;
   doughStyle?: string;
   selectedFermentationMode?: FermentationMode;
   mixingMethod?: PlanningMixingMethod;

@@ -129,6 +129,13 @@ export type PlanningCombinedRiskLevel =
   | "high_risk"
   | "not_enough_information";
 
+export type PlanningFormulaFitLevel =
+  | "good_fit"
+  | "workable"
+  | "caution"
+  | "high_risk"
+  | "not_enough_information";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -238,6 +245,24 @@ export type PlanningCombinedRiskSummary = {
   summary: string;
   suggestedFirstAdjustment: string | null;
   additionalAdjustments: string[];
+  technicalNote: string | null;
+};
+
+export type PlanningFormulaFitGuidance = {
+  version: 1;
+  hydration: number | null;
+  salt: number | null;
+  ovenType: OvenType;
+  doughStyle: string | null;
+  flourCategory: FlourCategory;
+  hydrationFit: PlanningFormulaFitLevel;
+  saltFit: PlanningFormulaFitLevel;
+  ovenFit: PlanningFormulaFitLevel;
+  overallFit: PlanningFormulaFitLevel;
+  title: string;
+  summary: string;
+  cautions: string[];
+  suggestedAdjustments: string[];
   technicalNote: string | null;
 };
 
