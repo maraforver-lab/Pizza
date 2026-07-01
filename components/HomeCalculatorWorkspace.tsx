@@ -277,7 +277,7 @@ const riskTone = (value: string | null | undefined) => {
   if (normalized === "high_risk" || normalized === "not_recommended") return "high";
   if (normalized === "caution") return "caution";
   if (normalized === "not_enough_information") return "info";
-  if (normalized === "low" || normalized === "good_fit" || normalized === "workable" || normalized === "reasonable") return "low";
+  if (normalized === "low" || normalized === "best_fit" || normalized === "good_fit" || normalized === "workable" || normalized === "reasonable") return "low";
   return "neutral";
 };
 
@@ -551,6 +551,7 @@ function GuidedCalculatorV2({
   const fermentationSetup = planningResult.fermentationSetupRecommendation;
   const startWindow = planningResult.startWindowRecommendation;
   const flourGuidance = planningResult.flourGuidance;
+  const availableFlourRecommendation = planningResult.availableFlourRecommendation;
   const yeastGuidance = planningResult.yeastGuidance;
   const doughTypeGuidance = planningResult.doughTypeGuidance;
   const formulaFitGuidance = planningResult.formulaFitGuidance;
@@ -731,11 +732,55 @@ function GuidedCalculatorV2({
             </div>
           </section>
 
+          {availableFlourRecommendation && (
+            <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(availableFlourRecommendation.riskLevel)}`} aria-labelledby="calculator-v2-flour-recommendation">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Available flour recommendation</p>
+                  <h2 id="calculator-v2-flour-recommendation" className="mt-2 font-display text-2xl font-semibold">Recommended flour</h2>
+                  <p className="mt-3 text-sm leading-6 text-ink/60">{availableFlourRecommendation.summary}</p>
+                </div>
+                <RiskBadge value={availableFlourRecommendation.fitLevel} label="Flour fit" />
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <PlanningMetric
+                  label="Recommended flour"
+                  value={availableFlourRecommendation.recommendedFlour?.label ?? "not available"}
+                  risk={availableFlourRecommendation.fitLevel}
+                />
+                <PlanningMetric
+                  label="Active flour"
+                  value={availableFlourRecommendation.selectedFlourLabel ?? "not selected"}
+                  risk={availableFlourRecommendation.selectedFlourRiskLevel}
+                />
+              </div>
+              <p className="mt-4 rounded-2xl bg-white/70 p-4 text-sm leading-6 text-ink/60">{availableFlourRecommendation.whyThisFlourFits}</p>
+              {availableFlourRecommendation.suggestedAdjustment && (
+                <div className="mt-3 rounded-2xl bg-[#fff5dd] p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-[#9b5b00]">If your active flour is not ideal</span>
+                  <p className="mt-2 text-sm leading-6 text-ink/65">{availableFlourRecommendation.suggestedAdjustment}</p>
+                </div>
+              )}
+              <div className="mt-4 grid gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Available choices considered</span>
+                {availableFlourRecommendation.alternatives.slice(0, 3).map((option) => (
+                  <div key={option.id} className="flex items-start justify-between gap-3 rounded-2xl border border-ink/10 bg-white/70 p-3">
+                    <div>
+                      <strong className="block text-sm text-ink">{option.label}</strong>
+                      <span className="mt-1 block text-xs leading-5 text-ink/50">{readablePlanningValue(option.category)}</span>
+                    </div>
+                    <RiskBadge value={option.fitLevel} label="Fit" />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="calculator-v2-key-guidance">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Key guidance</p>
             <h2 id="calculator-v2-key-guidance" className="mt-2 font-display text-2xl font-semibold">Why this plan fits</h2>
             <div className="mt-4 grid gap-3">
-              {[fermentationSetup?.summary, startWindow?.summary, yeastGuidance?.summary, flourGuidance?.summary, doughTypeGuidance?.summary, temperatureGuidance?.summary, formulaFitGuidance?.summary].filter(Boolean).slice(0, 7).map((item) => (
+              {[fermentationSetup?.summary, startWindow?.summary, availableFlourRecommendation?.summary, yeastGuidance?.summary, flourGuidance?.summary, doughTypeGuidance?.summary, temperatureGuidance?.summary, formulaFitGuidance?.summary].filter(Boolean).slice(0, 7).map((item) => (
                 <p key={item} className="rounded-2xl bg-ink/[.04] p-3 text-xs leading-5 text-ink/55">{item}</p>
               ))}
             </div>

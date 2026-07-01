@@ -1,4 +1,5 @@
 import { resolvePlanningFlourProfile, type PlanningFlourProfile } from "@/lib/planning-flour-profiles";
+import { buildPlanningAvailableFlourRecommendation } from "@/lib/planning-available-flour-recommendation";
 import { buildPlanningCombinedRiskSummary } from "@/lib/planning-combined-risk-summary";
 import { buildPlanningFermentationSetupRecommendation } from "@/lib/planning-fermentation-setup";
 import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-timeline";
@@ -79,6 +80,21 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
   });
   const flourGuidance = buildPlanningFlourGuidance({
     flourProfile,
+    hydration: input.hydration,
+    availableFermentationHours,
+    selectedFermentationMode: input.selectedFermentationMode,
+    recommendedFermentationMode: recommendation.mode,
+    roomTemperature: input.roomTemperature,
+    fridgeTemperature: input.fridgeTemperature,
+    ovenType: input.ovenType,
+    doughStyle: input.doughStyle,
+    proteinPercent: input.proteinPercent,
+    wValue: input.wValue,
+    userLevel: input.userLevel,
+  });
+  const availableFlourRecommendation = buildPlanningAvailableFlourRecommendation({
+    selectedFlourProfile: flourProfile,
+    availableFlours: input.availableFlours,
     hydration: input.hydration,
     availableFermentationHours,
     selectedFermentationMode: input.selectedFermentationMode,
@@ -178,6 +194,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     fermentationSetupRecommendation,
     yeastGuidance,
     flourGuidance,
+    availableFlourRecommendation,
     doughTypeGuidance,
     formulaFitGuidance,
     startWindowRecommendation,

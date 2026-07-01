@@ -1,6 +1,7 @@
 import type {
   FermentationMode,
   PlanningCombinedRiskSummary,
+  PlanningAvailableFlourRecommendation,
   PlanningFormulaFitGuidance,
   PlanningFlourGuidance,
   PlanningDoughTypeGuidance,
@@ -32,6 +33,7 @@ export type PlanningResult = {
   fermentationSetupRecommendation: PlanningFermentationSetupRecommendation | null;
   yeastGuidance: PlanningYeastGuidance | null;
   flourGuidance: PlanningFlourGuidance | null;
+  availableFlourRecommendation: PlanningAvailableFlourRecommendation | null;
   doughTypeGuidance: PlanningDoughTypeGuidance | null;
   formulaFitGuidance: PlanningFormulaFitGuidance | null;
   startWindowRecommendation: PlanningStartWindowRecommendation | null;
@@ -55,6 +57,7 @@ export function createPlanningFoundationResult(input: {
   fermentationSetupRecommendation?: PlanningFermentationSetupRecommendation | null;
   yeastGuidance?: PlanningYeastGuidance | null;
   flourGuidance?: PlanningFlourGuidance | null;
+  availableFlourRecommendation?: PlanningAvailableFlourRecommendation | null;
   doughTypeGuidance?: PlanningDoughTypeGuidance | null;
   formulaFitGuidance?: PlanningFormulaFitGuidance | null;
   startWindowRecommendation?: PlanningStartWindowRecommendation | null;
@@ -107,6 +110,7 @@ export function createPlanningFoundationResult(input: {
     fermentationSetupRecommendation: input.fermentationSetupRecommendation ?? null,
     yeastGuidance: input.yeastGuidance ?? null,
     flourGuidance: input.flourGuidance ?? null,
+    availableFlourRecommendation: input.availableFlourRecommendation ?? null,
     doughTypeGuidance: input.doughTypeGuidance ?? null,
     formulaFitGuidance: input.formulaFitGuidance ?? null,
     startWindowRecommendation: input.startWindowRecommendation ?? null,

@@ -1,5 +1,5 @@
 import type { YeastType } from "@/lib/saved-recipes";
-import type { FermentationMode, FlourSelection, OvenType, PlanningMixingMethod, UserLevel } from "@/lib/planning-types";
+import type { FermentationMode, FlourSelection, OvenType, PlanningAvailableFlourOption, PlanningMixingMethod, UserLevel } from "@/lib/planning-types";
 
 export type PlanningInput = {
   currentDateTime: Date;
@@ -9,6 +9,7 @@ export type PlanningInput = {
   roomTemperature: number;
   fridgeTemperature: number;
   flourSelection: FlourSelection;
+  availableFlours?: PlanningAvailableFlourOption[];
   doughBallCount: number;
   doughBallWeight: number;
   hydration?: number;

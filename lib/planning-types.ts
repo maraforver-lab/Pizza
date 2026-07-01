@@ -94,6 +94,14 @@ export type PlanningFlourSuitabilityLevel =
   | "high_risk"
   | "not_enough_information";
 
+export type PlanningAvailableFlourFitLevel =
+  | "best_fit"
+  | "good_fit"
+  | "workable"
+  | "caution"
+  | "not_recommended"
+  | "not_enough_information";
+
 export type PlanningDoughType =
   | "neapolitan_direct"
   | "same_day_neapolitan"
@@ -193,6 +201,43 @@ export type PlanningFlourGuidance = {
   summary: string;
   cautions: string[];
   suggestedAdjustments: string[];
+  technicalNote: string | null;
+};
+
+export type PlanningAvailableFlourOption = {
+  id: string;
+  label: string;
+  flourSelection: FlourSelection;
+  proteinPercent?: number | null;
+  wValue?: number | null;
+};
+
+export type PlanningAvailableFlourAlternative = {
+  id: string;
+  label: string;
+  category: FlourCategory;
+  fitLevel: PlanningAvailableFlourFitLevel;
+  riskLevel: PlanningAvailableFlourFitLevel;
+  summary: string;
+  cautions: string[];
+};
+
+export type PlanningAvailableFlourRecommendation = {
+  version: 1;
+  recommendedFlour: PlanningAvailableFlourAlternative | null;
+  recommendedFlourId: string | null;
+  recommendedFlourCategory: FlourCategory | null;
+  selectedFlourId: PlanningFlourId | null;
+  selectedFlourLabel: string | null;
+  selectedFlourFitLevel: PlanningAvailableFlourFitLevel;
+  selectedFlourRiskLevel: PlanningAvailableFlourFitLevel;
+  fitLevel: PlanningAvailableFlourFitLevel;
+  riskLevel: PlanningAvailableFlourFitLevel;
+  summary: string;
+  whyThisFlourFits: string;
+  alternatives: PlanningAvailableFlourAlternative[];
+  cautionOptions: PlanningAvailableFlourAlternative[];
+  suggestedAdjustment: string | null;
   technicalNote: string | null;
 };
 

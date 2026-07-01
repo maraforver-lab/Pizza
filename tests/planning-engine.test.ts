@@ -438,6 +438,96 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.71, 2);
   });
 
+  it("returns a default available flour recommendation without changing the selected flour", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+      hydration: 64,
+      selectedFermentationMode: "room",
+      ovenType: "pizza_oven",
+      doughStyle: "neapolitan_direct",
+    }));
+
+    expect(result.availableFlourRecommendation).toMatchObject({
+      version: 1,
+      selectedFlourId: "caputo_pizzeria",
+      selectedFlourLabel: "Caputo Pizzeria",
+    });
+    expect(result.availableFlourRecommendation?.alternatives.map((option) => option.label)).toEqual([
+      "Tipo 00 / pizza flour",
+      "Bread flour / strong flour",
+      "All-purpose flour",
+    ]);
+    expect(result.availableFlourRecommendation?.summary).toContain("available flour choices");
+    expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.71, 2);
+  });
+
+  it("recommends medium pizza flour for an 8-10h same-day pizza-oven plan", () => {
+    const result = buildPlanningResult(planningInputWithHours(10, {
+      hydration: 64,
+      selectedFermentationMode: "room",
+      ovenType: "pizza_oven",
+      doughStyle: "same_day_neapolitan",
+    }));
+
+    expect(result.availableFlourRecommendation?.recommendedFlour).toMatchObject({
+      id: "tipo_00_pizza_flour",
+      label: "Tipo 00 / pizza flour",
+      fitLevel: "best_fit",
+    });
+    expect(result.availableFlourRecommendation?.whyThisFlourFits).toContain("8–10 h same-day plan");
+  });
+
+  it("recommends stronger flour for a 48h cold fermentation plan", () => {
+    const result = buildPlanningResult(planningInputWithHours(48, {
+      hydration: 66,
+      selectedFermentationMode: "cold",
+      ovenType: "pizza_oven",
+      doughStyle: "cold_neapolitan",
+    }));
+
+    expect(result.availableFlourRecommendation?.recommendedFlour).toMatchObject({
+      id: "bread_strong_flour",
+      label: "Bread flour / strong flour",
+    });
+    expect(result.availableFlourRecommendation?.whyThisFlourFits).toContain("longer cold or hybrid fermentation");
+  });
+
+  it("cautions when the active flour is weak for high hydration or long fermentation", () => {
+    const highHydration = buildPlanningResult(planningInputWithHours(10, {
+      flourSelection: { type: "standard_pizza_flour" },
+      hydration: 72,
+      selectedFermentationMode: "room",
+      ovenType: "home_oven",
+    }));
+    const longFermentation = buildPlanningResult(planningInputWithHours(60, {
+      flourSelection: { type: "standard_pizza_flour" },
+      hydration: 64,
+      selectedFermentationMode: "cold",
+      ovenType: "pizza_oven",
+      doughStyle: "cold_neapolitan",
+    }));
+
+    expect(highHydration.availableFlourRecommendation?.selectedFlourRiskLevel).toBe("not_recommended");
+    expect(highHydration.availableFlourRecommendation?.suggestedAdjustment).toContain("Lower hydration");
+    expect(longFermentation.availableFlourRecommendation?.selectedFlourRiskLevel).toBe("not_recommended");
+    expect(longFermentation.availableFlourRecommendation?.suggestedAdjustment).toContain("Use stronger flour");
+  });
+
+  it("keeps strong flour workable or better for long fermentation while avoiding exact flour science claims", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      flourSelection: { type: "strong_pizza_flour" },
+      hydration: 68,
+      selectedFermentationMode: "cold",
+      ovenType: "home_oven",
+      doughStyle: "cold_neapolitan",
+    }));
+
+    expect(result.availableFlourRecommendation?.recommendedFlour?.id).toBe("bread_strong_flour");
+    expect(result.availableFlourRecommendation?.selectedFlourRiskLevel).toBe("workable");
+    expect(result.availableFlourRecommendation?.technicalNote).toBeNull();
+    expect(result.availableFlourRecommendation?.summary).not.toMatch(/exact|guarantee/i);
+  });
+
   it("adds default dough type guidance for Neapolitan-style direct dough", () => {
     const result = buildPlanningResult(planningInputWithHours(18, {
       doughStyle: "neapolitan_direct",
@@ -1660,7 +1750,7 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-guidance|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-guidance|planning-yeast-model|planning-warning-engine/;
+    const planningImports = /planning-engine|planning-available-flour-recommendation|planning-fermentation-timeline|planning-flour-guidance|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-guidance|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
     expect(homepageWorkspace).toContain('variant?: "full" | "entry" | "guided"');

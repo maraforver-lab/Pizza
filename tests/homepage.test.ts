@@ -303,6 +303,11 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Available yeast options");
     expect(calculatorWorkspace).toContain("Available flour options / active flour");
     expect(calculatorWorkspace).toContain("Current active flour");
+    expect(calculatorWorkspace).toContain("Available flour recommendation");
+    expect(calculatorWorkspace).toContain("Recommended flour");
+    expect(calculatorWorkspace).toContain("If your active flour is not ideal");
+    expect(calculatorWorkspace).toContain("Available choices considered");
+    expect(calculatorWorkspace).toContain("availableFlourRecommendation");
     expect(calculatorWorkspace).toContain("Number of pizzas / dough balls");
     expect(calculatorWorkspace).toContain("Dough ball weight");
     expect(calculatorWorkspace).toContain("Estimated pizza diameter");
@@ -318,6 +323,7 @@ describe("homepage content model", () => {
     expect(sessionStart).not.toContain("GuidedCalculatorV2");
     expect(sessionStart).not.toContain("Calculator v2");
     expect(sessionStart).not.toContain("One recommended plan");
+    expect(sessionStart).not.toContain("Available flour recommendation");
   });
 
   it("adds a standalone advanced calculator variable view without changing Pizza Session", () => {
