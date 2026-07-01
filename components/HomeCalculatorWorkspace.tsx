@@ -270,6 +270,66 @@ const percentValue = (value: number | null | undefined, locale: Locale) => {
   }).format(value)}%`;
 };
 
+const normalizeRiskLabel = (value: string | null | undefined) => readablePlanningValue(value);
+
+const riskTone = (value: string | null | undefined) => {
+  const normalized = value ?? "";
+  if (normalized === "high_risk" || normalized === "not_recommended") return "high";
+  if (normalized === "caution") return "caution";
+  if (normalized === "not_enough_information") return "info";
+  if (normalized === "low" || normalized === "good_fit" || normalized === "workable" || normalized === "reasonable") return "low";
+  return "neutral";
+};
+
+const riskBadgeClasses = (value: string | null | undefined) => {
+  switch (riskTone(value)) {
+    case "high":
+      return "border-tomato/25 bg-tomato/[.12] text-tomato";
+    case "caution":
+      return "border-[#e8a11f]/30 bg-[#fff5dd] text-[#9b5b00]";
+    case "info":
+      return "border-ink/10 bg-ink/[.05] text-ink/55";
+    case "low":
+      return "border-leaf/20 bg-leaf/[.10] text-leaf";
+    default:
+      return "border-ink/10 bg-white text-ink/55";
+  }
+};
+
+const guidanceCardClasses = (value: string | null | undefined) => {
+  switch (riskTone(value)) {
+    case "high":
+      return "border-tomato/25 bg-tomato/[.06]";
+    case "caution":
+      return "border-[#e8a11f]/25 bg-[#fff8e8]";
+    case "info":
+      return "border-ink/10 bg-ink/[.04]";
+    case "low":
+      return "border-leaf/20 bg-leaf/[.07]";
+    default:
+      return "border-white/80 bg-white/75";
+  }
+};
+
+function RiskBadge({ value, label = "Risk" }: { value: string | null | undefined; label?: string }) {
+  const tone = riskTone(value);
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.12em] ${riskBadgeClasses(value)}`}>
+      <span aria-hidden="true">{tone === "high" ? "!" : tone === "caution" ? "•" : tone === "info" ? "i" : "✓"}</span>
+      {label}: {normalizeRiskLabel(value)}
+    </span>
+  );
+}
+
+function PlanningMetric({ label, value, risk }: { label: string; value: string; risk?: string | null }) {
+  return (
+    <div className={`rounded-2xl border p-4 ${guidanceCardClasses(risk)}`}>
+      <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">{label}</span>
+      <strong className="mt-2 block text-sm text-ink">{value}</strong>
+    </div>
+  );
+}
+
 const loadCardImage = (source: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image = new window.Image();
   image.onload = () => resolve(image);
@@ -469,25 +529,11 @@ function AdvancedCalculatorStandaloneControls({
         </div>
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-pizza-amount">
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-pizza-style">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza amount</p>
-          <h2 id="standalone-pizza-amount" className="mt-2 font-display text-2xl font-semibold">How much dough are you planning?</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/60">These values drive the ingredient amounts below.</p>
-        </div>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <NumberField id="standalone-pizzas" label="Dough balls / pizzas" value={pizzas} min={1} max={50} stepper onChange={onPizzasChange} />
-          <NumberField id="standalone-ball-weight" label="Dough ball weight" value={ballWeight} min={100} max={1000} step={5} suffix="g" stepper onChange={onBallWeightChange} />
-        </div>
-      </section>
-
-      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-dough-parameters">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough plan parameters</p>
-          <h2 id="standalone-dough-parameters" className="mt-2 font-display text-2xl font-semibold">Define the variables that shape the plan</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-            Choose the dough direction, flour, oven, temperature and formula values. DoughTools keeps the math stable while the planning engine explains risk.
-          </p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza style</p>
+          <h2 id="standalone-pizza-style" className="mt-2 font-display text-2xl font-semibold">Choose the dough direction</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/60">Start with the broad pizza style so the calculator can explain timing, flour and oven fit in plain language.</p>
         </div>
 
         <fieldset className="mt-5">
@@ -511,18 +557,60 @@ function AdvancedCalculatorStandaloneControls({
           </p>
         </fieldset>
 
+        <fieldset className="mt-5">
+          <legend className="mb-2 text-sm font-semibold text-ink/70">Dough style target</legend>
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+            {(["balanced", "airy", "crispy", "pan"] as PizzaGoal[]).map((option) => (
+              <button key={option} type="button" onClick={() => onGoalChange(option)} aria-pressed={goal === option} className={`rounded-2xl border p-3 text-left transition ${goal === option ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : "border-ink/10 bg-white hover:border-ink/25"}`}>
+                <span className="block text-sm font-extrabold">{t.goals[option][0]}</span>
+                <span className={`mt-1 block text-[11px] leading-4 ${goal === option ? "text-white/70" : "text-ink/45"}`}>{t.goals[option][1]}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-core-inputs">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Core dough inputs</p>
+          <h2 id="standalone-core-inputs" className="mt-2 font-display text-2xl font-semibold">Set the ingredient formula</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/60">These visible defaults drive the ingredient amounts. Planning guidance reads them, but does not rewrite the formula.</p>
+        </div>
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <NumberField id="standalone-pizzas" label="Dough balls / pizzas" value={pizzas} min={1} max={50} stepper onChange={onPizzasChange} />
+          <NumberField id="standalone-ball-weight" label="Dough ball weight" value={ballWeight} min={100} max={1000} step={5} suffix="g" stepper onChange={onBallWeightChange} />
+          <NumberField id="standalone-hydration" label="Hydration" value={hydration} min={40} max={100} step={0.5} suffix="%" stepper onChange={onHydrationChange} />
+          <NumberField id="standalone-salt" label="Salt" value={salt} min={0} max={10} step={0.1} suffix="%" stepper onChange={onSaltChange} />
+        </div>
+        <fieldset className="mt-5">
+          <legend className="mb-2 text-sm font-semibold text-ink/70">Yeast type</legend>
+          <div className="grid h-14 grid-cols-5 rounded-2xl bg-ink/5 p-1">
+            {(["cy", "ady", "idy", "ssd", "lsd"] as YeastType[]).map((type) => (
+              <button key={type} type="button" title={t.yeasts[type][1]} aria-label={t.yeasts[type][1]} aria-pressed={yeastType === type} onClick={() => onYeastTypeChange(type)}
+                className={`rounded-xl text-xs font-extrabold transition ${yeastType === type ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink"}`}>{t.yeasts[type][0]}</button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs font-semibold text-ink/50">{t.yeasts[yeastType][1]}</p>
+        </fieldset>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-dough-setup">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough setup</p>
+          <h2 id="standalone-dough-setup" className="mt-2 font-display text-2xl font-semibold">Define the planning context</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+            Flour type stays here as a main planning variable. These values explain timing, risk and fit without changing the calculator math.
+          </p>
+        </div>
+
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <fieldset>
-            <legend className="mb-2 text-sm font-semibold text-ink/70">Dough style target</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {(["balanced", "airy", "crispy", "pan"] as PizzaGoal[]).map((option) => (
-                <button key={option} type="button" onClick={() => onGoalChange(option)} aria-pressed={goal === option} className={`rounded-2xl border p-3 text-left transition ${goal === option ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : "border-ink/10 bg-white hover:border-ink/25"}`}>
-                  <span className="block text-sm font-extrabold">{t.goals[option][0]}</span>
-                  <span className={`mt-1 block text-[11px] leading-4 ${goal === option ? "text-white/70" : "text-ink/45"}`}>{t.goals[option][1]}</span>
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink/70">Flour type / suitability</span>
+            <select value={flourId} onChange={(event) => onFlourIdChange(event.target.value as FlourId)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
+              {flourProfiles.map((flour) => <option key={flour.id} value={flour.id}>{flour.brand} {flour.name} · {flour.type} · {flour.strength}</option>)}
+            </select>
+            <span className="mt-2 block rounded-2xl bg-ink/[.04] p-3 text-xs leading-5 text-ink/55">{flourSuitabilityNote(activeFlour)}</span>
+          </label>
 
           <fieldset>
             <legend className="mb-2 text-sm font-semibold text-ink/70">Oven type</legend>
@@ -573,38 +661,18 @@ function AdvancedCalculatorStandaloneControls({
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <NumberField id="planning-room-temperature" label="Room temperature" value={roomTemperature} min={10} max={35} step={1} suffix="°C" stepper onChange={onRoomTemperatureChange} />
           <NumberField id="planning-fridge-temperature" label="Fridge temperature" value={fridgeTemperature} min={0} max={12} step={1} suffix="°C" stepper onChange={onFridgeTemperatureChange} />
-          <NumberField id="standalone-hydration" label="Hydration" value={hydration} min={40} max={100} step={0.5} suffix="%" stepper onChange={onHydrationChange} />
-          <NumberField id="standalone-salt" label="Salt" value={salt} min={0} max={10} step={0.1} suffix="%" stepper onChange={onSaltChange} />
-        </div>
-
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <fieldset>
-            <legend className="mb-2 text-sm font-semibold text-ink/70">Yeast type</legend>
-            <div className="grid h-14 grid-cols-5 rounded-2xl bg-ink/5 p-1">
-              {(["cy", "ady", "idy", "ssd", "lsd"] as YeastType[]).map((type) => (
-                <button key={type} type="button" title={t.yeasts[type][1]} aria-label={t.yeasts[type][1]} aria-pressed={yeastType === type} onClick={() => onYeastTypeChange(type)}
-                  className={`rounded-xl text-xs font-extrabold transition ${yeastType === type ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink"}`}>{t.yeasts[type][0]}</button>
-              ))}
-            </div>
-            <p className="mt-2 text-xs font-semibold text-ink/50">{t.yeasts[yeastType][1]}</p>
-          </fieldset>
-
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-ink/70">Flour type / suitability</span>
-            <select value={flourId} onChange={(event) => onFlourIdChange(event.target.value as FlourId)} className="h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10">
-              {flourProfiles.map((flour) => <option key={flour.id} value={flour.id}>{flour.brand} {flour.name} · {flour.type} · {flour.strength}</option>)}
-            </select>
-            <span className="mt-2 block rounded-2xl bg-ink/[.04] p-3 text-xs leading-5 text-ink/55">{flourSuitabilityNote(activeFlour)}</span>
-          </label>
         </div>
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-optional-variables">
-        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Advanced optional variables</p>
-        <h2 id="standalone-optional-variables" className="mt-2 font-display text-2xl font-semibold">Optional technical assumptions</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-          These values are optional and do not change the ingredient formula in v1. They prepare future guidance for dough temperature, flour strength and mixer heat.
-        </p>
+      <details className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-optional-variables">
+        <summary className="cursor-pointer list-none">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Advanced optional variables</p>
+          <h2 id="standalone-optional-variables" className="mt-2 font-display text-2xl font-semibold">Optional technical assumptions</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+            Target dough temperature, mixer friction heat, Protein % and W-value stay available here as secondary context.
+          </p>
+          <span className="mt-3 inline-flex rounded-full bg-ink/[.06] px-3 py-1.5 text-xs font-extrabold text-ink/55">Show optional fields ↓</span>
+        </summary>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-ink/70">Target dough temperature <span className="text-ink/35">(optional)</span></span>
@@ -652,9 +720,9 @@ function AdvancedCalculatorStandaloneControls({
           </label>
         </div>
         <p className="mt-4 rounded-2xl bg-ink/[.04] p-3 text-xs leading-5 text-ink/55">
-          Protein % and W-value are treated as user-defined context for future advanced guidance. DoughTools does not pretend exact flour behavior from these values yet.
+          These values are optional and do not change the ingredient formula in v1. Protein % and W-value are treated as user-defined context for future advanced guidance. DoughTools does not pretend exact flour behavior from these values yet.
         </p>
-      </section>
+      </details>
     </div>
   );
 }
@@ -686,9 +754,9 @@ function AdvancedCalculatorPlanningShell({
     <section className="mt-5 grid gap-5" aria-labelledby="advanced-calculator-planning">
       <div className="rounded-[1.75rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Planning Engine v1</p>
-        <h2 id="advanced-calculator-planning" className="mt-2 font-display text-3xl font-semibold">Advanced dough planning</h2>
+        <h2 id="advanced-calculator-planning" className="mt-2 font-display text-3xl font-semibold">Results and recommendations</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-          A first calculator-only shell for planning output. Ingredient grams still come from the existing calculator; guidance is conservative and separate from Pizza Session.
+          Ingredient amounts first, then the main risk, what to adjust, and the concise guidance behind it. Ingredient grams still come from the existing calculator; guidance is conservative and separate from Pizza Session.
         </p>
       </div>
 
@@ -714,17 +782,14 @@ function AdvancedCalculatorPlanningShell({
       </section>
 
       {combinedRisk && (
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-combined-risk">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(combinedRisk.overallRiskLevel)}`} aria-labelledby="advanced-combined-risk">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Plan risk summary</p>
               <h3 id="advanced-combined-risk" className="mt-2 font-display text-2xl font-semibold">What to adjust first</h3>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{combinedRisk.summary}</p>
             </div>
-            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-44">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Overall risk</span>
-              <strong className="mt-1 block text-xl text-ink">{readablePlanningValue(combinedRisk.overallRiskLevel)}</strong>
-            </div>
+            <RiskBadge value={combinedRisk.overallRiskLevel} label="Overall risk" />
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-[1.2fr_.8fr]">
             <div className="rounded-2xl border border-ink/10 bg-white p-4">
@@ -749,31 +814,19 @@ function AdvancedCalculatorPlanningShell({
       )}
 
       {formulaFitGuidance && (
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-formula-fit">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(formulaFitGuidance.overallFit)}`} aria-labelledby="advanced-formula-fit">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough formula fit</p>
               <h3 id="advanced-formula-fit" className="mt-2 font-display text-2xl font-semibold">Hydration, salt &amp; oven fit</h3>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{formulaFitGuidance.summary}</p>
             </div>
-            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-44">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Overall formula fit</span>
-              <strong className="mt-1 block text-xl text-ink">{readablePlanningValue(formulaFitGuidance.overallFit)}</strong>
-            </div>
+            <RiskBadge value={formulaFitGuidance.overallFit} label="Overall formula fit" />
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Hydration fit</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(formulaFitGuidance.hydrationFit)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Salt fit</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(formulaFitGuidance.saltFit)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Oven fit</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(formulaFitGuidance.ovenFit)}</strong>
-            </div>
+            <PlanningMetric label="Hydration fit" value={readablePlanningValue(formulaFitGuidance.hydrationFit)} risk={formulaFitGuidance.hydrationFit} />
+            <PlanningMetric label="Salt fit" value={readablePlanningValue(formulaFitGuidance.saltFit)} risk={formulaFitGuidance.saltFit} />
+            <PlanningMetric label="Oven fit" value={readablePlanningValue(formulaFitGuidance.ovenFit)} risk={formulaFitGuidance.ovenFit} />
           </div>
           {(formulaFitGuidance.cautions.length > 0 || formulaFitGuidance.suggestedAdjustments.length > 0) && (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -796,7 +849,7 @@ function AdvancedCalculatorPlanningShell({
       )}
 
       {startWindow && (
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-start-window">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(startWindow.riskLevel)}`} aria-labelledby="advanced-start-window">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Start window</p>
@@ -810,18 +863,9 @@ function AdvancedCalculatorPlanningShell({
             </div>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Recommended window</span>
-              <strong className="mt-2 block text-sm text-ink">{startWindow.startWindowLabel}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Window fit</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(startWindow.fitLevel)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Window risk</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(startWindow.riskLevel)}</strong>
-            </div>
+            <PlanningMetric label="Recommended window" value={startWindow.startWindowLabel} risk={startWindow.riskLevel} />
+            <PlanningMetric label="Window fit" value={readablePlanningValue(startWindow.fitLevel)} risk={startWindow.fitLevel} />
+            <PlanningMetric label="Window risk" value={readablePlanningValue(startWindow.riskLevel)} risk={startWindow.riskLevel} />
           </div>
           <div className="mt-4 rounded-2xl bg-ink/[.04] p-4">
             <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Broad start range</span>
@@ -851,7 +895,7 @@ function AdvancedCalculatorPlanningShell({
       )}
 
       {fermentationSetup && (
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-fermentation-setup">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(fermentationSetup.riskLevel)}`} aria-labelledby="advanced-fermentation-setup">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Fermentation setup</p>
@@ -864,18 +908,9 @@ function AdvancedCalculatorPlanningShell({
             </div>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Recommended setup</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(fermentationSetup.recommendedSetup)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Selected setup fit</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(fermentationSetup.fitLevel)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Risk level</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(fermentationSetup.riskLevel)}</strong>
-            </div>
+            <PlanningMetric label="Recommended setup" value={readablePlanningValue(fermentationSetup.recommendedSetup)} risk={fermentationSetup.riskLevel} />
+            <PlanningMetric label="Selected setup fit" value={readablePlanningValue(fermentationSetup.fitLevel)} risk={fermentationSetup.fitLevel} />
+            <PlanningMetric label="Risk level" value={readablePlanningValue(fermentationSetup.riskLevel)} risk={fermentationSetup.riskLevel} />
           </div>
           {(fermentationSetup.cautions.length > 0 || fermentationSetup.suggestedAdjustments.length > 0) && (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -898,7 +933,7 @@ function AdvancedCalculatorPlanningShell({
       )}
 
       {doughTypeGuidance && (
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-dough-type-guidance">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(doughTypeGuidance.riskLevel)}`} aria-labelledby="advanced-dough-type-guidance">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough style guidance</p>
@@ -912,18 +947,9 @@ function AdvancedCalculatorPlanningShell({
             </div>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Style fit</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(doughTypeGuidance.fitLevel)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Style risk</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(doughTypeGuidance.riskLevel)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Time window</span>
-              <strong className="mt-2 block text-sm tabular-nums text-ink">{doughTypeGuidance.availableFermentationHours} h</strong>
-            </div>
+            <PlanningMetric label="Style fit" value={readablePlanningValue(doughTypeGuidance.fitLevel)} risk={doughTypeGuidance.fitLevel} />
+            <PlanningMetric label="Style risk" value={readablePlanningValue(doughTypeGuidance.riskLevel)} risk={doughTypeGuidance.riskLevel} />
+            <PlanningMetric label="Time window" value={`${doughTypeGuidance.availableFermentationHours} h`} risk={doughTypeGuidance.riskLevel} />
           </div>
           {(doughTypeGuidance.cautions.length > 0 || doughTypeGuidance.suggestedAdjustments.length > 0) && (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -946,7 +972,7 @@ function AdvancedCalculatorPlanningShell({
       )}
 
       {flourGuidance && (
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-flour-guidance">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(flourGuidance.riskLevel)}`} aria-labelledby="advanced-flour-guidance">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Flour guidance</p>
@@ -960,14 +986,8 @@ function AdvancedCalculatorPlanningShell({
             </div>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Suitability</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(flourGuidance.suitabilityLevel)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Flour risk</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(flourGuidance.riskLevel)}</strong>
-            </div>
+            <PlanningMetric label="Suitability" value={readablePlanningValue(flourGuidance.suitabilityLevel)} risk={flourGuidance.suitabilityLevel} />
+            <PlanningMetric label="Flour risk" value={readablePlanningValue(flourGuidance.riskLevel)} risk={flourGuidance.riskLevel} />
             <div className="rounded-2xl border border-ink/10 bg-white p-4">
               <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Advanced context</span>
               <strong className="mt-2 block text-sm text-ink">
@@ -999,7 +1019,7 @@ function AdvancedCalculatorPlanningShell({
       )}
 
       {yeastGuidance && (
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-yeast-guidance">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(yeastGuidance.riskLevel)}`} aria-labelledby="advanced-yeast-guidance">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Yeast guidance</p>
@@ -1015,18 +1035,9 @@ function AdvancedCalculatorPlanningShell({
             </div>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Broad fit / risk</span>
-              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(yeastGuidance.riskLevel)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Recipe yeast %</span>
-              <strong className="mt-2 block text-sm text-ink">{percentValue(yeastGuidance.calculatedYeastPercentOfFlour, locale)}</strong>
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-4">
-              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Fresh yeast equivalent</span>
-              <strong className="mt-2 block text-sm text-ink">{percentValue(yeastGuidance.calculatedFreshYeastEquivalentPercent, locale)}</strong>
-            </div>
+            <PlanningMetric label="Broad fit / risk" value={readablePlanningValue(yeastGuidance.riskLevel)} risk={yeastGuidance.riskLevel} />
+            <PlanningMetric label="Recipe yeast %" value={percentValue(yeastGuidance.calculatedYeastPercentOfFlour, locale)} risk={yeastGuidance.riskLevel} />
+            <PlanningMetric label="Fresh yeast equivalent" value={percentValue(yeastGuidance.calculatedFreshYeastEquivalentPercent, locale)} risk={yeastGuidance.riskLevel} />
           </div>
           {(yeastGuidance.cautions.length > 0 || yeastGuidance.suggestedAdjustments.length > 0) && (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -1049,7 +1060,7 @@ function AdvancedCalculatorPlanningShell({
       )}
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-planning-warnings">
+        <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${warnings.length > 0 ? "border-tomato/20 bg-tomato/[.05]" : "border-white/80 bg-white/75"}`} aria-labelledby="advanced-planning-warnings">
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Warnings</p>
           <h3 id="advanced-planning-warnings" className="mt-2 font-display text-2xl font-semibold">Planning warnings</h3>
           {warnings.length > 0 ? (
@@ -1124,26 +1135,18 @@ function AdvancedCalculatorPlanningShell({
         </p>
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-temperature-guidance">
+      <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(temperature?.riskLevel)}`} aria-labelledby="advanced-temperature-guidance">
         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Temperature</p>
         <h3 id="advanced-temperature-guidance" className="mt-2 font-display text-2xl font-semibold">Temperature guidance</h3>
         <p className="mt-3 text-sm leading-6 text-ink/60">{temperature?.summary}</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl bg-ink/[.04] p-4">
-            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Room</span>
-            <strong className="mt-2 block text-sm text-ink">{temperature?.roomCategory.replace("_", " ")}</strong>
-            <p className="mt-2 text-xs leading-5 text-ink/55">{temperature?.roomTemperatureNote}</p>
-          </div>
-          <div className="rounded-2xl bg-ink/[.04] p-4">
-            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Fridge</span>
-            <strong className="mt-2 block text-sm text-ink">{temperature?.fridgeCategory.replace("_", " ")}</strong>
-            <p className="mt-2 text-xs leading-5 text-ink/55">{temperature?.fridgeTemperatureNote}</p>
-          </div>
-          <div className="rounded-2xl bg-ink/[.04] p-4">
-            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Risk</span>
-            <strong className="mt-2 block text-sm text-ink">{temperature?.riskLevel.replace("_", " ")}</strong>
-            <p className="mt-2 text-xs leading-5 text-ink/55">Broad v1 temperature classification only. It does not change ingredient calculations.</p>
-          </div>
+          <PlanningMetric label="Room" value={temperature?.roomCategory.replace("_", " ") ?? "not available"} risk={temperature?.riskLevel} />
+          <PlanningMetric label="Fridge" value={temperature?.fridgeCategory.replace("_", " ") ?? "not available"} risk={temperature?.riskLevel} />
+          <PlanningMetric label="Risk" value={temperature?.riskLevel.replace("_", " ") ?? "not available"} risk={temperature?.riskLevel} />
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <p className="rounded-2xl bg-white/70 p-4 text-xs leading-5 text-ink/55">{temperature?.roomTemperatureNote}</p>
+          <p className="rounded-2xl bg-white/70 p-4 text-xs leading-5 text-ink/55">{temperature?.fridgeTemperatureNote}</p>
         </div>
       </section>
     </section>

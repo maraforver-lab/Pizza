@@ -246,7 +246,7 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("AdvancedCalculatorStandaloneControls");
     expect(calculatorWorkspace).toContain("AdvancedCalculatorPlanningShell");
     expect(calculatorWorkspace).toContain("Planning Engine v1");
-    expect(calculatorWorkspace).toContain("Advanced dough planning");
+    expect(calculatorWorkspace).toContain("Results and recommendations");
     expect(calculatorWorkspace).toContain("Ingredient amounts");
     expect(calculatorWorkspace).toContain("Plan risk summary");
     expect(calculatorWorkspace).toContain("What to adjust first");
@@ -272,6 +272,9 @@ describe("homepage content model", () => {
     const sessionStart = source("app/session/start/page.tsx");
 
     expect(calculatorWorkspace).toContain("AdvancedCalculatorStandaloneControls");
+    expect(calculatorWorkspace).toContain("Pizza style");
+    expect(calculatorWorkspace).toContain("Core dough inputs");
+    expect(calculatorWorkspace).toContain("Dough setup");
     expect(calculatorWorkspace).toContain("Bake date");
     expect(calculatorWorkspace).toContain("Bake time");
     expect(calculatorWorkspace).toContain("Available time");
@@ -295,6 +298,7 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Mixer friction heat");
     expect(calculatorWorkspace).toContain("Protein %");
     expect(calculatorWorkspace).toContain("W-value");
+    expect(calculatorWorkspace).toContain("Show optional fields");
     expect(calculatorWorkspace).toContain("These values are optional and do not change the ingredient formula in v1.");
     expect(calculatorWorkspace).toContain("DoughTools does not pretend exact flour behavior from these values yet.");
     expect(calculatorWorkspace).toContain('useState<PlanningMixingMethod>("hand_mixing")');
@@ -310,6 +314,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Ingredient grams still come from the existing calculator");
     expect(calculatorWorkspace).toContain("combinedRiskSummary");
     expect(calculatorWorkspace).toContain("Plan risk summary");
+    expect(calculatorWorkspace).toContain("RiskBadge");
+    expect(calculatorWorkspace).toContain("guidanceCardClasses");
     expect(calculatorWorkspace).toContain("Overall risk");
     expect(calculatorWorkspace).toContain("Main reason");
     expect(calculatorWorkspace).toContain("Suggested first adjustment");
