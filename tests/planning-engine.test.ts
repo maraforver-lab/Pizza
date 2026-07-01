@@ -171,6 +171,135 @@ describe("Planning Engine fermentation rules v1", () => {
     })).toBe(6.5);
   });
 
+  it("returns a safe fermentation setup recommendation when bake date/time is missing or invalid", () => {
+    const result = buildPlanningResult({
+      ...basePlanningInput,
+      desiredBakeDateTime: new Date("not-a-real-date"),
+    });
+
+    expect(result.availableFermentationHours).toBe(0);
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      availableTimeHours: 0,
+      recommendedSetup: "not_enough_time",
+      recommendedFermentationMode: "not_recommended",
+      fitLevel: "not_recommended",
+      riskLevel: "not_recommended",
+    });
+    expect(result.fermentationSetupRecommendation?.summary).toContain("too short");
+  });
+
+  it("flags a short available time as not enough for reliable fermentation setup", () => {
+    const result = buildPlanningResult(planningInputWithHours(2, {
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      recommendedSetup: "not_enough_time",
+      recommendedFermentationMode: "not_recommended",
+      selectedFermentationMode: "room",
+      fitLevel: "not_recommended",
+      riskLevel: "not_recommended",
+    });
+    expect(result.fermentationSetupRecommendation?.cautions.join(" ")).toContain("very soon");
+  });
+
+  it("recommends same-day room setup for a workable same-day window", () => {
+    const result = buildPlanningResult(planningInputWithHours(5, {
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      availableTimeHours: 5,
+      recommendedSetup: "same_day_room",
+      recommendedFermentationMode: "room",
+      selectedFermentationMode: "room",
+      fitLevel: "good_fit",
+    });
+    expect(result.fermentationSetupRecommendation?.summary).toContain("same-day room plan may work");
+  });
+
+  it("treats cold fermentation as a mismatch when bake time is very soon", () => {
+    const result = buildPlanningResult(planningInputWithHours(5, {
+      selectedFermentationMode: "cold",
+    }));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      recommendedSetup: "same_day_room",
+      selectedFermentationMode: "cold",
+      fitLevel: "high_risk",
+      riskLevel: "high_risk",
+    });
+    expect(result.fermentationSetupRecommendation?.cautions.join(" ")).toContain("Cold fermentation");
+    expect(result.fermentationSetupRecommendation?.suggestedAdjustments.join(" ")).toContain("room");
+  });
+
+  it("recommends room-temperature setup in the 8-24 hour planning range", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      recommendedSetup: "room_temperature",
+      recommendedFermentationMode: "room",
+      fitLevel: "good_fit",
+      riskLevel: "good_fit",
+    });
+  });
+
+  it("recommends cold or hybrid setup for the 24-72 hour range", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 4,
+    }));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      recommendedSetup: "cold_fermentation",
+      recommendedFermentationMode: "cold",
+      selectedFermentationMode: "cold",
+      fitLevel: "good_fit",
+    });
+  });
+
+  it("surfaces warm fridge caution for long cold fermentation setup", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 8,
+    }));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      recommendedSetup: "hybrid",
+      selectedFermentationMode: "cold",
+      riskLevel: "caution",
+    });
+    expect(result.fermentationSetupRecommendation?.cautions.join(" ")).toContain("Warm fridge");
+    expect(result.fermentationSetupRecommendation?.suggestedAdjustments.join(" ")).toContain("colder fridge");
+  });
+
+  it("surfaces warm room high risk when selected room setup conflicts with a long window", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      selectedFermentationMode: "room",
+      roomTemperature: 28,
+    }));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      recommendedSetup: "cold_fermentation",
+      selectedFermentationMode: "room",
+      fitLevel: "high_risk",
+      riskLevel: "high_risk",
+    });
+    expect(result.fermentationSetupRecommendation?.cautions.join(" ")).toContain("Hot room");
+  });
+
+  it("keeps fermentation setup recommendation safe when no selected setup is provided", () => {
+    const result = buildPlanningResult(planningInputWithHours(18));
+
+    expect(result.fermentationSetupRecommendation).toMatchObject({
+      recommendedSetup: "room_temperature",
+      selectedFermentationMode: null,
+      fitLevel: "workable",
+    });
+  });
+
   it("returns not_recommended and a high-risk warning when the fermentation window is zero or negative", () => {
     const result = buildPlanningResult({
       ...basePlanningInput,

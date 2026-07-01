@@ -29,7 +29,7 @@ import {
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { buildPlanningResult } from "@/lib/planning-engine";
 import type { PlanningInput } from "@/lib/planning-input";
-import type { PlanningMixingMethod } from "@/lib/planning-types";
+import type { FermentationMode, PlanningMixingMethod } from "@/lib/planning-types";
 import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
@@ -106,10 +106,19 @@ const optionalPlanningNumber = (value: string) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
+const planningFermentationModeFromRecipe = (fermentation: Fermentation): FermentationMode => (
+  fermentation.endsWith("cold") ? "cold" : "room"
+);
+
+const readablePlanningValue = (value: string | null | undefined) => (
+  value ? value.replaceAll("_", " ") : "not selected"
+);
+
 const planningInputFromCalculator = (input: {
   currentDateTime: Date;
   desiredBakeDateTime: Date;
   ovenType: OvenType;
+  fermentation: Fermentation;
   experienceLevel: ExperienceLevel;
   flourId: FlourId;
   pizzas: number;
@@ -130,6 +139,7 @@ const planningInputFromCalculator = (input: {
     flourSelection: { type: "known_flour_id", flourId: input.flourId },
     doughBallCount: input.pizzas,
     doughBallWeight: input.ballWeight,
+    selectedFermentationMode: planningFermentationModeFromRecipe(input.fermentation),
     mixingMethod: input.planningMixingMethod,
     targetDoughTemperature: input.targetDoughTemperature,
     mixerFrictionHeat: input.mixerFrictionHeat,
@@ -630,6 +640,7 @@ function AdvancedCalculatorPlanningShell({
   const warnings = planningResult.warnings;
   const mixing = planningResult.mixingGuidance;
   const timeline = planningResult.fermentationTimeline;
+  const fermentationSetup = planningResult.fermentationSetupRecommendation;
   const temperature = planningResult.temperatureGuidance;
 
   return (
@@ -662,6 +673,53 @@ function AdvancedCalculatorPlanningShell({
           ))}
         </div>
       </section>
+
+      {fermentationSetup && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-fermentation-setup">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Fermentation setup</p>
+              <h3 id="advanced-fermentation-setup" className="mt-2 font-display text-2xl font-semibold">Recommended setup</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{fermentationSetup.summary}</p>
+            </div>
+            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-48">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Available time until bake</span>
+              <strong className="mt-1 block text-xl tabular-nums text-ink">{fermentationSetup.availableTimeHours} h</strong>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Recommended setup</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(fermentationSetup.recommendedSetup)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Selected setup fit</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(fermentationSetup.fitLevel)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Risk level</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(fermentationSetup.riskLevel)}</strong>
+            </div>
+          </div>
+          {(fermentationSetup.cautions.length > 0 || fermentationSetup.suggestedAdjustments.length > 0) && (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {fermentationSetup.cautions.length > 0 && (
+                <div className="rounded-2xl bg-tomato/[.06] p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">Watch out</span>
+                  <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-ink/55">
+                    {fermentationSetup.cautions.slice(0, 2).map((caution) => <li key={caution}>• {caution}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="rounded-2xl bg-leaf/[.08] p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Suggested adjustment</span>
+                <p className="mt-2 text-xs leading-5 text-ink/55">{fermentationSetup.suggestedAdjustments[0]}</p>
+              </div>
+            </div>
+          )}
+          {fermentationSetup.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{fermentationSetup.technicalNote}</p>}
+        </section>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-planning-warnings">
@@ -889,6 +947,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     currentDateTime: new Date(),
     desiredBakeDateTime: bakeTargetDateTime(advancedBakeDate, advancedBakeTime),
     ovenType,
+    fermentation,
     experienceLevel,
     flourId,
     pizzas,
@@ -901,6 +960,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   })), [
     ovenType,
     experienceLevel,
+    fermentation,
     flourId,
     pizzas,
     ballWeight,

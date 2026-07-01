@@ -249,6 +249,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Advanced dough planning");
     expect(calculatorWorkspace).toContain("Ingredient amounts");
     expect(calculatorWorkspace).toContain("Planning warnings");
+    expect(calculatorWorkspace).toContain("Fermentation setup");
+    expect(calculatorWorkspace).toContain("Recommended setup");
     expect(calculatorWorkspace).toContain("Planning summary");
     expect(calculatorWorkspace).toContain("Variables that affect this plan");
     expect(calculatorWorkspace).toContain("Temperature guidance");
@@ -297,7 +299,13 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("planningRoomTemperature");
     expect(calculatorWorkspace).toContain("planningFridgeTemperature");
     expect(calculatorWorkspace).toContain("Ingredient grams still come from the existing calculator");
+    expect(calculatorWorkspace).toContain("Available time until bake");
+    expect(calculatorWorkspace).toContain("Selected setup fit");
+    expect(calculatorWorkspace).toContain("Risk level");
+    expect(calculatorWorkspace).toContain("planningFermentationModeFromRecipe");
+    expect(calculatorWorkspace).toContain("fermentationSetupRecommendation");
     expect(sessionStart).not.toContain("AdvancedCalculatorStandaloneControls");
+    expect(sessionStart).not.toContain("Fermentation setup");
     expect(sessionStart).not.toContain("planningMixingMethod");
   });
 

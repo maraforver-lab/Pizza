@@ -2,6 +2,7 @@ import type {
   FermentationMode,
   FlourCategory,
   PlanningFermentationTimeline,
+  PlanningFermentationSetupRecommendation,
   PlanningFlourId,
   PlanningMixingGuidance,
   PlanningTemperatureGuidance,
@@ -22,6 +23,7 @@ export type PlanningResult = {
   recommendedYeast: PlanningYeastRecommendation;
   mixingGuidance: PlanningMixingGuidance | null;
   fermentationTimeline: PlanningFermentationTimeline | null;
+  fermentationSetupRecommendation: PlanningFermentationSetupRecommendation | null;
   temperatureGuidance: PlanningTemperatureGuidance | null;
   warnings: PlanningWarning[];
   qualityScore: PlanningQualityScore;
@@ -38,6 +40,7 @@ export function createPlanningFoundationResult(input: {
   recommendedYeast?: PlanningYeastRecommendation;
   mixingGuidance?: PlanningMixingGuidance | null;
   fermentationTimeline?: PlanningFermentationTimeline | null;
+  fermentationSetupRecommendation?: PlanningFermentationSetupRecommendation | null;
   temperatureGuidance?: PlanningTemperatureGuidance | null;
   warnings?: PlanningWarning[];
   qualityScore?: PlanningQualityScore;
@@ -83,6 +86,7 @@ export function createPlanningFoundationResult(input: {
     },
     mixingGuidance: input.mixingGuidance ?? null,
     fermentationTimeline: input.fermentationTimeline ?? null,
+    fermentationSetupRecommendation: input.fermentationSetupRecommendation ?? null,
     temperatureGuidance: input.temperatureGuidance ?? null,
     warnings: input.warnings ?? [],
     qualityScore: input.qualityScore ?? {
@@ -93,8 +97,8 @@ export function createPlanningFoundationResult(input: {
     technicalDetails: {
       engineVersion: 1,
       selectedTimeWindow: {
-        currentDateTime: input.planningInput.currentDateTime.toISOString(),
-        desiredBakeDateTime: input.planningInput.desiredBakeDateTime.toISOString(),
+        currentDateTime: safePlanningDateIso(input.planningInput.currentDateTime),
+        desiredBakeDateTime: safePlanningDateIso(input.planningInput.desiredBakeDateTime),
       },
       availableFermentationHours: input.availableFermentationHours,
       assumptions: input.assumptions ?? [
@@ -136,4 +140,9 @@ export function createPlanningFoundationResult(input: {
       },
     },
   };
+}
+
+function safePlanningDateIso(date: Date): string {
+  const time = date.getTime();
+  return Number.isFinite(time) ? date.toISOString() : "invalid-date";
 }

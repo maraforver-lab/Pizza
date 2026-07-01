@@ -1,4 +1,5 @@
 import { resolvePlanningFlourProfile, type PlanningFlourProfile } from "@/lib/planning-flour-profiles";
+import { buildPlanningFermentationSetupRecommendation } from "@/lib/planning-fermentation-setup";
 import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-timeline";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
@@ -48,6 +49,15 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     roomTemperature: input.roomTemperature,
     fridgeTemperature: input.fridgeTemperature,
   });
+  const fermentationSetupRecommendation = buildPlanningFermentationSetupRecommendation({
+    availableFermentationHours,
+    recommendedFermentationMode: recommendation.mode,
+    selectedFermentationMode: input.selectedFermentationMode,
+    roomTemperature: input.roomTemperature,
+    fridgeTemperature: input.fridgeTemperature,
+    userLevel: input.userLevel,
+    ovenType: input.ovenType,
+  });
   const temperatureGuidance = buildPlanningTemperatureGuidance({
     userLevel: input.userLevel,
     fermentationMode: recommendation.mode,
@@ -78,6 +88,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     recommendedYeast,
     mixingGuidance,
     fermentationTimeline,
+    fermentationSetupRecommendation,
     temperatureGuidance,
     warnings,
     qualityScore: recommendation.qualityScore,

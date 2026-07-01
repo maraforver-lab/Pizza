@@ -1,4 +1,4 @@
-import type { FlourSelection, OvenType, PlanningMixingMethod, UserLevel } from "@/lib/planning-types";
+import type { FermentationMode, FlourSelection, OvenType, PlanningMixingMethod, UserLevel } from "@/lib/planning-types";
 
 export type PlanningInput = {
   currentDateTime: Date;
@@ -10,6 +10,7 @@ export type PlanningInput = {
   flourSelection: FlourSelection;
   doughBallCount: number;
   doughBallWeight: number;
+  selectedFermentationMode?: FermentationMode;
   mixingMethod?: PlanningMixingMethod;
   targetDoughTemperature?: number;
   mixerFrictionHeat?: number;

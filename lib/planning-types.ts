@@ -7,6 +7,21 @@ export type OvenType = "home_oven" | "pizza_oven";
 
 export type FermentationMode = "room" | "cold" | "hybrid" | "not_recommended";
 
+export type PlanningFermentationSetupCategory =
+  | "same_day_room"
+  | "room_temperature"
+  | "cold_fermentation"
+  | "hybrid"
+  | "not_enough_time"
+  | "too_long_for_selected_setup";
+
+export type PlanningFermentationSetupFitLevel =
+  | "good_fit"
+  | "workable"
+  | "caution"
+  | "high_risk"
+  | "not_recommended";
+
 export type FlourSelection =
   | { type: "unknown" }
   | { type: "standard_pizza_flour" }
@@ -128,6 +143,21 @@ export type PlanningTemperatureGuidance = {
   userFacingGuidance: string[];
   levelNotes: string[];
   technicalNotes: string[];
+};
+
+export type PlanningFermentationSetupRecommendation = {
+  version: 1;
+  availableTimeHours: number;
+  recommendedSetup: PlanningFermentationSetupCategory;
+  recommendedFermentationMode: FermentationMode;
+  selectedFermentationMode: FermentationMode | null;
+  fitLevel: PlanningFermentationSetupFitLevel;
+  riskLevel: PlanningFermentationSetupFitLevel;
+  title: string;
+  summary: string;
+  cautions: string[];
+  suggestedAdjustments: string[];
+  technicalNote: string | null;
 };
 
 export type PlanningFermentationTimelineStepType =
