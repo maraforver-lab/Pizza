@@ -1,5 +1,6 @@
 import type {
   FermentationMode,
+  PlanningFlourGuidance,
   FlourCategory,
   PlanningFermentationTimeline,
   PlanningFermentationSetupRecommendation,
@@ -26,6 +27,7 @@ export type PlanningResult = {
   fermentationTimeline: PlanningFermentationTimeline | null;
   fermentationSetupRecommendation: PlanningFermentationSetupRecommendation | null;
   yeastGuidance: PlanningYeastGuidance | null;
+  flourGuidance: PlanningFlourGuidance | null;
   temperatureGuidance: PlanningTemperatureGuidance | null;
   warnings: PlanningWarning[];
   qualityScore: PlanningQualityScore;
@@ -44,6 +46,7 @@ export function createPlanningFoundationResult(input: {
   fermentationTimeline?: PlanningFermentationTimeline | null;
   fermentationSetupRecommendation?: PlanningFermentationSetupRecommendation | null;
   yeastGuidance?: PlanningYeastGuidance | null;
+  flourGuidance?: PlanningFlourGuidance | null;
   temperatureGuidance?: PlanningTemperatureGuidance | null;
   warnings?: PlanningWarning[];
   qualityScore?: PlanningQualityScore;
@@ -91,6 +94,7 @@ export function createPlanningFoundationResult(input: {
     fermentationTimeline: input.fermentationTimeline ?? null,
     fermentationSetupRecommendation: input.fermentationSetupRecommendation ?? null,
     yeastGuidance: input.yeastGuidance ?? null,
+    flourGuidance: input.flourGuidance ?? null,
     temperatureGuidance: input.temperatureGuidance ?? null,
     warnings: input.warnings ?? [],
     qualityScore: input.qualityScore ?? {

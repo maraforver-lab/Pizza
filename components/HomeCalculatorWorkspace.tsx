@@ -123,12 +123,16 @@ const planningInputFromCalculator = (input: {
   flourId: FlourId;
   pizzas: number;
   ballWeight: number;
+  hydration: number;
+  doughStyle: AdvancedDoughType;
   yeastType: YeastType;
   calculatedFlourGrams?: number;
   calculatedYeastGrams?: number;
   planningMixingMethod: PlanningMixingMethod;
   planningRoomTemperature: number;
   planningFridgeTemperature: number;
+  proteinPercent?: number;
+  wValue?: number;
   targetDoughTemperature?: number;
   mixerFrictionHeat?: number;
 }): PlanningInput => {
@@ -142,11 +146,15 @@ const planningInputFromCalculator = (input: {
     flourSelection: { type: "known_flour_id", flourId: input.flourId },
     doughBallCount: input.pizzas,
     doughBallWeight: input.ballWeight,
+    hydration: input.hydration,
+    doughStyle: input.doughStyle,
     selectedFermentationMode: planningFermentationModeFromRecipe(input.fermentation),
     mixingMethod: input.planningMixingMethod,
     yeastType: input.yeastType,
     calculatedFlourGrams: input.calculatedFlourGrams,
     calculatedYeastGrams: input.calculatedYeastGrams,
+    proteinPercent: input.proteinPercent,
+    wValue: input.wValue,
     targetDoughTemperature: input.targetDoughTemperature,
     mixerFrictionHeat: input.mixerFrictionHeat,
   };
@@ -654,6 +662,7 @@ function AdvancedCalculatorPlanningShell({
   const mixing = planningResult.mixingGuidance;
   const timeline = planningResult.fermentationTimeline;
   const fermentationSetup = planningResult.fermentationSetupRecommendation;
+  const flourGuidance = planningResult.flourGuidance;
   const yeastGuidance = planningResult.yeastGuidance;
   const temperature = planningResult.temperatureGuidance;
 
@@ -732,6 +741,59 @@ function AdvancedCalculatorPlanningShell({
             </div>
           )}
           {fermentationSetup.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{fermentationSetup.technicalNote}</p>}
+        </section>
+      )}
+
+      {flourGuidance && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-flour-guidance">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Flour guidance</p>
+              <h3 id="advanced-flour-guidance" className="mt-2 font-display text-2xl font-semibold">{flourGuidance.title}</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{flourGuidance.summary}</p>
+            </div>
+            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-48">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Selected flour</span>
+              <strong className="mt-1 block text-xl text-ink">{flourGuidance.flourType}</strong>
+              <span className="mt-1 block text-xs text-ink/45">{readablePlanningValue(flourGuidance.flourCategory)}</span>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Suitability</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(flourGuidance.suitabilityLevel)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Flour risk</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(flourGuidance.riskLevel)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Advanced context</span>
+              <strong className="mt-2 block text-sm text-ink">
+                {[
+                  flourGuidance.proteinPercent === null ? null : `${flourGuidance.proteinPercent}% protein`,
+                  flourGuidance.wValue === null ? null : `W ${flourGuidance.wValue}`,
+                ].filter(Boolean).join(" · ") || "optional"}
+              </strong>
+            </div>
+          </div>
+          {(flourGuidance.cautions.length > 0 || flourGuidance.suggestedAdjustments.length > 0) && (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {flourGuidance.cautions.length > 0 && (
+                <div className="rounded-2xl bg-tomato/[.06] p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">Watch out</span>
+                  <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-ink/55">
+                    {flourGuidance.cautions.slice(0, 2).map((caution) => <li key={caution}>• {caution}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="rounded-2xl bg-leaf/[.08] p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Suggested adjustment</span>
+                <p className="mt-2 text-xs leading-5 text-ink/55">{flourGuidance.suggestedAdjustments[0]}</p>
+              </div>
+            </div>
+          )}
+          {flourGuidance.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{flourGuidance.technicalNote}</p>}
         </section>
       )}
 
@@ -1016,12 +1078,16 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     flourId,
     pizzas,
     ballWeight,
+    hydration,
+    doughStyle: advancedDoughType,
     yeastType,
     calculatedFlourGrams: recipe.flour,
     calculatedYeastGrams: recipe.leavener,
     planningMixingMethod,
     planningRoomTemperature,
     planningFridgeTemperature,
+    proteinPercent: optionalPlanningNumber(proteinPercent),
+    wValue: optionalPlanningNumber(wValue),
     targetDoughTemperature: optionalPlanningNumber(targetDoughTemperature),
     mixerFrictionHeat: optionalPlanningNumber(mixerFrictionHeat),
   })), [
@@ -1031,12 +1097,16 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     flourId,
     pizzas,
     ballWeight,
+    hydration,
+    advancedDoughType,
     yeastType,
     recipe.flour,
     recipe.leavener,
     planningMixingMethod,
     planningRoomTemperature,
     planningFridgeTemperature,
+    proteinPercent,
+    wValue,
     targetDoughTemperature,
     mixerFrictionHeat,
     advancedBakeDate,

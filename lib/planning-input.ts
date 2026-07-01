@@ -11,11 +11,15 @@ export type PlanningInput = {
   flourSelection: FlourSelection;
   doughBallCount: number;
   doughBallWeight: number;
+  hydration?: number;
+  doughStyle?: string;
   selectedFermentationMode?: FermentationMode;
   mixingMethod?: PlanningMixingMethod;
   yeastType?: YeastType;
   calculatedFlourGrams?: number;
   calculatedYeastGrams?: number;
+  proteinPercent?: number;
+  wValue?: number;
   targetDoughTemperature?: number;
   mixerFrictionHeat?: number;
 };

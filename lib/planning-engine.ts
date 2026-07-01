@@ -1,6 +1,7 @@
 import { resolvePlanningFlourProfile, type PlanningFlourProfile } from "@/lib/planning-flour-profiles";
 import { buildPlanningFermentationSetupRecommendation } from "@/lib/planning-fermentation-setup";
 import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-timeline";
+import { buildPlanningFlourGuidance } from "@/lib/planning-flour-guidance";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
 import { createPlanningFoundationResult, type PlanningResult } from "@/lib/planning-result";
@@ -72,6 +73,20 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     fridgeTemperature: input.fridgeTemperature,
     userLevel: input.userLevel,
   });
+  const flourGuidance = buildPlanningFlourGuidance({
+    flourProfile,
+    hydration: input.hydration,
+    availableFermentationHours,
+    selectedFermentationMode: input.selectedFermentationMode,
+    recommendedFermentationMode: recommendation.mode,
+    roomTemperature: input.roomTemperature,
+    fridgeTemperature: input.fridgeTemperature,
+    ovenType: input.ovenType,
+    doughStyle: input.doughStyle,
+    proteinPercent: input.proteinPercent,
+    wValue: input.wValue,
+    userLevel: input.userLevel,
+  });
   const temperatureGuidance = buildPlanningTemperatureGuidance({
     userLevel: input.userLevel,
     fermentationMode: recommendation.mode,
@@ -104,6 +119,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     fermentationTimeline,
     fermentationSetupRecommendation,
     yeastGuidance,
+    flourGuidance,
     temperatureGuidance,
     warnings,
     qualityScore: recommendation.qualityScore,

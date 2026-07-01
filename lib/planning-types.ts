@@ -87,6 +87,13 @@ export type PlanningTemperatureRiskLevel =
   | "caution"
   | "high_risk";
 
+export type PlanningFlourSuitabilityLevel =
+  | "good_fit"
+  | "workable"
+  | "caution"
+  | "high_risk"
+  | "not_enough_information";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -118,6 +125,28 @@ export type PlanningYeastGuidance = {
   selectedFermentationMode: FermentationMode | null;
   recommendedFermentationMode: FermentationMode;
   riskLevel: PlanningYeastRiskLevel;
+  title: string;
+  summary: string;
+  cautions: string[];
+  suggestedAdjustments: string[];
+  technicalNote: string | null;
+};
+
+export type PlanningFlourGuidance = {
+  version: 1;
+  flourSelection: FlourSelection;
+  flourType: string;
+  flourCategory: FlourCategory;
+  profileId: PlanningFlourId | null;
+  hydration: number | null;
+  availableFermentationHours: number;
+  selectedFermentationMode: FermentationMode | null;
+  ovenType: OvenType;
+  doughStyle: string | null;
+  proteinPercent: number | null;
+  wValue: number | null;
+  suitabilityLevel: PlanningFlourSuitabilityLevel;
+  riskLevel: PlanningFlourSuitabilityLevel;
   title: string;
   summary: string;
   cautions: string[];

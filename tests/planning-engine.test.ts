@@ -293,6 +293,151 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.yeastGuidance?.summary).toContain("Sourdough starter activity varies");
   });
 
+  it("returns default flour guidance from the selected flour profile", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      hydration: 64,
+      selectedFermentationMode: "room",
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+      ovenType: "pizza_oven",
+      doughStyle: "neapolitan_direct",
+    }));
+
+    expect(result.flourGuidance).toMatchObject({
+      version: 1,
+      flourCategory: "medium_strong",
+      flourType: "Tipo 00 / pizza flour",
+      suitabilityLevel: "good_fit",
+      riskLevel: "workable",
+      hydration: 64,
+    });
+    expect(result.flourGuidance?.summary).toContain("good broad fit");
+  });
+
+  it("covers each broad flour category with conservative guidance", () => {
+    const standard = buildPlanningResult(planningInputWithHours(8, {
+      flourSelection: { type: "standard_pizza_flour" },
+      hydration: 62,
+    }));
+    const medium = buildPlanningResult(planningInputWithHours(12, {
+      flourSelection: { type: "medium_strong_pizza_flour" },
+      hydration: 64,
+    }));
+    const strong = buildPlanningResult(planningInputWithHours(36, {
+      flourSelection: { type: "strong_pizza_flour" },
+      hydration: 66,
+      selectedFermentationMode: "cold",
+    }));
+    const unknown = buildPlanningResult(planningInputWithHours(8, {
+      flourSelection: { type: "unknown" },
+      hydration: 62,
+    }));
+
+    expect(standard.flourGuidance?.flourCategory).toBe("standard");
+    expect(medium.flourGuidance?.suitabilityLevel).toBe("good_fit");
+    expect(strong.flourGuidance?.suitabilityLevel).toBe("good_fit");
+    expect(unknown.flourGuidance?.suitabilityLevel).toBe("not_enough_information");
+  });
+
+  it("flags high hydration with all-purpose or weaker flour", () => {
+    const result = buildPlanningResult(planningInputWithHours(8, {
+      flourSelection: { type: "standard_pizza_flour" },
+      hydration: 72,
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.flourGuidance).toMatchObject({
+      flourCategory: "standard",
+      suitabilityLevel: "high_risk",
+      riskLevel: "high_risk",
+    });
+    expect(result.flourGuidance?.cautions.join(" ")).toContain("High hydration");
+    expect(result.flourGuidance?.suggestedAdjustments.join(" ")).toContain("lowering hydration");
+  });
+
+  it("flags long fermentation with weaker flour", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      flourSelection: { type: "standard_pizza_flour" },
+      hydration: 64,
+      selectedFermentationMode: "cold",
+    }));
+
+    expect(result.flourGuidance).toMatchObject({
+      riskLevel: "high_risk",
+      suitabilityLevel: "high_risk",
+    });
+    expect(result.flourGuidance?.cautions.join(" ")).toContain("48–72 hour fermentation");
+    expect(result.flourGuidance?.suggestedAdjustments.join(" ")).toContain("stronger pizza/bread flour");
+  });
+
+  it("treats Tipo 00 pizza flour as good fit for pizza oven and workable for home oven", () => {
+    const pizzaOven = buildPlanningResult(planningInputWithHours(18, {
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+      hydration: 64,
+      ovenType: "pizza_oven",
+      selectedFermentationMode: "room",
+    }));
+    const homeOven = buildPlanningResult(planningInputWithHours(18, {
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+      hydration: 64,
+      ovenType: "home_oven",
+      selectedFermentationMode: "room",
+    }));
+
+    expect(pizzaOven.flourGuidance?.suitabilityLevel).toBe("good_fit");
+    expect(pizzaOven.flourGuidance?.cautions.join(" ")).not.toContain("home oven");
+    expect(homeOven.flourGuidance?.suitabilityLevel).toBe("workable");
+    expect(homeOven.flourGuidance?.summary).toContain("home oven");
+    expect(homeOven.flourGuidance?.suggestedAdjustments.join(" ")).toContain("home oven");
+  });
+
+  it("treats strong flour as useful for long fermentation but cautions for fast dough", () => {
+    const longPlan = buildPlanningResult(planningInputWithHours(48, {
+      flourSelection: { type: "strong_pizza_flour" },
+      hydration: 68,
+      selectedFermentationMode: "cold",
+    }));
+    const fastPlan = buildPlanningResult(planningInputWithHours(5, {
+      flourSelection: { type: "strong_pizza_flour" },
+      hydration: 62,
+      selectedFermentationMode: "room",
+    }));
+
+    expect(longPlan.flourGuidance?.suitabilityLevel).toBe("good_fit");
+    expect(longPlan.flourGuidance?.summary).toContain("good broad fit");
+    expect(fastPlan.flourGuidance?.riskLevel).toBe("caution");
+    expect(fastPlan.flourGuidance?.cautions.join(" ")).toContain("chewier");
+  });
+
+  it("uses optional protein and W-value as cautious context without changing formulas", () => {
+    const lowProtein = buildPlanningResult(planningInputWithHours(18, {
+      flourSelection: { type: "standard_pizza_flour" },
+      hydration: 68,
+      proteinPercent: 10.5,
+      selectedFermentationMode: "room",
+    }));
+    const lowW = buildPlanningResult(planningInputWithHours(36, {
+      flourSelection: { type: "medium_strong_pizza_flour" },
+      hydration: 64,
+      wValue: 220,
+      selectedFermentationMode: "cold",
+    }));
+    const highW = buildPlanningResult(planningInputWithHours(36, {
+      flourSelection: { type: "strong_pizza_flour" },
+      hydration: 68,
+      wValue: 340,
+      proteinPercent: 13.8,
+      selectedFermentationMode: "cold",
+    }));
+
+    expect(lowProtein.flourGuidance?.cautions.join(" ")).toContain("Low protein");
+    expect(lowProtein.flourGuidance?.summary).toContain("protein 10.5%");
+    expect(lowW.flourGuidance?.cautions.join(" ")).toContain("Low W-value");
+    expect(lowW.flourGuidance?.summary).toContain("W 220");
+    expect(highW.flourGuidance?.summary).toContain("W 340");
+    expect(highW.flourGuidance?.summary).toContain("protein 13.8%");
+    expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.71, 2);
+  });
+
   it("flags a short available time as not enough for reliable fermentation setup", () => {
     const result = buildPlanningResult(planningInputWithHours(2, {
       selectedFermentationMode: "room",
@@ -1101,7 +1246,7 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-guidance|planning-yeast-model|planning-warning-engine/;
+    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-guidance|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-guidance|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
     expect(homepageWorkspace).toContain('variant?: "full" | "entry"');
