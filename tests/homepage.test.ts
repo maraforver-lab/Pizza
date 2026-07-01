@@ -250,6 +250,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)]");
     expect(calculatorWorkspace).toContain("AdvancedCalculatorStandaloneControls");
     expect(calculatorWorkspace).toContain("AdvancedCalculatorPlanningShell");
+    expect(calculatorWorkspace).toContain("AdvancedCalculatorTopSummary");
+    expect(calculatorWorkspace).toContain("Top summary bar");
     expect(calculatorWorkspace).toContain("Planning Engine v1");
     expect(calculatorWorkspace).toContain("Results and recommendations");
     expect(calculatorWorkspace).toContain("Ingredient amounts");
@@ -269,7 +271,7 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Variables that affect this plan");
     expect(calculatorWorkspace).toContain("Temperature guidance");
     expect(calculatorWorkspace).toContain("buildPlanningResult(planningInputFromCalculator");
-    expect(calculatorWorkspace).toContain("guidance is conservative and separate from Pizza Session");
+    expect(calculatorWorkspace).toContain("Secondary guidance is available below without turning this into a full workflow.");
   });
 
   it("adds a standalone advanced calculator variable view without changing Pizza Session", () => {
@@ -279,6 +281,9 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("AdvancedCalculatorStandaloneControls");
     expect(calculatorWorkspace).toContain("Calculator v1");
     expect(calculatorWorkspace).toContain("Full-control lab");
+    expect(calculatorWorkspace).toContain("Top summary bar");
+    expect(calculatorWorkspace).toContain("Essential setup");
+    expect(calculatorWorkspace).toContain("Formula tuning");
     expect(calculatorWorkspace).toContain("Bake target");
     expect(calculatorWorkspace).toContain("Pizza style");
     expect(calculatorWorkspace).toContain("Pizza amount");
@@ -321,7 +326,9 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("planningMixingMethod");
     expect(calculatorWorkspace).toContain("planningRoomTemperature");
     expect(calculatorWorkspace).toContain("planningFridgeTemperature");
-    expect(calculatorWorkspace).toContain("Ingredient grams still come from the existing calculator");
+    expect(calculatorWorkspace).toContain("Ingredient amounts, the main risk and the next adjustment stay upfront.");
+    expect(calculatorWorkspace).toContain("Details / guidance");
+    expect(calculatorWorkspace).toContain("Open advanced guidance cards");
     expect(calculatorWorkspace).toContain("combinedRiskSummary");
     expect(calculatorWorkspace).toContain("Plan risk summary");
     expect(calculatorWorkspace).toContain("RiskBadge");

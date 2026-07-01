@@ -1666,7 +1666,7 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(homepageWorkspace).toContain('variant?: "full" | "entry"');
     expect(homepageWorkspace).toContain("buildPlanningResult");
     expect(homepageWorkspace).toContain("AdvancedCalculatorPlanningShell");
-    expect(homepageWorkspace).toContain("guidance is conservative and separate from Pizza Session");
+    expect(homepageWorkspace).toContain("Secondary guidance is available below without turning this into a full workflow.");
     expect(sessionRecipe).not.toMatch(planningImports);
     expect(sessionTimeline).not.toMatch(planningImports);
     expect(plannerPage).not.toMatch(planningImports);

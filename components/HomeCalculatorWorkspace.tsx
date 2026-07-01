@@ -407,6 +407,52 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
   );
 }
 
+function AdvancedCalculatorTopSummary({
+  doughTypeLabel,
+  bakeDate,
+  bakeTime,
+  planningResult,
+  locale,
+}: {
+  doughTypeLabel: string;
+  bakeDate: string;
+  bakeTime: string;
+  planningResult: ReturnType<typeof buildPlanningResult>;
+  locale: Locale;
+}) {
+  const combinedRisk = planningResult.combinedRiskSummary;
+  const bakeTargetIso = bakeTargetDateTime(bakeDate, bakeTime).toISOString();
+
+  return (
+    <section className={`mb-5 rounded-[1.75rem] border p-4 shadow-card backdrop-blur sm:p-5 ${guidanceCardClasses(combinedRisk?.overallRiskLevel)}`} aria-labelledby="calculator-top-summary">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Top summary bar</p>
+          <h1 id="calculator-top-summary" className="mt-1 font-display text-3xl font-semibold">Calculator v1</h1>
+        </div>
+        <div className="grid gap-2 text-sm sm:grid-cols-2 lg:min-w-[44rem] lg:grid-cols-4">
+          <div className="rounded-2xl bg-white/80 p-3">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Pizza style</span>
+            <strong className="mt-1 block text-ink">{doughTypeLabel}</strong>
+          </div>
+          <div className="rounded-2xl bg-white/80 p-3">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Bake target</span>
+            <strong className="mt-1 block text-ink">{formatPlanningDateTime(bakeTargetIso, locale)}</strong>
+            <span className="mt-1 block text-xs text-ink/45">{planningResult.availableFermentationHours} h available</span>
+          </div>
+          <div className="rounded-2xl bg-white/80 p-3">
+            <RiskBadge value={combinedRisk?.overallRiskLevel} label="Overall risk" />
+          </div>
+          <div className="rounded-2xl bg-leaf/[.08] p-3">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">What to adjust first</span>
+            <strong className="mt-1 block text-sm leading-5 text-ink">{combinedRisk?.suggestedFirstAdjustment ?? "No immediate adjustment needed."}</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function AdvancedCalculatorStandaloneControls({
   bakeDate,
   onBakeDateChange,
@@ -539,7 +585,7 @@ function AdvancedCalculatorStandaloneControls({
 
       <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-pizza-style">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza style</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Essential setup</p>
           <h2 id="standalone-pizza-style" className="mt-2 font-display text-2xl font-semibold">Choose the dough direction</h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">Start with the broad pizza style so the calculator can explain timing, flour and oven fit in plain language.</p>
         </div>
@@ -598,8 +644,8 @@ function AdvancedCalculatorStandaloneControls({
 
         <div className="mt-6 border-t border-ink/10 pt-6" aria-labelledby="standalone-dough-formula">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough formula</p>
-            <h3 id="standalone-dough-formula" className="mt-2 font-display text-2xl font-semibold">Tune hydration, salt % and yeast</h3>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Formula tuning</p>
+            <h3 id="standalone-dough-formula" className="mt-2 font-display text-2xl font-semibold">Dough formula</h3>
             <p className="mt-2 text-sm leading-6 text-ink/60">These visible defaults drive ingredient amounts. Planning guidance reads them, but does not rewrite the formula.</p>
           </div>
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -776,12 +822,12 @@ function AdvancedCalculatorPlanningShell({
   const temperature = planningResult.temperatureGuidance;
 
   return (
-    <section className="grid gap-5" aria-labelledby="advanced-calculator-planning">
+    <section className="grid gap-4" aria-labelledby="advanced-calculator-planning">
       <div className="rounded-[1.75rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Planning Engine v1</p>
         <h2 id="advanced-calculator-planning" className="mt-2 font-display text-3xl font-semibold">Results and recommendations</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-          Ingredient amounts first, then the main risk, what to adjust, and the concise guidance behind it. Ingredient grams still come from the existing calculator; guidance is conservative and separate from Pizza Session.
+          Ingredient amounts, the main risk and the next adjustment stay upfront. Secondary guidance is available below without turning this into a full workflow.
         </p>
       </div>
 
@@ -956,6 +1002,15 @@ function AdvancedCalculatorPlanningShell({
           {fermentationSetup.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{fermentationSetup.technicalNote}</p>}
         </section>
       )}
+
+      <details className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6">
+        <summary className="cursor-pointer list-none">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Details / guidance</p>
+          <h3 className="mt-2 font-display text-2xl font-semibold">Open advanced guidance cards</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">Yeast, flour, dough style, temperature, formula fit, mixing and planning summary stay available here as supporting context.</p>
+          <span className="mt-3 inline-flex rounded-full bg-ink/[.06] px-3 py-1.5 text-xs font-extrabold text-ink/55">Show guidance ↓</span>
+        </summary>
+        <div className="mt-5 grid gap-4">
 
       {doughTypeGuidance && (
         <section className={`rounded-[1.75rem] border p-5 shadow-card backdrop-blur sm:p-6 ${guidanceCardClasses(doughTypeGuidance.riskLevel)}`} aria-labelledby="advanced-dough-type-guidance">
@@ -1174,6 +1229,8 @@ function AdvancedCalculatorPlanningShell({
           <p className="rounded-2xl bg-white/70 p-4 text-xs leading-5 text-ink/55">{temperature?.fridgeTemperatureNote}</p>
         </div>
       </section>
+        </div>
+      </details>
     </section>
   );
 }
@@ -1232,6 +1289,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   const activeFlour = flourById(flourId);
   const activePizzaStyle = pizzaStyleById(pizzaStyleId, goal);
   const activePizzaName = activePizzaStyle.nameEn;
+  const selectedAdvancedDoughType = advancedDoughTypes.find((type) => type.value === advancedDoughType) ?? advancedDoughTypes[0];
   const hasActiveAdvancedValues = hasAdvancedCalculatorValues(
     { ballWeight, waste, hydration, salt, yeastType, temperature, flourId },
     activePreset,
@@ -1602,6 +1660,16 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           </p>
         </section>
         </>
+        )}
+
+        {focusedEntry && (
+          <AdvancedCalculatorTopSummary
+            doughTypeLabel={selectedAdvancedDoughType.label}
+            bakeDate={advancedBakeDate}
+            bakeTime={advancedBakeTime}
+            planningResult={planningResult}
+            locale={locale}
+          />
         )}
 
         <div className={`grid min-w-0 items-start gap-5 ${focusedEntry ? "xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)] xl:gap-6" : "lg:grid-cols-[1.2fr_.8fr] lg:gap-7"}`}>
