@@ -66,15 +66,18 @@ export function buildPlanningCombinedRiskSummary(
     ?? signals[0]
     ?? null;
   const primaryRiskReason = primarySignal?.reason ?? "No major risk signals were detected.";
+  const relevantSignals = overallRiskLevel === "not_enough_information"
+    ? signals.filter((signal) => signal.level === "not_enough_information")
+    : signals;
   const secondaryRiskReasons = unique(
-    signals
+    relevantSignals
       .filter((signal) => signal !== primarySignal)
       .filter((signal) => signal.level === "high_risk" || signal.level === "caution")
       .filter((signal) => signal.reason !== primaryRiskReason)
       .map((signal) => signal.reason),
   ).slice(0, 4);
   const adjustments = unique(
-    signals
+    relevantSignals
       .map((signal) => signal.adjustment)
       .filter((adjustment): adjustment is string => Boolean(adjustment)),
   );

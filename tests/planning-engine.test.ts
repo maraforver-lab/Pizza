@@ -643,6 +643,8 @@ describe("Planning Engine fermentation rules v1", () => {
       primaryRiskReason: "Add a valid bake date and time to get a stronger planning risk summary.",
       suggestedFirstAdjustment: "Set the bake target first.",
     });
+    expect(result.combinedRiskSummary?.secondaryRiskReasons).toEqual([]);
+    expect(result.combinedRiskSummary?.additionalAdjustments).toEqual([]);
     expect(result.combinedRiskSummary?.summary).toContain("bake date and time");
   });
 
@@ -704,6 +706,26 @@ describe("Planning Engine fermentation rules v1", () => {
       overallRiskLevel: "high_risk",
       primaryRiskReason: "Yeast guidance is high risk and warm conditions may make the dough move faster.",
     });
+  });
+
+  it("prioritizes warm fridge risk for long cold plans when yeast amount is not the main issue", () => {
+    const result = buildPlanningResult(planningInputWithHours(60, {
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 8,
+      yeastType: "cy",
+      calculatedFlourGrams: 1000,
+      calculatedYeastGrams: 0.15,
+    }));
+
+    expect(result.yeastGuidance?.riskLevel).not.toBe("high_risk");
+    expect(result.temperatureGuidance?.riskLevel).toBe("high_risk");
+    expect(result.startWindowRecommendation?.riskLevel).toBe("high_risk");
+    expect(result.combinedRiskSummary).toMatchObject({
+      overallRiskLevel: "high_risk",
+      primaryRiskReason: "Warm fridge temperature may shorten the safe cold or hybrid start window.",
+      suggestedFirstAdjustment: "Use a colder fridge or avoid stretching the cold window too far.",
+    });
+    expect(result.combinedRiskSummary?.secondaryRiskReasons.join(" ")).toContain("warm fridge");
   });
 
   it("summarizes multiple caution signals without overwhelming the user", () => {
