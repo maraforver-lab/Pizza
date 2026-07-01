@@ -49,6 +49,22 @@ export type PlanningMixingMethod =
   | "stand_mixer"
   | "spiral_mixer";
 
+export type PlanningRoomTemperatureCategory =
+  | "cool_room"
+  | "normal_room"
+  | "warm_room"
+  | "hot_room";
+
+export type PlanningFridgeTemperatureCategory =
+  | "cold_fridge"
+  | "normal_fridge"
+  | "warm_fridge";
+
+export type PlanningTemperatureRiskLevel =
+  | "low"
+  | "caution"
+  | "high_risk";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -92,6 +108,24 @@ export type PlanningMixingGuidance = {
   stopWhen: string;
   avoid: string[];
   cautions: PlanningWarning[];
+  levelNotes: string[];
+  technicalNotes: string[];
+};
+
+export type PlanningTemperatureGuidance = {
+  userLevel: UserLevel;
+  roomTemperature: number;
+  fridgeTemperature: number;
+  targetDoughTemperature: number | null;
+  mixerFrictionHeat: number | null;
+  roomCategory: PlanningRoomTemperatureCategory;
+  fridgeCategory: PlanningFridgeTemperatureCategory;
+  riskLevel: PlanningTemperatureRiskLevel;
+  summary: string;
+  roomTemperatureNote: string;
+  fridgeTemperatureNote: string;
+  mixerFrictionNote: string | null;
+  userFacingGuidance: string[];
   levelNotes: string[];
   technicalNotes: string[];
 };
@@ -151,6 +185,10 @@ export type PlanningSourceConfidence = {
 export type PlanningTemperatureAssumptions = {
   roomTemperature: number;
   fridgeTemperature: number;
+  targetDoughTemperature: number | null;
+  mixerFrictionHeat: number | null;
+  roomCategory: PlanningRoomTemperatureCategory;
+  fridgeCategory: PlanningFridgeTemperatureCategory;
   note: string;
 };
 

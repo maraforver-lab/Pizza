@@ -16,6 +16,11 @@ import {
 } from "@/lib/planning-yeast-model";
 import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-timeline";
 import { PLANNING_MIXING_METHODS, buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
+import {
+  buildPlanningTemperatureGuidance,
+  classifyPlanningFridgeTemperature,
+  classifyPlanningRoomTemperature,
+} from "@/lib/planning-temperature-guidance";
 import { baseSettings } from "./helpers";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -718,6 +723,89 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(nerd.steps[0].experienceNote).toContain("dough temperature");
   });
 
+  it("builds default temperature guidance when optional temperature details are missing", () => {
+    const guidance = buildPlanningTemperatureGuidance({
+      userLevel: "beginner",
+    });
+
+    expect(guidance).toMatchObject({
+      userLevel: "beginner",
+      roomTemperature: 22,
+      fridgeTemperature: 4,
+      targetDoughTemperature: null,
+      mixerFrictionHeat: null,
+      roomCategory: "normal_room",
+      fridgeCategory: "normal_fridge",
+      riskLevel: "low",
+    });
+    expect(guidance.summary).toContain("safe");
+    expect(guidance.levelNotes.join(" ")).toContain("Warmer dough moves faster");
+  });
+
+  it("classifies cool, normal, warm and hot room temperatures", () => {
+    expect(classifyPlanningRoomTemperature(18)).toBe("cool_room");
+    expect(classifyPlanningRoomTemperature(22)).toBe("normal_room");
+    expect(classifyPlanningRoomTemperature(26)).toBe("warm_room");
+    expect(classifyPlanningRoomTemperature(29)).toBe("hot_room");
+  });
+
+  it("classifies cold, normal and warm fridge temperatures", () => {
+    expect(classifyPlanningFridgeTemperature(1)).toBe("cold_fridge");
+    expect(classifyPlanningFridgeTemperature(4)).toBe("normal_fridge");
+    expect(classifyPlanningFridgeTemperature(8)).toBe("warm_fridge");
+  });
+
+  it("integrates temperature guidance into buildPlanningResult", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      roomTemperature: 26,
+      fridgeTemperature: 8,
+      mixingMethod: "stand_mixer",
+      targetDoughTemperature: 24,
+      mixerFrictionHeat: 3,
+    }));
+
+    expect(result.temperatureGuidance).toMatchObject({
+      roomCategory: "warm_room",
+      fridgeCategory: "warm_fridge",
+      riskLevel: "high_risk",
+      targetDoughTemperature: 24,
+      mixerFrictionHeat: 3,
+    });
+    expect(result.temperatureGuidance?.mixerFrictionNote).toContain("friction heat");
+    expect(result.temperatureGuidance?.userFacingGuidance.join(" ")).toContain("Use shorter room time");
+    expect(result.technicalDetails.temperatureAssumptions).toMatchObject({
+      roomTemperature: 26,
+      fridgeTemperature: 8,
+      targetDoughTemperature: 24,
+      mixerFrictionHeat: 3,
+      roomCategory: "warm_room",
+      fridgeCategory: "warm_fridge",
+    });
+  });
+
+  it("varies temperature guidance by experience level", () => {
+    const beginner = buildPlanningTemperatureGuidance({
+      userLevel: "beginner",
+      roomTemperature: 29,
+      fridgeTemperature: 8,
+      fermentationMode: "room",
+      availableFermentationHours: 18,
+    });
+    const nerd = buildPlanningTemperatureGuidance({
+      userLevel: "pizza_nerd",
+      roomTemperature: 29,
+      fridgeTemperature: 8,
+      fermentationMode: "room",
+      availableFermentationHours: 18,
+      mixingMethod: "spiral_mixer",
+    });
+
+    expect(beginner.riskLevel).toBe("high_risk");
+    expect(beginner.levelNotes.join(" ")).toContain("check the dough earlier");
+    expect(nerd.technicalNotes.join(" ")).toContain("Target dough temperature");
+    expect(nerd.technicalNotes.join(" ")).toContain("spiral_mixer");
+  });
+
   it("returns a stable quality score and technical details shape", () => {
     const result = buildPlanningResult(basePlanningInput);
 
@@ -742,6 +830,10 @@ describe("Planning Engine fermentation rules v1", () => {
       temperatureAssumptions: {
         roomTemperature: 22,
         fridgeTemperature: 4,
+        targetDoughTemperature: null,
+        mixerFrictionHeat: null,
+        roomCategory: "normal_room",
+        fridgeCategory: "normal_fridge",
       },
       flourAssumptions: {
         flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
@@ -772,7 +864,7 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-types|planning-yeast-model|planning-warning-engine/;
+    const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
     expect(homepageWorkspace).not.toMatch(planningImports);

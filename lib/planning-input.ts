@@ -11,6 +11,8 @@ export type PlanningInput = {
   doughBallCount: number;
   doughBallWeight: number;
   mixingMethod?: PlanningMixingMethod;
+  targetDoughTemperature?: number;
+  mixerFrictionHeat?: number;
 };
 
 export function calculateAvailableFermentationHours(input: Pick<PlanningInput, "currentDateTime" | "desiredBakeDateTime">) {

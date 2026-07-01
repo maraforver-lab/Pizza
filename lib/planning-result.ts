@@ -4,6 +4,7 @@ import type {
   PlanningFermentationTimeline,
   PlanningFlourId,
   PlanningMixingGuidance,
+  PlanningTemperatureGuidance,
   PlanningTemperatureAssumptions,
   PlanningQualityScore,
   PlanningTechnicalDetails,
@@ -21,6 +22,7 @@ export type PlanningResult = {
   recommendedYeast: PlanningYeastRecommendation;
   mixingGuidance: PlanningMixingGuidance | null;
   fermentationTimeline: PlanningFermentationTimeline | null;
+  temperatureGuidance: PlanningTemperatureGuidance | null;
   warnings: PlanningWarning[];
   qualityScore: PlanningQualityScore;
   technicalDetails: PlanningTechnicalDetails;
@@ -36,6 +38,7 @@ export function createPlanningFoundationResult(input: {
   recommendedYeast?: PlanningYeastRecommendation;
   mixingGuidance?: PlanningMixingGuidance | null;
   fermentationTimeline?: PlanningFermentationTimeline | null;
+  temperatureGuidance?: PlanningTemperatureGuidance | null;
   warnings?: PlanningWarning[];
   qualityScore?: PlanningQualityScore;
   assumptions?: string[];
@@ -49,7 +52,17 @@ export function createPlanningFoundationResult(input: {
   const temperatureAssumptions: PlanningTemperatureAssumptions = {
     roomTemperature: input.planningInput.roomTemperature,
     fridgeTemperature: input.planningInput.fridgeTemperature,
-    note: "Temperatures are used by conservative v1 planning rules and remain broad assumptions.",
+    targetDoughTemperature: input.temperatureGuidance?.targetDoughTemperature
+      ?? input.planningInput.targetDoughTemperature
+      ?? null,
+    mixerFrictionHeat: input.temperatureGuidance?.mixerFrictionHeat
+      ?? input.planningInput.mixerFrictionHeat
+      ?? null,
+    roomCategory: input.temperatureGuidance?.roomCategory ?? "normal_room",
+    fridgeCategory: input.temperatureGuidance?.fridgeCategory ?? "normal_fridge",
+    note: input.temperatureGuidance === undefined
+      ? "Temperatures are used by conservative v1 planning rules and remain broad assumptions."
+      : "Temperature guidance v1 classifies broad risk only and does not change ingredient calculations.",
   };
 
   return {
@@ -70,6 +83,7 @@ export function createPlanningFoundationResult(input: {
     },
     mixingGuidance: input.mixingGuidance ?? null,
     fermentationTimeline: input.fermentationTimeline ?? null,
+    temperatureGuidance: input.temperatureGuidance ?? null,
     warnings: input.warnings ?? [],
     qualityScore: input.qualityScore ?? {
       score: null,

@@ -3,6 +3,7 @@ import { buildPlanningFermentationTimeline } from "@/lib/planning-fermentation-t
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
 import { buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
 import { createPlanningFoundationResult, type PlanningResult } from "@/lib/planning-result";
+import { buildPlanningTemperatureGuidance } from "@/lib/planning-temperature-guidance";
 import { buildPlanningWarnings } from "@/lib/planning-warning-engine";
 import { calculatePlanningYeastRecommendation } from "@/lib/planning-yeast-model";
 import type {
@@ -47,6 +48,16 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     roomTemperature: input.roomTemperature,
     fridgeTemperature: input.fridgeTemperature,
   });
+  const temperatureGuidance = buildPlanningTemperatureGuidance({
+    userLevel: input.userLevel,
+    fermentationMode: recommendation.mode,
+    availableFermentationHours,
+    roomTemperature: input.roomTemperature,
+    fridgeTemperature: input.fridgeTemperature,
+    targetDoughTemperature: input.targetDoughTemperature,
+    mixerFrictionHeat: input.mixerFrictionHeat,
+    mixingMethod: input.mixingMethod,
+  });
   const warnings = buildPlanningWarnings({
     availableFermentationHours,
     fermentationMode: recommendation.mode,
@@ -67,6 +78,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     recommendedYeast,
     mixingGuidance,
     fermentationTimeline,
+    temperatureGuidance,
     warnings,
     qualityScore: recommendation.qualityScore,
     assumptions: [
