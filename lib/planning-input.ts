@@ -1,4 +1,4 @@
-import type { FlourSelection, OvenType, UserLevel } from "@/lib/planning-types";
+import type { FlourSelection, OvenType, PlanningMixingMethod, UserLevel } from "@/lib/planning-types";
 
 export type PlanningInput = {
   currentDateTime: Date;
@@ -10,6 +10,7 @@ export type PlanningInput = {
   flourSelection: FlourSelection;
   doughBallCount: number;
   doughBallWeight: number;
+  mixingMethod?: PlanningMixingMethod;
 };
 
 export function calculateAvailableFermentationHours(input: Pick<PlanningInput, "currentDateTime" | "desiredBakeDateTime">) {

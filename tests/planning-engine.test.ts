@@ -14,6 +14,7 @@ import {
   ACTIVE_DRY_YEAST_FROM_FRESH_FACTOR,
   INSTANT_DRY_YEAST_FROM_FRESH_FACTOR,
 } from "@/lib/planning-yeast-model";
+import { PLANNING_MIXING_METHODS, buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
 import { baseSettings } from "./helpers";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -49,6 +50,7 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(USER_LEVELS).toEqual(["beginner", "enthusiast", "pizza_nerd"]);
     expect(OVEN_TYPES).toEqual(["home_oven", "pizza_oven"]);
     expect(FERMENTATION_MODES).toEqual(["room", "cold", "hybrid", "not_recommended"]);
+    expect(PLANNING_MIXING_METHODS).toEqual(["hand_mixing", "stand_mixer", "spiral_mixer"]);
   });
 
   it("defines the initial background flour profiles without exposing them to UI", () => {
@@ -499,6 +501,106 @@ describe("Planning Engine fermentation rules v1", () => {
     }
   });
 
+  it("adds default hand mixing guidance to planning results", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      userLevel: "beginner",
+    }));
+
+    expect(result.mixingGuidance).toMatchObject({
+      method: "hand_mixing",
+      userLevel: "beginner",
+      title: "Hand mixing",
+      summary: expect.stringContaining("learning"),
+      doughFeel: expect.stringContaining("hydrated"),
+      stopWhen: expect.stringContaining("no dry flour pockets"),
+    });
+    expect(result.mixingGuidance?.recommendedOrder.join(" ")).toContain("Add water");
+    expect(result.mixingGuidance?.avoid.join(" ")).toContain("extra flour");
+    expect(result.mixingGuidance?.avoid.join(" ")).toContain("salt and yeast");
+    expect(result.mixingGuidance?.cautions).toContainEqual(expect.objectContaining({
+      id: "hand-mixing-extra-flour",
+      severity: "caution",
+    }));
+  });
+
+  it("distinguishes hand mixing, stand mixer and spiral mixer guidance", () => {
+    const hand = buildPlanningMixingGuidance({
+      method: "hand_mixing",
+      userLevel: "enthusiast",
+      recommendedHydration: 64,
+    });
+    const stand = buildPlanningMixingGuidance({
+      method: "stand_mixer",
+      userLevel: "enthusiast",
+      recommendedHydration: 64,
+    });
+    const spiral = buildPlanningMixingGuidance({
+      method: "spiral_mixer",
+      userLevel: "enthusiast",
+      recommendedHydration: 64,
+    });
+
+    expect(hand.title).toBe("Hand mixing");
+    expect(stand.title).toBe("Stand mixer / kitchen machine");
+    expect(spiral.title).toBe("Spiral mixer");
+    expect(stand.summary).toContain("Machine mixing is not wrong");
+    expect(spiral.summary).toContain("repeatability");
+    expect(stand.cautions).toContainEqual(expect.objectContaining({
+      id: "stand-mixer-overmixing-heat",
+      severity: "caution",
+    }));
+    expect(spiral.cautions).toContainEqual(expect.objectContaining({
+      id: "spiral-mixer-watch-temperature",
+      severity: "caution",
+    }));
+  });
+
+  it("varies mixing guidance by experience level", () => {
+    const beginner = buildPlanningMixingGuidance({
+      method: "stand_mixer",
+      userLevel: "beginner",
+      recommendedHydration: 64,
+    });
+    const enthusiast = buildPlanningMixingGuidance({
+      method: "stand_mixer",
+      userLevel: "enthusiast",
+      recommendedHydration: 64,
+    });
+    const nerd = buildPlanningMixingGuidance({
+      method: "stand_mixer",
+      userLevel: "pizza_nerd",
+      recommendedHydration: 66,
+    });
+
+    expect(beginner.levelNotes.join(" ")).toContain("Mix until everything is combined");
+    expect(enthusiast.levelNotes.join(" ")).toContain("gluten");
+    expect(nerd.levelNotes.join(" ")).toContain("friction");
+    expect(nerd.technicalNotes.join(" ")).toContain("Target dough temperature");
+    expect(nerd.cautions).toContainEqual(expect.objectContaining({
+      id: "mixing-hydration-sensitivity",
+      severity: "info",
+      visibleForLevels: ["pizza_nerd"],
+    }));
+  });
+
+  it("uses the requested mixing method when provided in PlanningInput", () => {
+    const standMixer = buildPlanningResult(planningInputWithHours(18, {
+      mixingMethod: "stand_mixer",
+    }));
+    const spiralMixer = buildPlanningResult(planningInputWithHours(36, {
+      mixingMethod: "spiral_mixer",
+    }));
+
+    expect(standMixer.mixingGuidance?.method).toBe("stand_mixer");
+    expect(standMixer.mixingGuidance?.cautions).toContainEqual(expect.objectContaining({
+      id: "stand-mixer-overmixing-heat",
+    }));
+    expect(spiralMixer.mixingGuidance?.method).toBe("spiral_mixer");
+    expect(spiralMixer.mixingGuidance?.cautions).toContainEqual(expect.objectContaining({
+      id: "spiral-mixer-watch-temperature",
+    }));
+  });
+
   it("returns a stable quality score and technical details shape", () => {
     const result = buildPlanningResult(basePlanningInput);
 
@@ -553,7 +655,7 @@ describe("Planning Engine fermentation rules v1", () => {
     const sessionTimeline = source("lib/pizza-session-timeline.ts");
     const plannerPage = source("app/plan/page.tsx");
 
-    const planningImports = /planning-engine|planning-flour-profiles|planning-input|planning-result|planning-types|planning-yeast-model/;
+    const planningImports = /planning-engine|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-types|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
     expect(homepageWorkspace).not.toMatch(planningImports);

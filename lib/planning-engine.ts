@@ -1,5 +1,6 @@
 import { resolvePlanningFlourProfile, type PlanningFlourProfile } from "@/lib/planning-flour-profiles";
 import { calculateAvailableFermentationHours, type PlanningInput } from "@/lib/planning-input";
+import { buildPlanningMixingGuidance } from "@/lib/planning-mixing-guidance";
 import { createPlanningFoundationResult, type PlanningResult } from "@/lib/planning-result";
 import { buildPlanningWarnings } from "@/lib/planning-warning-engine";
 import { calculatePlanningYeastRecommendation } from "@/lib/planning-yeast-model";
@@ -32,6 +33,11 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     flourProfile,
     userLevel: input.userLevel,
   });
+  const mixingGuidance = buildPlanningMixingGuidance({
+    method: input.mixingMethod,
+    userLevel: input.userLevel,
+    recommendedHydration: recommendation.hydration,
+  });
   const warnings = buildPlanningWarnings({
     availableFermentationHours,
     fermentationMode: recommendation.mode,
@@ -50,6 +56,7 @@ export function buildPlanningResult(input: PlanningInput): PlanningResult {
     recommendedHydration: recommendation.hydration,
     recommendedSalt: recommendation.salt,
     recommendedYeast,
+    mixingGuidance,
     warnings,
     qualityScore: recommendation.qualityScore,
     assumptions: [

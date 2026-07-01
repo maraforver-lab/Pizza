@@ -2,6 +2,7 @@ import type {
   FermentationMode,
   FlourCategory,
   PlanningFlourId,
+  PlanningMixingGuidance,
   PlanningTemperatureAssumptions,
   PlanningQualityScore,
   PlanningTechnicalDetails,
@@ -17,6 +18,7 @@ export type PlanningResult = {
   recommendedHydration: number | null;
   recommendedSalt: number | null;
   recommendedYeast: PlanningYeastRecommendation;
+  mixingGuidance: PlanningMixingGuidance | null;
   warnings: PlanningWarning[];
   qualityScore: PlanningQualityScore;
   technicalDetails: PlanningTechnicalDetails;
@@ -30,6 +32,7 @@ export function createPlanningFoundationResult(input: {
   recommendedHydration?: number | null;
   recommendedSalt?: number | null;
   recommendedYeast?: PlanningYeastRecommendation;
+  mixingGuidance?: PlanningMixingGuidance | null;
   warnings?: PlanningWarning[];
   qualityScore?: PlanningQualityScore;
   assumptions?: string[];
@@ -62,6 +65,7 @@ export function createPlanningFoundationResult(input: {
       yeastConfidence: "none",
       note: "Yeast recommendation is intentionally not calculated in grams by the planning engine.",
     },
+    mixingGuidance: input.mixingGuidance ?? null,
     warnings: input.warnings ?? [],
     qualityScore: input.qualityScore ?? {
       score: null,

@@ -44,6 +44,11 @@ export type PlanningYeastType =
 
 export type PlanningYeastConfidence = "none" | "low" | "medium";
 
+export type PlanningMixingMethod =
+  | "hand_mixing"
+  | "stand_mixer"
+  | "spiral_mixer";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -75,6 +80,20 @@ export type PlanningQualityScore = {
   score: number | null;
   label: PlanningQualityLabel;
   reasons: string[];
+};
+
+export type PlanningMixingGuidance = {
+  method: PlanningMixingMethod;
+  userLevel: UserLevel;
+  title: string;
+  summary: string;
+  recommendedOrder: string[];
+  doughFeel: string;
+  stopWhen: string;
+  avoid: string[];
+  cautions: PlanningWarning[];
+  levelNotes: string[];
+  technicalNotes: string[];
 };
 
 export type PlanningSourceConfidence = {
