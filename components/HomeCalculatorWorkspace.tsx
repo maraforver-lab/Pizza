@@ -581,6 +581,9 @@ function AdvancedCalculatorStandaloneControls({
             <strong className="mt-1 block text-lg tabular-nums text-white">{new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(availableHours)} h</strong>
           </div>
         </div>
+        <p className="mt-4 rounded-2xl border border-white/10 bg-white/[.06] p-3 text-xs leading-5 text-white/65">
+          Recommendations use your actual time until bake. Presets are only shortcuts — 8h, 10h, 26h or 41h plans are valid too.
+        </p>
       </section>
 
       <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-pizza-style">
@@ -699,6 +702,7 @@ function AdvancedCalculatorStandaloneControls({
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
           <fieldset>
             <legend className="mb-2 text-sm font-semibold text-ink/70">Fermentation mode</legend>
+            <p className="mb-3 text-xs leading-5 text-ink/50">These modes are planning shortcuts and reference ranges. The recommendation still adapts to the real available time from your bake date and time.</p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {fermentationOptions.map((option) => (
                 <button key={option.value} type="button" onClick={() => onFermentationChange(option.value)} aria-pressed={fermentation === option.value}

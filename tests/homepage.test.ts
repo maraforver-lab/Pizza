@@ -292,6 +292,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Bake date");
     expect(calculatorWorkspace).toContain("Bake time");
     expect(calculatorWorkspace).toContain("Available time");
+    expect(calculatorWorkspace).toContain("Recommendations use your actual time until bake.");
+    expect(calculatorWorkspace).toContain("Presets are only shortcuts — 8h, 10h, 26h or 41h plans are valid too.");
     expect(calculatorWorkspace).toContain("Dough balls / pizzas");
     expect(calculatorWorkspace).toContain("Dough ball weight");
     expect(calculatorWorkspace).toContain("Total dough");
@@ -302,6 +304,8 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Dough type / style");
     expect(calculatorWorkspace).toContain("Dough style target");
     expect(calculatorWorkspace).toContain("Fermentation mode");
+    expect(calculatorWorkspace).toContain("These modes are planning shortcuts and reference ranges.");
+    expect(calculatorWorkspace).toContain("adapts to the real available time from your bake date and time");
     expect(calculatorWorkspace).toContain("Room temperature");
     expect(calculatorWorkspace).toContain("Fridge temperature");
     expect(calculatorWorkspace).toContain("Flour type / suitability");
