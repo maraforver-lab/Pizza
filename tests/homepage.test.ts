@@ -251,6 +251,7 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Planning warnings");
     expect(calculatorWorkspace).toContain("Fermentation setup");
     expect(calculatorWorkspace).toContain("Recommended setup");
+    expect(calculatorWorkspace).toContain("Dough style guidance");
     expect(calculatorWorkspace).toContain("Flour guidance");
     expect(calculatorWorkspace).toContain("Yeast guidance");
     expect(calculatorWorkspace).toContain("Planning summary");
@@ -306,6 +307,10 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("Risk level");
     expect(calculatorWorkspace).toContain("planningFermentationModeFromRecipe");
     expect(calculatorWorkspace).toContain("fermentationSetupRecommendation");
+    expect(calculatorWorkspace).toContain("doughTypeGuidance");
+    expect(calculatorWorkspace).toContain("Selected dough type");
+    expect(calculatorWorkspace).toContain("Style fit");
+    expect(calculatorWorkspace).toContain("Style risk");
     expect(calculatorWorkspace).toContain("flourGuidance");
     expect(calculatorWorkspace).toContain("Flour risk");
     expect(calculatorWorkspace).toContain("Advanced context");
@@ -318,6 +323,7 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("calculatedFlourGrams: recipe.flour");
     expect(sessionStart).not.toContain("AdvancedCalculatorStandaloneControls");
     expect(sessionStart).not.toContain("Fermentation setup");
+    expect(sessionStart).not.toContain("Dough style guidance");
     expect(sessionStart).not.toContain("Flour guidance");
     expect(sessionStart).not.toContain("Yeast guidance");
     expect(sessionStart).not.toContain("planningMixingMethod");

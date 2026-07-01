@@ -438,6 +438,98 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.71, 2);
   });
 
+  it("adds default dough type guidance for Neapolitan-style direct dough", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      doughStyle: "neapolitan_direct",
+      ovenType: "pizza_oven",
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.doughTypeGuidance).toMatchObject({
+      doughType: "neapolitan_direct",
+      doughTypeLabel: "Neapolitan-style direct dough",
+      fitLevel: "good_fit",
+      riskLevel: "workable",
+    });
+    expect(result.doughTypeGuidance?.summary).toContain("good broad fit");
+  });
+
+  it("marks same-day Neapolitan-style dough as a mismatch for long available windows", () => {
+    const result = buildPlanningResult(planningInputWithHours(48, {
+      doughStyle: "same_day_neapolitan",
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.doughTypeGuidance).toMatchObject({
+      doughType: "same_day_neapolitan",
+      fitLevel: "caution",
+      riskLevel: "caution",
+    });
+    expect(result.doughTypeGuidance?.cautions.join(" ")).toContain("cold fermented Neapolitan-style dough may be a better fit");
+    expect(result.doughTypeGuidance?.suggestedAdjustments.join(" ")).toContain("switching to a cold fermented");
+  });
+
+  it("warns when cold fermented Neapolitan-style dough has too little time", () => {
+    const result = buildPlanningResult(planningInputWithHours(6, {
+      doughStyle: "cold_neapolitan",
+      selectedFermentationMode: "cold",
+    }));
+
+    expect(result.doughTypeGuidance).toMatchObject({
+      doughType: "cold_neapolitan",
+      fitLevel: "caution",
+      riskLevel: "caution",
+    });
+    expect(result.doughTypeGuidance?.cautions.join(" ")).toContain("longer window");
+    expect(result.doughTypeGuidance?.suggestedAdjustments.join(" ")).toContain("move the bake time later");
+  });
+
+  it("raises risk for cold fermented Neapolitan-style dough with a warm fridge", () => {
+    const result = buildPlanningResult(planningInputWithHours(36, {
+      doughStyle: "cold_neapolitan",
+      selectedFermentationMode: "cold",
+      fridgeTemperature: 8,
+    }));
+
+    expect(result.doughTypeGuidance).toMatchObject({
+      doughType: "cold_neapolitan",
+      riskLevel: "high_risk",
+      fitLevel: "high_risk",
+    });
+    expect(result.doughTypeGuidance?.cautions.join(" ")).toContain("warm fridge");
+    expect(result.doughTypeGuidance?.suggestedAdjustments.join(" ")).toContain("colder fridge");
+  });
+
+  it("keeps Neapolitan-style direct dough workable in a home oven with a cautious note", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      doughStyle: "neapolitan_direct",
+      ovenType: "home_oven",
+      flourSelection: { type: "known_flour_id", flourId: "caputo-pizzeria" },
+      selectedFermentationMode: "room",
+    }));
+
+    expect(result.doughTypeGuidance).toMatchObject({
+      doughType: "neapolitan_direct",
+      fitLevel: "workable",
+      riskLevel: "workable",
+    });
+    expect(result.doughTypeGuidance?.suggestedAdjustments.join(" ")).toContain("home oven");
+  });
+
+  it("keeps unsupported dough styles as context only", () => {
+    const result = buildPlanningResult(planningInputWithHours(18, {
+      doughStyle: "roman_pan_future",
+    }));
+
+    expect(result.doughTypeGuidance).toMatchObject({
+      doughType: "unsupported",
+      fitLevel: "not_enough_information",
+      riskLevel: "not_enough_information",
+    });
+    expect(result.doughTypeGuidance?.summary).toContain("context");
+  });
+
   it("flags a short available time as not enough for reliable fermentation setup", () => {
     const result = buildPlanningResult(planningInputWithHours(2, {
       selectedFermentationMode: "room",

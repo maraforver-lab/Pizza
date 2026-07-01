@@ -94,6 +94,19 @@ export type PlanningFlourSuitabilityLevel =
   | "high_risk"
   | "not_enough_information";
 
+export type PlanningDoughType =
+  | "neapolitan_direct"
+  | "same_day_neapolitan"
+  | "cold_neapolitan"
+  | "unsupported";
+
+export type PlanningDoughTypeFitLevel =
+  | "good_fit"
+  | "workable"
+  | "caution"
+  | "high_risk"
+  | "not_enough_information";
+
 export type PlanningWarning = {
   id: string;
   severity: PlanningWarningSeverity;
@@ -147,6 +160,27 @@ export type PlanningFlourGuidance = {
   wValue: number | null;
   suitabilityLevel: PlanningFlourSuitabilityLevel;
   riskLevel: PlanningFlourSuitabilityLevel;
+  title: string;
+  summary: string;
+  cautions: string[];
+  suggestedAdjustments: string[];
+  technicalNote: string | null;
+};
+
+export type PlanningDoughTypeGuidance = {
+  version: 1;
+  doughType: PlanningDoughType;
+  doughTypeLabel: string;
+  availableFermentationHours: number;
+  selectedFermentationMode: FermentationMode | null;
+  recommendedFermentationMode: FermentationMode;
+  ovenType: OvenType;
+  flourCategory: FlourCategory;
+  hydration: number | null;
+  roomTemperature: number;
+  fridgeTemperature: number;
+  fitLevel: PlanningDoughTypeFitLevel;
+  riskLevel: PlanningDoughTypeFitLevel;
   title: string;
   summary: string;
   cautions: string[];

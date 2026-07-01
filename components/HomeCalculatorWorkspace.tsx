@@ -662,6 +662,7 @@ function AdvancedCalculatorPlanningShell({
   const mixing = planningResult.mixingGuidance;
   const timeline = planningResult.fermentationTimeline;
   const fermentationSetup = planningResult.fermentationSetupRecommendation;
+  const doughTypeGuidance = planningResult.doughTypeGuidance;
   const flourGuidance = planningResult.flourGuidance;
   const yeastGuidance = planningResult.yeastGuidance;
   const temperature = planningResult.temperatureGuidance;
@@ -741,6 +742,54 @@ function AdvancedCalculatorPlanningShell({
             </div>
           )}
           {fermentationSetup.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{fermentationSetup.technicalNote}</p>}
+        </section>
+      )}
+
+      {doughTypeGuidance && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-dough-type-guidance">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough style guidance</p>
+              <h3 id="advanced-dough-type-guidance" className="mt-2 font-display text-2xl font-semibold">{doughTypeGuidance.title}</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">{doughTypeGuidance.summary}</p>
+            </div>
+            <div className="rounded-2xl bg-ink/[.04] px-4 py-3 text-left sm:min-w-48">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Selected dough type</span>
+              <strong className="mt-1 block text-xl text-ink">{doughTypeGuidance.doughTypeLabel}</strong>
+              <span className="mt-1 block text-xs text-ink/45">{readablePlanningValue(doughTypeGuidance.selectedFermentationMode)}</span>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Style fit</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(doughTypeGuidance.fitLevel)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Style risk</span>
+              <strong className="mt-2 block text-sm text-ink">{readablePlanningValue(doughTypeGuidance.riskLevel)}</strong>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Time window</span>
+              <strong className="mt-2 block text-sm tabular-nums text-ink">{doughTypeGuidance.availableFermentationHours} h</strong>
+            </div>
+          </div>
+          {(doughTypeGuidance.cautions.length > 0 || doughTypeGuidance.suggestedAdjustments.length > 0) && (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {doughTypeGuidance.cautions.length > 0 && (
+                <div className="rounded-2xl bg-tomato/[.06] p-4">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">Watch out</span>
+                  <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-ink/55">
+                    {doughTypeGuidance.cautions.slice(0, 2).map((caution) => <li key={caution}>• {caution}</li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="rounded-2xl bg-leaf/[.08] p-4">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-leaf">Suggested adjustment</span>
+                <p className="mt-2 text-xs leading-5 text-ink/55">{doughTypeGuidance.suggestedAdjustments[0]}</p>
+              </div>
+            </div>
+          )}
+          {doughTypeGuidance.technicalNote && <p className="mt-4 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">{doughTypeGuidance.technicalNote}</p>}
         </section>
       )}
 
