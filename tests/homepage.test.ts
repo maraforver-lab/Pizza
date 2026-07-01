@@ -147,6 +147,8 @@ describe("homepage content model", () => {
     expect(header).toContain("Tools");
     expect(header).toContain("Pizza dough calculator");
     expect(header).toContain("Calculate flour, water, salt and yeast.");
+    expect(header).toContain("Calculator v1");
+    expect(header).toContain("Full-control planning lab for dough variables and risk.");
     expect(header).toContain('href="/?calculator=1"');
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
     expect(updateNotice).toContain('pathname === "/"');
@@ -222,6 +224,8 @@ describe("homepage content model", () => {
     expect(header).toContain("Tools");
     expect(header).toContain("Pizza dough calculator");
     expect(header).toContain("Calculate flour, water, salt and yeast.");
+    expect(header).toContain("Calculator v1");
+    expect(header).toContain("Full-control planning lab for dough variables and risk.");
     expect(header).toContain('href="/?calculator=1"');
     expect(homepage).toContain("calculatorViewFor");
     expect(homepage).toContain('params.calculator !== undefined) return "entry"');
@@ -243,6 +247,7 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain("mx-auto max-w-6xl");
     expect(calculatorWorkspace).toContain("{!focusedEntry && (");
     expect(calculatorWorkspace).toContain("lg:grid-cols-[1.2fr_.8fr]");
+    expect(calculatorWorkspace).toContain("xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)]");
     expect(calculatorWorkspace).toContain("AdvancedCalculatorStandaloneControls");
     expect(calculatorWorkspace).toContain("AdvancedCalculatorPlanningShell");
     expect(calculatorWorkspace).toContain("Planning Engine v1");
@@ -272,16 +277,21 @@ describe("homepage content model", () => {
     const sessionStart = source("app/session/start/page.tsx");
 
     expect(calculatorWorkspace).toContain("AdvancedCalculatorStandaloneControls");
+    expect(calculatorWorkspace).toContain("Calculator v1");
+    expect(calculatorWorkspace).toContain("Full-control lab");
+    expect(calculatorWorkspace).toContain("Bake target");
     expect(calculatorWorkspace).toContain("Pizza style");
-    expect(calculatorWorkspace).toContain("Core dough inputs");
-    expect(calculatorWorkspace).toContain("Dough setup");
+    expect(calculatorWorkspace).toContain("Pizza amount");
+    expect(calculatorWorkspace).toContain("Dough formula");
+    expect(calculatorWorkspace).toContain("Dough plan parameters");
     expect(calculatorWorkspace).toContain("Bake date");
     expect(calculatorWorkspace).toContain("Bake time");
     expect(calculatorWorkspace).toContain("Available time");
     expect(calculatorWorkspace).toContain("Dough balls / pizzas");
     expect(calculatorWorkspace).toContain("Dough ball weight");
+    expect(calculatorWorkspace).toContain("Total dough");
     expect(calculatorWorkspace).toContain("Hydration");
-    expect(calculatorWorkspace).toContain("Salt");
+    expect(calculatorWorkspace).toContain("Salt %");
     expect(calculatorWorkspace).toContain("Yeast type");
     expect(calculatorWorkspace).toContain("Oven type");
     expect(calculatorWorkspace).toContain("Dough type / style");

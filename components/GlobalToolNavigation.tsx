@@ -11,6 +11,8 @@ const copy = {
   tools: "Tools",
   calculator: "Pizza dough calculator",
   calculatorDescription: "Calculate flour, water, salt and yeast.",
+  calculatorV1: "Calculator v1",
+  calculatorV1Description: "Full-control planning lab for dough variables and risk.",
 } as const;
 
 export default function GlobalToolNavigation() {
@@ -73,6 +75,13 @@ export default function GlobalToolNavigation() {
               >
                 <span className="block text-sm font-extrabold">{copy.calculator}</span>
                 <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorDescription}</span>
+              </Link>
+              <Link
+                href="/?calculator=1"
+                className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+              >
+                <span className="block text-sm font-extrabold">{copy.calculatorV1}</span>
+                <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorV1Description}</span>
               </Link>
             </div>
           </details>

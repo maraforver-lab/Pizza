@@ -447,6 +447,7 @@ function AdvancedCalculatorStandaloneControls({
   wValue,
   onWValueChange,
   activeFlour,
+  totalDough,
   locale,
   t,
 }: {
@@ -489,6 +490,7 @@ function AdvancedCalculatorStandaloneControls({
   wValue: string;
   onWValueChange: (value: string) => void;
   activeFlour: ReturnType<typeof flourById>;
+  totalDough: number;
   locale: Locale;
   t: typeof copy.en;
 }) {
@@ -498,8 +500,14 @@ function AdvancedCalculatorStandaloneControls({
   return (
     <div className="grid gap-5" aria-labelledby="advanced-calculator-title">
       <section className="rounded-[1.75rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
-        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Advanced calculator</p>
-        <h1 id="advanced-calculator-title" className="mt-2 font-display text-4xl font-semibold leading-tight">When do you want to bake pizza?</h1>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Bake target</p>
+            <h1 id="advanced-calculator-title" className="mt-2 font-display text-4xl font-semibold leading-tight">Calculator v1</h1>
+          </div>
+          <span className="w-fit rounded-full bg-white/[.08] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-white/60">Full-control lab</span>
+        </div>
+        <h2 className="mt-4 font-display text-2xl font-semibold leading-tight">When do you want to bake pizza?</h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">
           Set the bake target first, then tune the variables that affect dough strength, timing risk and ingredient amounts.
         </p>
@@ -570,33 +578,50 @@ function AdvancedCalculatorStandaloneControls({
         </fieldset>
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-core-inputs">
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-pizza-amount">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Core dough inputs</p>
-          <h2 id="standalone-core-inputs" className="mt-2 font-display text-2xl font-semibold">Set the ingredient formula</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/60">These visible defaults drive the ingredient amounts. Planning guidance reads them, but does not rewrite the formula.</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza amount</p>
+          <h2 id="standalone-pizza-amount" className="mt-2 font-display text-2xl font-semibold">Set the batch size</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/60">Choose how many dough balls you need and the weight of each ball. Total dough updates from the existing calculator formula.</p>
         </div>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+        <div className="mt-5 grid gap-5 sm:grid-cols-3">
           <NumberField id="standalone-pizzas" label="Dough balls / pizzas" value={pizzas} min={1} max={50} stepper onChange={onPizzasChange} />
           <NumberField id="standalone-ball-weight" label="Dough ball weight" value={ballWeight} min={100} max={1000} step={5} suffix="g" stepper onChange={onBallWeightChange} />
-          <NumberField id="standalone-hydration" label="Hydration" value={hydration} min={40} max={100} step={0.5} suffix="%" stepper onChange={onHydrationChange} />
-          <NumberField id="standalone-salt" label="Salt" value={salt} min={0} max={10} step={0.1} suffix="%" stepper onChange={onSaltChange} />
-        </div>
-        <fieldset className="mt-5">
-          <legend className="mb-2 text-sm font-semibold text-ink/70">Yeast type</legend>
-          <div className="grid h-14 grid-cols-5 rounded-2xl bg-ink/5 p-1">
-            {(["cy", "ady", "idy", "ssd", "lsd"] as YeastType[]).map((type) => (
-              <button key={type} type="button" title={t.yeasts[type][1]} aria-label={t.yeasts[type][1]} aria-pressed={yeastType === type} onClick={() => onYeastTypeChange(type)}
-                className={`rounded-xl text-xs font-extrabold transition ${yeastType === type ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink"}`}>{t.yeasts[type][0]}</button>
-            ))}
+          <div className="rounded-2xl border border-ink/10 bg-ink/[.035] p-4">
+            <span className="block text-sm font-semibold text-ink/70">Total dough</span>
+            <strong className="mt-2 block text-3xl font-extrabold tabular-nums text-ink">
+              {grams(totalDough, locale, false)} <span className="text-base text-ink/40">g</span>
+            </strong>
+            <span className="mt-1 block text-xs leading-5 text-ink/45">Calculated from dough balls, ball weight and waste.</span>
           </div>
-          <p className="mt-2 text-xs font-semibold text-ink/50">{t.yeasts[yeastType][1]}</p>
-        </fieldset>
+        </div>
+
+        <div className="mt-6 border-t border-ink/10 pt-6" aria-labelledby="standalone-dough-formula">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough formula</p>
+            <h3 id="standalone-dough-formula" className="mt-2 font-display text-2xl font-semibold">Tune hydration, salt % and yeast</h3>
+            <p className="mt-2 text-sm leading-6 text-ink/60">These visible defaults drive ingredient amounts. Planning guidance reads them, but does not rewrite the formula.</p>
+          </div>
+          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <NumberField id="standalone-hydration" label="Hydration" value={hydration} min={40} max={100} step={0.5} suffix="%" stepper onChange={onHydrationChange} />
+            <NumberField id="standalone-salt" label="Salt %" value={salt} min={0} max={10} step={0.1} suffix="%" stepper onChange={onSaltChange} />
+          </div>
+          <fieldset className="mt-5">
+            <legend className="mb-2 text-sm font-semibold text-ink/70">Yeast type</legend>
+            <div className="grid h-14 grid-cols-5 rounded-2xl bg-ink/5 p-1">
+              {(["cy", "ady", "idy", "ssd", "lsd"] as YeastType[]).map((type) => (
+                <button key={type} type="button" title={t.yeasts[type][1]} aria-label={t.yeasts[type][1]} aria-pressed={yeastType === type} onClick={() => onYeastTypeChange(type)}
+                  className={`rounded-xl text-xs font-extrabold transition ${yeastType === type ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink"}`}>{t.yeasts[type][0]}</button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs font-semibold text-ink/50">{t.yeasts[yeastType][1]}</p>
+          </fieldset>
+        </div>
       </section>
 
       <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="standalone-dough-setup">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough setup</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Dough plan parameters</p>
           <h2 id="standalone-dough-setup" className="mt-2 font-display text-2xl font-semibold">Define the planning context</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
             Flour type stays here as a main planning variable. These values explain timing, risk and fit without changing the calculator math.
@@ -751,7 +776,7 @@ function AdvancedCalculatorPlanningShell({
   const temperature = planningResult.temperatureGuidance;
 
   return (
-    <section className="mt-5 grid gap-5" aria-labelledby="advanced-calculator-planning">
+    <section className="grid gap-5" aria-labelledby="advanced-calculator-planning">
       <div className="rounded-[1.75rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Planning Engine v1</p>
         <h2 id="advanced-calculator-planning" className="mt-2 font-display text-3xl font-semibold">Results and recommendations</h2>
@@ -1579,7 +1604,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
         </>
         )}
 
-        <div className={`grid min-w-0 items-start gap-5 ${focusedEntry ? "" : "lg:grid-cols-[1.2fr_.8fr] lg:gap-7"}`}>
+        <div className={`grid min-w-0 items-start gap-5 ${focusedEntry ? "xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)] xl:gap-6" : "lg:grid-cols-[1.2fr_.8fr] lg:gap-7"}`}>
           {!focusedEntry && (
           <section id="top" tabIndex={-1} className="scroll-mt-24 min-w-0 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur outline-none sm:p-7" aria-labelledby="recipe-settings">
             <div className="mb-2 flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs font-bold text-white">1</span><h2 id="recipe-settings" className="font-display text-2xl font-semibold">{t.quickTitle}</h2></div>
@@ -1768,6 +1793,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
                 wValue={wValue}
                 onWValueChange={setWValue}
                 activeFlour={activeFlour}
+                totalDough={recipe.total}
                 locale={locale}
                 t={t}
               />
