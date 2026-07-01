@@ -27,6 +27,8 @@ import {
   hasAdvancedCalculatorValues,
 } from "@/lib/calculator-progressive-disclosure";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
+import { buildPlanningResult } from "@/lib/planning-engine";
+import type { PlanningInput } from "@/lib/planning-input";
 import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
@@ -56,6 +58,36 @@ const saveRecipeValueByLevel: Record<ExperienceLevel, string> = {
 };
 
 const quickFermentationOptions: Fermentation[] = ["6h-room", "12h-room", "24h-room", "24h-cold", "48h-cold"];
+
+const fermentationHoursFor = (fermentation: Fermentation) => fermentationOptions.find((option) => option.value === fermentation)?.hours ?? 24;
+
+const planningInputFromCalculator = (input: {
+  currentDateTime: Date;
+  goal: PizzaGoal;
+  ovenType: OvenType;
+  fermentation: Fermentation;
+  temperature: number;
+  experienceLevel: ExperienceLevel;
+  flourId: FlourId;
+  pizzas: number;
+  ballWeight: number;
+  isColdFermentation: boolean;
+}): PlanningInput => {
+  const fermentationHours = fermentationHoursFor(input.fermentation);
+
+  return {
+    currentDateTime: input.currentDateTime,
+    desiredBakeDateTime: new Date(input.currentDateTime.getTime() + fermentationHours * 3_600_000),
+    userLevel: input.experienceLevel,
+    ovenType: input.ovenType === "gas" ? "pizza_oven" : "home_oven",
+    roomTemperature: input.isColdFermentation ? 22 : input.temperature,
+    fridgeTemperature: input.isColdFermentation ? input.temperature : 4,
+    flourSelection: { type: "known_flour_id", flourId: input.flourId },
+    doughBallCount: input.pizzas,
+    doughBallWeight: input.ballWeight,
+    mixingMethod: "hand_mixing",
+  };
+};
 
 const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentation) => {
   const hotOven = ovenTemperature >= 380;
@@ -225,6 +257,145 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
   );
 }
 
+function AdvancedCalculatorPlanningShell({
+  recipe,
+  planningResult,
+  yeastLabel,
+  locale,
+}: {
+  recipe: ReturnType<typeof calculateDoughIngredients>;
+  planningResult: ReturnType<typeof buildPlanningResult>;
+  yeastLabel: string;
+  locale: Locale;
+}) {
+  const warnings = planningResult.warnings;
+  const mixing = planningResult.mixingGuidance;
+  const timeline = planningResult.fermentationTimeline;
+  const temperature = planningResult.temperatureGuidance;
+
+  return (
+    <section className="mt-5 grid gap-5" aria-labelledby="advanced-calculator-planning">
+      <div className="rounded-[1.75rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
+        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Planning Engine v1</p>
+        <h2 id="advanced-calculator-planning" className="mt-2 font-display text-3xl font-semibold">Advanced dough planning</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+          A first calculator-only shell for planning output. Ingredient grams still come from the existing calculator; guidance is conservative and separate from Pizza Session.
+        </p>
+      </div>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-ingredient-amounts">
+        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Current calculator output</p>
+        <h3 id="advanced-ingredient-amounts" className="mt-2 font-display text-2xl font-semibold">Ingredient amounts</h3>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            { name: "Total dough", value: recipe.total, precise: false },
+            { name: "Flour", value: recipe.flour, precise: false },
+            { name: "Water", value: recipe.water, precise: false },
+            { name: "Salt", value: recipe.salt, precise: false },
+            { name: yeastLabel, value: recipe.leavener, precise: true },
+          ].map((ingredient) => (
+            <div key={ingredient.name} className="rounded-2xl border border-ink/10 bg-white p-4">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">{ingredient.name}</span>
+              <strong className="mt-2 block text-2xl font-extrabold tabular-nums text-ink">
+                {grams(ingredient.value, locale, ingredient.precise)} <span className="text-sm text-ink/40">g</span>
+              </strong>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-planning-warnings">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Warnings</p>
+          <h3 id="advanced-planning-warnings" className="mt-2 font-display text-2xl font-semibold">Planning warnings</h3>
+          {warnings.length > 0 ? (
+            <ul className="mt-4 grid gap-3">
+              {warnings.slice(0, 4).map((warning) => (
+                <li key={warning.id} className="rounded-2xl border border-tomato/15 bg-tomato/[.06] p-4">
+                  <strong className="block text-sm text-ink">{warning.userMessage}</strong>
+                  <span className="mt-1 block text-xs font-bold uppercase tracking-[.14em] text-tomato">{warning.severity.replace("_", " ")}</span>
+                  <p className="mt-2 text-xs leading-5 text-ink/55">{warning.suggestedFix}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-4 rounded-2xl border border-leaf/20 bg-leaf/[.08] p-4 text-sm leading-6 text-ink/60">
+              No major planning warnings for this conservative v1 setup.
+            </p>
+          )}
+        </section>
+
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-mixing-guidance">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Mixing</p>
+          <h3 id="advanced-mixing-guidance" className="mt-2 font-display text-2xl font-semibold">{mixing?.title ?? "Mixing guidance"}</h3>
+          <p className="mt-3 text-sm leading-6 text-ink/60">{mixing?.summary}</p>
+          <ol className="mt-4 grid gap-2">
+            {mixing?.recommendedOrder.slice(0, 4).map((step, index) => (
+              <li key={step} className="flex gap-3 rounded-2xl bg-ink/[.04] p-3 text-sm leading-6 text-ink/60">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ink text-xs font-extrabold text-white">{index + 1}</span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+          {mixing && (
+            <p className="mt-4 rounded-2xl border border-ink/10 bg-white p-4 text-xs leading-5 text-ink/55">
+              <strong className="text-ink">Stop when:</strong> {mixing.stopWhen}
+            </p>
+          )}
+        </section>
+      </div>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-fermentation-timeline">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Timeline</p>
+            <h3 id="advanced-fermentation-timeline" className="mt-2 font-display text-2xl font-semibold">Fermentation/action timeline</h3>
+          </div>
+          <span className="rounded-full bg-ink/[.06] px-3 py-1.5 text-xs font-extrabold text-ink/55">
+            {planningResult.availableFermentationHours} h available · {planningResult.recommendedFermentationMode.replace("_", " ")}
+          </span>
+        </div>
+        <ol className="mt-5 grid gap-3">
+          {timeline?.steps.map((step, index) => (
+            <li key={step.id} className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4 sm:grid-cols-[auto_1fr_auto] sm:items-start">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-leaf text-xs font-extrabold text-white">{index + 1}</span>
+              <span>
+                <strong className="block text-base text-ink">{step.title}</strong>
+                <span className="mt-1 block text-sm leading-6 text-ink/58">{step.instruction}</span>
+                {step.experienceNote && <span className="mt-2 block text-xs leading-5 text-ink/45">{step.experienceNote}</span>}
+              </span>
+              <span className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/35">{step.relativeTiming}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="advanced-temperature-guidance">
+        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Temperature</p>
+        <h3 id="advanced-temperature-guidance" className="mt-2 font-display text-2xl font-semibold">Temperature guidance</h3>
+        <p className="mt-3 text-sm leading-6 text-ink/60">{temperature?.summary}</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-ink/[.04] p-4">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Room</span>
+            <strong className="mt-2 block text-sm text-ink">{temperature?.roomCategory.replace("_", " ")}</strong>
+            <p className="mt-2 text-xs leading-5 text-ink/55">{temperature?.roomTemperatureNote}</p>
+          </div>
+          <div className="rounded-2xl bg-ink/[.04] p-4">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Fridge</span>
+            <strong className="mt-2 block text-sm text-ink">{temperature?.fridgeCategory.replace("_", " ")}</strong>
+            <p className="mt-2 text-xs leading-5 text-ink/55">{temperature?.fridgeTemperatureNote}</p>
+          </div>
+          <div className="rounded-2xl bg-ink/[.04] p-4">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Risk</span>
+            <strong className="mt-2 block text-sm text-ink">{temperature?.riskLevel.replace("_", " ")}</strong>
+            <p className="mt-2 text-xs leading-5 text-ink/55">Broad v1 temperature classification only. It does not change ingredient calculations.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+  );
+}
+
 type HomeCalculatorWorkspaceProps = {
   variant?: "full" | "entry";
 };
@@ -329,6 +500,18 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId,
   }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId]);
   const recipe = useMemo(() => calculateDoughIngredients(currentSettings), [currentSettings]);
+  const planningResult = useMemo(() => buildPlanningResult(planningInputFromCalculator({
+    currentDateTime: new Date(),
+    goal,
+    ovenType,
+    fermentation,
+    temperature,
+    experienceLevel,
+    flourId,
+    pizzas,
+    ballWeight,
+    isColdFermentation,
+  })), [goal, ovenType, fermentation, temperature, experienceLevel, flourId, pizzas, ballWeight, isColdFermentation]);
 
   const recipeQuery = recipeParams(currentSettings).toString();
   const toolHref = (tool: HomepageTool) => tool.preserveRecipe ? `${tool.href}?${recipeQuery}` : tool.href;
@@ -734,6 +917,15 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
             </fieldset>
             </div>}
           </section>
+
+          {focusedEntry && (
+            <AdvancedCalculatorPlanningShell
+              recipe={recipe}
+              planningResult={planningResult}
+              yeastLabel={t.yeasts[yeastType][1]}
+              locale={locale}
+            />
+          )}
 
           {!focusedEntry && (
           <aside className="overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card lg:sticky lg:top-7" aria-live="polite">

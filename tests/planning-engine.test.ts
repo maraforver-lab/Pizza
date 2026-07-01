@@ -867,7 +867,10 @@ describe("Planning Engine fermentation rules v1", () => {
     const planningImports = /planning-engine|planning-fermentation-timeline|planning-flour-profiles|planning-input|planning-mixing-guidance|planning-result|planning-temperature-guidance|planning-types|planning-yeast-model|planning-warning-engine/;
 
     expect(calculator).not.toMatch(planningImports);
-    expect(homepageWorkspace).not.toMatch(planningImports);
+    expect(homepageWorkspace).toContain('variant?: "full" | "entry"');
+    expect(homepageWorkspace).toContain("buildPlanningResult");
+    expect(homepageWorkspace).toContain("AdvancedCalculatorPlanningShell");
+    expect(homepageWorkspace).toContain("guidance is conservative and separate from Pizza Session");
     expect(sessionRecipe).not.toMatch(planningImports);
     expect(sessionTimeline).not.toMatch(planningImports);
     expect(plannerPage).not.toMatch(planningImports);

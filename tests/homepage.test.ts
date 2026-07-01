@@ -243,6 +243,15 @@ describe("homepage content model", () => {
     expect(calculatorWorkspace).toContain('focusedEntry ? "max-w-3xl" : "max-w-6xl"');
     expect(calculatorWorkspace).toContain("{!focusedEntry && (");
     expect(calculatorWorkspace).toContain("lg:grid-cols-[1.2fr_.8fr]");
+    expect(calculatorWorkspace).toContain("AdvancedCalculatorPlanningShell");
+    expect(calculatorWorkspace).toContain("Planning Engine v1");
+    expect(calculatorWorkspace).toContain("Advanced dough planning");
+    expect(calculatorWorkspace).toContain("Ingredient amounts");
+    expect(calculatorWorkspace).toContain("Planning warnings");
+    expect(calculatorWorkspace).toContain("Fermentation/action timeline");
+    expect(calculatorWorkspace).toContain("Temperature guidance");
+    expect(calculatorWorkspace).toContain("buildPlanningResult(planningInputFromCalculator");
+    expect(calculatorWorkspace).toContain("guidance is conservative and separate from Pizza Session");
   });
 
   it("does not include Finnish or Swedish active homepage labels", () => {
