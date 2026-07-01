@@ -204,10 +204,10 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.recommendedHydration).toBe(60);
     expect(result.recommendedSalt).toBe(2.8);
     expect(result.recommendedYeast.placeholderPercent).toBe(0.25);
-    expect(result.warnings).toEqual([expect.objectContaining({
+    expect(result.warnings).toContainEqual(expect.objectContaining({
       id: "fast-dough-compromise",
       severity: "caution",
-    })]);
+    }));
     expect(result.qualityScore).toMatchObject({ score: 45, label: "moderate_low" });
   });
 
@@ -457,6 +457,46 @@ describe("Planning Engine fermentation rules v1", () => {
       "Instant dry yeast equivalent",
     );
     expect(result.technicalDetails.yeastAssumptions.yeastConfidence).toBe("low");
+  });
+
+  it("keeps planning warning ids stable and visibility levels populated", () => {
+    const scenarios = [
+      buildPlanningResult(planningInputWithHours(-1)),
+      buildPlanningResult(planningInputWithHours(2)),
+      buildPlanningResult(planningInputWithHours(5, {
+        flourSelection: { type: "known_flour_id", flourId: "pirkka_w350" },
+      })),
+      buildPlanningResult(planningInputWithHours(36, {
+        fridgeTemperature: 9,
+      })),
+      buildPlanningResult(planningInputWithHours(60, {
+        flourSelection: { type: "standard_pizza_flour" },
+      })),
+      buildPlanningResult(planningInputWithHours(96, {
+        userLevel: "pizza_nerd",
+      })),
+    ];
+    const warnings = scenarios.flatMap((scenario) => scenario.warnings);
+    const warningIds = new Set(warnings.map((warning) => warning.id));
+
+    expect(warningIds).toEqual(new Set([
+      "no-positive-fermentation-window",
+      "insufficient-fermentation-window",
+      "fast-dough-compromise",
+      "very-strong-flour-fast-dough",
+      "warm-fridge-long-fermentation",
+      "standard-flour-too-weak-for-long-fermentation",
+      "low-confidence-yeast-recommendation",
+      "advanced-long-fermentation-window",
+      "pizza-nerd-long-fermentation-note",
+    ]));
+
+    for (const warning of warnings) {
+      expect(warning.visibleForLevels.length).toBeGreaterThan(0);
+      expect(warning.userMessage.length).toBeGreaterThan(0);
+      expect(warning.technicalReason.length).toBeGreaterThan(0);
+      expect(warning.suggestedFix.length).toBeGreaterThan(0);
+    }
   });
 
   it("returns a stable quality score and technical details shape", () => {
