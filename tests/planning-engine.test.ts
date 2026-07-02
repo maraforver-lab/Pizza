@@ -1743,7 +1743,7 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(ingredients.leavener).toBeCloseTo(0.99, 2);
   });
 
-  it("keeps the Planning Engine isolated from existing production UI and recipe logic", () => {
+  it("keeps the Planning Engine isolated from calculator math and non-Dough-Plan session flows", () => {
     const calculator = source("lib/dough-calculator.ts");
     const homepageWorkspace = source("components/HomeCalculatorWorkspace.tsx");
     const sessionRecipe = source("lib/session-recipe.ts");
@@ -1758,7 +1758,8 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(homepageWorkspace).toContain("AdvancedCalculatorPlanningShell");
     expect(homepageWorkspace).toContain("GuidedCalculatorV2");
     expect(homepageWorkspace).toContain("Secondary guidance is available below without turning this into a full workflow.");
-    expect(sessionRecipe).not.toMatch(planningImports);
+    expect(sessionRecipe).toContain("buildPlanningResult");
+    expect(sessionRecipe).toContain("planningInfoFromSessionRecipe");
     expect(sessionTimeline).not.toMatch(planningImports);
     expect(plannerPage).not.toMatch(planningImports);
   });

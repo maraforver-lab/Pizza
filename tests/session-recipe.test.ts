@@ -121,6 +121,13 @@ describe("Session recipe build step", () => {
     expect(page).toContain('label: "Mixing bowl"');
     expect(page).toContain('label: "Dough scraper or sturdy spoon"');
     expect(page).toContain('label: "Covered container or bowl"');
+    expect(page).toContain("Dough planning notes");
+    expect(page).toContain("Planning guidance is based on available session choices.");
+    expect(page).toContain("Overall risk");
+    expect(page).toContain("What to adjust first");
+    expect(page).toContain("Session planning context");
+    expect(page).not.toContain("Calculator v1");
+    expect(page).not.toContain("Calculator v2");
     expect(page.indexOf("Your dough plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
   });
 
@@ -200,8 +207,28 @@ describe("Session recipe build step", () => {
     expect(result.recipeSnapshot.waterAmount).toBeCloseTo(canonicalIngredients.water, 6);
     expect(result.recipeSnapshot.saltAmount).toBeCloseTo(canonicalIngredients.salt, 6);
     expect(result.recipeSnapshot.leavenerAmount).toBeCloseTo(canonicalIngredients.leavener, 6);
+    expect(result.planningInfo.ok).toBe(true);
+    if (result.planningInfo.ok) {
+      expect(result.planningInfo.result.combinedRiskSummary?.overallRiskLevel).toBeDefined();
+      expect(result.planningInfo.result.availableFlourRecommendation).toBeTruthy();
+      expect(result.planningInfo.result.yeastGuidance).toBeTruthy();
+      expect(result.planningInfo.result.formulaFitGuidance).toBeTruthy();
+      expect(result.planningInfo.result.temperatureGuidance).toBeTruthy();
+    }
     expect(sessionRecipeQuery(result)).toContain("balls=4");
     expect(sessionRecipeQuery(result)).toContain("pizzaPreset=diavola");
+  });
+
+  it("keeps planning guidance cautious when target time is missing", () => {
+    const { targetEatTime, ...withoutTargetTime } = completeSessionInput;
+    expect(targetEatTime).toBeDefined();
+    const session = createPizzaSession(withoutTargetTime, new Date("2026-06-25T10:00:00.000Z"));
+    const result = buildSessionRecipe(session, new Date("2026-06-25T10:00:00.000Z"));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected session recipe result");
+    expect(result.planningInfo).toEqual({ ok: false, missingReason: "missing-target-time" });
+    expect(result.recipeSnapshot.flourAmount).toBeGreaterThan(0);
   });
 
   it("shows safe missing states instead of inventing unsupported data", () => {
@@ -259,6 +286,8 @@ describe("Session recipe build step", () => {
     expect(updatedSession?.recipeParams?.balls).toBe("4");
     expect(updatedSession?.recipeSnapshot?.flourAmount).toBeGreaterThan(0);
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("recipeSnapshot");
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).not.toContain("planningInfo");
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).not.toContain("combinedRiskSummary");
     expect(storage.getItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY)).toBe(session.id);
     expect(getPizzaSession(session.id, storage)?.currentStep).toBe("recipe");
   });

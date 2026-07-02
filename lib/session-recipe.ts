@@ -1,13 +1,20 @@
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import type { FlourId } from "@/lib/flours";
 import { flourIds } from "@/lib/flours";
+import { buildPlanningResult } from "@/lib/planning-engine";
+import type { PlanningInput } from "@/lib/planning-input";
+import type { FermentationMode } from "@/lib/planning-types";
 import type { PizzaSession, PizzaSessionRecipeParams, PizzaSessionRecipeSnapshot } from "@/lib/pizza-session";
 import { recipeParams } from "@/lib/recipe-url";
 import type { Fermentation, OvenType, PizzaGoal, PizzaStyleId, RecipeIngredients, RecipeSettings, YeastType } from "@/lib/saved-recipes";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
 
+export type SessionRecipePlanningInfo =
+  | { ok: true; result: ReturnType<typeof buildPlanningResult> }
+  | { ok: false; missingReason: "missing-target-time" | "invalid-target-time" };
+
 export type SessionRecipeBuildResult =
-  | { ok: true; settings: RecipeSettings; ingredients: RecipeIngredients; recipeParams: PizzaSessionRecipeParams; recipeSnapshot: PizzaSessionRecipeSnapshot }
+  | { ok: true; settings: RecipeSettings; ingredients: RecipeIngredients; recipeParams: PizzaSessionRecipeParams; recipeSnapshot: PizzaSessionRecipeSnapshot; planningInfo: SessionRecipePlanningInfo }
   | { ok: false; missingReason: "no-session" | "missing-path" | "missing-preset" | "missing-quantity" | "missing-flour" };
 
 const flourChoiceToId: Record<string, FlourId> = {
@@ -36,7 +43,60 @@ function safeFlourId(value?: string): FlourId | undefined {
   return flourChoiceToId[value];
 }
 
-function recipeSettingsFromSession(session: PizzaSession | undefined): SessionRecipeBuildResult {
+function planningFermentationModeFromRecipe(fermentation: Fermentation): FermentationMode {
+  return fermentation.endsWith("cold") ? "cold" : "room";
+}
+
+function doughStyleForPlanning(settings: RecipeSettings) {
+  if (settings.pizzaStyleId === "detroit" || settings.pizzaStyleId === "sicilian") return "unsupported";
+  if (settings.fermentation === "6h-room") return "same_day_neapolitan";
+  if (settings.fermentation.endsWith("cold")) return "cold_neapolitan";
+  return "neapolitan_direct";
+}
+
+function planningInfoFromSessionRecipe({
+  session,
+  settings,
+  ingredients,
+  now,
+}: {
+  session: PizzaSession;
+  settings: RecipeSettings;
+  ingredients: RecipeIngredients;
+  now: Date;
+}): SessionRecipePlanningInfo {
+  const targetValue = session.targetEatTime ?? session.targetBakeTime;
+  if (!targetValue) return { ok: false, missingReason: "missing-target-time" };
+  const desiredBakeDateTime = new Date(targetValue);
+  if (!Number.isFinite(desiredBakeDateTime.getTime())) {
+    return { ok: false, missingReason: "invalid-target-time" };
+  }
+
+  const coldFermentation = settings.fermentation.endsWith("cold");
+  const planningInput: PlanningInput = {
+    currentDateTime: now,
+    desiredBakeDateTime,
+    userLevel: session.experienceLevel,
+    ovenType: settings.ovenType === "gas" ? "pizza_oven" : "home_oven",
+    roomTemperature: coldFermentation ? 22 : settings.temperature,
+    fridgeTemperature: coldFermentation ? settings.temperature : 4,
+    flourSelection: { type: "known_flour_id", flourId: settings.flourId },
+    doughBallCount: settings.pizzas,
+    doughBallWeight: settings.ballWeight,
+    hydration: settings.hydration,
+    salt: settings.salt,
+    doughStyle: doughStyleForPlanning(settings),
+    selectedFermentationMode: planningFermentationModeFromRecipe(settings.fermentation),
+    mixingMethod: "hand_mixing",
+    yeastType: settings.yeastType,
+    calculatedFlourGrams: ingredients.flour,
+    calculatedYeastGrams: ingredients.leavener,
+  };
+
+  return { ok: true, result: buildPlanningResult(planningInput) };
+}
+
+function recipeSettingsFromSession(session: PizzaSession | undefined, now = new Date()): SessionRecipeBuildResult {
   if (!session) return { ok: false, missingReason: "no-session" };
   if (!session.pizzaStyle) return { ok: false, missingReason: "missing-path" };
   if (!session.pizzaPreset) return { ok: false, missingReason: "missing-preset" };
@@ -91,17 +151,18 @@ function recipeSettingsFromSession(session: PizzaSession | undefined): SessionRe
     saltAmount: ingredients.salt,
     leavenerAmount: ingredients.leavener,
   };
+  const planningInfo = planningInfoFromSessionRecipe({ session, settings, ingredients, now });
 
-  return { ok: true, settings, ingredients, recipeParams: recipeParamsObject, recipeSnapshot };
+  return { ok: true, settings, ingredients, recipeParams: recipeParamsObject, recipeSnapshot, planningInfo };
 }
 
-export function buildSessionRecipe(session: PizzaSession | undefined): SessionRecipeBuildResult {
-  return recipeSettingsFromSession(session);
+export function buildSessionRecipe(session: PizzaSession | undefined, now = new Date()): SessionRecipeBuildResult {
+  return recipeSettingsFromSession(session, now);
 }
 
 export function generateAndSaveActiveSessionRecipe(storage?: Storage, now = new Date()) {
   const session = getActivePizzaSession(storage);
-  const result = buildSessionRecipe(session);
+  const result = buildSessionRecipe(session, now);
   if (!session || !result.ok) return { session, result };
 
   const updatedSession = updatePizzaSession(

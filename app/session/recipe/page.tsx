@@ -27,6 +27,25 @@ function amountCardTone(label: string) {
   return "text-leaf";
 }
 
+function planningRiskTone(risk?: string) {
+  if (risk === "high_risk" || risk === "not_recommended") return "border-tomato/35 bg-tomato/[.08] text-tomato";
+  if (risk === "caution") return "border-tomato/25 bg-tomato/[.06] text-tomato";
+  if (risk === "not_enough_information") return "border-ink/10 bg-cream text-ink/65";
+  return "border-leaf/25 bg-leaf/[.08] text-leaf";
+}
+
+function readablePlanningLabel(value?: string | null) {
+  if (!value) return "Not enough information";
+  return value.replaceAll("_", " ");
+}
+
+function formatAvailableHours(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "Time not available";
+  if (value < 1) return `${Math.round(value * 60)} min`;
+  const rounded = Math.round(value * 10) / 10;
+  return `${rounded} h`;
+}
+
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
   if (reason === "no-session") {
     return {
@@ -113,6 +132,30 @@ export default function SessionRecipePage() {
     { label: "Dough scraper or sturdy spoon", icon: "🥄", description: "Helpful for mixing and handling." },
     { label: "Covered container or bowl", icon: "◒", description: "Keeps dough covered while it rests." },
   ];
+  const planningInfo = result.planningInfo;
+  const planningResult = planningInfo.ok ? planningInfo.result : null;
+  const combinedRisk = planningResult?.combinedRiskSummary;
+  const planningHighlights = planningResult
+    ? [
+      planningResult.startWindowRecommendation && {
+        label: "Start window",
+        value: planningResult.startWindowRecommendation.startWindowLabel,
+      },
+      planningResult.fermentationSetupRecommendation && {
+        label: "Recommended setup",
+        value: planningResult.fermentationSetupRecommendation.title,
+      },
+      planningResult.availableFlourRecommendation && {
+        label: "Flour",
+        value: planningResult.availableFlourRecommendation.recommendedFlour?.label
+          ?? planningResult.availableFlourRecommendation.summary,
+      },
+      planningResult.yeastGuidance && {
+        label: "Yeast",
+        value: planningResult.yeastGuidance.title,
+      },
+    ].filter((item): item is { label: string; value: string } => Boolean(item))
+    : [];
 
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
@@ -174,6 +217,54 @@ export default function SessionRecipePage() {
                   </ul>
                 </section>
               </div>
+            </article>
+
+            <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7" aria-labelledby="dough-planning-notes-heading">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning guidance</p>
+                  <h3 id="dough-planning-notes-heading" className="mt-2 font-display text-3xl font-semibold">Dough planning notes</h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+                    Planning guidance is based on available session choices. It does not change your dough formula or ingredient amounts.
+                  </p>
+                </div>
+                <span className={`w-fit rounded-full border px-3 py-2 text-xs font-extrabold capitalize ${planningRiskTone(combinedRisk?.overallRiskLevel ?? (planningInfo.ok ? "low" : "not_enough_information"))}`}>
+                  {readablePlanningLabel(combinedRisk?.overallRiskLevel ?? (planningInfo.ok ? "low" : "not_enough_information"))}
+                </span>
+              </div>
+
+              {planningResult && combinedRisk ? (
+                <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(16rem,.9fr)]">
+                  <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
+                    <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
+                    <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.summary}</p>
+                    <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
+                      <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
+                      <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
+                    </div>
+                  </section>
+
+                  <section className="rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4">
+                    <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Session planning context</p>
+                    <dl className="mt-3 grid gap-2">
+                      <div className="flex items-center justify-between gap-3 rounded-2xl bg-white p-3">
+                        <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
+                        <dd className="text-sm font-extrabold text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
+                      </div>
+                      {planningHighlights.slice(0, 4).map((item) => (
+                        <div key={item.label} className="grid gap-1 rounded-2xl bg-white p-3">
+                          <dt className="text-xs font-extrabold text-ink/45">{item.label}</dt>
+                          <dd className="text-sm font-bold leading-5 text-ink/70">{item.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">
+                  Add a valid target pizza time for stronger recommendations. The dough amounts above are still calculated from your saved session choices.
+                </div>
+              )}
             </article>
           </div>
         </section>
