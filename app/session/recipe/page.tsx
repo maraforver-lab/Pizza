@@ -9,6 +9,7 @@ import { SessionViewportReset } from "@/components/session/SessionViewportReset"
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
+import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import {
   generateAndSaveActiveSessionRecipe,
   type SessionRecipeBuildResult,
@@ -44,6 +45,26 @@ function formatAvailableHours(value?: number) {
   if (value < 1) return `${Math.round(value * 60)} min`;
   const rounded = Math.round(value * 10) / 10;
   return `${rounded} h`;
+}
+
+function formatPlanningDateTime(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Date not available";
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function selectedFlourLabel(value?: string) {
+  if (value === "plain") return "All-purpose flour";
+  if (value === "bread") return "Bread flour / strong flour";
+  if (value === "tipo-00") return "Pizza flour / Tipo 00";
+  return "Pizza flour / Tipo 00";
 }
 
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
@@ -135,6 +156,10 @@ export default function SessionRecipePage() {
   const planningInfo = result.planningInfo;
   const planningResult = planningInfo.ok ? planningInfo.result : null;
   const combinedRisk = planningResult?.combinedRiskSummary;
+  const longHorizonRecommendation = buildLongHorizonStartRecommendation({
+    planningResult,
+    selectedFlourLabel: selectedFlourLabel(session.flour),
+  });
   const planningHighlights = planningResult
     ? [
       planningResult.startWindowRecommendation && {
@@ -234,31 +259,69 @@ export default function SessionRecipePage() {
               </div>
 
               {planningResult && combinedRisk ? (
-                <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(16rem,.9fr)]">
-                  <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
-                    <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
-                    <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.summary}</p>
-                    <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
-                      <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                      <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
-                    </div>
-                  </section>
-
-                  <section className="rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4">
-                    <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Session planning context</p>
-                    <dl className="mt-3 grid gap-2">
-                      <div className="flex items-center justify-between gap-3 rounded-2xl bg-white p-3">
-                        <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
-                        <dd className="text-sm font-extrabold text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
+                <div className="mt-4 grid gap-3">
+                  <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(16rem,.9fr)]">
+                    <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
+                      <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
+                      <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.summary}</p>
+                      <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
+                        <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
+                        <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
                       </div>
-                      {planningHighlights.slice(0, 4).map((item) => (
-                        <div key={item.label} className="grid gap-1 rounded-2xl bg-white p-3">
-                          <dt className="text-xs font-extrabold text-ink/45">{item.label}</dt>
-                          <dd className="text-sm font-bold leading-5 text-ink/70">{item.value}</dd>
+                    </section>
+
+                    <section className="rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4">
+                      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Session planning context</p>
+                      <dl className="mt-3 grid gap-2">
+                        <div className="flex items-center justify-between gap-3 rounded-2xl bg-white p-3">
+                          <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
+                          <dd className="text-sm font-extrabold text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
                         </div>
-                      ))}
-                    </dl>
-                  </section>
+                        {planningHighlights.slice(0, 4).map((item) => (
+                          <div key={item.label} className="grid gap-1 rounded-2xl bg-white p-3">
+                            <dt className="text-xs font-extrabold text-ink/45">{item.label}</dt>
+                            <dd className="text-sm font-bold leading-5 text-ink/70">{item.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </section>
+                  </div>
+
+                  {longHorizonRecommendation && (
+                    <section className="rounded-[1.25rem] border border-tomato/20 bg-tomato/[.06] p-4">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Long-horizon start plan</p>
+                          <h4 className="mt-2 font-display text-2xl font-semibold">{longHorizonRecommendation.title}</h4>
+                          <p className="mt-2 text-sm leading-6 text-ink/65">{longHorizonRecommendation.summary}</p>
+                        </div>
+                        <div className="rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/70 lg:min-w-[17rem]">
+                          <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Recommended plan</span>
+                          <span className="mt-1 block font-extrabold text-ink">
+                            Start {formatPlanningDateTime(longHorizonRecommendation.recommendedStartIso)}
+                          </span>
+                          <span className="mt-1 block">48h cold fermentation</span>
+                        </div>
+                      </div>
+
+                      <dl className="mt-4 grid gap-2 lg:grid-cols-3">
+                        {longHorizonRecommendation.options.map((option) => (
+                          <div key={option.durationHours} className={`rounded-2xl border bg-white p-3 ${option.isRecommended ? "border-leaf/30 ring-1 ring-leaf/20" : "border-ink/10"}`}>
+                            <dt className="text-sm font-extrabold text-ink">{option.label}</dt>
+                            <dd className="mt-1 text-sm leading-6 text-ink/65">
+                              Start {formatPlanningDateTime(option.startIso)}
+                            </dd>
+                            <dd className="mt-2 text-xs font-bold leading-5 text-ink/55">{option.flourGuidance}</dd>
+                          </div>
+                        ))}
+                      </dl>
+
+                      <div className="mt-3 grid gap-2 rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/65 sm:grid-cols-2">
+                        <p><span className="font-extrabold text-ink">Selected flour:</span> {longHorizonRecommendation.selectedFlourLabel}</p>
+                        <p><span className="font-extrabold text-ink">Recommended flour for 48–72h cold fermentation:</span> {longHorizonRecommendation.recommendedFlourLabel}</p>
+                      </div>
+                    </section>
+                  )}
                 </div>
               ) : (
                 <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">

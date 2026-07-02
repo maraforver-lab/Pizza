@@ -15,6 +15,7 @@ import {
   generateAndSaveActiveSessionRecipe,
   sessionRecipeQuery,
 } from "@/lib/session-recipe";
+import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import type { RecipeSettings } from "@/lib/saved-recipes";
 
 function source(path: string) {
@@ -126,6 +127,10 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Overall risk");
     expect(page).toContain("What to adjust first");
     expect(page).toContain("Session planning context");
+    expect(page).toContain("Long-horizon start plan");
+    expect(page).toContain("48h cold fermentation");
+    expect(page).toContain("Selected flour:");
+    expect(page).toContain("Recommended flour for 48–72h cold fermentation:");
     expect(page).not.toContain("Calculator v1");
     expect(page).not.toContain("Calculator v2");
     expect(page.indexOf("Your dough plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
@@ -305,6 +310,45 @@ describe("Session recipe build step", () => {
     if (!sevenDays.ok || !sevenDays.planningInfo.ok) throw new Error("Expected seven-day planning info");
     expect(sevenDays.planningInfo.result.startWindowRecommendation?.category).not.toBe("start_now");
     expect(sevenDays.planningInfo.result.combinedRiskSummary?.overallRiskLevel).not.toBe("low");
+  });
+
+  it("builds a useful long-horizon start recommendation without changing selected flour or ingredients", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-eight-day-long-horizon",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-10T18:00",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok || !result.planningInfo.ok) throw new Error("Expected long-horizon planning info");
+
+    const recommendation = buildLongHorizonStartRecommendation({
+      planningResult: result.planningInfo.result,
+      selectedFlourLabel: "Pizza flour / Tipo 00",
+    });
+
+    expect(recommendation).toMatchObject({
+      title: "Do not start today",
+      selectedFlourLabel: "Pizza flour / Tipo 00",
+      recommendedDurationHours: 48,
+      recommendedFlourLabel: "Bread flour / strong flour",
+    });
+    expect(recommendation?.recommendedStartIso).toBe(new Date("2026-07-08T18:00").toISOString());
+    expect(recommendation?.options.map((option) => option.durationHours)).toEqual([24, 48, 72]);
+    expect(recommendation?.options.map((option) => option.startIso)).toEqual([
+      new Date("2026-07-09T18:00").toISOString(),
+      new Date("2026-07-08T18:00").toISOString(),
+      new Date("2026-07-07T18:00").toISOString(),
+    ]);
+    expect(recommendation?.options[0]?.flourGuidance).toContain("Pizza flour / Tipo 00");
+    expect(recommendation?.options[1]?.flourGuidance).toContain("stronger Tipo 00 or bread flour");
+    expect(recommendation?.options[2]?.flourGuidance).toContain("strong flour");
+    expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
   });
 
   it("shows safe missing states instead of inventing unsupported data", () => {
