@@ -1,6 +1,13 @@
 # Continuous yeast model v1 audit/design
 
-Patch 152 is an audit/design pass only. It documents the current yeast behavior and proposes a safe future continuous model without changing production recipe formulas, ingredient amounts, Pizza Session behavior, storage, routes, or UI.
+Patch 152 was an audit/design pass only. Patch 153 adds the first isolated helper described here without changing production recipe formulas, ingredient amounts, Pizza Session behavior, storage, routes, or UI.
+
+Patch 153 helper:
+
+- `lib/continuous-yeast-model.ts`
+- primary function: `calculateContinuousYeastRecommendation(input)`
+- tests: `tests/continuous-yeast-model.test.ts`
+- production integration: not yet wired into `calculateDoughIngredients()`
 
 ## Current production model
 
@@ -100,17 +107,15 @@ This is useful as an advisory model, but it should be tightened before becoming 
 
 Introduce a new pure helper before changing production ingredient amounts.
 
-Suggested helper:
+Implemented helper shape:
 
 ```ts
 type ContinuousYeastInput = {
   flourGrams: number;
   fermentationHours: number;
-  fermentationMode: "room" | "cold" | "hybrid";
-  roomTemperatureC?: number;
-  fridgeTemperatureC?: number;
-  yeastType: "cy" | "idy" | "ady";
-  doughStyle?: string;
+  fermentationMode: "room" | "cold";
+  temperatureC: number;
+  yeastType: "fresh_yeast" | "instant_dry_yeast" | "active_dry_yeast";
 };
 ```
 
@@ -178,14 +183,20 @@ Any Q10-style factor should be clamped so the model cannot produce absurd home-s
 
 ## Yeast type conversion
 
-There is a conversion mismatch to resolve before production integration:
+Patch 152 found a conversion mismatch:
 
 - current production IDY factor is `0.414` of fresh yeast
 - current planning model IDY factor is `1 / 3`
 - current production ADY factor is `0.52`
 - current planning model ADY factor is `0.42`
 
-Recommendation: Patch 153 should make the conversion choice explicit in the new helper and lock it with tests. If the helper will eventually drive production grams, use one conversion table consistently and document any intentional change from existing production baselines.
+Patch 153 decision: the isolated continuous helper uses the current production-compatible commercial yeast factors:
+
+- fresh yeast: `1`
+- instant dry yeast: `0.414`
+- active dry yeast: `0.52`
+
+Reason: this keeps the helper safe for future side-by-side comparison with current production grams and avoids silently mixing planning-only conversion factors into production-adjacent logic. The existing planning model can be aligned later in a deliberately scoped patch.
 
 ## Clamps and warning states
 
@@ -210,19 +221,23 @@ Example:
 - Recommend a closer 24 h, 48 h, or 72 h cold fermentation plan.
 - Calculate yeast only for that chosen/recommended fermentation window, capped at 72 h.
 
-## Recommended implementation strategy for Patch 153
+## Recommended implementation strategy after Patch 153
 
-Safest path:
+Patch 153 has completed the first two steps:
 
 1. Add `lib/continuous-yeast-model.ts` as a pure helper with tests only.
-2. Do not replace `calculateDoughIngredients()` in the same patch unless explicitly requested.
-3. Add a clear adapter from long-horizon recommendations to a chosen 24 h / 48 h / 72 h yeast basis.
-4. Compare helper output to existing recipe yeast in planning guidance first.
-5. In a later patch, add an explicit production integration path so ingredient amount changes are deliberate and testable.
+2. Do not replace `calculateDoughIngredients()`.
+
+Recommended next steps:
+
+1. Add a clear adapter from long-horizon recommendations to a chosen 24 h / 48 h / 72 h yeast basis.
+2. Compare helper output to existing recipe yeast in planning guidance first.
+3. Align or deliberately separate Planning Engine yeast conversion factors from the production-compatible helper.
+4. In a later patch, add an explicit production integration path so ingredient amount changes are deliberate and testable.
 
 Avoid silently changing existing saved recipe or Pizza Session ingredient amounts until the continuous model has its own baseline tests.
 
-## Required tests for Patch 153
+## Patch 153 test matrix
 
 Minimum test matrix:
 
@@ -237,7 +252,7 @@ Minimum test matrix:
 - warm fridge adds caution for long cold plans
 - CY, IDY, and ADY conversions are stable
 - clamps prevent zero/negative/absurd grams
-- current `calculateDoughIngredients()` baselines remain unchanged unless the patch explicitly changes production formulas
+- current `calculateDoughIngredients()` baselines remain unchanged because Patch 153 does not import or call the helper from production recipe calculation
 - Pizza Session and Calculator v1/v2 behave consistently when given the same selected continuous yeast basis
 - sourdough remains conservative or out of scope
 
