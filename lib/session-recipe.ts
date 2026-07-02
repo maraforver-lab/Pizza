@@ -13,6 +13,7 @@ import type { FermentationMode } from "@/lib/planning-types";
 import type { PizzaSession, PizzaSessionRecipeParams, PizzaSessionRecipeSnapshot } from "@/lib/pizza-session";
 import { recipeParams } from "@/lib/recipe-url";
 import type { Fermentation, OvenType, PizzaGoal, PizzaStyleId, RecipeIngredients, RecipeSettings, YeastType } from "@/lib/saved-recipes";
+import { buildSessionFlourWGuidance, type SessionFlourWGuidance } from "@/lib/session-flour-w-guidance";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
 
 export type SessionRecipePlanningInfo =
@@ -27,7 +28,7 @@ export type SessionRecipeContinuousYeastInfo = {
 };
 
 export type SessionRecipeBuildResult =
-  | { ok: true; settings: RecipeSettings; ingredients: RecipeIngredients; recipeParams: PizzaSessionRecipeParams; recipeSnapshot: PizzaSessionRecipeSnapshot; planningInfo: SessionRecipePlanningInfo; continuousYeast: SessionRecipeContinuousYeastInfo | null }
+  | { ok: true; settings: RecipeSettings; ingredients: RecipeIngredients; recipeParams: PizzaSessionRecipeParams; recipeSnapshot: PizzaSessionRecipeSnapshot; planningInfo: SessionRecipePlanningInfo; continuousYeast: SessionRecipeContinuousYeastInfo | null; flourWGuidance: SessionFlourWGuidance | null }
   | { ok: false; missingReason: "no-session" | "missing-path" | "missing-preset" | "missing-quantity" | "missing-flour" };
 
 const flourChoiceToId: Record<string, FlourId> = {
@@ -129,6 +130,14 @@ function continuousYeastTypeFromRecipe(yeastType: YeastType): ContinuousYeastTyp
   if (yeastType === "idy") return "instant_dry_yeast";
   if (yeastType === "ady") return "active_dry_yeast";
   return null;
+}
+
+function selectedSessionFlourLabel(value?: string) {
+  if (value === "plain") return "All-purpose flour";
+  if (value === "bread") return "Bread flour / strong flour";
+  if (value === "tipo-00") return "Pizza flour / Tipo 00";
+  if (value === "not-sure") return "Flour not specified";
+  return "Pizza flour / Tipo 00";
 }
 
 function formatYeastBasisHours(hours: number | null) {
@@ -235,6 +244,23 @@ function buildSessionContinuousYeast({
   };
 }
 
+function buildFlourWGuidanceFromSession({
+  session,
+  continuousYeast,
+}: {
+  session: PizzaSession;
+  continuousYeast: SessionRecipeContinuousYeastInfo | null;
+}) {
+  if (!continuousYeast) return null;
+  return buildSessionFlourWGuidance({
+    fermentationHours: continuousYeast.recommendation.fermentationHours,
+    fermentationMode: continuousYeast.recommendation.fermentationMode,
+    flourSituation: session.flourSituation,
+    availableFlourWRanges: session.availableFlourWRanges,
+    selectedFlourLabel: selectedSessionFlourLabel(session.flour),
+  });
+}
+
 function recipeSettingsFromSession(session: PizzaSession | undefined, now = new Date()): SessionRecipeBuildResult {
   if (!session) return { ok: false, missingReason: "no-session" };
   if (!session.pizzaStyle) return { ok: false, missingReason: "missing-path" };
@@ -300,6 +326,10 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
     leavenerAmount: ingredients.leavener,
   };
   const planningInfo = planningInfoFromSessionRecipe({ session, settings, ingredients, now });
+  const flourWGuidance = buildFlourWGuidanceFromSession({
+    session,
+    continuousYeast: continuousYeastResult.continuousYeast,
+  });
 
   return {
     ok: true,
@@ -309,6 +339,7 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
     recipeSnapshot,
     planningInfo,
     continuousYeast: continuousYeastResult.continuousYeast,
+    flourWGuidance,
   };
 }
 

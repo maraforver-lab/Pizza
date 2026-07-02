@@ -35,6 +35,12 @@ function planningRiskTone(risk?: string) {
   return "border-leaf/25 bg-leaf/[.08] text-leaf";
 }
 
+function flourFitTone(fit?: string) {
+  if (fit === "caution") return "border-tomato/25 bg-tomato/[.06]";
+  if (fit === "long_horizon" || fit === "unknown" || fit === "not_enough_information") return "border-ink/10 bg-cream";
+  return "border-leaf/25 bg-leaf/[.08]";
+}
+
 function readablePlanningLabel(value?: string | null) {
   if (!value) return "Not enough information";
   return value.replaceAll("_", " ");
@@ -163,6 +169,7 @@ export default function SessionRecipePage() {
   const planningInfo = result.planningInfo;
   const planningResult = planningInfo.ok ? planningInfo.result : null;
   const combinedRisk = planningResult?.combinedRiskSummary;
+  const flourWGuidance = result.flourWGuidance;
   const longHorizonRecommendation = buildLongHorizonStartRecommendation({
     planningResult,
     selectedFlourLabel: selectedFlourLabel(session.flour),
@@ -181,8 +188,9 @@ export default function SessionRecipePage() {
         value: planningResult.fermentationSetupRecommendation.title,
       },
       planningResult.availableFlourRecommendation && {
-        label: "Flour",
-        value: planningResult.availableFlourRecommendation.recommendedFlour?.label
+        label: "W-value",
+        value: flourWGuidance?.recommendationLabel
+          ?? planningResult.availableFlourRecommendation.recommendedFlour?.label
           ?? planningResult.availableFlourRecommendation.summary,
       },
       planningResult.yeastGuidance && {
@@ -308,6 +316,43 @@ export default function SessionRecipePage() {
                       </dl>
                     </section>
                   </div>
+
+                  {flourWGuidance && (
+                    <section className={`rounded-[1.25rem] border p-4 ${flourFitTone(flourWGuidance.fitLevel)}`}>
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">W-value guidance</p>
+                          <h4 className="mt-2 font-display text-2xl font-semibold">{flourWGuidance.title}</h4>
+                          <p className="mt-2 text-sm font-bold leading-6 text-ink">{flourWGuidance.summary}</p>
+                        </div>
+                        <span className="w-fit rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-extrabold capitalize text-ink/60">
+                          {readablePlanningLabel(flourWGuidance.fitLevel)}
+                        </span>
+                      </div>
+                      <dl className="mt-3 grid gap-2 md:grid-cols-3">
+                        <div className="rounded-2xl bg-white/80 p-3">
+                          <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Recommended flour strength</dt>
+                          <dd className="mt-1 text-sm font-extrabold text-ink">{flourWGuidance.recommendationLabel}</dd>
+                          {flourWGuidance.saferChoiceLabel && (
+                            <dd className="mt-1 text-xs font-bold text-ink/55">Safer pick: {flourWGuidance.saferChoiceLabel}</dd>
+                          )}
+                        </div>
+                        <div className="rounded-2xl bg-white/80 p-3">
+                          <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Available flour</dt>
+                          <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{flourWGuidance.availableFlourSummary}</dd>
+                        </div>
+                        <div className="rounded-2xl bg-white/80 p-3">
+                          <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Buy guidance</dt>
+                          <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{flourWGuidance.recommendedBuySummary}</dd>
+                        </div>
+                      </dl>
+                      {flourWGuidance.cautions[0] && (
+                        <p className="mt-3 rounded-2xl bg-white/70 p-3 text-xs font-bold leading-5 text-tomato">
+                          {flourWGuidance.cautions[0]}
+                        </p>
+                      )}
+                    </section>
+                  )}
 
                   {longHorizonRecommendation && (
                     <section className="rounded-[1.25rem] border border-tomato/20 bg-tomato/[.06] p-4">

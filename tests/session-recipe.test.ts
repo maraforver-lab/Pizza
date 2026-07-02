@@ -128,6 +128,10 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Overall risk");
     expect(page).toContain("What to adjust first");
     expect(page).toContain("Session planning context");
+    expect(page).toContain("W-value guidance");
+    expect(page).toContain("Recommended flour strength");
+    expect(page).toContain("Available flour");
+    expect(page).toContain("Buy guidance");
     expect(page).toContain("Long-horizon start plan");
     expect(page).toContain("This bake target is far in the future. You do not need to start today;");
     expect(page).toContain("Choose a 24h, 48h or 72h cold fermentation plan closer to bake day.");
@@ -467,6 +471,243 @@ describe("Session recipe build step", () => {
     expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeNull();
     expect(result.continuousYeast?.summary).toContain("not calculated for the full long-horizon window");
     expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
+  });
+
+  it("recommends same-day W-value ranges for a 6h room fermentation window", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const result = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-six-hour-flour-w",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_180_220"],
+      targetEatTime: "2026-07-02T15:00",
+      doughStartMode: "now",
+    }, now), now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected 6h W guidance");
+
+    expect(result.flourWGuidance).toMatchObject({
+      status: "ok",
+      recommendationLabel: "W 180–260",
+      saferChoiceLabel: "W 220–260",
+      fitLevel: "caution",
+    });
+    expect(result.flourWGuidance?.summary).toContain("6 h room fermentation");
+    expect(result.flourWGuidance?.availableFlourSummary).toContain("W 180–220");
+  });
+
+  it("recommends W 260–300 for a 24h cold fermentation window", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const result = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-24h-flour-w",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_260_300"],
+      targetEatTime: "2026-07-03T09:00",
+      doughStartMode: "now",
+    }, now), now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected 24h W guidance");
+
+    expect(result.flourWGuidance).toMatchObject({
+      status: "ok",
+      recommendationLabel: "W 260–300",
+      fitLevel: "suitable",
+    });
+    expect(result.flourWGuidance?.summary).toContain("24 h cold fermentation");
+  });
+
+  it("recommends W 260–300 for a 40h cold fermentation window and handles buy guidance", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const result = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-40h-flour-buy",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "recommend",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+    }, now), now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected 40h buy guidance");
+
+    expect(result.flourWGuidance).toMatchObject({
+      status: "ok",
+      recommendationLabel: "W 260–300",
+      fitLevel: "buy_recommended",
+      availableFlourLabel: "No flour selected — recommend what to buy",
+    });
+    expect(result.flourWGuidance?.availableFlourSummary).toContain("No flour selected");
+    expect(result.flourWGuidance?.recommendedBuySummary).toContain("Buy flour around W 260–300");
+  });
+
+  it("shows safe unknown-W guidance for a 40h cold fermentation window", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const result = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-40h-flour-unknown",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "unknown_w",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+    }, now), now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected unknown W guidance");
+
+    expect(result.flourWGuidance).toMatchObject({
+      recommendationLabel: "W 260–300",
+      fitLevel: "unknown",
+    });
+    expect(result.flourWGuidance?.availableFlourSummary).toContain("W-value unknown");
+    expect(result.flourWGuidance?.availableFlourSummary).toContain("check the W-value");
+  });
+
+  it("compares available W ranges with a 40h cold recommendation", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const suitable = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-40h-flour-suitable",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_260_300"],
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+    }, now), now);
+    const caution = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-40h-flour-caution",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_180_220"],
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+    }, now), now);
+
+    expect(suitable.ok).toBe(true);
+    expect(caution.ok).toBe(true);
+    if (!suitable.ok || !caution.ok) throw new Error("Expected W range comparison guidance");
+
+    expect(suitable.flourWGuidance?.fitLevel).toBe("suitable");
+    expect(suitable.flourWGuidance?.availableFlourSummary).toContain("W 260–300");
+    expect(caution.flourWGuidance?.fitLevel).toBe("caution");
+    expect(caution.flourWGuidance?.recommendationLabel).toBe("W 260–300");
+    expect(caution.flourWGuidance?.availableFlourSummary).toContain("W 180–220");
+    expect(caution.flourWGuidance?.cautions.join(" ")).toContain("not changing your selected flour");
+  });
+
+  it("keeps W 260–300 for exactly 48h cold and recommends W 300–340 for 72h cold", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const fortyEight = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-48h-flour-w",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T09:00",
+      doughStartMode: "now",
+    }, now), now);
+    const seventyTwo = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-72h-flour-w",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_300_340"],
+      targetEatTime: "2026-07-05T09:00",
+      doughStartMode: "now",
+    }, now), now);
+
+    expect(fortyEight.ok).toBe(true);
+    expect(seventyTwo.ok).toBe(true);
+    if (!fortyEight.ok || !seventyTwo.ok) throw new Error("Expected 48h/72h W guidance");
+
+    expect(fortyEight.flourWGuidance?.recommendationLabel).toBe("W 260–300");
+    expect(seventyTwo.flourWGuidance).toMatchObject({
+      recommendationLabel: "W 300–340",
+      fitLevel: "suitable",
+    });
+    expect(seventyTwo.flourWGuidance?.cautions.join(" ")).toContain("48–72h cold fermentation");
+  });
+
+  it("does not recommend W-value for a full over-72h long-horizon fermentation", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const result = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-long-horizon-flour-w",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_300_340"],
+      targetEatTime: "2026-07-10T09:00",
+      doughStartMode: "now",
+    }, now), now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected long-horizon W guidance");
+
+    expect(result.flourWGuidance).toMatchObject({
+      status: "long_horizon",
+      fitLevel: "long_horizon",
+      recommendationLabel: "Use the 24h / 48h / 72h long-horizon options",
+    });
+    expect(result.flourWGuidance?.summary).toContain("Do not choose flour for a full 192 h fermentation");
+    expect(result.flourWGuidance?.recommendedBuySummary).toContain("24h around W 220–260");
+  });
+
+  it("keeps available flour separate from recommended W range and does not alter ingredient amounts", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const shared = {
+      ...completeSessionInput,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now" as const,
+    };
+    const weakFlour = buildSessionRecipe(createPizzaSession({
+      ...shared,
+      id: "session-recipe-flour-guidance-no-ingredient-change-weak",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_180_220"],
+    }, now), now);
+    const recommendedBuy = buildSessionRecipe(createPizzaSession({
+      ...shared,
+      id: "session-recipe-flour-guidance-no-ingredient-change-buy",
+      flourSituation: "recommend",
+    }, now), now);
+
+    expect(weakFlour.ok).toBe(true);
+    expect(recommendedBuy.ok).toBe(true);
+    if (!weakFlour.ok || !recommendedBuy.ok) throw new Error("Expected ingredient stability comparison");
+
+    expect(weakFlour.flourWGuidance?.recommendationLabel).toBe("W 260–300");
+    expect(weakFlour.flourWGuidance?.availableFlourSummary).toContain("W 180–220");
+    expect(recommendedBuy.flourWGuidance?.availableFlourSummary).toContain("No flour selected");
+    expect(weakFlour.ingredients).toEqual(recommendedBuy.ingredients);
   });
 
   it("builds a useful long-horizon start recommendation without changing selected flour or ingredients", () => {
