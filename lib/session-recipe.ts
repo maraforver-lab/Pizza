@@ -23,6 +23,11 @@ const flourChoiceToId: Record<string, FlourId> = {
   "tipo-00": "caputo-pizzeria",
 };
 
+// Compatibility bridge: `pizzaPreset` is retained as legacy topping/shopping
+// data while the setup UI starts with oven + dough style. Older recipe
+// generation still maps those presets to a dough-style fallback. Future
+// dough-planning patches should replace this with an explicit dough style field
+// without changing topping preset storage.
 const presetToStyle: Partial<Record<string, PizzaStyleId>> = {
   margherita: "neapolitan",
   marinara: "neapolitan",

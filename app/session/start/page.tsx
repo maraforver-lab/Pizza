@@ -15,7 +15,6 @@ import {
   type PizzaSession,
   type PizzaSessionStep,
 } from "@/lib/pizza-session";
-import { pizzaSessionPresets, type PizzaPresetId } from "@/lib/pizza-session-presets";
 import {
   buildPizzaSessionTargetTime,
   getDefaultPizzaSessionTargetTime,
@@ -37,9 +36,10 @@ type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
 
 const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"];
+const DEFAULT_SESSION_TOPPING_PRESET = "margherita";
 
 const journeySteps = [
-  { label: "How you bake", href: "/session/start?step=path", phase: "Setup" },
+  { label: "Oven setup", href: "/session/start?step=path", phase: "Setup" },
   { label: "Pizza style", href: "/session/start?step=preset", phase: "Setup" },
   { label: "When to eat", href: "/session/start?step=time", phase: "Setup" },
   { label: "How many", href: "/session/start?step=quantity", phase: "Setup" },
@@ -66,14 +66,13 @@ const styleOptions = [
     description: "Use a high-heat pizza oven like Ooni, Gozney or similar.",
     badge: undefined,
   },
-  {
-    id: "pan-tray",
-    label: "Pan / tray",
-    icon: "▱",
-    description: "Easiest option. Bake in a tray or pan.",
-    badge: undefined,
-  },
 ] as const;
+
+const sessionStyleLabels: Record<string, string> = {
+  "home-oven": "Home oven",
+  "pizza-oven": "Pizza oven",
+  "pan-tray": "Pan / tray",
+};
 
 const flourOptions = [
   { id: "tipo-00", label: "Pizza flour / Tipo 00", icon: "▣", description: "The best choice for pizza. Strong and high protein." },
@@ -91,8 +90,17 @@ const doughStartOptions: Array<{
   { id: "recommend", label: "Let DoughTools recommend", description: "Use the bake time to suggest the best start window." },
 ];
 
+const doughStyleOptions = [
+  {
+    id: "neapolitan-style",
+    label: "Neapolitan-style",
+    icon: "◠",
+    description: "Thin pizza with an airy rim. V1 plans this style for home ovens and pizza ovens.",
+  },
+] as const;
+
 const wizardStepLabels: Record<WizardStep, string> = {
-  path: "How you bake",
+  path: "Oven setup",
   preset: "Pizza style",
   time: "When to eat",
   quantity: "How many",
@@ -101,8 +109,8 @@ const wizardStepLabels: Record<WizardStep, string> = {
 };
 
 const wizardStepQuestions: Record<WizardStep, string> = {
-  path: "How will you bake your pizza?",
-  preset: "What pizza are you making?",
+  path: "Choose your oven",
+  preset: "Choose your pizza style",
   time: "When do you want pizza?",
   quantity: "How many pizzas?",
   flour: "What flour do you have?",
@@ -110,34 +118,18 @@ const wizardStepQuestions: Record<WizardStep, string> = {
 };
 
 const wizardStepHelpers: Record<WizardStep, string> = {
-  path: "Choose your oven or cooking method.",
-  preset: "Pick the pizza style you want to make.",
+  path: "Choose the oven setup for this dough plan.",
+  preset: "DoughTools currently plans Neapolitan-style pizza for home ovens and pizza ovens. Toppings are chosen later for the shopping list.",
   time: "We’ll work backwards and build the right timeline.",
   quantity: "We’ll calculate the right amount of dough.",
   flour: "This helps us suggest the right hydration and fermentation.",
   summary: "You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.",
 };
 
-const wizardPresetOptions: Array<{
-  id: PizzaPresetId;
-  label: string;
-  icon: string;
-  description: string;
-}> = [
-  { id: "simple-cheese", label: "Simple cheese", icon: "🧀", description: "Classic cheese pizza with tomato sauce." },
-  { id: "margherita", label: "Margherita", icon: "🍅", description: "Tomato, mozzarella and fresh basil." },
-  { id: "pepperoni-salami", label: "Pepperoni", icon: "🍕", description: "Pepperoni with tomato sauce." },
-  { id: "funghi", label: "Veggie", icon: "🥬", description: "Vegetables and tomato sauce." },
-  { id: "hawaiian", label: "Hawaiian", icon: "🍍", description: "Ham and pineapple." },
-  { id: "mushroom", label: "Mushroom", icon: "🍄", description: "Mushrooms, mozzarella and tomato sauce." },
-  { id: "meat-lovers", label: "Meat lovers", icon: "🥓", description: "Pepperoni, ham and sausage." },
-  { id: "white-pizza", label: "White pizza", icon: "⚪", description: "Cheese with a creamy white base." },
-];
-
 const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
   beginner: {
     path: "We’ll build your dough plan step by step.",
-    preset: "Pick the pizza you want to make. You can change this later.",
+    preset: "Start with the dough style. Toppings come later when you build the shopping list.",
     time: "Pick the time you want pizza. DoughTools will plan backwards from there.",
     quantity: "Choose a simple number. You can tune exact dough size later.",
     flour: "Choose the closest flour. If you are not sure, safe defaults keep going.",
@@ -145,7 +137,7 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
   },
   enthusiast: {
     path: "The baking path controls bake heat, dough size and how forgiving the process should be.",
-    preset: "The pizza preset keeps the session practical: sauce, cheese and toppings can follow the same plan.",
+    preset: "This keeps dough style separate from topping choices so fermentation and flour guidance stay clean.",
     time: "We’ll plan dough, preparation and bake steps backwards from this time.",
     quantity: "Pizza count controls total dough, sauce, cheese and prep work.",
     flour: "Flour strength affects hydration, fermentation length and handling.",
@@ -153,7 +145,7 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
   },
   pizza_nerd: {
     path: "This sets the first bake-environment constraint. The exact formula still comes from the calculator model.",
-    preset: "Preset choice is stored separately from baking path so dough setup and topping plan do not get mixed together.",
+    preset: "V1 uses a Neapolitan-style dough assumption while legacy topping presets remain compatibility data for Shopping.",
     time: "Pick the target pizza time. Timeline steps are rounded to practical 15-minute increments; active night tasks are avoided where possible while passive fermentation can continue overnight.",
     quantity: "This becomes the first batch-size variable before exact dough-ball and formula tuning.",
     flour: "This is a coarse flour class, not a W-value or protein analysis. Fine tuning remains available later.",
@@ -418,7 +410,11 @@ function StartPizzaSessionContent() {
     savePatch({ pizzaStyle: value, ovenType, pizzaCount }, "path");
   };
 
-  const selectPreset = (pizzaPreset: PizzaPresetId) => savePatch({ pizzaPreset }, "preset");
+  const selectDoughStyle = () => {
+    // Keep legacy topping preset storage populated until topping selection moves
+    // to Shopping/Toppings in a later patch.
+    savePatch({ pizzaPreset: session?.pizzaPreset ?? DEFAULT_SESSION_TOPPING_PRESET }, "preset");
+  };
   const selectFlour = (flour: string) => savePatch({ flour }, "flour");
   const setQuantity = (pizzaCount: number) => savePatch({ pizzaCount }, "quantity");
   const setTargetTime = (targetEatTime: string) => {
@@ -492,17 +488,16 @@ function StartPizzaSessionContent() {
     return <StartPizzaSessionLoading />;
   }
 
-  const selectedStyle = styleOptions.find((option) => option.id === session.pizzaStyle);
-  const selectedPreset = pizzaSessionPresets.find((option) => option.id === session.pizzaPreset);
-  const selectedWizardPreset = wizardPresetOptions.find((option) => option.id === session.pizzaPreset);
+  const selectedOvenLabel = session.pizzaStyle ? sessionStyleLabels[session.pizzaStyle] : undefined;
+  const hasSelectedDoughStyle = Boolean(session.pizzaPreset);
   const selectedFlour = flourOptions.find((option) => option.id === session.flour);
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const activeDoughStartMode = session.doughStartMode ?? "recommend";
   const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel);
   const setupSummaryCards = [
-    { label: "Bake", value: selectedStyle?.label ?? "Not selected yet", icon: "🔥" },
-    { label: "Style", value: selectedWizardPreset?.label ?? selectedPreset?.name ?? "Not selected yet", icon: "🍕" },
+    { label: "Oven", value: selectedOvenLabel ?? "Not selected yet", icon: "🔥" },
+    { label: "Style", value: hasSelectedDoughStyle ? "Neapolitan-style" : "Not selected yet", icon: "🍕" },
     { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "🕒" },
     { label: "Dough start", value: formatDoughStartPreference(session), icon: "⏱" },
     { label: "How many", value: `${session.pizzaCount ?? 4} pizzas`, icon: "◌" },
@@ -619,7 +614,7 @@ function StartPizzaSessionContent() {
           </div>
 
           {step === "path" && (
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {styleOptions.map((option) => (
                 <button key={option.id} type="button" onClick={() => selectStyle(option.id)} aria-pressed={session.pizzaStyle === option.id} className={optionClass(session.pizzaStyle === option.id)}>
                   {selectedIndicator(session.pizzaStyle === option.id)}
@@ -634,16 +629,20 @@ function StartPizzaSessionContent() {
           )}
 
           {step === "preset" && (
-            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-              {wizardPresetOptions.map((preset) => (
-                <button key={preset.id} type="button" onClick={() => selectPreset(preset.id)} aria-pressed={session.pizzaPreset === preset.id} className={optionClass(session.pizzaPreset === preset.id, "compact")}>
-                  {selectedIndicator(session.pizzaPreset === preset.id)}
-                  {iconBadge(preset.icon, "compact")}
-                  <span className="block pr-7 text-sm font-extrabold leading-tight text-ink">{preset.label}</span>
-                  <span className="mt-1 block text-[11px] leading-4 text-ink/55 sm:text-xs">{preset.description}</span>
-                  {session.pizzaPreset === preset.id && <span className="mt-1.5 block text-[10px] font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {doughStyleOptions.map((option) => (
+                <button key={option.id} type="button" onClick={selectDoughStyle} aria-pressed={hasSelectedDoughStyle} className={optionClass(hasSelectedDoughStyle)}>
+                  {selectedIndicator(hasSelectedDoughStyle)}
+                  {iconBadge(option.icon)}
+                  <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
+                  <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{option.description}</span>
+                  {hasSelectedDoughStyle && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
                 </button>
               ))}
+              <div className="rounded-[1.1rem] border border-dashed border-ink/15 bg-cream/60 p-3 text-xs leading-5 text-ink/55 sm:p-4 sm:text-sm">
+                <strong className="block text-ink">Toppings come later.</strong>
+                This step chooses the dough style. Shopping can keep using saved or default topping presets until topping selection moves later in the flow.
+              </div>
             </div>
           )}
 

@@ -480,6 +480,16 @@ describe("Session recipe build step", () => {
     expect(ingredients.leavener).toBeCloseTo(0.99, 2);
   });
 
+  it("keeps topping presets as a compatibility bridge instead of renaming stored session data", () => {
+    const recipeSource = source("lib/session-recipe.ts");
+
+    expect(recipeSource).toContain("Compatibility bridge: `pizzaPreset` is retained as legacy topping/shopping");
+    expect(recipeSource).toContain("without changing topping preset storage");
+    expect(recipeSource).toContain("const presetToStyle");
+    expect(recipeSource).toContain("margherita: \"neapolitan\"");
+    expect(recipeSource).toContain("\"pepperoni-salami\": \"new-york\"");
+  });
+
   it("connects the wizard, timeline and shopping routes to the recipe step without changing security copy", () => {
     const startPage = source("app/session/start/page.tsx");
     const recipePage = source("app/session/recipe/page.tsx");
@@ -491,8 +501,10 @@ describe("Session recipe build step", () => {
     const seoConfig = source("lib/seo-config.ts");
 
     expect(startPage).toContain("href=\"/session/recipe\"");
-    expect(startPage).toContain("How will you bake your pizza?");
-    expect(startPage).toContain("What pizza are you making?");
+    expect(startPage).toContain("Choose your oven");
+    expect(startPage).toContain("Choose your pizza style");
+    expect(startPage).toContain("DoughTools currently plans Neapolitan-style pizza for home ovens and pizza ovens. Toppings are chosen later for the shopping list.");
+    expect(startPage).not.toContain("What pizza are you making?");
     expect(startPage).toContain("disabled={!canContinue}");
     expect(startPage).not.toContain("What pizza do you want to make?");
     expect(startPage).not.toContain("Later planner patches can turn this into a full timeline");
@@ -504,7 +516,7 @@ describe("Session recipe build step", () => {
     expect(recipePage).not.toContain("sessionRecipeQuery");
     expect(recipeDoc).toContain("/session/recipe");
     expect(dataDoc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
-    expect(wizardDoc).toContain("Pizza preset is now a separate choice");
+    expect(wizardDoc).toContain("Patch 150 separates early dough planning from topping/shopping choices");
     expect(seoConfig).toContain("ALLOW_INDEXING");
     expect([startPage, recipePage, timelinePage, shoppingPage, recipeDoc].join("\n")).not.toMatch(/analytics added|tracking added|Google indexing enabled|Cloud sync is active/i);
   });

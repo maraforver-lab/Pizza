@@ -15,12 +15,11 @@ The wizard is a local-first planning flow for one pizza bake. It uses the Pizza 
 The current version keeps the flow focused on one practical decision at a time:
 
 1. Baking path
-2. Pizza preset
+2. Pizza / dough style
 3. Target eat or bake time
 4. Pizza quantity
-5. Oven
-6. Flour
-7. Summary and dough-plan handoff
+5. Flour
+6. Summary and dough-plan handoff
 
 The goal is not to replace the calculator. The goal is to collect the first practical decisions before sending the user into a session recipe step, timeline and shopping list.
 
@@ -28,16 +27,12 @@ Patch 35 clarifies that the first visible choices are baking paths, not pizza pr
 
 - Home oven pizza
 - Pizza oven pizza
-- Pan / tray pizza
 
-Pizza preset is now a separate choice:
+Patch 150 separates early dough planning from topping/shopping choices:
 
-- Margherita
-- Marinara
-- Diavola
-- Funghi
-- Pepperoni / Salami
-- Simple cheese pizza
+- Oven setup is Home oven or Pizza oven in the main V1 setup.
+- Pizza style is currently Neapolitan-style.
+- Topping preset storage remains compatible for Shopping, but topping selection should move later.
 
 ## Autosave behavior
 
@@ -52,8 +47,8 @@ When the wizard opens, it reads the active Pizza Session. If there is no active 
 
 Each step updates:
 
-- selected pizza style
-- selected pizza preset
+- selected oven setup
+- selected pizza style compatibility preset
 - target time
 - pizza count
 - oven

@@ -17,8 +17,8 @@ Core rule:
 
 | Step | Journey step | Route | Purpose | User question | Primary action | Back action | Page type |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | How you bake | `/session/start` | Choose baking method | How will you bake your pizza? | Continue → | Back | Planning page |
-| 2 | Pizza style | `/session/start` | Choose main pizza style | What pizza are you making? | Continue → | Back | Planning page |
+| 1 | Oven setup | `/session/start` | Choose oven setup | Choose your oven | Continue → | Back | Planning page |
+| 2 | Pizza style | `/session/start` | Choose dough style | Choose your pizza style | Continue → | Back | Planning page |
 | 3 | When to eat | `/session/start` | Choose target pizza time | When do you want pizza? | Continue → | Back | Planning page |
 | 4 | How many | `/session/start` | Choose pizza count | How many pizzas? | Continue → | Back | Planning page |
 | 5 | Flour | `/session/start` | Choose flour | What flour do you have? | Continue → | Back | Planning page |
@@ -32,7 +32,7 @@ Core rule:
 
 The first five steps happen inside `/session/start`:
 
-1. How you bake
+1. Oven setup
 2. Pizza style
 3. When to eat
 4. How many

@@ -44,7 +44,7 @@ describe("Start Pizza Session wizard", () => {
     const doc = source("docs/pizza-session-v2-journey.md");
 
     for (const label of [
-      "How you bake",
+      "Oven setup",
       "Pizza style",
       "When to eat",
       "How many",
@@ -72,8 +72,13 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("\"use client\"");
-    expect(page).toContain("How will you bake your pizza?");
-    expect(page).toContain("What pizza are you making?");
+    expect(page).toContain("Choose your oven");
+    expect(page).toContain("Choose your pizza style");
+    expect(page).toContain("DoughTools currently plans Neapolitan-style pizza for home ovens and pizza ovens. Toppings are chosen later for the shopping list.");
+    expect(page).toContain("Neapolitan-style");
+    expect(page).not.toContain("What pizza are you making?");
+    expect(page).not.toContain("Pick the pizza style you want to make.");
+    expect(page).not.toContain("Choose your topping plan");
     expect(page).toContain("When do you want pizza?");
     expect(page).toContain("When can you start the dough?");
     expect(page).toContain("Start now");
@@ -86,18 +91,18 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.");
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
-    expect(page).toContain("Pan / tray");
+    expect(page).not.toContain('id: "pan-tray",');
     expect(page).not.toContain("Not sure yet");
-    expect(page).toContain("grid gap-3 sm:grid-cols-3");
-    expect(page).toContain("wizardPresetOptions.map");
-    expect(page).toContain("Simple cheese");
-    expect(page).toContain("Margherita");
-    expect(page).toContain("Pepperoni");
-    expect(page).toContain("Veggie");
-    expect(page).toContain("Hawaiian");
-    expect(page).toContain("Mushroom");
-    expect(page).toContain("Meat lovers");
-    expect(page).toContain("White pizza");
+    expect(page).toContain("grid gap-3 sm:grid-cols-2");
+    expect(page).not.toContain("wizardPresetOptions.map");
+    expect(page).not.toContain("Simple cheese");
+    expect(page).not.toContain("Margherita");
+    expect(page).not.toContain("Pepperoni");
+    expect(page).not.toContain("Veggie");
+    expect(page).not.toContain("Hawaiian");
+    expect(page).not.toContain("Mushroom");
+    expect(page).not.toContain("Meat lovers");
+    expect(page).not.toContain("White pizza");
     expect(page).not.toContain("I’ll decide toppings later");
     expect(source("lib/pizza-session-presets.ts")).toContain("Margherita");
     expect(source("lib/pizza-session-presets.ts")).toContain("Marinara");
@@ -125,8 +130,9 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary"');
     expect(page).toContain('const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"]');
     expect(page).toContain("const journeySteps = [");
-    expect(page).toContain("How you bake");
+    expect(page).toContain("Oven setup");
     expect(page).toContain("Pizza style");
+    expect(page).not.toContain('label: "Topping plan"');
     expect(page).toContain("When to eat");
     expect(page).toContain("How many");
     expect(page).toContain("Flour");
@@ -146,17 +152,19 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
-    expect(page).toContain("Pan / tray");
+    expect(page).not.toContain('id: "pan-tray",');
     expect(page).not.toContain("Not sure yet");
-    expect(page).toContain("grid gap-3 sm:grid-cols-3");
-    expect(page).toContain("Simple cheese");
-    expect(page).toContain("Margherita");
-    expect(page).toContain("Pepperoni");
-    expect(page).toContain("Veggie");
-    expect(page).toContain("Hawaiian");
-    expect(page).toContain("Mushroom");
-    expect(page).toContain("Meat lovers");
-    expect(page).toContain("White pizza");
+    expect(page).toContain("grid gap-3 sm:grid-cols-2");
+    expect(page).toContain("Neapolitan-style");
+    expect(page).toContain("Toppings come later.");
+    expect(page).not.toContain("Simple cheese");
+    expect(page).not.toContain("Margherita");
+    expect(page).not.toContain("Pepperoni");
+    expect(page).not.toContain("Veggie");
+    expect(page).not.toContain("Hawaiian");
+    expect(page).not.toContain("Mushroom");
+    expect(page).not.toContain("Meat lovers");
+    expect(page).not.toContain("White pizza");
     expect(page).not.toContain("I’ll decide toppings later");
     expect(page).toContain("Pizza flour / Tipo 00");
     expect(page).toContain("Bread flour / Strong flour");
@@ -166,13 +174,13 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("sm:block sm:min-h-[7rem]");
     expect(page).toContain("grid h-8 w-8 shrink-0");
     expect(page).toContain("sm:h-11 sm:w-11");
-    expect(page).toContain('className={optionClass(session.pizzaPreset === preset.id, "compact")}');
-    expect(page).toContain("grid grid-cols-2 gap-2.5 lg:grid-cols-4");
-    expect(page).toContain("min-h-[6.75rem]");
-    expect(page).toContain("mb-2 grid h-8 w-8 shrink-0");
+    expect(page).toContain("const selectDoughStyle");
+    expect(page).toContain("DEFAULT_SESSION_TOPPING_PRESET");
+    expect(page).toContain("doughStyleOptions.map");
+    expect(page).toContain("className={optionClass(hasSelectedDoughStyle)}");
     expect(page).toContain("col-start-2 block pr-8");
     expect(page).toContain("aria-pressed={session.pizzaStyle === option.id}");
-    expect(page).toContain("aria-pressed={session.pizzaPreset === preset.id}");
+    expect(page).toContain("aria-pressed={hasSelectedDoughStyle}");
     expect(page).toContain("aria-pressed={session.flour === option.id}");
     expect(page).toContain("step === \"preset\" && Boolean(session?.pizzaPreset)");
     expect(page).toContain("step === \"flour\" && Boolean(session?.flour)");
@@ -283,8 +291,9 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("const setupSummaryCards = [");
-    expect(page).toContain('label: "Bake"');
+    expect(page).toContain('label: "Oven"');
     expect(page).toContain('label: "Style"');
+    expect(page).not.toContain('label: "Toppings"');
     expect(page).toContain('label: "When"');
     expect(page).toContain('label: "Dough start"');
     expect(page).toContain('label: "How many"');
