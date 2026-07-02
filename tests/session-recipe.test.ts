@@ -231,6 +231,82 @@ describe("Session recipe build step", () => {
     expect(result.recipeSnapshot.flourAmount).toBeGreaterThan(0);
   });
 
+  it("keeps Pizza Session planning interpretation sensible across bake-time horizons", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const horizons = [
+      {
+        label: "same-day",
+        targetEatTime: "2026-07-02T16:00",
+        hours: 7,
+        setup: "same_day_room",
+        startWindow: "start_now",
+      },
+      {
+        label: "24h",
+        targetEatTime: "2026-07-03T09:00",
+        hours: 24,
+        setup: "cold_fermentation",
+        startWindow: "day_before",
+      },
+      {
+        label: "48h",
+        targetEatTime: "2026-07-04T09:00",
+        hours: 48,
+        setup: "cold_fermentation",
+        startWindow: "one_to_three_days_before",
+      },
+      {
+        label: "72h",
+        targetEatTime: "2026-07-05T09:00",
+        hours: 72,
+        setup: "cold_fermentation",
+        startWindow: "one_to_three_days_before",
+      },
+      {
+        label: "7d",
+        targetEatTime: "2026-07-09T09:00",
+        hours: 168,
+        setup: "too_long_for_selected_setup",
+        startWindow: "not_enough_information",
+      },
+    ];
+
+    for (const horizon of horizons) {
+      const session = createPizzaSession({
+        ...completeSessionInput,
+        id: `session-recipe-${horizon.label}`,
+        pizzaStyle: "home-oven",
+        pizzaPreset: "margherita",
+        ovenType: "home",
+        flour: "tipo-00",
+        targetEatTime: horizon.targetEatTime,
+      }, now);
+      const result = buildSessionRecipe(session, now);
+      expect(result.ok).toBe(true);
+      if (!result.ok || !result.planningInfo.ok) throw new Error(`Expected planning info for ${horizon.label}`);
+
+      const planning = result.planningInfo.result;
+      expect(planning.availableFermentationHours).toBe(horizon.hours);
+      expect(planning.fermentationSetupRecommendation?.recommendedSetup).toBe(horizon.setup);
+      expect(planning.startWindowRecommendation?.category).toBe(horizon.startWindow);
+      expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
+    }
+
+    const sevenDays = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-seven-day-caution",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-09T09:00",
+    }, now), now);
+    expect(sevenDays.ok).toBe(true);
+    if (!sevenDays.ok || !sevenDays.planningInfo.ok) throw new Error("Expected seven-day planning info");
+    expect(sevenDays.planningInfo.result.startWindowRecommendation?.category).not.toBe("start_now");
+    expect(sevenDays.planningInfo.result.combinedRiskSummary?.overallRiskLevel).not.toBe("low");
+  });
+
   it("shows safe missing states instead of inventing unsupported data", () => {
     expect(buildSessionRecipe(undefined)).toEqual({ ok: false, missingReason: "no-session" });
     expect(buildSessionRecipe(createPizzaSession({ pizzaPreset: "margherita", pizzaCount: 2, flour: "tipo-00" })))

@@ -161,6 +161,49 @@ describe("Pizza Session timeline", () => {
       .toBe("Room temperature rest");
   });
 
+  it("keeps session timeline display consistent across longer planning horizons", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const horizons = [
+      { label: "24h", targetEatTime: "2026-07-03T09:00", expectedStartWindow: "day_before", adjustsPastStart: true },
+      { label: "48h", targetEatTime: "2026-07-04T09:00", expectedStartWindow: "one_to_three_days_before", adjustsPastStart: false },
+      { label: "72h", targetEatTime: "2026-07-05T09:00", expectedStartWindow: "one_to_three_days_before", adjustsPastStart: false },
+      { label: "7d", targetEatTime: "2026-07-09T09:00", expectedStartWindow: "not_enough_information", adjustsPastStart: false },
+    ];
+
+    for (const horizon of horizons) {
+      const session = createPizzaSession({
+        id: `timeline-horizon-${horizon.label}`,
+        status: "planning",
+        currentStep: "recipe",
+        targetEatTime: horizon.targetEatTime,
+        pizzaStyle: "home-oven",
+        pizzaPreset: "margherita",
+        pizzaCount: 4,
+        ovenType: "home",
+        flour: "tipo-00",
+      }, now);
+      const recipe = buildSessionRecipe(session, now);
+      if (!recipe.ok || !recipe.planningInfo.ok) throw new Error(`Expected planning info for ${horizon.label}`);
+      expect(recipe.planningInfo.result.startWindowRecommendation?.category).toBe(horizon.expectedStartWindow);
+
+      const generated = generatePizzaSessionTimeline(session, now).timeline!;
+      const displayed = timelineStepsForPlanningSummaryDisplay({
+        steps: generated.steps,
+        planningResult: recipe.planningInfo.result,
+      });
+
+      expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
+      if (horizon.adjustsPastStart) {
+        expect(displayed).not.toBe(generated.steps);
+        expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
+      } else {
+        expect(displayed).toBe(generated.steps);
+        expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt);
+      }
+      expect(new Date(displayed.find((step) => step.id === "mix-dough")?.scheduledAt ?? 0).getTime()).toBeGreaterThanOrEqual(now.getTime());
+    }
+  });
+
   it("keeps Next up focused on the real next action", () => {
     const page = source("app/session/timeline/page.tsx");
 

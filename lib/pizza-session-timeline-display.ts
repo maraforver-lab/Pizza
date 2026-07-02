@@ -46,15 +46,40 @@ function sameDayScheduleIso(step: PizzaSessionTimelineStep, current: Date, targe
   return step.scheduledAt;
 }
 
+function safeColdStartIso(step: PizzaSessionTimelineStep, current: Date) {
+  if (step.id === "mix-dough") return current.toISOString();
+  if (step.id === "rest-dough") return addMinutes(current, 30).toISOString();
+  if (step.id === "cold-ferment") return addMinutes(current, 60).toISOString();
+  return step.scheduledAt;
+}
+
 export function timelineStepsForPlanningSummaryDisplay({
   steps,
   planningResult,
 }: TimelineDisplayInput): PizzaSessionTimelineStep[] {
-  if (!sameDayRoomPlanning(planningResult)) return steps;
-
   const current = parsePlanningDate(planningResult?.technicalDetails.selectedTimeWindow.currentDateTime);
   const target = parsePlanningDate(planningResult?.technicalDetails.selectedTimeWindow.desiredBakeDateTime);
   if (!current || !target) return steps;
+
+  if (!sameDayRoomPlanning(planningResult)) {
+    const startWindowCategory = planningResult?.startWindowRecommendation?.category;
+    const canSafelyShiftPastStart = startWindowCategory === "day_before" || startWindowCategory === "evening_before";
+    const hasPastDoughStart = steps.some((step) => (
+      ["mix-dough", "rest-dough", "cold-ferment"].includes(step.id)
+      && step.scheduledAt
+      && new Date(step.scheduledAt).getTime() < current.getTime()
+    ));
+    if (!hasPastDoughStart || !canSafelyShiftPastStart) return steps;
+
+    return steps.map((step) => {
+      if (!["mix-dough", "rest-dough", "cold-ferment"].includes(step.id)) return step;
+      return {
+        ...step,
+        scheduledAt: safeColdStartIso(step, current),
+        quietHoursWarning: undefined,
+      };
+    });
+  }
 
   return steps.flatMap((step) => {
     if (step.id === "cold-ferment") return [];
