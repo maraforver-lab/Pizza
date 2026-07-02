@@ -76,8 +76,9 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("buildSessionRecipe(session ?? undefined)");
     expect(page).toContain("Timeline planning summary");
     expect(page).toContain("Timeline guidance is based on available session choices.");
-    expect(page).toContain("Timing risk");
-    expect(page).toContain("What to watch");
+    expect(page).toContain("Overall risk");
+    expect(page).toContain("What to adjust first");
+    expect(page).toContain("combinedRisk.summary");
     expect(page).toContain("Bake target");
     expect(page).toContain("Available time");
     expect(page).toContain("Start window");

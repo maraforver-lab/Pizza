@@ -435,11 +435,11 @@ export default function SessionTimelinePage() {
           {planningResult && combinedRisk ? (
             <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
-                <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Timing risk</p>
-                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.primaryRiskReason}</p>
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
+                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.summary}</p>
                 <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
-                  <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to watch</span>
-                  <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major timing adjustment needed from the available session choices."}</span>
+                  <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
+                  <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
                 </div>
               </section>
 
