@@ -11,6 +11,7 @@ import {
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
+import { createPizzaSession } from "@/lib/pizza-session";
 import { EXPERIENCE_LEVEL_STORAGE_KEY } from "@/lib/experience-levels";
 import {
   buildPizzaSessionTargetTime,
@@ -74,6 +75,11 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("How will you bake your pizza?");
     expect(page).toContain("What pizza are you making?");
     expect(page).toContain("When do you want pizza?");
+    expect(page).toContain("When can you start the dough?");
+    expect(page).toContain("Start now");
+    expect(page).toContain("Later");
+    expect(page).toContain("Let DoughTools recommend");
+    expect(page).toContain("This helps DoughTools calculate the real fermentation window later.");
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("What flour do you have?");
     expect(page).toContain("You’re ready for your dough plan.");
@@ -280,9 +286,10 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('label: "Bake"');
     expect(page).toContain('label: "Style"');
     expect(page).toContain('label: "When"');
+    expect(page).toContain('label: "Dough start"');
     expect(page).toContain('label: "How many"');
     expect(page).toContain('label: "Flour"');
-    expect(page).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5");
+    expect(page).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6");
     expect(page).not.toContain("[\"How you bake\"");
     expect(page).not.toContain("[\"Pizza style\"");
     expect(page).not.toContain("flex items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white p-3.5");
@@ -381,14 +388,97 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const targetTimeInputRef");
     expect(page).toContain("const [targetTimeDraft, setTargetTimeDraft]");
     expect(page).toContain("ref={targetTimeInputRef}");
+    expect(page).toContain("ref={doughStartTimeInputRef}");
     expect(page).toContain("setTargetTimeDraft(targetEatTime)");
+    expect(page).toContain("setDoughStartMode");
+    expect(page).toContain("setDoughEarliestStartTime");
     expect(page).toContain("onInput={(event) => setTargetTime(event.currentTarget.value)}");
     expect(page).toContain("const targetEatTime = step === \"time\" ? targetTimeDraft || targetTimeInputRef.current?.value || session?.targetEatTime : session?.targetEatTime");
+    expect(page).toContain("doughStartMode === \"later\"");
+    expect(page).toContain("doughStartTimeInputRef.current?.value || session?.doughEarliestStartTime");
     expect(page).toContain("step === \"time\" && Boolean(targetTimeDraft || session?.targetEatTime)");
     expect(page).toContain("targetEatTime,");
     expect(page).toContain("value: formatSetupSummaryTime(session.targetEatTime)");
     expect(page).toContain("DoughTools will build your dough, preparation and bake timeline backwards from this.");
     expect(page).not.toContain("Later planner patches can turn this into a full timeline");
+  });
+
+  it("adds compact dough start availability controls to the existing time step", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("const doughStartOptions");
+    expect(page).toContain('id: "now", label: "Start now"');
+    expect(page).toContain('id: "later", label: "Later"');
+    expect(page).toContain('id: "recommend", label: "Let DoughTools recommend"');
+    expect(page).toContain("const activeDoughStartMode = session.doughStartMode ?? \"recommend\"");
+    expect(page).toContain('aria-labelledby="dough-start-availability-heading"');
+    expect(page).toContain("Earliest dough start date and time");
+    expect(page).toContain("activeDoughStartMode === \"later\"");
+    expect(page).toContain("Use the first moment you can realistically mix the dough.");
+    expect(page).toContain("((session?.doughStartMode ?? \"recommend\") !== \"later\" || Boolean(session?.doughEarliestStartTime))");
+  });
+
+  it("persists dough start availability without changing old session compatibility", () => {
+    const storage = new MemoryStorage();
+    const oldSession = createPizzaSession({
+      id: "old-session-without-dough-start",
+      status: "planning",
+      currentStep: "time",
+    }, new Date("2026-06-25T10:00:00.000Z"));
+
+    expect(oldSession.doughStartMode).toBeUndefined();
+    expect(oldSession.doughEarliestStartTime).toBeUndefined();
+
+    const started = createAndSavePizzaSession(
+      { id: "dough-start-session", status: "planning", currentStep: "time", experienceLevel: "beginner" },
+      storage,
+      new Date("2026-06-25T10:00:00.000Z"),
+    );
+    setActivePizzaSession(started.id, storage);
+
+    const startNow = updatePizzaSession(
+      started.id,
+      {
+        doughStartMode: "now",
+        doughEarliestStartTime: "2026-06-26T09:00",
+      },
+      storage,
+      new Date("2026-06-25T10:05:00.000Z"),
+    );
+
+    expect(startNow?.doughStartMode).toBe("now");
+    expect(startNow?.doughEarliestStartTime).toBeUndefined();
+
+    const later = updatePizzaSession(
+      started.id,
+      {
+        doughStartMode: "later",
+        doughEarliestStartTime: "2026-06-26T09:00",
+      },
+      storage,
+      new Date("2026-06-25T10:10:00.000Z"),
+    );
+
+    expect(later?.doughStartMode).toBe("later");
+    expect(later?.doughEarliestStartTime).toBe("2026-06-26T09:00");
+    expect(getActivePizzaSession(storage)?.doughEarliestStartTime).toBe("2026-06-26T09:00");
+
+    const recommend = updatePizzaSession(
+      started.id,
+      {
+        doughStartMode: "recommend",
+        doughEarliestStartTime: "2026-06-26T09:00",
+      },
+      storage,
+      new Date("2026-06-25T10:15:00.000Z"),
+    );
+
+    expect(recommend?.doughStartMode).toBe("recommend");
+    expect(recommend?.doughEarliestStartTime).toBeUndefined();
+    expect(getPizzaSession(started.id, storage)).toMatchObject({
+      doughStartMode: "recommend",
+    });
+    expect(getPizzaSession(started.id, storage)?.doughEarliestStartTime).toBeUndefined();
   });
 
   it("defaults new sessions without a target time to tomorrow dinner without overwriting saved targets", () => {

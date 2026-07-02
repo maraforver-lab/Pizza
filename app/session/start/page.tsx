@@ -11,6 +11,7 @@ import {
   type ExperienceLevel,
 } from "@/lib/experience-levels";
 import {
+  type PizzaSessionDoughStartMode,
   type PizzaSession,
   type PizzaSessionStep,
 } from "@/lib/pizza-session";
@@ -79,6 +80,16 @@ const flourOptions = [
   { id: "bread", label: "Bread flour / Strong flour", icon: "▥", description: "Great for chewy crusts and good rise." },
   { id: "plain", label: "All-purpose flour", icon: "◒", description: "Works in a pinch. Results may vary." },
 ] as const;
+
+const doughStartOptions: Array<{
+  id: PizzaSessionDoughStartMode;
+  label: string;
+  description: string;
+}> = [
+  { id: "now", label: "Start now", description: "I can make the dough as soon as the plan is ready." },
+  { id: "later", label: "Later", description: "I can only start after a specific date and time." },
+  { id: "recommend", label: "Let DoughTools recommend", description: "Use the bake time to suggest the best start window." },
+];
 
 const wizardStepLabels: Record<WizardStep, string> = {
   path: "How you bake",
@@ -272,6 +283,22 @@ function formatSetupSummaryTime(value?: string) {
   return `${dateText} · ${timeText}`;
 }
 
+function doughStartModeLabel(mode?: PizzaSessionDoughStartMode) {
+  if (mode === "now") return "Start now";
+  if (mode === "later") return "Later";
+  return "Let DoughTools recommend";
+}
+
+function formatDoughStartPreference(session: PizzaSession) {
+  const mode = session.doughStartMode ?? "recommend";
+  if (mode === "later") {
+    return session.doughEarliestStartTime
+      ? `Later · ${formatSetupSummaryTime(session.doughEarliestStartTime)}`
+      : "Later · time not set";
+  }
+  return doughStartModeLabel(mode);
+}
+
 function isValidTargetTime(value?: string) {
   return Boolean(value && !Number.isNaN(new Date(value).getTime()));
 }
@@ -297,6 +324,7 @@ function StartPizzaSessionContent() {
   const [selectedDayChoice, setSelectedDayChoice] = useState<PizzaSessionDayQuickChoiceId | undefined>();
   const [selectedTimeChoice, setSelectedTimeChoice] = useState<PizzaSessionTimeQuickChoiceId | undefined>();
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
+  const doughStartTimeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -398,6 +426,17 @@ function StartPizzaSessionContent() {
     savePatch({ targetEatTime }, "time");
   };
 
+  const setDoughStartMode = (doughStartMode: PizzaSessionDoughStartMode) => {
+    savePatch({
+      doughStartMode,
+      doughEarliestStartTime: doughStartMode === "later" ? session?.doughEarliestStartTime : undefined,
+    }, "time");
+  };
+
+  const setDoughEarliestStartTime = (doughEarliestStartTime: string) => {
+    savePatch({ doughStartMode: "later", doughEarliestStartTime }, "time");
+  };
+
   const selectDayChoice = (choice: PizzaSessionDayQuickChoiceId) => {
     setSelectedDayChoice(choice);
     if (choice === "custom-date") return;
@@ -414,9 +453,17 @@ function StartPizzaSessionContent() {
 
   const goToStep = (nextStep: WizardStep) => {
     const targetEatTime = step === "time" ? targetTimeDraft || targetTimeInputRef.current?.value || session?.targetEatTime : session?.targetEatTime;
-    savePatch({
+    const patch: Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">> = {
       targetEatTime,
-    }, nextStep);
+    };
+    if (step === "time") {
+      const doughStartMode = session?.doughStartMode ?? "recommend";
+      patch.doughStartMode = doughStartMode;
+      patch.doughEarliestStartTime = doughStartMode === "later"
+        ? doughStartTimeInputRef.current?.value || session?.doughEarliestStartTime
+        : undefined;
+    }
+    savePatch(patch, nextStep);
     setStep(nextStep);
     router.replace(wizardStepHref(nextStep), { scroll: false });
   };
@@ -436,7 +483,7 @@ function StartPizzaSessionContent() {
   const canContinue =
     (step === "path" && Boolean(session?.pizzaStyle))
     || (step === "preset" && Boolean(session?.pizzaPreset))
-    || (step === "time" && Boolean(targetTimeDraft || session?.targetEatTime))
+    || (step === "time" && Boolean(targetTimeDraft || session?.targetEatTime) && ((session?.doughStartMode ?? "recommend") !== "later" || Boolean(session?.doughEarliestStartTime)))
     || (step === "quantity" && Boolean(session?.pizzaCount))
     || (step === "flour" && Boolean(session?.flour))
     || step === "summary";
@@ -451,11 +498,13 @@ function StartPizzaSessionContent() {
   const selectedFlour = flourOptions.find((option) => option.id === session.flour);
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
+  const activeDoughStartMode = session.doughStartMode ?? "recommend";
   const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel);
   const setupSummaryCards = [
     { label: "Bake", value: selectedStyle?.label ?? "Not selected yet", icon: "🔥" },
     { label: "Style", value: selectedWizardPreset?.label ?? selectedPreset?.name ?? "Not selected yet", icon: "🍕" },
     { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "🕒" },
+    { label: "Dough start", value: formatDoughStartPreference(session), icon: "⏱" },
     { label: "How many", value: `${session.pizzaCount ?? 4} pizzas`, icon: "◌" },
     { label: "Flour", value: selectedFlour?.label ?? "Not selected yet", icon: "▣" },
   ];
@@ -663,6 +712,47 @@ function StartPizzaSessionContent() {
                   </span>
                 </label>
               )}
+
+              <section aria-labelledby="dough-start-availability-heading" className="rounded-[1.25rem] border border-ink/10 bg-white/80 p-3.5 shadow-sm sm:p-4">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 id="dough-start-availability-heading" className="text-sm font-extrabold text-ink">When can you start the dough?</h3>
+                    <p className="mt-1 text-xs leading-5 text-ink/55">This helps DoughTools calculate the real fermentation window later.</p>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {doughStartOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setDoughStartMode(option.id)}
+                      aria-pressed={activeDoughStartMode === option.id}
+                      className={`min-h-16 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                        activeDoughStartMode === option.id ? "border-tomato bg-tomato/[.06] shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
+                      }`}
+                    >
+                      <span className="block text-sm font-extrabold text-ink">{option.label}</span>
+                      <span className="mt-1 block text-xs leading-4 text-ink/55">{option.description}</span>
+                    </button>
+                  ))}
+                </div>
+                {activeDoughStartMode === "later" && (
+                  <label className="mt-4 block max-w-md text-sm font-extrabold text-ink/65">
+                    Earliest dough start date and time
+                    <input
+                      ref={doughStartTimeInputRef}
+                      type="datetime-local"
+                      value={session.doughEarliestStartTime ?? ""}
+                      onChange={(event) => setDoughEarliestStartTime(event.target.value)}
+                      onInput={(event) => setDoughEarliestStartTime(event.currentTarget.value)}
+                      className="mt-3 h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-bold text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
+                    />
+                    <span className="mt-3 block text-xs font-normal leading-5 text-ink/45">
+                      Use the first moment you can realistically mix the dough.
+                    </span>
+                  </label>
+                )}
+              </section>
             </div>
           )}
 
@@ -725,7 +815,7 @@ function StartPizzaSessionContent() {
 
           {step === "summary" && (
             <div className="grid gap-4">
-              <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+              <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
                 {setupSummaryCards.map((item) => (
                   <div key={item.label} className="min-w-0 rounded-[1.25rem] border border-ink/10 bg-white p-3 shadow-sm sm:p-3.5">
                     <dt className="flex items-center justify-between gap-2">

@@ -32,6 +32,7 @@ export const PIZZA_SESSION_STEPS = [
 
 export type PizzaSessionStatus = (typeof PIZZA_SESSION_STATUSES)[number];
 export type PizzaSessionStep = (typeof PIZZA_SESSION_STEPS)[number];
+export type PizzaSessionDoughStartMode = "now" | "later" | "recommend";
 
 export type PizzaSessionRecipeParams = Record<string, string | number | boolean>;
 
@@ -109,6 +110,8 @@ export type PizzaSession = {
   pizzaPreset?: string;
   targetEatTime?: string;
   targetBakeTime?: string;
+  doughStartMode?: PizzaSessionDoughStartMode;
+  doughEarliestStartTime?: string;
   pizzaCount?: number;
   ovenType?: string;
   flour?: string;
@@ -139,6 +142,7 @@ const timelineStatusSet = new Set(["todo", "done", "skipped"]);
 const timelineKindSet = new Set(["active", "passive"]);
 const shoppingGroupSet = new Set(["Dough", "Sauce", "Cheese", "Toppings", "Gear"]);
 const shoppingStatusSet = new Set(["already_have", "need_to_buy", "bought"]);
+const doughStartModeSet = new Set(["now", "later", "recommend"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -163,6 +167,12 @@ function normalizeStatus(value: unknown): PizzaSessionStatus {
 
 function normalizeStep(value: unknown): PizzaSessionStep {
   return typeof value === "string" && stepSet.has(value) ? value as PizzaSessionStep : "style";
+}
+
+function normalizeDoughStartMode(value: unknown): PizzaSessionDoughStartMode | undefined {
+  return typeof value === "string" && doughStartModeSet.has(value)
+    ? value as PizzaSessionDoughStartMode
+    : undefined;
 }
 
 function cloneRecipeParams(params?: PizzaSessionRecipeParams): PizzaSessionRecipeParams | undefined {
@@ -294,6 +304,10 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     pizzaPreset: stringValue(input.pizzaPreset),
     targetEatTime: stringValue(input.targetEatTime),
     targetBakeTime: stringValue(input.targetBakeTime),
+    doughStartMode: normalizeDoughStartMode(input.doughStartMode),
+    doughEarliestStartTime: normalizeDoughStartMode(input.doughStartMode) === "later"
+      ? stringValue(input.doughEarliestStartTime)
+      : undefined,
     pizzaCount: positiveNumberValue(input.pizzaCount),
     ovenType: stringValue(input.ovenType),
     flour: stringValue(input.flour),
