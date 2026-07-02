@@ -162,7 +162,10 @@ export default function SessionRecipePage() {
   });
   const planningHighlights = planningResult
     ? [
-      planningResult.startWindowRecommendation && {
+      longHorizonRecommendation ? {
+        label: "Start window",
+        value: "Choose a 24h, 48h or 72h cold fermentation plan closer to bake day.",
+      } : planningResult.startWindowRecommendation && {
         label: "Start window",
         value: planningResult.startWindowRecommendation.startWindowLabel,
       },
@@ -181,6 +184,12 @@ export default function SessionRecipePage() {
       },
     ].filter((item): item is { label: string; value: string } => Boolean(item))
     : [];
+  const displayedRiskSummary = longHorizonRecommendation
+    ? "This bake target is far in the future. You do not need to start today; choose a 24h, 48h or 72h cold fermentation plan closer to bake day."
+    : combinedRisk?.summary;
+  const displayedFirstAdjustment = longHorizonRecommendation
+    ? "Wait to mix the dough, then start at the recommended cold-fermentation window for the duration you choose."
+    : combinedRisk?.suggestedFirstAdjustment;
 
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
@@ -263,10 +272,10 @@ export default function SessionRecipePage() {
                   <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(16rem,.9fr)]">
                     <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
                       <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
-                      <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.summary}</p>
+                      <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
                       <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
                         <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                        <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
+                        <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
                       </div>
                     </section>
 
@@ -318,7 +327,7 @@ export default function SessionRecipePage() {
 
                       <div className="mt-3 grid gap-2 rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/65 sm:grid-cols-2">
                         <p><span className="font-extrabold text-ink">Selected flour:</span> {longHorizonRecommendation.selectedFlourLabel}</p>
-                        <p><span className="font-extrabold text-ink">Recommended flour for 48–72h cold fermentation:</span> {longHorizonRecommendation.recommendedFlourLabel}</p>
+                        <p><span className="font-extrabold text-ink">Recommended flour for 48–72h cold fermentation:</span> {longHorizonRecommendation.recommendedFlourLabel}, {longHorizonRecommendation.recommendedFlourStrengthGuidance}</p>
                       </div>
                     </section>
                   )}

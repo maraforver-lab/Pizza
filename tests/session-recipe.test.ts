@@ -128,9 +128,14 @@ describe("Session recipe build step", () => {
     expect(page).toContain("What to adjust first");
     expect(page).toContain("Session planning context");
     expect(page).toContain("Long-horizon start plan");
+    expect(page).toContain("This bake target is far in the future. You do not need to start today;");
+    expect(page).toContain("Choose a 24h, 48h or 72h cold fermentation plan closer to bake day.");
     expect(page).toContain("48h cold fermentation");
     expect(page).toContain("Selected flour:");
     expect(page).toContain("Recommended flour for 48–72h cold fermentation:");
+    expect(page).toContain("recommendedFlourStrengthGuidance");
+    expect(page).not.toContain("Set the bake target first");
+    expect(page).not.toContain("Add a bake date and time to get a stronger planning risk summary.");
     expect(page).not.toContain("Calculator v1");
     expect(page).not.toContain("Calculator v2");
     expect(page.indexOf("Your dough plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
@@ -346,8 +351,47 @@ describe("Session recipe build step", () => {
       new Date("2026-07-07T18:00").toISOString(),
     ]);
     expect(recommendation?.options[0]?.flourGuidance).toContain("Pizza flour / Tipo 00");
+    expect(recommendation?.options[0]?.flourGuidance).toContain("approx. W 220–260");
     expect(recommendation?.options[1]?.flourGuidance).toContain("stronger Tipo 00 or bread flour");
+    expect(recommendation?.options[1]?.flourGuidance).toContain("approx. W 260–300");
     expect(recommendation?.options[2]?.flourGuidance).toContain("strong flour");
+    expect(recommendation?.options[2]?.flourGuidance).toContain("approx. W 300–330+");
+    expect(recommendation?.recommendedFlourStrengthGuidance).toBe("approx. W 260–330+");
+    expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
+  });
+
+  it("calculates deterministic long-horizon option start dates from the bake target", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-long-horizon-noon-target",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-10T12:00",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok || !result.planningInfo.ok) throw new Error("Expected noon-target planning info");
+
+    const recommendation = buildLongHorizonStartRecommendation({
+      planningResult: result.planningInfo.result,
+      selectedFlourLabel: "Pizza flour / Tipo 00",
+    });
+
+    expect(recommendation?.options.map((option) => ({
+      durationHours: option.durationHours,
+      startIso: option.startIso,
+      wValueGuidance: option.wValueGuidance,
+    }))).toEqual([
+      { durationHours: 24, startIso: new Date("2026-07-09T12:00").toISOString(), wValueGuidance: "approx. W 220–260" },
+      { durationHours: 48, startIso: new Date("2026-07-08T12:00").toISOString(), wValueGuidance: "approx. W 260–300" },
+      { durationHours: 72, startIso: new Date("2026-07-07T12:00").toISOString(), wValueGuidance: "approx. W 300–330+" },
+    ]);
+    expect(recommendation?.recommendedStartIso).toBe(new Date("2026-07-08T12:00").toISOString());
+    expect(recommendation?.selectedFlourLabel).toBe("Pizza flour / Tipo 00");
+    expect(recommendation?.recommendedFlourLabel).toBe("Bread flour / strong flour");
     expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
   });
 

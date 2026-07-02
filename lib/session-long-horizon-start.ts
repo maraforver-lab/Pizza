@@ -4,6 +4,7 @@ export type LongHorizonFermentationOption = {
   durationHours: 24 | 48 | 72;
   label: string;
   startIso: string;
+  wValueGuidance: string;
   flourGuidance: string;
   recommendedFlourLabel: string;
   isRecommended: boolean;
@@ -17,6 +18,7 @@ export type LongHorizonStartRecommendation = {
   recommendedStartIso: string;
   selectedFlourLabel: string;
   recommendedFlourLabel: string;
+  recommendedFlourStrengthGuidance: string;
   flourGuidance: string;
   options: LongHorizonFermentationOption[];
 };
@@ -38,20 +40,26 @@ function subtractHours(date: Date, hours: number) {
 
 function optionFlourGuidance(durationHours: 24 | 48 | 72) {
   if (durationHours === 24) {
+    const wValueGuidance = "approx. W 220–260";
     return {
       recommendedFlourLabel: "Pizza flour / Tipo 00",
-      flourGuidance: "Pizza flour / Tipo 00 is likely suitable for a 24h cold fermentation.",
+      wValueGuidance,
+      flourGuidance: `Pizza flour / Tipo 00 is likely suitable for a 24h cold fermentation (${wValueGuidance}).`,
     };
   }
   if (durationHours === 48) {
+    const wValueGuidance = "approx. W 260–300";
     return {
       recommendedFlourLabel: "Bread flour / strong flour",
-      flourGuidance: "For 48h cold fermentation, stronger Tipo 00 or bread flour may be safer.",
+      wValueGuidance,
+      flourGuidance: `For 48h cold fermentation, stronger Tipo 00 or bread flour may be safer (${wValueGuidance}).`,
     };
   }
+  const wValueGuidance = "approx. W 300–330+";
   return {
     recommendedFlourLabel: "Strong flour / higher-protein flour",
-    flourGuidance: "For 72h cold fermentation, strong flour or higher-protein flour is recommended.",
+    wValueGuidance,
+    flourGuidance: `For 72h cold fermentation, strong flour or higher-protein flour is recommended (${wValueGuidance}).`,
   };
 }
 
@@ -71,6 +79,7 @@ export function buildLongHorizonStartRecommendation({
       durationHours,
       label: `${durationHours}h cold fermentation`,
       startIso: subtractHours(target, durationHours).toISOString(),
+      wValueGuidance: flour.wValueGuidance,
       flourGuidance: flour.flourGuidance,
       recommendedFlourLabel: flour.recommendedFlourLabel,
       isRecommended: durationHours === 48,
@@ -86,6 +95,7 @@ export function buildLongHorizonStartRecommendation({
     recommendedStartIso: recommended.startIso,
     selectedFlourLabel,
     recommendedFlourLabel: recommended.recommendedFlourLabel,
+    recommendedFlourStrengthGuidance: "approx. W 260–330+",
     flourGuidance: recommended.flourGuidance,
     options,
   };
