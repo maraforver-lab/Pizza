@@ -17,7 +17,10 @@ import {
   generatePizzaSessionTimeline,
   getTimelineNote,
 } from "@/lib/pizza-session-timeline";
-import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
+import {
+  resolveSessionDoughStartTime,
+  timelineStepsForPlanningSummaryDisplay,
+} from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 
 function formatDateTime(value?: string) {
@@ -363,6 +366,7 @@ export default function SessionTimelinePage() {
   const displayTimelineSteps = timelineStepsForPlanningSummaryDisplay({
     steps: timeline.steps,
     planningResult,
+    session,
   });
   const nextStep = displayTimelineSteps.find((step) => step.status === "todo");
   const allStepsComplete = Boolean(displayTimelineSteps.length && displayTimelineSteps.every((step) => step.status === "done"));
@@ -380,6 +384,7 @@ export default function SessionTimelinePage() {
   const startWindow = planningResult?.startWindowRecommendation;
   const fermentationSetup = planningResult?.fermentationSetupRecommendation;
   const temperatureGuidance = planningResult?.temperatureGuidance;
+  const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session });
   const renderNextActionCard = () => (
     <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
@@ -458,6 +463,15 @@ export default function SessionTimelinePage() {
                 <div className="rounded-2xl bg-white p-3">
                   <dt className="text-xs font-extrabold text-ink/45">Start window</dt>
                   <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{startWindow?.startWindowLabel ?? "Not enough information"}</dd>
+                </div>
+                <div className="rounded-2xl bg-white p-3">
+                  <dt className="text-xs font-extrabold text-ink/45">Dough start</dt>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
+                    {doughStartResolution.startsAt ? formatShortDateTime(doughStartResolution.startsAt) : doughStartResolution.label.replace("Dough start: ", "")}
+                  </dd>
+                  {doughStartResolution.warning && (
+                    <p className="mt-1 text-xs font-bold leading-5 text-tomato">{doughStartResolution.warning}</p>
+                  )}
                 </div>
                 <div className="rounded-2xl bg-white p-3">
                   <dt className="text-xs font-extrabold text-ink/45">Fermentation place</dt>

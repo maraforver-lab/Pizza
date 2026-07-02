@@ -20,7 +20,10 @@ import {
   QUIET_HOURS_WARNING,
   TIMELINE_ROUNDING_MINUTES,
 } from "@/lib/pizza-session-timeline";
-import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
+import {
+  resolveSessionDoughStartTime,
+  timelineStepsForPlanningSummaryDisplay,
+} from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { MemoryStorage } from "./helpers";
 
@@ -77,6 +80,7 @@ describe("Pizza Session timeline", () => {
 
     expect(page).toContain("buildSessionRecipe(session ?? undefined)");
     expect(page).toContain("timelineStepsForPlanningSummaryDisplay");
+    expect(page).toContain("resolveSessionDoughStartTime");
     expect(page).toContain("Timeline planning summary");
     expect(page).toContain("Timeline guidance is based on available session choices.");
     expect(page).toContain("Overall risk");
@@ -85,6 +89,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Bake target");
     expect(page).toContain("Available time");
     expect(page).toContain("Start window");
+    expect(page).toContain("Dough start");
     expect(page).toContain("Fermentation place");
     expect(page).toContain("Fermentation temperature");
     expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
@@ -131,6 +136,167 @@ describe("Pizza Session timeline", () => {
     expect(displayed.find((step) => step.id === "preheat-oven")?.scheduledAt)
       .toBe(new Date("2026-07-02T15:00").toISOString());
     expect(displayed.every((step) => step.status === "todo")).toBe(true);
+  });
+
+  it("uses doughStartMode now to anchor same-day dough actions at the current planning time", () => {
+    const now = new Date("2026-07-02T14:00:00");
+    const session = createPizzaSession({
+      id: "same-day-start-now-session",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-02T20:00",
+      doughStartMode: "now",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+    });
+
+    expect(resolveSessionDoughStartTime({ planningResult: recipe.planningInfo.result, session })).toMatchObject({
+      mode: "now",
+      label: "Dough start: now",
+      startsAt: now.toISOString(),
+    });
+    expect(displayed.some((step) => step.id === "cold-ferment")).toBe(false);
+    expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
+    expect(displayed.find((step) => step.id === "bake-pizza")?.scheduledAt).toBe(new Date("2026-07-02T20:00").toISOString());
+  });
+
+  it("uses a valid later dough start time without mutating persisted timeline statuses", () => {
+    const now = new Date("2026-07-02T18:00:00");
+    const laterStart = "2026-07-03T09:00";
+    const session = createPizzaSession({
+      id: "later-dough-start-session",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-05T12:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: laterStart,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    generated.steps[0] = { ...generated.steps[0], status: "done" };
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+    });
+    const laterStartDate = new Date(laterStart);
+
+    expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(laterStartDate.toISOString());
+    expect(displayed.find((step) => step.id === "rest-dough")?.scheduledAt).toBe(new Date(laterStartDate.getTime() + 30 * 60_000).toISOString());
+    expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe(new Date(laterStartDate.getTime() + 60 * 60_000).toISOString());
+    expect(displayed.find((step) => step.id === "mix-dough")?.status).toBe("done");
+    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt).not.toBe(laterStartDate.toISOString());
+  });
+
+  it("keeps a cautious fallback when a later dough start time is invalid or after the bake target", () => {
+    const now = new Date("2026-07-02T18:00:00");
+    const session = createPizzaSession({
+      id: "invalid-later-dough-start-session",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-03T12:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-03T13:00",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+    });
+    const resolution = resolveSessionDoughStartTime({ planningResult: recipe.planningInfo.result, session });
+
+    expect(resolution.warning).toContain("after the bake target");
+    expect(resolution.startsAt).toBeUndefined();
+    expect(displayed).not.toBe(generated.steps);
+    expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
+  });
+
+  it("preserves recommendation-based timeline behavior when doughStartMode is recommend", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      id: "recommend-dough-start-session",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-04T16:00",
+      doughStartMode: "recommend",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+    });
+
+    expect(resolveSessionDoughStartTime({ planningResult: recipe.planningInfo.result, session })).toMatchObject({
+      mode: "recommend",
+      label: "Dough start: DoughTools recommendation",
+    });
+    expect(displayed).toBe(generated.steps);
+  });
+
+  it("can anchor a weekend cold fermentation display from the stated dough start time", () => {
+    const now = new Date("2026-07-02T18:00:00");
+    const session = createPizzaSession({
+      id: "weekend-cold-start-now-session",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-04T12:00",
+      doughStartMode: "now",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+    });
+
+    expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
+    expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
+    expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe(new Date(now.getTime() + 60 * 60_000).toISOString());
   });
 
   it("preserves longer cold-fermentation timeline display when same-day start-now alignment does not apply", () => {
