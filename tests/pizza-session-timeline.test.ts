@@ -43,6 +43,8 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("hideMeta");
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).toContain("Next up");
+    expect(page).toContain("Timeline planning summary");
+    expect(page).toContain("Planning timing notes");
     expect(page).toContain("What happens when");
     expect(page).toContain("Timing highlights");
     expect(page).toContain("Full timeline");
@@ -65,6 +67,26 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("Create shopping list");
     expect(page).not.toContain("Open full Planner");
     expect(page).not.toContain("<AppSignature");
+  });
+
+  it("shows a compact planning timing summary without changing timeline generation", () => {
+    const page = source("app/session/timeline/page.tsx");
+    const helper = source("lib/pizza-session-timeline.ts");
+
+    expect(page).toContain("buildSessionRecipe(session ?? undefined)");
+    expect(page).toContain("Timeline planning summary");
+    expect(page).toContain("Timeline guidance is based on available session choices.");
+    expect(page).toContain("Timing risk");
+    expect(page).toContain("What to watch");
+    expect(page).toContain("Bake target");
+    expect(page).toContain("Available time");
+    expect(page).toContain("Start window");
+    expect(page).toContain("Fermentation place");
+    expect(page).toContain("Fermentation temperature");
+    expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
+    expect(page).not.toContain("Dough planning notes");
+    expect(helper).not.toContain("buildPlanningResult");
+    expect(helper).not.toContain("buildSessionRecipe");
   });
 
   it("keeps Next up focused on the real next action", () => {

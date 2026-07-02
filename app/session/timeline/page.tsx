@@ -18,6 +18,7 @@ import {
   getNextTimelineStep,
   getTimelineNote,
 } from "@/lib/pizza-session-timeline";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 
 function formatDateTime(value?: string) {
   if (!value) return "Time not set";
@@ -151,6 +152,33 @@ function relativeFromNow(stepTime?: string) {
     !days && minutes ? `${minutes}m` : "",
   ].filter(Boolean).join(" ");
   return diffMinutes > 0 ? `In ${parts}` : `${parts} ago`;
+}
+
+function formatAvailableHours(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "Time not available";
+  if (value < 1) return `${Math.round(value * 60)} min`;
+  const rounded = Math.round(value * 10) / 10;
+  return `${rounded} h`;
+}
+
+function readablePlanningLabel(value?: string | null) {
+  if (!value) return "Not enough information";
+  return value.replaceAll("_", " ");
+}
+
+function planningRiskTone(risk?: string) {
+  if (risk === "high_risk" || risk === "not_recommended") return "border-tomato/35 bg-tomato/[.08] text-tomato";
+  if (risk === "caution") return "border-tomato/25 bg-tomato/[.06] text-tomato";
+  if (risk === "not_enough_information") return "border-ink/10 bg-cream text-ink/65";
+  return "border-leaf/25 bg-leaf/[.08] text-leaf";
+}
+
+function fermentationPlaceLabel(value?: string | null) {
+  if (value === "cold") return "Fridge / cold fermentation";
+  if (value === "hybrid") return "Room + fridge";
+  if (value === "room") return "Room temperature";
+  if (value === "not_recommended") return "Not recommended";
+  return "Not enough information";
 }
 
 type ShoppingCheckpointState = "Upcoming" | "Next" | "Done";
@@ -294,6 +322,7 @@ export default function SessionTimelinePage() {
   }, []);
 
   const timelineResult = useMemo(() => generatePizzaSessionTimeline(session ?? undefined), [session]);
+  const sessionRecipeResult = useMemo(() => buildSessionRecipe(session ?? undefined), [session]);
   const timeline = session?.timeline ?? timelineResult.timeline;
   const nextStep = getNextTimelineStep(timeline);
   const targetTime = timeline?.targetEatTime ?? session?.targetEatTime ?? session?.targetBakeTime;
@@ -342,6 +371,12 @@ export default function SessionTimelinePage() {
   const firstServiceStep = firstServiceStepIndex >= 0 ? timeline.steps[firstServiceStepIndex] : undefined;
   const nextUpTime = shoppingIsNext ? firstServiceStep?.scheduledAt ?? targetTime : nextStep?.scheduledAt ?? targetTime;
   const criticalMoments = getCriticalMoments(timeline.steps);
+  const planningInfo = sessionRecipeResult.ok ? sessionRecipeResult.planningInfo : null;
+  const planningResult = planningInfo?.ok ? planningInfo.result : null;
+  const combinedRisk = planningResult?.combinedRiskSummary;
+  const startWindow = planningResult?.startWindowRecommendation;
+  const fermentationSetup = planningResult?.fermentationSetupRecommendation;
+  const temperatureGuidance = planningResult?.temperatureGuidance;
   const renderNextActionCard = () => (
     <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
@@ -382,6 +417,65 @@ export default function SessionTimelinePage() {
             {renderNextActionCard()}
           </div>
         </SessionStepHero>
+
+        <section aria-labelledby="timeline-planning-summary-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning timing notes</p>
+              <h2 id="timeline-planning-summary-heading" className="mt-2 font-display text-3xl font-semibold">Timeline planning summary</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+                Timeline guidance is based on available session choices. It does not replace the timeline steps below or change Kitchen Mode.
+              </p>
+            </div>
+            <span className={`w-fit rounded-full border px-3 py-2 text-xs font-extrabold capitalize ${planningRiskTone(combinedRisk?.overallRiskLevel ?? (planningResult ? "low" : "not_enough_information"))}`}>
+              {readablePlanningLabel(combinedRisk?.overallRiskLevel ?? (planningResult ? "low" : "not_enough_information"))}
+            </span>
+          </div>
+
+          {planningResult && combinedRisk ? (
+            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Timing risk</p>
+                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.primaryRiskReason}</p>
+                <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
+                  <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to watch</span>
+                  <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major timing adjustment needed from the available session choices."}</span>
+                </div>
+              </section>
+
+              <dl className="grid gap-2 rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:grid-cols-2">
+                <div className="rounded-2xl bg-white p-3">
+                  <dt className="text-xs font-extrabold text-ink/45">Bake target</dt>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{formatDateTime(targetTime)}</dd>
+                </div>
+                <div className="rounded-2xl bg-white p-3">
+                  <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
+                </div>
+                <div className="rounded-2xl bg-white p-3">
+                  <dt className="text-xs font-extrabold text-ink/45">Start window</dt>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{startWindow?.startWindowLabel ?? "Not enough information"}</dd>
+                </div>
+                <div className="rounded-2xl bg-white p-3">
+                  <dt className="text-xs font-extrabold text-ink/45">Fermentation place</dt>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode)}</dd>
+                </div>
+                <div className="rounded-2xl bg-white p-3 sm:col-span-2">
+                  <dt className="text-xs font-extrabold text-ink/45">Fermentation temperature</dt>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
+                    {temperatureGuidance
+                      ? `Room ${temperatureGuidance.roomTemperature} °C · Fridge ${temperatureGuidance.fridgeTemperature} °C`
+                      : "Add dough plan details for stronger temperature guidance."}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ) : (
+            <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">
+              Add bake time and dough plan details for stronger timing recommendations. The existing timeline below still uses your saved target time.
+            </div>
+          )}
+        </section>
 
         {criticalMoments.length > 0 && (
           <section aria-labelledby="what-happens-when-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
