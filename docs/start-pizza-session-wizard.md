@@ -18,7 +18,7 @@ The current version keeps the flow focused on one practical decision at a time:
 2. Pizza / dough style
 3. Target eat or bake time
 4. Pizza quantity
-5. Flour
+5. Flour situation / W-value range
 6. Summary and dough-plan handoff
 
 The goal is not to replace the calculator. The goal is to collect the first practical decisions before sending the user into a session recipe step, timeline and shopping list.
@@ -33,6 +33,16 @@ Patch 150 separates early dough planning from topping/shopping choices:
 - Oven setup is Home oven or Pizza oven in the main V1 setup.
 - Pizza style is currently Neapolitan-style.
 - Topping preset storage remains compatible for Shopping, but topping selection should move later.
+
+Patch 151 reframes the flour setup as practical flour situation and W-value ranges:
+
+- No, recommend what to buy
+- I don’t know the W-value
+- W 180–220
+- W 220–260
+- W 260–300
+- W 300–340
+- W 340+
 
 ## Autosave behavior
 
@@ -52,7 +62,7 @@ Each step updates:
 - target time
 - pizza count
 - oven
-- flour
+- legacy formula flour plus optional flour situation / W-value ranges
 - current step
 - updatedAt
 - lastSavedAt

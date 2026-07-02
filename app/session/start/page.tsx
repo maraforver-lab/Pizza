@@ -12,6 +12,8 @@ import {
 } from "@/lib/experience-levels";
 import {
   type PizzaSessionDoughStartMode,
+  type PizzaSessionFlourSituation,
+  type PizzaSessionFlourWRange,
   type PizzaSession,
   type PizzaSessionStep,
 } from "@/lib/pizza-session";
@@ -74,10 +76,29 @@ const sessionStyleLabels: Record<string, string> = {
   "pan-tray": "Pan / tray",
 };
 
-const flourOptions = [
-  { id: "tipo-00", label: "Pizza flour / Tipo 00", icon: "▣", description: "The best choice for pizza. Strong and high protein." },
-  { id: "bread", label: "Bread flour / Strong flour", icon: "▥", description: "Great for chewy crusts and good rise." },
-  { id: "plain", label: "All-purpose flour", icon: "◒", description: "Works in a pinch. Results may vary." },
+const DEFAULT_SESSION_FORMULA_FLOUR = "tipo-00";
+
+const flourSituationOptions: Array<{
+  id: PizzaSessionFlourSituation;
+  label: string;
+  icon: string;
+  description: string;
+}> = [
+  { id: "recommend", label: "No, recommend what to buy", icon: "🛒", description: "DoughTools can suggest a flour strength later." },
+  { id: "unknown_w", label: "I don’t know the W-value", icon: "?", description: "Use this when the bag does not show flour strength." },
+];
+
+const flourWRangeOptions: Array<{
+  id: PizzaSessionFlourWRange;
+  label: string;
+  icon: string;
+  description: string;
+}> = [
+  { id: "w_180_220", label: "W 180–220", icon: "▣", description: "Short same-day doughs." },
+  { id: "w_220_260", label: "W 220–260", icon: "▣", description: "Short to 24h fermentation." },
+  { id: "w_260_300", label: "W 260–300", icon: "▥", description: "Good for 24–48h cold fermentation." },
+  { id: "w_300_340", label: "W 300–340", icon: "▥", description: "Good for 48–72h cold fermentation." },
+  { id: "w_340_plus", label: "W 340+", icon: "◒", description: "Very strong flour, use with caution." },
 ] as const;
 
 const doughStartOptions: Array<{
@@ -104,7 +125,7 @@ const wizardStepLabels: Record<WizardStep, string> = {
   preset: "Pizza style",
   time: "When to eat",
   quantity: "How many",
-  flour: "Flour",
+  flour: "Flour situation",
   summary: "Setup ready",
 };
 
@@ -113,7 +134,7 @@ const wizardStepQuestions: Record<WizardStep, string> = {
   preset: "Choose your pizza style",
   time: "When do you want pizza?",
   quantity: "How many pizzas?",
-  flour: "What flour do you have?",
+  flour: "Do you already have flour?",
   summary: "You’re ready for your dough plan.",
 };
 
@@ -122,7 +143,7 @@ const wizardStepHelpers: Record<WizardStep, string> = {
   preset: "DoughTools currently plans Neapolitan-style pizza for home ovens and pizza ovens. Toppings are chosen later for the shopping list.",
   time: "We’ll work backwards and build the right timeline.",
   quantity: "We’ll calculate the right amount of dough.",
-  flour: "This helps us suggest the right hydration and fermentation.",
+  flour: "DoughTools can recommend what to buy, or use the W-value range of the flour you already have.",
   summary: "You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.",
 };
 
@@ -132,7 +153,7 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     preset: "Start with the dough style. Toppings come later when you build the shopping list.",
     time: "Pick the time you want pizza. DoughTools will plan backwards from there.",
     quantity: "Choose a simple number. You can tune exact dough size later.",
-    flour: "Choose the closest flour. If you are not sure, safe defaults keep going.",
+    flour: "If you do not know the W-value, choose that fallback. DoughTools can still keep going safely.",
     summary: "Your first decisions are saved. Next, build the dough plan.",
   },
   enthusiast: {
@@ -140,7 +161,7 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     preset: "This keeps dough style separate from topping choices so fermentation and flour guidance stay clean.",
     time: "We’ll plan dough, preparation and bake steps backwards from this time.",
     quantity: "Pizza count controls total dough, sauce, cheese and prep work.",
-    flour: "Flour strength affects hydration, fermentation length and handling.",
+    flour: "W-value range gives a practical flour-strength signal for fermentation planning.",
     summary: "The session is ready for a dough plan, timeline and shopping list.",
   },
   pizza_nerd: {
@@ -148,7 +169,7 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     preset: "V1 uses a Neapolitan-style dough assumption while legacy topping presets remain compatibility data for Shopping.",
     time: "Pick the target pizza time. Timeline steps are rounded to practical 15-minute increments; active night tasks are avoided where possible while passive fermentation can continue overnight.",
     quantity: "This becomes the first batch-size variable before exact dough-ball and formula tuning.",
-    flour: "This is a coarse flour class, not a W-value or protein analysis. Fine tuning remains available later.",
+    flour: "Capture the flour W-range now. Formula calculations still use the legacy flour default until a later planning patch consumes these ranges.",
     summary: "The local session now has enough context to hand off to recipe calculation without changing formulas.",
   },
 };
@@ -291,6 +312,19 @@ function formatDoughStartPreference(session: PizzaSession) {
   return doughStartModeLabel(mode);
 }
 
+function formatFlourSituationSummary(session: PizzaSession) {
+  if (session.flourSituation === "recommend") return "Recommend what to buy";
+  if (session.flourSituation === "unknown_w") return "W-value unknown";
+  if (session.availableFlourWRanges?.length) {
+    return session.availableFlourWRanges
+      .map((range) => flourWRangeOptions.find((option) => option.id === range)?.label)
+      .filter(Boolean)
+      .join(", ");
+  }
+  if (session.flour) return "Legacy flour choice saved";
+  return "Not selected yet";
+}
+
 function isValidTargetTime(value?: string) {
   return Boolean(value && !Number.isNaN(new Date(value).getTime()));
 }
@@ -415,7 +449,24 @@ function StartPizzaSessionContent() {
     // to Shopping/Toppings in a later patch.
     savePatch({ pizzaPreset: session?.pizzaPreset ?? DEFAULT_SESSION_TOPPING_PRESET }, "preset");
   };
-  const selectFlour = (flour: string) => savePatch({ flour }, "flour");
+  const selectFlourSituation = (flourSituation: PizzaSessionFlourSituation) => {
+    savePatch({
+      flourSituation,
+      availableFlourWRanges: undefined,
+      flour: session?.flour ?? DEFAULT_SESSION_FORMULA_FLOUR,
+    }, "flour");
+  };
+  const toggleFlourWRange = (range: PizzaSessionFlourWRange) => {
+    const current = session?.availableFlourWRanges ?? [];
+    const nextRanges = current.includes(range)
+      ? current.filter((item) => item !== range)
+      : [...current, range];
+    savePatch({
+      flourSituation: nextRanges.length ? "has_w_range" : undefined,
+      availableFlourWRanges: nextRanges.length ? nextRanges : undefined,
+      flour: session?.flour ?? DEFAULT_SESSION_FORMULA_FLOUR,
+    }, "flour");
+  };
   const setQuantity = (pizzaCount: number) => savePatch({ pizzaCount }, "quantity");
   const setTargetTime = (targetEatTime: string) => {
     setTargetTimeDraft(targetEatTime);
@@ -481,7 +532,7 @@ function StartPizzaSessionContent() {
     || (step === "preset" && Boolean(session?.pizzaPreset))
     || (step === "time" && Boolean(targetTimeDraft || session?.targetEatTime) && ((session?.doughStartMode ?? "recommend") !== "later" || Boolean(session?.doughEarliestStartTime)))
     || (step === "quantity" && Boolean(session?.pizzaCount))
-    || (step === "flour" && Boolean(session?.flour))
+    || (step === "flour" && Boolean(session?.flour || session?.flourSituation || session?.availableFlourWRanges?.length))
     || step === "summary";
 
   if (!ready || !session) {
@@ -490,7 +541,7 @@ function StartPizzaSessionContent() {
 
   const selectedOvenLabel = session.pizzaStyle ? sessionStyleLabels[session.pizzaStyle] : undefined;
   const hasSelectedDoughStyle = Boolean(session.pizzaPreset);
-  const selectedFlour = flourOptions.find((option) => option.id === session.flour);
+  const flourSummary = formatFlourSituationSummary(session);
   const dayChoices = getPizzaSessionDayQuickChoices();
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const activeDoughStartMode = session.doughStartMode ?? "recommend";
@@ -501,7 +552,7 @@ function StartPizzaSessionContent() {
     { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "🕒" },
     { label: "Dough start", value: formatDoughStartPreference(session), icon: "⏱" },
     { label: "How many", value: `${session.pizzaCount ?? 4} pizzas`, icon: "◌" },
-    { label: "Flour", value: selectedFlour?.label ?? "Not selected yet", icon: "▣" },
+    { label: "Flour", value: flourSummary, icon: "▣" },
   ];
 
   return (
@@ -799,16 +850,38 @@ function StartPizzaSessionContent() {
           )}
 
           {step === "flour" && (
-            <div className="grid gap-3 lg:grid-cols-3">
-              {flourOptions.map((option) => (
-                <button key={option.id} type="button" onClick={() => selectFlour(option.id)} aria-pressed={session.flour === option.id} className={optionClass(session.flour === option.id)}>
-                  {selectedIndicator(session.flour === option.id)}
-                  {iconBadge(option.icon)}
-                  <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
-                  <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{option.description}</span>
-                  {session.flour === option.id && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
-                </button>
-              ))}
+            <div className="grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {flourSituationOptions.map((option) => (
+                  <button key={option.id} type="button" onClick={() => selectFlourSituation(option.id)} aria-pressed={session.flourSituation === option.id} className={optionClass(session.flourSituation === option.id)}>
+                    {selectedIndicator(session.flourSituation === option.id)}
+                    {iconBadge(option.icon)}
+                    <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
+                    <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{option.description}</span>
+                    {session.flourSituation === option.id && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <p className="text-sm font-extrabold text-ink">If you know the W-value, select one or more ranges</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {flourWRangeOptions.map((option) => {
+                    const active = Boolean(session.availableFlourWRanges?.includes(option.id));
+                    return (
+                      <button key={option.id} type="button" onClick={() => toggleFlourWRange(option.id)} aria-pressed={active} className={optionClass(active)}>
+                        {selectedIndicator(active)}
+                        {iconBadge(option.icon)}
+                        <span className="col-start-2 block pr-8 text-sm font-extrabold sm:col-auto sm:text-lg">{option.label}</span>
+                        <span className="col-start-2 mt-0.5 block text-xs leading-4 text-ink/55 sm:col-auto sm:mt-1 sm:text-sm sm:leading-5">{option.description}</span>
+                        {active && <span className="col-start-2 mt-1.5 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato sm:col-auto sm:mt-2">Selected</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <p className="rounded-2xl border border-ink/10 bg-cream/60 p-3 text-xs font-bold leading-5 text-ink/55">
+                Ingredient amounts still use the current safe flour default in this patch. W-value ranges are saved as planning context for later recommendations.
+              </p>
             </div>
           )}
 

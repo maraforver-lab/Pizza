@@ -86,7 +86,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Let DoughTools recommend");
     expect(page).toContain("This helps DoughTools calculate the real fermentation window later.");
     expect(page).toContain("How many pizzas?");
-    expect(page).toContain("What flour do you have?");
+    expect(page).toContain("Do you already have flour?");
+    expect(page).toContain("DoughTools can recommend what to buy, or use the W-value range of the flour you already have.");
     expect(page).toContain("You’re ready for your dough plan.");
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.");
     expect(page).toContain("Home oven");
@@ -114,11 +115,15 @@ describe("Start Pizza Session wizard", () => {
     expect(source("lib/pizza-session-presets.ts")).toContain("Mushroom");
     expect(source("lib/pizza-session-presets.ts")).toContain("Meat lovers");
     expect(source("lib/pizza-session-presets.ts")).toContain("White pizza");
-    expect(page).toContain("Pizza flour / Tipo 00");
-    expect(page).toContain("Bread flour / Strong flour");
-    expect(page).toContain("All-purpose flour");
+    expect(page).toContain("No, recommend what to buy");
+    expect(page).toContain("I don’t know the W-value");
+    expect(page).toContain("W 180–220");
+    expect(page).toContain("W 220–260");
+    expect(page).toContain("W 260–300");
+    expect(page).toContain("W 300–340");
+    expect(page).toContain("W 340+");
     expect(page).not.toContain('label: "Not sure"');
-    expect(page).toContain("grid gap-3 lg:grid-cols-3");
+    expect(page).toContain("sm:grid-cols-2 lg:grid-cols-3");
     expect(page).not.toContain("What oven are you using?");
     expect(page).not.toContain("const ovenOptions");
     expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
@@ -166,9 +171,13 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain("Meat lovers");
     expect(page).not.toContain("White pizza");
     expect(page).not.toContain("I’ll decide toppings later");
-    expect(page).toContain("Pizza flour / Tipo 00");
-    expect(page).toContain("Bread flour / Strong flour");
-    expect(page).toContain("All-purpose flour");
+    expect(page).toContain("No, recommend what to buy");
+    expect(page).toContain("I don’t know the W-value");
+    expect(page).toContain("W 180–220");
+    expect(page).toContain("W 220–260");
+    expect(page).toContain("W 260–300");
+    expect(page).toContain("W 300–340");
+    expect(page).toContain("W 340+");
     expect(page).not.toContain('label: "Not sure"');
     expect(page).toContain("grid min-h-[4rem] grid-cols-[auto_1fr] items-start gap-2.5");
     expect(page).toContain("sm:block sm:min-h-[7rem]");
@@ -181,9 +190,15 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("col-start-2 block pr-8");
     expect(page).toContain("aria-pressed={session.pizzaStyle === option.id}");
     expect(page).toContain("aria-pressed={hasSelectedDoughStyle}");
-    expect(page).toContain("aria-pressed={session.flour === option.id}");
+    expect(page).toContain("aria-pressed={session.flourSituation === option.id}");
+    expect(page).toContain("aria-pressed={active}");
+    expect(page).toContain("toggleFlourWRange");
+    expect(page).toContain("availableFlourWRanges");
+    expect(page).toContain("selectFlourSituation");
+    expect(page).toContain("availableFlourWRanges: undefined");
+    expect(page).toContain('flourSituation: nextRanges.length ? "has_w_range" : undefined');
     expect(page).toContain("step === \"preset\" && Boolean(session?.pizzaPreset)");
-    expect(page).toContain("step === \"flour\" && Boolean(session?.flour)");
+    expect(page).toContain("step === \"flour\" && Boolean(session?.flour || session?.flourSituation || session?.availableFlourWRanges?.length)");
     expect(page).toContain("disabled={!canContinue}");
     expect(page).not.toContain("className={`${optionClass(session.flour === option.id)} flex min-h-24 items-center gap-4`}");
   });
@@ -260,7 +275,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('nextSession.flour === "not-sure"');
     expect(page).toContain('flour: "tipo-00"');
     expect(page).not.toContain('label: "Not sure"');
-    expect(page).toContain('step === "flour" && Boolean(session?.flour)');
+    expect(page).toContain('step === "flour" && Boolean(session?.flour || session?.flourSituation || session?.availableFlourWRanges?.length)');
   });
 
   it("keeps the final guided step focused on one primary next action", () => {
@@ -365,6 +380,8 @@ describe("Start Pizza Session wizard", () => {
         pizzaCount: 6,
         ovenType: "gas",
         flour: "tipo-00",
+        flourSituation: "has_w_range",
+        availableFlourWRanges: ["w_260_300", "w_300_340"],
         pizzaPreset: "diavola",
         currentStep: "recipe",
         recipeParams: { balls: 6, oven: "gas", flour: "caputo-pizzeria" },
@@ -383,11 +400,34 @@ describe("Start Pizza Session wizard", () => {
       pizzaCount: 6,
       ovenType: "gas",
       flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_260_300", "w_300_340"],
       pizzaPreset: "diavola",
       currentStep: "recipe",
     });
     expect(updated?.updatedAt).not.toBe(started.updatedAt);
     expect(updated?.lastSavedAt).not.toBe(started.lastSavedAt);
+  });
+
+  it("normalizes optional flour situation and W-value ranges without breaking old flour sessions", () => {
+    const oldSession = createPizzaSession({ flour: "tipo-00" });
+    const rangeSession = createPizzaSession({
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_260_300", "w_260_300", "w_340_plus"],
+    });
+    const recommendSession = createPizzaSession({
+      flour: "tipo-00",
+      flourSituation: "recommend",
+      availableFlourWRanges: ["w_180_220"],
+    });
+
+    expect(oldSession.flour).toBe("tipo-00");
+    expect(oldSession.flourSituation).toBeUndefined();
+    expect(oldSession.availableFlourWRanges).toBeUndefined();
+    expect(rangeSession.availableFlourWRanges).toEqual(["w_260_300", "w_340_plus"]);
+    expect(recommendSession.flourSituation).toBe("recommend");
+    expect(recommendSession.flour).toBe("tipo-00");
   });
 
   it("captures the current target time input before leaving the time step", () => {

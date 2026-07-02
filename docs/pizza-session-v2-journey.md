@@ -21,7 +21,7 @@ Core rule:
 | 2 | Pizza style | `/session/start` | Choose dough style | Choose your pizza style | Continue → | Back | Planning page |
 | 3 | When to eat | `/session/start` | Choose target pizza time | When do you want pizza? | Continue → | Back | Planning page |
 | 4 | How many | `/session/start` | Choose pizza count | How many pizzas? | Continue → | Back | Planning page |
-| 5 | Flour | `/session/start` | Choose flour | What flour do you have? | Continue → | Back | Planning page |
+| 5 | Flour situation | `/session/start` | Choose flour situation or W-value range | Do you already have flour? | Continue → | Back | Planning page |
 | 6 | Dough plan | `/session/recipe` | Show preparation and dough amounts | What dough should I make? | Continue to Timeline → | Back | Reference page |
 | 7 | Timeline | `/session/timeline` | Show schedule overview and critical moments | When should I do each step? | Next step → | Back | Reference page |
 | 8 | Shopping list | `/session/shopping` | Checklist for pizza ingredients | What ingredients do I need? | Next → | Back | Checklist page |
@@ -36,7 +36,7 @@ The first five steps happen inside `/session/start`:
 2. Pizza style
 3. When to eat
 4. How many
-5. Flour
+5. Flour situation
 
 After those choices are complete, `/session/start` shows a compact transition:
 

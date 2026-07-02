@@ -33,6 +33,8 @@ export const PIZZA_SESSION_STEPS = [
 export type PizzaSessionStatus = (typeof PIZZA_SESSION_STATUSES)[number];
 export type PizzaSessionStep = (typeof PIZZA_SESSION_STEPS)[number];
 export type PizzaSessionDoughStartMode = "now" | "later" | "recommend";
+export type PizzaSessionFlourSituation = "recommend" | "unknown_w" | "has_w_range";
+export type PizzaSessionFlourWRange = "w_180_220" | "w_220_260" | "w_260_300" | "w_300_340" | "w_340_plus";
 
 export type PizzaSessionRecipeParams = Record<string, string | number | boolean>;
 
@@ -115,6 +117,8 @@ export type PizzaSession = {
   pizzaCount?: number;
   ovenType?: string;
   flour?: string;
+  flourSituation?: PizzaSessionFlourSituation;
+  availableFlourWRanges?: PizzaSessionFlourWRange[];
   recipeParams?: PizzaSessionRecipeParams;
   recipeSnapshot?: PizzaSessionRecipeSnapshot;
   timeline?: PizzaSessionTimeline;
@@ -143,6 +147,8 @@ const timelineKindSet = new Set(["active", "passive"]);
 const shoppingGroupSet = new Set(["Dough", "Sauce", "Cheese", "Toppings", "Gear"]);
 const shoppingStatusSet = new Set(["already_have", "need_to_buy", "bought"]);
 const doughStartModeSet = new Set(["now", "later", "recommend"]);
+const flourSituationSet = new Set(["recommend", "unknown_w", "has_w_range"]);
+const flourWRangeSet = new Set(["w_180_220", "w_220_260", "w_260_300", "w_300_340", "w_340_plus"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -173,6 +179,20 @@ function normalizeDoughStartMode(value: unknown): PizzaSessionDoughStartMode | u
   return typeof value === "string" && doughStartModeSet.has(value)
     ? value as PizzaSessionDoughStartMode
     : undefined;
+}
+
+function normalizeFlourSituation(value: unknown): PizzaSessionFlourSituation | undefined {
+  return typeof value === "string" && flourSituationSet.has(value)
+    ? value as PizzaSessionFlourSituation
+    : undefined;
+}
+
+function normalizeFlourWRanges(value: unknown): PizzaSessionFlourWRange[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const ranges = [...new Set(value.filter((item): item is PizzaSessionFlourWRange => (
+    typeof item === "string" && flourWRangeSet.has(item)
+  )))];
+  return ranges.length ? ranges : undefined;
 }
 
 function cloneRecipeParams(params?: PizzaSessionRecipeParams): PizzaSessionRecipeParams | undefined {
@@ -311,6 +331,8 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     pizzaCount: positiveNumberValue(input.pizzaCount),
     ovenType: stringValue(input.ovenType),
     flour: stringValue(input.flour),
+    flourSituation: normalizeFlourSituation(input.flourSituation),
+    availableFlourWRanges: normalizeFlourWRanges(input.availableFlourWRanges),
     recipeParams: cloneRecipeParams(input.recipeParams),
     recipeSnapshot: cloneRecipeSnapshot(input.recipeSnapshot),
     timeline: cloneTimeline(input.timeline),
