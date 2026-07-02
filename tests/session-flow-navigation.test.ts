@@ -60,7 +60,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(timeline).toContain("Check sauce, cheese and toppings before baking.");
     expect(timeline).toContain("Open shopping list →");
     expect(timeline).toContain('href="/session/shopping"');
-    expect(timeline).toContain("const firstServiceStepIndex = timeline?.steps.findIndex(isServiceTimelineStep) ?? -1");
+    expect(timeline).toContain("const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep)");
     expect(timeline).toContain("index === shoppingCheckpointInsertIndex");
     expect(timeline.indexOf("<ShoppingCheckpointRow")).toBeLessThan(timeline.indexOf("Step {index + 1}"));
     expect(timeline).not.toMatch(/Copy schedule|Open full Planner|Create shopping list/);

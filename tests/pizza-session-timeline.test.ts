@@ -20,6 +20,8 @@ import {
   QUIET_HOURS_WARNING,
   TIMELINE_ROUNDING_MINUTES,
 } from "@/lib/pizza-session-timeline";
+import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 import { MemoryStorage } from "./helpers";
 
 function source(path: string) {
@@ -74,6 +76,7 @@ describe("Pizza Session timeline", () => {
     const helper = source("lib/pizza-session-timeline.ts");
 
     expect(page).toContain("buildSessionRecipe(session ?? undefined)");
+    expect(page).toContain("timelineStepsForPlanningSummaryDisplay");
     expect(page).toContain("Timeline planning summary");
     expect(page).toContain("Timeline guidance is based on available session choices.");
     expect(page).toContain("Overall risk");
@@ -88,6 +91,39 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("Dough planning notes");
     expect(helper).not.toContain("buildPlanningResult");
     expect(helper).not.toContain("buildSessionRecipe");
+  });
+
+  it("aligns the displayed full timeline with a 7-hour same-day room planning summary", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      id: "same-day-display-session",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-02T16:00",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+    expect(recipe.planningInfo.result.availableFermentationHours).toBe(7);
+    expect(recipe.planningInfo.result.fermentationSetupRecommendation?.recommendedSetup).toBe("same_day_room");
+    expect(recipe.planningInfo.result.startWindowRecommendation?.category).toBe("start_now");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    expect(generated.steps.some((step) => step.id === "cold-ferment")).toBe(true);
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+    });
+
+    expect(displayed.some((step) => step.id === "cold-ferment")).toBe(false);
+    expect(displayed.map((step) => step.label)).toContain("Room fermentation");
+    expect(new Date(displayed.find((step) => step.id === "mix-dough")?.scheduledAt ?? 0).getTime())
+      .toBeGreaterThanOrEqual(now.getTime());
+    expect(displayed.every((step) => step.status === "todo")).toBe(true);
   });
 
   it("keeps Next up focused on the real next action", () => {
@@ -123,10 +159,10 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("Open shopping list →");
     expect(page).toContain("shoppingCheckpointState(session, nextStep)");
-    expect(page).toContain("const firstServiceStepIndex = timeline?.steps.findIndex(isServiceTimelineStep) ?? -1");
-    expect(page).toContain("const shoppingCheckpointInsertIndex = timeline");
+    expect(page).toContain("const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep)");
+    expect(page).toContain("const shoppingCheckpointInsertIndex = firstServiceStepIndex");
     expect(page).toContain("index === shoppingCheckpointInsertIndex");
-    expect(page).toContain("shoppingCheckpointInsertIndex === timeline.steps.length");
+    expect(page).toContain("shoppingCheckpointInsertIndex === displayTimelineSteps.length");
     expect(page.indexOf("index === shoppingCheckpointInsertIndex")).toBeLessThan(page.indexOf("Step {index + 1}"));
     expect(page).not.toContain("Create shopping list");
     expect(page).not.toContain("Open full Planner");

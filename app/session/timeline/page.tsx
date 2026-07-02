@@ -15,9 +15,9 @@ import { type PizzaSession, type PizzaSessionTimelineStep } from "@/lib/pizza-se
 import {
   generateAndSaveActivePizzaSessionTimeline,
   generatePizzaSessionTimeline,
-  getNextTimelineStep,
   getTimelineNote,
 } from "@/lib/pizza-session-timeline";
+import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 
 function formatDateTime(value?: string) {
@@ -324,17 +324,7 @@ export default function SessionTimelinePage() {
   const timelineResult = useMemo(() => generatePizzaSessionTimeline(session ?? undefined), [session]);
   const sessionRecipeResult = useMemo(() => buildSessionRecipe(session ?? undefined), [session]);
   const timeline = session?.timeline ?? timelineResult.timeline;
-  const nextStep = getNextTimelineStep(timeline);
   const targetTime = timeline?.targetEatTime ?? session?.targetEatTime ?? session?.targetBakeTime;
-  const allStepsComplete = Boolean(timeline?.steps.length && timeline.steps.every((step) => step.status === "done"));
-  const checkpointState = shoppingCheckpointState(session, nextStep);
-  const shoppingIsNext = checkpointState === "Next";
-  const firstServiceStepIndex = timeline?.steps.findIndex(isServiceTimelineStep) ?? -1;
-  const shoppingCheckpointInsertIndex = timeline
-    ? firstServiceStepIndex >= 0
-      ? firstServiceStepIndex
-      : timeline.steps.length
-    : -1;
 
   if (!ready) {
     return (
@@ -367,12 +357,24 @@ export default function SessionTimelinePage() {
     );
   }
 
-  const nextAction = nextActionForTimeline({ nextStep, shoppingIsNext, allStepsComplete });
-  const firstServiceStep = firstServiceStepIndex >= 0 ? timeline.steps[firstServiceStepIndex] : undefined;
-  const nextUpTime = shoppingIsNext ? firstServiceStep?.scheduledAt ?? targetTime : nextStep?.scheduledAt ?? targetTime;
-  const criticalMoments = getCriticalMoments(timeline.steps);
   const planningInfo = sessionRecipeResult.ok ? sessionRecipeResult.planningInfo : null;
   const planningResult = planningInfo?.ok ? planningInfo.result : null;
+  const displayTimelineSteps = timelineStepsForPlanningSummaryDisplay({
+    steps: timeline.steps,
+    planningResult,
+  });
+  const nextStep = displayTimelineSteps.find((step) => step.status === "todo");
+  const allStepsComplete = Boolean(displayTimelineSteps.length && displayTimelineSteps.every((step) => step.status === "done"));
+  const checkpointState = shoppingCheckpointState(session, nextStep);
+  const shoppingIsNext = checkpointState === "Next";
+  const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep);
+  const shoppingCheckpointInsertIndex = firstServiceStepIndex >= 0
+    ? firstServiceStepIndex
+    : displayTimelineSteps.length;
+  const nextAction = nextActionForTimeline({ nextStep, shoppingIsNext, allStepsComplete });
+  const firstServiceStep = firstServiceStepIndex >= 0 ? displayTimelineSteps[firstServiceStepIndex] : undefined;
+  const nextUpTime = shoppingIsNext ? firstServiceStep?.scheduledAt ?? targetTime : nextStep?.scheduledAt ?? targetTime;
+  const criticalMoments = getCriticalMoments(displayTimelineSteps);
   const combinedRisk = planningResult?.combinedRiskSummary;
   const startWindow = planningResult?.startWindowRecommendation;
   const fermentationSetup = planningResult?.fermentationSetupRecommendation;
@@ -516,7 +518,7 @@ export default function SessionTimelinePage() {
           </div>
 
           <section className="grid min-w-0 gap-3" aria-label="Pizza timeline steps">
-            {timeline.steps.map((step, index) => (
+            {displayTimelineSteps.map((step, index) => (
               <div key={step.id} className="grid gap-3">
                 {index === shoppingCheckpointInsertIndex && (
                   <ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
@@ -561,7 +563,7 @@ export default function SessionTimelinePage() {
                 </article>
               </div>
             ))}
-            {shoppingCheckpointInsertIndex === timeline.steps.length && (
+            {shoppingCheckpointInsertIndex === displayTimelineSteps.length && (
               <ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
             )}
           </section>
