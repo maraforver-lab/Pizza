@@ -240,6 +240,7 @@ function nextActionForTimeline({
 
 function criticalMomentTitle(step: PizzaSessionTimelineStep) {
   if (step.id === "cold-ferment") return "Put dough in fridge";
+  if (step.id === "room-temperature-rest" && step.helperCopy?.includes("Same-day timing")) return step.label;
   if (step.id === "room-temperature-rest") return "Take dough out";
   return step.label;
 }

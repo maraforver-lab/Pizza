@@ -121,9 +121,44 @@ describe("Pizza Session timeline", () => {
 
     expect(displayed.some((step) => step.id === "cold-ferment")).toBe(false);
     expect(displayed.map((step) => step.label)).toContain("Room fermentation");
+    expect(displayed.map((step) => step.label)).toContain("Final room rest");
+    expect(displayed.find((step) => step.id === "room-temperature-rest")?.helperCopy)
+      .toContain("Same-day timing");
     expect(new Date(displayed.find((step) => step.id === "mix-dough")?.scheduledAt ?? 0).getTime())
       .toBeGreaterThanOrEqual(now.getTime());
+    expect(displayed.find((step) => step.id === "bake-pizza")?.scheduledAt)
+      .toBe(new Date("2026-07-02T16:00").toISOString());
+    expect(displayed.find((step) => step.id === "preheat-oven")?.scheduledAt)
+      .toBe(new Date("2026-07-02T15:00").toISOString());
     expect(displayed.every((step) => step.status === "todo")).toBe(true);
+  });
+
+  it("preserves longer cold-fermentation timeline display when same-day start-now alignment does not apply", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      id: "long-cold-display-session",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-04T16:00",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+    });
+
+    expect(displayed).toBe(generated.steps);
+    expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
+    expect(displayed.find((step) => step.id === "room-temperature-rest")?.label)
+      .toBe("Room temperature rest");
   });
 
   it("keeps Next up focused on the real next action", () => {

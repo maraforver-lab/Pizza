@@ -39,6 +39,10 @@ function sameDayScheduleIso(step: PizzaSessionTimelineStep, current: Date, targe
   if (step.id === "rest-dough") return addMinutes(current, Math.min(30, Math.max(0, availableMinutes - 180))).toISOString();
   if (step.id === "ball-dough") return safeBeforeTarget(180);
   if (step.id === "room-temperature-rest") return safeBeforeTarget(150);
+  if (step.id === "preheat-oven") return safeBeforeTarget(60);
+  if (step.id === "prepare-sauce-toppings") return safeBeforeTarget(45);
+  if (step.id === "bake-pizza") return target.toISOString();
+  if (step.id === "review-result") return addMinutes(target, 20).toISOString();
   return step.scheduledAt;
 }
 
@@ -64,6 +68,15 @@ export function timelineStepsForPlanningSummaryDisplay({
         enthusiastNote: "Room fermentation is the practical fit when baking later today.",
         pizzaNerdNote: "This is display-only alignment with the planning summary; stored timeline status is unchanged.",
       }
+      : step.id === "room-temperature-rest"
+        ? {
+          label: "Final room rest",
+          description: "Let the dough finish relaxing at room temperature before opening.",
+          helperCopy: "Same-day timing keeps this as a final room rest, not a cold-dough warm-up.",
+          beginnerNote: "Keep the dough covered until it feels relaxed enough to open.",
+          enthusiastNote: "Use this final rest to make the dough easier to stretch.",
+          pizzaNerdNote: "The displayed room rest is aligned with same-day room fermentation; stored timeline status is unchanged.",
+        }
       : {};
 
     return [{
