@@ -144,7 +144,14 @@ export default function SessionRecipePage() {
     { label: "Flour", value: formatGram(result.ingredients.flour), icon: "▣", description: "The base of your dough." },
     { label: "Water", value: formatGram(result.ingredients.water), icon: "💧", description: "Hydrates the flour." },
     { label: "Salt", value: formatGram(result.ingredients.salt), icon: "◌", description: "Adds flavor and strength." },
-    { label: "Yeast", value: formatGram(result.ingredients.leavener), icon: "✺", description: "Helps the dough rise." },
+    {
+      label: "Yeast",
+      value: formatGram(result.ingredients.leavener),
+      icon: "✺",
+      description: "Helps the dough rise.",
+      note: result.continuousYeast?.summary,
+      caution: result.continuousYeast?.recommendation.cautions[0] ?? result.continuousYeast?.recommendation.warnings[0],
+    },
     { label: "Total dough", value: formatGram(result.ingredients.total), icon: "🥣", description: "Your full dough batch.", summary: true },
   ];
   const doughPrepTools = [
@@ -225,6 +232,12 @@ export default function SessionRecipePage() {
                           <span className="min-w-0">
                             <span className="block text-sm font-extrabold text-ink">{item.label}</span>
                             <span className="mt-0.5 block text-xs leading-4 text-ink/45">{item.description}</span>
+                            {"note" in item && item.note && (
+                              <span className="mt-1 block text-xs font-bold leading-5 text-leaf">{item.note}</span>
+                            )}
+                            {"caution" in item && item.caution && (
+                              <span className="mt-1 block text-xs font-bold leading-5 text-tomato">{item.caution}</span>
+                            )}
                           </span>
                         </dt>
                         <dd className={`text-right text-xl font-extrabold sm:text-2xl ${amountCardTone(item.label)}`}>{item.value}</dd>

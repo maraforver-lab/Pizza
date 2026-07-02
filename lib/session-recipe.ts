@@ -1,4 +1,10 @@
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
+import {
+  calculateContinuousYeastRecommendation,
+  type ContinuousYeastFermentationMode,
+  type ContinuousYeastModelResult,
+  type ContinuousYeastType,
+} from "@/lib/continuous-yeast-model";
 import type { FlourId } from "@/lib/flours";
 import { flourIds } from "@/lib/flours";
 import { buildPlanningResult } from "@/lib/planning-engine";
@@ -13,8 +19,15 @@ export type SessionRecipePlanningInfo =
   | { ok: true; result: ReturnType<typeof buildPlanningResult> }
   | { ok: false; missingReason: "missing-target-time" | "invalid-target-time" };
 
+export type SessionRecipeContinuousYeastInfo = {
+  recommendation: ContinuousYeastModelResult;
+  appliedToIngredients: boolean;
+  basisLabel: string;
+  summary: string;
+};
+
 export type SessionRecipeBuildResult =
-  | { ok: true; settings: RecipeSettings; ingredients: RecipeIngredients; recipeParams: PizzaSessionRecipeParams; recipeSnapshot: PizzaSessionRecipeSnapshot; planningInfo: SessionRecipePlanningInfo }
+  | { ok: true; settings: RecipeSettings; ingredients: RecipeIngredients; recipeParams: PizzaSessionRecipeParams; recipeSnapshot: PizzaSessionRecipeSnapshot; planningInfo: SessionRecipePlanningInfo; continuousYeast: SessionRecipeContinuousYeastInfo | null }
   | { ok: false; missingReason: "no-session" | "missing-path" | "missing-preset" | "missing-quantity" | "missing-flour" };
 
 const flourChoiceToId: Record<string, FlourId> = {
@@ -101,6 +114,127 @@ function planningInfoFromSessionRecipe({
   return { ok: true, result: buildPlanningResult(planningInput) };
 }
 
+function parseSessionDate(value?: string) {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : undefined;
+}
+
+function hoursBetween(start: Date, end: Date) {
+  return (end.getTime() - start.getTime()) / 3_600_000;
+}
+
+function continuousYeastTypeFromRecipe(yeastType: YeastType): ContinuousYeastType | null {
+  if (yeastType === "cy") return "fresh_yeast";
+  if (yeastType === "idy") return "instant_dry_yeast";
+  if (yeastType === "ady") return "active_dry_yeast";
+  return null;
+}
+
+function formatYeastBasisHours(hours: number | null) {
+  if (hours === null || !Number.isFinite(hours)) return "the available fermentation window";
+  const rounded = Math.round(hours * 10) / 10;
+  return `${rounded} h`;
+}
+
+function buildContinuousYeastBasisLabel(recommendation: ContinuousYeastModelResult) {
+  return `${formatYeastBasisHours(recommendation.fermentationHours)} ${recommendation.fermentationMode} fermentation`;
+}
+
+function recipeIngredientsWithYeastPercent(settings: RecipeSettings, yeastPercentOfFlour: number): RecipeIngredients {
+  const total = settings.pizzas * settings.ballWeight * (1 + settings.waste / 100);
+  const flour = total / (1 + settings.hydration / 100 + settings.salt / 100 + yeastPercentOfFlour / 100);
+  return {
+    total,
+    flour,
+    water: flour * settings.hydration / 100,
+    salt: flour * settings.salt / 100,
+    leavener: flour * yeastPercentOfFlour / 100,
+  };
+}
+
+function resolveDoughStartForRecipe(session: PizzaSession, now: Date, target: Date) {
+  const mode = session.doughStartMode ?? "recommend";
+  if (mode === "now") return now;
+  if (mode === "later") {
+    const laterStart = parseSessionDate(session.doughEarliestStartTime);
+    return laterStart ?? now;
+  }
+  return now.getTime() < target.getTime() ? now : target;
+}
+
+function buildSessionContinuousYeast({
+  session,
+  settings,
+  baseIngredients,
+  planningInfo,
+  now,
+}: {
+  session: PizzaSession;
+  settings: RecipeSettings;
+  baseIngredients: RecipeIngredients;
+  planningInfo: SessionRecipePlanningInfo;
+  now: Date;
+}): { ingredients: RecipeIngredients; continuousYeast: SessionRecipeContinuousYeastInfo | null } {
+  const yeastType = continuousYeastTypeFromRecipe(settings.yeastType);
+  const target = parseSessionDate(session.targetEatTime ?? session.targetBakeTime);
+  if (!yeastType || !target) return { ingredients: baseIngredients, continuousYeast: null };
+
+  const start = resolveDoughStartForRecipe(session, now, target);
+  const fermentationHours = hoursBetween(start, target);
+  const recommendedMode = planningInfo.ok
+    ? planningInfo.result.fermentationSetupRecommendation?.recommendedFermentationMode
+    : undefined;
+  const mode: ContinuousYeastFermentationMode = recommendedMode === "room" ? "room" : "cold";
+  const temperatureC = mode === "cold"
+    ? settings.fermentation.endsWith("cold") ? settings.temperature : 4
+    : settings.fermentation.endsWith("cold") ? 22 : settings.temperature;
+  const initialRecommendation = calculateContinuousYeastRecommendation({
+    flourGrams: baseIngredients.flour,
+    fermentationHours,
+    fermentationMode: mode,
+    temperatureC,
+    yeastType,
+  });
+
+  if (initialRecommendation.status !== "ok" || initialRecommendation.yeastPercentOfFlour === null) {
+    const basisLabel = buildContinuousYeastBasisLabel(initialRecommendation);
+    const summary = initialRecommendation.status === "long_horizon_required"
+      ? "Yeast is not calculated for the full long-horizon window. Use the 24h / 48h / 72h start plan closer to bake day."
+      : initialRecommendation.warnings[0] ?? "Continuous yeast guidance needs a valid 3–72h fermentation window.";
+
+    return {
+      ingredients: baseIngredients,
+      continuousYeast: {
+        recommendation: initialRecommendation,
+        appliedToIngredients: false,
+        basisLabel,
+        summary,
+      },
+    };
+  }
+
+  const continuousIngredients = recipeIngredientsWithYeastPercent(settings, initialRecommendation.yeastPercentOfFlour);
+  const finalRecommendation = calculateContinuousYeastRecommendation({
+    flourGrams: continuousIngredients.flour,
+    fermentationHours,
+    fermentationMode: mode,
+    temperatureC,
+    yeastType,
+  });
+  const basisLabel = buildContinuousYeastBasisLabel(finalRecommendation);
+
+  return {
+    ingredients: continuousIngredients,
+    continuousYeast: {
+      recommendation: finalRecommendation,
+      appliedToIngredients: true,
+      basisLabel,
+      summary: `Yeast amount is calculated for about ${basisLabel}.`,
+    },
+  };
+}
+
 function recipeSettingsFromSession(session: PizzaSession | undefined, now = new Date()): SessionRecipeBuildResult {
   if (!session) return { ok: false, missingReason: "no-session" };
   if (!session.pizzaStyle) return { ok: false, missingReason: "missing-path" };
@@ -134,7 +268,16 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
     flourId,
     pizzaStyleId,
   };
-  const ingredients = calculateDoughIngredients(settings);
+  const baseIngredients = calculateDoughIngredients(settings);
+  const basePlanningInfo = planningInfoFromSessionRecipe({ session, settings, ingredients: baseIngredients, now });
+  const continuousYeastResult = buildSessionContinuousYeast({
+    session,
+    settings,
+    baseIngredients,
+    planningInfo: basePlanningInfo,
+    now,
+  });
+  const ingredients = continuousYeastResult.ingredients;
   const params = recipeParams(settings);
   params.set("pizzaPreset", session.pizzaPreset);
   const recipeParamsObject = Object.fromEntries(params.entries());
@@ -158,7 +301,15 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
   };
   const planningInfo = planningInfoFromSessionRecipe({ session, settings, ingredients, now });
 
-  return { ok: true, settings, ingredients, recipeParams: recipeParamsObject, recipeSnapshot, planningInfo };
+  return {
+    ok: true,
+    settings,
+    ingredients,
+    recipeParams: recipeParamsObject,
+    recipeSnapshot,
+    planningInfo,
+    continuousYeast: continuousYeastResult.continuousYeast,
+  };
 }
 
 export function buildSessionRecipe(session: PizzaSession | undefined, now = new Date()): SessionRecipeBuildResult {

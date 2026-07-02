@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { calculateContinuousYeastRecommendation } from "@/lib/continuous-yeast-model";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { createPizzaSession } from "@/lib/pizza-session";
 import {
@@ -299,7 +300,14 @@ describe("Session recipe build step", () => {
       expect(planning.availableFermentationHours).toBe(horizon.hours);
       expect(planning.fermentationSetupRecommendation?.recommendedSetup).toBe(horizon.setup);
       expect(planning.startWindowRecommendation?.category).toBe(horizon.startWindow);
-      expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
+      if (horizon.hours > 72) {
+        expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
+        expect(result.continuousYeast?.appliedToIngredients).toBe(false);
+      } else {
+        expect(result.continuousYeast?.appliedToIngredients).toBe(true);
+        expect(result.continuousYeast?.recommendation.fermentationHours).toBe(horizon.hours);
+        expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeCloseTo(result.ingredients.leavener, 3);
+      }
     }
 
     const sevenDays = buildSessionRecipe(createPizzaSession({
@@ -315,6 +323,150 @@ describe("Session recipe build step", () => {
     if (!sevenDays.ok || !sevenDays.planningInfo.ok) throw new Error("Expected seven-day planning info");
     expect(sevenDays.planningInfo.result.startWindowRecommendation?.category).not.toBe("start_now");
     expect(sevenDays.planningInfo.result.combinedRiskSummary?.overallRiskLevel).not.toBe("low");
+  });
+
+  it("uses continuous yeast basis for same-day room fermentation in the Dough Plan only", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-six-hour-continuous-yeast",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-02T15:00",
+      doughStartMode: "now",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected session recipe result");
+
+    const canonicalIngredients = calculateDoughIngredients(result.settings);
+    expect(result.continuousYeast).toMatchObject({
+      appliedToIngredients: true,
+      basisLabel: "6 h room fermentation",
+    });
+    expect(result.continuousYeast?.summary).toBe("Yeast amount is calculated for about 6 h room fermentation.");
+    expect(result.continuousYeast?.recommendation.status).toBe("ok");
+    expect(result.continuousYeast?.recommendation.directScalingApplied).toBe(true);
+    expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeCloseTo(result.ingredients.leavener, 3);
+    expect(result.ingredients.leavener).not.toBeCloseTo(canonicalIngredients.leavener, 6);
+  });
+
+  it("uses continuous cold yeast basis for 40h and keeps it between 24h and 48h helper values", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-forty-hour-continuous-yeast",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected 40h session recipe result");
+
+    const twentyFourHour = calculateContinuousYeastRecommendation({
+      flourGrams: result.ingredients.flour,
+      fermentationHours: 24,
+      fermentationMode: "cold",
+      temperatureC: 4,
+      yeastType: "instant_dry_yeast",
+    });
+    const fortyEightHour = calculateContinuousYeastRecommendation({
+      flourGrams: result.ingredients.flour,
+      fermentationHours: 48,
+      fermentationMode: "cold",
+      temperatureC: 4,
+      yeastType: "instant_dry_yeast",
+    });
+
+    expect(result.continuousYeast).toMatchObject({
+      appliedToIngredients: true,
+      basisLabel: "40 h cold fermentation",
+    });
+    expect(result.continuousYeast?.recommendation.status).toBe("ok");
+    expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeCloseTo(result.ingredients.leavener, 3);
+    expect(result.ingredients.leavener).toBeLessThan(twentyFourHour.yeastAmountGrams ?? 0);
+    expect(result.ingredients.leavener).toBeGreaterThan(fortyEightHour.yeastAmountGrams ?? 0);
+  });
+
+  it("uses dough start availability instead of full time until bake for continuous yeast basis", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-later-start-continuous-yeast",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-05T09:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-03T17:00",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected later-start session recipe result");
+
+    expect(result.planningInfo.ok && result.planningInfo.result.availableFermentationHours).toBe(72);
+    expect(result.continuousYeast).toMatchObject({
+      appliedToIngredients: true,
+      basisLabel: "40 h cold fermentation",
+    });
+    expect(result.continuousYeast?.summary).toBe("Yeast amount is calculated for about 40 h cold fermentation.");
+  });
+
+  it("keeps 72h cold fermentation direct but cautionary in Dough Plan yeast basis", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-seventy-two-hour-continuous-yeast",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-05T09:00",
+      doughStartMode: "now",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected 72h session recipe result");
+
+    expect(result.continuousYeast).toMatchObject({
+      appliedToIngredients: true,
+      basisLabel: "72 h cold fermentation",
+    });
+    expect(result.continuousYeast?.recommendation.riskLevel).toBe("caution");
+    expect(result.continuousYeast?.recommendation.cautions.join(" ")).toContain("upper direct-scaling limit");
+  });
+
+  it("does not calculate full-horizon yeast for over-72h Dough Plan windows", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-over-seventy-two-hour-yeast-fallback",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-10T09:00",
+      doughStartMode: "now",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected over-72h session recipe result");
+
+    expect(result.continuousYeast).toMatchObject({
+      appliedToIngredients: false,
+      basisLabel: "192 h cold fermentation",
+    });
+    expect(result.continuousYeast?.recommendation.status).toBe("long_horizon_required");
+    expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeNull();
+    expect(result.continuousYeast?.summary).toContain("not calculated for the full long-horizon window");
+    expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
   });
 
   it("builds a useful long-horizon start recommendation without changing selected flour or ingredients", () => {
@@ -451,6 +603,7 @@ describe("Session recipe build step", () => {
     expect(updatedSession?.recipeSnapshot?.flourAmount).toBeGreaterThan(0);
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("recipeSnapshot");
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).not.toContain("planningInfo");
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).not.toContain("continuousYeast");
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).not.toContain("combinedRiskSummary");
     expect(storage.getItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY)).toBe(session.id);
     expect(getPizzaSession(session.id, storage)?.currentStep).toBe("recipe");
