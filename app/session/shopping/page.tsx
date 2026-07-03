@@ -9,6 +9,8 @@ import { SessionViewportReset } from "@/components/session/SessionViewportReset"
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import {
   type PizzaSession,
+  type PizzaSessionPizzaMix,
+  type PizzaSessionPizzaMixType,
   type PizzaSessionShoppingItem,
 } from "@/lib/pizza-session";
 import {
@@ -16,13 +18,11 @@ import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import {
-  findPizzaSessionPreset,
-  pizzaSessionPresets,
-  type PizzaPresetId,
-} from "@/lib/pizza-session-presets";
-import {
+  adjustPizzaMixAllocation,
   generateAndSaveActiveShoppingList,
   generatePizzaSessionShoppingList,
+  normalizePizzaMixForCount,
+  PIZZA_MIX_OPTIONS,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
 
@@ -31,7 +31,7 @@ function isItemReady(status: PizzaSessionShoppingItem["status"]) {
 }
 
 function sectionLabel(group: string) {
-  if (group === "Dough") return "Dough essentials";
+  if (group === "Dough") return "Dough ingredients";
   if (group === "Sauce") return "Sauce";
   if (group === "Cheese") return "Cheese";
   if (group === "Toppings") return "Toppings";
@@ -39,50 +39,32 @@ function sectionLabel(group: string) {
   return group;
 }
 
-function selectedPresetId(session: PizzaSession | null): PizzaPresetId {
-  return (
-    findPizzaSessionPreset(session?.shoppingList?.presetId)?.id
-    ?? findPizzaSessionPreset(session?.pizzaPreset)?.id
-    ?? pizzaSessionPresets[0].id
-  );
-}
-
-const toppingChoicePresetIds: PizzaPresetId[] = [
-  "margherita",
-  "marinara",
-  "diavola",
-  "funghi",
-];
-
 export default function SessionShoppingPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
-  const [presetId, setPresetId] = useState<PizzaPresetId>(pizzaSessionPresets[0].id);
   const [missingReason, setMissingReason] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
     const initialSession = getActivePizzaSession();
-    const resolvedPreset = selectedPresetId(initialSession ?? null);
-    const { session: updatedSession, result } = generateAndSaveActiveShoppingList(resolvedPreset);
+    const { session: updatedSession, result } = generateAndSaveActiveShoppingList();
     setSession(updatedSession ?? initialSession ?? null);
-    setPresetId(resolvedPreset);
     setMissingReason(result.ok ? null : result.missingReason);
     setReady(true);
   }, []);
 
   const generationResult = useMemo(
-    () => generatePizzaSessionShoppingList(session ?? undefined, presetId),
-    [session, presetId],
+    () => generatePizzaSessionShoppingList(session ?? undefined),
+    [session],
   );
-  const shoppingList = session?.shoppingList?.presetId === presetId
-    ? session.shoppingList
-    : generationResult.ok
-      ? generationResult.shoppingList
-      : undefined;
-  const toppingChoices = toppingChoicePresetIds
-    .map((id) => findPizzaSessionPreset(id))
-    .filter((preset): preset is NonNullable<typeof preset> => Boolean(preset));
+  const shoppingList = session?.shoppingList ?? (generationResult.ok ? generationResult.shoppingList : undefined);
+  const pizzaCount = session?.pizzaCount ?? session?.recipeSnapshot?.balls ?? 0;
+  const pizzaMix = pizzaCount > 0
+    ? normalizePizzaMixForCount(pizzaCount, session?.pizzaMix, session?.pizzaPreset)
+    : undefined;
+  const allocatedPizzaCount = pizzaMix
+    ? Object.values(pizzaMix).reduce((total, value) => total + value, 0)
+    : 0;
   const renderNextActionCard = () => (
     <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
@@ -97,11 +79,20 @@ export default function SessionShoppingPage() {
     </div>
   );
 
-  const choosePreset = (nextPresetId: PizzaPresetId) => {
-    const { session: updatedSession, result } = generateAndSaveActiveShoppingList(nextPresetId);
+  const updatePizzaMix = (pizzaType: PizzaSessionPizzaMixType, delta: number) => {
+    if (!session || !pizzaMix || pizzaCount < 1) return;
+    const nextMix = adjustPizzaMixAllocation(pizzaMix, pizzaType, delta, pizzaCount);
+    const { session: updatedSession, result } = generateAndSaveActiveShoppingList(undefined, undefined, new Date(), nextMix);
     setSession(updatedSession ?? session);
-    setPresetId(nextPresetId);
     setMissingReason(result.ok ? null : result.missingReason);
+  };
+
+  const canIncrementPizzaType = (pizzaType: PizzaSessionPizzaMixType, currentMix: PizzaSessionPizzaMix | undefined) => {
+    if (!currentMix || pizzaCount < 1) return false;
+    if (pizzaType === "margherita") {
+      return Object.entries(currentMix).some(([type, count]) => type !== "margherita" && Number(count) > 0);
+    }
+    return Number(currentMix.margherita ?? 0) > 0;
   };
 
   const toggleReady = (item: PizzaSessionShoppingItem) => {
@@ -171,23 +162,23 @@ export default function SessionShoppingPage() {
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Choose toppings</p>
               <h2 id="choose-pizzas-heading" className="mt-1 font-display text-3xl font-semibold">What pizzas are you making?</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                This choice is for toppings and shopping only. Dough style and dough formula stay in the Dough Plan.
+                Allocate your {pizzaCount || "selected"} pizzas across the topping plans. Dough style and dough formula stay in the Dough Plan.
               </p>
             </div>
             <span className="w-fit rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/55">
-              Selected: {findPizzaSessionPreset(presetId)?.name ?? "Pizza"}
+              Total selected: {allocatedPizzaCount}/{pizzaCount || "—"}
             </span>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {toppingChoices.map((preset) => {
-              const selected = preset.id === presetId;
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {PIZZA_MIX_OPTIONS.map((option) => {
+              const quantity = pizzaMix?.[option.id] ?? 0;
+              const selected = quantity > 0;
+              const canIncrement = canIncrementPizzaType(option.id, pizzaMix);
+              const canDecrement = option.id !== "margherita" && quantity > 0;
               return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => choosePreset(preset.id)}
-                  aria-pressed={selected}
+                <article
+                  key={option.id}
                   className={`min-h-32 rounded-[1.35rem] border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 ${
                     selected
                       ? "border-tomato/45 bg-tomato/[.08] shadow-sm"
@@ -196,25 +187,53 @@ export default function SessionShoppingPage() {
                 >
                   <span className="flex items-center justify-between gap-3">
                     <span className="flex items-center gap-2">
-                      <span className="text-xl" aria-hidden="true">{preset.marker}</span>
-                      <span className="text-sm font-extrabold text-ink">{preset.name}</span>
+                      <span className="text-xl" aria-hidden="true">{option.marker}</span>
+                      <span className="text-sm font-extrabold text-ink">{option.name}</span>
                     </span>
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${selected ? "bg-tomato text-white" : "bg-white text-ink/45"}`}>
-                      {selected ? "Selected" : "Choose"}
+                      {quantity} pizza{quantity === 1 ? "" : "s"}
                     </span>
                   </span>
-                  <span className="mt-3 block text-sm leading-5 text-ink/60">{preset.shortDescription}</span>
-                </button>
+                  <span className="mt-3 block text-sm leading-5 text-ink/60">{option.shortDescription}</span>
+                  <span className="mt-2 block text-xs font-bold leading-5 text-ink/45">{option.ingredientSummary}</span>
+                  <span className="mt-4 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => updatePizzaMix(option.id, -1)}
+                      disabled={!canDecrement}
+                      aria-label={`Decrease ${option.name} quantity`}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
+                    >
+                      −
+                    </button>
+                    <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updatePizzaMix(option.id, 1)}
+                      disabled={!canIncrement}
+                      aria-label={`Increase ${option.name} quantity`}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
+                    >
+                      +
+                    </button>
+                  </span>
+                </article>
               );
             })}
           </div>
 
           <p className="mt-4 rounded-2xl border border-dashed border-ink/15 bg-cream/60 p-3 text-xs font-bold leading-5 text-ink/55">
-            V1 shopping supports Margherita, Marinara, Diavola and Funghi. Prosciutto, Quattro Formaggi, Capricciosa, Vegetariana, Nduja and Custom can be added when their shopping presets exist.
+            V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi. Margherita automatically fills any unallocated pizzas so the total always matches your pizza count.
           </p>
         </section>
 
         <section className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/85 shadow-card sm:mt-6 sm:rounded-[2rem]" aria-label="Grouped shopping list">
+          <div className="border-b border-ink/10 px-4 py-4 sm:px-5">
+            <h2 className="font-display text-2xl font-semibold">Shopping list</h2>
+            <p className="mt-1 text-sm leading-6 text-ink/60">
+              Dough ingredient amounts come from the Dough Plan. Topping ingredient amounts come from the selected pizza mix.
+            </p>
+          </div>
           {shoppingList?.groups.map((group) => (
             <section key={group.group} className="border-b border-ink/10 last:border-b-0">
               <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5 sm:py-4">

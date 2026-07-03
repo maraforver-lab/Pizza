@@ -35,6 +35,8 @@ export type PizzaSessionStep = (typeof PIZZA_SESSION_STEPS)[number];
 export type PizzaSessionDoughStartMode = "now" | "later" | "recommend";
 export type PizzaSessionFlourSituation = "recommend" | "unknown_w" | "has_w_range";
 export type PizzaSessionFlourWRange = "w_180_220" | "w_220_260" | "w_260_300" | "w_300_340" | "w_340_plus";
+export type PizzaSessionPizzaMixType = "margherita" | "marinara" | "diavola" | "funghi" | "prosciutto" | "quattro-formaggi";
+export type PizzaSessionPizzaMix = Partial<Record<PizzaSessionPizzaMixType, number>>;
 
 export type PizzaSessionRecipeParams = Record<string, string | number | boolean>;
 
@@ -110,6 +112,7 @@ export type PizzaSession = {
   experienceLevel: ExperienceLevel;
   pizzaStyle?: string;
   pizzaPreset?: string;
+  pizzaMix?: PizzaSessionPizzaMix;
   targetEatTime?: string;
   targetBakeTime?: string;
   doughStartMode?: PizzaSessionDoughStartMode;
@@ -150,6 +153,7 @@ const shoppingStatusSet = new Set(["already_have", "need_to_buy", "bought"]);
 const doughStartModeSet = new Set(["now", "later", "recommend"]);
 const flourSituationSet = new Set(["recommend", "unknown_w", "has_w_range"]);
 const flourWRangeSet = new Set(["w_180_220", "w_220_260", "w_260_300", "w_300_340", "w_340_plus"]);
+const pizzaMixTypeSet = new Set(["margherita", "marinara", "diavola", "funghi", "prosciutto", "quattro-formaggi"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -199,6 +203,17 @@ function normalizeFlourWRanges(value: unknown): PizzaSessionFlourWRange[] | unde
     typeof item === "string" && flourWRangeSet.has(item)
   )))];
   return ranges.length ? ranges : undefined;
+}
+
+function normalizePizzaMix(value: unknown): PizzaSessionPizzaMix | undefined {
+  if (!isRecord(value)) return undefined;
+  const entries = Object.entries(value).flatMap(([key, raw]) => {
+    if (!pizzaMixTypeSet.has(key)) return [];
+    const count = numberValue(raw);
+    if (count === undefined || count <= 0) return [];
+    return [[key, Math.floor(count)] as const];
+  });
+  return entries.length ? Object.fromEntries(entries) as PizzaSessionPizzaMix : undefined;
 }
 
 function cloneRecipeParams(params?: PizzaSessionRecipeParams): PizzaSessionRecipeParams | undefined {
@@ -328,6 +343,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     experienceLevel: normalizeExperienceLevel(input.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL),
     pizzaStyle: stringValue(input.pizzaStyle),
     pizzaPreset: stringValue(input.pizzaPreset),
+    pizzaMix: normalizePizzaMix(input.pizzaMix),
     targetEatTime: stringValue(input.targetEatTime),
     targetBakeTime: stringValue(input.targetBakeTime),
     doughStartMode: normalizeDoughStartMode(input.doughStartMode),

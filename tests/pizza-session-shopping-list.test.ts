@@ -14,9 +14,12 @@ import {
   REQUIRED_PIZZA_PRESET_IDS,
 } from "@/lib/pizza-session-presets";
 import {
+  adjustPizzaMixAllocation,
   formatShoppingListPlainText,
   generateAndSaveActiveShoppingList,
   generatePizzaSessionShoppingList,
+  normalizePizzaMixForCount,
+  PIZZA_MIX_OPTIONS,
   SHOPPING_LIST_LOCAL_ONLY_COPY,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
@@ -24,6 +27,20 @@ import { patchHistory } from "@/lib/changelog";
 import { MemoryStorage } from "./helpers";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+
+function shoppingItems(result: ReturnType<typeof generatePizzaSessionShoppingList>) {
+  expect(result.ok).toBe(true);
+  if (!result.ok) return [];
+  return result.shoppingList.groups.flatMap((group) => group.items);
+}
+
+function itemAmount(result: ReturnType<typeof generatePizzaSessionShoppingList>, label: string) {
+  return shoppingItems(result).find((item) => item.label === label)?.amount;
+}
+
+function mixTotal(mix: Record<string, number>) {
+  return Object.values(mix).reduce((total, count) => total + count, 0);
+}
 
 describe("Pizza Session shopping list presets", () => {
   it("defines all required pizza presets with grouped ingredients", () => {
@@ -40,7 +57,7 @@ describe("Pizza Session shopping list presets", () => {
     }
   });
 
-  it("generates a grouped shopping list from a preset and pizza count", () => {
+  it("generates a grouped shopping list from a supported pizza plan and pizza count", () => {
     const session = createPizzaSession({
       id: "shopping-session",
       pizzaCount: 4,
@@ -54,9 +71,181 @@ describe("Pizza Session shopping list presets", () => {
     expect(result.shoppingList.presetId).toBe("diavola");
     expect(result.shoppingList.presetName).toBe("Diavola");
     expect(result.shoppingList.pizzaCount).toBe(4);
-    expect(result.shoppingList.groups.map((group) => group.group)).toEqual(["Dough", "Sauce", "Cheese", "Toppings", "Gear"]);
+    expect(result.pizzaMix).toMatchObject({ margherita: 0, diavola: 4 });
+    expect(result.shoppingList.groups.map((group) => group.group)).toEqual(["Dough", "Sauce", "Cheese", "Toppings"]);
     expect(result.shoppingList.groups.flatMap((group) => group.items).every((item) => item.status === "need_to_buy")).toBe(true);
     expect(result.shoppingList.groups.flatMap((group) => group.items).some((item) => item.label.includes("Spicy salami"))).toBe(true);
+  });
+
+  it("defaults the pizza mix to all Margherita and preserves legacy pizzaPreset compatibility", () => {
+    expect(normalizePizzaMixForCount(6)).toMatchObject({
+      margherita: 6,
+      marinara: 0,
+      diavola: 0,
+      funghi: 0,
+      prosciutto: 0,
+      "quattro-formaggi": 0,
+    });
+    expect(normalizePizzaMixForCount(4, undefined, "diavola")).toMatchObject({ margherita: 0, diavola: 4 });
+    expect(normalizePizzaMixForCount(4, undefined, "simple-cheese")).toMatchObject({ margherita: 4 });
+  });
+
+  it("adjusts pizza mix quantities while keeping the total equal to pizza count", () => {
+    const start = normalizePizzaMixForCount(6);
+    const withOneDiavola = adjustPizzaMixAllocation(start, "diavola", 1, 6);
+    const withTwoDiavola = adjustPizzaMixAllocation(withOneDiavola, "diavola", 1, 6);
+    const withOneAgain = adjustPizzaMixAllocation(withTwoDiavola, "diavola", -1, 6);
+
+    expect(withTwoDiavola).toMatchObject({ margherita: 4, diavola: 2 });
+    expect(withOneAgain).toMatchObject({ margherita: 5, diavola: 1 });
+    expect(mixTotal(withTwoDiavola)).toBe(6);
+    expect(mixTotal(withOneAgain)).toBe(6);
+  });
+
+  it("does not exceed pizza count or reduce any pizza mix quantity below zero", () => {
+    let mix = normalizePizzaMixForCount(2);
+    mix = adjustPizzaMixAllocation(mix, "diavola", 1, 2);
+    mix = adjustPizzaMixAllocation(mix, "funghi", 1, 2);
+    mix = adjustPizzaMixAllocation(mix, "prosciutto", 1, 2);
+    mix = adjustPizzaMixAllocation(mix, "diavola", -1, 2);
+    mix = adjustPizzaMixAllocation(mix, "diavola", -1, 2);
+
+    expect(mixTotal(mix)).toBe(2);
+    expect(Object.values(mix).every((count) => count >= 0)).toBe(true);
+  });
+
+  it("uses Dough Plan recipe snapshot amounts for dough ingredients", () => {
+    const session = createPizzaSession({
+      id: "shopping-snapshot-session",
+      pizzaCount: 4,
+      recipeSnapshot: {
+        balls: 4,
+        ballWeight: 260,
+        yeastType: "idy",
+        flourAmount: 642.22,
+        waterAmount: 411.02,
+        saltAmount: 17.98,
+        leavenerAmount: 0.38,
+      },
+    });
+
+    const result = generatePizzaSessionShoppingList(session, "margherita");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const doughItems = result.shoppingList.groups.find((group) => group.group === "Dough")?.items ?? [];
+    expect(doughItems.map((item) => item.label)).toEqual(["Flour", "Water", "Salt", "Yeast (idy)"]);
+    expect(doughItems.find((item) => item.label === "Flour")?.amount).toBe("642 g · from Dough Plan");
+    expect(doughItems.find((item) => item.label === "Water")?.amount).toBe("411 g · from Dough Plan");
+    expect(doughItems.find((item) => item.label === "Salt")?.amount).toBe("18 g · from Dough Plan");
+    expect(doughItems.find((item) => item.label === "Yeast (idy)")?.amount).toBe("0.38 g · from Dough Plan");
+  });
+
+  it("uses safe dough amount fallback when the recipe snapshot is missing", () => {
+    const session = createPizzaSession({
+      id: "shopping-missing-snapshot-session",
+      pizzaCount: 2,
+    });
+
+    const result = generatePizzaSessionShoppingList(session, "margherita");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const doughItems = result.shoppingList.groups.find((group) => group.group === "Dough")?.items ?? [];
+    expect(doughItems.every((item) => item.amount === "from Dough Plan when available")).toBe(true);
+  });
+
+  it("renders Margherita topping quantities from the selected pizza plan", () => {
+    const result = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 4 }), "margherita");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("240 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Mozzarella")).toBe("320 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Fresh basil")).toBe("small handfuls · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Extra virgin olive oil")).toBe("4 tsp · estimate for 4 selected pizzas");
+  });
+
+  it("renders Marinara topping quantities from the selected pizza plan", () => {
+    const result = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 4 }), "marinara");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.shoppingList.groups.map((group) => group.group)).toEqual(["Dough", "Sauce", "Toppings"]);
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("280 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Garlic")).toBe("2 cloves · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Oregano")).toBe("small pinches · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Extra virgin olive oil")).toBe("4 tsp · estimate for 4 selected pizzas");
+  });
+
+  it("renders Diavola topping quantities from the selected pizza plan", () => {
+    const result = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 4 }), "diavola");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("220 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Mozzarella")).toBe("300 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Spicy salami or pepperoni")).toBe("140 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Basil or oregano")).toBe("small pinches or a handful of leaves · estimate for 4 selected pizzas");
+  });
+
+  it("renders Funghi topping quantities from the selected pizza plan", () => {
+    const result = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 4 }), "funghi");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("220 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Mozzarella")).toBe("300 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Mushrooms")).toBe("240 g · estimate for 4 selected pizzas");
+  });
+
+  it("renders Prosciutto and Quattro Formaggi as supported v1 pizza mix options", () => {
+    expect(PIZZA_MIX_OPTIONS.map((option) => option.id)).toEqual([
+      "margherita",
+      "marinara",
+      "diavola",
+      "funghi",
+      "prosciutto",
+      "quattro-formaggi",
+    ]);
+
+    const prosciutto = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 2 }), "prosciutto");
+    const quattroFormaggi = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 2 }), "quattro-formaggi");
+
+    expect(itemAmount(prosciutto, "Prosciutto")).toBe("80 g · estimate for 2 selected pizzas");
+    expect(itemAmount(quattroFormaggi, "Gorgonzola or blue cheese")).toBe("50 g · estimate for 2 selected pizzas");
+  });
+
+  it("combines shared topping ingredients from a mixed pizza plan", () => {
+    const session = createPizzaSession({
+      pizzaCount: 6,
+      pizzaMix: { margherita: 4, diavola: 2 },
+    });
+
+    const result = generatePizzaSessionShoppingList(session);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.shoppingList.presetId).toBe("pizza-mix");
+    expect(result.shoppingList.presetName).toBe("Pizza mix");
+    expect(result.pizzaMix).toMatchObject({ margherita: 4, diavola: 2 });
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("350 g · estimate for 6 selected pizzas");
+    expect(itemAmount(result, "Mozzarella")).toBe("470 g · estimate for 6 selected pizzas");
+    expect(itemAmount(result, "Spicy salami or pepperoni")).toBe("70 g · estimate for 6 selected pizzas");
+    expect(itemAmount(result, "Extra virgin olive oil")).toBe("6 tsp · estimate for 6 selected pizzas");
+  });
+
+  it("scales topping quantities with pizza count", () => {
+    const twoPizzas = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 2 }), "margherita");
+    const fourPizzas = generatePizzaSessionShoppingList(createPizzaSession({ pizzaCount: 4 }), "margherita");
+
+    expect(twoPizzas.ok).toBe(true);
+    expect(fourPizzas.ok).toBe(true);
+    if (!twoPizzas.ok || !fourPizzas.ok) return;
+    const twoSauce = twoPizzas.shoppingList.groups.flatMap((group) => group.items).find((item) => item.label === "Tomato sauce or crushed tomatoes");
+    const fourSauce = fourPizzas.shoppingList.groups.flatMap((group) => group.items).find((item) => item.label === "Tomato sauce or crushed tomatoes");
+    expect(twoSauce?.amount).toBe("120 g · estimate for 2 selected pizzas");
+    expect(fourSauce?.amount).toBe("240 g · estimate for 4 selected pizzas");
   });
 
   it("handles missing active session, missing pizza count and unknown preset safely", () => {
@@ -80,6 +269,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(result.ok).toBe(true);
     expect(updatedSession?.currentStep).toBe("shopping");
     expect(updatedSession?.pizzaPreset).toBe("margherita");
+    expect(updatedSession?.pizzaMix).toMatchObject({ margherita: 6 });
     expect(updatedSession?.shoppingList?.presetId).toBe("margherita");
     expect(updatedSession?.updatedAt).toBe("2026-06-25T10:30:00.000Z");
     expect(updatedSession?.lastSavedAt).toBe("2026-06-25T10:30:00.000Z");
@@ -113,13 +303,13 @@ describe("Pizza Session shopping list presets", () => {
     const storage = new MemoryStorage();
     const session = createAndSavePizzaSession({ id: "preserve-status", pizzaCount: 3, status: "planning" }, storage);
     setActivePizzaSession(session.id, storage);
-    const first = generateAndSaveActiveShoppingList("simple-cheese", storage).session;
+    const first = generateAndSaveActiveShoppingList("funghi", storage).session;
     const item = first?.shoppingList?.groups.flatMap((group) => group.items)[0];
     const changed = updateShoppingItemStatus(first!, item!.id, "bought", storage);
 
-    const regenerated = generateAndSaveActiveShoppingList("simple-cheese", storage).session;
+    const regenerated = generateAndSaveActiveShoppingList("funghi", storage).session;
 
-    expect(changed?.shoppingList?.presetId).toBe("simple-cheese");
+    expect(changed?.shoppingList?.presetId).toBe("funghi");
     expect(regenerated?.shoppingList?.groups.flatMap((group) => group.items).find((entry) => entry.id === item!.id)?.status).toBe("bought");
   });
 
@@ -160,8 +350,11 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Choose pizzas and build the shopping list.");
     expect(page).toContain("Pick the topping plan for this session, then check what you already have.");
     expect(page).toContain("What pizzas are you making?");
-    expect(page).toContain("This choice is for toppings and shopping only.");
-    expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola and Funghi.");
+    expect(page).toContain("Dough style and dough formula stay in the Dough Plan.");
+    expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi.");
+    expect(page).toContain("Total selected:");
+    expect(page).toContain("Decrease");
+    expect(page).toContain("Increase");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={7}");
     expect(page).toContain("hideMeta");
@@ -185,7 +378,9 @@ describe("Pizza Session shopping list presets", () => {
   it("renders the shopping page as a simple grouped Need/Have checklist", () => {
     const page = source("app/session/shopping/page.tsx");
 
-    expect(page).toContain("Dough essentials");
+    expect(page).toContain("Dough ingredients");
+    expect(page).toContain("Dough ingredient amounts come from the Dough Plan.");
+    expect(page).toContain("Topping ingredient amounts come from the selected pizza mix.");
     expect(page).toContain("Sauce");
     expect(page).toContain("Cheese");
     expect(page).toContain("Toppings");
@@ -210,8 +405,8 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain('href="/session/recipe"');
     expect(page).toContain('href="/session/timeline"');
     expect(page).toContain("Continue to Timeline →");
-    expect(page).toContain("choosePreset");
-    expect(page).toContain("generateAndSaveActiveShoppingList(nextPresetId)");
+    expect(page).toContain("updatePizzaMix");
+    expect(page).toContain("generateAndSaveActiveShoppingList(undefined, undefined, new Date(), nextMix)");
     expect(page).not.toContain("formatSessionTime");
     expect(page).not.toContain("targetTime");
     expect(page).not.toContain("<AppSignature");
@@ -245,10 +440,9 @@ describe("Pizza Session shopping list presets", () => {
     const page = source("app/session/shopping/page.tsx");
 
     expect(page).toContain("getActivePizzaSession");
-    expect(page).toContain("findPizzaSessionPreset(session?.shoppingList?.presetId)?.id");
-    expect(page).toContain("findPizzaSessionPreset(session?.pizzaPreset)?.id");
-    expect(page).toContain("generateAndSaveActiveShoppingList(resolvedPreset)");
-    expect(source("lib/pizza-session-shopping-list.ts")).toContain("pizzaPreset: result.shoppingList.presetId");
+    expect(page).toContain("normalizePizzaMixForCount(pizzaCount, session?.pizzaMix, session?.pizzaPreset)");
+    expect(page).toContain("PIZZA_MIX_OPTIONS.map");
+    expect(source("lib/pizza-session-shopping-list.ts")).toContain("pizzaPreset: primaryPizzaTypeFromMix(result.pizzaMix)");
   });
 
   it("documents Patch 34 shopping behavior and adds changelog history", () => {

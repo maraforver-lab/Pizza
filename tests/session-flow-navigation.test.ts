@@ -71,8 +71,9 @@ describe("Pizza Session flow navigation integrity", () => {
 
     expect(shopping).toContain("Choose pizzas and build the shopping list.");
     expect(shopping).toContain("What pizzas are you making?");
-    expect(shopping).toContain("This choice is for toppings and shopping only.");
-    expect(shopping).toContain("Dough essentials");
+    expect(shopping).toContain("Dough style and dough formula stay in the Dough Plan.");
+    expect(shopping).toContain("Total selected:");
+    expect(shopping).toContain("Dough ingredients");
     expect(shopping).toContain("Sauce");
     expect(shopping).toContain("Cheese");
     expect(shopping).toContain("Toppings");
