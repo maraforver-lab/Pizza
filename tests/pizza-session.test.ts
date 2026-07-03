@@ -188,6 +188,9 @@ describe("Pizza Session local storage", () => {
   it("stores, retrieves and clears active session id", () => {
     const storage = new MemoryStorage();
     const session = createAndSavePizzaSession({ id: "active-session", status: "planning" }, storage);
+    const completed = createAndSavePizzaSession({ id: "completed-history", status: "completed", currentStep: "review" }, storage);
+    storage.setItem("doughtools-saved-recipes-v1", "saved-recipes-stay");
+    storage.setItem("unrelated-key", "untouched");
 
     setActivePizzaSession(session.id, storage);
     expect(storage.getItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY)).toBe(session.id);
@@ -195,6 +198,20 @@ describe("Pizza Session local storage", () => {
 
     clearActivePizzaSession(storage);
     expect(getActivePizzaSession(storage)).toBeUndefined();
+    expect(storage.getItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY)).toBeNull();
+    expect(getPizzaSession(session.id, storage)?.id).toBe(session.id);
+    expect(getPizzaSession(completed.id, storage)?.status).toBe("completed");
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("completed-history");
+    expect(storage.getItem("doughtools-saved-recipes-v1")).toBe("saved-recipes-stay");
+    expect(storage.getItem("unrelated-key")).toBe("untouched");
+  });
+
+  it("does not throw when clearing without an active pizza session", () => {
+    const storage = new MemoryStorage();
+    storage.setItem("unrelated-key", "untouched");
+
+    expect(() => clearActivePizzaSession(storage)).not.toThrow();
+    expect(storage.getItem("unrelated-key")).toBe("untouched");
   });
 
   it("does not treat completed or archived sessions as active", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
@@ -13,6 +14,7 @@ import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import {
+  completeSessionReview,
   saveSessionReview,
 } from "@/lib/pizza-session-review";
 
@@ -107,6 +109,7 @@ function MissingReviewState() {
 }
 
 export default function SessionReviewPage() {
+  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [rating, setRating] = useState(0);
@@ -162,6 +165,18 @@ export default function SessionReviewPage() {
     setSession(updated);
     setSaved(true);
     setMessage(null);
+  };
+
+  const finishSession = () => {
+    const completed = completeSessionReview(session, reviewInput);
+    if (!completed) {
+      setMessage("Could not finish this local session. Please refresh and try again.");
+      return;
+    }
+    setSession(completed);
+    setSaved(true);
+    setMessage(null);
+    router.push("/");
   };
 
   return (
@@ -258,10 +273,17 @@ export default function SessionReviewPage() {
                 <p className="mt-2 text-sm font-bold text-leaf" role="status" aria-live="polite">
                   Review saved in this browser.
                 </p>
+                <p className="mt-2 text-sm leading-6 text-ink/60">
+                  Finish session closes this local session so the homepage is ready for a fresh pizza session.
+                </p>
                 <div className="mt-4">
-                  <Link href="/" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
-                    Back to homepage →
-                  </Link>
+                  <button
+                    type="button"
+                    onClick={finishSession}
+                    className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+                  >
+                    Finish session
+                  </button>
                 </div>
               </section>
             )}

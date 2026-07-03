@@ -57,6 +57,9 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("Free notes");
     expect(page).toContain("Save review →");
     expect(page).toContain("Review saved in this browser.");
+    expect(page).toContain("Finish session");
+    expect(page).toContain("completeSessionReview");
+    expect(page).toContain("router.push(\"/\")");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/kitchen\"");
     expect(page).not.toContain("Review and notes");
@@ -112,8 +115,12 @@ describe("Pizza Session review and bake notes", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page).toContain("Review saved");
-    expect(page).toContain("Back to homepage →");
-    expect(page).toContain('href="/"');
+    expect(page).toContain("Finish session");
+    expect(page).toContain("Finish session closes this local session");
+    expect(page).toContain("onClick={finishSession}");
+    expect(page).toContain("completeSessionReview(session, reviewInput)");
+    expect(page).toContain("router.push(\"/\")");
+    expect(page).not.toContain("Back to homepage →");
     expect(page).not.toContain("Start a new Pizza Session →");
     expect(page).not.toContain('href="/session/start?new=1"');
     expect(page).not.toContain("Saved locally");
@@ -205,6 +212,24 @@ describe("Pizza Session review and bake notes", () => {
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("Timeline was useful");
   });
 
+  it("keeps the active session while review is only saved, refreshed or backed out", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "review-save-not-finished",
+      status: "baking",
+      currentStep: "bake",
+      recipeSnapshot: { balls: 4, ballWeight: 260 },
+      timeline,
+    }, storage);
+    setActivePizzaSession(session.id, storage);
+
+    const saved = saveSessionReview(session, { rating: 4, notes: "Saved but not finished." }, storage);
+
+    expect(saved?.status).toBe("reviewing");
+    expect(saved?.currentStep).toBe("review");
+    expect(getActivePizzaSession(storage)?.id).toBe(session.id);
+  });
+
   it("completes the session, clears active id and preserves stored review data", () => {
     const storage = new MemoryStorage();
     const session = createAndSavePizzaSession({
@@ -215,6 +240,8 @@ describe("Pizza Session review and bake notes", () => {
       timeline,
     }, storage, new Date("2026-06-25T10:00:00.000Z"));
     setActivePizzaSession(session.id, storage);
+    storage.setItem("doughtools-saved-recipes-v1", "saved-recipes-stay");
+    storage.setItem("unrelated-key", "untouched");
 
     const completed = completeSessionReview(
       session,
@@ -241,6 +268,9 @@ describe("Pizza Session review and bake notes", () => {
     expect(getActivePizzaSession(storage)).toBeUndefined();
     expect(getPizzaSession(session.id, storage)?.status).toBe("completed");
     expect(getPizzaSession(session.id, storage)?.recipeSnapshot?.balls).toBe(2);
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("Best batch so far.");
+    expect(storage.getItem("doughtools-saved-recipes-v1")).toBe("saved-recipes-stay");
+    expect(storage.getItem("unrelated-key")).toBe("untouched");
   });
 
   it("provides session summary and level-aware review copy without separate pages", () => {

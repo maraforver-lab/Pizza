@@ -4,6 +4,13 @@ import { join } from "node:path";
 import { homepageContent } from "@/lib/homepage";
 import { getDefaultExperienceLevel } from "@/lib/experience-levels";
 import { getHomepageExperienceCopy, homepageExperienceCopy } from "@/lib/homepage-experience-copy";
+import {
+  clearActivePizzaSession,
+  createAndSavePizzaSession,
+  getActivePizzaSession,
+  setActivePizzaSession,
+} from "@/lib/pizza-session-storage";
+import { MemoryStorage } from "./helpers";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -176,6 +183,24 @@ describe("homepage content model", () => {
     expect(homepage).not.toContain("My recipes");
     expect(homepage).not.toContain("Core pizza workflow tools");
     expect(homepage).not.toContain("Explore the rest of the workshop");
+  });
+
+  it("hides Continue Pizza Session after the active session pointer is cleared", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "homepage-cleared-active-session",
+      status: "reviewing",
+      currentStep: "review",
+    }, storage);
+    setActivePizzaSession(session.id, storage);
+
+    expect(getActivePizzaSession(storage)?.currentStep).toBe("review");
+
+    clearActivePizzaSession(storage);
+
+    expect(getActivePizzaSession(storage)).toBeUndefined();
+    expect(homepageContent.hero.primaryCta.label).toBe("Start Pizza Session");
+    expect(source("components/ContinuePizzaSessionCard.tsx")).toContain("if (!ready || !session) return null");
   });
 
   it("keeps the full calculator workspace available for recipe query URLs", () => {

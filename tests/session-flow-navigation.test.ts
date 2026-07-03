@@ -46,7 +46,8 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("href={backHref}");
     expect(kitchen).toContain("kitchenBackHrefFromSource");
     expectTextLink(kitchen, "Review your pizza →", "/session/review");
-    expectTextLink(review, "Back to homepage →", "/");
+    expect(review).toContain("Finish session");
+    expect(review).toContain("router.push(\"/\")");
     expect(review).not.toContain("Back to Kitchen Mode");
     expect(review).not.toContain("View timeline");
   });
@@ -100,6 +101,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).not.toMatch(/Review dough plan|Open shopping list|Save and continue later|Open full Calculator/);
     expect(review).toContain("Save review →");
     expect(review).toContain("Review saved in this browser.");
+    expect(review).toContain("Finish session");
     expect(review).toContain("No pizza session to review");
     expect(review).not.toContain("How did your pizza turn out?");
   });
