@@ -130,10 +130,14 @@ describe("homepage content model", () => {
     expect(homepage).toContain("/images/homepage/hero-mobile-bg.png");
     expect(homepage).toContain("supplied Image 3 is the desktop background asset");
     expect(homepage).toContain("supplied Image 4 is the mobile background asset");
+    expect(homepage).toContain("object-[54%_center]");
+    expect(homepage).toContain("object-[center_bottom]");
+    expect(homepage).toContain("min-h-[calc(100svh-4.5rem)]");
     expect(homepage).not.toContain("/images/homepage-hero-desktop.png");
     expect(homepage).not.toContain("/images/homepage-hero-mobile.png");
     expect(homepage).toContain("min-h-[calc(100vh-4rem)]");
     expect(homepage).toContain("bg-[linear-gradient(90deg");
+    expect(homepage).not.toContain("mt-[35vh]");
     expect(guidance).toContain("Experience level");
     expect(guidance).toContain("EXPERIENCE_LEVELS.map");
     expect(guidance).toContain("writeExperienceLevelPreference");
@@ -490,6 +494,18 @@ describe("homepage content model", () => {
     expect(guidance).toContain("justify-start");
     expect(guidance).toContain("sm:min-h-16 sm:justify-center");
     expect(guidance).toContain("data-active-indicator={selected}");
+  });
+
+  it("keeps the homepage hero image, CTA and experience selector balanced responsively", () => {
+    const homepage = source("app/page.tsx");
+
+    expect(homepage).toContain("flex min-h-[calc(100svh-4.5rem)]");
+    expect(homepage).toContain("text-[clamp(3rem,13vw,4.25rem)]");
+    expect(homepage).toContain("sm:w-auto");
+    expect(homepage).toContain("HomepageGuidanceLevelSection");
+    expect(homepage).toContain("lg:mt-10 lg:w-[39rem]");
+    expect(homepage).toContain("ContinuePizzaSessionCard");
+    expect(homepage).toContain("lg:absolute lg:right-12 lg:top-12");
   });
 
   it("adds more technical result guidance for Pizza Nerd users without changing tools", () => {
