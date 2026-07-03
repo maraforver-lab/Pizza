@@ -495,6 +495,13 @@ describe("Pizza Session shopping list presets", () => {
     expect(component).toContain("Made with DoughTools");
     expect(component).toContain("doughtools.app");
     expect(component).toContain("w-[1080px]");
+    expect(component).toContain("ingredientDecorations");
+    expect(component).toContain("shopping-export-ingredient-backdrop");
+    expect(component).toContain("shopping-export-card-atmosphere");
+    expect(component).toContain("radial-gradient");
+    expect(component).toContain("basil");
+    expect(component).toContain("tomato");
+    expect(component).toContain("olive oil");
   });
 
   it("shows the dough start reminder in the export card only when an exact start time exists", () => {
