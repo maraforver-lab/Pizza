@@ -95,6 +95,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Most popular");
     expect(page).toContain("Custom grams per dough ball");
     expect(page).toContain("Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas.");
+    expect(page).toContain("mx-auto grid max-w-4xl gap-4 sm:gap-5");
+    expect(page).not.toContain("lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)]");
     expect(page).toContain("Do you already have flour?");
     expect(page).toContain("DoughTools can recommend what to buy, or use the W-value range of the flour you already have.");
     expect(page).toContain("You’re ready for your Dough Plan.");
@@ -312,7 +314,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain("[\"Oven\"");
   });
 
-  it("shows setup summary choices as five compact cards", () => {
+  it("shows setup summary choices as six readable cards", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("const setupSummaryCards = [");
@@ -324,7 +326,9 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('label: "Quantity"');
     expect(page).toContain('`${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`');
     expect(page).toContain('label: "Flour situation"');
-    expect(page).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6");
+    expect(page).toContain("grid gap-3 sm:grid-cols-2 xl:grid-cols-3");
+    expect(page).not.toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6");
+    expect(page).toContain("text-base font-extrabold leading-6 text-ink");
     expect(page).not.toContain("[\"How you bake\"");
     expect(page).not.toContain("[\"Pizza style\"");
     expect(page).not.toContain("flex items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white p-3.5");

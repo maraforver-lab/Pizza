@@ -901,7 +901,7 @@ function StartPizzaSessionContent() {
           )}
 
           {step === "quantity" && (
-            <div className="mx-auto grid max-w-3xl gap-4 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)]">
+            <div className="mx-auto grid max-w-4xl gap-4 sm:gap-5">
               <section className="rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 sm:p-5" aria-labelledby="pizza-count-heading">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -920,7 +920,7 @@ function StartPizzaSessionContent() {
                 </div>
                 <div className="mt-5">
                   <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Quick picks</p>
-                  <div className="mt-3 grid grid-cols-4 gap-2">
+                  <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
                     {[1, 2, 3, 4, 6, 8].map((amount) => (
                       <button
                         key={amount}
@@ -958,7 +958,7 @@ function StartPizzaSessionContent() {
                   </div>
                   <span className="rounded-full bg-leaf/10 px-3 py-1.5 text-xs font-extrabold text-leaf">{selectedDoughBallWeight} g each</span>
                 </div>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {DOUGH_BALL_WEIGHT_OPTIONS.map((weight) => {
                     const guidance = doughBallWeightGuidance[weight];
                     const active = selectedDoughBallWeight === weight;
@@ -1070,14 +1070,14 @@ function StartPizzaSessionContent() {
 
           {step === "summary" && (
             <div className="grid gap-4">
-              <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+              <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {setupSummaryCards.map((item) => (
-                  <div key={item.label} className="min-w-0 rounded-[1.25rem] border border-ink/10 bg-white p-3 shadow-sm sm:p-3.5">
+                  <div key={item.label} className="min-w-0 rounded-[1.25rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-4">
                     <dt className="flex items-center justify-between gap-2">
                       <span className="text-[0.65rem] font-black uppercase tracking-[.16em] text-ink/40">{item.label}</span>
                       <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-cream text-sm">{item.icon}</span>
                     </dt>
-                    <dd className="mt-2 text-sm font-extrabold leading-5 text-ink">{item.value}</dd>
+                    <dd className="mt-2 text-base font-extrabold leading-6 text-ink">{item.value}</dd>
                   </div>
                 ))}
               </dl>
