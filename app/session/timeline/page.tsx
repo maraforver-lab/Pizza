@@ -21,6 +21,7 @@ import {
   resolveSessionDoughStartTime,
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
+import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 
@@ -202,13 +203,18 @@ function sessionPlanningRiskSummary({
   hasBakeTarget,
   isColdFermentation,
   isLongHorizon,
+  selectedFermentationLabel,
 }: {
   summary?: string | null;
   hasBakeTarget: boolean;
   isColdFermentation: boolean;
   isLongHorizon: boolean;
+  selectedFermentationLabel?: string;
 }) {
   if (isLongHorizon) {
+    if (selectedFermentationLabel) {
+      return `Use the selected ${selectedFermentationLabel} plan.`;
+    }
     return "This bake target is far enough away that you should not start immediately. Use one of the planned 24h, 48h or 72h cold-fermentation start times.";
   }
   if (hasBakeTarget && summary?.includes("bake date and time")) {
@@ -225,13 +231,22 @@ function sessionPlanningFirstAdjustment({
   hasBakeTarget,
   isColdFermentation,
   isLongHorizon,
+  selectedFermentationLabel,
+  selectedStartLabel,
 }: {
   adjustment?: string | null;
   hasBakeTarget: boolean;
   isColdFermentation: boolean;
   isLongHorizon: boolean;
+  selectedFermentationLabel?: string;
+  selectedStartLabel?: string;
 }) {
-  if (isLongHorizon) return "Start at the selected cold-fermentation option’s start time, not before.";
+  if (isLongHorizon) {
+    if (selectedFermentationLabel && selectedStartLabel) {
+      return `Start dough at ${selectedStartLabel} for the selected ${selectedFermentationLabel}.`;
+    }
+    return "Start at the selected cold-fermentation option’s start time, not before.";
+  }
   if (hasBakeTarget && adjustment?.includes("Set the bake target")) {
     return "Use the timing notes and long-horizon options, or choose a closer bake target for stronger guidance.";
   }
@@ -420,6 +435,19 @@ export default function SessionTimelinePage() {
   const fermentationSetup = planningResult?.fermentationSetupRecommendation;
   const temperatureGuidance = planningResult?.temperatureGuidance;
   const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session, steps: timeline.steps });
+  const fermentationDisplay = sessionRecipeResult.ok
+    ? buildSessionFermentationDisplay({
+      session,
+      snapshot: sessionRecipeResult.recipeSnapshot,
+      basis: sessionRecipeResult.continuousYeast?.recommendation,
+    })
+    : buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot });
+  const selectedFermentationLabel = sessionRecipeResult.ok && sessionRecipeResult.continuousYeast?.selectedByUser
+    ? fermentationDisplay.label
+    : undefined;
+  const selectedStartLabel = doughStartResolution.startsAt
+    ? formatShortDateTime(doughStartResolution.startsAt)
+    : undefined;
   const longHorizonRecommendation = buildLongHorizonStartRecommendation({
     planningResult,
     selectedFlourLabel: selectedFlourLabel(session.flour),
@@ -433,12 +461,15 @@ export default function SessionTimelinePage() {
     hasBakeTarget,
     isColdFermentation,
     isLongHorizon: Boolean(longHorizonRecommendation),
+    selectedFermentationLabel,
   });
   const displayedFirstAdjustment = sessionPlanningFirstAdjustment({
     adjustment: combinedRisk?.suggestedFirstAdjustment,
     hasBakeTarget,
     isColdFermentation,
     isLongHorizon: Boolean(longHorizonRecommendation),
+    selectedFermentationLabel,
+    selectedStartLabel,
   });
   const renderNextActionCard = () => (
     <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
@@ -519,6 +550,12 @@ export default function SessionTimelinePage() {
                   <dt className="text-xs font-extrabold text-ink/45">Start window</dt>
                   <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{startWindow?.startWindowLabel ?? "Not enough information"}</dd>
                 </div>
+                {fermentationDisplay.mode && (
+                  <div className="rounded-2xl bg-white p-3">
+                    <dt className="text-xs font-extrabold text-ink/45">Selected fermentation</dt>
+                    <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{fermentationDisplay.label}</dd>
+                  </div>
+                )}
                 <div className="rounded-2xl bg-white p-3">
                   <dt className="text-xs font-extrabold text-ink/45">Dough start</dt>
                   <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
@@ -530,12 +567,20 @@ export default function SessionTimelinePage() {
                 </div>
                 <div className="rounded-2xl bg-white p-3">
                   <dt className="text-xs font-extrabold text-ink/45">Fermentation place</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode)}</dd>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
+                    {fermentationDisplay.mode === "cold"
+                      ? "Fridge / cold fermentation"
+                      : fermentationDisplay.mode === "room"
+                        ? "Room temperature"
+                        : fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode)}
+                  </dd>
                 </div>
                 <div className="rounded-2xl bg-white p-3 sm:col-span-2">
                   <dt className="text-xs font-extrabold text-ink/45">Fermentation temperature</dt>
                   <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
-                    {temperatureGuidance
+                    {fermentationDisplay.placeTemperatureLabel
+                      ? fermentationDisplay.placeTemperatureLabel
+                      : temperatureGuidance
                       ? `Room ${temperatureGuidance.roomTemperature} °C · Fridge ${temperatureGuidance.fridgeTemperature} °C`
                       : "Add dough plan details for stronger temperature guidance."}
                   </dd>

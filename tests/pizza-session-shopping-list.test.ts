@@ -455,6 +455,9 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Dough ingredients");
     expect(page).toContain("Dough ingredient amounts come from the Dough Plan.");
     expect(page).toContain("Topping ingredient amounts come from the selected pizza mix.");
+    expect(page).toContain("Fermentation: {fermentationDisplay.fullLabel}");
+    expect(page).toContain("buildSessionFermentationDisplay");
+    expect(page).toContain("buildSessionRecipe(session ?? undefined)");
     expect(page).toContain("Sauce");
     expect(page).toContain("Cheese");
     expect(page).toContain("Toppings");
@@ -492,6 +495,9 @@ describe("Pizza Session shopping list presets", () => {
     expect(component).toContain("{item.label}");
     expect(component).toContain("{item.amount ?? \"as needed\"}");
     expect(component).toContain("yeastTypeLabel");
+    expect(component).toContain("buildSessionFermentationDisplay");
+    expect(component).toContain("buildSessionRecipe(session)");
+    expect(component).not.toContain("const fermentationLabels");
     expect(component).toContain("Made with DoughTools");
     expect(component).toContain("doughtools.app");
     expect(component).toContain("w-[1080px]");

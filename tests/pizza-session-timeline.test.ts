@@ -92,6 +92,10 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Dough start");
     expect(page).toContain("Fermentation place");
     expect(page).toContain("Fermentation temperature");
+    expect(page).toContain("Selected fermentation");
+    expect(page).toContain("buildSessionFermentationDisplay");
+    expect(page).toContain("Use the selected ${selectedFermentationLabel} plan.");
+    expect(page).toContain("Start dough at ${selectedStartLabel} for the selected ${selectedFermentationLabel}.");
     expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
     expect(page).not.toContain("Dough planning notes");
     expect(helper).not.toContain("buildPlanningResult");

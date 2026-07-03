@@ -9,6 +9,7 @@ import { SessionViewportReset } from "@/components/session/SessionViewportReset"
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY, updatePizzaSession } from "@/lib/pizza-session-storage";
+import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import {
   buildLongHorizonStartRecommendation,
   type LongHorizonFermentationOption,
@@ -230,6 +231,11 @@ export default function SessionRecipePage() {
   const planningResult = planningInfo.ok ? planningInfo.result : null;
   const combinedRisk = planningResult?.combinedRiskSummary;
   const flourWGuidance = result.flourWGuidance;
+  const fermentationDisplay = buildSessionFermentationDisplay({
+    session,
+    snapshot: result.recipeSnapshot,
+    basis: result.continuousYeast?.recommendation,
+  });
   const longHorizonRecommendation = buildLongHorizonStartRecommendation({
     planningResult,
     selectedFlourLabel: selectedFlourLabel(session.flour),
@@ -248,8 +254,8 @@ export default function SessionRecipePage() {
         value: planningResult.startWindowRecommendation.startWindowLabel,
       },
       planningResult.fermentationSetupRecommendation && {
-        label: "Recommended setup",
-        value: planningResult.fermentationSetupRecommendation.title,
+        label: "Selected setup",
+        value: fermentationDisplay.fullLabel,
       },
       planningResult.availableFlourRecommendation && {
         label: "W-value",
@@ -412,14 +418,14 @@ export default function SessionRecipePage() {
                           <>
                             <div className="grid gap-1 rounded-2xl bg-white p-3">
                               <dt className="text-xs font-extrabold text-ink/45">Planned fermentation length</dt>
-                              <dd className="text-sm font-bold leading-5 text-ink/70">{formatFermentationLength(result.continuousYeast.selectedFermentationHours)}</dd>
+                              <dd className="text-sm font-bold leading-5 text-ink/70">{fermentationDisplay.label}</dd>
                             </div>
                             <div className="grid gap-1 rounded-2xl bg-white p-3">
                               <dt className="text-xs font-extrabold text-ink/45">Fermentation place / temperature</dt>
                               <dd className="text-sm font-bold leading-5 text-ink/70">
                                 {result.continuousYeast.recommendation.fermentationMode === "cold"
-                                  ? `Cold fermentation in the fridge · ${result.continuousYeast.recommendation.temperatureC} °C`
-                                  : `Room fermentation · ${result.continuousYeast.recommendation.temperatureC} °C`}
+                                  ? `Cold fermentation in the fridge · ${fermentationDisplay.temperatureC} °C`
+                                  : `Room fermentation · ${fermentationDisplay.temperatureC} °C`}
                               </dd>
                             </div>
                           </>

@@ -18,6 +18,7 @@ import {
   getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
+import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import {
   adjustPizzaMixAllocation,
   generateAndSaveActiveShoppingList,
@@ -26,6 +27,7 @@ import {
   PIZZA_MIX_OPTIONS,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 import { downloadShoppingListImage } from "@/lib/shopping-image-export";
 
 function isItemReady(status: PizzaSessionShoppingItem["status"]) {
@@ -62,6 +64,16 @@ export default function SessionShoppingPage() {
     () => generatePizzaSessionShoppingList(session ?? undefined),
     [session],
   );
+  const recipeResult = useMemo(() => buildSessionRecipe(session ?? undefined), [session]);
+  const fermentationDisplay = recipeResult.ok
+    ? buildSessionFermentationDisplay({
+      session,
+      snapshot: recipeResult.recipeSnapshot,
+      basis: recipeResult.continuousYeast?.recommendation,
+    })
+    : session
+      ? buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot })
+      : undefined;
   const shoppingList = session?.shoppingList ?? (generationResult.ok ? generationResult.shoppingList : undefined);
   const pizzaCount = session?.pizzaCount ?? session?.recipeSnapshot?.balls ?? 0;
   const pizzaMix = pizzaCount > 0
@@ -251,6 +263,11 @@ export default function SessionShoppingPage() {
             <p className="mt-1 text-sm leading-6 text-ink/60">
               Dough ingredient amounts come from the Dough Plan. Topping ingredient amounts come from the selected pizza mix.
             </p>
+            {fermentationDisplay?.mode && (
+              <p className="mt-3 w-fit rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
+                Fermentation: {fermentationDisplay.fullLabel}
+              </p>
+            )}
           </div>
           {shoppingList?.groups.map((group) => (
             <section key={group.group} className="border-b border-ink/10 last:border-b-0">

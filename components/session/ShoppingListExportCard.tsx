@@ -1,5 +1,7 @@
 import { forwardRef } from "react";
 import type { PizzaSession, PizzaSessionShoppingList } from "@/lib/pizza-session";
+import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 type ShoppingListExportCardProps = {
@@ -14,14 +16,6 @@ const pizzaStyleLabels: Record<string, string> = {
   "roman-thin": "Roman thin",
   detroit: "Detroit-style",
   sicilian: "Sicilian-style",
-};
-
-const fermentationLabels: Record<string, string> = {
-  "6h-room": "6h room fermentation",
-  "12h-room": "12h room fermentation",
-  "24h-room": "24h room fermentation",
-  "24h-cold": "24h cold fermentation",
-  "48h-cold": "48h cold fermentation",
 };
 
 const ingredientDecorations = [
@@ -53,11 +47,17 @@ function doughStartReminder(session: PizzaSession) {
 }
 
 function sessionSummaryItems(session: PizzaSession, shoppingList: PizzaSessionShoppingList) {
+  const recipeResult = buildSessionRecipe(session);
   const snapshot = session.recipeSnapshot;
   const pizzaCount = shoppingList.pizzaCount ?? session.pizzaCount ?? snapshot?.balls;
   const ballWeight = snapshot?.ballWeight ?? session.doughBallWeight;
   const pizzaStyle = snapshot?.pizzaStyle ? pizzaStyleLabels[snapshot.pizzaStyle] ?? snapshot.pizzaStyle : undefined;
-  const fermentation = snapshot?.fermentation ? fermentationLabels[snapshot.fermentation] ?? snapshot.fermentation : undefined;
+  const fermentationDisplay = buildSessionFermentationDisplay({
+    session,
+    snapshot: recipeResult.ok ? recipeResult.recipeSnapshot : snapshot,
+    basis: recipeResult.ok ? recipeResult.continuousYeast?.recommendation : undefined,
+  });
+  const fermentation = fermentationDisplay.mode ? fermentationDisplay.fullLabel : undefined;
   const yeast = snapshot?.yeastType ? yeastTypeLabel(snapshot.yeastType) : session.yeastType ? yeastTypeLabel(session.yeastType) : undefined;
 
   return [

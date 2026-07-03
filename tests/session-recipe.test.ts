@@ -128,12 +128,16 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain('label: "Dough scraper or sturdy spoon"');
     expect(page).not.toContain('label: "Covered container or bowl"');
     expect(page).toContain("Dough planning notes");
+    expect(page).toContain("buildSessionFermentationDisplay");
+    expect(page).toContain("fermentationDisplay.fullLabel");
     expect(page).toContain("Planning guidance is based on available session choices.");
     expect(page).toContain("Overall risk");
     expect(page).toContain("What to adjust first");
     expect(page).toContain("Session planning context");
     expect(page).toContain("Planned fermentation length");
+    expect(page).toContain("fermentationDisplay.label");
     expect(page).toContain("Fermentation place / temperature");
+    expect(page).toContain("fermentationDisplay.temperatureC");
     expect(page).toContain("Choose a cold fermentation length");
     expect(page).toContain("Pick the length you want DoughTools to use for yeast and flour-strength guidance.");
     expect(page).toContain("W-value guidance");
