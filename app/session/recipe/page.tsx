@@ -17,6 +17,7 @@ import {
   generateAndSaveActiveSessionRecipe,
   type SessionRecipeBuildResult,
 } from "@/lib/session-recipe";
+import { yeastTypeLabel } from "@/lib/yeast-types";
 
 function formatGram(value?: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "—";
@@ -27,7 +28,7 @@ function formatGram(value?: number) {
 function amountCardTone(label: string) {
   if (label === "Water") return "text-sky-600";
   if (label === "Salt") return "text-ink/55";
-  if (label === "Yeast") return "text-tomato";
+  if (label.startsWith("Yeast")) return "text-tomato";
   return "text-leaf";
 }
 
@@ -210,15 +211,16 @@ export default function SessionRecipePage() {
     );
   }
 
+  const selectedYeastLabel = yeastTypeLabel(result.settings.yeastType);
   const doughIngredientRows = [
     { label: "Flour", value: formatGram(result.ingredients.flour), icon: "▣", description: "The base of your dough." },
     { label: "Water", value: formatGram(result.ingredients.water), icon: "💧", description: "Hydrates the flour." },
     { label: "Salt", value: formatGram(result.ingredients.salt), icon: "◌", description: "Adds flavor and strength." },
     {
-      label: "Yeast",
+      label: `Yeast — ${selectedYeastLabel}`,
       value: formatGram(result.ingredients.leavener),
       icon: "✺",
-      description: "Helps the dough rise.",
+      description: `${selectedYeastLabel} amount for this dough plan.`,
       note: result.continuousYeast?.summary,
       caution: result.continuousYeast?.recommendation.cautions[0] ?? result.continuousYeast?.recommendation.warnings[0],
     },

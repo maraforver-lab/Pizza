@@ -88,6 +88,18 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("Dough ball size");
     expect(page).toContain("This controls how much dough each pizza uses.");
+    expect(page).toContain("Yeast type");
+    expect(page).toContain("Choose the yeast you will use. This affects the yeast amount.");
+    expect(page).toContain("normalizeSessionYeastType(session?.yeastType)");
+    expect(page).toContain("savePatch({ yeastType: normalizeSessionYeastType(yeastType) }, \"quantity\")");
+    const yeastTypes = source("lib/yeast-types.ts");
+    expect(yeastTypes).toContain('DEFAULT_SESSION_YEAST_TYPE: YeastType = "ady"');
+    expect(yeastTypes).toContain("Dry yeast");
+    expect(yeastTypes).toContain("Fresh yeast");
+    expect(yeastTypes).toContain("Instant dry yeast");
+    expect(yeastTypes).toContain("Default for most home bakers");
+    expect(yeastTypes).toContain("Use if you bake with refrigerated fresh yeast");
+    expect(yeastTypes).toContain("Stronger dry yeast, usually used in smaller amounts");
     expect(page).toContain("const DOUGH_BALL_WEIGHT_OPTIONS = [220, 240, 260, 280, 300] as const");
     expect(page).toContain("const doughBallWeightGuidance");
     expect(page).toContain("{weight} g");

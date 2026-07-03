@@ -33,6 +33,7 @@ import {
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
+import { normalizeSessionYeastType, sessionYeastTypeOptions } from "@/lib/yeast-types";
 
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
@@ -547,6 +548,9 @@ function StartPizzaSessionContent() {
     setCustomDoughBallWeightDraft(String(doughBallWeight));
     savePatch({ doughBallWeight }, "quantity");
   };
+  const setYeastType = (yeastType: PizzaSession["yeastType"]) => {
+    savePatch({ yeastType: normalizeSessionYeastType(yeastType) }, "quantity");
+  };
   const commitCustomDoughBallWeight = () => {
     if (!session) return;
     const parsed = Number(customDoughBallWeightDraft);
@@ -616,6 +620,7 @@ function StartPizzaSessionContent() {
   };
 
   const selectedDoughBallWeight = session ? effectiveDoughBallWeight(session) : 270;
+  const selectedYeastType = normalizeSessionYeastType(session?.yeastType);
   const customDoughBallWeightNumber = Number(customDoughBallWeightDraft);
   const customDoughBallWeightInvalid = Boolean(customDoughBallWeightDraft)
     && session?.pizzaStyle !== "pan-tray"
@@ -1028,6 +1033,45 @@ function StartPizzaSessionContent() {
                 <p id="dough-ball-weight-helper" className={`mt-2 text-xs font-bold leading-5 ${customDoughBallWeightInvalid ? "text-tomato" : "text-ink/45"}`}>
                   Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas. Invalid custom values are not saved.
                 </p>
+              </section>
+
+              <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="yeast-type-heading">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 id="yeast-type-heading" className="text-sm font-extrabold text-ink">Yeast type</h3>
+                    <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Choose the yeast you will use. This affects the yeast amount.</p>
+                  </div>
+                  <span className="mt-1 w-fit rounded-full bg-cream px-3 py-1.5 text-xs font-extrabold text-ink/45 sm:mt-0">
+                    {sessionYeastTypeOptions.find((option) => option.id === selectedYeastType)?.label ?? "Dry yeast"}
+                  </span>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {sessionYeastTypeOptions.map((option) => {
+                    const active = selectedYeastType === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setYeastType(option.id)}
+                        aria-pressed={active}
+                        className={`min-h-24 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                          active ? "border-tomato bg-tomato/[.08] shadow-sm" : "border-ink/10 bg-cream text-ink/70 hover:border-tomato/30"
+                        }`}
+                      >
+                        <span className="flex items-start justify-between gap-3">
+                          <span>
+                            <span className="block text-base font-extrabold text-ink">{option.label}</span>
+                            <span className="mt-2 block text-xs font-bold leading-5 text-ink/55">{option.description}</span>
+                          </span>
+                          <span aria-hidden="true" className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-tomato text-white" : "bg-white text-ink/35"}`}>
+                            {active ? "✓" : ""}
+                          </span>
+                        </span>
+                        {active && <span className="mt-2 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </section>
             </div>
           )}

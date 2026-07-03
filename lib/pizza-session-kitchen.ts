@@ -8,6 +8,7 @@ import {
 import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { updatePizzaSession } from "@/lib/pizza-session-storage";
+import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export type KitchenModeState =
   | { ok: false; missingReason: "no-session" | "missing-timeline" }
@@ -228,7 +229,7 @@ export function recipeSnapshotIngredientLines(snapshot?: PizzaSessionRecipeSnaps
     snapshot.flourAmount ? { label: "Flour", value: grams(snapshot.flourAmount)! } : undefined,
     snapshot.waterAmount ? { label: "Water", value: grams(snapshot.waterAmount)! } : undefined,
     snapshot.saltAmount ? { label: "Salt", value: grams(snapshot.saltAmount)! } : undefined,
-    snapshot.leavenerAmount ? { label: "Yeast / leavener", value: grams(snapshot.leavenerAmount)! } : undefined,
+    snapshot.leavenerAmount ? { label: `Yeast — ${yeastTypeLabel(snapshot.yeastType)}`, value: grams(snapshot.leavenerAmount)! } : undefined,
     snapshot.balls && snapshot.ballWeight
       ? { label: "Dough balls", value: `${snapshot.balls} × ${snapshot.ballWeight} g` }
       : undefined,
@@ -240,7 +241,7 @@ export function doughKitchenIngredientLines(snapshot?: PizzaSessionRecipeSnapsho
     line.label === "Flour"
     || line.label === "Water"
     || line.label === "Salt"
-    || line.label === "Yeast / leavener"
+    || line.label.startsWith("Yeast")
   ));
 }
 

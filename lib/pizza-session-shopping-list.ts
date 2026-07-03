@@ -14,6 +14,7 @@ import {
   findPizzaSessionPreset,
   pizzaSessionPresets,
 } from "@/lib/pizza-session-presets";
+import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export const SHOPPING_LIST_LOCAL_ONLY_COPY = "Shopping lists are saved locally in this browser on this device.";
 
@@ -131,7 +132,7 @@ function doughPlanAmount(value: number | undefined) {
 
 function doughIngredients(session: PizzaSession): QuantifiedShoppingIngredient[] {
   const snapshot = session.recipeSnapshot;
-  const yeastLabel = snapshot?.yeastType ? `Yeast (${snapshot.yeastType})` : "Yeast";
+  const yeastLabel = `Yeast — ${yeastTypeLabel(snapshot?.yeastType)}`;
   return [
     { group: "Dough", id: "flour", label: "Flour", amount: () => doughPlanAmount(snapshot?.flourAmount) },
     { group: "Dough", id: "water", label: "Water", amount: () => doughPlanAmount(snapshot?.waterAmount) },

@@ -277,7 +277,7 @@ describe("Pizza Session Kitchen Mode", () => {
       "Flour",
       "Water",
       "Salt",
-      "Yeast / leavener",
+      "Yeast — Dry yeast",
       "Dough balls",
     ]);
     expect(lines.map((line) => line.value).join(" ")).toContain("4 × 260 g");
@@ -299,7 +299,7 @@ describe("Pizza Session Kitchen Mode", () => {
   it("limits Dough Kitchen Mode ingredient lines to dough ingredients", () => {
     const lines = doughKitchenIngredientLines(recipeSnapshot);
 
-    expect(lines.map((line) => line.label)).toEqual(["Flour", "Water", "Salt", "Yeast / leavener"]);
+    expect(lines.map((line) => line.label)).toEqual(["Flour", "Water", "Salt", "Yeast — Dry yeast"]);
     expect(lines.map((line) => line.label)).not.toContain("Sauce");
     expect(lines.map((line) => line.label)).not.toContain("Cheese");
     expect(lines.map((line) => line.label)).not.toContain("Toppings");

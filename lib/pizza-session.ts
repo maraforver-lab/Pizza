@@ -3,6 +3,7 @@ import {
   normalizeExperienceLevel,
   type ExperienceLevel,
 } from "@/lib/experience-levels";
+import { normalizeSessionYeastType } from "@/lib/yeast-types";
 
 export const PIZZA_SESSION_SCHEMA_VERSION = 1;
 
@@ -118,6 +119,7 @@ export type PizzaSession = {
   doughStartMode?: PizzaSessionDoughStartMode;
   doughEarliestStartTime?: string;
   plannedFermentationHours?: number;
+  yeastType?: string;
   pizzaCount?: number;
   doughBallWeight?: number;
   ovenType?: string;
@@ -358,6 +360,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
       ? stringValue(input.doughEarliestStartTime)
       : undefined,
     plannedFermentationHours: plannedFermentationHoursValue(input.plannedFermentationHours),
+    yeastType: normalizeSessionYeastType(input.yeastType),
     pizzaCount: positiveNumberValue(input.pizzaCount),
     doughBallWeight: doughBallWeightValue(input.doughBallWeight),
     ovenType: stringValue(input.ovenType),
@@ -396,6 +399,7 @@ export function createSessionFromRecipeParams(
     currentStep: "recipe",
     experienceLevel: options.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL,
     pizzaCount: numberFromParam("balls"),
+    yeastType: searchParams.get("yeastType") ?? undefined,
     doughBallWeight: numberFromParam("ballWeight"),
     ovenType: searchParams.get("oven") ?? undefined,
     flour: searchParams.get("flour") ?? undefined,

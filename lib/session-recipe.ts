@@ -15,6 +15,7 @@ import { recipeParams } from "@/lib/recipe-url";
 import type { Fermentation, OvenType, PizzaGoal, PizzaStyleId, RecipeIngredients, RecipeSettings, YeastType } from "@/lib/saved-recipes";
 import { buildSessionFlourWGuidance, type SessionFlourWGuidance } from "@/lib/session-flour-w-guidance";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
+import { normalizeSessionYeastType } from "@/lib/yeast-types";
 
 export type SessionRecipePlanningInfo =
   | { ok: true; result: ReturnType<typeof buildPlanningResult> }
@@ -335,7 +336,7 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
     waste: 3,
     hydration,
     salt: 2.8,
-    yeastType: "idy" satisfies YeastType,
+    yeastType: normalizeSessionYeastType(session.yeastType) satisfies YeastType,
     fermentation,
     temperature,
     goal,

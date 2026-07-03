@@ -4,6 +4,7 @@ import {
   clearActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
+import { yeastTypeLabel } from "@/lib/yeast-types";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
@@ -87,7 +88,7 @@ export function sessionSummaryLines(session: PizzaSession) {
     ["Flour", session.flour ?? session.recipeSnapshot?.flour ?? "Not set"],
     ["Hydration", typeof session.recipeSnapshot?.hydration === "number" ? `${session.recipeSnapshot.hydration} %` : "Not set"],
     ["Fermentation", session.recipeSnapshot?.fermentation ?? "Not set"],
-    ["Yeast type", session.recipeSnapshot?.yeastType?.toUpperCase() ?? "Not set"],
+    ["Yeast type", session.recipeSnapshot?.yeastType ? yeastTypeLabel(session.recipeSnapshot.yeastType) : "Not set"],
     ["Target time", session.targetEatTime ?? session.targetBakeTime ?? "Not set"],
   ] as const;
 }

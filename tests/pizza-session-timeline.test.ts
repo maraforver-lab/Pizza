@@ -684,9 +684,25 @@ describe("Pizza Session timeline", () => {
     ]);
     expect(result.timeline?.steps[0].scheduledAt).toBeDefined();
     expect(new Date(result.timeline?.steps[0].scheduledAt ?? 0).getTime()).toBeLessThan(new Date("2026-06-27T18:30").getTime());
+    expect(result.timeline?.steps[0].description).toContain("dry yeast");
     expect(result.timeline?.steps.find((step) => step.id === "bake-pizza")?.scheduledAt).toBeDefined();
     expect(result.nextStep?.id).toBe("mix-dough");
     expect(result.assumptions.join(" ")).toContain("practical guide");
+  });
+
+  it("uses the selected yeast type in Timeline mix-dough copy when the recipe snapshot has one", () => {
+    const session = createPizzaSession({
+      id: "timeline-yeast-type-session",
+      targetEatTime: "2026-06-27T18:30",
+      recipeSnapshot: {
+        yeastType: "idy",
+      },
+    });
+
+    const timeline = generatePizzaSessionTimeline(session).timeline!;
+
+    expect(timeline.steps[0].label).toBe("Mix dough");
+    expect(timeline.steps[0].description).toContain("instant dry yeast");
   });
 
   it("rounds user-facing scheduled times to practical 15-minute increments", () => {

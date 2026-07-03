@@ -211,7 +211,7 @@ describe("Session recipe build step", () => {
       ballWeight: "260",
       hydration: "64",
       salt: "2.8",
-      yeastType: "idy",
+      yeastType: "ady",
       fermentation: "12h-room",
       oven: "gas",
       flour: "caputo-pizzeria",
@@ -222,7 +222,7 @@ describe("Session recipe build step", () => {
       ballWeight: 260,
       hydration: 64,
       salt: 2.8,
-      yeastType: "idy",
+      yeastType: "ady",
       fermentation: "12h-room",
       flour: "caputo-pizzeria",
       oven: "gas",
@@ -250,6 +250,41 @@ describe("Session recipe build step", () => {
     }
     expect(sessionRecipeQuery(result)).toContain("balls=4");
     expect(sessionRecipeQuery(result)).toContain("pizzaPreset=diavola");
+  });
+
+  it("uses the selected Pizza Session yeast type for Dough Plan yeast amounts and recipe snapshots", () => {
+    const now = new Date("2026-07-03T12:00:00.000Z");
+    const baseSession = {
+      ...completeSessionInput,
+      targetEatTime: "2026-07-04T18:00",
+      doughStartMode: "now" as const,
+    };
+    const dryResult = buildSessionRecipe(createPizzaSession({ ...baseSession, yeastType: "ady" }, now), now);
+    const freshResult = buildSessionRecipe(createPizzaSession({ ...baseSession, yeastType: "cy" }, now), now);
+    const instantResult = buildSessionRecipe(createPizzaSession({ ...baseSession, yeastType: "idy" }, now), now);
+
+    expect(dryResult.ok).toBe(true);
+    expect(freshResult.ok).toBe(true);
+    expect(instantResult.ok).toBe(true);
+    if (!dryResult.ok || !freshResult.ok || !instantResult.ok) throw new Error("Expected recipe results");
+
+    expect(dryResult.settings.yeastType).toBe("ady");
+    expect(freshResult.settings.yeastType).toBe("cy");
+    expect(instantResult.settings.yeastType).toBe("idy");
+    expect(dryResult.recipeParams.yeastType).toBe("ady");
+    expect(freshResult.recipeSnapshot.yeastType).toBe("cy");
+    expect(instantResult.recipeSnapshot.yeastType).toBe("idy");
+    expect(freshResult.ingredients.leavener).toBeGreaterThan(dryResult.ingredients.leavener);
+    expect(dryResult.ingredients.leavener).toBeGreaterThan(instantResult.ingredients.leavener);
+  });
+
+  it("labels Dough Plan yeast amounts with the selected yeast type", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("yeastTypeLabel(result.settings.yeastType)");
+    expect(page).toContain("label: `Yeast — ${selectedYeastLabel}`");
+    expect(page).toContain("description: `${selectedYeastLabel} amount for this dough plan.`");
+    expect(page).toContain("label.startsWith(\"Yeast\")");
   });
 
   it("keeps planning guidance cautious when target time is missing", () => {

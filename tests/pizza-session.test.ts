@@ -51,6 +51,7 @@ describe("Pizza Session data model", () => {
       status: "draft",
       currentStep: "style",
       experienceLevel: "beginner",
+      yeastType: "ady",
       createdAt: "2026-06-25T10:00:00.000Z",
       updatedAt: "2026-06-25T10:00:00.000Z",
       lastOpenedAt: "2026-06-25T10:00:00.000Z",
@@ -71,6 +72,15 @@ describe("Pizza Session data model", () => {
     expect(session.status).toBe("draft");
     expect(session.currentStep).toBe("style");
     expect(session.experienceLevel).toBe("pizza_nerd");
+    expect(session.yeastType).toBe("ady");
+  });
+
+  it("normalizes supported Pizza Session yeast types while keeping dry yeast as the default", () => {
+    expect(createPizzaSession({ yeastType: "ady" }).yeastType).toBe("ady");
+    expect(createPizzaSession({ yeastType: "cy" }).yeastType).toBe("cy");
+    expect(createPizzaSession({ yeastType: "idy" }).yeastType).toBe("idy");
+    expect(createPizzaSession({ yeastType: "ssd" }).yeastType).toBe("ady");
+    expect(createPizzaSession({ yeastType: "unknown" }).yeastType).toBe("ady");
   });
 
   it("creates a planning session from recipe query parameters without changing query format", () => {
@@ -85,6 +95,7 @@ describe("Pizza Session data model", () => {
     expect(session.experienceLevel).toBe("enthusiast");
     expect(session.pizzaCount).toBe(4);
     expect(session.doughBallWeight).toBe(270);
+    expect(session.yeastType).toBe("idy");
     expect(session.recipeParams).toMatchObject({ balls: "4", hydration: "70", oven: "gas" });
     expect(session.recipeSnapshot).toMatchObject({
       balls: 4,

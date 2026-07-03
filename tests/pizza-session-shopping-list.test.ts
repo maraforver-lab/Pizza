@@ -156,11 +156,11 @@ describe("Pizza Session shopping list presets", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const doughItems = result.shoppingList.groups.find((group) => group.group === "Dough")?.items ?? [];
-    expect(doughItems.map((item) => item.label)).toEqual(["Flour", "Water", "Salt", "Yeast (idy)"]);
+    expect(doughItems.map((item) => item.label)).toEqual(["Flour", "Water", "Salt", "Yeast — Instant dry yeast"]);
     expect(doughItems.find((item) => item.label === "Flour")?.amount).toBe("642 g · from Dough Plan");
     expect(doughItems.find((item) => item.label === "Water")?.amount).toBe("411 g · from Dough Plan");
     expect(doughItems.find((item) => item.label === "Salt")?.amount).toBe("18 g · from Dough Plan");
-    expect(doughItems.find((item) => item.label === "Yeast (idy)")?.amount).toBe("0.38 g · from Dough Plan");
+    expect(doughItems.find((item) => item.label === "Yeast — Instant dry yeast")?.amount).toBe("0.38 g · from Dough Plan");
   });
 
   it("uses safe dough amount fallback when the recipe snapshot is missing", () => {

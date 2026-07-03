@@ -1,6 +1,7 @@
 import { getExperienceLevelConfig, type ExperienceLevel } from "@/lib/experience-levels";
 import { type PizzaSession, type PizzaSessionTimeline, type PizzaSessionTimelineStep } from "@/lib/pizza-session";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
+import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export type PizzaSessionTimelineResult = {
   ok: boolean;
@@ -206,12 +207,15 @@ export function generatePizzaSessionTimeline(
   if (!target) return { ok: false, missingReason: "invalid-target-time", assumptions: DEFAULT_TIMELINE_ASSUMPTIONS };
 
   const existingStatuses = new Map(session.timeline?.steps.map((step) => [step.id, step.status]));
+  const selectedYeastLabel = yeastTypeLabel(session.recipeSnapshot?.yeastType ?? session.yeastType).toLowerCase();
   const steps = timelineTemplate.map((step) => {
     const schedule = scheduleTemplateStep(target, step);
     return {
       id: step.id,
       label: step.label,
-      description: step.description,
+      description: step.id === "mix-dough"
+        ? `Combine flour, water, salt and ${selectedYeastLabel} from your recipe setup.`
+        : step.description,
       scheduledAt: schedule.scheduledAt,
       status: existingStatuses.get(step.id) ?? "todo",
       kind: step.kind,
