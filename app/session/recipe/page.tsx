@@ -9,7 +9,10 @@ import { SessionViewportReset } from "@/components/session/SessionViewportReset"
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY, updatePizzaSession } from "@/lib/pizza-session-storage";
-import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
+import {
+  buildLongHorizonStartRecommendation,
+  type LongHorizonFermentationOption,
+} from "@/lib/session-long-horizon-start";
 import {
   generateAndSaveActiveSessionRecipe,
   type SessionRecipeBuildResult,
@@ -82,6 +85,21 @@ function formatPlanningDateTime(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function samePlanStart(a?: string, b?: string) {
+  if (!a || !b) return false;
+  const left = new Date(a);
+  const right = new Date(b);
+  return Number.isFinite(left.getTime())
+    && Number.isFinite(right.getTime())
+    && left.getTime() === right.getTime();
+}
+
+function longHorizonOptionIsSelected(session: PizzaSession, option: LongHorizonFermentationOption) {
+  return session.doughStartMode === "later"
+    && session.plannedFermentationHours === option.durationHours
+    && samePlanStart(session.doughEarliestStartTime, option.startIso);
 }
 
 function selectedFlourLabel(value?: string) {
@@ -214,6 +232,10 @@ export default function SessionRecipePage() {
     planningResult,
     selectedFlourLabel: selectedFlourLabel(session.flour),
   });
+  const selectedLongHorizonOption = longHorizonRecommendation?.options.find((option) => (
+    longHorizonOptionIsSelected(session, option)
+  ));
+  const longHorizonNeedsSelection = Boolean(longHorizonRecommendation && !selectedLongHorizonOption);
   const planningHighlights = planningResult
     ? [
       longHorizonRecommendation ? {
@@ -240,13 +262,17 @@ export default function SessionRecipePage() {
     ].filter((item): item is { label: string; value: string } => Boolean(item))
     : [];
   const displayedRiskSummary = longHorizonRecommendation
-    ? "This bake target is far enough away that you should not start immediately. Use one of the planned 24h, 48h or 72h cold-fermentation start times below."
+    ? selectedLongHorizonOption
+      ? `This bake target is far enough away that you should not start immediately. DoughTools will use the selected ${selectedLongHorizonOption.durationHours}h cold-fermentation plan.`
+      : "This bake target is far enough away that you should not start immediately. Select one of the planned 24h, 48h or 72h cold-fermentation start times below."
     : sessionPlanningRiskSummary({
       summary: combinedRisk?.summary,
       isColdFermentation: result.continuousYeast?.recommendation.fermentationMode === "cold",
     });
   const displayedFirstAdjustment = longHorizonRecommendation
-    ? "Start at the selected option’s start time, not before."
+    ? selectedLongHorizonOption
+      ? `Start at ${formatPlanningDateTime(selectedLongHorizonOption.startIso)} for the selected ${selectedLongHorizonOption.durationHours}h cold fermentation.`
+      : "Choose a long-horizon plan before continuing to Shopping."
     : sessionPlanningFirstAdjustment({
       adjustment: combinedRisk?.suggestedFirstAdjustment,
       isColdFermentation: result.continuousYeast?.recommendation.fermentationMode === "cold",
@@ -263,6 +289,20 @@ export default function SessionRecipePage() {
     if (!session) return;
     const updated = updatePizzaSession(session.id, {
       plannedFermentationHours,
+      currentStep: "recipe",
+      status: "planning",
+    });
+    const saved = generateAndSaveActiveSessionRecipe();
+    setSession(saved.session ?? updated ?? session);
+    setResult(saved.result);
+  };
+
+  const updateLongHorizonPlan = (option: LongHorizonFermentationOption) => {
+    if (!session) return;
+    const updated = updatePizzaSession(session.id, {
+      plannedFermentationHours: option.durationHours,
+      doughStartMode: "later",
+      doughEarliestStartTime: option.startIso,
       currentStep: "recipe",
       status: "planning",
     });
@@ -474,17 +514,42 @@ export default function SessionRecipePage() {
                         </div>
                       </div>
 
-                      <dl className="mt-4 grid gap-2 lg:grid-cols-3">
+                      <div className="mt-4 grid gap-2 lg:grid-cols-3">
                         {longHorizonRecommendation.options.map((option) => (
-                          <div key={option.durationHours} className={`rounded-2xl border bg-white p-3 ${option.isRecommended ? "border-leaf/30 ring-1 ring-leaf/20" : "border-ink/10"}`}>
-                            <dt className="text-sm font-extrabold text-ink">{option.label}</dt>
-                            <dd className="mt-1 text-sm leading-6 text-ink/65">
+                          <button
+                            key={option.durationHours}
+                            type="button"
+                            onClick={() => updateLongHorizonPlan(option)}
+                            aria-pressed={longHorizonOptionIsSelected(session, option)}
+                            className={`rounded-2xl border bg-white p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                              longHorizonOptionIsSelected(session, option)
+                                ? "border-tomato/45 ring-2 ring-tomato/20"
+                                : option.isRecommended
+                                  ? "border-leaf/30 ring-1 ring-leaf/20 hover:border-tomato/30"
+                                  : "border-ink/10 hover:border-tomato/30"
+                            }`}
+                          >
+                            <span className="block text-sm font-extrabold text-ink">{option.label}</span>
+                            <span className="mt-1 block text-sm leading-6 text-ink/65">
                               Start {formatPlanningDateTime(option.startIso)}
-                            </dd>
-                            <dd className="mt-2 text-xs font-bold leading-5 text-ink/55">{option.flourGuidance}</dd>
-                          </div>
+                            </span>
+                            <span className="mt-2 block text-xs font-bold leading-5 text-ink/55">{option.flourGuidance}</span>
+                            <span className={`mt-3 inline-flex min-h-10 items-center justify-center rounded-2xl px-3 text-xs font-extrabold ${
+                              longHorizonOptionIsSelected(session, option)
+                                ? "bg-tomato text-white"
+                                : "bg-cream text-ink/65"
+                            }`}>
+                              {longHorizonOptionIsSelected(session, option) ? "Selected plan ✓" : "Select this plan"}
+                            </span>
+                          </button>
                         ))}
-                      </dl>
+                      </div>
+
+                      {!selectedLongHorizonOption && (
+                        <p className="mt-3 rounded-2xl bg-white/80 p-3 text-sm font-extrabold leading-6 text-tomato">
+                          Select one of these plans before continuing so DoughTools can calculate yeast, flour guidance, Timeline, and Kitchen Mode from the chosen fermentation window.
+                        </p>
+                      )}
 
                       <div className="mt-3 grid gap-2 rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/65 sm:grid-cols-2">
                         <p><span className="font-extrabold text-ink">Selected flour:</span> {longHorizonRecommendation.selectedFlourLabel}</p>
@@ -512,12 +577,22 @@ export default function SessionRecipePage() {
             </Link>
           )}
           primary={(
-            <Link
-              href="/session/shopping"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
-            >
-              Continue to Shopping →
-            </Link>
+            longHorizonNeedsSelection ? (
+              <button
+                type="button"
+                disabled
+                className="inline-flex min-h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-ink/20 px-5 text-sm font-extrabold text-ink/50 shadow-sm sm:w-auto"
+              >
+                Select a fermentation plan first
+              </button>
+            ) : (
+              <Link
+                href="/session/shopping"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
+              >
+                Continue to Shopping →
+              </Link>
+            )
           )}
         />
       </SessionWorkspaceLayout>

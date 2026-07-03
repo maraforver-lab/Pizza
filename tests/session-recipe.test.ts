@@ -142,9 +142,18 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Buy guidance");
     expect(page).toContain("Long-horizon start plan");
     expect(page).toContain("This bake target is far enough away that you should not start immediately.");
-    expect(page).toContain("Start at the selected option’s start time, not before.");
+    expect(page).toContain("Select one of the planned 24h, 48h or 72h cold-fermentation start times below.");
+    expect(page).toContain("DoughTools will use the selected");
     expect(page).toContain("Choose a 24h, 48h or 72h cold fermentation plan closer to bake day.");
     expect(page).toContain("48h cold fermentation");
+    expect(page).toContain("updateLongHorizonPlan");
+    expect(page).toContain("doughStartMode: \"later\"");
+    expect(page).toContain("doughEarliestStartTime: option.startIso");
+    expect(page).toContain("aria-pressed={longHorizonOptionIsSelected(session, option)}");
+    expect(page).toContain("Select this plan");
+    expect(page).toContain("Selected plan ✓");
+    expect(page).toContain("Select a fermentation plan first");
+    expect(page).toContain("Select one of these plans before continuing");
     expect(page).toContain("Selected flour:");
     expect(page).toContain("Recommended flour for 48–72h cold fermentation:");
     expect(page).toContain("recommendedFlourStrengthGuidance");
@@ -728,6 +737,51 @@ describe("Session recipe build step", () => {
     expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeNull();
     expect(result.continuousYeast?.summary).toContain("not calculated for the full long-horizon window");
     expect(result.ingredients).toEqual(calculateDoughIngredients(result.settings));
+  });
+
+  it("uses a selected long-horizon option as the actual fermentation plan", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const target = new Date("2026-07-10T09:00:00");
+    const selectedStart = new Date(target.getTime() - 48 * 3_600_000).toISOString();
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-selected-long-horizon-plan",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      flourSituation: "has_w_range",
+      availableFlourWRanges: ["w_260_300"],
+      targetEatTime: "2026-07-10T09:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: selectedStart,
+      plannedFermentationHours: 48,
+    }, now);
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok || !result.planningInfo.ok) throw new Error("Expected selected long-horizon recipe");
+
+    const longHorizon = buildLongHorizonStartRecommendation({
+      planningResult: result.planningInfo.result,
+      selectedFlourLabel: "Pizza flour / Tipo 00",
+    });
+
+    expect(longHorizon?.options.map((option) => option.durationHours)).toEqual([24, 48, 72]);
+    expect(longHorizon?.options.find((option) => option.durationHours === 48)?.startIso).toBe(selectedStart);
+    expect(result.continuousYeast).toMatchObject({
+      appliedToIngredients: true,
+      basisLabel: "48 h cold fermentation",
+      availableFermentationHours: 48,
+      selectedFermentationHours: 48,
+      selectedByUser: true,
+    });
+    expect(result.continuousYeast?.recommendation.status).toBe("ok");
+    expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeCloseTo(result.ingredients.leavener, 3);
+    expect(result.flourWGuidance).toMatchObject({
+      status: "ok",
+      recommendationLabel: "W 260–300",
+      fitLevel: "suitable",
+    });
   });
 
   it("recommends same-day W-value ranges for a 6h room fermentation window", () => {

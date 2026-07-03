@@ -180,6 +180,38 @@ describe("Pizza Session Kitchen Mode", () => {
       .toBe(new Date("2026-07-03T12:00:00").toISOString());
   });
 
+  it("uses a selected long-horizon plan for Kitchen Mode displayed dough timing", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const target = new Date("2026-07-10T09:00:00");
+    const selectedStart = new Date(target.getTime() - 48 * 3_600_000);
+    const base = createPizzaSession({
+      id: "kitchen-selected-long-horizon-option",
+      status: "planning",
+      currentStep: "timeline",
+      targetEatTime: "2026-07-10T09:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: selectedStart.toISOString(),
+      plannedFermentationHours: 48,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const session = createPizzaSession({
+      ...base,
+      timeline: generatePizzaSessionTimeline(base, now).timeline,
+    }, now);
+
+    const state = getKitchenModeState(session, now);
+    expect(state.ok).toBe(true);
+    if (!state.ok) throw new Error("Expected kitchen state");
+    expect(state.currentStep?.id).toBe("mix-dough");
+    expect(state.currentStep?.scheduledAt).toBe(selectedStart.toISOString());
+    expect(session.timeline?.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .not.toBe(selectedStart.toISOString());
+  });
+
   it("marks the current kitchen task done, advances currentStep and preserves local session data", () => {
     const storage = new MemoryStorage();
     const session = createAndSavePizzaSession({

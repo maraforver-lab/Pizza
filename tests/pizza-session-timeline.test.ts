@@ -478,6 +478,44 @@ describe("Pizza Session timeline", () => {
     }
   });
 
+  it("uses the selected long-horizon fermentation option to anchor displayed dough timing", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const target = new Date("2026-07-10T09:00:00");
+    const selectedStart = new Date(target.getTime() - 48 * 3_600_000);
+    const session = createPizzaSession({
+      id: "timeline-selected-long-horizon-option",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-10T09:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: selectedStart.toISOString(),
+      plannedFermentationHours: 48,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+      now,
+    });
+
+    expect(recipe.continuousYeast?.basisLabel).toBe("48 h cold fermentation");
+    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt).not.toBe(selectedStart.toISOString());
+    expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(selectedStart.toISOString());
+    expect(displayed.find((step) => step.id === "rest-dough")?.scheduledAt)
+      .toBe(new Date(selectedStart.getTime() + 30 * 60_000).toISOString());
+    expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt)
+      .toBe(new Date(selectedStart.getTime() + 60 * 60_000).toISOString());
+  });
+
   it("keeps Next up focused on the real next action", () => {
     const page = source("app/session/timeline/page.tsx");
 
