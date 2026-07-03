@@ -117,6 +117,7 @@ export type PizzaSession = {
   targetBakeTime?: string;
   doughStartMode?: PizzaSessionDoughStartMode;
   doughEarliestStartTime?: string;
+  plannedFermentationHours?: number;
   pizzaCount?: number;
   doughBallWeight?: number;
   ovenType?: string;
@@ -177,6 +178,11 @@ function doughBallWeightValue(value: unknown): number | undefined {
   return number !== undefined && number >= 180 && number <= 350 ? number : undefined;
 }
 
+function plannedFermentationHoursValue(value: unknown): number | undefined {
+  const number = positiveNumberValue(value);
+  return number !== undefined && number >= 24 && number <= 72 ? number : undefined;
+}
+
 function normalizeStatus(value: unknown): PizzaSessionStatus {
   return typeof value === "string" && statusSet.has(value) ? value as PizzaSessionStatus : "draft";
 }
@@ -192,6 +198,7 @@ function normalizeDoughStartMode(value: unknown): PizzaSessionDoughStartMode | u
 }
 
 function normalizeFlourSituation(value: unknown): PizzaSessionFlourSituation | undefined {
+  if (value === "unknown_w") return "recommend";
   return typeof value === "string" && flourSituationSet.has(value)
     ? value as PizzaSessionFlourSituation
     : undefined;
@@ -350,6 +357,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     doughEarliestStartTime: normalizeDoughStartMode(input.doughStartMode) === "later"
       ? stringValue(input.doughEarliestStartTime)
       : undefined,
+    plannedFermentationHours: plannedFermentationHoursValue(input.plannedFermentationHours),
     pizzaCount: positiveNumberValue(input.pizzaCount),
     doughBallWeight: doughBallWeightValue(input.doughBallWeight),
     ovenType: stringValue(input.ovenType),

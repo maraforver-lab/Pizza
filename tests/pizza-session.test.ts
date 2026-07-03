@@ -111,6 +111,14 @@ describe("Pizza Session data model", () => {
     expect(migratePizzaSession({ schemaVersion: 1 })).toBeUndefined();
     expect(migratePizzaSession({ ...session, schemaVersion: 2 })).toBeUndefined();
   });
+
+  it("normalizes optional planned fermentation hours as a bounded 24–72h planning choice", () => {
+    expect(createPizzaSession({ plannedFermentationHours: 24 }).plannedFermentationHours).toBe(24);
+    expect(createPizzaSession({ plannedFermentationHours: 48 }).plannedFermentationHours).toBe(48);
+    expect(createPizzaSession({ plannedFermentationHours: 72 }).plannedFermentationHours).toBe(72);
+    expect(createPizzaSession({ plannedFermentationHours: 12 }).plannedFermentationHours).toBeUndefined();
+    expect(createPizzaSession({ plannedFermentationHours: 96 }).plannedFermentationHours).toBeUndefined();
+  });
 });
 
 describe("Pizza Session local storage", () => {

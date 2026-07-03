@@ -46,7 +46,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("href={backHref}");
     expect(kitchen).toContain("kitchenBackHrefFromSource");
     expectTextLink(kitchen, "Review your pizza →", "/session/review");
-    expectTextLink(review, "Start a new Pizza Session →", "/session/start?new=1");
+    expectTextLink(review, "Back to homepage →", "/");
     expect(review).not.toContain("Back to Kitchen Mode");
     expect(review).not.toContain("View timeline");
   });
@@ -55,8 +55,9 @@ describe("Pizza Session flow navigation integrity", () => {
     const timeline = source("app/session/timeline/page.tsx");
 
     expect(timeline).toContain("Shopping checkpoint");
-    expect(timeline).toContain("Pizza choices and shopping");
-    expect(timeline).toContain("This should be handled before Timeline.");
+    expect(timeline).toContain("Shopping review");
+    expect(timeline).toContain("Shopping should be handled before Timeline.");
+    expect(timeline).not.toContain("Pizza choices and shopping");
     expect(timeline).toContain("Review shopping →");
     expect(timeline).toContain('href="/session/shopping"');
     expect(timeline).toContain("const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep)");

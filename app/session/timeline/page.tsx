@@ -271,8 +271,8 @@ function ShoppingCheckpointRow({
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
               Shopping checkpoint
             </p>
-            <h3 className="mt-1.5 font-display text-2xl font-semibold">Pizza choices and shopping</h3>
-            <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">This should be handled before Timeline. You can reopen it if you want to adjust toppings.</p>
+            <h3 className="mt-1.5 font-display text-2xl font-semibold">Shopping review</h3>
+            <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">Shopping should be handled before Timeline. Reopen it only if you need to adjust toppings or buy-list checks.</p>
             <p className="mt-2 hidden text-sm leading-6 text-ink/65 sm:block">Timeline stays focused on when to work; Shopping owns toppings and buy-list checks.</p>
           </div>
         </div>

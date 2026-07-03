@@ -121,17 +121,21 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Use these amounts when mixing your dough.");
     expect(page).not.toContain("Use a digital scale for best accuracy. That’s enough to start the dough.");
     expect(page).not.toContain("Yeast can be a very small amount. A precision scale helps.");
-    expect(page).toContain("Tools");
-    expect(page).toContain("Have these ready");
-    expect(page).toContain('label: "Digital scale"');
-    expect(page).toContain('label: "Mixing bowl"');
-    expect(page).toContain('label: "Dough scraper or sturdy spoon"');
-    expect(page).toContain('label: "Covered container or bowl"');
+    expect(page).not.toContain("doughPrepTools");
+    expect(page).not.toContain("Have these ready");
+    expect(page).not.toContain('label: "Digital scale"');
+    expect(page).not.toContain('label: "Mixing bowl"');
+    expect(page).not.toContain('label: "Dough scraper or sturdy spoon"');
+    expect(page).not.toContain('label: "Covered container or bowl"');
     expect(page).toContain("Dough planning notes");
     expect(page).toContain("Planning guidance is based on available session choices.");
     expect(page).toContain("Overall risk");
     expect(page).toContain("What to adjust first");
     expect(page).toContain("Session planning context");
+    expect(page).toContain("Planned fermentation length");
+    expect(page).toContain("Fermentation place / temperature");
+    expect(page).toContain("Choose a cold fermentation length");
+    expect(page).toContain("Pick the length you want DoughTools to use for yeast and flour-strength guidance.");
     expect(page).toContain("W-value guidance");
     expect(page).toContain("Recommended flour strength");
     expect(page).toContain("Available flour");
@@ -509,6 +513,89 @@ describe("Session recipe build step", () => {
     expect(result.ingredients.leavener).toBeGreaterThan(fortyEightHour.yeastAmountGrams ?? 0);
   });
 
+  it("uses a selected 24–72h cold fermentation length when the actual window supports it", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const defaultFortyHour = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-forty-hour-default-selected-window",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+    }, now), now);
+    const selectedTwentyFour = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-forty-hour-selected-24h",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+      plannedFermentationHours: 24,
+    }, now), now);
+
+    expect(defaultFortyHour.ok).toBe(true);
+    expect(selectedTwentyFour.ok).toBe(true);
+    if (!defaultFortyHour.ok || !selectedTwentyFour.ok) throw new Error("Expected selectable fermentation recipes");
+
+    expect(defaultFortyHour.continuousYeast).toMatchObject({
+      availableFermentationHours: 40,
+      selectedFermentationHours: 40,
+      selectedByUser: false,
+    });
+    expect(selectedTwentyFour.continuousYeast).toMatchObject({
+      availableFermentationHours: 40,
+      selectedFermentationHours: 24,
+      selectedByUser: true,
+      basisLabel: "24 h cold fermentation",
+    });
+    expect(selectedTwentyFour.ingredients.leavener).toBeGreaterThan(defaultFortyHour.ingredients.leavener);
+    expect(selectedTwentyFour.flourWGuidance?.recommendationLabel).toBe("W 260–300");
+  });
+
+  it("ignores selected cold fermentation length for under-24h and over-72h windows", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const under24 = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-under-24h-selector-ignored",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-02T15:00",
+      doughStartMode: "now",
+      plannedFermentationHours: 24,
+    }, now), now);
+    const over72 = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-over-72h-selector-ignored",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-10T09:00",
+      doughStartMode: "now",
+      plannedFermentationHours: 48,
+    }, now), now);
+
+    expect(under24.ok).toBe(true);
+    expect(over72.ok).toBe(true);
+    if (!under24.ok || !over72.ok) throw new Error("Expected selector guard recipes");
+
+    expect(under24.continuousYeast).toMatchObject({
+      selectedFermentationHours: 6,
+      selectedByUser: false,
+    });
+    expect(over72.continuousYeast).toMatchObject({
+      appliedToIngredients: false,
+      selectedFermentationHours: 192,
+      selectedByUser: false,
+    });
+  });
+
   it("uses dough start availability instead of full time until bake for continuous yeast basis", () => {
     const now = new Date("2026-07-02T09:00:00");
     const session = createPizzaSession({
@@ -662,7 +749,7 @@ describe("Session recipe build step", () => {
     expect(result.flourWGuidance?.recommendedBuySummary).toContain("Buy flour around W 260–300");
   });
 
-  it("shows safe unknown-W guidance for a 40h cold fermentation window", () => {
+  it("normalizes legacy unknown-W sessions to recommend-buy guidance for a 40h cold fermentation window", () => {
     const now = new Date("2026-07-02T09:00:00");
     const result = buildSessionRecipe(createPizzaSession({
       ...completeSessionInput,
@@ -676,14 +763,14 @@ describe("Session recipe build step", () => {
       doughStartMode: "now",
     }, now), now);
     expect(result.ok).toBe(true);
-    if (!result.ok) throw new Error("Expected unknown W guidance");
+    if (!result.ok) throw new Error("Expected normalized W guidance");
 
     expect(result.flourWGuidance).toMatchObject({
       recommendationLabel: "W 260–300",
-      fitLevel: "unknown",
+      fitLevel: "buy_recommended",
     });
-    expect(result.flourWGuidance?.availableFlourSummary).toContain("W-value unknown");
-    expect(result.flourWGuidance?.availableFlourSummary).toContain("check the W-value");
+    expect(result.flourWGuidance?.availableFlourSummary).toContain("No flour selected");
+    expect(result.flourWGuidance?.recommendedBuySummary).toContain("Buy flour around W 260–300");
   });
 
   it("compares available W ranges with a 40h cold recommendation", () => {

@@ -88,8 +88,11 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("How many pizzas?");
     expect(page).toContain("Dough ball size");
     expect(page).toContain("This controls how much dough each pizza uses.");
-    expect(page).toContain("const DOUGH_BALL_WEIGHT_OPTIONS = [240, 260, 280] as const");
+    expect(page).toContain("const DOUGH_BALL_WEIGHT_OPTIONS = [220, 240, 260, 280, 300] as const");
+    expect(page).toContain("const doughBallWeightGuidance");
     expect(page).toContain("{weight} g");
+    expect(page).toContain("About 30–32 cm");
+    expect(page).toContain("Most popular");
     expect(page).toContain("Custom grams per dough ball");
     expect(page).toContain("Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas.");
     expect(page).toContain("Do you already have flour?");
@@ -122,7 +125,7 @@ describe("Start Pizza Session wizard", () => {
     expect(source("lib/pizza-session-presets.ts")).toContain("Meat lovers");
     expect(source("lib/pizza-session-presets.ts")).toContain("White pizza");
     expect(page).toContain("No, recommend what to buy");
-    expect(page).toContain("I don’t know the W-value");
+    expect(page).not.toContain("I don’t know the W-value");
     expect(page).toContain("W 180–220");
     expect(page).toContain("W 220–260");
     expect(page).toContain("W 260–300");
@@ -163,6 +166,7 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
+    expect(page.indexOf('label: "Pizza oven"')).toBeLessThan(page.indexOf('label: "Home oven"'));
     expect(page).not.toContain('id: "pan-tray",');
     expect(page).not.toContain("Not sure yet");
     expect(page).toContain("grid gap-3 sm:grid-cols-2");
@@ -178,7 +182,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain("White pizza");
     expect(page).not.toContain("I’ll decide toppings later");
     expect(page).toContain("No, recommend what to buy");
-    expect(page).toContain("I don’t know the W-value");
+    expect(page).not.toContain("I don’t know the W-value");
     expect(page).toContain("W 180–220");
     expect(page).toContain("W 220–260");
     expect(page).toContain("W 260–300");
@@ -266,12 +270,12 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("aria-disabled={state === \"upcoming\" ? true : undefined}");
   });
 
-  it("maps old removed oven fallback choices to Home oven safely", () => {
+  it("maps old removed oven fallback choices to Pizza oven safely", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain('nextSession.pizzaStyle === "not-sure"');
-    expect(page).toContain('pizzaStyle: "home-oven"');
-    expect(page).toContain('ovenType: "home"');
+    expect(page).toContain('pizzaStyle: "pizza-oven"');
+    expect(page).toContain('ovenType: "gas"');
     expect(page).not.toContain('label: "Not sure yet"');
   });
 
@@ -416,6 +420,17 @@ describe("Start Pizza Session wizard", () => {
     expect(updated?.lastSavedAt).not.toBe(started.lastSavedAt);
   });
 
+  it("documents the new-session defaults for Pizza oven, Neapolitan-style and recommend-flour setup", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain('pizzaStyle: "pizza-oven"');
+    expect(page).toContain('ovenType: "gas"');
+    expect(page).toContain("pizzaPreset: DEFAULT_SESSION_TOPPING_PRESET");
+    expect(page).toContain('flourSituation: "recommend"');
+    expect(page).toContain("DEFAULT_SESSION_FORMULA_FLOUR");
+    expect(page).toContain('if (session.currentStep === "style") return "path";');
+  });
+
   it("normalizes optional flour situation and W-value ranges without breaking old flour sessions", () => {
     const oldSession = createPizzaSession({ flour: "tipo-00" });
     const rangeSession = createPizzaSession({
@@ -435,6 +450,7 @@ describe("Start Pizza Session wizard", () => {
     expect(rangeSession.availableFlourWRanges).toEqual(["w_260_300", "w_340_plus"]);
     expect(recommendSession.flourSituation).toBe("recommend");
     expect(recommendSession.flour).toBe("tipo-00");
+    expect(createPizzaSession({ flourSituation: "unknown_w" }).flourSituation).toBe("recommend");
   });
 
   it("normalizes optional dough ball weight without breaking old quantity sessions", () => {

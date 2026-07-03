@@ -405,7 +405,7 @@ export function generateAndSaveActiveShoppingList(
   pizzaMixOverride?: PizzaSessionPizzaMix,
 ) {
   const session = getActivePizzaSession(storage);
-  const selectedPresetId = presetId ?? session?.shoppingList?.presetId ?? session?.pizzaPreset ?? pizzaSessionPresets[0].id;
+  const selectedPresetId = presetId ?? (session?.pizzaMix ? undefined : session?.shoppingList?.presetId ?? session?.pizzaPreset ?? pizzaSessionPresets[0].id);
   const result = generatePizzaSessionShoppingList(session, selectedPresetId, now, pizzaMixOverride);
   if (!session || !result.ok) return { session, result };
 

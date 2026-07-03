@@ -8,7 +8,7 @@ import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import type { PizzaSession } from "@/lib/pizza-session";
-import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
+import { PIZZA_SESSION_LOCAL_ONLY_COPY, updatePizzaSession } from "@/lib/pizza-session-storage";
 import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import {
   generateAndSaveActiveSessionRecipe,
@@ -51,6 +51,24 @@ function formatAvailableHours(value?: number) {
   if (value < 1) return `${Math.round(value * 60)} min`;
   const rounded = Math.round(value * 10) / 10;
   return `${rounded} h`;
+}
+
+function fermentationDurationOptions(availableHours?: number) {
+  if (typeof availableHours !== "number" || !Number.isFinite(availableHours)) return [];
+  if (availableHours < 24 || availableHours > 72) return [];
+  const roundedAvailable = Math.round(availableHours * 10) / 10;
+  return [...new Set([24, 48, 72, roundedAvailable]
+    .filter((value) => value >= 24 && value <= 72 && value <= availableHours)
+    .sort((a, b) => a - b))];
+}
+
+function formatFermentationLength(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "Not selected";
+  return `${Math.round(value * 10) / 10} h`;
+}
+
+function fermentationOptionIsActive(selected: number | undefined, option: number) {
+  return typeof selected === "number" && Number.isFinite(selected) && Math.abs(selected - option) < 0.11;
 }
 
 function formatPlanningDateTime(value: string) {
@@ -160,12 +178,6 @@ export default function SessionRecipePage() {
     },
     { label: "Total dough", value: formatGram(result.ingredients.total), icon: "🥣", description: "Your full dough batch.", summary: true },
   ];
-  const doughPrepTools = [
-    { label: "Digital scale", icon: "⚖️", description: "Weigh ingredients accurately." },
-    { label: "Mixing bowl", icon: "🥣", description: "Big enough for mixing." },
-    { label: "Dough scraper or sturdy spoon", icon: "🥄", description: "Helpful for mixing and handling." },
-    { label: "Covered container or bowl", icon: "◒", description: "Keeps dough covered while it rests." },
-  ];
   const planningInfo = result.planningInfo;
   const planningResult = planningInfo.ok ? planningInfo.result : null;
   const combinedRisk = planningResult?.combinedRiskSummary;
@@ -205,6 +217,25 @@ export default function SessionRecipePage() {
   const displayedFirstAdjustment = longHorizonRecommendation
     ? "Wait to mix the dough, then start at the recommended cold-fermentation window for the duration you choose."
     : combinedRisk?.suggestedFirstAdjustment;
+  const coldFermentationOptions = fermentationDurationOptions(result.continuousYeast?.availableFermentationHours);
+  const showColdFermentationSelector = Boolean(
+    result.continuousYeast?.recommendation.fermentationMode === "cold"
+    && coldFermentationOptions.length > 0
+    && !longHorizonRecommendation,
+  );
+  const selectedFermentationHours = result.continuousYeast?.selectedFermentationHours;
+
+  const updatePlannedFermentationHours = (plannedFermentationHours: number) => {
+    if (!session) return;
+    const updated = updatePizzaSession(session.id, {
+      plannedFermentationHours,
+      currentStep: "recipe",
+      status: "planning",
+    });
+    const saved = generateAndSaveActiveSessionRecipe();
+    setSession(saved.session ?? updated ?? session);
+    setResult(saved.result);
+  };
 
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
@@ -223,7 +254,7 @@ export default function SessionRecipePage() {
         <section className="mt-4 sm:mt-6" aria-label="Dough plan details">
           <div className="grid min-w-0 gap-4 sm:gap-5">
             <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7">
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(17rem,.85fr)] lg:gap-6">
+              <div className="grid gap-5">
                 <section aria-labelledby="ingredients-amounts-heading" className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 id="ingredients-amounts-heading" className="font-display text-2xl font-semibold">Ingredients & amounts</h3>
@@ -267,24 +298,6 @@ export default function SessionRecipePage() {
                     ))}
                   </dl>
                 </section>
-
-                <section aria-labelledby="dough-tools-heading" className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 id="dough-tools-heading" className="font-display text-2xl font-semibold">Tools</h3>
-                    <span className="rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato">Have these ready</span>
-                  </div>
-                  <ul className="mt-4 grid gap-2.5">
-                    {doughPrepTools.map((item) => (
-                      <li key={item.label} className="grid grid-cols-[auto_1fr] items-center gap-3 rounded-2xl border border-white/80 bg-white p-3.5">
-                        <span aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-2xl bg-cream text-xl shadow-sm">{item.icon}</span>
-                        <span className="min-w-0">
-                          <span className="block text-sm font-extrabold text-ink">{item.label}</span>
-                          <span className="mt-0.5 block text-xs leading-4 text-ink/45">{item.description}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
               </div>
             </article>
 
@@ -327,9 +340,59 @@ export default function SessionRecipePage() {
                             <dd className="text-sm font-bold leading-5 text-ink/70">{item.value}</dd>
                           </div>
                         ))}
+                        {result.continuousYeast && (
+                          <>
+                            <div className="grid gap-1 rounded-2xl bg-white p-3">
+                              <dt className="text-xs font-extrabold text-ink/45">Planned fermentation length</dt>
+                              <dd className="text-sm font-bold leading-5 text-ink/70">{formatFermentationLength(result.continuousYeast.selectedFermentationHours)}</dd>
+                            </div>
+                            <div className="grid gap-1 rounded-2xl bg-white p-3">
+                              <dt className="text-xs font-extrabold text-ink/45">Fermentation place / temperature</dt>
+                              <dd className="text-sm font-bold leading-5 text-ink/70">
+                                {result.continuousYeast.recommendation.fermentationMode === "cold"
+                                  ? `Cold fermentation in the fridge · ${result.continuousYeast.recommendation.temperatureC} °C`
+                                  : `Room fermentation · ${result.continuousYeast.recommendation.temperatureC} °C`}
+                              </dd>
+                            </div>
+                          </>
+                        )}
                       </dl>
                     </section>
                   </div>
+
+                  {showColdFermentationSelector && (
+                    <section className="rounded-[1.25rem] border border-leaf/25 bg-leaf/[.07] p-4" aria-labelledby="fermentation-duration-heading">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Fermentation length</p>
+                          <h4 id="fermentation-duration-heading" className="mt-2 font-display text-2xl font-semibold">Choose a cold fermentation length</h4>
+                          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+                            Your current window can support a cold fridge fermentation between 24h and 72h. Pick the length you want DoughTools to use for yeast and flour-strength guidance.
+                          </p>
+                        </div>
+                        <span className="w-fit rounded-full bg-white/80 px-3 py-2 text-xs font-extrabold text-ink/55">
+                          Available window: {formatAvailableHours(result.continuousYeast?.availableFermentationHours)}
+                        </span>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {coldFermentationOptions.map((hours) => (
+                          <button
+                            key={hours}
+                            type="button"
+                            onClick={() => updatePlannedFermentationHours(hours)}
+                            aria-pressed={fermentationOptionIsActive(selectedFermentationHours, hours)}
+                            className={`min-h-11 rounded-2xl px-4 text-sm font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                              fermentationOptionIsActive(selectedFermentationHours, hours)
+                                ? "bg-tomato text-white"
+                                : "bg-white text-ink/65 ring-1 ring-ink/10 hover:text-tomato"
+                            }`}
+                          >
+                            {formatFermentationLength(hours)} cold
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
                   {flourWGuidance && (
                     <section className={`rounded-[1.25rem] border p-4 ${flourFitTone(flourWGuidance.fitLevel)}`}>

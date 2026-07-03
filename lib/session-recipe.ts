@@ -25,6 +25,9 @@ export type SessionRecipeContinuousYeastInfo = {
   appliedToIngredients: boolean;
   basisLabel: string;
   summary: string;
+  availableFermentationHours: number;
+  selectedFermentationHours: number;
+  selectedByUser: boolean;
 };
 
 export type SessionRecipeBuildResult =
@@ -146,6 +149,13 @@ function formatYeastBasisHours(hours: number | null) {
   return `${rounded} h`;
 }
 
+function validSessionPlannedFermentationHours(value: number | undefined, availableHours: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  if (value < 24 || value > 72) return undefined;
+  if (!Number.isFinite(availableHours) || availableHours < 24 || availableHours > 72) return undefined;
+  return value <= availableHours ? value : undefined;
+}
+
 function defaultSessionBallWeight({
   isPan,
   ovenType,
@@ -216,11 +226,15 @@ function buildSessionContinuousYeast({
   if (!yeastType || !target) return { ingredients: baseIngredients, continuousYeast: null };
 
   const start = resolveDoughStartForRecipe(session, now, target);
-  const fermentationHours = hoursBetween(start, target);
+  const availableFermentationHours = hoursBetween(start, target);
   const recommendedMode = planningInfo.ok
     ? planningInfo.result.fermentationSetupRecommendation?.recommendedFermentationMode
     : undefined;
   const mode: ContinuousYeastFermentationMode = recommendedMode === "room" ? "room" : "cold";
+  const selectedFermentationHours = mode === "cold"
+    ? validSessionPlannedFermentationHours(session.plannedFermentationHours, availableFermentationHours)
+    : undefined;
+  const fermentationHours = selectedFermentationHours ?? availableFermentationHours;
   const temperatureC = mode === "cold"
     ? settings.fermentation.endsWith("cold") ? settings.temperature : 4
     : settings.fermentation.endsWith("cold") ? 22 : settings.temperature;
@@ -245,6 +259,9 @@ function buildSessionContinuousYeast({
         appliedToIngredients: false,
         basisLabel,
         summary,
+        availableFermentationHours,
+        selectedFermentationHours: fermentationHours,
+        selectedByUser: Boolean(selectedFermentationHours),
       },
     };
   }
@@ -266,6 +283,9 @@ function buildSessionContinuousYeast({
       appliedToIngredients: true,
       basisLabel,
       summary: `Yeast amount is calculated for about ${basisLabel}.`,
+      availableFermentationHours,
+      selectedFermentationHours: fermentationHours,
+      selectedByUser: Boolean(selectedFermentationHours),
     },
   };
 }

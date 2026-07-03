@@ -396,8 +396,9 @@ describe("Pizza Session timeline", () => {
 
     expect(page).toContain("function ShoppingCheckpointRow");
     expect(page).toContain("Shopping checkpoint");
-    expect(page).toContain("Pizza choices and shopping");
-    expect(page).toContain("This should be handled before Timeline.");
+    expect(page).toContain("Shopping review");
+    expect(page).toContain("Shopping should be handled before Timeline.");
+    expect(page).not.toContain("Pizza choices and shopping");
     expect(page).toContain("Timeline stays focused on when to work; Shopping owns toppings and buy-list checks.");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("Review shopping →");

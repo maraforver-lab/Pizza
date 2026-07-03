@@ -55,17 +55,17 @@ const journeySteps = [
 
 const styleOptions = [
   {
-    id: "home-oven",
-    label: "Home oven",
-    icon: "▤",
-    description: "Use a normal home oven with a tray, stone or steel.",
-    badge: "Most popular",
-  },
-  {
     id: "pizza-oven",
     label: "Pizza oven",
     icon: "◠",
     description: "Use a high-heat pizza oven like Ooni, Gozney or similar.",
+    badge: "Most popular",
+  },
+  {
+    id: "home-oven",
+    label: "Home oven",
+    icon: "▤",
+    description: "Use a normal home oven with a tray, stone or steel.",
     badge: undefined,
   },
 ] as const;
@@ -85,7 +85,6 @@ const flourSituationOptions: Array<{
   description: string;
 }> = [
   { id: "recommend", label: "No, recommend what to buy", icon: "🛒", description: "DoughTools can suggest a flour strength later." },
-  { id: "unknown_w", label: "I don’t know the W-value", icon: "?", description: "Use this when the bag does not show flour strength." },
 ];
 
 const flourWRangeOptions: Array<{
@@ -111,9 +110,47 @@ const doughStartOptions: Array<{
   { id: "recommend", label: "Let DoughTools recommend", description: "Use the bake time to suggest the best start window." },
 ];
 
-const DOUGH_BALL_WEIGHT_OPTIONS = [240, 260, 280] as const;
+const DOUGH_BALL_WEIGHT_OPTIONS = [220, 240, 260, 280, 300] as const;
 const MIN_DOUGH_BALL_WEIGHT = 180;
 const MAX_DOUGH_BALL_WEIGHT = 350;
+
+const doughBallWeightGuidance: Record<typeof DOUGH_BALL_WEIGHT_OPTIONS[number], {
+  pizzaSize: string;
+  bestFor: string;
+  reason: string;
+  visual: string;
+}> = {
+  220: {
+    pizzaSize: "Smaller pizza",
+    bestFor: "lighter appetite or smaller home setups",
+    reason: "Easier to handle and stretch.",
+    visual: "◔",
+  },
+  240: {
+    pizzaSize: "Balanced small",
+    bestFor: "making several pizzas",
+    reason: "Still light, with enough rim to feel satisfying.",
+    visual: "◑",
+  },
+  260: {
+    pizzaSize: "About 30–32 cm",
+    bestFor: "classic Neapolitan-style balance",
+    reason: "A strong default for most sessions.",
+    visual: "◕",
+  },
+  280: {
+    pizzaSize: "Larger pizza",
+    bestFor: "bigger appetite or larger oven space",
+    reason: "More generous crust and center.",
+    visual: "●",
+  },
+  300: {
+    pizzaSize: "Large pizza",
+    bestFor: "very filling pizzas",
+    reason: "Needs more stretching room and oven capacity.",
+    visual: "⬤",
+  },
+};
 
 const doughStyleOptions = [
   {
@@ -157,7 +194,7 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     preset: "Start with the dough style. Toppings come later when you build the shopping list.",
     time: "Pick the time you want pizza. DoughTools will plan backwards from there.",
     quantity: "Choose a simple number. You can tune exact dough size later.",
-    flour: "If you do not know the W-value, choose that fallback. DoughTools can still keep going safely.",
+    flour: "If you do not know the W-value, choose recommend what to buy. DoughTools can still keep going safely.",
     summary: "Your first decisions are saved. Next, build the Dough Plan.",
   },
   enthusiast: {
@@ -198,6 +235,7 @@ function journeyStepState(index: number, currentJourneyStep: number) {
 }
 
 function initialWizardStep(session: PizzaSession): WizardStep {
+  if (session.currentStep === "style") return "path";
   if (session.currentStep === "time") return "time";
   if (session.currentStep === "quantity") return "quantity";
   if (session.currentStep === "oven") return "flour";
@@ -338,7 +376,6 @@ function validSessionDoughBallWeight(session: PizzaSession) {
 
 function formatFlourSituationSummary(session: PizzaSession) {
   if (session.flourSituation === "recommend") return "Recommend what to buy";
-  if (session.flourSituation === "unknown_w") return "W-value unknown";
   if (session.availableFlourWRanges?.length) {
     return session.availableFlourWRanges
       .map((range) => flourWRangeOptions.find((option) => option.id === range)?.label)
@@ -390,6 +427,12 @@ function StartPizzaSessionContent() {
       status: "planning",
       currentStep: "style",
       experienceLevel: level,
+      pizzaStyle: "pizza-oven",
+      ovenType: "gas",
+      pizzaPreset: DEFAULT_SESSION_TOPPING_PRESET,
+      pizzaCount: 4,
+      flourSituation: "recommend",
+      flour: DEFAULT_SESSION_FORMULA_FLOUR,
     });
     const hasSavedTargetTime = isValidTargetTime(baseSession.targetEatTime);
     const defaultTargetEatTime = getDefaultPizzaSessionTargetTime();
@@ -402,17 +445,19 @@ function StartPizzaSessionContent() {
         experienceLevel: level,
       }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
 
-    const supportedSession = nextSession.pizzaStyle === "not-sure" || nextSession.flour === "not-sure"
+    const supportedSession = nextSession.pizzaStyle === "not-sure" || nextSession.flour === "not-sure" || nextSession.flourSituation === "unknown_w"
       ? updatePizzaSession(nextSession.id, {
-        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "home-oven", ovenType: "home" } : {}),
+        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
         ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
+        ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
         status: "planning",
         currentStep: nextSession.currentStep,
         experienceLevel: level,
       }) ?? {
         ...nextSession,
-        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "home-oven", ovenType: "home" } : {}),
+        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
         ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
+        ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
       }
       : nextSession;
 
@@ -913,29 +958,49 @@ function StartPizzaSessionContent() {
                   </div>
                   <span className="rounded-full bg-leaf/10 px-3 py-1.5 text-xs font-extrabold text-leaf">{selectedDoughBallWeight} g each</span>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {DOUGH_BALL_WEIGHT_OPTIONS.map((weight) => (
-                    <button
-                      key={weight}
-                      type="button"
-                      onClick={() => setDoughBallWeight(weight)}
-                      aria-pressed={selectedDoughBallWeight === weight}
-                      className={`min-h-12 rounded-2xl border text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                        selectedDoughBallWeight === weight ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-cream text-ink/70"
-                      }`}
-                    >
-                      {weight} g
-                    </button>
-                  ))}
+                <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {DOUGH_BALL_WEIGHT_OPTIONS.map((weight) => {
+                    const guidance = doughBallWeightGuidance[weight];
+                    const active = selectedDoughBallWeight === weight;
+                    return (
+                      <button
+                        key={weight}
+                        type="button"
+                        onClick={() => setDoughBallWeight(weight)}
+                        aria-pressed={active}
+                        className={`min-h-28 rounded-2xl border p-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                          active ? "border-tomato bg-tomato/[.08] shadow-sm" : "border-ink/10 bg-cream text-ink/70"
+                        }`}
+                      >
+                        <span className="flex items-start justify-between gap-3">
+                          <span>
+                            <span className="block text-base font-extrabold text-ink">{weight} g</span>
+                            <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">{guidance.pizzaSize}</span>
+                          </span>
+                          <span aria-hidden="true" className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg ${active ? "bg-white text-tomato" : "bg-white text-ink/45"}`}>
+                            {guidance.visual}
+                          </span>
+                        </span>
+                        {weight === 260 && (
+                          <span className="mt-2 inline-flex rounded-full bg-leaf/10 px-2.5 py-1 text-[11px] font-extrabold text-leaf">
+                            Most popular
+                          </span>
+                        )}
+                        <span className="mt-2 block text-xs font-bold leading-5 text-ink/60">{guidance.bestFor}</span>
+                        <span className="mt-1 block text-xs leading-5 text-ink/45">{guidance.reason}</span>
+                      </button>
+                    );
+                  })}
                   <button
                     type="button"
                     onClick={() => setCustomDoughBallWeightDraft(String(selectedDoughBallWeight))}
                     aria-pressed={!DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number])}
-                    className={`min-h-12 rounded-2xl border text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                    className={`min-h-28 rounded-2xl border p-3 text-left text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
                       !DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number]) ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-cream text-ink/70"
                     }`}
                   >
-                    Custom
+                    <span className="block text-base">Custom</span>
+                    <span className="mt-2 block text-xs font-bold leading-5 opacity-70">Use 180–350 g if your oven or appetite needs a different size.</span>
                   </button>
                 </div>
                 <label className="mt-5 block text-xs font-extrabold text-ink/50">
