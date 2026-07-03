@@ -40,12 +40,6 @@ function planningRiskTone(risk?: string) {
   return "border-leaf/25 bg-leaf/[.08] text-leaf";
 }
 
-function flourFitTone(fit?: string) {
-  if (fit === "caution") return "border-tomato/25 bg-tomato/[.06]";
-  if (fit === "long_horizon" || fit === "unknown" || fit === "not_enough_information") return "border-ink/10 bg-cream";
-  return "border-leaf/25 bg-leaf/[.08]";
-}
-
 function readablePlanningLabel(value?: string | null) {
   if (!value) return "Not enough information";
   return value.replaceAll("_", " ");
@@ -254,7 +248,7 @@ export default function SessionRecipePage() {
         value: planningResult.startWindowRecommendation.startWindowLabel,
       },
       planningResult.fermentationSetupRecommendation && {
-        label: "Selected setup",
+        label: "Recommended setup",
         value: fermentationDisplay.fullLabel,
       },
       planningResult.availableFlourRecommendation && {
@@ -391,36 +385,40 @@ export default function SessionRecipePage() {
 
               {planningResult && combinedRisk ? (
                 <div className="mt-4 grid gap-3">
-                  <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(16rem,.9fr)]">
+                  <div className="grid gap-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,1.05fr)]">
                     <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
-                      <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
-                      <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
-                      <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
-                        <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                        <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
+                      <div className="grid gap-3">
+                        <div>
+                          <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
+                          <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
+                        </div>
+                        <div className="rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
+                          <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
+                          <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
+                        </div>
                       </div>
                     </section>
 
-                    <section className="rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4">
+                    <section className="rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
                       <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Session planning context</p>
-                      <dl className="mt-3 grid gap-2">
-                        <div className="flex items-center justify-between gap-3 rounded-2xl bg-white p-3">
+                      <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <div className="grid gap-1 rounded-2xl bg-white/90 p-3">
                           <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
-                          <dd className="text-sm font-extrabold text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
+                          <dd className="text-sm font-extrabold leading-5 text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
                         </div>
                         {planningHighlights.slice(0, 4).map((item) => (
-                          <div key={item.label} className="grid gap-1 rounded-2xl bg-white p-3">
+                          <div key={item.label} className="grid gap-1 rounded-2xl bg-white/90 p-3">
                             <dt className="text-xs font-extrabold text-ink/45">{item.label}</dt>
                             <dd className="text-sm font-bold leading-5 text-ink/70">{item.value}</dd>
                           </div>
                         ))}
                         {result.continuousYeast && (
                           <>
-                            <div className="grid gap-1 rounded-2xl bg-white p-3">
+                            <div className="grid gap-1 rounded-2xl bg-white/90 p-3">
                               <dt className="text-xs font-extrabold text-ink/45">Planned fermentation length</dt>
                               <dd className="text-sm font-bold leading-5 text-ink/70">{fermentationDisplay.label}</dd>
                             </div>
-                            <div className="grid gap-1 rounded-2xl bg-white p-3">
+                            <div className="grid gap-1 rounded-2xl bg-white/90 p-3 sm:col-span-2">
                               <dt className="text-xs font-extrabold text-ink/45">Fermentation place / temperature</dt>
                               <dd className="text-sm font-bold leading-5 text-ink/70">
                                 {result.continuousYeast.recommendation.fermentationMode === "cold"
@@ -465,43 +463,6 @@ export default function SessionRecipePage() {
                           </button>
                         ))}
                       </div>
-                    </section>
-                  )}
-
-                  {flourWGuidance && (
-                    <section className={`rounded-[1.25rem] border p-4 ${flourFitTone(flourWGuidance.fitLevel)}`}>
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">W-value guidance</p>
-                          <h4 className="mt-2 font-display text-2xl font-semibold">{flourWGuidance.title}</h4>
-                          <p className="mt-2 text-sm font-bold leading-6 text-ink">{flourWGuidance.summary}</p>
-                        </div>
-                        <span className="w-fit rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-extrabold capitalize text-ink/60">
-                          {readablePlanningLabel(flourWGuidance.fitLevel)}
-                        </span>
-                      </div>
-                      <dl className="mt-3 grid gap-2 md:grid-cols-3">
-                        <div className="rounded-2xl bg-white/80 p-3">
-                          <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Recommended flour strength</dt>
-                          <dd className="mt-1 text-sm font-extrabold text-ink">{flourWGuidance.recommendationLabel}</dd>
-                          {flourWGuidance.saferChoiceLabel && (
-                            <dd className="mt-1 text-xs font-bold text-ink/55">Safer pick: {flourWGuidance.saferChoiceLabel}</dd>
-                          )}
-                        </div>
-                        <div className="rounded-2xl bg-white/80 p-3">
-                          <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Available flour</dt>
-                          <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{flourWGuidance.availableFlourSummary}</dd>
-                        </div>
-                        <div className="rounded-2xl bg-white/80 p-3">
-                          <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Buy guidance</dt>
-                          <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{flourWGuidance.recommendedBuySummary}</dd>
-                        </div>
-                      </dl>
-                      {flourWGuidance.cautions[0] && (
-                        <p className="mt-3 rounded-2xl bg-white/70 p-3 text-xs font-bold leading-5 text-tomato">
-                          {flourWGuidance.cautions[0]}
-                        </p>
-                      )}
                     </section>
                   )}
 
