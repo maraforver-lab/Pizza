@@ -468,6 +468,45 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("status === \"already_have\" || status === \"bought\"");
   });
 
+  it("shows a branded shopping image download action on the Shopping page", () => {
+    const page = source("app/session/shopping/page.tsx");
+    const exportHelper = source("lib/shopping-image-export.ts");
+
+    expect(page).toContain("Download shopping image");
+    expect(page).toContain("Preparing image…");
+    expect(page).toContain("Save a branded DoughTools shopping list to your phone or computer.");
+    expect(page).toContain("ShoppingListExportCard");
+    expect(page).toContain("downloadShoppingListImage(exportCardRef.current)");
+    expect(exportHelper).toContain("html-to-image");
+    expect(exportHelper).toContain("doughtools-shopping-list.png");
+  });
+
+  it("renders the branded shopping export card with DoughTools branding and shopping quantities", () => {
+    const component = source("components/session/ShoppingListExportCard.tsx");
+
+    expect(component).toContain("DoughTools");
+    expect(component).toContain("Pizza Shopping List");
+    expect(component).toContain("Make better pizza with better decisions");
+    expect(component).toContain("Dough ingredients");
+    expect(component).toContain("shoppingList.groups.map");
+    expect(component).toContain("{item.label}");
+    expect(component).toContain("{item.amount ?? \"as needed\"}");
+    expect(component).toContain("yeastTypeLabel");
+    expect(component).toContain("Made with DoughTools");
+    expect(component).toContain("doughtools.app");
+    expect(component).toContain("w-[1080px]");
+  });
+
+  it("shows the dough start reminder in the export card only when an exact start time exists", () => {
+    const component = source("components/session/ShoppingListExportCard.tsx");
+
+    expect(component).toContain("function doughStartReminder");
+    expect(component).toContain("step.id === \"mix-dough\"");
+    expect(component).toContain("Start making the dough:");
+    expect(component).toContain("{reminder &&");
+    expect(component).toContain("Preparation reminder");
+  });
+
   it("keeps the shopping hero focused by removing competing prominent actions", () => {
     const page = source("app/session/shopping/page.tsx");
 

@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
+import { ShoppingListExportCard } from "@/components/session/ShoppingListExportCard";
 import {
   type PizzaSession,
   type PizzaSessionPizzaMix,
@@ -25,6 +26,7 @@ import {
   PIZZA_MIX_OPTIONS,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
+import { downloadShoppingListImage } from "@/lib/shopping-image-export";
 
 function isItemReady(status: PizzaSessionShoppingItem["status"]) {
   return status === "already_have" || status === "bought";
@@ -43,6 +45,9 @@ export default function SessionShoppingPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [missingReason, setMissingReason] = useState<string | null>(null);
+  const [exportingImage, setExportingImage] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const exportCardRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -103,6 +108,19 @@ export default function SessionShoppingPage() {
       isItemReady(item.status) ? "need_to_buy" : "already_have",
     );
     if (updated) setSession(updated);
+  };
+
+  const downloadShoppingImage = async () => {
+    if (!exportCardRef.current || !shoppingList) return;
+    setExportingImage(true);
+    setExportError(null);
+    try {
+      await downloadShoppingListImage(exportCardRef.current);
+    } catch {
+      setExportError("Could not prepare the shopping image. Please try again.");
+    } finally {
+      setExportingImage(false);
+    }
   };
 
   if (!ready) {
@@ -270,6 +288,38 @@ export default function SessionShoppingPage() {
             </section>
           ))}
         </section>
+
+        {shoppingList && (
+          <section className="mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-labelledby="shopping-image-export-heading">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 id="shopping-image-export-heading" className="font-display text-2xl font-semibold">Save your shopping list</h2>
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60">
+                  Save a branded DoughTools shopping list to your phone or computer.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={downloadShoppingImage}
+                disabled={exportingImage}
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 disabled:bg-ink/25 disabled:text-ink/45 sm:w-auto"
+              >
+                {exportingImage ? "Preparing image…" : "Download shopping image"}
+              </button>
+            </div>
+            {exportError && (
+              <p className="mt-3 rounded-2xl border border-tomato/20 bg-tomato/[.06] px-4 py-3 text-sm font-bold leading-6 text-tomato" role="status">
+                {exportError}
+              </p>
+            )}
+          </section>
+        )}
+
+        {session && shoppingList && (
+          <div className="fixed -left-[10000px] top-0" aria-hidden="true">
+            <ShoppingListExportCard ref={exportCardRef} session={session} shoppingList={shoppingList} />
+          </div>
+        )}
 
         <BottomActionBar
           back={(
