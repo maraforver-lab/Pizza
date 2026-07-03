@@ -297,18 +297,10 @@ export default function SessionRecipePage() {
                   <p className="mt-2 text-sm leading-6 text-ink/55">
                     Use these amounts when mixing your dough.
                   </p>
-                  <dl className="mt-3 grid gap-2 sm:grid-cols-3">
+                  <dl className="mt-3 grid gap-2 sm:grid-cols-2">
                     <div className="rounded-2xl bg-white p-3">
                       <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Dough balls</dt>
-                      <dd className="mt-1 text-sm font-extrabold text-ink">{result.settings.pizzas}</dd>
-                    </div>
-                    <div className="rounded-2xl bg-white p-3">
-                      <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Dough ball size</dt>
-                      <dd className="mt-1 text-sm font-extrabold text-ink">{result.settings.ballWeight} g each</dd>
-                    </div>
-                    <div className="rounded-2xl bg-white p-3">
-                      <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Batch size</dt>
-                      <dd className="mt-1 text-sm font-extrabold text-ink">{formatGram(result.ingredients.total)}</dd>
+                      <dd className="mt-1 text-sm font-extrabold text-ink">{result.settings.pizzas} × {result.settings.ballWeight} g</dd>
                     </div>
                   </dl>
                   <dl className="mt-4 grid gap-2.5">

@@ -61,9 +61,9 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Your Dough Plan is ready.");
     expect(page).toContain("Get your dough ingredients and amounts ready before you start.");
     expect(page).toContain("Dough balls");
-    expect(page).toContain("Dough ball size");
-    expect(page).toContain("{result.settings.ballWeight} g each");
-    expect(page).toContain("Batch size");
+    expect(page).toContain("{result.settings.pizzas} × {result.settings.ballWeight} g");
+    expect(page).not.toContain("Dough ball size");
+    expect(page).not.toContain("Batch size");
     expect(page).toContain("Continue to Shopping");
     expect(page).toContain("Back");
     expect(page).toContain('href="/session/start"');
