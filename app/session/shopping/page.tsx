@@ -143,7 +143,7 @@ export default function SessionShoppingPage() {
       <SessionWorkspaceLayout activeStep={7}>
         <SessionStepHero
           step={7}
-          label="Choose pizzas & shopping"
+          label="Choose pizzas & Shopping"
           pageType="Checklist page"
           title="Choose pizzas and build the shopping list."
           body="Pick the topping plan for this session, then check what you already have."

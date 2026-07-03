@@ -44,15 +44,15 @@ describe("Start Pizza Session wizard", () => {
     const doc = source("docs/pizza-session-v2-journey.md");
 
     for (const label of [
-      "Oven setup",
+      "Oven",
       "Pizza style",
-      "When to eat",
-      "How many",
-      "Flour",
-      "Dough plan",
-      "Choose pizzas & shopping",
+      "When",
+      "Quantity",
+      "Flour situation",
+      "Dough Plan",
+      "Choose pizzas & Shopping",
       "Timeline",
-      "Kitchen mode",
+      "Kitchen Mode",
       "Review",
     ]) {
       expect(doc).toContain(label);
@@ -64,7 +64,7 @@ describe("Start Pizza Session wizard", () => {
     expect(doc).toContain("`/session/shopping`");
     expect(doc).toContain("`/session/kitchen`");
     expect(doc).toContain("`/session/review`");
-    expect(doc).toContain("Build my dough plan →");
+    expect(doc).toContain("Build my Dough Plan →");
   });
 
   it("adds the /session/start route with the expected wizard steps", () => {
@@ -94,8 +94,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas.");
     expect(page).toContain("Do you already have flour?");
     expect(page).toContain("DoughTools can recommend what to buy, or use the W-value range of the flour you already have.");
-    expect(page).toContain("You’re ready for your dough plan.");
-    expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.");
+    expect(page).toContain("You’re ready for your Dough Plan.");
+    expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
     expect(page).toContain("Home oven");
     expect(page).toContain("Pizza oven");
     expect(page).not.toContain('id: "pan-tray",');
@@ -141,15 +141,15 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary"');
     expect(page).toContain('const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"]');
     expect(page).toContain("const journeySteps = [");
-    expect(page).toContain("Oven setup");
+    expect(page).toContain("Oven");
     expect(page).toContain("Pizza style");
     expect(page).not.toContain('label: "Topping plan"');
-    expect(page).toContain("When to eat");
-    expect(page).toContain("How many");
-    expect(page).toContain("Flour");
-    expect(page).toContain("Dough plan");
-    expect(page).toContain("Choose pizzas & shopping");
-    expect(page).toContain("Kitchen mode");
+    expect(page).toContain("When");
+    expect(page).toContain("Quantity");
+    expect(page).toContain("Flour situation");
+    expect(page).toContain("Dough Plan");
+    expect(page).toContain("Choose pizzas & Shopping");
+    expect(page).toContain("Kitchen Mode");
     expect(page).toContain("Review");
     expect(page).toContain("journeyProgressForStep");
     expect(page).toContain("Setup is steps 1–5 of the full pizza journey.");
@@ -218,7 +218,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('<div className="mb-3 lg:hidden">');
     expect(page).toContain('aria-label="Pizza Session journey"');
     expect(page).toContain('aria-label="Pizza Session setup progress"');
-    expect(page).toContain("setup complete. Dough plan next.");
+    expect(page).toContain("setup complete. Dough Plan next.");
     expect(page).not.toContain("GuidanceModeBadge");
     expect(page).not.toContain("Guidance mode:");
     expect(page).not.toContain("Pizza Session V2");
@@ -287,22 +287,22 @@ describe("Start Pizza Session wizard", () => {
   it("keeps the final guided step focused on one primary next action", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("You’re ready for your dough plan.");
-    expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.");
-    expect(page).toContain("Build my dough plan →");
+    expect(page).toContain("You’re ready for your Dough Plan.");
+    expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
+    expect(page).toContain("Build my Dough Plan →");
     expect(page).toContain('href="/session/recipe"');
     expect(page).not.toContain("Save and continue later");
-    expect(page.match(/Build my dough plan →/g)).toHaveLength(1);
+    expect(page.match(/Build my Dough Plan →/g)).toHaveLength(1);
     expect(page).toContain("Back");
     expect(page).toContain("Saved locally ✓");
     expect(page).toContain("hidden text-xs font-bold text-ink/40 sm:block");
-    expect(page.indexOf("Build my dough plan →")).toBeLessThan(page.indexOf("Saved locally ✓"));
+    expect(page.indexOf("Build my Dough Plan →")).toBeLessThan(page.indexOf("Saved locally ✓"));
     expect(page).not.toContain("Next: build your dough plan");
     expect(page).not.toContain("Last saved:");
     expect(page).not.toContain("Open timeline →");
     expect(page).not.toContain("Shopping list →");
     expect(page).not.toContain("Back to DoughTools");
-    expect(page).not.toContain("Kitchen Mode");
+    expect(page).not.toContain("Open Kitchen Mode");
     expect(page).not.toContain("Open full Calculator");
     expect(page).not.toContain("Open Dough Doctor");
     expect(page).not.toContain("[\"Oven\"");
@@ -317,9 +317,9 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain('label: "Toppings"');
     expect(page).toContain('label: "When"');
     expect(page).toContain('label: "Dough start"');
-    expect(page).toContain('label: "How many"');
+    expect(page).toContain('label: "Quantity"');
     expect(page).toContain('`${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`');
-    expect(page).toContain('label: "Flour"');
+    expect(page).toContain('label: "Flour situation"');
     expect(page).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6");
     expect(page).not.toContain("[\"How you bake\"");
     expect(page).not.toContain("[\"Pizza style\"");

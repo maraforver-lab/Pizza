@@ -41,15 +41,15 @@ const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour"
 const DEFAULT_SESSION_TOPPING_PRESET = "margherita";
 
 const journeySteps = [
-  { label: "Oven setup", href: "/session/start?step=path", phase: "Setup" },
+  { label: "Oven", href: "/session/start?step=path", phase: "Setup" },
   { label: "Pizza style", href: "/session/start?step=preset", phase: "Setup" },
-  { label: "When to eat", href: "/session/start?step=time", phase: "Setup" },
-  { label: "How many", href: "/session/start?step=quantity", phase: "Setup" },
-  { label: "Flour", href: "/session/start?step=flour", phase: "Setup" },
-  { label: "Dough plan", href: "/session/recipe", phase: "Plan" },
-  { label: "Choose pizzas & shopping", href: "/session/shopping", phase: "Prepare" },
+  { label: "When", href: "/session/start?step=time", phase: "Setup" },
+  { label: "Quantity", href: "/session/start?step=quantity", phase: "Setup" },
+  { label: "Flour situation", href: "/session/start?step=flour", phase: "Setup" },
+  { label: "Dough Plan", href: "/session/recipe", phase: "Plan" },
+  { label: "Choose pizzas & Shopping", href: "/session/shopping", phase: "Prepare" },
   { label: "Timeline", href: "/session/timeline", phase: "Plan" },
-  { label: "Kitchen mode", href: "/session/kitchen", phase: "Bake" },
+  { label: "Kitchen Mode", href: "/session/kitchen", phase: "Bake" },
   { label: "Review", href: "/session/review", phase: "Improve" },
 ] as const;
 
@@ -125,10 +125,10 @@ const doughStyleOptions = [
 ] as const;
 
 const wizardStepLabels: Record<WizardStep, string> = {
-  path: "Oven setup",
+  path: "Oven",
   preset: "Pizza style",
-  time: "When to eat",
-  quantity: "How many",
+  time: "When",
+  quantity: "Quantity",
   flour: "Flour situation",
   summary: "Setup ready",
 };
@@ -139,26 +139,26 @@ const wizardStepQuestions: Record<WizardStep, string> = {
   time: "When do you want pizza?",
   quantity: "How many pizzas?",
   flour: "Do you already have flour?",
-  summary: "You’re ready for your dough plan.",
+  summary: "You’re ready for your Dough Plan.",
 };
 
 const wizardStepHelpers: Record<WizardStep, string> = {
-  path: "Choose the oven setup for this dough plan.",
+  path: "Choose the oven setup for this Dough Plan.",
   preset: "DoughTools currently plans Neapolitan-style pizza for home ovens and pizza ovens. Toppings are chosen later for the shopping list.",
   time: "We’ll work backwards and build the right timeline.",
   quantity: "We’ll calculate the right amount of dough.",
   flour: "DoughTools can recommend what to buy, or use the W-value range of the flour you already have.",
-  summary: "You chose the key setup details. Next, DoughTools turns them into a personalized dough plan and ingredient amounts.",
+  summary: "You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.",
 };
 
 const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
   beginner: {
-    path: "We’ll build your dough plan step by step.",
+    path: "We’ll build your Dough Plan step by step.",
     preset: "Start with the dough style. Toppings come later when you build the shopping list.",
     time: "Pick the time you want pizza. DoughTools will plan backwards from there.",
     quantity: "Choose a simple number. You can tune exact dough size later.",
     flour: "If you do not know the W-value, choose that fallback. DoughTools can still keep going safely.",
-    summary: "Your first decisions are saved. Next, build the dough plan.",
+    summary: "Your first decisions are saved. Next, build the Dough Plan.",
   },
   enthusiast: {
     path: "The baking path controls bake heat, dough size and how forgiving the process should be.",
@@ -166,11 +166,11 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     time: "We’ll plan dough, preparation and bake steps backwards from this time.",
     quantity: "Pizza count controls total dough, sauce, cheese and prep work.",
     flour: "W-value range gives a practical flour-strength signal for fermentation planning.",
-    summary: "The session is ready for a dough plan, timeline and shopping list.",
+    summary: "The session is ready for a Dough Plan, Shopping list and Timeline.",
   },
   pizza_nerd: {
     path: "This sets the first bake-environment constraint. The exact formula still comes from the calculator model.",
-    preset: "V1 uses a Neapolitan-style dough assumption while legacy topping presets remain compatibility data for Shopping.",
+    preset: "V1 uses a Neapolitan-style dough assumption while legacy topping preset storage remains compatibility data for Shopping.",
     time: "Pick the target pizza time. Timeline steps are rounded to practical 15-minute increments; active night tasks are avoided where possible while passive fermentation can continue overnight.",
     quantity: "This becomes the first batch-size variable before exact dough-ball and formula tuning.",
     flour: "Capture the flour W-range now. Formula calculations still use the legacy flour default until a later planning patch consumes these ranges.",
@@ -474,8 +474,8 @@ function StartPizzaSessionContent() {
   };
 
   const selectDoughStyle = () => {
-    // Keep legacy topping preset storage populated until topping selection moves
-    // to Shopping/Toppings in a later patch.
+    // Keep legacy topping preset storage populated for old sessions while
+    // Shopping owns the actual pizza mix allocation.
     savePatch({ pizzaPreset: session?.pizzaPreset ?? DEFAULT_SESSION_TOPPING_PRESET }, "preset");
   };
   const selectFlourSituation = (flourSituation: PizzaSessionFlourSituation) => {
@@ -600,8 +600,8 @@ function StartPizzaSessionContent() {
     { label: "Style", value: hasSelectedDoughStyle ? "Neapolitan-style" : "Not selected yet", icon: "🍕" },
     { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "🕒" },
     { label: "Dough start", value: formatDoughStartPreference(session), icon: "⏱" },
-    { label: "How many", value: `${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`, icon: "◌" },
-    { label: "Flour", value: flourSummary, icon: "▣" },
+    { label: "Quantity", value: `${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`, icon: "◌" },
+    { label: "Flour situation", value: flourSummary, icon: "▣" },
   ];
 
   return (
@@ -620,7 +620,7 @@ function StartPizzaSessionContent() {
       <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[16rem_1fr]">
         <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
           <h1 className="font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
-          <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, pizza choices, shopping, timeline, kitchen mode and review come next.</p>
+          <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough Plan, pizza choices, Shopping, Timeline, Kitchen Mode and Review come next.</p>
           <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
             <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
               <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>
@@ -694,7 +694,7 @@ function StartPizzaSessionContent() {
                 />
               ))}
             </div>
-            <p className="mt-1.5 text-[11px] font-bold normal-case tracking-normal text-ink/40">{setupPercent}% setup complete. Dough plan next.</p>
+            <p className="mt-1.5 text-[11px] font-bold normal-case tracking-normal text-ink/40">{setupPercent}% setup complete. Dough Plan next.</p>
           </div>
 
           <div className="mb-4 flex flex-col gap-3 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
@@ -741,7 +741,7 @@ function StartPizzaSessionContent() {
               ))}
               <div className="rounded-[1.1rem] border border-dashed border-ink/15 bg-cream/60 p-3 text-xs leading-5 text-ink/55 sm:p-4 sm:text-sm">
                 <strong className="block text-ink">Toppings come later.</strong>
-                This step chooses the dough style. Shopping can keep using saved or default topping presets until topping selection moves later in the flow.
+                This step chooses the dough style. You’ll allocate toppings and pizza types later in Shopping.
               </div>
             </div>
           )}
@@ -1033,7 +1033,7 @@ function StartPizzaSessionContent() {
                 </button>
               ) : (
                 <Link href="/session/recipe" className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:w-auto">
-                  Build my dough plan →
+                  Build my Dough Plan →
                 </Link>
               )}
               <p className="hidden text-xs font-bold text-ink/40 sm:block">Saved locally ✓</p>

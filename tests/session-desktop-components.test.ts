@@ -99,10 +99,10 @@ describe("Pizza Session desktop refinement components", () => {
     expect(sidebar).toContain("cursor-default select-none");
     expect(sidebar).toContain('aria-disabled={state === "upcoming" ? true : undefined}');
     expect(sidebar).toContain("Current journey step");
-    expect(sidebar).toContain("Dough plan");
-    expect(sidebar).toContain("Choose pizzas & shopping");
+    expect(sidebar).toContain("Dough Plan");
+    expect(sidebar).toContain("Choose pizzas & Shopping");
     expect(sidebar).toContain("Timeline");
-    expect(sidebar).toContain("Kitchen mode");
+    expect(sidebar).toContain("Kitchen Mode");
     expect(sidebar).toContain("Review");
     expect(layout).toContain("export function SessionWorkspaceLayout");
     expect(layout).toContain("SessionProgressSidebar");

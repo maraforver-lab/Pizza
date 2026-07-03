@@ -58,7 +58,7 @@ describe("Session recipe build step", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={6}");
     expect(page).toContain("hideMeta");
-    expect(page).toContain("Your dough plan is ready.");
+    expect(page).toContain("Your Dough Plan is ready.");
     expect(page).toContain("Get your dough ingredients and amounts ready before you start.");
     expect(page).toContain("Dough balls");
     expect(page).toContain("Dough ball size");
@@ -97,12 +97,12 @@ describe("Session recipe build step", () => {
     const journeyDoc = source("docs/pizza-session-v2-journey.md");
 
     expect(page).toContain("step={6}");
-    expect(page).not.toContain("Step 6: Dough plan");
+    expect(page).not.toContain("Step 6: Dough Plan");
     expect(page).not.toContain("Before this, you set up the basics.");
     expect(page).not.toContain("After this, the timeline, shopping list, kitchen mode and review come next.");
     expect(page).not.toContain("Current journey step");
     expect(page).not.toContain("Pizza Session V2 journey");
-    expect(journeyDoc).toContain("| 6 | Dough plan | `/session/recipe`");
+    expect(journeyDoc).toContain("| 6 | Dough Plan | `/session/recipe`");
     expect(journeyDoc).toContain("Continue to Shopping →");
   });
 
@@ -147,7 +147,7 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("Add a bake date and time to get a stronger planning risk summary.");
     expect(page).not.toContain("Calculator v1");
     expect(page).not.toContain("Calculator v2");
-    expect(page.indexOf("Your dough plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
+    expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {

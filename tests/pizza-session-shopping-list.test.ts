@@ -367,11 +367,11 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("<div className=\"lg:hidden\">");
     expect(page).not.toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
     expect(page).not.toContain("SessionLocalOnlyNote");
-    expect(page).not.toContain("Step 7: Choose pizzas & shopping");
+    expect(page).not.toContain("Step 7: Choose pizzas & Shopping");
     expect(page).not.toContain("This is a preparation checklist for your kitchen.");
     expect(page).not.toMatch(/textarea|contentEditable|public link|upload photo|cloud sync is active|Copy shopping list|Open Sauce tool|Open Toppings tool|Back to timeline|Review dough plan/i);
     expect(timeline).toContain("/session/kitchen");
-    expect(start).toContain("Build my dough plan");
+    expect(start).toContain("Build my Dough Plan");
     expect(start).not.toContain("Shopping list →");
   });
 
@@ -430,7 +430,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("BottomActionBar");
     expect(page.indexOf("Choose toppings")).toBeLessThan(page.indexOf("Grouped shopping list"));
     expect(page.indexOf("Grouped shopping list")).toBeLessThan(page.indexOf("<BottomActionBar"));
-    expect(page).toContain("Choose pizzas & shopping");
+    expect(page).toContain("Choose pizzas & Shopping");
     expect(page).toContain("hideMeta");
     expect(page).not.toContain("Checklist page</");
     expect(page).not.toMatch(/checkout|cart total|store link|price|ecommerce/i);

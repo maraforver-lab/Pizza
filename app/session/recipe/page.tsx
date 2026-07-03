@@ -90,8 +90,8 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
   }
   if (reason === "missing-preset") {
     return {
-      title: "Choose a pizza preset first.",
-      body: "The preset keeps the session clear before timeline and shopping steps.",
+      title: "Choose a pizza style first.",
+      body: "The pizza style keeps dough planning separate from the topping choices you’ll allocate in Shopping.",
       action: "Return to session choices →",
     };
   }
@@ -212,9 +212,9 @@ export default function SessionRecipePage() {
       <SessionWorkspaceLayout activeStep={6}>
         <SessionStepHero
           step={6}
-          label="Dough plan"
+          label="Dough Plan"
           pageType="Reference page"
-          title="Your dough plan is ready."
+          title="Your Dough Plan is ready."
           body="Get your dough ingredients and amounts ready before you start."
           level={session.experienceLevel}
           hideMeta
