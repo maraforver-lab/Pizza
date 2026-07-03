@@ -4,6 +4,11 @@ import { describe, expect, it } from "vitest";
 import { createPizzaSession, pizzaSessionContinueHref } from "@/lib/pizza-session";
 import { generatePizzaSessionTimeline } from "@/lib/pizza-session-timeline";
 import {
+  alertCheckpointForRemainingSeconds,
+  kitchenStepCountdownState,
+  KITCHEN_SOUND_ALERT_CHECKPOINTS_SECONDS,
+} from "@/lib/kitchen-step-countdown";
+import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
   getKitchenModeForStep,
@@ -69,6 +74,8 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("\"use client\"");
     expect(page).toContain("Kitchen Mode");
+    expect(page).toContain("KitchenStepCountdown");
+    expect(page).toContain("targetTime={currentStep.scheduledAt}");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={9}");
     expect(page).toContain("hideMeta");
@@ -79,6 +86,65 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("kitchenBackHrefFromSource");
     expect(page).not.toMatch(/Cloud sync is active|push notifications enabled|Google indexing enabled/i);
+  });
+
+  it("formats the active Kitchen step countdown from the step target only", () => {
+    const state = kitchenStepCountdownState(
+      "2026-07-04T18:30:00.000Z",
+      new Date("2026-07-04T18:01:18.000Z"),
+    );
+
+    expect(state).toEqual({
+      status: "remaining",
+      label: "28:42 remaining",
+      totalSeconds: 1722,
+      isFinalTwoMinutes: false,
+    });
+
+    const longStep = kitchenStepCountdownState(
+      "2026-07-04T20:00:00.000Z",
+      new Date("2026-07-04T18:01:18.000Z"),
+    );
+    expect(longStep.label).toBe("1:58:42 remaining");
+    expect(longStep.label).not.toContain("before target");
+  });
+
+  it("shows overdue Kitchen step countdown state with a plus-sign label", () => {
+    const state = kitchenStepCountdownState(
+      "2026-07-04T18:30:00.000Z",
+      new Date("2026-07-04T18:30:32.000Z"),
+    );
+
+    expect(state.status).toBe("overdue");
+    expect(state.label).toBe("+00:32 over");
+    expect(state.isFinalTwoMinutes).toBe(false);
+  });
+
+  it("derives final-two-minute sound checkpoints from active step remaining time", () => {
+    expect(KITCHEN_SOUND_ALERT_CHECKPOINTS_SECONDS).toEqual([120, 105, 90, 75, 60, 45, 30, 15]);
+    expect(kitchenStepCountdownState(
+      "2026-07-04T18:02:00.000Z",
+      new Date("2026-07-04T18:00:00.000Z"),
+    ).isFinalTwoMinutes).toBe(true);
+    expect(alertCheckpointForRemainingSeconds(120)).toBe(120);
+    expect(alertCheckpointForRemainingSeconds(119)).toBeUndefined();
+    expect(alertCheckpointForRemainingSeconds(-1)).toBeUndefined();
+  });
+
+  it("keeps Kitchen countdown sound optional and prevents repeated checkpoint alerts", () => {
+    const component = source("components/session/KitchenStepCountdown.tsx");
+    const audioHelper = source("lib/kitchen-audio-alerts.ts");
+
+    expect(component).toContain("Enable sound alerts");
+    expect(component).toContain("const [soundEnabled, setSoundEnabled] = useState(false)");
+    expect(component).toContain("playedCheckpointsRef.current.has(checkpoint)");
+    expect(component).toContain("playedCheckpointsRef.current.add(checkpoint)");
+    expect(component).toContain("playKitchenStepChime");
+    expect(component).toContain("border-tomato/25 bg-tomato/[.07]");
+    expect(component).toContain("shadow-[0_0_30px_rgba(233,75,46,0.18)]");
+    expect(audioHelper).toContain("AudioContext");
+    expect(audioHelper).not.toContain(".mp3");
+    expect(audioHelper).not.toContain("https://");
   });
 
   it("selects the first todo task, exposes the next task and handles completed timelines", () => {

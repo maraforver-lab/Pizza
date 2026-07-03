@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { KitchenStepCountdown } from "@/components/session/KitchenStepCountdown";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
@@ -163,6 +164,7 @@ export default function SessionKitchenPage() {
                   <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{instruction.shortInstruction}</p>
                   <p className="mt-3 text-sm font-bold text-ink/55">{formatDateTime(currentStep.scheduledAt)}</p>
                   <p className="mt-3 text-sm leading-6 text-ink/55">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
+                  <KitchenStepCountdown targetTime={currentStep.scheduledAt} />
                   {currentStep.helperCopy && (
                     <p className="mt-4 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
                       {currentStep.helperCopy}
