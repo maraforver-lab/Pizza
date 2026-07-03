@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 type SessionViewportResetProps = {
   watchKey?: string | number;
@@ -9,6 +9,8 @@ type SessionViewportResetProps = {
 
 export function SessionViewportReset({ watchKey }: SessionViewportResetProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const routeKey = `${pathname}?${searchParams.toString()}`;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -17,6 +19,7 @@ export function SessionViewportReset({ watchKey }: SessionViewportResetProps) {
 
     const reset = () => {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
     };
 
     reset();
@@ -26,7 +29,7 @@ export function SessionViewportReset({ watchKey }: SessionViewportResetProps) {
       window.cancelAnimationFrame(frame);
       window.history.scrollRestoration = previousScrollRestoration;
     };
-  }, [pathname, watchKey]);
+  }, [routeKey, watchKey]);
 
   return null;
 }

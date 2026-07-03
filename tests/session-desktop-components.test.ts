@@ -42,11 +42,27 @@ describe("Pizza Session desktop refinement components", () => {
 
     expect(component).toContain("export function SessionViewportReset");
     expect(component).toContain("usePathname");
+    expect(component).toContain("useSearchParams");
+    expect(component).toContain("const routeKey = `${pathname}?${searchParams.toString()}`");
     expect(component).toContain("watchKey");
     expect(component).toContain('window.history.scrollRestoration = "manual"');
     expect(component).toContain("window.scrollTo({ top: 0, left: 0, behavior: \"auto\" })");
+    expect(component).toContain("document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: \"auto\" })");
     expect(component).toContain("window.requestAnimationFrame(reset)");
+    expect(component).toContain("}, [routeKey, watchKey])");
+    expect(component).not.toContain("}, [pathname, watchKey])");
     expect(emptyState).toContain("SessionViewportReset");
+  });
+
+  it("keeps Pizza Session viewport reset mounted across route-query step variants", () => {
+    const startPage = source("app/session/start/page.tsx");
+    const kitchenPage = source("app/session/kitchen/page.tsx");
+    const sidebar = source("components/session/SessionProgressSidebar.tsx");
+
+    expect(startPage).toContain("<SessionViewportReset watchKey={step} />");
+    expect(kitchenPage).toContain("<SessionViewportReset />");
+    expect(kitchenPage).toContain("new URLSearchParams(window.location.search).get(\"from\")");
+    expect(sidebar).toContain('href: "/session/kitchen"');
   });
 
   it("uses the shared desktop step hero on Pizza Session steps 6 through 10", () => {
