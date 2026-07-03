@@ -146,6 +146,32 @@ function formatYeastBasisHours(hours: number | null) {
   return `${rounded} h`;
 }
 
+function defaultSessionBallWeight({
+  isPan,
+  ovenType,
+}: {
+  isPan: boolean;
+  ovenType: OvenType;
+}) {
+  return isPan ? 650 : ovenType === "gas" ? 260 : 270;
+}
+
+function sessionBallWeight({
+  session,
+  isPan,
+  ovenType,
+}: {
+  session: PizzaSession;
+  isPan: boolean;
+  ovenType: OvenType;
+}) {
+  const defaultWeight = defaultSessionBallWeight({ isPan, ovenType });
+  if (isPan) return defaultWeight;
+  return session.doughBallWeight && session.doughBallWeight >= 180 && session.doughBallWeight <= 350
+    ? session.doughBallWeight
+    : defaultWeight;
+}
+
 function buildContinuousYeastBasisLabel(recommendation: ContinuousYeastModelResult) {
   return `${formatYeastBasisHours(recommendation.fermentationHours)} ${recommendation.fermentationMode} fermentation`;
 }
@@ -274,7 +300,7 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
   const isPizzaOven = session.pizzaStyle === "pizza-oven" || session.ovenType === "gas";
   const goal: PizzaGoal = isPan ? "pan" : isPizzaOven ? "balanced" : session.pizzaPreset === "funghi" ? "balanced" : "balanced";
   const ovenType: OvenType = isPizzaOven ? "gas" : "home";
-  const ballWeight = isPan ? 650 : ovenType === "gas" ? 260 : 270;
+  const ballWeight = sessionBallWeight({ session, isPan, ovenType });
   const fermentation: Fermentation = isPan ? "48h-cold" : ovenType === "gas" ? "12h-room" : "24h-cold";
   const temperature = fermentation.endsWith("cold") ? 4 : 22;
   const hydration = isPan ? 75 : ovenType === "gas" ? 64 : 64;

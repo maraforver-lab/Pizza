@@ -86,6 +86,12 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Let DoughTools recommend");
     expect(page).toContain("This helps DoughTools calculate the real fermentation window later.");
     expect(page).toContain("How many pizzas?");
+    expect(page).toContain("Dough ball size");
+    expect(page).toContain("This controls how much dough each pizza uses.");
+    expect(page).toContain("const DOUGH_BALL_WEIGHT_OPTIONS = [240, 260, 280] as const");
+    expect(page).toContain("{weight} g");
+    expect(page).toContain("Custom grams per dough ball");
+    expect(page).toContain("Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas.");
     expect(page).toContain("Do you already have flour?");
     expect(page).toContain("DoughTools can recommend what to buy, or use the W-value range of the flour you already have.");
     expect(page).toContain("You’re ready for your dough plan.");
@@ -312,6 +318,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('label: "When"');
     expect(page).toContain('label: "Dough start"');
     expect(page).toContain('label: "How many"');
+    expect(page).toContain('`${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`');
     expect(page).toContain('label: "Flour"');
     expect(page).toContain("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6");
     expect(page).not.toContain("[\"How you bake\"");
@@ -428,6 +435,24 @@ describe("Start Pizza Session wizard", () => {
     expect(rangeSession.availableFlourWRanges).toEqual(["w_260_300", "w_340_plus"]);
     expect(recommendSession.flourSituation).toBe("recommend");
     expect(recommendSession.flour).toBe("tipo-00");
+  });
+
+  it("normalizes optional dough ball weight without breaking old quantity sessions", () => {
+    const oldSession = createPizzaSession({ pizzaCount: 4 });
+    const twoForty = createPizzaSession({ pizzaCount: 4, doughBallWeight: 240 });
+    const twoSixty = createPizzaSession({ pizzaCount: 4, doughBallWeight: 260 });
+    const twoEighty = createPizzaSession({ pizzaCount: 4, doughBallWeight: 280 });
+    const custom = createPizzaSession({ pizzaCount: 4, doughBallWeight: 300 });
+    const tooSmall = createPizzaSession({ pizzaCount: 4, doughBallWeight: 120 });
+    const tooLarge = createPizzaSession({ pizzaCount: 4, doughBallWeight: 400 });
+
+    expect(oldSession.doughBallWeight).toBeUndefined();
+    expect(twoForty.doughBallWeight).toBe(240);
+    expect(twoSixty.doughBallWeight).toBe(260);
+    expect(twoEighty.doughBallWeight).toBe(280);
+    expect(custom.doughBallWeight).toBe(300);
+    expect(tooSmall.doughBallWeight).toBeUndefined();
+    expect(tooLarge.doughBallWeight).toBeUndefined();
   });
 
   it("captures the current target time input before leaving the time step", () => {

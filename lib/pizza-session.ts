@@ -115,6 +115,7 @@ export type PizzaSession = {
   doughStartMode?: PizzaSessionDoughStartMode;
   doughEarliestStartTime?: string;
   pizzaCount?: number;
+  doughBallWeight?: number;
   ovenType?: string;
   flour?: string;
   flourSituation?: PizzaSessionFlourSituation;
@@ -165,6 +166,11 @@ function numberValue(value: unknown): number | undefined {
 function positiveNumberValue(value: unknown): number | undefined {
   const number = numberValue(value);
   return number !== undefined && number > 0 ? number : undefined;
+}
+
+function doughBallWeightValue(value: unknown): number | undefined {
+  const number = positiveNumberValue(value);
+  return number !== undefined && number >= 180 && number <= 350 ? number : undefined;
 }
 
 function normalizeStatus(value: unknown): PizzaSessionStatus {
@@ -329,6 +335,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
       ? stringValue(input.doughEarliestStartTime)
       : undefined,
     pizzaCount: positiveNumberValue(input.pizzaCount),
+    doughBallWeight: doughBallWeightValue(input.doughBallWeight),
     ovenType: stringValue(input.ovenType),
     flour: stringValue(input.flour),
     flourSituation: normalizeFlourSituation(input.flourSituation),
@@ -365,6 +372,7 @@ export function createSessionFromRecipeParams(
     currentStep: "recipe",
     experienceLevel: options.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL,
     pizzaCount: numberFromParam("balls"),
+    doughBallWeight: numberFromParam("ballWeight"),
     ovenType: searchParams.get("oven") ?? undefined,
     flour: searchParams.get("flour") ?? undefined,
     pizzaStyle: searchParams.get("pizzaStyle") ?? searchParams.get("style") ?? undefined,

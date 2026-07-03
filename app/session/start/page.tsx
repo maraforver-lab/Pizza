@@ -111,6 +111,10 @@ const doughStartOptions: Array<{
   { id: "recommend", label: "Let DoughTools recommend", description: "Use the bake time to suggest the best start window." },
 ];
 
+const DOUGH_BALL_WEIGHT_OPTIONS = [240, 260, 280] as const;
+const MIN_DOUGH_BALL_WEIGHT = 180;
+const MAX_DOUGH_BALL_WEIGHT = 350;
+
 const doughStyleOptions = [
   {
     id: "neapolitan-style",
@@ -312,6 +316,26 @@ function formatDoughStartPreference(session: PizzaSession) {
   return doughStartModeLabel(mode);
 }
 
+function defaultDoughBallWeight(session: PizzaSession) {
+  if (session.pizzaStyle === "pan-tray" || session.ovenType === "pan") return 650;
+  if (session.pizzaStyle === "pizza-oven" || session.ovenType === "gas") return 260;
+  return 270;
+}
+
+function effectiveDoughBallWeight(session: PizzaSession) {
+  return session.doughBallWeight ?? defaultDoughBallWeight(session);
+}
+
+function validRoundDoughBallWeight(value: number) {
+  return Number.isFinite(value) && value >= MIN_DOUGH_BALL_WEIGHT && value <= MAX_DOUGH_BALL_WEIGHT;
+}
+
+function validSessionDoughBallWeight(session: PizzaSession) {
+  const weight = effectiveDoughBallWeight(session);
+  if (session.pizzaStyle === "pan-tray" || session.ovenType === "pan") return weight === 650;
+  return validRoundDoughBallWeight(weight);
+}
+
 function formatFlourSituationSummary(session: PizzaSession) {
   if (session.flourSituation === "recommend") return "Recommend what to buy";
   if (session.flourSituation === "unknown_w") return "W-value unknown";
@@ -347,6 +371,7 @@ function StartPizzaSessionContent() {
   const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
+  const [customDoughBallWeightDraft, setCustomDoughBallWeightDraft] = useState("");
   const [selectedDayChoice, setSelectedDayChoice] = useState<PizzaSessionDayQuickChoiceId | undefined>();
   const [selectedTimeChoice, setSelectedTimeChoice] = useState<PizzaSessionTimeQuickChoiceId | undefined>();
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
@@ -395,6 +420,7 @@ function StartPizzaSessionContent() {
     setExperienceLevel(level);
     setSession(supportedSession);
     setTargetTimeDraft(supportedSession.targetEatTime ?? "");
+    setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(supportedSession)));
     if (hasSavedTargetTime) {
       setSelectedDayChoice("custom-date");
       setSelectedTimeChoice("custom-time");
@@ -441,6 +467,9 @@ function StartPizzaSessionContent() {
   const selectStyle = (value: SessionStyle) => {
     const ovenType = value === "pizza-oven" ? "gas" : value === "pan-tray" ? "pan" : "home";
     const pizzaCount = value === "pan-tray" ? 1 : session?.pizzaCount ?? 4;
+    if (!session?.doughBallWeight) {
+      setCustomDoughBallWeightDraft(String(value === "pizza-oven" ? 260 : value === "pan-tray" ? 650 : 270));
+    }
     savePatch({ pizzaStyle: value, ovenType, pizzaCount }, "path");
   };
 
@@ -468,6 +497,20 @@ function StartPizzaSessionContent() {
     }, "flour");
   };
   const setQuantity = (pizzaCount: number) => savePatch({ pizzaCount }, "quantity");
+  const setDoughBallWeight = (doughBallWeight: number) => {
+    if (!validRoundDoughBallWeight(doughBallWeight)) return;
+    setCustomDoughBallWeightDraft(String(doughBallWeight));
+    savePatch({ doughBallWeight }, "quantity");
+  };
+  const commitCustomDoughBallWeight = () => {
+    if (!session) return;
+    const parsed = Number(customDoughBallWeightDraft);
+    if (validRoundDoughBallWeight(parsed)) {
+      setDoughBallWeight(Math.round(parsed));
+      return;
+    }
+    setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(session)));
+  };
   const setTargetTime = (targetEatTime: string) => {
     setTargetTimeDraft(targetEatTime);
     savePatch({ targetEatTime }, "time");
@@ -527,11 +570,17 @@ function StartPizzaSessionContent() {
     goToStep(previousStep);
   };
 
+  const selectedDoughBallWeight = session ? effectiveDoughBallWeight(session) : 270;
+  const customDoughBallWeightNumber = Number(customDoughBallWeightDraft);
+  const customDoughBallWeightInvalid = Boolean(customDoughBallWeightDraft)
+    && session?.pizzaStyle !== "pan-tray"
+    && session?.ovenType !== "pan"
+    && !validRoundDoughBallWeight(customDoughBallWeightNumber);
   const canContinue =
     (step === "path" && Boolean(session?.pizzaStyle))
     || (step === "preset" && Boolean(session?.pizzaPreset))
     || (step === "time" && Boolean(targetTimeDraft || session?.targetEatTime) && ((session?.doughStartMode ?? "recommend") !== "later" || Boolean(session?.doughEarliestStartTime)))
-    || (step === "quantity" && Boolean(session?.pizzaCount))
+    || (step === "quantity" && Boolean(session?.pizzaCount) && Boolean(session && validSessionDoughBallWeight(session)) && !customDoughBallWeightInvalid)
     || (step === "flour" && Boolean(session?.flour || session?.flourSituation || session?.availableFlourWRanges?.length))
     || step === "summary";
 
@@ -551,7 +600,7 @@ function StartPizzaSessionContent() {
     { label: "Style", value: hasSelectedDoughStyle ? "Neapolitan-style" : "Not selected yet", icon: "🍕" },
     { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "🕒" },
     { label: "Dough start", value: formatDoughStartPreference(session), icon: "⏱" },
-    { label: "How many", value: `${session.pizzaCount ?? 4} pizzas`, icon: "◌" },
+    { label: "How many", value: `${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`, icon: "◌" },
     { label: "Flour", value: flourSummary, icon: "▣" },
   ];
 
@@ -807,45 +856,114 @@ function StartPizzaSessionContent() {
           )}
 
           {step === "quantity" && (
-            <div className="mx-auto max-w-md">
-              <div className="flex items-center justify-center gap-4">
-                <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 4) - 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Decrease pizza count">−</button>
-                <div className="min-w-20 text-center">
-                  <div className="font-display text-5xl font-semibold leading-none text-tomato sm:text-6xl">{session.pizzaCount ?? 4}</div>
-                  <div className="mt-1 text-sm font-extrabold text-ink">pizzas</div>
+            <div className="mx-auto grid max-w-3xl gap-4 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)]">
+              <section className="rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 sm:p-5" aria-labelledby="pizza-count-heading">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 id="pizza-count-heading" className="text-sm font-extrabold text-ink">Pizza amount</h3>
+                    <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Choose how many dough balls to make.</p>
+                  </div>
+                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-ink/45">{session.pizzaCount ?? 4} pizzas</span>
                 </div>
-                <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 4) + 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Increase pizza count">+</button>
-              </div>
-              <div className="mt-6">
-                <p className="text-sm font-extrabold text-ink">Quick picks</p>
-                <div className="mt-3 grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4, 6, 8].map((amount) => (
+                <div className="mt-4 flex items-center justify-center gap-4">
+                  <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 4) - 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Decrease pizza count">−</button>
+                  <div className="min-w-20 text-center">
+                    <div className="font-display text-5xl font-semibold leading-none text-tomato sm:text-6xl">{session.pizzaCount ?? 4}</div>
+                    <div className="mt-1 text-sm font-extrabold text-ink">pizzas</div>
+                  </div>
+                  <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 4) + 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Increase pizza count">+</button>
+                </div>
+                <div className="mt-5">
+                  <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Quick picks</p>
+                  <div className="mt-3 grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4, 6, 8].map((amount) => (
+                      <button
+                        key={amount}
+                        type="button"
+                        onClick={() => setQuantity(amount)}
+                        aria-pressed={(session.pizzaCount ?? 4) === amount}
+                        className={`min-h-12 rounded-2xl border text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                          (session.pizzaCount ?? 4) === amount ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-white text-ink/70"
+                        }`}
+                      >
+                        {amount}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className="mt-5 block text-center text-xs font-extrabold text-ink/45">
+                  Custom amount
+                  <input
+                    type="number"
+                    min={1}
+                    max={24}
+                    value={session.pizzaCount ?? 4}
+                    onChange={(event) => setQuantity(Math.min(24, Math.max(1, Number(event.target.value) || 1)))}
+                    className="mx-auto mt-2 h-12 w-24 rounded-2xl border border-ink/10 bg-white px-3 text-center text-lg font-extrabold text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
+                    aria-label="Pizza count"
+                  />
+                </label>
+              </section>
+
+              <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="dough-ball-size-heading">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 id="dough-ball-size-heading" className="text-sm font-extrabold text-ink">Dough ball size</h3>
+                    <p className="mt-1 text-xs font-bold leading-5 text-ink/50">This controls how much dough each pizza uses.</p>
+                  </div>
+                  <span className="rounded-full bg-leaf/10 px-3 py-1.5 text-xs font-extrabold text-leaf">{selectedDoughBallWeight} g each</span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {DOUGH_BALL_WEIGHT_OPTIONS.map((weight) => (
                     <button
-                      key={amount}
+                      key={weight}
                       type="button"
-                      onClick={() => setQuantity(amount)}
-                      aria-pressed={(session.pizzaCount ?? 4) === amount}
+                      onClick={() => setDoughBallWeight(weight)}
+                      aria-pressed={selectedDoughBallWeight === weight}
                       className={`min-h-12 rounded-2xl border text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                        (session.pizzaCount ?? 4) === amount ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-white text-ink/70"
+                        selectedDoughBallWeight === weight ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-cream text-ink/70"
                       }`}
                     >
-                      {amount}
+                      {weight} g
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setCustomDoughBallWeightDraft(String(selectedDoughBallWeight))}
+                    aria-pressed={!DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number])}
+                    className={`min-h-12 rounded-2xl border text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                      !DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number]) ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-cream text-ink/70"
+                    }`}
+                  >
+                    Custom
+                  </button>
                 </div>
-              </div>
-              <label className="mt-5 block text-center text-xs font-extrabold text-ink/45">
-                Custom amount
-                <input
-                  type="number"
-                  min={1}
-                  max={24}
-                  value={session.pizzaCount ?? 4}
-                  onChange={(event) => setQuantity(Math.min(24, Math.max(1, Number(event.target.value) || 1)))}
-                  className="mx-auto mt-2 h-12 w-24 rounded-2xl border border-ink/10 bg-white px-3 text-center text-lg font-extrabold text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
-                  aria-label="Pizza count"
-                />
-              </label>
+                <label className="mt-5 block text-xs font-extrabold text-ink/50">
+                  Custom grams per dough ball
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={MIN_DOUGH_BALL_WEIGHT}
+                    max={MAX_DOUGH_BALL_WEIGHT}
+                    value={customDoughBallWeightDraft}
+                    onChange={(event) => setCustomDoughBallWeightDraft(event.currentTarget.value)}
+                    onBlur={commitCustomDoughBallWeight}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.currentTarget.blur();
+                      }
+                    }}
+                    className={`mt-2 h-12 w-full rounded-2xl border bg-white px-3 text-lg font-extrabold text-ink outline-none focus:ring-2 focus:ring-tomato/20 ${
+                      customDoughBallWeightInvalid ? "border-tomato" : "border-ink/10 focus:border-tomato"
+                    }`}
+                    aria-describedby="dough-ball-weight-helper"
+                    aria-invalid={customDoughBallWeightInvalid}
+                  />
+                </label>
+                <p id="dough-ball-weight-helper" className={`mt-2 text-xs font-bold leading-5 ${customDoughBallWeightInvalid ? "text-tomato" : "text-ink/45"}`}>
+                  Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas. Invalid custom values are not saved.
+                </p>
+              </section>
             </div>
           )}
 

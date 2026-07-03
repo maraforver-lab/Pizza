@@ -60,6 +60,10 @@ describe("Session recipe build step", () => {
     expect(page).toContain("hideMeta");
     expect(page).toContain("Your dough plan is ready.");
     expect(page).toContain("Get your dough ingredients and amounts ready before you start.");
+    expect(page).toContain("Dough balls");
+    expect(page).toContain("Dough ball size");
+    expect(page).toContain("{result.settings.ballWeight} g each");
+    expect(page).toContain("Batch size");
     expect(page).toContain("Continue to Timeline");
     expect(page).toContain("Back");
     expect(page).toContain('href="/session/start"');
@@ -355,6 +359,113 @@ describe("Session recipe build step", () => {
     expect(result.continuousYeast?.recommendation.directScalingApplied).toBe(true);
     expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeCloseTo(result.ingredients.leavener, 3);
     expect(result.ingredients.leavener).not.toBeCloseTo(canonicalIngredients.leavener, 6);
+  });
+
+  it("keeps old-session dough ball weight defaults by oven setup", () => {
+    const pizzaOven = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-default-pizza-oven-ball-weight",
+      pizzaStyle: "pizza-oven",
+      ovenType: "gas",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      flour: "tipo-00",
+    }));
+    const homeOven = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-default-home-oven-ball-weight",
+      pizzaStyle: "home-oven",
+      ovenType: "home",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      flour: "tipo-00",
+    }));
+
+    expect(pizzaOven.ok).toBe(true);
+    expect(homeOven.ok).toBe(true);
+    if (!pizzaOven.ok || !homeOven.ok) throw new Error("Expected recipe defaults");
+
+    expect(pizzaOven.settings.ballWeight).toBe(260);
+    expect(pizzaOven.recipeSnapshot.ballWeight).toBe(260);
+    expect(homeOven.settings.ballWeight).toBe(270);
+    expect(homeOven.recipeSnapshot.ballWeight).toBe(270);
+  });
+
+  it("uses selected Dough Ball size options and custom values without changing formula math", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const weights = [240, 260, 280, 300];
+
+    for (const weight of weights) {
+      const result = buildSessionRecipe(createPizzaSession({
+        ...completeSessionInput,
+        id: `session-recipe-ball-weight-${weight}`,
+        pizzaStyle: "home-oven",
+        ovenType: "home",
+        pizzaPreset: "margherita",
+        pizzaCount: 4,
+        flour: "tipo-00",
+        doughBallWeight: weight,
+        targetEatTime: "2026-07-03T09:00",
+        doughStartMode: "now",
+      }, now), now);
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw new Error(`Expected recipe for ${weight} g dough balls`);
+      expect(result.settings.ballWeight).toBe(weight);
+      expect(result.recipeSnapshot.ballWeight).toBe(weight);
+      expect(result.ingredients.total).toBeCloseTo(4 * weight * 1.03, 6);
+    }
+  });
+
+  it("changes Dough Plan ingredient amounts when dough ball weight changes", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const shared = {
+      ...completeSessionInput,
+      pizzaStyle: "home-oven",
+      ovenType: "home",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      flour: "tipo-00",
+      targetEatTime: "2026-07-03T09:00",
+      doughStartMode: "now" as const,
+    };
+    const small = buildSessionRecipe(createPizzaSession({ ...shared, id: "small-ball-weight", doughBallWeight: 240 }, now), now);
+    const large = buildSessionRecipe(createPizzaSession({ ...shared, id: "large-ball-weight", doughBallWeight: 280 }, now), now);
+
+    expect(small.ok).toBe(true);
+    expect(large.ok).toBe(true);
+    if (!small.ok || !large.ok) throw new Error("Expected weight comparison recipes");
+
+    expect(small.ingredients.total).toBeCloseTo(988.8, 3);
+    expect(large.ingredients.total).toBeCloseTo(1153.6, 3);
+    expect(large.ingredients.flour).toBeGreaterThan(small.ingredients.flour);
+    expect(large.ingredients.water).toBeGreaterThan(small.ingredients.water);
+    expect(large.ingredients.salt).toBeGreaterThan(small.ingredients.salt);
+    expect(large.ingredients.leavener).toBeGreaterThan(small.ingredients.leavener);
+  });
+
+  it("keeps continuous yeast recalculation aligned with the updated flour amount", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const result = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-custom-ball-continuous-yeast",
+      pizzaStyle: "home-oven",
+      ovenType: "home",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      flour: "tipo-00",
+      doughBallWeight: 300,
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+    }, now), now);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected custom ball continuous yeast recipe");
+
+    expect(result.settings.ballWeight).toBe(300);
+    expect(result.continuousYeast?.appliedToIngredients).toBe(true);
+    expect(result.continuousYeast?.recommendation.flourGrams).toBeCloseTo(result.ingredients.flour, 3);
+    expect(result.continuousYeast?.recommendation.yeastAmountGrams).toBeCloseTo(result.ingredients.leavener, 3);
   });
 
   it("uses continuous cold yeast basis for 40h and keeps it between 24h and 48h helper values", () => {

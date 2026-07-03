@@ -84,6 +84,7 @@ describe("Pizza Session data model", () => {
     expect(session.currentStep).toBe("recipe");
     expect(session.experienceLevel).toBe("enthusiast");
     expect(session.pizzaCount).toBe(4);
+    expect(session.doughBallWeight).toBe(270);
     expect(session.recipeParams).toMatchObject({ balls: "4", hydration: "70", oven: "gas" });
     expect(session.recipeSnapshot).toMatchObject({
       balls: 4,
