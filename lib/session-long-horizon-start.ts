@@ -89,8 +89,8 @@ export function buildLongHorizonStartRecommendation({
 
   return {
     status: "long_horizon",
-    title: "Do not start today",
-    summary: "Your bake target is far enough away that you can wait and start closer to baking.",
+    title: "Do not start immediately",
+    summary: "Use one of the planned cold-fermentation start times below. Start at the selected option’s start time, not before.",
     recommendedDurationHours: 48,
     recommendedStartIso: recommended.startIso,
     selectedFlourLabel,

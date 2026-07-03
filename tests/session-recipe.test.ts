@@ -141,7 +141,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Available flour");
     expect(page).toContain("Buy guidance");
     expect(page).toContain("Long-horizon start plan");
-    expect(page).toContain("This bake target is far in the future. You do not need to start today;");
+    expect(page).toContain("This bake target is far enough away that you should not start immediately.");
+    expect(page).toContain("Start at the selected option’s start time, not before.");
     expect(page).toContain("Choose a 24h, 48h or 72h cold fermentation plan closer to bake day.");
     expect(page).toContain("48h cold fermentation");
     expect(page).toContain("Selected flour:");
@@ -929,7 +930,7 @@ describe("Session recipe build step", () => {
     });
 
     expect(recommendation).toMatchObject({
-      title: "Do not start today",
+      title: "Do not start immediately",
       selectedFlourLabel: "Pizza flour / Tipo 00",
       recommendedDurationHours: 48,
       recommendedFlourLabel: "Bread flour / strong flour",

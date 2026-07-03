@@ -91,6 +91,34 @@ function selectedFlourLabel(value?: string) {
   return "Pizza flour / Tipo 00";
 }
 
+function sessionPlanningRiskSummary({
+  summary,
+  isColdFermentation,
+}: {
+  summary?: string | null;
+  isColdFermentation: boolean;
+}) {
+  if (!summary) return summary;
+  if (isColdFermentation && summary.includes("long room-temperature plan")) {
+    return "This plan can work, but cold fermentation gives more control; timing, fridge temperature, and flour strength still matter.";
+  }
+  return summary;
+}
+
+function sessionPlanningFirstAdjustment({
+  adjustment,
+  isColdFermentation,
+}: {
+  adjustment?: string | null;
+  isColdFermentation: boolean;
+}) {
+  if (!adjustment) return adjustment;
+  if (isColdFermentation && adjustment.includes("toward cold")) {
+    return "Keep the selected cold fermentation length, then watch fridge temperature and dough condition.";
+  }
+  return adjustment;
+}
+
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
   if (reason === "no-session") {
     return {
@@ -212,11 +240,17 @@ export default function SessionRecipePage() {
     ].filter((item): item is { label: string; value: string } => Boolean(item))
     : [];
   const displayedRiskSummary = longHorizonRecommendation
-    ? "This bake target is far in the future. You do not need to start today; choose a 24h, 48h or 72h cold fermentation plan closer to bake day."
-    : combinedRisk?.summary;
+    ? "This bake target is far enough away that you should not start immediately. Use one of the planned 24h, 48h or 72h cold-fermentation start times below."
+    : sessionPlanningRiskSummary({
+      summary: combinedRisk?.summary,
+      isColdFermentation: result.continuousYeast?.recommendation.fermentationMode === "cold",
+    });
   const displayedFirstAdjustment = longHorizonRecommendation
-    ? "Wait to mix the dough, then start at the recommended cold-fermentation window for the duration you choose."
-    : combinedRisk?.suggestedFirstAdjustment;
+    ? "Start at the selected option’s start time, not before."
+    : sessionPlanningFirstAdjustment({
+      adjustment: combinedRisk?.suggestedFirstAdjustment,
+      isColdFermentation: result.continuousYeast?.recommendation.fermentationMode === "cold",
+    });
   const coldFermentationOptions = fermentationDurationOptions(result.continuousYeast?.availableFermentationHours);
   const showColdFermentationSelector = Boolean(
     result.continuousYeast?.recommendation.fermentationMode === "cold"

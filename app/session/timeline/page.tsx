@@ -21,6 +21,7 @@ import {
   resolveSessionDoughStartTime,
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
+import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 
 function formatDateTime(value?: string) {
@@ -35,6 +36,11 @@ function formatDateTime(value?: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function hasValidDateTime(value?: string) {
+  if (!value) return false;
+  return Number.isFinite(new Date(value).getTime());
 }
 
 function formatShortDateTime(value?: string) {
@@ -182,6 +188,57 @@ function fermentationPlaceLabel(value?: string | null) {
   if (value === "room") return "Room temperature";
   if (value === "not_recommended") return "Not recommended";
   return "Not enough information";
+}
+
+function selectedFlourLabel(value?: string) {
+  if (value === "plain") return "All-purpose flour";
+  if (value === "bread") return "Bread flour / strong flour";
+  if (value === "tipo-00") return "Pizza flour / Tipo 00";
+  return "Pizza flour / Tipo 00";
+}
+
+function sessionPlanningRiskSummary({
+  summary,
+  hasBakeTarget,
+  isColdFermentation,
+  isLongHorizon,
+}: {
+  summary?: string | null;
+  hasBakeTarget: boolean;
+  isColdFermentation: boolean;
+  isLongHorizon: boolean;
+}) {
+  if (isLongHorizon) {
+    return "This bake target is far enough away that you should not start immediately. Use one of the planned 24h, 48h or 72h cold-fermentation start times.";
+  }
+  if (hasBakeTarget && summary?.includes("bake date and time")) {
+    return "Timeline guidance is using your saved bake target. The current v1 planner needs a shorter or clearer fermentation window for stronger risk guidance.";
+  }
+  if (isColdFermentation && summary?.includes("long room-temperature plan")) {
+    return "This plan can work, but cold fermentation gives more control; timing, fridge temperature, and flour strength still matter.";
+  }
+  return summary;
+}
+
+function sessionPlanningFirstAdjustment({
+  adjustment,
+  hasBakeTarget,
+  isColdFermentation,
+  isLongHorizon,
+}: {
+  adjustment?: string | null;
+  hasBakeTarget: boolean;
+  isColdFermentation: boolean;
+  isLongHorizon: boolean;
+}) {
+  if (isLongHorizon) return "Start at the selected cold-fermentation option’s start time, not before.";
+  if (hasBakeTarget && adjustment?.includes("Set the bake target")) {
+    return "Use the timing notes and long-horizon options, or choose a closer bake target for stronger guidance.";
+  }
+  if (isColdFermentation && adjustment?.includes("toward cold")) {
+    return "Keep the selected cold fermentation length, then watch fridge temperature and dough condition.";
+  }
+  return adjustment;
 }
 
 type ShoppingCheckpointState = "Check" | "Done";
@@ -363,6 +420,26 @@ export default function SessionTimelinePage() {
   const fermentationSetup = planningResult?.fermentationSetupRecommendation;
   const temperatureGuidance = planningResult?.temperatureGuidance;
   const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session });
+  const longHorizonRecommendation = buildLongHorizonStartRecommendation({
+    planningResult,
+    selectedFlourLabel: selectedFlourLabel(session.flour),
+  });
+  const hasBakeTarget = hasValidDateTime(targetTime);
+  const isColdFermentation = sessionRecipeResult.ok
+    ? sessionRecipeResult.continuousYeast?.recommendation.fermentationMode === "cold"
+    : fermentationSetup?.recommendedFermentationMode === "cold";
+  const displayedRiskSummary = sessionPlanningRiskSummary({
+    summary: combinedRisk?.summary,
+    hasBakeTarget,
+    isColdFermentation,
+    isLongHorizon: Boolean(longHorizonRecommendation),
+  });
+  const displayedFirstAdjustment = sessionPlanningFirstAdjustment({
+    adjustment: combinedRisk?.suggestedFirstAdjustment,
+    hasBakeTarget,
+    isColdFermentation,
+    isLongHorizon: Boolean(longHorizonRecommendation),
+  });
   const renderNextActionCard = () => (
     <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
@@ -422,10 +499,10 @@ export default function SessionTimelinePage() {
             <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
                 <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
-                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{combinedRisk.summary}</p>
+                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
                 <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
                   <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                  <span className="mt-1 block font-bold">{combinedRisk.suggestedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
+                  <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
                 </div>
               </section>
 

@@ -85,7 +85,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Timeline guidance is based on available session choices.");
     expect(page).toContain("Overall risk");
     expect(page).toContain("What to adjust first");
-    expect(page).toContain("combinedRisk.summary");
+    expect(page).toContain("displayedRiskSummary");
     expect(page).toContain("Bake target");
     expect(page).toContain("Available time");
     expect(page).toContain("Start window");
@@ -96,6 +96,25 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("Dough planning notes");
     expect(helper).not.toContain("buildPlanningResult");
     expect(helper).not.toContain("buildSessionRecipe");
+  });
+
+  it("keeps Timeline missing-target fallback copy only for genuinely missing bake targets", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("hasValidDateTime(targetTime)");
+    expect(page).toContain("hasBakeTarget && summary?.includes(\"bake date and time\")");
+    expect(page).toContain("Timeline guidance is using your saved bake target.");
+    expect(page).toContain("hasBakeTarget && adjustment?.includes(\"Set the bake target\")");
+    expect(page).toContain("Use the timing notes and long-horizon options");
+  });
+
+  it("uses cold-specific session risk copy when the active fermentation basis is cold", () => {
+    const page = source("app/session/timeline/page.tsx");
+    const recipePage = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("cold fermentation gives more control");
+    expect(recipePage).toContain("cold fermentation gives more control");
+    expect(recipePage).toContain("Keep the selected cold fermentation length");
   });
 
   it("aligns the displayed full timeline with a 7-hour same-day room planning summary", () => {
