@@ -15,6 +15,10 @@ const copy = {
   calculatorV1Description: "Full-control planning lab for dough variables and risk.",
   calculatorV2: "Calculator v2",
   calculatorV2Description: "Guided recommendation from bake time and ingredients.",
+  guide: "Guide",
+  lab: "Lab",
+  about: "About",
+  startSession: "Start Pizza Session",
 } as const;
 
 export default function GlobalToolNavigation() {
@@ -63,6 +67,26 @@ export default function GlobalToolNavigation() {
         </Link>
 
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+            <Link
+              href="/guide"
+              className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              {copy.guide}
+            </Link>
+            <Link
+              href="/?calculator=1"
+              className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              {copy.lab}
+            </Link>
+            <Link
+              href="/about"
+              className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              {copy.about}
+            </Link>
+          </nav>
           <details className="group relative">
             <summary className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream [&::-webkit-details-marker]:hidden">
               {copy.tools}
@@ -94,6 +118,13 @@ export default function GlobalToolNavigation() {
               </Link>
             </div>
           </details>
+
+          <Link
+            href="/session/start"
+            className="hidden h-10 items-center justify-center rounded-full bg-tomato px-4 text-[11px] font-extrabold text-white shadow-sm shadow-tomato/15 transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:inline-flex"
+          >
+            {copy.startSession}
+          </Link>
 
           <Link
             href="/account"

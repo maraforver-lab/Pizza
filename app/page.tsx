@@ -19,6 +19,40 @@ function calculatorViewFor(params: Record<string, string | string[] | undefined>
   return "full";
 }
 
+const exampleSessionRows = [
+  { label: "Bake time", value: "Saturday 20:00" },
+  { label: "Dough", value: "6 × 260 g", detail: "Neapolitan-style" },
+  { label: "Fermentation", value: "24h cold", detail: "+ room finish" },
+  { label: "Shopping", value: "Flour, tomatoes, mozzarella, basil, yeast, olive oil" },
+  { label: "Timeline", value: "Mix Fri 18:30 · Ball Sat 14:00 · Bake Sat 20:00" },
+  { label: "Kitchen Mode", value: "Step-by-step guidance while baking" },
+];
+
+const benefits = [
+  {
+    icon: "01",
+    title: "Get the dough right",
+    text: "Calculate flour, water, salt and yeast based on your pizza count, dough ball size, hydration, yeast type and fermentation plan.",
+  },
+  {
+    icon: "02",
+    title: "Know when to start",
+    text: "Pick your bake time and follow a clear timeline for mixing, fermentation, balling, resting and baking.",
+  },
+  {
+    icon: "03",
+    title: "Stay focused while baking",
+    text: "Use simple step-by-step guidance when the oven is hot and you need to move quickly.",
+  },
+];
+
+const comparisonRows = [
+  ["Calculates ingredients", "Plans the whole pizza session"],
+  ["You choose timing yourself", "Timeline tells you when to start"],
+  ["Shopping is separate", "Shopping list comes from your plan"],
+  ["Recipe ends before baking", "Kitchen Mode guides the bake"],
+];
+
 export default async function Home({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const calculatorView = calculatorViewFor(params);
@@ -27,65 +61,188 @@ export default async function Home({ searchParams }: HomePageProps) {
     return <HomeCalculatorWorkspace variant={calculatorView} />;
   }
 
-  return (
-    <main className="min-h-screen overflow-hidden bg-[#f2e6d6] text-ink">
-      <section
-        className="relative isolate min-h-[calc(100vh-4rem)] overflow-hidden px-5 pb-8 pt-10 sm:px-8 sm:pb-12 sm:pt-12 lg:px-10 lg:pb-8 lg:pt-14"
-        aria-labelledby="homepage-hero-heading"
-      >
-        {/* Patch 103: supplied Image 3 is the desktop background asset. */}
-        <Image
-          src="/images/homepage/hero-desktop-bg.png"
-          alt="Pizza with basil, mozzarella and tomato sauce on a flour-dusted table"
-          fill
-          priority
-          sizes="100vw"
-          className="absolute inset-0 -z-20 hidden object-cover object-[54%_center] md:block"
-        />
-        {/* Patch 103: supplied Image 4 is the mobile background asset. */}
-        <Image
-          src="/images/homepage/hero-mobile-bg.png"
-          alt="Pizza with basil, mozzarella and tomato sauce on a flour-dusted table"
-          fill
-          priority
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[center_bottom] md:hidden"
-        />
-        <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,rgba(246,238,224,0.98)_0%,rgba(246,238,224,0.88)_31%,rgba(246,238,224,0.28)_56%,rgba(246,238,224,0)_78%)] md:block" />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(246,238,224,0.98)_0%,rgba(246,238,224,0.88)_36%,rgba(246,238,224,0.34)_64%,rgba(246,238,224,0.72)_100%)] md:hidden" />
-        <div className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-gradient-to-t from-[#f2e6d6] to-transparent" />
+  const [heroTitleStart, heroTitleEnd = ""] = homepageContent.hero.h1.split("dough to oven");
 
-        <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-[92rem] flex-col justify-between gap-8 lg:relative lg:min-h-[calc(100vh-8rem)]">
-          <div className="max-w-[44rem] pt-4 sm:pt-8 lg:pt-12">
+  return (
+    <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f6ecdf_46%,#fff8f1_100%)] text-ink">
+      <section className="px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-12 lg:px-8" aria-labelledby="homepage-hero-heading">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,0.88fr)] lg:items-center">
+          <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.34em] text-tomato">
               {homepageContent.hero.eyebrow}
             </p>
-            <h1 id="homepage-hero-heading" className="mt-5 max-w-[44rem] font-display text-[clamp(3rem,13vw,4.25rem)] font-semibold leading-[.9] tracking-[-.035em] text-ink sm:text-7xl lg:text-[5.5rem] xl:text-[5.9rem] 2xl:text-[6.5rem]">
-              {homepageContent.hero.h1}
+            <h1 id="homepage-hero-heading" className="mt-5 font-display text-[clamp(3.25rem,13vw,5rem)] font-semibold leading-[.9] tracking-[-.04em] text-ink sm:text-7xl lg:text-[5.8rem]">
+              {heroTitleStart}
+              <span className="text-leaf">dough to oven</span>
+              {heroTitleEnd}
             </h1>
-            <p className="mt-6 max-w-[20.5rem] text-base leading-7 text-ink/75 sm:max-w-xl sm:text-xl sm:leading-8">
+            <p className="mt-6 max-w-2xl text-base leading-7 text-ink/70 sm:text-xl sm:leading-8">
               {homepageContent.hero.intro}
             </p>
-            <div className="mt-7 max-w-[21rem] sm:max-w-none">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href={homepageContent.hero.primaryCta.href}
-                className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
+                className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
               >
                 {homepageContent.hero.primaryCta.label} →
               </Link>
-            </div>
-            <p className="mt-4 max-w-[20.5rem] text-xs leading-5 text-ink/45 sm:max-w-sm">
-              Your session is saved locally in this browser/device. No cloud sync. No tracking.
-            </p>
-
-            <div className="mt-7 max-w-3xl sm:mt-8 lg:mt-10 lg:w-[39rem]">
-              <HomepageGuidanceLevelSection />
+              <p className="max-w-xs text-xs font-bold leading-5 text-ink/50">
+                No account needed. Your session is saved locally on this device.
+              </p>
             </div>
           </div>
 
-          <ContinuePizzaSessionCard variant="hero" className="mt-2 sm:mt-4 lg:absolute lg:right-12 lg:top-12 lg:mt-0 lg:w-[34rem] xl:right-20" />
+          <div className="relative min-w-0">
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/70 p-3 shadow-card sm:rounded-[2.5rem] sm:p-4">
+              <div className="relative min-h-[20rem] overflow-hidden rounded-[1.5rem] bg-flour sm:min-h-[26rem]">
+                <Image
+                  src="/images/homepage/hero-desktop-bg.png"
+                  alt="Pizza with basil, mozzarella and tomato sauce on a flour-dusted table"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 42vw, 100vw"
+                  className="object-cover object-[58%_center]"
+                />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(255,255,255,0.30),transparent_18rem),linear-gradient(180deg,rgba(15,61,46,0)_42%,rgba(15,61,46,0.30)_100%)]" />
+              </div>
+            </div>
+
+            <section
+              className="mt-4 w-full rounded-[1.75rem] border border-white/80 bg-white/90 p-4 shadow-card backdrop-blur-md sm:p-5 lg:absolute lg:-bottom-8 lg:left-6 lg:mt-0 lg:max-w-[25rem]"
+              aria-labelledby="example-session-heading"
+            >
+              <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">Example session</p>
+              <h2 id="example-session-heading" className="mt-2 font-display text-2xl font-semibold leading-none">
+                From target time to kitchen steps.
+              </h2>
+              <div className="mt-4 grid gap-2">
+                {exampleSessionRows.map((row) => (
+                  <div key={row.label} className="grid grid-cols-[6.7rem_1fr] gap-3 rounded-2xl bg-cream/80 px-3 py-2.5 text-sm">
+                    <p className="font-extrabold text-ink/45">{row.label}</p>
+                    <div className="min-w-0">
+                      <p className="font-extrabold leading-5 text-ink">{row.value}</p>
+                      {row.detail && <p className="text-xs font-bold leading-5 text-ink/55">{row.detail}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-10 max-w-7xl">
+          <ContinuePizzaSessionCard variant="hero" />
         </div>
       </section>
+
+      <section className="px-4 py-10 sm:px-6 sm:py-14 lg:px-8" aria-labelledby="homepage-benefits-heading">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Pizza Session</p>
+            <h2 id="homepage-benefits-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+              Everything you need for a better pizza session
+            </h2>
+          </div>
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            {benefits.map((benefit) => (
+              <article key={benefit.title} className="rounded-[1.75rem] border border-white/80 bg-white/80 p-5 shadow-sm sm:p-6">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-leaf/10 text-xs font-black text-leaf" aria-hidden="true">
+                  {benefit.icon}
+                </span>
+                <h3 className="mt-5 font-display text-3xl font-semibold leading-none">{benefit.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-ink/62">{benefit.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-10 sm:px-6 sm:py-14 lg:px-8" aria-labelledby="homepage-experience-heading">
+        <div className="mx-auto grid max-w-7xl gap-6 rounded-[2rem] border border-white/80 bg-white/65 p-5 shadow-card sm:rounded-[2.5rem] sm:p-7 lg:grid-cols-[0.75fr_1fr] lg:items-center">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Guidance</p>
+            <h2 id="homepage-experience-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+              Guidance that fits your skill level
+            </h2>
+            <div className="mt-5 grid gap-3 text-sm leading-6 text-ink/65 sm:grid-cols-3 lg:grid-cols-1">
+              <p><strong className="text-ink">Beginner:</strong> Clear steps, less theory.</p>
+              <p><strong className="text-ink">Enthusiast:</strong> More control and helpful explanations.</p>
+              <p><strong className="text-ink">Pizza Nerd:</strong> Technical details, percentages and variables.</p>
+            </div>
+          </div>
+          <HomepageGuidanceLevelSection />
+        </div>
+      </section>
+
+      <section className="px-4 py-10 sm:px-6 sm:py-14 lg:px-8" aria-labelledby="homepage-comparison-heading">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-7 lg:grid-cols-[0.8fr_1fr] lg:items-start">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.28em] text-leaf">Why it matters</p>
+              <h2 id="homepage-comparison-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+                More than a dough calculator
+              </h2>
+              <p className="mt-4 max-w-xl text-base leading-7 text-ink/68">
+                Most pizza tools calculate ingredients. DoughTools helps you plan the whole session: dough, timing, shopping and baking steps in one flow.
+              </p>
+            </div>
+
+            <div className="overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/85 shadow-card">
+              <div className="hidden grid-cols-2 border-b border-ink/10 bg-leaf/10 text-sm font-extrabold text-leaf sm:grid">
+                <p className="border-r border-ink/10 p-4">Normal calculator</p>
+                <p className="p-4">DoughTools</p>
+              </div>
+              <div className="hidden sm:block">
+                {comparisonRows.map(([normal, doughTools]) => (
+                  <div key={normal} className="grid grid-cols-2 border-b border-ink/10 last:border-b-0">
+                    <p className="border-r border-ink/10 p-4 text-sm font-bold leading-6 text-ink/55">{normal}</p>
+                    <p className="p-4 text-sm font-extrabold leading-6 text-ink">{doughTools}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="grid gap-3 p-3 sm:hidden">
+                {comparisonRows.map(([normal, doughTools]) => (
+                  <article key={normal} className="rounded-2xl bg-cream/80 p-4">
+                    <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Normal calculator</p>
+                    <p className="mt-1 text-sm font-bold text-ink/60">{normal}</p>
+                    <p className="mt-3 text-xs font-extrabold uppercase tracking-[.18em] text-leaf">DoughTools</p>
+                    <p className="mt-1 text-sm font-extrabold text-ink">{doughTools}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-12 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-final-cta-heading">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/80 bg-ink p-6 text-center text-white shadow-card sm:rounded-[2.5rem] sm:p-10">
+          <h2 id="homepage-final-cta-heading" className="font-display text-4xl font-semibold leading-none sm:text-6xl">
+            Ready to plan your next pizza night?
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base sm:leading-7">
+            Start with your bake time, number of pizzas and dough style. DoughTools builds the rest of the session around it.
+          </p>
+          <Link
+            href={homepageContent.hero.primaryCta.href}
+            className="mt-7 inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:w-auto"
+          >
+            {homepageContent.hero.primaryCta.label} →
+          </Link>
+        </div>
+      </section>
+
+      <footer className="px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-ink/10 pt-6 text-xs font-bold text-ink/45 sm:flex-row sm:items-center sm:justify-between">
+          <p>Made for better pizza nights.</p>
+          <nav className="flex flex-wrap gap-4" aria-label="Footer">
+            <Link href="/guide" className="hover:text-ink">Guide</Link>
+            <Link href="/about" className="hover:text-ink">About</Link>
+            <Link href="/privacy" className="hover:text-ink">Privacy</Link>
+            <Link href="/terms" className="hover:text-ink">Terms</Link>
+          </nav>
+        </div>
+      </footer>
     </main>
   );
 }
