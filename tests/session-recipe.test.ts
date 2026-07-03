@@ -514,6 +514,64 @@ describe("Session recipe build step", () => {
     expect(result.ingredients.leavener).toBeGreaterThan(fortyEightHour.yeastAmountGrams ?? 0);
   });
 
+  it("uses the remaining time when a recommended dough start has already passed", () => {
+    const now = new Date("2026-07-03T15:18:00");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-missed-recommend-start",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T18:00",
+      doughStartMode: "recommend",
+    }, now);
+
+    const result = buildSessionRecipe(session, now);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected missed recommendation recipe");
+
+    expect(result.continuousYeast?.appliedToIngredients).toBe(true);
+    expect(result.continuousYeast?.availableFermentationHours).toBeGreaterThan(26);
+    expect(result.continuousYeast?.availableFermentationHours).toBeLessThan(27);
+    expect(result.continuousYeast?.availableFermentationHours).not.toBeCloseTo(30, 1);
+    expect(result.continuousYeast?.summary).toContain("Yeast amount is calculated for about 26.7 h cold fermentation.");
+  });
+
+  it("uses a future manual later dough start but guards a saved past manual start", () => {
+    const now = new Date("2026-07-03T15:18:00");
+    const futureStart = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-future-manual-start",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-05T18:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-04T12:00",
+    }, now), now);
+    const pastStart = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-past-manual-start",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T18:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-03T12:00",
+    }, now), now);
+
+    expect(futureStart.ok).toBe(true);
+    expect(pastStart.ok).toBe(true);
+    if (!futureStart.ok || !pastStart.ok) throw new Error("Expected manual start recipes");
+
+    expect(futureStart.continuousYeast?.availableFermentationHours).toBe(30);
+    expect(pastStart.continuousYeast?.availableFermentationHours).toBeGreaterThan(26);
+    expect(pastStart.continuousYeast?.availableFermentationHours).toBeLessThan(27);
+  });
+
   it("uses a selected 24–72h cold fermentation length when the actual window supports it", () => {
     const now = new Date("2026-07-02T09:00:00");
     const defaultFortyHour = buildSessionRecipe(createPizzaSession({

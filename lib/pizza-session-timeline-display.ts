@@ -5,6 +5,7 @@ type TimelineDisplayInput = {
   steps: PizzaSessionTimelineStep[];
   planningResult?: PlanningResult | null;
   session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime"> | null;
+  now?: Date;
 };
 
 export type ResolvedSessionDoughStartTime = {
@@ -55,12 +56,16 @@ function currentFromPlanning(planningResult?: PlanningResult | null) {
 export function resolveSessionDoughStartTime({
   planningResult,
   session,
+  steps,
+  now,
 }: {
   planningResult?: PlanningResult | null;
   session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime"> | null;
+  steps?: PizzaSessionTimelineStep[];
+  now?: Date;
 }): ResolvedSessionDoughStartTime {
   const mode = session?.doughStartMode ?? "recommend";
-  const current = currentFromPlanning(planningResult);
+  const current = currentFromPlanning(planningResult) ?? now;
   const target = targetFromInput(planningResult, session);
 
   if (mode === "now") {
@@ -94,10 +99,35 @@ export function resolveSessionDoughStartTime({
         warning: "The earliest dough start time is after the bake target, so the timeline keeps a cautious fallback.",
       };
     }
+    if (current && laterStart.getTime() < current.getTime()) {
+      return {
+        mode,
+        label: "Dough start: start now",
+        startsAt: current.toISOString(),
+        warning: "The chosen dough start time has passed. Start now and DoughTools will use the time left until your pizza target.",
+      };
+    }
     return {
       mode,
       label: "Dough start: later",
       startsAt: laterStart.toISOString(),
+    };
+  }
+
+  const idealStart = steps?.find((step) => step.id === "mix-dough")?.scheduledAt;
+  const idealStartDate = parsePlanningDate(idealStart);
+  if (
+    current
+    && target
+    && idealStartDate
+    && idealStartDate.getTime() < current.getTime()
+    && current.getTime() < target.getTime()
+  ) {
+    return {
+      mode,
+      label: "Dough start: start now",
+      startsAt: current.toISOString(),
+      warning: "The ideal dough start time has passed. Start now and DoughTools will use the remaining time.",
     };
   }
 
@@ -145,13 +175,14 @@ export function timelineStepsForPlanningSummaryDisplay({
   steps,
   planningResult,
   session,
+  now,
 }: TimelineDisplayInput): PizzaSessionTimelineStep[] {
-  const current = currentFromPlanning(planningResult);
+  const current = currentFromPlanning(planningResult) ?? now;
   const target = targetFromInput(planningResult, session);
   if (!current || !target) return steps;
 
-  const resolvedStart = resolveSessionDoughStartTime({ planningResult, session });
-  const explicitStart = resolvedStart.mode !== "recommend" ? parsePlanningDate(resolvedStart.startsAt) : undefined;
+  const resolvedStart = resolveSessionDoughStartTime({ planningResult, session, steps, now });
+  const explicitStart = parsePlanningDate(resolvedStart.startsAt);
   if (explicitStart) {
     if (shouldUseSameDayFromResolvedStart(explicitStart, target)) {
       return steps.flatMap((step) => {
@@ -191,6 +222,9 @@ export function timelineStepsForPlanningSummaryDisplay({
       return {
         ...step,
         scheduledAt: explicitDoughStartColdIso(step, explicitStart),
+        helperCopy: step.id === "mix-dough" && resolvedStart.warning
+          ? resolvedStart.warning
+          : step.helperCopy,
         quietHoursWarning: undefined,
       };
     });

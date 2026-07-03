@@ -163,6 +163,11 @@ export default function SessionKitchenPage() {
                   <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{instruction.shortInstruction}</p>
                   <p className="mt-3 text-sm font-bold text-ink/55">{formatDateTime(currentStep.scheduledAt)}</p>
                   <p className="mt-3 text-sm leading-6 text-ink/55">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
+                  {currentStep.helperCopy && (
+                    <p className="mt-4 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
+                      {currentStep.helperCopy}
+                    </p>
+                  )}
                 </section>
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length > 0 && (

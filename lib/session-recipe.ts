@@ -203,7 +203,10 @@ function resolveDoughStartForRecipe(session: PizzaSession, now: Date, target: Da
   if (mode === "now") return now;
   if (mode === "later") {
     const laterStart = parseSessionDate(session.doughEarliestStartTime);
-    return laterStart ?? now;
+    if (laterStart && laterStart.getTime() > now.getTime() && laterStart.getTime() < target.getTime()) {
+      return laterStart;
+    }
+    return now.getTime() < target.getTime() ? now : target;
   }
   return now.getTime() < target.getTime() ? now : target;
 }

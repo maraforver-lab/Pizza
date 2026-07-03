@@ -5,6 +5,8 @@ import {
   type PizzaSessionTimeline,
   type PizzaSessionTimelineStep,
 } from "@/lib/pizza-session";
+import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 import { updatePizzaSession } from "@/lib/pizza-session-storage";
 
 export type KitchenModeState =
@@ -115,16 +117,25 @@ function statusForTimelineStep(step?: PizzaSessionTimelineStep): PizzaSession["s
   return "preparing";
 }
 
-export function getKitchenModeState(session?: PizzaSession): KitchenModeState {
+export function getKitchenModeState(session?: PizzaSession, now = new Date()): KitchenModeState {
   if (!session) return { ok: false, missingReason: "no-session" };
   if (!session.timeline?.steps.length) return { ok: false, missingReason: "missing-timeline" };
 
-  const currentStep = session.timeline.steps.find((step) => step.status === "todo" && step.id !== "review-result");
+  const recipe = buildSessionRecipe(session, now);
+  const planningResult = recipe.ok && recipe.planningInfo.ok ? recipe.planningInfo.result : null;
+  const displaySteps = timelineStepsForPlanningSummaryDisplay({
+    steps: session.timeline.steps,
+    planningResult,
+    session,
+    now,
+  });
+
+  const currentStep = displaySteps.find((step) => step.status === "todo" && step.id !== "review-result");
   const currentIndex = currentStep
-    ? session.timeline.steps.findIndex((step) => step.id === currentStep.id)
-    : session.timeline.steps.length - 1;
-  const nextStep = currentStep ? nextTodoAfter(session.timeline.steps, currentStep.id) : undefined;
-  const doneCount = session.timeline.steps.filter((step) => step.status === "done").length;
+    ? displaySteps.findIndex((step) => step.id === currentStep.id)
+    : displaySteps.length - 1;
+  const nextStep = currentStep ? nextTodoAfter(displaySteps, currentStep.id) : undefined;
+  const doneCount = displaySteps.filter((step) => step.status === "done").length;
 
   return {
     ok: true,
@@ -132,7 +143,7 @@ export function getKitchenModeState(session?: PizzaSession): KitchenModeState {
     currentIndex,
     nextStep,
     doneCount,
-    totalCount: session.timeline.steps.length,
+    totalCount: displaySteps.length,
   };
 }
 

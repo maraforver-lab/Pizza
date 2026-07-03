@@ -419,7 +419,7 @@ export default function SessionTimelinePage() {
   const startWindow = planningResult?.startWindowRecommendation;
   const fermentationSetup = planningResult?.fermentationSetupRecommendation;
   const temperatureGuidance = planningResult?.temperatureGuidance;
-  const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session });
+  const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session, steps: timeline.steps });
   const longHorizonRecommendation = buildLongHorizonStartRecommendation({
     planningResult,
     selectedFlourLabel: selectedFlourLabel(session.flour),

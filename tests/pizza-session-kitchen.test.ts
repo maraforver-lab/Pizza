@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createPizzaSession, pizzaSessionContinueHref } from "@/lib/pizza-session";
+import { generatePizzaSessionTimeline } from "@/lib/pizza-session-timeline";
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
@@ -137,6 +138,46 @@ describe("Pizza Session Kitchen Mode", () => {
   it("returns safe missing states for missing active session and timeline", () => {
     expect(getKitchenModeState(undefined)).toEqual({ ok: false, missingReason: "no-session" });
     expect(getKitchenModeState(createPizzaSession({ id: "missing-timeline" }))).toEqual({ ok: false, missingReason: "missing-timeline" });
+  });
+
+  it("does not show Kitchen Mode Mix dough in the past when the recommended start has passed", () => {
+    const now = new Date("2026-07-03T15:18:00");
+    const session = createPizzaSession({
+      id: "kitchen-missed-recommend-start",
+      status: "planning",
+      currentStep: "timeline",
+      targetEatTime: "2026-07-04T18:00",
+      doughStartMode: "recommend",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+      timeline: generatePizzaSessionTimeline(createPizzaSession({
+        id: "kitchen-missed-recommend-start",
+        status: "planning",
+        currentStep: "timeline",
+        targetEatTime: "2026-07-04T18:00",
+        doughStartMode: "recommend",
+        pizzaStyle: "home-oven",
+        pizzaPreset: "margherita",
+        pizzaCount: 4,
+        ovenType: "home",
+        flour: "tipo-00",
+      }, now), now).timeline,
+    }, now);
+
+    const storedMix = session.timeline?.steps.find((step) => step.id === "mix-dough");
+    expect(storedMix?.scheduledAt).toBe(new Date("2026-07-03T12:00:00").toISOString());
+
+    const state = getKitchenModeState(session, now);
+    expect(state.ok).toBe(true);
+    if (!state.ok) throw new Error("Expected kitchen state");
+    expect(state.currentStep?.id).toBe("mix-dough");
+    expect(state.currentStep?.scheduledAt).toBe(now.toISOString());
+    expect(state.currentStep?.helperCopy).toContain("ideal dough start time has passed");
+    expect(session.timeline?.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .toBe(new Date("2026-07-03T12:00:00").toISOString());
   });
 
   it("marks the current kitchen task done, advances currentStep and preserves local session data", () => {
