@@ -10,8 +10,8 @@ const sessionJourneySteps = [
   { label: "How many", phase: "Setup", href: "/session/start?step=quantity" },
   { label: "Flour", phase: "Setup", href: "/session/start?step=flour" },
   { label: "Dough plan", phase: "Plan", href: "/session/recipe" },
+  { label: "Choose pizzas & shopping", phase: "Prepare", href: "/session/shopping" },
   { label: "Timeline", phase: "Plan", href: "/session/timeline" },
-  { label: "Shopping list", phase: "Prepare", href: "/session/shopping" },
   { label: "Kitchen mode", phase: "Bake", href: "/session/kitchen" },
   { label: "Review", phase: "Improve", href: "/session/review" },
 ] as const;
@@ -33,7 +33,7 @@ export function SessionProgressSidebar({ activeStep, hideLocalSaveNote = false }
   return (
     <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
       <h2 className="font-display text-3xl font-semibold leading-none">Pizza Session</h2>
-      <p className="mt-3 text-sm leading-5 text-ink/55">One guided path from setup to dough plan, timeline, shopping, kitchen mode and review.</p>
+      <p className="mt-3 text-sm leading-5 text-ink/55">One guided path from setup to dough plan, shopping, timeline, kitchen mode and review.</p>
       <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
         <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
           <span>Step {activeStep} of {sessionJourneySteps.length}</span>

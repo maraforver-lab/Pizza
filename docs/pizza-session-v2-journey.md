@@ -22,9 +22,9 @@ Core rule:
 | 3 | When to eat | `/session/start` | Choose target pizza time | When do you want pizza? | Continue → | Back | Planning page |
 | 4 | How many | `/session/start` | Choose pizza count | How many pizzas? | Continue → | Back | Planning page |
 | 5 | Flour situation | `/session/start` | Choose flour situation or W-value range | Do you already have flour? | Continue → | Back | Planning page |
-| 6 | Dough plan | `/session/recipe` | Show preparation and dough amounts | What dough should I make? | Continue to Timeline → | Back | Reference page |
-| 7 | Timeline | `/session/timeline` | Show schedule overview and critical moments | When should I do each step? | Next step → | Back | Reference page |
-| 8 | Shopping list | `/session/shopping` | Checklist for pizza ingredients | What ingredients do I need? | Next → | Back | Checklist page |
+| 6 | Dough plan | `/session/recipe` | Show preparation and dough amounts | What dough should I make? | Continue to Shopping → | Back | Reference page |
+| 7 | Choose pizzas & shopping | `/session/shopping` | Choose toppings and check ingredients | What pizzas and ingredients do I need? | Continue to Timeline → | Back | Checklist page |
+| 8 | Timeline | `/session/timeline` | Show schedule overview and critical moments | When should I do each step? | Start dough → | Back | Reference page |
 | 9 | Kitchen mode | `/session/kitchen` | Guided execution | What should I do now? | Mark step as done → | Back | Execution page |
 | 10 | Review | `/session/review` | Save learning and notes | How did the pizza turn out? | Save review → | Back | Review / learning page |
 
@@ -88,6 +88,9 @@ Preserve:
 - existing target time compatibility
 - existing flour fallback behavior
 - existing route chain
+  - `/session/recipe` hands off to `/session/shopping`
+  - `/session/shopping` hands off to `/session/timeline`
+  - `/session/timeline` hands off to `/session/kitchen`
 
 Do not change:
 

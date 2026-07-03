@@ -303,14 +303,15 @@ describe("Pizza Session Kitchen Mode", () => {
     }
   });
 
-  it("connects timeline, shopping and Continue Session to Kitchen Mode where appropriate", () => {
+  it("connects timeline and Continue Session to Kitchen Mode while shopping hands off to Timeline", () => {
     const timelinePage = source("app/session/timeline/page.tsx");
     const shoppingPage = source("app/session/shopping/page.tsx");
     const dataDoc = source("docs/pizza-session-data-model.md");
 
     expect(timelinePage).toContain("/session/kitchen");
     expect(timelinePage).toContain("/session/review");
-    expect(shoppingPage).toContain("/session/kitchen");
+    expect(shoppingPage).toContain("/session/timeline");
+    expect(shoppingPage).not.toContain("/session/kitchen?from=shopping");
     expect(dataDoc).toContain("When `currentStep` is `timeline` and the session has unfinished timeline tasks");
 
     const timelineSession = createPizzaSession({

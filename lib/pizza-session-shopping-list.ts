@@ -94,6 +94,7 @@ export function generateAndSaveActiveShoppingList(
   const updatedSession = updatePizzaSession(
     session.id,
     {
+      pizzaPreset: result.shoppingList.presetId,
       shoppingList: result.shoppingList,
       currentStep: "shopping",
     },

@@ -44,7 +44,7 @@ describe("Pizza Session timeline", () => {
     const page = source("app/session/timeline/page.tsx");
     expect(page).toContain("Your pizza timeline");
     expect(page).toContain("SessionStepHero");
-    expect(page).toContain("step={7}");
+    expect(page).toContain("step={8}");
     expect(page).toContain("hideMeta");
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).toContain("Next up");
@@ -56,7 +56,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("Start dough →");
     expect(page).toContain("BottomActionBar");
-    expect(page).toContain("href=\"/session/recipe\"");
+    expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("href={nextAction.href}");
     expect(page).toContain("desktopAside={renderNextActionCard()}");
     expect(page).toContain("<div className=\"lg:hidden\">");
@@ -374,7 +374,6 @@ describe("Pizza Session timeline", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("function nextActionForTimeline");
-    expect(page).toContain("title: \"Get pizza ingredients\"");
     expect(page).toContain("cta: \"Start dough →\"");
     expect(page).toContain("cta: \"Continue baking →\"");
     expect(page).toContain("cta: \"Review your pizza →\"");
@@ -383,7 +382,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("{nextAction.subtext}");
     expect(page).toContain("const renderNextActionCard");
     expect(page).not.toContain("timeline-next-action-heading");
-    expect(page).toContain("Open shopping list →");
+    expect(page).toContain("Review shopping →");
     expect(page).toContain("href: \"/session/kitchen?from=timeline\"");
     expect(page).toContain("href: \"/session/review\"");
     expect(page).toContain("href=\"/session/shopping\"");
@@ -397,12 +396,12 @@ describe("Pizza Session timeline", () => {
 
     expect(page).toContain("function ShoppingCheckpointRow");
     expect(page).toContain("Shopping checkpoint");
-    expect(page).toContain("Get pizza ingredients");
-    expect(page).toContain("Check sauce, cheese and toppings before baking.");
-    expect(page).toContain("You can do this while the dough is resting or fermenting.");
+    expect(page).toContain("Pizza choices and shopping");
+    expect(page).toContain("This should be handled before Timeline.");
+    expect(page).toContain("Timeline stays focused on when to work; Shopping owns toppings and buy-list checks.");
     expect(page).toContain("href=\"/session/shopping\"");
-    expect(page).toContain("Open shopping list →");
-    expect(page).toContain("shoppingCheckpointState(session, nextStep)");
+    expect(page).toContain("Review shopping →");
+    expect(page).toContain("shoppingCheckpointState(session)");
     expect(page).toContain("const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep)");
     expect(page).toContain("const shoppingCheckpointInsertIndex = firstServiceStepIndex");
     expect(page).toContain("index === shoppingCheckpointInsertIndex");
@@ -415,23 +414,21 @@ describe("Pizza Session timeline", () => {
   it("keeps the shopping checkpoint visible in normal timeline rendering instead of hiding it behind completion state", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("<ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />");
+    expect(page).toContain("<ShoppingCheckpointRow checkpointState={checkpointState} />");
     expect(page).not.toContain("session?.shoppingList && <ShoppingCheckpointRow");
     expect(page).not.toContain("allStepsComplete && <ShoppingCheckpointRow");
     expect(page).not.toContain("shoppingIsNext && <ShoppingCheckpointRow");
     expect(page).not.toMatch(/\b(Avaa|Ostoskor|Juusto|Täytteet|Seuraava)\b/);
   });
 
-  it("allows the next action to treat shopping as the next step after dough work", () => {
+  it("keeps shopping as a review checkpoint instead of the next Timeline action", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("const shoppingIsNext = checkpointState === \"Next\"");
-    expect(page).toContain("if (shoppingIsNext)");
-    expect(page).toContain("cta: \"Open shopping list →\"");
-    expect(page).toContain("href: \"/session/shopping\"");
+    expect(page).not.toContain("const shoppingIsNext = checkpointState === \"Next\"");
+    expect(page).not.toContain("if (shoppingIsNext)");
+    expect(page).not.toContain("cta: \"Open shopping list →\"");
     expect(page).toContain("if (session?.shoppingList) return \"Done\"");
-    expect(page).toContain("if (isDoughTimelineStep(nextStep)) return \"Upcoming\"");
-    expect(page).toContain("if (isServiceTimelineStep(nextStep) || !nextStep) return \"Next\"");
+    expect(page).toContain("return \"Check\"");
   });
 
   it("removes the repeated summary/sidebar from the timeline overview", () => {
@@ -456,7 +453,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("formatShortDateTime(step.scheduledAt)");
     expect(page).toContain("{step.label}");
     expect(page).toContain("{step.description}");
-    expect(page).toContain("statusLabel(step, shoppingIsNext ? undefined : nextStep)");
+    expect(page).toContain("statusLabel(step, nextStep)");
     expect(page).toContain("relativeFromTarget(step.scheduledAt, targetTime)");
     expect(page).toContain("step.id === nextStep?.id");
     expect(page).toContain("timelineStepIcon(step)");
@@ -491,7 +488,7 @@ describe("Pizza Session timeline", () => {
   it("keeps Back and Next navigation aligned with the next action", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("href=\"/session/recipe\"");
+    expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("href={nextAction.href}");
     expect(page).toContain("{nextAction.cta}");
     expect(page).toContain("BottomActionBar");

@@ -50,8 +50,8 @@ describe("Start Pizza Session wizard", () => {
       "How many",
       "Flour",
       "Dough plan",
+      "Choose pizzas & shopping",
       "Timeline",
-      "Shopping list",
       "Kitchen mode",
       "Review",
     ]) {
@@ -148,7 +148,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("How many");
     expect(page).toContain("Flour");
     expect(page).toContain("Dough plan");
-    expect(page).toContain("Shopping list");
+    expect(page).toContain("Choose pizzas & shopping");
     expect(page).toContain("Kitchen mode");
     expect(page).toContain("Review");
     expect(page).toContain("journeyProgressForStep");

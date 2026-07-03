@@ -70,8 +70,8 @@ describe("Pizza Session desktop refinement components", () => {
     const layout = source("components/session/SessionWorkspaceLayout.tsx");
     const pages = [
       ["app/session/recipe/page.tsx", "activeStep={6}"],
-      ["app/session/timeline/page.tsx", "activeStep={7}"],
-      ["app/session/shopping/page.tsx", "activeStep={8}"],
+      ["app/session/shopping/page.tsx", "activeStep={7}"],
+      ["app/session/timeline/page.tsx", "activeStep={8}"],
       ["app/session/kitchen/page.tsx", "activeStep={9}"],
       ["app/session/review/page.tsx", "activeStep={10}"],
     ];
@@ -87,8 +87,8 @@ describe("Pizza Session desktop refinement components", () => {
     expect(sidebar).toContain('href: "/session/start?step=quantity"');
     expect(sidebar).toContain('href: "/session/start?step=flour"');
     expect(sidebar).toContain('href: "/session/recipe"');
-    expect(sidebar).toContain('href: "/session/timeline"');
     expect(sidebar).toContain('href: "/session/shopping"');
+    expect(sidebar).toContain('href: "/session/timeline"');
     expect(sidebar).toContain('href: "/session/kitchen"');
     expect(sidebar).toContain('href: "/session/review"');
     expect(sidebar).toContain('const canNavigate = state === "complete"');
@@ -100,8 +100,8 @@ describe("Pizza Session desktop refinement components", () => {
     expect(sidebar).toContain('aria-disabled={state === "upcoming" ? true : undefined}');
     expect(sidebar).toContain("Current journey step");
     expect(sidebar).toContain("Dough plan");
+    expect(sidebar).toContain("Choose pizzas & shopping");
     expect(sidebar).toContain("Timeline");
-    expect(sidebar).toContain("Shopping list");
     expect(sidebar).toContain("Kitchen mode");
     expect(sidebar).toContain("Review");
     expect(layout).toContain("export function SessionWorkspaceLayout");

@@ -37,13 +37,12 @@ describe("Pizza Session flow navigation integrity", () => {
     const review = source("app/session/review/page.tsx");
 
     expectTextLink(start, "Build my dough plan →", "/session/recipe");
-    expectTextLink(recipe, "Continue to Timeline →", "/session/timeline");
-    expectTextLink(timeline, "Open shopping list →", "/session/shopping");
+    expectTextLink(recipe, "Continue to Shopping →", "/session/shopping");
+    expectTextLink(shopping, "Continue to Timeline →", "/session/timeline");
     expect(timeline).toContain('href={nextAction.href}');
     expect(timeline).toContain('Start dough →');
     expect(timeline).toContain('Continue baking →');
-    expectTextLink(shopping, "Next →", "/session/kitchen?from=shopping");
-    expectTextLink(shopping, "Back", "/session/timeline");
+    expectTextLink(timeline, "Back", "/session/shopping");
     expect(kitchen).toContain("href={backHref}");
     expect(kitchen).toContain("kitchenBackHrefFromSource");
     expectTextLink(kitchen, "Review your pizza →", "/session/review");
@@ -56,9 +55,9 @@ describe("Pizza Session flow navigation integrity", () => {
     const timeline = source("app/session/timeline/page.tsx");
 
     expect(timeline).toContain("Shopping checkpoint");
-    expect(timeline).toContain("Get pizza ingredients");
-    expect(timeline).toContain("Check sauce, cheese and toppings before baking.");
-    expect(timeline).toContain("Open shopping list →");
+    expect(timeline).toContain("Pizza choices and shopping");
+    expect(timeline).toContain("This should be handled before Timeline.");
+    expect(timeline).toContain("Review shopping →");
     expect(timeline).toContain('href="/session/shopping"');
     expect(timeline).toContain("const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep)");
     expect(timeline).toContain("index === shoppingCheckpointInsertIndex");
@@ -67,17 +66,19 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(timeline).not.toMatch(/Mark done|Edit session choices|Review session/);
   });
 
-  it("keeps the Shopping page as simple Next and Back navigation to Kitchen and Timeline", () => {
+  it("keeps the Shopping page as pizza choice and shopping before Timeline", () => {
     const shopping = source("app/session/shopping/page.tsx");
 
-    expect(shopping).toContain("Your shopping list");
+    expect(shopping).toContain("Choose pizzas and build the shopping list.");
+    expect(shopping).toContain("What pizzas are you making?");
+    expect(shopping).toContain("This choice is for toppings and shopping only.");
     expect(shopping).toContain("Dough essentials");
     expect(shopping).toContain("Sauce");
     expect(shopping).toContain("Cheese");
     expect(shopping).toContain("Toppings");
     expect(shopping).toContain("Optional gear");
-    expectTextLink(shopping, "Next →", "/session/kitchen?from=shopping");
-    expectTextLink(shopping, "Back", "/session/timeline");
+    expectTextLink(shopping, "Continue to Timeline →", "/session/timeline");
+    expectTextLink(shopping, "Back", "/session/recipe");
     expect(shopping).not.toMatch(/Copy shopping list|Review dough plan|Back to timeline|Open Kitchen Mode/i);
   });
 

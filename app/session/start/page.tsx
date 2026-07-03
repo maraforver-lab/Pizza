@@ -47,8 +47,8 @@ const journeySteps = [
   { label: "How many", href: "/session/start?step=quantity", phase: "Setup" },
   { label: "Flour", href: "/session/start?step=flour", phase: "Setup" },
   { label: "Dough plan", href: "/session/recipe", phase: "Plan" },
+  { label: "Choose pizzas & shopping", href: "/session/shopping", phase: "Prepare" },
   { label: "Timeline", href: "/session/timeline", phase: "Plan" },
-  { label: "Shopping list", href: "/session/shopping", phase: "Prepare" },
   { label: "Kitchen mode", href: "/session/kitchen", phase: "Bake" },
   { label: "Review", href: "/session/review", phase: "Improve" },
 ] as const;
@@ -620,7 +620,7 @@ function StartPizzaSessionContent() {
       <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[16rem_1fr]">
         <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
           <h1 className="font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
-          <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, timeline, shopping, kitchen mode and review come next.</p>
+          <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough plan, pizza choices, shopping, timeline, kitchen mode and review come next.</p>
           <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
             <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
               <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>

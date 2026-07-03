@@ -1,12 +1,13 @@
 # Session shopping list
 
 Patch 34 adds the first local Pizza Session shopping list at `/session/shopping`.
+Patch 158 moves pizza/topping choice and shopping before Timeline, so `/session/shopping` now acts as the combined “Choose pizzas & Shopping” step after Dough Plan.
 
 The goal is intentionally practical: choose a familiar pizza preset and generate a grouped list for the active session. It is not a custom ingredient database yet.
 
 ## Preset approach
 
-The first presets are:
+The first shopping presets are:
 
 - Margherita
 - Marinara
@@ -16,6 +17,15 @@ The first presets are:
 - Simple cheese pizza
 
 Each preset has a short description, best-use guidance, experience-level helper copy and grouped ingredients.
+
+The current session UI exposes the safe V1 supported subset:
+
+- Margherita
+- Marinara
+- Diavola
+- Funghi
+
+Future shopping presets can add Prosciutto, Quattro Formaggi, Capricciosa, Vegetariana, Nduja and Custom without changing the dough-style step.
 
 ## Shopping groups
 
@@ -38,6 +48,8 @@ Each item can be marked as:
 - Bought
 
 Changing a status only updates the active Pizza Session in local browser storage.
+
+Choosing a pizza preset keeps using the existing `pizzaPreset` compatibility field and regenerates the active session shopping list. It does not change dough style, dough formulas or ingredient calculation logic.
 
 ## Local-first storage
 

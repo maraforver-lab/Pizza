@@ -79,6 +79,7 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(result.ok).toBe(true);
     expect(updatedSession?.currentStep).toBe("shopping");
+    expect(updatedSession?.pizzaPreset).toBe("margherita");
     expect(updatedSession?.shoppingList?.presetId).toBe("margherita");
     expect(updatedSession?.updatedAt).toBe("2026-06-25T10:30:00.000Z");
     expect(updatedSession?.lastSavedAt).toBe("2026-06-25T10:30:00.000Z");
@@ -151,29 +152,32 @@ describe("Pizza Session shopping list presets", () => {
     expect(text).not.toMatch(/cloud sync enabled|public sharing enabled|share card/i);
   });
 
-  it("adds the /session/shopping route, links and local-first copy without a free-text ingredient editor", () => {
+  it("adds the /session/shopping route, pizza choice UI and local-first copy without a free-text ingredient editor", () => {
     const page = source("app/session/shopping/page.tsx");
     const timeline = source("app/session/timeline/page.tsx");
     const start = source("app/session/start/page.tsx");
 
-    expect(page).toContain("Your shopping list");
-    expect(page).toContain("Check what you already have before you start cooking.");
+    expect(page).toContain("Choose pizzas and build the shopping list.");
+    expect(page).toContain("Pick the topping plan for this session, then check what you already have.");
+    expect(page).toContain("What pizzas are you making?");
+    expect(page).toContain("This choice is for toppings and shopping only.");
+    expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola and Funghi.");
     expect(page).toContain("SessionStepHero");
-    expect(page).toContain("step={8}");
+    expect(page).toContain("step={7}");
     expect(page).toContain("hideMeta");
-    expect(page).toContain("Next →");
+    expect(page).toContain("Continue to Timeline →");
     expect(page).toContain("Back");
     expect(page).toContain("Next up");
-    expect(page).toContain("Kitchen Mode");
-    expect(page).toContain("You’ll cook your pizzas step by step.");
+    expect(page).toContain("Timeline");
+    expect(page).toContain("After shopping, check when to mix, rest, proof and bake.");
     expect(page).toContain("desktopAside={renderNextActionCard()}");
     expect(page).toContain("<div className=\"lg:hidden\">");
     expect(page).not.toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
     expect(page).not.toContain("SessionLocalOnlyNote");
-    expect(page).not.toContain("Step 8: Shopping list");
+    expect(page).not.toContain("Step 7: Choose pizzas & shopping");
     expect(page).not.toContain("This is a preparation checklist for your kitchen.");
     expect(page).not.toMatch(/textarea|contentEditable|public link|upload photo|cloud sync is active|Copy shopping list|Open Sauce tool|Open Toppings tool|Back to timeline|Review dough plan/i);
-    expect(timeline).toContain("/session/shopping");
+    expect(timeline).toContain("/session/kitchen");
     expect(start).toContain("Build my dough plan");
     expect(start).not.toContain("Shopping list →");
   });
@@ -199,12 +203,15 @@ describe("Pizza Session shopping list presets", () => {
     const page = source("app/session/shopping/page.tsx");
 
     expect(page).toContain("SessionStepHero");
-    expect(page).toContain("step={8}");
+    expect(page).toContain("step={7}");
     expect(page).toContain("level={session.experienceLevel}");
     expect(page).toContain("const renderNextActionCard");
     expect(page).toContain("BottomActionBar");
+    expect(page).toContain('href="/session/recipe"');
     expect(page).toContain('href="/session/timeline"');
-    expect(page).toContain('href="/session/kitchen?from=shopping"');
+    expect(page).toContain("Continue to Timeline →");
+    expect(page).toContain("choosePreset");
+    expect(page).toContain("generateAndSaveActiveShoppingList(nextPresetId)");
     expect(page).not.toContain("formatSessionTime");
     expect(page).not.toContain("targetTime");
     expect(page).not.toContain("<AppSignature");
@@ -222,13 +229,13 @@ describe("Pizza Session shopping list presets", () => {
   it("aligns the shopping page with Pizza Session V2 checklist structure", () => {
     const page = source("app/session/shopping/page.tsx");
 
-    expect(page).toContain("step={8}");
+    expect(page).toContain("step={7}");
     expect(page).toContain("Next up");
-    expect(page).toContain("Kitchen Mode");
+    expect(page).toContain("Timeline");
     expect(page).toContain("BottomActionBar");
-    expect(page.indexOf("Next up")).toBeLessThan(page.indexOf("Grouped shopping list"));
+    expect(page.indexOf("Choose toppings")).toBeLessThan(page.indexOf("Grouped shopping list"));
     expect(page.indexOf("Grouped shopping list")).toBeLessThan(page.indexOf("<BottomActionBar"));
-    expect(page).toContain("Shopping list");
+    expect(page).toContain("Choose pizzas & shopping");
     expect(page).toContain("hideMeta");
     expect(page).not.toContain("Checklist page</");
     expect(page).not.toMatch(/checkout|cart total|store link|price|ecommerce/i);
@@ -241,6 +248,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("findPizzaSessionPreset(session?.shoppingList?.presetId)?.id");
     expect(page).toContain("findPizzaSessionPreset(session?.pizzaPreset)?.id");
     expect(page).toContain("generateAndSaveActiveShoppingList(resolvedPreset)");
+    expect(source("lib/pizza-session-shopping-list.ts")).toContain("pizzaPreset: result.shoppingList.presetId");
   });
 
   it("documents Patch 34 shopping behavior and adds changelog history", () => {

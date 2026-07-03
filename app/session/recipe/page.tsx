@@ -424,10 +424,10 @@ export default function SessionRecipePage() {
           )}
           primary={(
             <Link
-              href="/session/timeline"
+              href="/session/shopping"
               className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
             >
-              Continue to Timeline →
+              Continue to Shopping →
             </Link>
           )}
         />

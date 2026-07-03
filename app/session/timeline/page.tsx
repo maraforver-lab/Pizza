@@ -184,34 +184,20 @@ function fermentationPlaceLabel(value?: string | null) {
   return "Not enough information";
 }
 
-type ShoppingCheckpointState = "Upcoming" | "Next" | "Done";
+type ShoppingCheckpointState = "Check" | "Done";
 
-function shoppingCheckpointState(session: PizzaSession | null, nextStep?: PizzaSessionTimelineStep): ShoppingCheckpointState {
+function shoppingCheckpointState(session: PizzaSession | null): ShoppingCheckpointState {
   if (session?.shoppingList) return "Done";
-  if (isDoughTimelineStep(nextStep)) return "Upcoming";
-  if (isServiceTimelineStep(nextStep) || !nextStep) return "Next";
-  return "Upcoming";
+  return "Check";
 }
 
 function nextActionForTimeline({
   nextStep,
-  shoppingIsNext,
   allStepsComplete,
 }: {
   nextStep?: PizzaSessionTimelineStep;
-  shoppingIsNext: boolean;
   allStepsComplete: boolean;
 }) {
-  if (shoppingIsNext) {
-    return {
-      href: "/session/shopping",
-      cta: "Open shopping list →",
-      title: "Get pizza ingredients",
-      subtext: "Get sauce, cheese and toppings before baking.",
-      kind: "shopping",
-    };
-  }
-
   if (nextStep && isDoughTimelineStep(nextStep)) {
     return {
       href: "/session/kitchen?from=timeline",
@@ -267,19 +253,13 @@ function getCriticalMoments(steps: PizzaSessionTimelineStep[]) {
 
 function ShoppingCheckpointRow({
   checkpointState,
-  shoppingIsNext,
 }: {
   checkpointState: ShoppingCheckpointState;
-  shoppingIsNext: boolean;
 }) {
   return (
     <article
       id="shopping-checkpoint"
-      className={`rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
-        shoppingIsNext
-          ? "border-leaf/40 bg-leaf/[.12]"
-          : "border-leaf/30 bg-leaf/[.08]"
-      }`}
+      className="rounded-[1.25rem] border border-leaf/30 bg-leaf/[.08] p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5"
       aria-label="Shopping checkpoint"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -291,20 +271,20 @@ function ShoppingCheckpointRow({
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
               Shopping checkpoint
             </p>
-            <h3 className="mt-1.5 font-display text-2xl font-semibold">Get pizza ingredients</h3>
-            <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">Check sauce, cheese and toppings before baking.</p>
-            <p className="mt-2 hidden text-sm leading-6 text-ink/65 sm:block">You can do this while the dough is resting or fermenting.</p>
+            <h3 className="mt-1.5 font-display text-2xl font-semibold">Pizza choices and shopping</h3>
+            <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">This should be handled before Timeline. You can reopen it if you want to adjust toppings.</p>
+            <p className="mt-2 hidden text-sm leading-6 text-ink/65 sm:block">Timeline stays focused on when to work; Shopping owns toppings and buy-list checks.</p>
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-          <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${checkpointState === "Done" || shoppingIsNext ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-white text-ink/55 ring-ink/10"}`}>
+          <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${checkpointState === "Done" ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-white text-ink/55 ring-ink/10"}`}>
             {checkpointState}
           </span>
           <Link
             href="/session/shopping"
             className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
           >
-            Open shopping list →
+            Review shopping →
           </Link>
         </div>
       </div>
@@ -370,15 +350,13 @@ export default function SessionTimelinePage() {
   });
   const nextStep = displayTimelineSteps.find((step) => step.status === "todo");
   const allStepsComplete = Boolean(displayTimelineSteps.length && displayTimelineSteps.every((step) => step.status === "done"));
-  const checkpointState = shoppingCheckpointState(session, nextStep);
-  const shoppingIsNext = checkpointState === "Next";
+  const checkpointState = shoppingCheckpointState(session);
   const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep);
   const shoppingCheckpointInsertIndex = firstServiceStepIndex >= 0
     ? firstServiceStepIndex
     : displayTimelineSteps.length;
-  const nextAction = nextActionForTimeline({ nextStep, shoppingIsNext, allStepsComplete });
-  const firstServiceStep = firstServiceStepIndex >= 0 ? displayTimelineSteps[firstServiceStepIndex] : undefined;
-  const nextUpTime = shoppingIsNext ? firstServiceStep?.scheduledAt ?? targetTime : nextStep?.scheduledAt ?? targetTime;
+  const nextAction = nextActionForTimeline({ nextStep, allStepsComplete });
+  const nextUpTime = nextStep?.scheduledAt ?? targetTime;
   const criticalMoments = getCriticalMoments(displayTimelineSteps);
   const combinedRisk = planningResult?.combinedRiskSummary;
   const startWindow = planningResult?.startWindowRecommendation;
@@ -395,7 +373,7 @@ export default function SessionTimelinePage() {
           {formatTimelineDate(nextUpTime)}
         </span>
         <span className="rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
-          {shoppingIsNext ? `Before ${formatTimelineTime(nextUpTime)}` : formatTimelineTime(nextUpTime)}
+          {formatTimelineTime(nextUpTime)}
         </span>
       </div>
       <Link
@@ -410,9 +388,9 @@ export default function SessionTimelinePage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
-      <SessionWorkspaceLayout activeStep={7}>
+      <SessionWorkspaceLayout activeStep={8}>
         <SessionStepHero
-          step={7}
+          step={8}
           label="Timeline"
           pageType="Timeline page"
           title="Your pizza timeline"
@@ -536,11 +514,11 @@ export default function SessionTimelinePage() {
             {displayTimelineSteps.map((step, index) => (
               <div key={step.id} className="grid gap-3">
                 {index === shoppingCheckpointInsertIndex && (
-                  <ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
+                  <ShoppingCheckpointRow checkpointState={checkpointState} />
                 )}
                 <article
                   className={`rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
-                    step.id === nextStep?.id && !shoppingIsNext
+                    step.id === nextStep?.id
                       ? "border-leaf/30 bg-leaf/[.08]"
                       : step.id === "bake-pizza"
                         ? "border-tomato/20 bg-tomato/[.05]"
@@ -567,8 +545,8 @@ export default function SessionTimelinePage() {
                       )}
                     </div>
                     <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                      <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === nextStep?.id && !shoppingIsNext ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
-                        {statusLabel(step, shoppingIsNext ? undefined : nextStep)}
+                      <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === nextStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
+                        {statusLabel(step, nextStep)}
                       </span>
                       <span className="text-sm font-bold text-ink/55">
                         {relativeFromTarget(step.scheduledAt, targetTime)}
@@ -579,7 +557,7 @@ export default function SessionTimelinePage() {
               </div>
             ))}
             {shoppingCheckpointInsertIndex === displayTimelineSteps.length && (
-              <ShoppingCheckpointRow checkpointState={checkpointState} shoppingIsNext={shoppingIsNext} />
+              <ShoppingCheckpointRow checkpointState={checkpointState} />
             )}
           </section>
         </section>
@@ -611,7 +589,7 @@ export default function SessionTimelinePage() {
         <BottomActionBar
           back={(
             <Link
-              href="/session/recipe"
+              href="/session/shopping"
               className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
             >
               Back

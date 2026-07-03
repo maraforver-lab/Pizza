@@ -64,10 +64,10 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Dough ball size");
     expect(page).toContain("{result.settings.ballWeight} g each");
     expect(page).toContain("Batch size");
-    expect(page).toContain("Continue to Timeline");
+    expect(page).toContain("Continue to Shopping");
     expect(page).toContain("Back");
     expect(page).toContain('href="/session/start"');
-    expect(page).toContain('href="/session/timeline"');
+    expect(page).toContain('href="/session/shopping"');
     expect(page).not.toContain("Save and continue later");
     expect(page).not.toContain("Open Shopping List");
     expect(page).not.toContain("Open full Calculator");
@@ -103,7 +103,7 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("Current journey step");
     expect(page).not.toContain("Pizza Session V2 journey");
     expect(journeyDoc).toContain("| 6 | Dough plan | `/session/recipe`");
-    expect(journeyDoc).toContain("Continue to Timeline →");
+    expect(journeyDoc).toContain("Continue to Shopping →");
   });
 
   it("shows preparation guidance before dough amounts and the next step", () => {
@@ -157,18 +157,18 @@ describe("Session recipe build step", () => {
     expect(page).not.toMatch(/doughIngredientRows[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
   });
 
-  it("keeps Timeline as the primary next step from the dough plan page", () => {
+  it("keeps Shopping as the primary next step from the dough plan page", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).toContain("Continue to Timeline →");
-    expect(page).toContain("href=\"/session/timeline\"");
+    expect(page).toContain("Continue to Shopping →");
+    expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("BottomActionBar");
     expect(page).not.toContain("Next step");
     expect(page).not.toContain("Next, we’ll build your timeline so you know when to mix, rest, divide, ball, preheat and bake.");
     expect(page).not.toContain("SessionLocalOnlyNote");
     expect(page).not.toContain("{PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.");
-    expect(page).not.toContain("href=\"/session/shopping\"");
-    expect(page.match(/Continue to Timeline →/g)).toHaveLength(1);
+    expect(page).not.toContain("href=\"/session/timeline\"");
+    expect(page.match(/Continue to Shopping →/g)).toHaveLength(1);
     expect(page).not.toContain("Edit session choices");
     expect(page).not.toContain("Review setup");
   });
@@ -995,7 +995,7 @@ describe("Session recipe build step", () => {
     expect(recipeSource).toContain("\"pepperoni-salami\": \"new-york\"");
   });
 
-  it("connects the wizard, timeline and shopping routes to the recipe step without changing security copy", () => {
+  it("connects the wizard, shopping and timeline routes to the recipe step without changing security copy", () => {
     const startPage = source("app/session/start/page.tsx");
     const recipePage = source("app/session/recipe/page.tsx");
     const timelinePage = source("app/session/timeline/page.tsx");
@@ -1013,11 +1013,13 @@ describe("Session recipe build step", () => {
     expect(startPage).toContain("disabled={!canContinue}");
     expect(startPage).not.toContain("What pizza do you want to make?");
     expect(startPage).not.toContain("Later planner patches can turn this into a full timeline");
-    expect(timelinePage).toContain('href="/session/recipe"');
+    expect(recipePage).toContain('href="/session/shopping"');
+    expect(shoppingPage).toContain('href="/session/timeline"');
+    expect(timelinePage).toContain('href="/session/shopping"');
     expect(timelinePage).not.toContain("Review dough plan");
     expect(shoppingPage).not.toContain("Review dough plan");
     expect(timelinePage).toContain("/session/kitchen");
-    expect(shoppingPage).toContain("/session/kitchen");
+    expect(shoppingPage).toContain("Continue to Timeline");
     expect(recipePage).not.toContain("sessionRecipeQuery");
     expect(recipeDoc).toContain("/session/recipe");
     expect(dataDoc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
