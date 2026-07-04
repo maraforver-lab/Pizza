@@ -155,7 +155,8 @@ describe("homepage content model", () => {
     expect(homepage).not.toContain("/images/homepage-hero-desktop.png");
     expect(homepage).not.toContain("/images/homepage-hero-mobile.png");
     expect(homepage).toContain("lg:min-h-[42rem]");
-    expect(homepage).toContain("hidden w-[58%] lg:block");
+    expect(homepage).toContain("hidden w-[64%] lg:block");
+    expect(homepage).toContain("object-[68%_center]");
     expect(homepage).toContain("lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,0.82fr)]");
     expect(homepage).toContain("/images/homepage/hero-mobile-bg.png");
     expect(homepage).toContain("sm:hidden");
@@ -553,7 +554,8 @@ describe("homepage content model", () => {
 
     expect(homepage).toContain("overflow-x-clip");
     expect(homepage).toContain("lg:min-h-[42rem]");
-    expect(homepage).toContain("hidden w-[58%] lg:block");
+    expect(homepage).toContain("hidden w-[64%] lg:block");
+    expect(homepage).toContain("object-[68%_center]");
     expect(homepage).toContain("lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,0.82fr)]");
     expect(homepage).toContain("text-[clamp(3.25rem,13vw,5rem)]");
     expect(homepage).toContain("sm:w-auto");
@@ -561,7 +563,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("lg:grid-cols-[0.75fr_1fr]");
     expect(homepage).toContain("sm:grid-cols-3 lg:grid-cols-1");
     expect(homepage).toContain("ContinuePizzaSessionCard");
-    expect(homepage).toContain("lg:absolute lg:bottom-2 lg:right-2");
+    expect(homepage).toContain("lg:absolute lg:left-0 lg:top-8");
     expect(homepage).toContain("sm:hidden");
     expect(homepage).toContain("sm:grid");
   });

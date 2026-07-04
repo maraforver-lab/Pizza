@@ -68,16 +68,16 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-12 lg:px-8" aria-labelledby="homepage-hero-heading">
         <div className="mx-auto max-w-7xl">
           <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/65 shadow-card backdrop-blur sm:rounded-[2.75rem] lg:min-h-[42rem]">
-            <div className="absolute inset-y-0 right-0 hidden w-[58%] lg:block" aria-hidden="true">
+            <div className="absolute inset-y-0 right-0 hidden w-[64%] lg:block" aria-hidden="true">
               <Image
                 src="/images/homepage/hero-desktop-bg.png"
                 alt=""
                 fill
                 priority
-                sizes="58vw"
-                className="object-cover object-[52%_center]"
+                sizes="64vw"
+                className="object-cover object-[68%_center]"
               />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(255,255,255,0.28),transparent_18rem),linear-gradient(90deg,rgba(255,248,241,0.98)_0%,rgba(255,248,241,0.70)_32%,rgba(255,248,241,0.14)_66%),linear-gradient(180deg,rgba(15,61,46,0)_48%,rgba(15,61,46,0.34)_100%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_14%,rgba(255,255,255,0.20),transparent_16rem),linear-gradient(90deg,rgba(255,248,241,0.98)_0%,rgba(255,248,241,0.62)_28%,rgba(255,248,241,0.05)_58%),linear-gradient(180deg,rgba(15,61,46,0)_56%,rgba(15,61,46,0.24)_100%)]" />
             </div>
 
             <div className="relative z-10 grid gap-7 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,0.82fr)] lg:items-center lg:p-10 lg:pb-14">
@@ -120,7 +120,7 @@ export default async function Home({ searchParams }: HomePageProps) {
                 </div>
 
                 <section
-                  className="mt-4 w-full rounded-[1.75rem] border border-white/80 bg-white/90 p-4 shadow-card backdrop-blur-md sm:p-5 lg:absolute lg:bottom-2 lg:right-2 lg:mt-0 lg:max-w-[25rem]"
+                  className="mt-4 w-full rounded-[1.75rem] border border-white/80 bg-white/90 p-4 shadow-card backdrop-blur-md sm:p-5 lg:absolute lg:left-0 lg:top-8 lg:mt-0 lg:max-w-[24rem]"
                   aria-labelledby="example-session-heading"
                 >
                   <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">Example session</p>
