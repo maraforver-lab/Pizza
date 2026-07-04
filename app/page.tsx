@@ -66,67 +66,81 @@ export default async function Home({ searchParams }: HomePageProps) {
   return (
     <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f6ecdf_46%,#fff8f1_100%)] text-ink">
       <section className="px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-12 lg:px-8" aria-labelledby="homepage-hero-heading">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,0.88fr)] lg:items-center">
-          <div className="max-w-3xl">
-            <p className="text-xs font-extrabold uppercase tracking-[.34em] text-tomato">
-              {homepageContent.hero.eyebrow}
-            </p>
-            <h1 id="homepage-hero-heading" className="mt-5 font-display text-[clamp(3.25rem,13vw,5rem)] font-semibold leading-[.9] tracking-[-.04em] text-ink sm:text-7xl lg:text-[5.8rem]">
-              {heroTitleStart}
-              <span className="text-leaf">dough to oven</span>
-              {heroTitleEnd}
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-ink/70 sm:text-xl sm:leading-8">
-              {homepageContent.hero.intro}
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href={homepageContent.hero.primaryCta.href}
-                className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-              >
-                {homepageContent.hero.primaryCta.label} →
-              </Link>
-              <p className="max-w-xs text-xs font-bold leading-5 text-ink/50">
-                No account needed. Your session is saved locally on this device.
-              </p>
+        <div className="mx-auto max-w-7xl">
+          <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/65 shadow-card backdrop-blur sm:rounded-[2.75rem] lg:min-h-[42rem]">
+            <div className="absolute inset-y-0 right-0 hidden w-[58%] lg:block" aria-hidden="true">
+              <Image
+                src="/images/homepage/hero-desktop-bg.png"
+                alt=""
+                fill
+                priority
+                sizes="58vw"
+                className="object-cover object-[52%_center]"
+              />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(255,255,255,0.28),transparent_18rem),linear-gradient(90deg,rgba(255,248,241,0.98)_0%,rgba(255,248,241,0.70)_32%,rgba(255,248,241,0.14)_66%),linear-gradient(180deg,rgba(15,61,46,0)_48%,rgba(15,61,46,0.34)_100%)]" />
             </div>
-          </div>
 
-          <div className="relative min-w-0">
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/70 p-3 shadow-card sm:rounded-[2.5rem] sm:p-4">
-              <div className="relative min-h-[20rem] overflow-hidden rounded-[1.5rem] bg-flour sm:min-h-[26rem]">
-                <Image
-                  src="/images/homepage/hero-desktop-bg.png"
-                  alt="Pizza with basil, mozzarella and tomato sauce on a flour-dusted table"
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 42vw, 100vw"
-                  className="object-cover object-[58%_center]"
-                />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(255,255,255,0.30),transparent_18rem),linear-gradient(180deg,rgba(15,61,46,0)_42%,rgba(15,61,46,0.30)_100%)]" />
+            <div className="relative z-10 grid gap-7 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,0.82fr)] lg:items-center lg:p-10 lg:pb-14">
+              <div className="max-w-3xl">
+                <p className="text-xs font-extrabold uppercase tracking-[.34em] text-tomato">
+                  {homepageContent.hero.eyebrow}
+                </p>
+                <h1 id="homepage-hero-heading" className="mt-5 font-display text-[clamp(3.25rem,13vw,5rem)] font-semibold leading-[.9] tracking-[-.04em] text-ink sm:text-7xl lg:text-[5.8rem]">
+                  {heroTitleStart}
+                  <span className="text-leaf">dough to oven</span>
+                  {heroTitleEnd}
+                </h1>
+                <p className="mt-6 max-w-2xl text-base leading-7 text-ink/70 sm:text-xl sm:leading-8">
+                  {homepageContent.hero.intro}
+                </p>
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link
+                    href={homepageContent.hero.primaryCta.href}
+                    className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  >
+                    {homepageContent.hero.primaryCta.label} →
+                  </Link>
+                  <p className="max-w-xs text-xs font-bold leading-5 text-ink/50">
+                    No account needed. Your session is saved locally on this device.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <section
-              className="mt-4 w-full rounded-[1.75rem] border border-white/80 bg-white/90 p-4 shadow-card backdrop-blur-md sm:p-5 lg:absolute lg:-bottom-8 lg:left-6 lg:mt-0 lg:max-w-[25rem]"
-              aria-labelledby="example-session-heading"
-            >
-              <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">Example session</p>
-              <h2 id="example-session-heading" className="mt-2 font-display text-2xl font-semibold leading-none">
-                From target time to kitchen steps.
-              </h2>
-              <div className="mt-4 grid gap-2">
-                {exampleSessionRows.map((row) => (
-                  <div key={row.label} className="grid grid-cols-[6.7rem_1fr] gap-3 rounded-2xl bg-cream/80 px-3 py-2.5 text-sm">
-                    <p className="font-extrabold text-ink/45">{row.label}</p>
-                    <div className="min-w-0">
-                      <p className="font-extrabold leading-5 text-ink">{row.value}</p>
-                      {row.detail && <p className="text-xs font-bold leading-5 text-ink/55">{row.detail}</p>}
-                    </div>
+              <div className="relative min-w-0 lg:min-h-[34rem]">
+                <div className="relative min-h-[18rem] overflow-hidden rounded-[1.75rem] bg-flour shadow-card sm:min-h-[24rem] lg:hidden">
+                  <Image
+                    src="/images/homepage/hero-mobile-bg.png"
+                    alt="Pizza with basil, mozzarella and tomato sauce on a flour-dusted table"
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-cover object-[54%_center]"
+                  />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(255,255,255,0.28),transparent_18rem),linear-gradient(180deg,rgba(15,61,46,0)_42%,rgba(15,61,46,0.28)_100%)]" />
+                </div>
+
+                <section
+                  className="mt-4 w-full rounded-[1.75rem] border border-white/80 bg-white/90 p-4 shadow-card backdrop-blur-md sm:p-5 lg:absolute lg:bottom-2 lg:right-2 lg:mt-0 lg:max-w-[25rem]"
+                  aria-labelledby="example-session-heading"
+                >
+                  <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">Example session</p>
+                  <h2 id="example-session-heading" className="mt-2 font-display text-2xl font-semibold leading-none">
+                    From target time to kitchen steps.
+                  </h2>
+                  <div className="mt-4 grid gap-2">
+                    {exampleSessionRows.map((row) => (
+                      <div key={row.label} className="grid grid-cols-[6.7rem_1fr] gap-3 rounded-2xl bg-cream/80 px-3 py-2.5 text-sm">
+                        <p className="font-extrabold text-ink/45">{row.label}</p>
+                        <div className="min-w-0">
+                          <p className="font-extrabold leading-5 text-ink">{row.value}</p>
+                          {row.detail && <p className="text-xs font-bold leading-5 text-ink/55">{row.detail}</p>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </section>
               </div>
-            </section>
+            </div>
           </div>
         </div>
 
