@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const copy = {
@@ -16,6 +16,10 @@ const copy = {
   calculatorV2: "Calculator v2",
   calculatorV2Description: "Guided recommendation from bake time and ingredients.",
   guide: "Guide",
+  guideGlossary: "Guide and glossary",
+  guideGlossaryDescription: "Learn terminology, flour strength and dough principles.",
+  troubleshootingGuide: "Pizza Troubleshooting Guide",
+  troubleshootingGuideDescription: "Fix common dough, topping and baking problems.",
   lab: "Lab",
   about: "About",
   startSession: "Start Pizza Session",
@@ -25,10 +29,37 @@ export default function GlobalToolNavigation() {
   const pathname = usePathname();
   const [signedIn, setSignedIn] = useState(false);
   const [authPulse, setAuthPulse] = useState(false);
+  const [guideMenuOpen, setGuideMenuOpen] = useState(false);
+  const guideMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
+    setGuideMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!guideMenuOpen) return;
+
+    const closeOnPointerDown = (event: PointerEvent) => {
+      if (!guideMenuRef.current?.contains(event.target as Node)) {
+        setGuideMenuOpen(false);
+      }
+    };
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setGuideMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnPointerDown);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOnPointerDown);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [guideMenuOpen]);
 
   useEffect(() => {
     let pulseTimer: number | undefined;
@@ -68,12 +99,42 @@ export default function GlobalToolNavigation() {
 
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-            <Link
-              href="/guide"
-              className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-            >
-              {copy.guide}
-            </Link>
+            <div ref={guideMenuRef} className="relative">
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={guideMenuOpen}
+                onClick={() => setGuideMenuOpen((open) => !open)}
+                className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              >
+                {copy.guide}
+                <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2">
+                  <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {guideMenuOpen && (
+                <div className="absolute left-0 top-10 z-50 w-72 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Guide menu">
+                  <Link
+                    href="/guide"
+                    role="menuitem"
+                    onClick={() => setGuideMenuOpen(false)}
+                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  >
+                    <span className="block text-sm font-extrabold">{copy.guideGlossary}</span>
+                    <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.guideGlossaryDescription}</span>
+                  </Link>
+                  <Link
+                    href="/guide/pizza-troubleshooting"
+                    role="menuitem"
+                    onClick={() => setGuideMenuOpen(false)}
+                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  >
+                    <span className="block text-sm font-extrabold">{copy.troubleshootingGuide}</span>
+                    <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.troubleshootingGuideDescription}</span>
+                  </Link>
+                </div>
+              )}
+            </div>
             <Link
               href="/?calculator=1"
               className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"

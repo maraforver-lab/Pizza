@@ -170,6 +170,13 @@ describe("homepage content model", () => {
     expect(header).toContain("href=\"/account\"");
     expect(header).toContain("Tools");
     expect(header).toContain("Guide");
+    expect(header).toContain("Guide and glossary");
+    expect(header).toContain("Learn terminology, flour strength and dough principles.");
+    expect(header).toContain("Pizza Troubleshooting Guide");
+    expect(header).toContain("Fix common dough, topping and baking problems.");
+    expect(header).toContain('href="/guide/pizza-troubleshooting"');
+    expect(header).toContain("aria-label=\"Guide menu\"");
+    expect(header).toContain("setGuideMenuOpen(false)");
     expect(header).toContain("Lab");
     expect(header).toContain("About");
     expect(header).toContain("Start Pizza Session");
