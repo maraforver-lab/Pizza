@@ -88,4 +88,17 @@ describe("Pizza Troubleshooting Guide", () => {
       expect(page).not.toContain("/guide/pizza-troubleshooting");
     }
   });
+
+  it("does not render the removed bottom CTA or footer meta area on the troubleshooting page", () => {
+    const page = source(troubleshootingRoute);
+
+    expect(page).toContain("Pizza Troubleshooting Guide");
+    expect(page).toContain("Dough is not rising");
+    expect(page).toContain("Home oven pizza is pale or soft");
+    expect(page).not.toContain("Plan your next pizza session");
+    expect(page).not.toContain("Start Pizza Session");
+    expect(page).not.toContain("Creator Mara Forever");
+    expect(page).not.toContain("View updates");
+    expect(page).not.toContain("AppSignature");
+  });
 });

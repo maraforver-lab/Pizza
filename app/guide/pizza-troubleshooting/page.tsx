@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import AppSignature from "@/components/AppSignature";
 
 export const metadata: Metadata = {
   title: "Pizza Troubleshooting Guide | DoughTools",
@@ -450,25 +449,6 @@ export default function PizzaTroubleshootingGuidePage() {
             </section>
           ))}
         </div>
-
-        <section className="mt-12 overflow-hidden rounded-[2rem] border border-white/80 bg-ink p-6 text-white shadow-card sm:p-8">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Plan your next pizza session</p>
-          <div className="mt-3 grid gap-5 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div>
-              <h2 className="font-display text-3xl font-semibold">Plan your next pizza session</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-                Use DoughTools to plan your dough, timing, shopping and bake steps before problems start.
-              </p>
-            </div>
-            <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-5 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#d94227]">
-              Start Pizza Session
-            </Link>
-          </div>
-        </section>
-
-        <footer className="my-6 border-t border-ink/10 pt-5">
-          <AppSignature />
-        </footer>
       </div>
     </main>
   );
