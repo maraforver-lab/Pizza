@@ -307,12 +307,50 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Fine-tune dough behavior.");
     expect(page).toContain("Hydration");
     expect(page).toContain("Temperature");
-    expect(page).toContain("aria-label=\"Hydration percentage\"");
-    expect(page).toContain("aria-label={temperatureBounds.label}");
+    expect(page).toContain("aria-label=\"Decrease hydration\"");
+    expect(page).toContain("aria-label=\"Increase hydration\"");
+    expect(page).toContain("aria-label=\"Decrease fermentation temperature\"");
+    expect(page).toContain("aria-label=\"Increase fermentation temperature\"");
     expect(page).toContain("updateHydrationOverride");
     expect(page).toContain("updateTemperatureOverride");
     expect(page).toContain("hydrationPercentOverride: value");
     expect(page).toContain("fermentationTemperatureCOverride: value");
+    expect(page).toContain("stepHydrationOverride(-1)");
+    expect(page).toContain("stepHydrationOverride(1)");
+    expect(page).toContain("stepTemperatureOverride(-1)");
+    expect(page).toContain("stepTemperatureOverride(1)");
+    expect(page).not.toContain("aria-label=\"Hydration percentage\"");
+    expect(page).not.toContain("aria-label={temperatureBounds.label}");
+  });
+
+  it("bounds Pizza Nerd hydration and temperature steppers with disabled min and max buttons", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("Math.max(50, Math.min(80, result.settings.hydration + delta))");
+    expect(page).toContain("disabled={result.settings.hydration <= 50}");
+    expect(page).toContain("disabled={result.settings.hydration >= 80}");
+    expect(page).toContain("Math.max(");
+    expect(page).toContain("temperatureBounds.min");
+    expect(page).toContain("Math.min(temperatureBounds.max, activeFermentationTemperatureC + delta)");
+    expect(page).toContain("disabled={activeFermentationTemperatureC <= temperatureBounds.min}");
+    expect(page).toContain("disabled={activeFermentationTemperatureC >= temperatureBounds.max}");
+    expect(page).toContain("type=\"button\"");
+  });
+
+  it("shows compact Pizza Nerd hydration impact guidance only when hydration differs from the default", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("function hydrationImpactMessage");
+    expect(page).toContain("current > baseline");
+    expect(page).toContain("Higher hydration makes the dough softer and stickier.");
+    expect(page).toContain("harder to ball, stretch, and launch");
+    expect(page).toContain("current < baseline");
+    expect(page).toContain("Lower hydration makes the dough firmer and easier to handle.");
+    expect(page).toContain("stretch less easily");
+    expect(page).toContain("return null");
+    expect(page).toContain("const hydrationImpact = hydrationImpactMessage(result.settings.hydration, defaultHydration)");
+    expect(page).toContain("{hydrationImpact && (");
+    expect(page).toContain("Hydration impact");
   });
 
   it("uses active hydration as the Pizza Nerd control default and recalculates ingredients without changing total dough", () => {

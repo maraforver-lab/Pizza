@@ -77,6 +77,16 @@ function fermentationTemperatureBounds(mode: "cold" | "room") {
     : { min: 18, max: 26, defaultValue: 22, label: "Room fermentation temperature" };
 }
 
+function hydrationImpactMessage(current: number, baseline: number) {
+  if (current > baseline) {
+    return "Higher hydration makes the dough softer and stickier. It can bake lighter and more open, but it may be harder to ball, stretch, and launch.";
+  }
+  if (current < baseline) {
+    return "Lower hydration makes the dough firmer and easier to handle. It may stretch less easily and can bake a little drier or less open.";
+  }
+  return null;
+}
+
 function fermentationOptionIsActive(selected: number | undefined, option: number) {
   return typeof selected === "number" && Number.isFinite(selected) && Math.abs(selected - option) < 0.11;
 }
@@ -303,6 +313,8 @@ export default function SessionRecipePage() {
   const activeFermentationTemperatureC = result.continuousYeast?.recommendation.temperatureC
     ?? result.settings.temperature
     ?? temperatureBounds.defaultValue;
+  const defaultHydration = session.pizzaStyle === "pan-tray" || session.ovenType === "pan" ? 75 : 64;
+  const hydrationImpact = hydrationImpactMessage(result.settings.hydration, defaultHydration);
 
   const regenerateRecipeAfterSessionUpdate = (updated?: PizzaSession) => {
     const saved = generateAndSaveActiveSessionRecipe();
@@ -342,6 +354,10 @@ export default function SessionRecipePage() {
     regenerateRecipeAfterSessionUpdate(updated);
   };
 
+  const stepHydrationOverride = (delta: number) => {
+    updateHydrationOverride(Math.max(50, Math.min(80, result.settings.hydration + delta)));
+  };
+
   const updateTemperatureOverride = (value: number) => {
     if (!session || value < temperatureBounds.min || value > temperatureBounds.max) return;
     const updated = updatePizzaSession(session.id, {
@@ -350,6 +366,13 @@ export default function SessionRecipePage() {
       status: "planning",
     });
     regenerateRecipeAfterSessionUpdate(updated);
+  };
+
+  const stepTemperatureOverride = (delta: number) => {
+    updateTemperatureOverride(Math.max(
+      temperatureBounds.min,
+      Math.min(temperatureBounds.max, activeFermentationTemperatureC + delta),
+    ));
   };
 
   return (
@@ -390,41 +413,67 @@ export default function SessionRecipePage() {
                             <p className="text-xs font-extrabold uppercase tracking-[.14em] text-leaf">Pizza Nerd controls</p>
                             <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Fine-tune dough behavior.</p>
                           </div>
-                          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[17rem]">
+                          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[18rem]">
                             <label className="grid gap-1 text-xs font-extrabold text-ink/55">
                               <span>Hydration</span>
-                              <span className="flex min-h-11 items-center overflow-hidden rounded-2xl border border-ink/10 bg-cream">
-                                <input
-                                  aria-label="Hydration percentage"
-                                  type="number"
-                                  min={50}
-                                  max={80}
-                                  step={1}
-                                  value={result.settings.hydration}
-                                  onChange={(event) => updateHydrationOverride(Number(event.target.value))}
-                                  className="min-w-0 flex-1 bg-transparent px-3 text-base font-extrabold text-ink outline-none"
-                                />
-                                <span className="border-l border-ink/10 px-3 text-sm text-ink/45">%</span>
+                              <span className="grid min-h-11 grid-cols-[2.75rem_1fr_2.75rem] overflow-hidden rounded-2xl border border-ink/10 bg-cream">
+                                <button
+                                  type="button"
+                                  aria-label="Decrease hydration"
+                                  disabled={result.settings.hydration <= 50}
+                                  onClick={() => stepHydrationOverride(-1)}
+                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                                >
+                                  -
+                                </button>
+                                <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
+                                  {result.settings.hydration}%
+                                </span>
+                                <button
+                                  type="button"
+                                  aria-label="Increase hydration"
+                                  disabled={result.settings.hydration >= 80}
+                                  onClick={() => stepHydrationOverride(1)}
+                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                                >
+                                  +
+                                </button>
                               </span>
                             </label>
                             <label className="grid gap-1 text-xs font-extrabold text-ink/55">
                               <span>Temperature</span>
-                              <span className="flex min-h-11 items-center overflow-hidden rounded-2xl border border-ink/10 bg-cream">
-                                <input
-                                  aria-label={temperatureBounds.label}
-                                  type="number"
-                                  min={temperatureBounds.min}
-                                  max={temperatureBounds.max}
-                                  step={1}
-                                  value={activeFermentationTemperatureC}
-                                  onChange={(event) => updateTemperatureOverride(Number(event.target.value))}
-                                  className="min-w-0 flex-1 bg-transparent px-3 text-base font-extrabold text-ink outline-none"
-                                />
-                                <span className="border-l border-ink/10 px-3 text-sm text-ink/45">°C</span>
+                              <span className="grid min-h-11 grid-cols-[2.75rem_1fr_2.75rem] overflow-hidden rounded-2xl border border-ink/10 bg-cream">
+                                <button
+                                  type="button"
+                                  aria-label="Decrease fermentation temperature"
+                                  disabled={activeFermentationTemperatureC <= temperatureBounds.min}
+                                  onClick={() => stepTemperatureOverride(-1)}
+                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                                >
+                                  -
+                                </button>
+                                <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
+                                  {activeFermentationTemperatureC} °C
+                                </span>
+                                <button
+                                  type="button"
+                                  aria-label="Increase fermentation temperature"
+                                  disabled={activeFermentationTemperatureC >= temperatureBounds.max}
+                                  onClick={() => stepTemperatureOverride(1)}
+                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                                >
+                                  +
+                                </button>
                               </span>
                             </label>
                           </div>
                         </div>
+                        {hydrationImpact && (
+                          <p className="mt-3 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/65">
+                            <span className="block text-[0.65rem] font-extrabold uppercase tracking-[.16em] text-leaf">Hydration impact</span>
+                            <span className="mt-1 block">{hydrationImpact}</span>
+                          </p>
+                        )}
                       </div>
                     )}
                   </dl>
