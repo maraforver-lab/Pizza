@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { calculateContinuousYeastRecommendation } from "@/lib/continuous-yeast-model";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import { createPizzaSession } from "@/lib/pizza-session";
+import { generatePizzaSessionShoppingList } from "@/lib/pizza-session-shopping-list";
 import {
   ACTIVE_PIZZA_SESSION_STORAGE_KEY,
   createAndSavePizzaSession,
@@ -295,6 +296,169 @@ describe("Session recipe build step", () => {
     expect(page).toContain("label: `Yeast — ${selectedYeastLabel}`");
     expect(page).toContain("description: `${selectedYeastLabel} amount for this dough plan.`");
     expect(page).toContain("label.startsWith(\"Yeast\")");
+  });
+
+  it("shows Pizza Nerd-only hydration and temperature controls in the Dough Plan ingredients card", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("showPizzaNerdControls = session.experienceLevel === \"pizza_nerd\"");
+    expect(page).toContain("{showPizzaNerdControls && (");
+    expect(page).toContain("Pizza Nerd controls");
+    expect(page).toContain("Fine-tune dough behavior.");
+    expect(page).toContain("Hydration");
+    expect(page).toContain("Temperature");
+    expect(page).toContain("aria-label=\"Hydration percentage\"");
+    expect(page).toContain("aria-label={temperatureBounds.label}");
+    expect(page).toContain("updateHydrationOverride");
+    expect(page).toContain("updateTemperatureOverride");
+    expect(page).toContain("hydrationPercentOverride: value");
+    expect(page).toContain("fermentationTemperatureCOverride: value");
+  });
+
+  it("uses active hydration as the Pizza Nerd control default and recalculates ingredients without changing total dough", () => {
+    const now = new Date("2026-07-03T12:00:00.000Z");
+    const baseSession = createPizzaSession({
+      ...completeSessionInput,
+      experienceLevel: "pizza_nerd",
+      targetEatTime: "2026-07-03T18:00",
+      doughStartMode: "now",
+    }, now);
+    const overrideSession = createPizzaSession({
+      ...completeSessionInput,
+      experienceLevel: "pizza_nerd",
+      targetEatTime: "2026-07-03T18:00",
+      doughStartMode: "now",
+      hydrationPercentOverride: 70,
+    }, now);
+    const base = buildSessionRecipe(baseSession, now);
+    const override = buildSessionRecipe(overrideSession, now);
+
+    expect(base.ok).toBe(true);
+    expect(override.ok).toBe(true);
+    if (!base.ok || !override.ok) throw new Error("Expected recipe results");
+
+    expect(base.settings.hydration).toBe(64);
+    expect(override.settings.hydration).toBe(70);
+    expect(override.recipeSnapshot.hydration).toBe(70);
+    expect(override.recipeParams.hydration).toBe("70");
+    expect(override.ingredients.total).toBeCloseTo(base.ingredients.total, 6);
+    expect(override.ingredients.water).toBeGreaterThan(base.ingredients.water);
+    expect(override.ingredients.flour).toBeLessThan(base.ingredients.flour);
+    expect(override.recipeSnapshot.waterAmount).toBeCloseTo(override.ingredients.water, 6);
+  });
+
+  it("defaults fermentation temperature by mode and lets Pizza Nerd temperature override affect continuous yeast direction", () => {
+    const now = new Date("2026-07-02T20:00:00.000Z");
+    const room = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      experienceLevel: "pizza_nerd",
+      targetEatTime: "2026-07-03T02:00",
+      doughStartMode: "now",
+    }, now), now);
+    const coldDefault = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "cold-default-temp",
+      experienceLevel: "pizza_nerd",
+      pizzaStyle: "home-oven",
+      ovenType: "home",
+      pizzaPreset: "margherita",
+      targetEatTime: "2026-07-04T12:00",
+      doughStartMode: "now",
+    }, now), now);
+    const coldWarmer = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "cold-warmer-temp",
+      experienceLevel: "pizza_nerd",
+      pizzaStyle: "home-oven",
+      ovenType: "home",
+      pizzaPreset: "margherita",
+      targetEatTime: "2026-07-04T12:00",
+      doughStartMode: "now",
+      fermentationTemperatureCOverride: 7,
+    }, now), now);
+    const coldColder = buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: "cold-colder-temp",
+      experienceLevel: "pizza_nerd",
+      pizzaStyle: "home-oven",
+      ovenType: "home",
+      pizzaPreset: "margherita",
+      targetEatTime: "2026-07-04T12:00",
+      doughStartMode: "now",
+      fermentationTemperatureCOverride: 3,
+    }, now), now);
+
+    expect(room.ok).toBe(true);
+    expect(coldDefault.ok).toBe(true);
+    expect(coldWarmer.ok).toBe(true);
+    expect(coldColder.ok).toBe(true);
+    if (!room.ok || !coldDefault.ok || !coldWarmer.ok || !coldColder.ok) throw new Error("Expected recipe results");
+
+    expect(room.continuousYeast?.recommendation.fermentationMode).toBe("room");
+    expect(room.continuousYeast?.recommendation.temperatureC).toBe(22);
+    expect(coldDefault.continuousYeast?.recommendation.fermentationMode).toBe("cold");
+    expect(coldDefault.continuousYeast?.recommendation.temperatureC).toBe(4);
+    expect(coldWarmer.continuousYeast?.recommendation.temperatureC).toBe(7);
+    expect(coldColder.continuousYeast?.recommendation.temperatureC).toBe(3);
+    expect(coldWarmer.ingredients.leavener).toBeLessThan(coldDefault.ingredients.leavener);
+    expect(coldColder.ingredients.leavener).toBeGreaterThan(coldDefault.ingredients.leavener);
+  });
+
+  it("persists Pizza Nerd overrides into the active session and regenerated recipe snapshot", () => {
+    const storage = new MemoryStorage();
+    const now = new Date("2026-07-03T12:00:00.000Z");
+    const session = createAndSavePizzaSession({
+      ...completeSessionInput,
+      id: "pizza-nerd-overrides",
+      experienceLevel: "pizza_nerd",
+      targetEatTime: "2026-07-03T18:00",
+      doughStartMode: "now",
+      hydrationPercentOverride: 68,
+      fermentationTemperatureCOverride: 24,
+    }, storage, now);
+    setActivePizzaSession(session.id, storage);
+
+    const { session: updatedSession, result } = generateAndSaveActiveSessionRecipe(storage, now);
+
+    expect(result.ok).toBe(true);
+    expect(updatedSession?.hydrationPercentOverride).toBe(68);
+    expect(updatedSession?.fermentationTemperatureCOverride).toBe(24);
+    expect(updatedSession?.recipeSnapshot?.hydration).toBe(68);
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("hydrationPercentOverride");
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("fermentationTemperatureCOverride");
+  });
+
+  it("feeds regenerated hydration override amounts into downstream Shopping dough quantities", () => {
+    const now = new Date("2026-07-03T12:00:00.000Z");
+    const baseSession = createPizzaSession({
+      ...completeSessionInput,
+      id: "shopping-base-hydration",
+      targetEatTime: "2026-07-03T18:00",
+      doughStartMode: "now",
+    }, now);
+    const overrideSession = createPizzaSession({
+      ...completeSessionInput,
+      id: "shopping-override-hydration",
+      targetEatTime: "2026-07-03T18:00",
+      doughStartMode: "now",
+      hydrationPercentOverride: 70,
+    }, now);
+    const baseRecipe = buildSessionRecipe(baseSession, now);
+    const overrideRecipe = buildSessionRecipe(overrideSession, now);
+    if (!baseRecipe.ok || !overrideRecipe.ok) throw new Error("Expected recipe results");
+    const baseShopping = generatePizzaSessionShoppingList({ ...baseSession, recipeSnapshot: baseRecipe.recipeSnapshot }, undefined, now);
+    const overrideShopping = generatePizzaSessionShoppingList({ ...overrideSession, recipeSnapshot: overrideRecipe.recipeSnapshot }, undefined, now);
+
+    expect(baseShopping.ok).toBe(true);
+    expect(overrideShopping.ok).toBe(true);
+    if (!baseShopping.ok || !overrideShopping.ok) throw new Error("Expected shopping results");
+
+    const baseWater = baseShopping.shoppingList.groups.find((group) => group.group === "Dough")?.items.find((item) => item.label === "Water")?.amount;
+    const overrideWater = overrideShopping.shoppingList.groups.find((group) => group.group === "Dough")?.items.find((item) => item.label === "Water")?.amount;
+
+    expect(baseWater).toContain("from Dough Plan");
+    expect(overrideWater).toContain("from Dough Plan");
+    expect(overrideWater).not.toBe(baseWater);
   });
 
   it("keeps planning guidance cautious when target time is missing", () => {

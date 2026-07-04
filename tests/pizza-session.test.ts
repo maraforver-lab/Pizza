@@ -130,6 +130,20 @@ describe("Pizza Session data model", () => {
     expect(createPizzaSession({ plannedFermentationHours: 12 }).plannedFermentationHours).toBeUndefined();
     expect(createPizzaSession({ plannedFermentationHours: 96 }).plannedFermentationHours).toBeUndefined();
   });
+
+  it("normalizes optional Pizza Nerd hydration and fermentation temperature overrides safely", () => {
+    expect(createPizzaSession({ hydrationPercentOverride: 50 }).hydrationPercentOverride).toBe(50);
+    expect(createPizzaSession({ hydrationPercentOverride: 72 }).hydrationPercentOverride).toBe(72);
+    expect(createPizzaSession({ hydrationPercentOverride: 80 }).hydrationPercentOverride).toBe(80);
+    expect(createPizzaSession({ hydrationPercentOverride: 49 }).hydrationPercentOverride).toBeUndefined();
+    expect(createPizzaSession({ hydrationPercentOverride: 81 }).hydrationPercentOverride).toBeUndefined();
+    expect(createPizzaSession({ fermentationTemperatureCOverride: 2 }).fermentationTemperatureCOverride).toBe(2);
+    expect(createPizzaSession({ fermentationTemperatureCOverride: 4 }).fermentationTemperatureCOverride).toBe(4);
+    expect(createPizzaSession({ fermentationTemperatureCOverride: 22 }).fermentationTemperatureCOverride).toBe(22);
+    expect(createPizzaSession({ fermentationTemperatureCOverride: 26 }).fermentationTemperatureCOverride).toBe(26);
+    expect(createPizzaSession({ fermentationTemperatureCOverride: 1 }).fermentationTemperatureCOverride).toBeUndefined();
+    expect(createPizzaSession({ fermentationTemperatureCOverride: 27 }).fermentationTemperatureCOverride).toBeUndefined();
+  });
 });
 
 describe("Pizza Session local storage", () => {

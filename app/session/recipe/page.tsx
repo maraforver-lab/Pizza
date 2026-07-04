@@ -66,6 +66,17 @@ function formatFermentationLength(value?: number) {
   return `${Math.round(value * 10) / 10} h`;
 }
 
+function activeFermentationMode(result: Extract<SessionRecipeBuildResult, { ok: true }>) {
+  return result.continuousYeast?.recommendation.fermentationMode
+    ?? (result.settings.fermentation.endsWith("cold") ? "cold" : "room");
+}
+
+function fermentationTemperatureBounds(mode: "cold" | "room") {
+  return mode === "cold"
+    ? { min: 2, max: 8, defaultValue: 4, label: "Cold fermentation temperature" }
+    : { min: 18, max: 26, defaultValue: 22, label: "Room fermentation temperature" };
+}
+
 function fermentationOptionIsActive(selected: number | undefined, option: number) {
   return typeof selected === "number" && Number.isFinite(selected) && Math.abs(selected - option) < 0.11;
 }
@@ -286,6 +297,18 @@ export default function SessionRecipePage() {
     && !longHorizonRecommendation,
   );
   const selectedFermentationHours = result.continuousYeast?.selectedFermentationHours;
+  const showPizzaNerdControls = session.experienceLevel === "pizza_nerd";
+  const fermentationModeForControls = activeFermentationMode(result);
+  const temperatureBounds = fermentationTemperatureBounds(fermentationModeForControls);
+  const activeFermentationTemperatureC = result.continuousYeast?.recommendation.temperatureC
+    ?? result.settings.temperature
+    ?? temperatureBounds.defaultValue;
+
+  const regenerateRecipeAfterSessionUpdate = (updated?: PizzaSession) => {
+    const saved = generateAndSaveActiveSessionRecipe();
+    setSession(saved.session ?? updated ?? session);
+    setResult(saved.result);
+  };
 
   const updatePlannedFermentationHours = (plannedFermentationHours: number) => {
     if (!session) return;
@@ -294,9 +317,7 @@ export default function SessionRecipePage() {
       currentStep: "recipe",
       status: "planning",
     });
-    const saved = generateAndSaveActiveSessionRecipe();
-    setSession(saved.session ?? updated ?? session);
-    setResult(saved.result);
+    regenerateRecipeAfterSessionUpdate(updated);
   };
 
   const updateLongHorizonPlan = (option: LongHorizonFermentationOption) => {
@@ -308,9 +329,27 @@ export default function SessionRecipePage() {
       currentStep: "recipe",
       status: "planning",
     });
-    const saved = generateAndSaveActiveSessionRecipe();
-    setSession(saved.session ?? updated ?? session);
-    setResult(saved.result);
+    regenerateRecipeAfterSessionUpdate(updated);
+  };
+
+  const updateHydrationOverride = (value: number) => {
+    if (!session || value < 50 || value > 80) return;
+    const updated = updatePizzaSession(session.id, {
+      hydrationPercentOverride: value,
+      currentStep: "recipe",
+      status: "planning",
+    });
+    regenerateRecipeAfterSessionUpdate(updated);
+  };
+
+  const updateTemperatureOverride = (value: number) => {
+    if (!session || value < temperatureBounds.min || value > temperatureBounds.max) return;
+    const updated = updatePizzaSession(session.id, {
+      fermentationTemperatureCOverride: value,
+      currentStep: "recipe",
+      status: "planning",
+    });
+    regenerateRecipeAfterSessionUpdate(updated);
   };
 
   return (
@@ -344,6 +383,50 @@ export default function SessionRecipePage() {
                       <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Dough balls</dt>
                       <dd className="mt-1 text-sm font-extrabold text-ink">{result.settings.pizzas} × {result.settings.ballWeight} g</dd>
                     </div>
+                    {showPizzaNerdControls && (
+                      <div className="rounded-2xl border border-leaf/20 bg-white p-3" aria-label="Pizza Nerd controls">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                          <div className="min-w-0">
+                            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-leaf">Pizza Nerd controls</p>
+                            <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Fine-tune dough behavior.</p>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[17rem]">
+                            <label className="grid gap-1 text-xs font-extrabold text-ink/55">
+                              <span>Hydration</span>
+                              <span className="flex min-h-11 items-center overflow-hidden rounded-2xl border border-ink/10 bg-cream">
+                                <input
+                                  aria-label="Hydration percentage"
+                                  type="number"
+                                  min={50}
+                                  max={80}
+                                  step={1}
+                                  value={result.settings.hydration}
+                                  onChange={(event) => updateHydrationOverride(Number(event.target.value))}
+                                  className="min-w-0 flex-1 bg-transparent px-3 text-base font-extrabold text-ink outline-none"
+                                />
+                                <span className="border-l border-ink/10 px-3 text-sm text-ink/45">%</span>
+                              </span>
+                            </label>
+                            <label className="grid gap-1 text-xs font-extrabold text-ink/55">
+                              <span>Temperature</span>
+                              <span className="flex min-h-11 items-center overflow-hidden rounded-2xl border border-ink/10 bg-cream">
+                                <input
+                                  aria-label={temperatureBounds.label}
+                                  type="number"
+                                  min={temperatureBounds.min}
+                                  max={temperatureBounds.max}
+                                  step={1}
+                                  value={activeFermentationTemperatureC}
+                                  onChange={(event) => updateTemperatureOverride(Number(event.target.value))}
+                                  className="min-w-0 flex-1 bg-transparent px-3 text-base font-extrabold text-ink outline-none"
+                                />
+                                <span className="border-l border-ink/10 px-3 text-sm text-ink/45">°C</span>
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </dl>
                   <dl className="mt-4 grid gap-2.5">
                     {doughIngredientRows.map((item) => (

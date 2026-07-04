@@ -47,6 +47,24 @@ describe("Session selected fermentation display", () => {
     expect(display.fullLabel).toBe("24h cold fermentation · fridge 4 °C");
   });
 
+  it("uses a persisted Pizza Nerd fermentation temperature override when no live basis is passed", () => {
+    const session = createPizzaSession({
+      id: "display-selected-48h-cold-override",
+      plannedFermentationHours: 48,
+      fermentationTemperatureCOverride: 6,
+      recipeSnapshot: {
+        fermentation: "12h-room",
+      },
+    });
+
+    const display = buildSessionFermentationDisplay({
+      session,
+      snapshot: session.recipeSnapshot,
+    });
+
+    expect(display.fullLabel).toBe("48h cold fermentation · fridge 6 °C");
+  });
+
   it("keeps room fermentation labels and room temperature when no selected cold plan exists", () => {
     const session = createPizzaSession({
       id: "display-12h-room",

@@ -157,6 +157,24 @@ function validSessionPlannedFermentationHours(value: number | undefined, availab
   return value <= availableHours ? value : undefined;
 }
 
+function validSessionHydrationPercent(value: number | undefined, fallback: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return value >= 50 && value <= 80 ? value : fallback;
+}
+
+function defaultTemperatureForFermentationMode(mode: ContinuousYeastFermentationMode) {
+  return mode === "cold" ? 4 : 22;
+}
+
+function validSessionFermentationTemperatureC(
+  value: number | undefined,
+  mode: ContinuousYeastFermentationMode,
+) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return defaultTemperatureForFermentationMode(mode);
+  if (mode === "cold") return value >= 2 && value <= 8 ? value : 4;
+  return value >= 18 && value <= 26 ? value : 22;
+}
+
 function defaultSessionBallWeight({
   isPan,
   ovenType,
@@ -239,9 +257,10 @@ function buildSessionContinuousYeast({
     ? validSessionPlannedFermentationHours(session.plannedFermentationHours, availableFermentationHours)
     : undefined;
   const fermentationHours = selectedFermentationHours ?? availableFermentationHours;
-  const temperatureC = mode === "cold"
-    ? settings.fermentation.endsWith("cold") ? settings.temperature : 4
-    : settings.fermentation.endsWith("cold") ? 22 : settings.temperature;
+  const temperatureC = validSessionFermentationTemperatureC(
+    session.fermentationTemperatureCOverride,
+    mode,
+  );
   const initialRecommendation = calculateContinuousYeastRecommendation({
     flourGrams: baseIngredients.flour,
     fermentationHours,
@@ -326,8 +345,13 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
   const ovenType: OvenType = isPizzaOven ? "gas" : "home";
   const ballWeight = sessionBallWeight({ session, isPan, ovenType });
   const fermentation: Fermentation = isPan ? "48h-cold" : ovenType === "gas" ? "12h-room" : "24h-cold";
-  const temperature = fermentation.endsWith("cold") ? 4 : 22;
-  const hydration = isPan ? 75 : ovenType === "gas" ? 64 : 64;
+  const fermentationMode = fermentation.endsWith("cold") ? "cold" : "room";
+  const temperature = validSessionFermentationTemperatureC(
+    session.fermentationTemperatureCOverride,
+    fermentationMode,
+  );
+  const defaultHydration = isPan ? 75 : ovenType === "gas" ? 64 : 64;
+  const hydration = validSessionHydrationPercent(session.hydrationPercentOverride, defaultHydration);
   const pizzaStyleId = isPan ? "detroit" : presetToStyle[session.pizzaPreset] ?? (ovenType === "gas" ? "neapolitan" : "new-york");
 
   const settings: RecipeSettings = {

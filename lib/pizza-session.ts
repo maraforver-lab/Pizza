@@ -119,6 +119,8 @@ export type PizzaSession = {
   doughStartMode?: PizzaSessionDoughStartMode;
   doughEarliestStartTime?: string;
   plannedFermentationHours?: number;
+  hydrationPercentOverride?: number;
+  fermentationTemperatureCOverride?: number;
   yeastType?: string;
   pizzaCount?: number;
   doughBallWeight?: number;
@@ -183,6 +185,16 @@ function doughBallWeightValue(value: unknown): number | undefined {
 function plannedFermentationHoursValue(value: unknown): number | undefined {
   const number = positiveNumberValue(value);
   return number !== undefined && number >= 24 && number <= 72 ? number : undefined;
+}
+
+function hydrationPercentOverrideValue(value: unknown): number | undefined {
+  const number = numberValue(value);
+  return number !== undefined && number >= 50 && number <= 80 ? number : undefined;
+}
+
+function fermentationTemperatureCOverrideValue(value: unknown): number | undefined {
+  const number = numberValue(value);
+  return number !== undefined && number >= 2 && number <= 26 ? number : undefined;
 }
 
 function normalizeStatus(value: unknown): PizzaSessionStatus {
@@ -360,6 +372,8 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
       ? stringValue(input.doughEarliestStartTime)
       : undefined,
     plannedFermentationHours: plannedFermentationHoursValue(input.plannedFermentationHours),
+    hydrationPercentOverride: hydrationPercentOverrideValue(input.hydrationPercentOverride),
+    fermentationTemperatureCOverride: fermentationTemperatureCOverrideValue(input.fermentationTemperatureCOverride),
     yeastType: normalizeSessionYeastType(input.yeastType),
     pizzaCount: positiveNumberValue(input.pizzaCount),
     doughBallWeight: doughBallWeightValue(input.doughBallWeight),

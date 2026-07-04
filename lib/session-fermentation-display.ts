@@ -44,6 +44,13 @@ function defaultTemperatureForMode(mode?: FermentationMode) {
   return undefined;
 }
 
+function sessionTemperatureForMode(session: PizzaSession | null | undefined, mode?: FermentationMode) {
+  const value = finiteNumber(session?.fermentationTemperatureCOverride);
+  if (value === undefined || !mode) return undefined;
+  if (mode === "cold") return value >= 2 && value <= 8 ? value : undefined;
+  return value >= 18 && value <= 26 ? value : undefined;
+}
+
 function placeTemperatureLabel(mode?: FermentationMode, temperatureC?: number) {
   if (!mode || typeof temperatureC !== "number") return undefined;
   if (mode === "cold") return `Fridge · ${temperatureC} °C`;
@@ -82,6 +89,7 @@ export function buildSessionFermentationDisplay({
     ?? (selectedHours ? "cold" : undefined)
     ?? preset?.fermentationMode;
   const temperatureC = finiteNumber(basis?.temperatureC)
+    ?? sessionTemperatureForMode(session, mode)
     ?? defaultTemperatureForMode(mode);
   const label = fermentationLabel(mode, durationHours);
   const place = placeTemperatureLabel(mode, temperatureC);
