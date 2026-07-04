@@ -170,6 +170,21 @@ export default function Guide() {
           </div>
         </section>
 
+        <section className="mb-6 rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="troubleshooting-guide-card">
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Troubleshooting</p>
+              <h2 id="troubleshooting-guide-card" className="mt-2 font-display text-2xl font-semibold">Pizza Troubleshooting Guide</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+                Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.
+              </p>
+            </div>
+            <Link href="/guide/pizza-troubleshooting" className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-4 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-leaf">
+              Open guide →
+            </Link>
+          </div>
+        </section>
+
         <nav className="sticky top-2 z-20 -mx-1 mb-10 overflow-x-auto rounded-2xl border border-white/80 bg-cream/90 p-1.5 shadow-lg shadow-ink/5 backdrop-blur" aria-label="Guide chapters">
           <div className="flex min-w-max gap-1">
             {t.nav.map(([label, id], index) => <a key={id} href={`#${id}`} className="rounded-xl px-3 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink"><span className="mr-1 text-tomato">{index + 1}.</span>{label}</a>)}
