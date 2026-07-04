@@ -152,6 +152,32 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
   });
 
+  it("shows dough ball size and yeast type controls only for Pizza Nerd users", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("function shouldShowPizzaNerdDoughControls(level: ExperienceLevel)");
+    expect(page).toContain("return level === \"pizza_nerd\"");
+    expect(page).toContain("const showPizzaNerdDoughControls = shouldShowPizzaNerdDoughControls(experienceLevel)");
+    expect(page).toContain("{showPizzaNerdDoughControls && (");
+    expect(page).toContain("Dough ball size");
+    expect(page).toContain("Custom grams per dough ball");
+    expect(page).toContain("Yeast type");
+    expect(page).toContain("sessionYeastTypeOptions.map");
+  });
+
+  it("uses simple dough and yeast defaults for Beginner and Enthusiast sessions", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("const SIMPLE_SESSION_DOUGH_BALL_WEIGHT = 260");
+    expect(page).toContain("function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): Partial<PizzaSession>");
+    expect(page).toContain("if (shouldShowPizzaNerdDoughControls(level)) return {}");
+    expect(page).toContain("doughBallWeight: SIMPLE_SESSION_DOUGH_BALL_WEIGHT");
+    expect(page).toContain("yeastType: DEFAULT_SESSION_YEAST_TYPE");
+    expect(page).toContain("const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(level, supportedSession)");
+    expect(page).toContain("setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)))");
+    expect(source("lib/yeast-types.ts")).toContain('DEFAULT_SESSION_YEAST_TYPE: YeastType = "ady"');
+  });
+
   it("keeps the setup to the first five V2 choices and routes quantity directly to flour", () => {
     const page = source("app/session/start/page.tsx");
 
@@ -273,7 +299,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('const requestedStep = wizardStepFromQuery(searchParams.get("step"))');
     expect(page).toContain("setStep((currentStep) => requestedStep === currentStep ? currentStep : requestedStep)");
     expect(page).toContain("router.replace(wizardStepHref(nextStep), { scroll: false })");
-    expect(page).toContain("setStep(requestedStep ?? initialWizardStep(supportedSession))");
+    expect(page).toContain("setStep(requestedStep ?? initialWizardStep(experienceScopedSession))");
     expect(page).toContain('value !== "summary"');
     expect(page).toContain("const canNavigate = state === \"complete\"");
     expect(page).toContain("onClick={() => goToStep(wizardSteps[index])}");

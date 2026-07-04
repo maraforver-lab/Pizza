@@ -33,7 +33,7 @@ import {
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
-import { normalizeSessionYeastType, sessionYeastTypeOptions } from "@/lib/yeast-types";
+import { DEFAULT_SESSION_YEAST_TYPE, normalizeSessionYeastType, sessionYeastTypeOptions } from "@/lib/yeast-types";
 
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
@@ -114,6 +114,7 @@ const doughStartOptions: Array<{
 const DOUGH_BALL_WEIGHT_OPTIONS = [220, 240, 260, 280, 300] as const;
 const MIN_DOUGH_BALL_WEIGHT = 180;
 const MAX_DOUGH_BALL_WEIGHT = 350;
+const SIMPLE_SESSION_DOUGH_BALL_WEIGHT = 260;
 
 const doughBallWeightGuidance: Record<typeof DOUGH_BALL_WEIGHT_OPTIONS[number], {
   pizzaSize: string;
@@ -365,6 +366,22 @@ function effectiveDoughBallWeight(session: PizzaSession) {
   return session.doughBallWeight ?? defaultDoughBallWeight(session);
 }
 
+function shouldShowPizzaNerdDoughControls(level: ExperienceLevel) {
+  return level === "pizza_nerd";
+}
+
+function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): Partial<PizzaSession> {
+  if (shouldShowPizzaNerdDoughControls(level)) return {};
+  return {
+    ...(session.doughBallWeight !== SIMPLE_SESSION_DOUGH_BALL_WEIGHT
+      ? { doughBallWeight: SIMPLE_SESSION_DOUGH_BALL_WEIGHT }
+      : {}),
+    ...(session.yeastType !== DEFAULT_SESSION_YEAST_TYPE
+      ? { yeastType: DEFAULT_SESSION_YEAST_TYPE }
+      : {}),
+  };
+}
+
 function validRoundDoughBallWeight(value: number) {
   return Number.isFinite(value) && value >= MIN_DOUGH_BALL_WEIGHT && value <= MAX_DOUGH_BALL_WEIGHT;
 }
@@ -462,11 +479,25 @@ function StartPizzaSessionContent() {
       }
       : nextSession;
 
-    setActivePizzaSession(supportedSession.id);
+    const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(level, supportedSession);
+    const experienceScopedSession = Object.keys(simpleDefaultsPatch).length
+      ? updatePizzaSession(supportedSession.id, {
+        ...simpleDefaultsPatch,
+        status: "planning",
+        currentStep: supportedSession.currentStep,
+        experienceLevel: level,
+      }) ?? {
+        ...supportedSession,
+        ...simpleDefaultsPatch,
+        experienceLevel: level,
+      }
+      : supportedSession;
+
+    setActivePizzaSession(experienceScopedSession.id);
     setExperienceLevel(level);
-    setSession(supportedSession);
-    setTargetTimeDraft(supportedSession.targetEatTime ?? "");
-    setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(supportedSession)));
+    setSession(experienceScopedSession);
+    setTargetTimeDraft(experienceScopedSession.targetEatTime ?? "");
+    setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)));
     if (hasSavedTargetTime) {
       setSelectedDayChoice("custom-date");
       setSelectedTimeChoice("custom-time");
@@ -475,7 +506,7 @@ function StartPizzaSessionContent() {
       setSelectedTimeChoice("dinner");
     }
     const requestedStep = wizardStepFromQuery(query.get("step"));
-    setStep(requestedStep ?? initialWizardStep(supportedSession));
+    setStep(requestedStep ?? initialWizardStep(experienceScopedSession));
     setReady(true);
   }, []);
 
@@ -645,6 +676,7 @@ function StartPizzaSessionContent() {
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const activeDoughStartMode = session.doughStartMode ?? "recommend";
   const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel);
+  const showPizzaNerdDoughControls = shouldShowPizzaNerdDoughControls(experienceLevel);
   const setupSummaryCards = [
     { label: "Oven", value: selectedOvenLabel ?? "Not selected yet", icon: "🔥" },
     { label: "Style", value: hasSelectedDoughStyle ? "Neapolitan-style" : "Not selected yet", icon: "🍕" },
@@ -955,124 +987,128 @@ function StartPizzaSessionContent() {
                 </label>
               </section>
 
-              <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="dough-ball-size-heading">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 id="dough-ball-size-heading" className="text-sm font-extrabold text-ink">Dough ball size</h3>
-                    <p className="mt-1 text-xs font-bold leading-5 text-ink/50">This controls how much dough each pizza uses.</p>
-                  </div>
-                  <span className="rounded-full bg-leaf/10 px-3 py-1.5 text-xs font-extrabold text-leaf">{selectedDoughBallWeight} g each</span>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {DOUGH_BALL_WEIGHT_OPTIONS.map((weight) => {
-                    const guidance = doughBallWeightGuidance[weight];
-                    const active = selectedDoughBallWeight === weight;
-                    return (
+              {showPizzaNerdDoughControls && (
+                <>
+                  <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="dough-ball-size-heading">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 id="dough-ball-size-heading" className="text-sm font-extrabold text-ink">Dough ball size</h3>
+                        <p className="mt-1 text-xs font-bold leading-5 text-ink/50">This controls how much dough each pizza uses.</p>
+                      </div>
+                      <span className="rounded-full bg-leaf/10 px-3 py-1.5 text-xs font-extrabold text-leaf">{selectedDoughBallWeight} g each</span>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      {DOUGH_BALL_WEIGHT_OPTIONS.map((weight) => {
+                        const guidance = doughBallWeightGuidance[weight];
+                        const active = selectedDoughBallWeight === weight;
+                        return (
+                          <button
+                            key={weight}
+                            type="button"
+                            onClick={() => setDoughBallWeight(weight)}
+                            aria-pressed={active}
+                            className={`min-h-28 rounded-2xl border p-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                              active ? "border-tomato bg-tomato/[.08] shadow-sm" : "border-ink/10 bg-cream text-ink/70"
+                            }`}
+                          >
+                            <span className="flex items-start justify-between gap-3">
+                              <span>
+                                <span className="block text-base font-extrabold text-ink">{weight} g</span>
+                                <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">{guidance.pizzaSize}</span>
+                              </span>
+                              <span aria-hidden="true" className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg ${active ? "bg-white text-tomato" : "bg-white text-ink/45"}`}>
+                                {guidance.visual}
+                              </span>
+                            </span>
+                            {weight === 260 && (
+                              <span className="mt-2 inline-flex rounded-full bg-leaf/10 px-2.5 py-1 text-[11px] font-extrabold text-leaf">
+                                Most popular
+                              </span>
+                            )}
+                            <span className="mt-2 block text-xs font-bold leading-5 text-ink/60">{guidance.bestFor}</span>
+                            <span className="mt-1 block text-xs leading-5 text-ink/45">{guidance.reason}</span>
+                          </button>
+                        );
+                      })}
                       <button
-                        key={weight}
                         type="button"
-                        onClick={() => setDoughBallWeight(weight)}
-                        aria-pressed={active}
-                        className={`min-h-28 rounded-2xl border p-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                          active ? "border-tomato bg-tomato/[.08] shadow-sm" : "border-ink/10 bg-cream text-ink/70"
+                        onClick={() => setCustomDoughBallWeightDraft(String(selectedDoughBallWeight))}
+                        aria-pressed={!DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number])}
+                        className={`min-h-28 rounded-2xl border p-3 text-left text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                          !DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number]) ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-cream text-ink/70"
                         }`}
                       >
-                        <span className="flex items-start justify-between gap-3">
-                          <span>
-                            <span className="block text-base font-extrabold text-ink">{weight} g</span>
-                            <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">{guidance.pizzaSize}</span>
-                          </span>
-                          <span aria-hidden="true" className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg ${active ? "bg-white text-tomato" : "bg-white text-ink/45"}`}>
-                            {guidance.visual}
-                          </span>
-                        </span>
-                        {weight === 260 && (
-                          <span className="mt-2 inline-flex rounded-full bg-leaf/10 px-2.5 py-1 text-[11px] font-extrabold text-leaf">
-                            Most popular
-                          </span>
-                        )}
-                        <span className="mt-2 block text-xs font-bold leading-5 text-ink/60">{guidance.bestFor}</span>
-                        <span className="mt-1 block text-xs leading-5 text-ink/45">{guidance.reason}</span>
+                        <span className="block text-base">Custom</span>
+                        <span className="mt-2 block text-xs font-bold leading-5 opacity-70">Use 180–350 g if your oven or appetite needs a different size.</span>
                       </button>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    onClick={() => setCustomDoughBallWeightDraft(String(selectedDoughBallWeight))}
-                    aria-pressed={!DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number])}
-                    className={`min-h-28 rounded-2xl border p-3 text-left text-sm font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                      !DOUGH_BALL_WEIGHT_OPTIONS.includes(selectedDoughBallWeight as typeof DOUGH_BALL_WEIGHT_OPTIONS[number]) ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-cream text-ink/70"
-                    }`}
-                  >
-                    <span className="block text-base">Custom</span>
-                    <span className="mt-2 block text-xs font-bold leading-5 opacity-70">Use 180–350 g if your oven or appetite needs a different size.</span>
-                  </button>
-                </div>
-                <label className="mt-5 block text-xs font-extrabold text-ink/50">
-                  Custom grams per dough ball
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={MIN_DOUGH_BALL_WEIGHT}
-                    max={MAX_DOUGH_BALL_WEIGHT}
-                    value={customDoughBallWeightDraft}
-                    onChange={(event) => setCustomDoughBallWeightDraft(event.currentTarget.value)}
-                    onBlur={commitCustomDoughBallWeight}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.currentTarget.blur();
-                      }
-                    }}
-                    className={`mt-2 h-12 w-full rounded-2xl border bg-white px-3 text-lg font-extrabold text-ink outline-none focus:ring-2 focus:ring-tomato/20 ${
-                      customDoughBallWeightInvalid ? "border-tomato" : "border-ink/10 focus:border-tomato"
-                    }`}
-                    aria-describedby="dough-ball-weight-helper"
-                    aria-invalid={customDoughBallWeightInvalid}
-                  />
-                </label>
-                <p id="dough-ball-weight-helper" className={`mt-2 text-xs font-bold leading-5 ${customDoughBallWeightInvalid ? "text-tomato" : "text-ink/45"}`}>
-                  Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas. Invalid custom values are not saved.
-                </p>
-              </section>
+                    </div>
+                    <label className="mt-5 block text-xs font-extrabold text-ink/50">
+                      Custom grams per dough ball
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={MIN_DOUGH_BALL_WEIGHT}
+                        max={MAX_DOUGH_BALL_WEIGHT}
+                        value={customDoughBallWeightDraft}
+                        onChange={(event) => setCustomDoughBallWeightDraft(event.currentTarget.value)}
+                        onBlur={commitCustomDoughBallWeight}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.currentTarget.blur();
+                          }
+                        }}
+                        className={`mt-2 h-12 w-full rounded-2xl border bg-white px-3 text-lg font-extrabold text-ink outline-none focus:ring-2 focus:ring-tomato/20 ${
+                          customDoughBallWeightInvalid ? "border-tomato" : "border-ink/10 focus:border-tomato"
+                        }`}
+                        aria-describedby="dough-ball-weight-helper"
+                        aria-invalid={customDoughBallWeightInvalid}
+                      />
+                    </label>
+                    <p id="dough-ball-weight-helper" className={`mt-2 text-xs font-bold leading-5 ${customDoughBallWeightInvalid ? "text-tomato" : "text-ink/45"}`}>
+                      Use {MIN_DOUGH_BALL_WEIGHT}–{MAX_DOUGH_BALL_WEIGHT} g for round pizzas. Invalid custom values are not saved.
+                    </p>
+                  </section>
 
-              <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="yeast-type-heading">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 id="yeast-type-heading" className="text-sm font-extrabold text-ink">Yeast type</h3>
-                    <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Choose the yeast you will use. This affects the yeast amount.</p>
-                  </div>
-                  <span className="mt-1 w-fit rounded-full bg-cream px-3 py-1.5 text-xs font-extrabold text-ink/45 sm:mt-0">
-                    {sessionYeastTypeOptions.find((option) => option.id === selectedYeastType)?.label ?? "Dry yeast"}
-                  </span>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  {sessionYeastTypeOptions.map((option) => {
-                    const active = selectedYeastType === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setYeastType(option.id)}
-                        aria-pressed={active}
-                        className={`min-h-24 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
-                          active ? "border-tomato bg-tomato/[.08] shadow-sm" : "border-ink/10 bg-cream text-ink/70 hover:border-tomato/30"
-                        }`}
-                      >
-                        <span className="flex items-start justify-between gap-3">
-                          <span>
-                            <span className="block text-base font-extrabold text-ink">{option.label}</span>
-                            <span className="mt-2 block text-xs font-bold leading-5 text-ink/55">{option.description}</span>
-                          </span>
-                          <span aria-hidden="true" className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-tomato text-white" : "bg-white text-ink/35"}`}>
-                            {active ? "✓" : ""}
-                          </span>
-                        </span>
-                        {active && <span className="mt-2 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
+                  <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="yeast-type-heading">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h3 id="yeast-type-heading" className="text-sm font-extrabold text-ink">Yeast type</h3>
+                        <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Choose the yeast you will use. This affects the yeast amount.</p>
+                      </div>
+                      <span className="mt-1 w-fit rounded-full bg-cream px-3 py-1.5 text-xs font-extrabold text-ink/45 sm:mt-0">
+                        {sessionYeastTypeOptions.find((option) => option.id === selectedYeastType)?.label ?? "Dry yeast"}
+                      </span>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {sessionYeastTypeOptions.map((option) => {
+                        const active = selectedYeastType === option.id;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => setYeastType(option.id)}
+                            aria-pressed={active}
+                            className={`min-h-24 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                              active ? "border-tomato bg-tomato/[.08] shadow-sm" : "border-ink/10 bg-cream text-ink/70 hover:border-tomato/30"
+                            }`}
+                          >
+                            <span className="flex items-start justify-between gap-3">
+                              <span>
+                                <span className="block text-base font-extrabold text-ink">{option.label}</span>
+                                <span className="mt-2 block text-xs font-bold leading-5 text-ink/55">{option.description}</span>
+                              </span>
+                              <span aria-hidden="true" className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-tomato text-white" : "bg-white text-ink/35"}`}>
+                                {active ? "✓" : ""}
+                              </span>
+                            </span>
+                            {active && <span className="mt-2 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                </>
+              )}
             </div>
           )}
 
