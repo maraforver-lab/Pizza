@@ -22,7 +22,7 @@ const copy = {
   sv: {
     eyebrow: "Användarkonto", title: "Din plats för pizzarecept.", intro: "I den första versionen kan du skapa ett konto samt logga in och ut. Recept flyttas ännu inte till kontot.", login: "Logga in", signup: "Skapa konto", email: "E-post", password: "Lösenord", passwordHint: "Minst 8 tecken", working: "Ett ögonblick…", confirm: "Kontrollera din e-post och bekräfta kontot via länken i meddelandet.", confirmed: "E-postadressen är bekräftad. Du är nu inloggad.", signedIn: "Du är inloggad", signOut: "Logga ut", signedOut: "Du är utloggad.", back: "Tillbaka till kalkylatorn", retry: "Bekräftelselänken kunde inte behandlas. Försök logga in.", error: "Inloggningen misslyckades. Kontrollera uppgifterna och försök igen.", privacy: "Lösenordet hanteras av Supabase och lagras inte i DoughTools egen kod." },
   en: {
-    eyebrow: "User account", title: "Your place for pizza recipes.", intro: "You can create an account, sign in and sign out. Saved recipes are still browser-local for now, so the account is a foundation for future personal features rather than recipe sync today.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to calculator", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again.", privacy: "Your password is handled by Supabase and is not stored in DoughTools code." },
+    eyebrow: "User account", title: "Your place for pizza recipes.", intro: "You can create an account, sign in and sign out. Active Pizza Sessions can now be saved to your account while saved recipes and bake notes remain browser-local for now.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to calculator", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again.", privacy: "Your password is handled by Supabase and is not stored in DoughTools code." },
 } as const;
 
 export default function AccountPage() {
@@ -125,14 +125,14 @@ export default function AccountPage() {
       </div>
       <p className="mt-5 rounded-2xl bg-white/65 p-4 text-xs leading-5 text-ink/50">
         This is the foundation for personalized guidance. More pages will use this preference in future updates.
-        For now it is stored locally on this device and is not synced to your account.
+        For now it is stored locally on this device. Active Pizza Sessions can be saved separately from the Dough Plan page.
       </p>
     </section>
     <section className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="account-recipes-heading">
       <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Saved recipe value</p>
       <h2 id="account-recipes-heading" className="mt-2 font-display text-3xl font-semibold">Save recipes to make progress repeatable.</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">
-        DoughTools is local-first today. Saved recipes and local bake notes stay in this browser on this device unless a future account-sync feature is added separately.
+        DoughTools remains local-first for recipes and bake notes. Active in-progress Pizza Sessions can be saved to your account from the Dough Plan page.
         Clearing browser site data or using another device can remove or hide local recipes.
       </p>
       <div className="mt-5 grid gap-3 md:grid-cols-3">
@@ -148,8 +148,8 @@ export default function AccountPage() {
         ))}
       </div>
       <p className="mt-5 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">
-        Account sign-in currently handles authentication only. It does not upload saved recipes, local BakeResults or Journal photos to Supabase.
-        Pizza sessions are currently saved in this browser on this device, and cloud sync is not active yet.
+        Account sign-in can save the active in-progress Pizza Session to your account. It does not upload saved recipes, local BakeResults or Journal photos to Supabase.
+        Finished review history and photos are still local-only until future patches add those features.
       </p>
     </section>
     <InstallAppPrompt className="mt-8" />

@@ -290,12 +290,12 @@ describe("Pizza Session local storage", () => {
 
     expect(component).toContain("\"use client\"");
     expect(component).toContain("getActivePizzaSession");
-    expect(component).toContain("if (!ready || !session) return null");
+    expect(component).toContain("if (!ready || (!session && !cloudSession)) return null");
     expect(component).toContain("Continue Pizza Session");
-    expect(component).toContain("Cloud sync is not active yet");
+    expect(component).toContain("Signed-in users can save an in-progress copy");
     expect(component).toContain("focus-visible:ring");
     expect(homepage).toContain("ContinuePizzaSessionCard");
-    expect(account).toContain("Pizza sessions are currently saved in this browser on this device");
+    expect(account).toContain("Active in-progress Pizza Sessions can be saved to your account");
     expect([component, homepage, account].join("\n")).not.toMatch(
       /Available on all devices|Backed up in the cloud|Cloud sync is active|Synced across devices|Push notifications enabled/i,
     );

@@ -1,0 +1,110 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import {
+  cloudPizzaSessionDoughSummary,
+  cloudPizzaSessionPayload,
+  cloudPizzaSessionSummary,
+  cloudPizzaSessionUpdatedLabel,
+  normalizeCloudPizzaSessionRow,
+} from "@/lib/cloud-pizza-sessions";
+import { createPizzaSession } from "@/lib/pizza-session";
+
+function source(path: string) {
+  return readFileSync(join(process.cwd(), path), "utf8");
+}
+
+describe("cloud pizza session foundation", () => {
+  it("builds an in-progress cloud payload from the active local session shape", () => {
+    const session = createPizzaSession({
+      id: "cloud-save-session",
+      currentStep: "shopping",
+      status: "planning",
+      pizzaCount: 6,
+      doughBallWeight: 260,
+      targetEatTime: "2026-07-04T20:00:00.000Z",
+    });
+
+    expect(cloudPizzaSessionPayload(session)).toMatchObject({
+      status: "in_progress",
+      title: "Active pizza session",
+      current_step: "shopping",
+      session_data: session,
+    });
+    expect(cloudPizzaSessionDoughSummary(session)).toBe("6 dough balls · 260 g each");
+  });
+
+  it("summarizes saved in-progress sessions with graceful fallbacks", () => {
+    const incomplete = createPizzaSession({ id: "incomplete-cloud-session" }, new Date("2026-07-04T09:00:00.000Z"));
+    const row = normalizeCloudPizzaSessionRow({
+      id: "row-1",
+      user_id: "user-1",
+      status: "in_progress",
+      title: "Active pizza session",
+      current_step: "style",
+      session_data: incomplete,
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: null,
+    });
+
+    expect(row).toBeTruthy();
+    expect(cloudPizzaSessionSummary(row!, new Date("2026-07-04T12:00:00.000Z"))).toMatchObject({
+      title: "Active pizza session",
+      statusLine: "In progress · Updated today",
+      doughLine: "Dough plan not complete",
+      bakeLine: "Bake time: Bake time not set",
+      stepLine: "Current step: Setup",
+    });
+    expect(cloudPizzaSessionUpdatedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toContain("Updated");
+  });
+
+  it("adds a pizza_sessions table with owner-only RLS policies", () => {
+    const migration = source("supabase/migrations/20260704183000_create_pizza_sessions.sql");
+
+    expect(migration).toContain("create table if not exists public.pizza_sessions");
+    expect(migration).toContain("user_id uuid not null references auth.users(id) on delete cascade");
+    expect(migration).toContain("status text not null default 'in_progress'");
+    expect(migration).toContain("session_data jsonb not null");
+    expect(migration).toContain("alter table public.pizza_sessions enable row level security");
+    expect(migration).toContain("auth.uid() = user_id");
+  });
+
+  it("uses the signed-in Supabase user for save and fetch API access", () => {
+    const route = source("app/api/pizza-sessions/active/route.ts");
+
+    expect(route).toContain("supabase.auth.getUser()");
+    expect(route).toContain("status\", \"in_progress\"");
+    expect(route).toContain(".eq(\"user_id\", user.id)");
+    expect(route).toContain("migratePizzaSession(record.sessionData ?? record.session_data)");
+    expect(route).toContain(".insert({ ...payload, user_id: user.id");
+    expect(route).toContain(".update({ ...payload, updated_at: updatedAt })");
+    expect(route).toContain("normalizeCloudPizzaSessionRow(data)");
+  });
+
+  it("renders account save UI on Dough Plan without changing calculations", () => {
+    const recipePage = source("app/session/recipe/page.tsx");
+    const saveComponent = source("components/session/SavePizzaSessionToAccount.tsx");
+
+    expect(recipePage).toContain("SavePizzaSessionToAccount");
+    expect(recipePage).toContain("<SavePizzaSessionToAccount session={session} />");
+    expect(saveComponent).toContain("Save to account");
+    expect(saveComponent).toContain("Saved to your account");
+    expect(saveComponent).toContain("Sign in to save this session across devices.");
+    expect(saveComponent).toContain('fetch("/api/pizza-sessions/active"');
+  });
+
+  it("shows a cloud Active Pizza Session card without breaking local continuation", () => {
+    const continueCard = source("components/ContinuePizzaSessionCard.tsx");
+
+    expect(continueCard).toContain("const localSession = getActivePizzaSession() ?? null");
+    expect(continueCard).toContain("if (localSession)");
+    expect(continueCard).toContain("fetch(\"/api/pizza-sessions/active\"");
+    expect(continueCard).toContain("Active pizza session");
+    expect(continueCard).toContain("summary.statusLine");
+    expect(continueCard).toContain("Continue Pizza Session");
+    expect(continueCard).toContain("savePizzaSession(cloudSession.session_data as PizzaSession)");
+    expect(continueCard).toContain("setActivePizzaSession(restored.id)");
+    expect(continueCard).toContain("router.push(pizzaSessionContinueHref(restored))");
+  });
+});

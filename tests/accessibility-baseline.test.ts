@@ -101,7 +101,7 @@ describe("core accessibility baseline", () => {
     expect(accountSource).toContain("role=\"group\"");
     expect(accountSource).toContain("aria-label=\"Account experience level options\"");
     expect(accountSource).toContain("aria-pressed={active}");
-    expect(accountSource).toContain("not synced to your account");
+    expect(accountSource).toContain("Active Pizza Sessions can be saved separately");
   });
 
   it("keeps guide, updates and accessibility docs with meaningful headings", () => {

@@ -99,9 +99,9 @@ describe("saved recipe account value UX", () => {
     const account = source("app/account/page.tsx");
 
     expect(account).toContain("Saved recipe value");
-    expect(account).toContain("local-first today");
-    expect(account).toContain("Saved recipes and local bake notes stay in this browser");
-    expect(account).toContain("not synced to your account");
+    expect(account).toContain("remains local-first for recipes and bake notes");
+    expect(account).toContain("Active in-progress Pizza Sessions can be saved to your account");
+    expect(account).toContain("Active Pizza Sessions can be saved separately");
     expect(account).toContain("does not upload saved recipes, local BakeResults or Journal photos to Supabase");
     expect(account).not.toMatch(/recipes sync to your account|cloud recipe sync is available|account-based recipe storage is active/i);
   });

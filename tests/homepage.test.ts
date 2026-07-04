@@ -169,7 +169,8 @@ describe("homepage content model", () => {
     expect(continueCard).toContain('variant === "hero"');
     expect(continueCard).toContain("Continue Pizza Session");
     expect(continueCard).toContain("pizzaSessionContinueHref(session)");
-    expect(continueCard).toContain("Cloud sync is not active yet.");
+    expect(continueCard).toContain("Signed-in users can save an in-progress copy");
+    expect(continueCard).toContain("Active pizza session");
     expect(header).toContain("href=\"/\"");
     expect(header).toContain("href=\"/account\"");
     expect(header).toContain("Tools");
@@ -228,7 +229,7 @@ describe("homepage content model", () => {
 
     expect(getActivePizzaSession(storage)).toBeUndefined();
     expect(homepageContent.hero.primaryCta.label).toBe("Start Pizza Session");
-    expect(source("components/ContinuePizzaSessionCard.tsx")).toContain("if (!ready || !session) return null");
+    expect(source("components/ContinuePizzaSessionCard.tsx")).toContain("if (!ready || (!session && !cloudSession)) return null");
   });
 
   it("keeps the full calculator workspace available for recipe query URLs", () => {

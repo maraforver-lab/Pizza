@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
+import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSessionToAccount";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -388,6 +389,10 @@ export default function SessionRecipePage() {
           level={session.experienceLevel}
           hideMeta
         />
+
+        <div className="mt-4 sm:mt-6">
+          <SavePizzaSessionToAccount session={session} />
+        </div>
 
         <section className="mt-4 sm:mt-6" aria-label="Dough plan details">
           <div className="grid min-w-0 gap-4 sm:gap-5">
