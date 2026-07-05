@@ -3,6 +3,7 @@ import {
   normalizePartyOrderRow,
   PARTY_ORDER_SELECT,
   summarizePartyOrderActivity,
+  validatePartyOrderInput,
   validatePartyOrderStatusUpdate,
 } from "@/lib/party-orders";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -88,15 +89,41 @@ export async function PATCH(
     return NextResponse.json({ error: "Party Order status is invalid." }, { status: 400 });
   }
 
-  const validation = validatePartyOrderStatusUpdate(body, existing);
-  if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
+  const record = body && typeof body === "object" && !Array.isArray(body) ? body as Record<string, unknown> : {};
+  const detailKeys = ["title", "pizzaDateTime", "ordersCloseAt", "guestNote", "allowedPizzaIds", "pizza_datetime", "orders_close_at", "guest_note", "allowed_pizza_ids"];
+  const isStatusUpdate = typeof record.status === "string" && !detailKeys.some((key) => key in record);
+  let updateValues: {
+    status?: "open" | "closed";
+    title?: string;
+    pizza_datetime?: string;
+    orders_close_at?: string;
+    guest_note?: string | null;
+    allowed_pizza_ids?: string[];
+    updated_at: string;
+  };
+  if (isStatusUpdate) {
+    const validation = validatePartyOrderStatusUpdate(body, existing);
+    if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
+    updateValues = {
+      status: validation.value.status,
+      updated_at: new Date().toISOString(),
+    };
+  } else {
+    const validation = validatePartyOrderInput(body);
+    if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
+    updateValues = {
+      title: validation.value.title,
+      pizza_datetime: validation.value.pizza_datetime,
+      orders_close_at: validation.value.orders_close_at,
+      guest_note: validation.value.guest_note,
+      allowed_pizza_ids: validation.value.allowed_pizza_ids,
+      updated_at: new Date().toISOString(),
+    };
+  }
 
   const { data, error } = await supabase
     .from("party_orders")
-    .update({
-      status: validation.value.status,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateValues)
     .eq("id", existing.id)
     .eq("user_id", user.id)
     .select(PARTY_ORDER_SELECT)

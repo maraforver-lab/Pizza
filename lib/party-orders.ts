@@ -34,6 +34,8 @@ export type PublicPartyOrder = Pick<PartyOrderRow,
 >;
 
 export const PARTY_ORDER_SELECT = "id,user_id,public_token,title,pizza_datetime,orders_close_at,guest_note,allowed_pizza_ids,status,created_at,updated_at";
+export const PARTY_ORDER_TITLE_MAX_LENGTH = 120;
+export const PARTY_ORDER_GUEST_NOTE_MAX_LENGTH = 500;
 
 export type PartyOrderActivity = {
   submissionCount: number;
@@ -150,8 +152,10 @@ export function validatePartyOrderInput(value: unknown) {
   const allowedPizzaIds = normalizePizzaCatalogIds(record.allowed_pizza_ids ?? record.allowedPizzaIds);
 
   if (!title) return { ok: false as const, error: "Event title is required." };
+  if (title.length > PARTY_ORDER_TITLE_MAX_LENGTH) return { ok: false as const, error: "Event title must be 120 characters or fewer." };
   if (!pizzaDateTime) return { ok: false as const, error: "Pizza date and time is required." };
   if (!ordersCloseAt) return { ok: false as const, error: "Orders close date and time is required." };
+  if (guestNote.length > PARTY_ORDER_GUEST_NOTE_MAX_LENGTH) return { ok: false as const, error: "Guest note must be 500 characters or fewer." };
   if (allowedPizzaIds.length === 0) return { ok: false as const, error: "Choose at least one pizza option." };
   if (new Date(ordersCloseAt).getTime() > new Date(pizzaDateTime).getTime()) {
     return { ok: false as const, error: "Orders must close before or at the pizza date and time." };

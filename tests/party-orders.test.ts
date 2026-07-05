@@ -110,6 +110,21 @@ describe("Party Orders foundation", () => {
       ordersCloseAt: "2026-07-10T19:00:00.000Z",
       allowedPizzaIds: ["margherita"],
     })).toMatchObject({ ok: false, error: "Orders must close before or at the pizza date and time." });
+
+    expect(validatePartyOrderInput({
+      title: "x".repeat(121),
+      pizzaDateTime: "2026-07-10T18:00:00.000Z",
+      ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      allowedPizzaIds: ["margherita"],
+    })).toMatchObject({ ok: false, error: "Event title must be 120 characters or fewer." });
+
+    expect(validatePartyOrderInput({
+      title: "Party",
+      pizzaDateTime: "2026-07-10T18:00:00.000Z",
+      ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      guestNote: "x".repeat(501),
+      allowedPizzaIds: ["margherita"],
+    })).toMatchObject({ ok: false, error: "Guest note must be 500 characters or fewer." });
   });
 
   it("normalizes event rows and resolves selected allowed pizzas", () => {
@@ -375,7 +390,13 @@ describe("Party Orders foundation", () => {
     expect(route).toContain("summarizePartyOrderActivity(submissions, itemRows)");
     expect(route).toContain("export async function PATCH");
     expect(route).toContain("validatePartyOrderStatusUpdate(body, existing)");
-    expect(route).toContain(".update({");
+    expect(route).toContain("validatePartyOrderInput(body)");
+    expect(route).toContain("title: validation.value.title");
+    expect(route).toContain("pizza_datetime: validation.value.pizza_datetime");
+    expect(route).toContain("orders_close_at: validation.value.orders_close_at");
+    expect(route).toContain("guest_note: validation.value.guest_note");
+    expect(route).toContain("allowed_pizza_ids: validation.value.allowed_pizza_ids");
+    expect(route).toContain(".update(updateValues)");
     expect(route).toContain("status: validation.value.status");
     expect(source("lib/party-orders.ts")).toContain("Orders cannot be reopened after the deadline.");
   });
@@ -426,7 +447,21 @@ describe("Party Orders foundation", () => {
     expect(list).toContain("Open");
 
     const detail = source("components/account/PartyOrderDetail.tsx");
+    const editForm = source("components/account/PartyOrderSettingsEditForm.tsx");
     const invitation = source("components/account/PartyOrderInvitationCard.tsx");
+    expect(detail).toContain("Edit party details");
+    expect(detail).toContain("PartyOrderSettingsEditForm");
+    expect(editForm).toContain("Event title");
+    expect(editForm).toContain("Pizza date/time");
+    expect(editForm).toContain("Orders close date/time");
+    expect(editForm).toContain("Guest note / invitation text");
+    expect(editForm).toContain("Allowed pizzas");
+    expect(editForm).toContain("PIZZA_CATALOG_OPTIONS.map");
+    expect(editForm).toContain("Save changes");
+    expect(editForm).toContain("Cancel");
+    expect(editForm).toContain("fetch(`/api/party-orders/${event.id}`");
+    expect(editForm).toContain("method: \"PATCH\"");
+    expect(editForm).toContain("allowedPizzaIds");
     expect(detail).toContain("PartyOrderInvitationCard");
     expect(detail).toContain("/order/${event.public_token}");
     expect(invitation).toContain("Public guest link");
@@ -466,6 +501,24 @@ describe("Party Orders foundation", () => {
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Bring appetite.");
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Choose your pizza here:");
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("https://doughtools.app/order/public-token");
+  });
+
+  it("keeps public and invitation surfaces bound to current Party Order fields", () => {
+    const publicPage = source("app/order/[publicToken]/page.tsx");
+    const invitation = source("components/account/PartyOrderInvitationCard.tsx");
+    const detail = source("components/account/PartyOrderDetail.tsx");
+
+    expect(publicPage).toContain("event.title");
+    expect(publicPage).toContain("event.guest_note");
+    expect(publicPage).toContain("partyOrderDateTimeLabel(event.pizza_datetime)");
+    expect(publicPage).toContain("partyOrderDateTimeLabel(event.orders_close_at)");
+    expect(publicPage).toContain("partyOrderAllowedPizzaOptions(event)");
+    expect(publicPage).not.toContain("party_order_submissions");
+    expect(invitation).toContain("{event.title}");
+    expect(invitation).toContain("event.guest_note");
+    expect(invitation).toContain("partyOrderDateTimeLabel(event.pizza_datetime)");
+    expect(invitation).toContain("partyOrderDateTimeLabel(event.orders_close_at)");
+    expect(detail).toContain("setEvent(updatedEvent)");
   });
 
   it("renders a shareable invitation card with QR code, background image, and copy actions", () => {

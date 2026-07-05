@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PartyOrderInvitationCard } from "@/components/account/PartyOrderInvitationCard";
+import { PartyOrderSettingsEditForm } from "@/components/account/PartyOrderSettingsEditForm";
 import {
   normalizePartyOrderActivity,
   normalizePartyOrderRow,
@@ -27,6 +28,8 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusError, setStatusError] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [detailsMessage, setDetailsMessage] = useState("");
   const shareLink = useMemo(() => (
     event && typeof location !== "undefined" ? `${location.origin}/order/${event.public_token}` : ""
   ), [event]);
@@ -119,6 +122,23 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         </Link>
       </div>
 
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm leading-6 text-ink/55">
+          Edit the invitation details and allowed pizza options without changing existing guest orders.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setEditing(true);
+            setDetailsMessage("");
+          }}
+          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        >
+          Edit party details
+        </button>
+      </div>
+      {detailsMessage && <p role="status" className="mt-3 text-sm font-extrabold text-leaf">{detailsMessage}</p>}
+
       <section className="mt-6 grid gap-3 sm:grid-cols-2">
         <p className="rounded-[1.25rem] bg-cream/70 p-4 text-sm font-bold leading-6 text-ink/70">
           Pizza time: {partyOrderDateTimeLabel(event.pizza_datetime)}
@@ -127,6 +147,18 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
           Orders close: {partyOrderDateTimeLabel(event.orders_close_at)}
         </p>
       </section>
+
+      {editing && (
+        <PartyOrderSettingsEditForm
+          event={event}
+          onCancel={() => setEditing(false)}
+          onSaved={(updatedEvent) => {
+            setEvent(updatedEvent);
+            setEditing(false);
+            setDetailsMessage("Party Order details saved.");
+          }}
+        />
+      )}
 
       <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4" aria-labelledby="party-order-status-control-heading">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
