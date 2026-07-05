@@ -100,8 +100,11 @@ describe("shared navigation model", () => {
     expect(header).toContain('href="/"');
     expect(header).toContain("Tools");
     expect(header).toContain("Start Pizza Session");
-    expect(header).not.toContain('href="/account"');
-    expect(header).not.toContain("Your account");
+    expect(header).toContain('const accountActive = pathname === "/account"');
+    expect(header).toContain("{!accountActive && (");
+    expect(header).toContain("{accountActive && (");
+    expect(header).toContain('href="/account"');
+    expect(header).toContain("Your account");
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
   });
 

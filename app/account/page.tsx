@@ -7,13 +7,6 @@ import AppSignature from "@/components/AppSignature";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
-import {
-  EXPERIENCE_LEVELS,
-  getExperienceLevelConfig,
-  readExperienceLevelPreference,
-  writeExperienceLevelPreference,
-  type ExperienceLevel,
-} from "@/lib/experience-levels";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "signup";
@@ -35,14 +28,11 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const t = copy.en;
-  const selectedExperience = getExperienceLevelConfig(experienceLevel);
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    setExperienceLevel(readExperienceLevelPreference());
     const params = new URLSearchParams(location.search);
     if (params.get("confirmed") === "1") setMessage(copy.en.confirmed);
     if (params.get("authError")) { setMessage(copy.en.retry); setIsError(true); }
@@ -70,10 +60,6 @@ export default function AccountPage() {
     setLoading(false); setUser(null); setMessage(error ? error.message : t.signedOut); setIsError(Boolean(error));
   };
 
-  const selectExperienceLevel = (level: ExperienceLevel) => {
-    setExperienceLevel(writeExperienceLevelPreference(level));
-  };
-
   return <main className="min-h-screen bg-cream px-4 py-10 pb-28 text-ink sm:px-6"><div className="mx-auto max-w-4xl">
     <section className="grid min-w-0 items-center gap-8 py-8 lg:grid-cols-[1fr_24rem]">
       <div className="min-w-0"><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-2xl break-words font-display text-5xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-xl leading-7 text-ink/55">{t.intro}</p><Link href="/" className="mt-7 inline-flex min-h-12 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold">← {t.back}</Link></div>
@@ -88,50 +74,6 @@ export default function AccountPage() {
     </section>
     <AccountActivePizzaSessionCard enabled={Boolean(user)} />
     <AccountPizzaSessionHistory enabled={Boolean(user)} />
-    <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${selectedExperience.cardClassName}`} aria-labelledby="account-experience-heading">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Experience level</p>
-          <h2 id="account-experience-heading" className="mt-2 font-display text-3xl font-semibold">Choose how much guidance you want.</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">
-            Experience level helps DoughTools decide how much guidance and technical detail to show.
-            You can change it at any time.
-          </p>
-        </div>
-        <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${selectedExperience.badgeClassName}`}>
-          <span aria-hidden="true">{selectedExperience.marker}</span>
-          {selectedExperience.label}
-        </span>
-      </div>
-      <div className="mt-5 grid gap-3 md:grid-cols-3" role="group" aria-label="Account experience level options">
-        {EXPERIENCE_LEVELS.map((level) => {
-          const active = level.id === experienceLevel;
-          return (
-            <button
-              key={level.id}
-              type="button"
-              onClick={() => selectExperienceLevel(level.id)}
-              aria-pressed={active}
-              aria-label={`Select ${level.label} guidance level${active ? ", currently selected" : ""}`}
-              className={`min-h-36 rounded-2xl border bg-white/75 p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                active ? `${level.cardClassName} shadow-sm` : "border-ink/10 hover:border-tomato/30"
-              }`}
-            >
-              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${active ? level.badgeClassName : "bg-ink/[.06] text-ink/45"}`} aria-label={`${level.label} marker`}>
-                <span aria-hidden="true">{level.marker}</span>
-              </span>
-              <span className="mt-4 block text-base font-extrabold text-ink">{level.label}</span>
-              <span className="mt-2 block text-sm leading-5 text-ink/55">{level.description}</span>
-              {active && <span className="mt-3 block text-xs font-extrabold text-leaf">Selected</span>}
-            </button>
-          );
-        })}
-      </div>
-      <p className="mt-5 rounded-2xl bg-white/65 p-4 text-xs leading-5 text-ink/50">
-        This is the foundation for personalized guidance. More pages will use this preference in future updates.
-        For now it is stored locally on this device. Active Pizza Sessions can be saved separately from the Dough Plan page.
-      </p>
-    </section>
     <InstallAppPrompt className="mt-8" />
     <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;

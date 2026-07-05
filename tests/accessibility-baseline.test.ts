@@ -50,8 +50,13 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).toContain("aria-expanded={guideMenuOpen}");
     expect(navigationSource).toContain("aria-label=\"Guide menu\"");
     expect(navigationSource).toContain("focus-visible:ring");
-    expect(navigationSource).not.toContain("Your account");
-    expect(navigationSource).not.toContain('href="/account"');
+    expect(navigationSource).toContain('const accountActive = pathname === "/account"');
+    expect(navigationSource).toContain("{!accountActive && (");
+    expect(navigationSource).toContain("{accountActive && (");
+    expect(navigationSource).toContain('href="/account"');
+    expect(navigationSource).toContain("aria-label={signedIn ? copy.accountActive : copy.account}");
+    expect(navigationSource).toContain("border-ink bg-ink text-white");
+    expect(navigationSource).toContain("startSession: \"Start Pizza Session\"");
     expect(navigationSource).not.toContain("aria-expanded={expanded}");
     expect(navigationSource).not.toContain("aria-controls={panelId}");
     for (const item of navigationItems) {
@@ -97,13 +102,21 @@ describe("core accessibility baseline", () => {
     expect(doctorSource).toContain("focus-visible:ring");
   });
 
-  it("keeps account experience selector accessible and local-only", () => {
+  it("removes the account page experience selector while preserving Pizza Session experience controls", () => {
     const accountSource = source("app/account/page.tsx");
+    const sessionStartSource = source("app/session/start/page.tsx");
 
-    expect(accountSource).toContain("aria-labelledby=\"account-experience-heading\"");
-    expect(accountSource).toContain("role=\"group\"");
-    expect(accountSource).toContain("aria-label=\"Account experience level options\"");
-    expect(accountSource).toContain("aria-pressed={active}");
+    expect(accountSource).not.toContain("aria-labelledby=\"account-experience-heading\"");
+    expect(accountSource).not.toContain("Account experience level options");
+    expect(accountSource).not.toContain("Choose how much guidance you want.");
+    expect(accountSource).not.toContain("Beginner");
+    expect(accountSource).not.toContain("Enthusiast");
+    expect(accountSource).not.toContain("Pizza Nerd");
+    expect(accountSource).not.toContain("EXPERIENCE_LEVELS");
+    expect(accountSource).not.toContain("writeExperienceLevelPreference");
+    expect(sessionStartSource).toContain("readExperienceLevelPreference");
+    expect(sessionStartSource).toContain("shouldShowPizzaNerdDoughControls");
+    expect(sessionStartSource).toContain("pizza_nerd");
     expect(accountSource).not.toContain("Saved recipe value");
     expect(accountSource).not.toContain("Save recipes to make progress repeatable.");
   });
