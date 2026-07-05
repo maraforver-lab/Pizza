@@ -1,3 +1,4 @@
+import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { migratePizzaSession, type PizzaSession } from "@/lib/pizza-session";
 
 export type CloudPizzaSessionStatus = "in_progress" | "completed" | "archived";
@@ -35,10 +36,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function normalizeCloudPizzaSessionRow(value: unknown): CloudPizzaSessionRow | undefined {
+  return normalizeCloudPizzaSessionRowForStatus(value, "in_progress");
+}
+
+export function normalizeCloudPizzaSessionHistoryRow(value: unknown): CloudPizzaSessionRow | undefined {
+  return normalizeCloudPizzaSessionRowForStatus(value, "completed");
+}
+
+function normalizeCloudPizzaSessionRowForStatus(
+  value: unknown,
+  expectedStatus: CloudPizzaSessionStatus,
+): CloudPizzaSessionRow | undefined {
   if (!isRecord(value)) return undefined;
   const status = value.status;
   const session = migratePizzaSession(value.session_data);
-  if (!session || status !== "in_progress") return undefined;
+  if (!session || status !== expectedStatus) return undefined;
   const id = typeof value.id === "string" ? value.id : undefined;
   const userId = typeof value.user_id === "string" ? value.user_id : undefined;
   const createdAt = typeof value.created_at === "string" ? value.created_at : undefined;
@@ -47,7 +59,7 @@ export function normalizeCloudPizzaSessionRow(value: unknown): CloudPizzaSession
   return {
     id,
     user_id: userId,
-    status,
+    status: expectedStatus,
     title: typeof value.title === "string" ? value.title : null,
     current_step: typeof value.current_step === "string" ? value.current_step : null,
     session_data: session,
@@ -99,6 +111,25 @@ export function cloudPizzaSessionUpdatedLabel(value: string, now = new Date()) {
   return `Updated ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(date)}`;
 }
 
+export function cloudPizzaSessionCompletedLabel(value: string | null | undefined, now = new Date()) {
+  if (!value) return "Completed recently";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Completed recently";
+  const sameDay = date.getFullYear() === now.getFullYear()
+    && date.getMonth() === now.getMonth()
+    && date.getDate() === now.getDate();
+  if (sameDay) return "Completed today";
+  return `Completed ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(date)}`;
+}
+
+export function sortCloudPizzaSessionHistoryRows(rows: CloudPizzaSessionRow[]) {
+  return [...rows].sort((a, b) => {
+    const left = new Date(a.completed_at ?? a.updated_at).getTime();
+    const right = new Date(b.completed_at ?? b.updated_at).getTime();
+    return (Number.isFinite(right) ? right : 0) - (Number.isFinite(left) ? left : 0);
+  });
+}
+
 export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Date()) {
   const session = migratePizzaSession(row.session_data);
   if (!session) {
@@ -116,5 +147,35 @@ export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Da
     doughLine: cloudPizzaSessionDoughSummary(session),
     bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,
     stepLine: `Current step: ${cloudPizzaSessionCurrentStepLabel(session)}`,
+  };
+}
+
+export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now = new Date()) {
+  const session = migratePizzaSession(row.session_data);
+  if (!session) {
+    return {
+      title: "Completed pizza session",
+      statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
+      doughLine: "Dough plan not complete",
+      bakeLine: "Bake time: Bake time not set",
+      hydrationLine: undefined,
+      fermentationLine: undefined,
+    };
+  }
+  const hydration = session.recipeSnapshot?.hydration ?? session.hydrationPercentOverride;
+  const fermentation = buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot });
+  const fermentationLine = fermentation.durationHours && fermentation.mode
+    ? `Fermentation: ${fermentation.fullLabel}`
+    : undefined;
+
+  return {
+    title: "Completed pizza session",
+    statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
+    doughLine: cloudPizzaSessionDoughSummary(session),
+    bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,
+    hydrationLine: typeof hydration === "number" && Number.isFinite(hydration)
+      ? `Hydration: ${Math.round(hydration * 10) / 10}%`
+      : undefined,
+    fermentationLine,
   };
 }

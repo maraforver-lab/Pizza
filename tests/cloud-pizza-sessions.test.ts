@@ -8,11 +8,15 @@ import {
   markCloudBackedPizzaSession,
 } from "@/lib/cloud-pizza-session-client";
 import {
+  cloudPizzaSessionCompletedLabel,
   cloudPizzaSessionDoughSummary,
+  cloudPizzaSessionHistorySummary,
   cloudPizzaSessionPayload,
   cloudPizzaSessionSummary,
   cloudPizzaSessionUpdatedLabel,
+  normalizeCloudPizzaSessionHistoryRow,
   normalizeCloudPizzaSessionRow,
+  sortCloudPizzaSessionHistoryRows,
 } from "@/lib/cloud-pizza-sessions";
 import { createPizzaSession } from "@/lib/pizza-session";
 import { MemoryStorage } from "./helpers";
@@ -116,19 +120,68 @@ describe("cloud pizza session foundation", () => {
   });
 
   it("does not treat completed cloud sessions as active account sessions", () => {
-    const completed = normalizeCloudPizzaSessionRow({
+    const completedRow = {
       id: "row-completed",
       user_id: "user-1",
       status: "completed",
       title: "Active pizza session",
       current_step: "review",
-      session_data: createPizzaSession({ id: "completed-cloud", currentStep: "review", status: "completed" }),
+      session_data: createPizzaSession({
+        id: "completed-cloud",
+        currentStep: "review",
+        status: "completed",
+        pizzaCount: 6,
+        doughBallWeight: 260,
+        targetEatTime: "2026-07-04T17:00:00.000Z",
+        plannedFermentationHours: 24,
+        fermentationTemperatureCOverride: 4,
+        recipeSnapshot: { balls: 6, ballWeight: 260, hydration: 65, fermentation: "24h-cold" },
+      }),
       created_at: "2026-07-04T09:00:00.000Z",
       updated_at: "2026-07-04T10:00:00.000Z",
       completed_at: "2026-07-04T10:00:00.000Z",
-    });
+    };
+    const completed = normalizeCloudPizzaSessionRow(completedRow);
+    const history = normalizeCloudPizzaSessionHistoryRow(completedRow);
 
     expect(completed).toBeUndefined();
+    expect(history).toBeTruthy();
+    expect(cloudPizzaSessionHistorySummary(history!, new Date("2026-07-04T12:00:00.000Z"))).toMatchObject({
+      title: "Completed pizza session",
+      statusLine: "Completed today",
+      doughLine: "6 dough balls · 260 g each",
+      hydrationLine: "Hydration: 65%",
+      fermentationLine: "Fermentation: 24h cold fermentation · fridge 4 °C",
+      bakeLine: "Bake time: Saturday 20:00",
+    });
+    expect(cloudPizzaSessionCompletedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toBe("Completed 3 Jul 2026");
+  });
+
+  it("sorts completed cloud history newest first with updated_at fallback", () => {
+    const older = normalizeCloudPizzaSessionHistoryRow({
+      id: "older",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({ id: "older-session", status: "completed", currentStep: "review" }),
+      created_at: "2026-07-01T10:00:00.000Z",
+      updated_at: "2026-07-01T12:00:00.000Z",
+      completed_at: "2026-07-01T12:00:00.000Z",
+    })!;
+    const newerWithFallback = normalizeCloudPizzaSessionHistoryRow({
+      id: "newer",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({ id: "newer-session", status: "completed", currentStep: "review" }),
+      created_at: "2026-07-02T10:00:00.000Z",
+      updated_at: "2026-07-03T12:00:00.000Z",
+      completed_at: null,
+    })!;
+
+    expect(sortCloudPizzaSessionHistoryRows([older, newerWithFallback]).map((row) => row.id)).toEqual(["newer", "older"]);
   });
 
   it("renders account save UI on Dough Plan without changing calculations", () => {
@@ -198,5 +251,29 @@ describe("cloud pizza session foundation", () => {
     expect(accountCard).toContain("Start Pizza Session");
     expect(accountCard).toContain('href="/session/start"');
     expect(accountCard).toContain("if (!enabled) return null");
+  });
+
+  it("shows completed Pizza Session history on the Account page", () => {
+    const accountPage = source("app/account/page.tsx");
+    const historyRoute = source("app/api/pizza-sessions/history/route.ts");
+    const historyComponent = source("components/account/AccountPizzaSessionHistory.tsx");
+
+    expect(accountPage).toContain("AccountPizzaSessionHistory");
+    expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
+    expect(historyRoute).toContain("supabase.auth.getUser()");
+    expect(historyRoute).toContain(".eq(\"user_id\", user.id)");
+    expect(historyRoute).toContain(".eq(\"status\", \"completed\")");
+    expect(historyRoute).toContain("sortCloudPizzaSessionHistoryRows");
+    expect(historyRoute).toContain("slice(0, 5)");
+    expect(historyComponent).toContain("fetch(\"/api/pizza-sessions/history\"");
+    expect(historyComponent).toContain("Pizza session history");
+    expect(source("lib/cloud-pizza-sessions.ts")).toContain('title: "Completed pizza session"');
+    expect(historyComponent).toContain("summary.doughLine");
+    expect(historyComponent).toContain("summary.hydrationLine");
+    expect(historyComponent).toContain("summary.fermentationLine");
+    expect(historyComponent).toContain("summary.bakeLine");
+    expect(historyComponent).toContain("No completed pizza sessions yet");
+    expect(historyComponent).toContain("Finish a Pizza Session to save it here.");
+    expect(historyComponent).toContain("if (!enabled) return null");
   });
 });

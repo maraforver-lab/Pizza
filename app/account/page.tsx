@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import AppSignature from "@/components/AppSignature";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
+import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
 import {
   EXPERIENCE_LEVELS,
@@ -86,6 +87,7 @@ export default function AccountPage() {
       </section>
     </section>
     <AccountActivePizzaSessionCard enabled={Boolean(user)} />
+    <AccountPizzaSessionHistory enabled={Boolean(user)} />
     <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${selectedExperience.cardClassName}`} aria-labelledby="account-experience-heading">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
