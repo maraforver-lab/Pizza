@@ -97,6 +97,7 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
                   <p>{summary.doughLine}</p>
                   {summary.hydrationLine && <p>{summary.hydrationLine}</p>}
                   {summary.fermentationLine && <p>{summary.fermentationLine}</p>}
+                  {summary.reviewLine && <p>{summary.reviewLine}</p>}
                   <p>{summary.bakeLine}</p>
                 </div>
               </article>

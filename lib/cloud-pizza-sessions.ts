@@ -160,6 +160,7 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
       bakeLine: "Bake time: Bake time not set",
       hydrationLine: undefined,
       fermentationLine: undefined,
+      reviewLine: undefined,
     };
   }
   const hydration = session.recipeSnapshot?.hydration ?? session.hydrationPercentOverride;
@@ -167,6 +168,12 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
   const fermentationLine = fermentation.durationHours && fermentation.mode
     ? `Fermentation: ${fermentation.fullLabel}`
     : undefined;
+  const hasReviewNotes = Boolean(session.notes || session.review?.whatWorked || session.review?.improveNextTime || session.review?.nextTimeTry);
+  const reviewLine = typeof session.rating === "number" && Number.isFinite(session.rating)
+    ? `Review: ${session.rating}/5`
+    : hasReviewNotes
+      ? "Review: Notes saved"
+      : undefined;
 
   return {
     title: "Completed pizza session",
@@ -177,5 +184,6 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
       ? `Hydration: ${Math.round(hydration * 10) / 10}%`
       : undefined,
     fermentationLine,
+    reviewLine,
   };
 }

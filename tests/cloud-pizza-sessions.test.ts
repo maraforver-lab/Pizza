@@ -1,11 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   clearCloudBackedPizzaSession,
   CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY,
+  completeCloudBackedPizzaSession,
   isCloudBackedPizzaSession,
   markCloudBackedPizzaSession,
+  syncCloudBackedPizzaSession,
 } from "@/lib/cloud-pizza-session-client";
 import {
   cloudPizzaSessionCompletedLabel,
@@ -135,6 +137,14 @@ describe("cloud pizza session foundation", () => {
         targetEatTime: "2026-07-04T17:00:00.000Z",
         plannedFermentationHours: 24,
         fermentationTemperatureCOverride: 4,
+        rating: 5,
+        notes: "Best batch so far.",
+        review: {
+          whatWorked: "Long preheat.",
+          improveNextTime: "Try less salami.",
+          nextTimeTry: "Bake one pizza hotter.",
+          savedAt: "2026-07-04T09:45:00.000Z",
+        },
         recipeSnapshot: { balls: 6, ballWeight: 260, hydration: 65, fermentation: "24h-cold" },
       }),
       created_at: "2026-07-04T09:00:00.000Z",
@@ -152,9 +162,99 @@ describe("cloud pizza session foundation", () => {
       doughLine: "6 dough balls · 260 g each",
       hydrationLine: "Hydration: 65%",
       fermentationLine: "Fermentation: 24h cold fermentation · fridge 4 °C",
+      reviewLine: "Review: 5/5",
       bakeLine: "Bake time: Saturday 20:00",
     });
     expect(cloudPizzaSessionCompletedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toBe("Completed 3 Jul 2026");
+  });
+
+  it("sends completed review data to the existing cloud session row", async () => {
+    const storage = new MemoryStorage();
+    const completed = createPizzaSession({
+      id: "review-cloud-backed",
+      status: "completed",
+      currentStep: "review",
+      rating: 4,
+      notes: "Bottom was crisp.",
+      review: {
+        whatWorked: "Timing worked well.",
+        improveNextTime: "Dry mushrooms better.",
+        nextTimeTry: "Use a hotter oven.",
+        savedAt: "2026-07-04T11:00:00.000Z",
+      },
+    });
+    const windowDescriptor = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const originalFetch = globalThis.fetch;
+    Object.defineProperty(globalThis, "window", {
+      value: { localStorage: storage },
+      configurable: true,
+    });
+    markCloudBackedPizzaSession(completed.id, storage);
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => (
+      new Response(JSON.stringify({ completed: true, session: null }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    ));
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      await completeCloudBackedPizzaSession(completed);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (windowDescriptor) Object.defineProperty(globalThis, "window", windowDescriptor);
+    }
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/api/pizza-sessions/active");
+    expect(init?.method).toBe("PATCH");
+    const body = JSON.parse(String(init?.body));
+    expect(body.complete).toBe(true);
+    expect(body.sessionData).toMatchObject({
+      id: completed.id,
+      status: "completed",
+      currentStep: "review",
+      rating: 4,
+      notes: "Bottom was crisp.",
+      review: {
+        whatWorked: "Timing worked well.",
+        improveNextTime: "Dry mushrooms better.",
+        nextTimeTry: "Use a hotter oven.",
+        savedAt: "2026-07-04T11:00:00.000Z",
+      },
+    });
+    expect(storage.getItem(CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it("does not create a cloud row when a local-only session completes review", async () => {
+    const storage = new MemoryStorage();
+    const completed = createPizzaSession({
+      id: "review-local-only",
+      status: "completed",
+      currentStep: "review",
+      rating: 5,
+      notes: "Stayed local.",
+    });
+    const windowDescriptor = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const originalFetch = globalThis.fetch;
+    Object.defineProperty(globalThis, "window", {
+      value: { localStorage: storage },
+      configurable: true,
+    });
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    let result: unknown;
+    try {
+      result = await syncCloudBackedPizzaSession(completed, { complete: true });
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (windowDescriptor) Object.defineProperty(globalThis, "window", windowDescriptor);
+    }
+
+    expect(result).toEqual({ skipped: true });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("sorts completed cloud history newest first with updated_at fallback", () => {
@@ -271,6 +371,7 @@ describe("cloud pizza session foundation", () => {
     expect(historyComponent).toContain("summary.doughLine");
     expect(historyComponent).toContain("summary.hydrationLine");
     expect(historyComponent).toContain("summary.fermentationLine");
+    expect(historyComponent).toContain("summary.reviewLine");
     expect(historyComponent).toContain("summary.bakeLine");
     expect(historyComponent).toContain("No completed pizza sessions yet");
     expect(historyComponent).toContain("Finish a Pizza Session to save it here.");
