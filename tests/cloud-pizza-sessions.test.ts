@@ -487,6 +487,7 @@ describe("cloud pizza session foundation", () => {
         currentStep: "review",
         plannedFermentationHours: 48,
         fermentationTemperatureCOverride: 4,
+        ovenType: "gas",
         pizzaCount: 4,
         doughBallWeight: 260,
         flourSituation: "has_w_range",
@@ -522,10 +523,12 @@ describe("cloud pizza session foundation", () => {
         { label: "FERMENTATION", value: "48H COLD" },
         { label: "FRIDGE", value: "4°C" },
         { label: "FLOUR W", value: "260–300" },
+        { label: "BAKE TIME", value: "90 SEC" },
         { label: "RATING", value: "5/5" },
       ],
     });
     expect(buildPizzaPhotoOverlayModel(history)?.fields.some((field) => field.label === "Dough balls")).toBe(false);
+    expect(buildPizzaPhotoOverlayModel(history)?.fields.find((field) => field.label === "FLOUR W")?.value).not.toContain("W ");
   });
 
   it("builds room-temperature overlay fields from selected fermentation data", () => {
@@ -540,6 +543,7 @@ describe("cloud pizza session foundation", () => {
         status: "completed",
         currentStep: "review",
         fermentationTemperatureCOverride: 22,
+        ovenType: "home",
         recipeSnapshot: {
           hydration: 62,
           fermentation: "12h-room",
@@ -561,7 +565,44 @@ describe("cloud pizza session foundation", () => {
       { label: "HYDRATION", value: "62%" },
       { label: "FERMENTATION", value: "12H ROOM" },
       { label: "ROOM", value: "22°C" },
+      { label: "BAKE TIME", value: "5 MIN" },
     ]);
+  });
+
+  it("omits optional overlay flour W and bake time when session data cannot determine them", () => {
+    const history = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-overlay-optional-fields",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "overlay-optional-fields-session",
+        status: "completed",
+        currentStep: "review",
+        ovenType: "pan",
+        flourSituation: "recommend",
+        recipeSnapshot: {
+          hydration: 63,
+          fermentation: "12h-room",
+        },
+        photo: {
+          path: "user-1/row-overlay-optional-fields/photo.webp",
+          url: "https://example.test/optional.webp",
+          uploadedAt: "2026-07-04T12:00:00.000Z",
+          contentType: "image/webp",
+          size: 123456,
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    const fields = buildPizzaPhotoOverlayModel(history)?.fields ?? [];
+
+    expect(fields.some((field) => field.label === "FLOUR W")).toBe(false);
+    expect(fields.some((field) => field.label === "BAKE TIME")).toBe(false);
   });
 
   it("omits missing optional overlay fields and does not render without a photo URL", () => {
@@ -1206,6 +1247,9 @@ describe("cloud pizza session foundation", () => {
     expect(overlayHelper).toContain("FRIDGE");
     expect(overlayHelper).toContain("ROOM");
     expect(overlayHelper).toContain("FLOUR W");
+    expect(overlayHelper).toContain("BAKE TIME");
+    expect(overlayHelper).toContain("\"90 SEC\"");
+    expect(overlayHelper).toContain("\"5 MIN\"");
     expect(overlayHelper).toContain("RATING");
     expect(overlayHelper).not.toContain("Dough balls");
     expect(overlayComponent).toContain("document.createElement(\"canvas\")");
@@ -1216,8 +1260,9 @@ describe("cloud pizza session foundation", () => {
     expect(overlayComponent).toContain("drawWrappedText");
     expect(overlayComponent).toContain("cornerGradient");
     expect(overlayComponent).toContain("panelWidth = 318");
-    expect(overlayComponent).toContain("model.fields.slice(0, 3)");
-    expect(overlayComponent).toContain("panelHeight = 174 + fields.length * 92");
+    expect(overlayComponent).toContain("model.fields.slice(0, 5)");
+    expect(overlayComponent).toContain("fieldGap = 76");
+    expect(overlayComponent).toContain("panelHeight = 156 + fields.length * fieldGap");
     expect(overlayComponent).toContain("rgba(8, 24, 20, 0.68)");
     expect(overlayComponent).toContain("rgba(59, 166, 107, 0.42)");
     expect(overlayComponent).toContain("model.brand");

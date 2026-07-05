@@ -108,8 +108,9 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   const panelX = 46;
   const panelY = 50;
   const panelWidth = 318;
-  const fields = model.fields.slice(0, 3);
-  const panelHeight = 174 + fields.length * 92;
+  const fields = model.fields.slice(0, 5);
+  const fieldGap = 76;
+  const panelHeight = 156 + fields.length * fieldGap;
   roundedRect(context, panelX, panelY, panelWidth, panelHeight, 34);
   context.fillStyle = "rgba(8, 24, 20, 0.68)";
   context.fill();
@@ -118,8 +119,8 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   context.stroke();
 
   context.beginPath();
-  context.moveTo(panelX + 28, panelY + 140);
-  context.lineTo(panelX + panelWidth - 28, panelY + 140);
+  context.moveTo(panelX + 28, panelY + 132);
+  context.lineTo(panelX + panelWidth - 28, panelY + 132);
   context.strokeStyle = "rgba(59, 166, 107, 0.75)";
   context.lineWidth = 3;
   context.stroke();
@@ -129,28 +130,28 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
     font: "900 25px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     maxWidth: panelWidth - 56,
   });
-  drawText(context, model.title, panelX + 28, panelY + 101, {
+  drawText(context, model.title, panelX + 28, panelY + 100, {
     color: "#3BA66B",
     font: "900 29px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     maxWidth: panelWidth - 56,
   });
 
-  const fieldTop = panelY + 188;
+  const fieldTop = panelY + 172;
   fields.forEach((field, index) => {
     const x = panelX + 28;
-    const y = fieldTop + index * 92;
+    const y = fieldTop + index * fieldGap;
     context.beginPath();
     context.arc(x + 5, y - 8, 5, 0, Math.PI * 2);
     context.fillStyle = "#3BA66B";
     context.fill();
     drawText(context, field.label, x + 22, y, {
       color: "rgba(249, 241, 231, 0.62)",
-      font: "900 17px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      font: "900 15px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       maxWidth: panelWidth - 60,
     });
-    drawText(context, field.value, x, y + 44, {
+    drawText(context, field.value, x, y + 38, {
       color: "#FFF8F1",
-      font: "900 34px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      font: "900 29px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       maxWidth: panelWidth - 56,
     });
   });

@@ -63,6 +63,14 @@ function flourWValue(ranges: PizzaSessionFlourWRange[] | undefined) {
   return reliableRanges.length ? reliableRanges.join(", ") : undefined;
 }
 
+function bakeTimeValue(ovenType: string | undefined) {
+  const normalized = ovenType?.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (!normalized) return undefined;
+  if (normalized === "gas" || normalized === "pizza_oven") return "90 SEC";
+  if (normalized === "home" || normalized === "home_oven") return "5 MIN";
+  return undefined;
+}
+
 export function buildPizzaPhotoOverlayModel(row: CloudPizzaSessionRow): PizzaPhotoOverlayModel | null {
   const session = migratePizzaSession(row.session_data);
   if (!session?.photo?.url) return null;
@@ -70,6 +78,7 @@ export function buildPizzaPhotoOverlayModel(row: CloudPizzaSessionRow): PizzaPho
   const hydration = removePrefix(summary.hydrationLine, "Hydration:");
   const fermentation = splitFermentation(summary.fermentationLine);
   const flourW = session.flourSituation === "has_w_range" ? flourWValue(session.availableFlourWRanges) : undefined;
+  const bakeTime = bakeTimeValue(session.ovenType ?? session.recipeSnapshot?.oven);
   const rating = ratingValue(summary.review.ratingLine);
 
   const fields: PizzaPhotoOverlayField[] = [
@@ -78,6 +87,7 @@ export function buildPizzaPhotoOverlayModel(row: CloudPizzaSessionRow): PizzaPho
     fermentation.fridge ? { label: "FRIDGE", value: fermentation.fridge } : null,
     fermentation.room ? { label: "ROOM", value: fermentation.room } : null,
     flourW ? { label: "FLOUR W", value: flourW } : null,
+    bakeTime ? { label: "BAKE TIME", value: bakeTime } : null,
     rating ? { label: "RATING", value: rating } : null,
   ].filter((field): field is PizzaPhotoOverlayField => Boolean(field));
 
