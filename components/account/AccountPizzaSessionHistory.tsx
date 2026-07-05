@@ -169,24 +169,26 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
                     </div>
                   </div>
                 )}
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <Link
-                    href={`/account/pizza-sessions/${session.id}`}
-                    className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                  >
-                    View session
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConfirmingDeleteId(session.id);
-                      setDeleteError("");
-                    }}
-                    className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {!isConfirmingDelete && (
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <Link
+                      href={`/account/pizza-sessions/${session.id}`}
+                      className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                    >
+                      View session
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmingDeleteId(session.id);
+                        setDeleteError("");
+                      }}
+                      className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </article>
             );
           })}

@@ -825,6 +825,7 @@ describe("cloud pizza session foundation", () => {
     expect(historyComponent).toContain("This removes the completed session from your account history. This cannot be undone.");
     expect(historyComponent).toContain("Cancel");
     expect(historyComponent).toContain("Delete session");
+    expect(historyComponent).toContain("{!isConfirmingDelete && (");
     expect(historyComponent).toContain("fetch(`/api/pizza-sessions/history/${sessionId}`");
     expect(historyComponent).toContain("method: \"DELETE\"");
     expect(historyComponent).toContain("current.filter((session) => session.id !== sessionId)");
