@@ -173,9 +173,8 @@ describe("homepage content model", () => {
     expect(continueCard).toContain("Active pizza session");
     expect(header).toContain("href=\"/\"");
     expect(header).toContain('const accountActive = pathname === "/account"');
-    expect(header).toContain("{!accountActive && (");
-    expect(header).toContain("{accountActive && (");
     expect(header).toContain("href=\"/account\"");
+    expect(header).toContain("Sign in");
     expect(header).toContain("Your account");
     expect(header).toContain("border-ink bg-ink text-white");
     expect(header).toContain("Tools");
@@ -189,7 +188,8 @@ describe("homepage content model", () => {
     expect(header).toContain("setGuideMenuOpen(false)");
     expect(header).toContain("Lab");
     expect(header).toContain("About");
-    expect(header).toContain("Start Pizza Session");
+    expect(header).not.toContain("Start Pizza Session");
+    expect(header).not.toContain('href="/session/start"');
     expect(header).toContain("Pizza dough calculator");
     expect(header).toContain("Calculate flour, water, salt and yeast.");
     expect(header).toContain("Calculator v1");

@@ -22,7 +22,6 @@ const copy = {
   troubleshootingGuideDescription: "Fix common dough, topping and baking problems.",
   lab: "Lab",
   about: "About",
-  startSession: "Start Pizza Session",
 } as const;
 
 export default function GlobalToolNavigation() {
@@ -63,12 +62,6 @@ export default function GlobalToolNavigation() {
   }, [guideMenuOpen]);
 
   useEffect(() => {
-    if (!accountActive) {
-      setSignedIn(false);
-      setAuthPulse(false);
-      return;
-    }
-
     let pulseTimer: number | undefined;
     try {
       const supabase = getSupabaseBrowserClient();
@@ -88,7 +81,7 @@ export default function GlobalToolNavigation() {
     } catch {
       setSignedIn(false);
     }
-  }, [accountActive]);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/95 px-3 py-2.5 text-ink shadow-sm backdrop-blur-xl sm:px-6">
@@ -185,40 +178,29 @@ export default function GlobalToolNavigation() {
             </div>
           </details>
 
-          {!accountActive && (
-            <Link
-              href="/session/start"
-              className="hidden h-10 items-center justify-center rounded-full bg-tomato px-4 text-[11px] font-extrabold text-white shadow-sm shadow-tomato/15 transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:inline-flex"
-            >
-              {copy.startSession}
-            </Link>
-          )}
-
-          {accountActive && (
-            <Link
-              href="/account"
-              aria-label={signedIn ? copy.accountActive : copy.account}
-              aria-current={accountActive ? "page" : undefined}
-              className={`group relative flex h-10 items-center gap-2 rounded-full border px-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
-                accountActive
-                  ? "border-ink bg-ink text-white"
-                  : signedIn
-                    ? "border-leaf/20 bg-leaf/[.08] text-leaf"
-                    : "border-ink/10 bg-white text-ink/55 hover:border-tomato/30 hover:text-tomato"
-              }`}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8">
-                <circle cx="12" cy="8" r="3.5" />
-                <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" strokeLinecap="round" />
-              </svg>
-              <span className="text-[11px] font-extrabold">{signedIn ? copy.accountActive : copy.account}</span>
-              {signedIn && (
-                <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf" aria-hidden="true">
-                  <span className={`absolute h-full w-full rounded-full bg-leaf ${authPulse ? "animate-ping" : ""}`} />
-                </span>
-              )}
-            </Link>
-          )}
+          <Link
+            href="/account"
+            aria-label={signedIn ? copy.accountActive : copy.account}
+            aria-current={accountActive ? "page" : undefined}
+            className={`group relative flex h-10 items-center gap-2 rounded-full border px-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+              accountActive
+                ? "border-ink bg-ink text-white"
+                : signedIn
+                  ? "border-leaf/20 bg-leaf/[.08] text-leaf"
+                  : "border-ink/10 bg-white text-ink/55 hover:border-tomato/30 hover:text-tomato"
+            }`}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8">
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" strokeLinecap="round" />
+            </svg>
+            <span className="text-[11px] font-extrabold">{signedIn ? copy.accountActive : copy.account}</span>
+            {signedIn && (
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf" aria-hidden="true">
+                <span className={`absolute h-full w-full rounded-full bg-leaf ${authPulse ? "animate-ping" : ""}`} />
+              </span>
+            )}
+          </Link>
         </div>
       </div>
     </header>

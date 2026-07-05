@@ -51,12 +51,15 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).toContain("aria-label=\"Guide menu\"");
     expect(navigationSource).toContain("focus-visible:ring");
     expect(navigationSource).toContain('const accountActive = pathname === "/account"');
-    expect(navigationSource).toContain("{!accountActive && (");
-    expect(navigationSource).toContain("{accountActive && (");
     expect(navigationSource).toContain('href="/account"');
+    expect(navigationSource).toContain('account: "Sign in"');
+    expect(navigationSource).toContain('accountActive: "Your account"');
     expect(navigationSource).toContain("aria-label={signedIn ? copy.accountActive : copy.account}");
     expect(navigationSource).toContain("border-ink bg-ink text-white");
-    expect(navigationSource).toContain("startSession: \"Start Pizza Session\"");
+    expect(navigationSource).toContain("getSupabaseBrowserClient");
+    expect(navigationSource).toContain("supabase.auth.getSession()");
+    expect(navigationSource).not.toContain('startSession: "Start Pizza Session"');
+    expect(navigationSource).not.toContain('href="/session/start"');
     expect(navigationSource).not.toContain("aria-expanded={expanded}");
     expect(navigationSource).not.toContain("aria-controls={panelId}");
     for (const item of navigationItems) {
