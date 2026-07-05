@@ -1,6 +1,6 @@
 import Link from "next/link";
 import AppSignature from "@/components/AppSignature";
-import { projectContactEmail, trustFooterLinks, type TrustPage } from "@/lib/trust-pages";
+import { projectContactEmail, type TrustPage } from "@/lib/trust-pages";
 
 function LinkedParagraph({ text }: { text: string }) {
   const parts = text.split(projectContactEmail);
@@ -66,17 +66,6 @@ export default function TrustPageLayout({ page }: { page: TrustPage }) {
               )}
             </article>
           ))}
-        </section>
-
-        <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/70 p-5 sm:p-7" aria-labelledby="support-pages">
-          <h2 id="support-pages" className="font-display text-2xl font-semibold">Support pages</h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {trustFooterLinks.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink">
-                {item.label}
-              </Link>
-            ))}
-          </div>
         </section>
 
         <footer className="mt-8 border-t border-ink/10 py-6">

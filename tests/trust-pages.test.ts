@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   projectContactEmail,
   projectJurisdiction,
@@ -45,6 +47,10 @@ const pageText = (id: TrustPageId) => [
   ]),
 ].join("\n");
 
+function source(path: string) {
+  return readFileSync(join(process.cwd(), path), "utf8");
+}
+
 describe("trust and legal pages", () => {
   it("defines the required trust/legal pages with valid routes", () => {
     expect(Object.keys(trustPages).sort()).toEqual([...requiredPages].sort());
@@ -64,6 +70,18 @@ describe("trust and legal pages", () => {
       "/terms",
       "/methodology",
     ]);
+  });
+
+  it("keeps footer support links but removes the duplicated support-pages card", () => {
+    const layout = source("components/TrustPageLayout.tsx");
+    const signature = source("components/AppSignature.tsx");
+
+    expect(layout).not.toContain("Support pages");
+    expect(layout).not.toContain("support-pages");
+    expect(layout).not.toContain("trustFooterLinks.map");
+    expect(layout).toContain("<AppSignature />");
+    expect(signature).toContain("trustFooterLinks.map");
+    expect(signature).toContain("DoughTools support links");
   });
 
   it("includes the required H1 text for each page", () => {
