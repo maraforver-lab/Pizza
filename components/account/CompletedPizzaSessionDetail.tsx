@@ -7,6 +7,7 @@ import {
   normalizeCloudPizzaSessionHistoryRow,
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
+import { buildPizzaPhotoOverlayModel } from "@/lib/pizza-photo-overlay";
 import { migratePizzaSession } from "@/lib/pizza-session";
 import {
   PIZZA_SESSION_PHOTO_ACCEPTED_TYPES,
@@ -19,6 +20,7 @@ import {
   pizzaSessionPhotoTypeErrorFor,
 } from "@/lib/pizza-session-photo";
 import { optimizePizzaSessionPhotoForUpload } from "@/lib/pizza-session-photo-optimizer";
+import { PizzaPhotoOverlayGenerator } from "@/components/account/PizzaPhotoOverlayGenerator";
 
 type CompletedPizzaSessionDetailProps = {
   sessionId: string;
@@ -91,6 +93,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   const summary = cloudPizzaSessionDetailSummary(session);
   const sessionData = migratePizzaSession(session.session_data);
   const photo = sessionData?.photo;
+  const overlayModel = photo?.url ? buildPizzaPhotoOverlayModel(session) : null;
 
   const uploadPhoto = async (file: File | undefined) => {
     setPhotoMessage("");
@@ -203,6 +206,10 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
         {photoMessage && <p role="status" className="mt-3 text-sm font-extrabold text-leaf">{photoMessage}</p>}
         {photoError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{photoError}</p>}
       </section>
+
+      {photo?.url && overlayModel && (
+        <PizzaPhotoOverlayGenerator model={overlayModel} photoUrl={photo.url} />
+      )}
 
       <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 sm:p-5" aria-labelledby="completed-session-review-heading">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

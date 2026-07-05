@@ -22,6 +22,11 @@ import {
   normalizeCloudPizzaSessionRow,
   sortCloudPizzaSessionHistoryRows,
 } from "@/lib/cloud-pizza-sessions";
+import {
+  PIZZA_PHOTO_OVERLAY_FILE_NAME,
+  PIZZA_PHOTO_OVERLAY_SIZE,
+  buildPizzaPhotoOverlayModel,
+} from "@/lib/pizza-photo-overlay";
 import { createPizzaSession } from "@/lib/pizza-session";
 import {
   PIZZA_SESSION_PHOTO_HEIC_ERROR,
@@ -450,6 +455,101 @@ describe("cloud pizza session foundation", () => {
     });
   });
 
+  it("builds branded pizza photo overlay fields from reliable completed-session data", () => {
+    const history = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-overlay-photo",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "overlay-photo-session",
+        status: "completed",
+        currentStep: "review",
+        plannedFermentationHours: 48,
+        fermentationTemperatureCOverride: 4,
+        pizzaCount: 4,
+        doughBallWeight: 260,
+        rating: 5,
+        recipeSnapshot: {
+          balls: 4,
+          ballWeight: 260,
+          hydration: 64,
+          fermentation: "12h-room",
+        },
+        photo: {
+          path: "user-1/row-overlay-photo/photo.webp",
+          url: "https://example.test/pizza.webp",
+          uploadedAt: "2026-07-04T12:00:00.000Z",
+          contentType: "image/webp",
+          size: 123456,
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    expect(buildPizzaPhotoOverlayModel(history)).toEqual({
+      title: "DoughTools Bake",
+      brandLine: "Planned with DoughTools",
+      siteLine: "doughtools.app",
+      fields: [
+        { label: "Hydration", value: "64%" },
+        { label: "Fermentation", value: "48h cold fermentation · fridge 4 °C" },
+        { label: "Dough balls", value: "4 × 260 g" },
+        { label: "Rating", value: "Rating 5/5" },
+      ],
+    });
+  });
+
+  it("omits missing optional overlay fields and does not render without a photo URL", () => {
+    const withoutPhoto = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-overlay-no-photo",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "overlay-no-photo-session",
+        status: "completed",
+        currentStep: "review",
+        recipeSnapshot: { balls: 2, ballWeight: 260 },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+    const minimal = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-overlay-minimal",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "overlay-minimal-session",
+        status: "completed",
+        currentStep: "review",
+        recipeSnapshot: { balls: 2, ballWeight: 260 },
+        photo: {
+          path: "user-1/row-overlay-minimal/photo.webp",
+          url: "https://example.test/minimal.webp",
+          uploadedAt: "2026-07-04T12:00:00.000Z",
+          contentType: "image/webp",
+          size: 123456,
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    expect(buildPizzaPhotoOverlayModel(withoutPhoto)).toBeNull();
+    expect(buildPizzaPhotoOverlayModel(minimal)?.fields).toEqual([
+      { label: "Dough balls", value: "2 × 260 g" },
+    ]);
+  });
+
   it("detects unsupported iPhone HEIC and HEIF photo inputs", () => {
     expect(isUnsupportedHeicPizzaSessionPhoto({ name: "pizza.heic", type: "" })).toBe(true);
     expect(isUnsupportedHeicPizzaSessionPhoto({ name: "pizza.HEIF", type: "" })).toBe(true);
@@ -656,6 +756,8 @@ describe("cloud pizza session foundation", () => {
     const historyComponent = source("components/account/AccountPizzaSessionHistory.tsx");
     const detailPage = source("app/account/pizza-sessions/[id]/page.tsx");
     const detailComponent = source("components/account/CompletedPizzaSessionDetail.tsx");
+    const overlayComponent = source("components/account/PizzaPhotoOverlayGenerator.tsx");
+    const overlayHelper = source("lib/pizza-photo-overlay.ts");
     const photoHelper = source("lib/pizza-session-photo.ts");
     const photoOptimizer = source("lib/pizza-session-photo-optimizer.ts");
 
@@ -691,6 +793,9 @@ describe("cloud pizza session foundation", () => {
     expect(detailComponent).toContain("Add a photo of your finished pizza to remember this bake.");
     expect(detailComponent).toContain("Upload pizza photo");
     expect(detailComponent).toContain("Pizza photo saved");
+    expect(detailComponent).toContain("buildPizzaPhotoOverlayModel(session)");
+    expect(detailComponent).toContain("PizzaPhotoOverlayGenerator");
+    expect(detailComponent).toContain("photo?.url && overlayModel");
     expect(detailComponent).toContain("optimizePizzaSessionPhotoForUpload(file)");
     expect(detailComponent).toContain("formData.set(\"originalFileName\", optimizedPhoto.originalFileName)");
     expect(detailComponent).toContain("formData.set(\"optimizedSize\", String(optimizedPhoto.optimizedSize))");
@@ -761,5 +866,28 @@ describe("cloud pizza session foundation", () => {
     expect(photoRoute).toContain("session_data: sessionWithPhoto");
     expect(photoRoute).toContain("oldPhotoPath && oldPhotoPath !== path");
     expect(photoRoute).toContain(".remove([oldPhotoPath])");
+    expect(overlayHelper).toContain("PIZZA_PHOTO_OVERLAY_SIZE = 1080");
+    expect(PIZZA_PHOTO_OVERLAY_SIZE).toBe(1080);
+    expect(PIZZA_PHOTO_OVERLAY_FILE_NAME).toBe("doughtools-pizza-bake.png");
+    expect(overlayHelper).toContain("buildPizzaPhotoOverlayModel");
+    expect(overlayHelper).toContain("cloudPizzaSessionDetailSummary(row)");
+    expect(overlayHelper).toContain("Hydration");
+    expect(overlayHelper).toContain("Fermentation");
+    expect(overlayHelper).toContain("Dough balls");
+    expect(overlayHelper).toContain("Rating");
+    expect(overlayComponent).toContain("document.createElement(\"canvas\")");
+    expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_SIZE");
+    expect(overlayComponent).toContain("drawCoverImage");
+    expect(overlayComponent).toContain("Preview share image");
+    expect(overlayComponent).toContain("Download image");
+    expect(overlayComponent).toContain("Share image");
+    expect(overlayComponent).toContain("navigator.share");
+    expect(overlayComponent).toContain("navigator.canShare");
+    expect(overlayHelper).toContain("Download the image and upload it to Instagram.");
+    expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_SHARE_FALLBACK");
+    expect(overlayComponent).toContain("DoughTools branded pizza bake image");
+    expect(overlayComponent).not.toContain("api.instagram");
+    expect(overlayComponent).not.toContain("graph.instagram");
+    expect(overlayComponent).not.toContain("supabase.storage");
   });
 });
