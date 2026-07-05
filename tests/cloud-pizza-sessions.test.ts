@@ -501,9 +501,9 @@ describe("cloud pizza session foundation", () => {
     expect(buildPizzaPhotoOverlayModel(history)).toEqual({
       brand: "DOUGHTOOLS",
       title: "PIZZA BAKE LOG",
-      footer: "planned with doughtools.app",
-      ctaQuestion: "Want to make pizza like this?",
-      ctaAction: "Plan it with DoughTools",
+      footerLabel: "BAKED WITH A DOUGHTOOLS PLAN",
+      footerQuestion: "Want to make pizza like this?",
+      footerAction: "Plan your dough, fermentation and bake at doughtools.app",
       fields: [
         { label: "HYDRATION", value: "64%" },
         { label: "FERMENTATION", value: "48H COLD" },
@@ -939,9 +939,9 @@ describe("cloud pizza session foundation", () => {
     expect(PIZZA_PHOTO_OVERLAY_FILE_NAME).toBe("doughtools-pizza-bake.png");
     expect(overlayHelper).toContain("buildPizzaPhotoOverlayModel");
     expect(overlayHelper).toContain("cloudPizzaSessionDetailSummary(row)");
-    expect(overlayHelper).toContain("planned with doughtools.app");
+    expect(overlayHelper).toContain("BAKED WITH A DOUGHTOOLS PLAN");
     expect(overlayHelper).toContain("Want to make pizza like this?");
-    expect(overlayHelper).toContain("Plan it with DoughTools");
+    expect(overlayHelper).toContain("Plan your dough, fermentation and bake at doughtools.app");
     expect(overlayHelper).toContain("HYDRATION");
     expect(overlayHelper).toContain("FERMENTATION");
     expect(overlayHelper).toContain("FRIDGE");
@@ -959,8 +959,13 @@ describe("cloud pizza session foundation", () => {
     expect(overlayComponent).toContain("rgba(9, 41, 31, 0.18)");
     expect(overlayComponent).toContain("model.brand");
     expect(overlayComponent).toContain("model.title");
-    expect(overlayComponent).toContain("model.ctaQuestion");
-    expect(overlayComponent).toContain("model.ctaAction");
+    expect(overlayComponent).toContain("footerY = 900");
+    expect(overlayComponent).toContain("footerHeight = 118");
+    expect(overlayComponent).toContain("model.footerLabel");
+    expect(overlayComponent).toContain("model.footerQuestion");
+    expect(overlayComponent).toContain("model.footerAction");
+    expect(overlayComponent).not.toContain("model.ctaQuestion");
+    expect(overlayComponent).not.toContain("model.ctaAction");
     expect(overlayComponent).not.toContain("cardY = 678");
     expect(overlayComponent).toContain("Preview share image");
     expect(overlayComponent).toContain("Download image");

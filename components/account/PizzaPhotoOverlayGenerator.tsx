@@ -120,27 +120,37 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
     });
   });
 
-  context.beginPath();
-  context.moveTo(panelX + 30, panelY + panelHeight - 158);
-  context.lineTo(panelX + panelWidth - 30, panelY + panelHeight - 158);
-  context.strokeStyle = "rgba(255, 248, 241, 0.2)";
+  const footerX = 44;
+  const footerY = 900;
+  const footerWidth = 992;
+  const footerHeight = 118;
+  roundedRect(context, footerX, footerY, footerWidth, footerHeight, 30);
+  context.fillStyle = "rgba(9, 29, 23, 0.56)";
+  context.fill();
+  context.strokeStyle = "rgba(255, 248, 241, 0.18)";
   context.lineWidth = 1.5;
   context.stroke();
+  context.beginPath();
+  context.moveTo(footerX + 34, footerY + 30);
+  context.lineTo(footerX + 158, footerY + 30);
+  context.strokeStyle = "rgba(59, 166, 107, 0.86)";
+  context.lineWidth = 4;
+  context.stroke();
 
-  drawText(context, model.footer, panelX + 30, panelY + panelHeight - 112, {
+  drawText(context, model.footerLabel, footerX + 34, footerY + 60, {
+    color: "rgba(249, 241, 231, 0.68)",
+    font: "900 19px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 450,
+  });
+  drawText(context, model.footerQuestion, footerX + 34, footerY + 96, {
     color: "#FFF8F1",
-    font: "800 18px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 60,
+    font: "900 31px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 390,
   });
-  drawText(context, model.ctaQuestion, panelX + 30, panelY + panelHeight - 72, {
-    color: "rgba(249, 241, 231, 0.62)",
-    font: "800 17px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 60,
-  });
-  drawText(context, model.ctaAction, panelX + 30, panelY + panelHeight - 38, {
+  drawText(context, model.footerAction, footerX + 470, footerY + 83, {
     color: "#3BA66B",
-    font: "900 20px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 60,
+    font: "900 27px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 500,
   });
 }
 
