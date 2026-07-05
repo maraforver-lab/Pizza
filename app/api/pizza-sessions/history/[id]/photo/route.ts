@@ -8,6 +8,11 @@ import {
   PIZZA_PHOTO_MODERATION_ERROR,
   PIZZA_PHOTO_UNSAFE_ERROR,
 } from "@/lib/pizza-photo-moderation";
+import {
+  PIZZA_PHOTO_RELEVANCE_CHECK_ERROR,
+  PIZZA_PHOTO_RELEVANCE_ERROR,
+  validatePizzaPhotoRelevance,
+} from "@/lib/pizza-photo-relevance";
 import { createPizzaSession, migratePizzaSession, type PizzaSessionPhoto } from "@/lib/pizza-session";
 import {
   isAcceptedPizzaSessionPhotoType,
@@ -125,6 +130,13 @@ export async function POST(
       error: moderation.reasonCode === "unsafe_content" ? PIZZA_PHOTO_UNSAFE_ERROR : PIZZA_PHOTO_MODERATION_ERROR,
       reason: moderation.reasonCode,
     }, { status: moderation.reasonCode === "unsafe_content" ? 400 : 503 });
+  }
+
+  const relevance = await validatePizzaPhotoRelevance(file);
+  if (!relevance.approved) {
+    return NextResponse.json({
+      error: relevance.reasonCode === "validation_failed" ? PIZZA_PHOTO_RELEVANCE_CHECK_ERROR : PIZZA_PHOTO_RELEVANCE_ERROR,
+    }, { status: relevance.reasonCode === "validation_failed" ? 503 : 400 });
   }
 
   const oldPhotoPath = existingSession.photo?.path;

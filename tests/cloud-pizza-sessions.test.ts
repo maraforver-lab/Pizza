@@ -33,6 +33,13 @@ import {
   PIZZA_PHOTO_UNSAFE_ERROR,
   moderatePizzaPhotoImage,
 } from "@/lib/pizza-photo-moderation";
+import {
+  PIZZA_PHOTO_RELEVANCE_CHECK_ERROR,
+  PIZZA_PHOTO_RELEVANCE_CONFIDENCE_THRESHOLD,
+  PIZZA_PHOTO_RELEVANCE_ERROR,
+  PIZZA_PHOTO_RELEVANCE_MODEL,
+  validatePizzaPhotoRelevance,
+} from "@/lib/pizza-photo-relevance";
 import { createPizzaSession } from "@/lib/pizza-session";
 import {
   PIZZA_SESSION_PHOTO_HEIC_ERROR,
@@ -674,6 +681,142 @@ describe("cloud pizza session foundation", () => {
     expect(PIZZA_PHOTO_MODERATION_ERROR).not.toMatch(/category|score|OPENAI_API_KEY/i);
   });
 
+  it("approves clear pizza, slice, dough and pizza-prep images after safety moderation passes", async () => {
+    const cases = [
+      "clear_pizza_photo",
+      "pizza_slice_photo",
+      "pizza_dough_photo",
+      "pizza_prep_photo",
+    ] as const;
+
+    for (const reasonCode of cases) {
+      const file = new File([reasonCode], "pizza.webp", { type: "image/webp" });
+      const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body));
+        expect(body.model).toBe(PIZZA_PHOTO_RELEVANCE_MODEL);
+        expect(body.input[0].content[0].text).toContain("Return JSON only");
+        expect(body.input[0].content[1].type).toBe("input_image");
+        expect(body.input[0].content[1].image_url).toMatch(/^data:image\/webp;base64,/);
+        expect(body.text.format.type).toBe("json_schema");
+        expect(body.text.format.strict).toBe(true);
+        return new Response(JSON.stringify({
+          output_text: JSON.stringify({
+            isPizzaRelated: true,
+            confidence: PIZZA_PHOTO_RELEVANCE_CONFIDENCE_THRESHOLD,
+            reasonCode,
+          }),
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      });
+
+      await expect(validatePizzaPhotoRelevance(file, {
+        apiKey: "test-key",
+        fetcher: fetchMock as unknown as typeof fetch,
+      })).resolves.toMatchObject({
+        approved: true,
+        isPizzaRelated: true,
+        confidence: PIZZA_PHOTO_RELEVANCE_CONFIDENCE_THRESHOLD,
+        reasonCode,
+      });
+    }
+  });
+
+  it("rejects safe but non-pizza or uncertain images with generic relevance copy", async () => {
+    const cases = [
+      "not_pizza_related",
+      "uncertain",
+    ] as const;
+
+    for (const reasonCode of cases) {
+      const file = new File([reasonCode], "safe-non-pizza.webp", { type: "image/webp" });
+      const fetchMock = vi.fn(async () => (
+        new Response(JSON.stringify({
+          output: [{
+            content: [{
+              text: JSON.stringify({
+                isPizzaRelated: false,
+                confidence: 0.95,
+                reasonCode,
+              }),
+            }],
+          }],
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      ));
+
+      await expect(validatePizzaPhotoRelevance(file, {
+        apiKey: "test-key",
+        fetcher: fetchMock as unknown as typeof fetch,
+      })).resolves.toMatchObject({
+        approved: false,
+        isPizzaRelated: false,
+        reasonCode,
+      });
+    }
+
+    expect(PIZZA_PHOTO_RELEVANCE_ERROR).toBe("We couldn’t verify this as a pizza photo. Please upload a clear photo of your pizza.");
+    expect(PIZZA_PHOTO_RELEVANCE_ERROR).not.toMatch(/confidence|reasonCode|not_pizza_related|uncertain|model/i);
+  });
+
+  it("rejects low-confidence, malformed, failed or missing-key pizza relevance checks", async () => {
+    const file = new File(["maybe-pizza"], "maybe-pizza.webp", { type: "image/webp" });
+    const lowConfidence = vi.fn(async () => (
+      new Response(JSON.stringify({
+        output_text: JSON.stringify({
+          isPizzaRelated: true,
+          confidence: 0.69,
+          reasonCode: "clear_pizza_photo",
+        }),
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    ));
+    const malformed = vi.fn(async () => (
+      new Response(JSON.stringify({ output_text: "{not json" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    ));
+    const failing = vi.fn(async () => new Response("{}", { status: 500 }));
+
+    await expect(validatePizzaPhotoRelevance(file, {
+      apiKey: "test-key",
+      fetcher: lowConfidence as unknown as typeof fetch,
+    })).resolves.toMatchObject({
+      approved: false,
+      isPizzaRelated: true,
+      confidence: 0.69,
+      reasonCode: "clear_pizza_photo",
+    });
+    await expect(validatePizzaPhotoRelevance(file, {
+      apiKey: "test-key",
+      fetcher: malformed as unknown as typeof fetch,
+    })).resolves.toMatchObject({
+      approved: false,
+      reasonCode: "validation_failed",
+    });
+    await expect(validatePizzaPhotoRelevance(file, {
+      apiKey: "test-key",
+      fetcher: failing as unknown as typeof fetch,
+    })).resolves.toMatchObject({
+      approved: false,
+      reasonCode: "validation_failed",
+    });
+    await expect(validatePizzaPhotoRelevance(file, {
+      apiKey: "",
+      fetcher: failing as unknown as typeof fetch,
+    })).resolves.toMatchObject({
+      approved: false,
+      reasonCode: "validation_failed",
+    });
+    expect(PIZZA_PHOTO_RELEVANCE_CHECK_ERROR).not.toMatch(/confidence|reasonCode|OPENAI_API_KEY/i);
+  });
+
   it("sends completed review data to the existing cloud session row", async () => {
     const storage = new MemoryStorage();
     const completed = createPizzaSession({
@@ -875,6 +1018,7 @@ describe("cloud pizza session foundation", () => {
     const photoHelper = source("lib/pizza-session-photo.ts");
     const photoOptimizer = source("lib/pizza-session-photo-optimizer.ts");
     const moderationHelper = source("lib/pizza-photo-moderation.ts");
+    const relevanceHelper = source("lib/pizza-photo-relevance.ts");
 
     expect(accountPage).toContain("AccountPizzaSessionHistory");
     expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
@@ -992,9 +1136,17 @@ describe("cloud pizza session foundation", () => {
     expect(photoRoute).toContain("PIZZA_PHOTO_UNSAFE_ERROR");
     expect(photoRoute).toContain("PIZZA_PHOTO_MODERATION_ERROR");
     expect(photoRoute).toContain("reason: moderation.reasonCode");
+    expect(photoRoute).toContain("validatePizzaPhotoRelevance(file)");
+    expect(photoRoute).toContain("PIZZA_PHOTO_RELEVANCE_ERROR");
+    expect(photoRoute).toContain("PIZZA_PHOTO_RELEVANCE_CHECK_ERROR");
     expect(photoRoute.indexOf("moderatePizzaPhotoImage(file)")).toBeGreaterThan(-1);
     expect(photoRoute.indexOf("moderatePizzaPhotoImage(file)")).toBeLessThan(photoRoute.indexOf(".upload(path, file"));
     expect(photoRoute.indexOf("moderatePizzaPhotoImage(file)")).toBeLessThan(photoRoute.indexOf("session_data: sessionWithPhoto"));
+    expect(photoRoute.indexOf("moderatePizzaPhotoImage(file)")).toBeLessThan(photoRoute.indexOf("validatePizzaPhotoRelevance(file)"));
+    expect(photoRoute.indexOf("validatePizzaPhotoRelevance(file)")).toBeLessThan(photoRoute.indexOf(".upload(path, file"));
+    expect(photoRoute.indexOf("validatePizzaPhotoRelevance(file)")).toBeLessThan(photoRoute.indexOf("session_data: sessionWithPhoto"));
+    expect(photoRoute).not.toContain("reason: relevance.reasonCode");
+    expect(photoRoute).not.toContain("confidence: relevance.confidence");
     expect(photoRoute).toContain(".from(PIZZA_SESSION_PHOTO_BUCKET)");
     expect(photoRoute).toContain(".upload(path, file");
     expect(photoRoute).toContain("contentType: PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
@@ -1021,6 +1173,23 @@ describe("cloud pizza session foundation", () => {
     expect(moderationHelper).toContain("AbortController");
     expect(moderationHelper).not.toContain("NEXT_PUBLIC_OPENAI");
     expect(moderationHelper).not.toContain("console.log");
+    expect(relevanceHelper).toContain("PIZZA_PHOTO_RELEVANCE_MODEL = \"gpt-4.1-mini\"");
+    expect(relevanceHelper).toContain("PIZZA_PHOTO_RELEVANCE_CONFIDENCE_THRESHOLD = 0.70");
+    expect(relevanceHelper).toContain("process.env.OPENAI_API_KEY");
+    expect(relevanceHelper).toContain("https://api.openai.com/v1/responses");
+    expect(relevanceHelper).toContain("type: \"input_image\"");
+    expect(relevanceHelper).toContain("type: \"json_schema\"");
+    expect(relevanceHelper).toContain("Return JSON only");
+    expect(relevanceHelper).toContain("finished pizza, pizza slice, pizza in oven");
+    expect(relevanceHelper).toContain("dough balls, dough preparation");
+    expect(relevanceHelper).toContain("people/selfies/fashion/underwear/model photos");
+    expect(relevanceHelper).toContain("animals, screenshots, documents, receipts, memes");
+    expect(relevanceHelper).toContain("approvedReasonCodes");
+    expect(relevanceHelper).toContain("confidence >= PIZZA_PHOTO_RELEVANCE_CONFIDENCE_THRESHOLD");
+    expect(relevanceHelper).toContain("validation_failed");
+    expect(relevanceHelper).toContain("AbortController");
+    expect(relevanceHelper).not.toContain("NEXT_PUBLIC_OPENAI");
+    expect(relevanceHelper).not.toContain("console.log");
     expect(overlayHelper).toContain("PIZZA_PHOTO_OVERLAY_SIZE = 1080");
     expect(PIZZA_PHOTO_OVERLAY_SIZE).toBe(1080);
     expect(PIZZA_PHOTO_OVERLAY_FILE_NAME).toBe("doughtools-pizza-bake.png");
