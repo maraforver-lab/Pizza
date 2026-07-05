@@ -248,9 +248,15 @@ describe("cloud pizza session foundation", () => {
     };
     const completed = normalizeCloudPizzaSessionRow(completedRow);
     const history = normalizeCloudPizzaSessionHistoryRow(completedRow);
+    const archived = normalizeCloudPizzaSessionHistoryRow({
+      ...completedRow,
+      id: "row-archived",
+      status: "archived",
+    });
 
     expect(completed).toBeUndefined();
     expect(history).toBeTruthy();
+    expect(archived).toBeUndefined();
     expect(cloudPizzaSessionHistorySummary(history!, new Date("2026-07-04T12:00:00.000Z"))).toMatchObject({
       title: "Completed pizza session",
       statusLine: "Completed today",
@@ -804,11 +810,24 @@ describe("cloud pizza session foundation", () => {
     expect(accountPage).toContain("AccountPizzaSessionHistory");
     expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
     expect(historyRoute).toContain("supabase.auth.getUser()");
+    expect(historyRoute).toContain("withSignedPizzaPhotoUrl");
+    expect(historyRoute).toContain("createSignedUrl(session.photo.path");
     expect(historyRoute).toContain(".eq(\"user_id\", user.id)");
     expect(historyRoute).toContain(".eq(\"status\", \"completed\")");
     expect(historyRoute).toContain("sortCloudPizzaSessionHistoryRows");
     expect(historyRoute).toContain("slice(0, 5)");
     expect(historyComponent).toContain("fetch(\"/api/pizza-sessions/history\"");
+    expect(historyComponent).toContain("migratePizzaSession(session.session_data)");
+    expect(historyComponent).toContain("Completed pizza session thumbnail");
+    expect(historyComponent).toContain("loading=\"lazy\"");
+    expect(historyComponent).toContain("Delete");
+    expect(historyComponent).toContain("Delete this pizza session?");
+    expect(historyComponent).toContain("This removes the completed session from your account history. This cannot be undone.");
+    expect(historyComponent).toContain("Cancel");
+    expect(historyComponent).toContain("Delete session");
+    expect(historyComponent).toContain("fetch(`/api/pizza-sessions/history/${sessionId}`");
+    expect(historyComponent).toContain("method: \"DELETE\"");
+    expect(historyComponent).toContain("current.filter((session) => session.id !== sessionId)");
     expect(historyComponent).toContain("Pizza session history");
     expect(source("lib/cloud-pizza-sessions.ts")).toContain('title: "Completed pizza session"');
     expect(historyComponent).toContain("summary.doughLine");
@@ -826,6 +845,14 @@ describe("cloud pizza session foundation", () => {
     expect(detailRoute).toContain(".eq(\"status\", \"completed\")");
     expect(detailRoute).toContain("normalizeCloudPizzaSessionHistoryRow(await withSignedPizzaPhotoUrl(data, supabase))");
     expect(detailRoute).toContain("createSignedUrl(session.photo.path");
+    expect(detailRoute).toContain("export async function DELETE");
+    expect(detailRoute).toContain("Sign in to delete this pizza session.");
+    expect(detailRoute).toContain("status: \"archived\"");
+    expect(detailRoute).toContain(".eq(\"id\", id)");
+    expect(detailRoute).toContain(".eq(\"user_id\", user.id)");
+    expect(detailRoute).toContain(".eq(\"status\", \"completed\")");
+    expect(detailRoute).toContain("Completed pizza session not found.");
+    expect(detailRoute).toContain("archived: true");
     expect(detailPage).toContain("CompletedPizzaSessionDetail");
     expect(detailComponent).toContain("fetch(`/api/pizza-sessions/history/${sessionId}`");
     expect(detailComponent).toContain("cloudPizzaSessionDetailSummary(session)");

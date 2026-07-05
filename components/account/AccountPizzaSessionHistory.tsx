@@ -8,6 +8,7 @@ import {
   sortCloudPizzaSessionHistoryRows,
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
+import { migratePizzaSession } from "@/lib/pizza-session";
 
 type AccountPizzaSessionHistoryProps = {
   enabled: boolean;
@@ -16,6 +17,9 @@ type AccountPizzaSessionHistoryProps = {
 export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHistoryProps) {
   const [sessions, setSessions] = useState<CloudPizzaSessionRow[]>([]);
   const [ready, setReady] = useState(false);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (!enabled) {
@@ -52,6 +56,22 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
 
   if (!enabled) return null;
 
+  const deleteSession = async (sessionId: string) => {
+    setDeletingId(sessionId);
+    setDeleteError("");
+    try {
+      const response = await fetch(`/api/pizza-sessions/history/${sessionId}`, { method: "DELETE" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Could not delete pizza session.");
+      setSessions((current) => current.filter((session) => session.id !== sessionId));
+      setConfirmingDeleteId(null);
+    } catch (caught) {
+      setDeleteError(caught instanceof Error ? caught.message : "Could not delete pizza session.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (!ready) {
     return (
       <section className="my-8 rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7">
@@ -83,30 +103,90 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
         <div className="mt-5 grid gap-3">
           {sessions.map((session) => {
             const summary = cloudPizzaSessionHistorySummary(session);
+            const sessionData = migratePizzaSession(session.session_data);
+            const photo = sessionData?.photo?.url;
+            const isConfirmingDelete = confirmingDeleteId === session.id;
+            const isDeleting = deletingId === session.id;
             return (
               <article key={session.id} className="rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="font-display text-2xl font-semibold text-ink">{summary.title}</h3>
-                    <p className="mt-1 text-sm font-extrabold leading-6 text-leaf">{summary.statusLine}</p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h3 className="font-display text-2xl font-semibold text-ink">{summary.title}</h3>
+                        <p className="mt-1 text-sm font-extrabold leading-6 text-leaf">{summary.statusLine}</p>
+                      </div>
+                      <span className="w-fit rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/55 ring-1 ring-ink/10">
+                        Read-only summary
+                      </span>
+                    </div>
+                    <div className="mt-4 grid gap-2 rounded-[1.25rem] border border-white/70 bg-white/80 p-4 text-sm leading-6 text-ink/62">
+                      <p>{summary.doughLine}</p>
+                      {summary.hydrationLine && <p>{summary.hydrationLine}</p>}
+                      {summary.fermentationLine && <p>{summary.fermentationLine}</p>}
+                      {summary.reviewLine && <p>{summary.reviewLine}</p>}
+                      <p>{summary.bakeLine}</p>
+                    </div>
                   </div>
-                  <span className="w-fit rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/55 ring-1 ring-ink/10">
-                    Read-only summary
-                  </span>
+                  {photo && (
+                    <div className="w-full shrink-0 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/75 shadow-sm sm:w-36">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo}
+                        alt="Completed pizza session thumbnail"
+                        className="aspect-square w-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="mt-4 grid gap-2 rounded-[1.25rem] border border-white/70 bg-white/80 p-4 text-sm leading-6 text-ink/62">
-                  <p>{summary.doughLine}</p>
-                  {summary.hydrationLine && <p>{summary.hydrationLine}</p>}
-                  {summary.fermentationLine && <p>{summary.fermentationLine}</p>}
-                  {summary.reviewLine && <p>{summary.reviewLine}</p>}
-                  <p>{summary.bakeLine}</p>
+                {isConfirmingDelete && (
+                  <div className="mt-4 rounded-[1.25rem] border border-tomato/15 bg-white/85 p-4">
+                    <h4 className="text-sm font-extrabold text-ink">Delete this pizza session?</h4>
+                    <p className="mt-2 text-sm leading-6 text-ink/60">
+                      This removes the completed session from your account history. This cannot be undone.
+                    </p>
+                    {deleteError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{deleteError}</p>}
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConfirmingDeleteId(null);
+                          setDeleteError("");
+                        }}
+                        className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteSession(session.id)}
+                        disabled={isDeleting}
+                        className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-tomato px-4 text-xs font-extrabold text-white transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isDeleting ? "Deleting…" : "Delete session"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Link
+                    href={`/account/pizza-sessions/${session.id}`}
+                    className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  >
+                    View session
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmingDeleteId(session.id);
+                      setDeleteError("");
+                    }}
+                    className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  >
+                    Delete
+                  </button>
                 </div>
-                <Link
-                  href={`/account/pizza-sessions/${session.id}`}
-                  className="mt-4 inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                >
-                  View session
-                </Link>
               </article>
             );
           })}

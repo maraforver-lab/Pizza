@@ -56,3 +56,34 @@ export async function GET(
 
   return NextResponse.json({ session });
 }
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  const { id } = await context.params;
+  const supabase = await getSupabaseServerClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to delete this pizza session." }, { status: 401 });
+  }
+
+  const updatedAt = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("pizza_sessions")
+    .update({
+      status: "archived",
+      updated_at: updatedAt,
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .eq("status", "completed")
+    .select("id,status,updated_at")
+    .maybeSingle();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "Completed pizza session not found." }, { status: 404 });
+
+  return NextResponse.json({ archived: true, session: data });
+}
