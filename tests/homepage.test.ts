@@ -172,7 +172,9 @@ describe("homepage content model", () => {
     expect(continueCard).toContain("Signed-in users can save an in-progress copy");
     expect(continueCard).toContain("Active pizza session");
     expect(header).toContain("href=\"/\"");
-    expect(header).toContain("href=\"/account\"");
+    expect(header).not.toContain("href=\"/account\"");
+    expect(header).not.toContain("Your account");
+    expect(header).not.toContain("accountActive");
     expect(header).toContain("Tools");
     expect(header).toContain("Guide");
     expect(header).toContain("Guide and glossary");

@@ -132,30 +132,6 @@ export default function AccountPage() {
         For now it is stored locally on this device. Active Pizza Sessions can be saved separately from the Dough Plan page.
       </p>
     </section>
-    <section className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="account-recipes-heading">
-      <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Saved recipe value</p>
-      <h2 id="account-recipes-heading" className="mt-2 font-display text-3xl font-semibold">Save recipes to make progress repeatable.</h2>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/60">
-        DoughTools remains local-first for recipes and bake notes. Active in-progress Pizza Sessions can be saved to your account from the Dough Plan page.
-        Clearing browser site data or using another device can remove or hide local recipes.
-      </p>
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
-        {[
-          { title: "Beginner", text: "Save the recipe that worked so you can repeat it without rebuilding every setting." },
-          { title: "Enthusiast", text: "Use saved recipes to compare fermentation, flour, hydration and results across pizza nights." },
-          { title: "Pizza Nerd", text: "Preserve variables for controlled testing, troubleshooting and future bake notes." },
-        ].map((item) => (
-          <article key={item.title} className="rounded-2xl border border-ink/10 bg-cream/60 p-4">
-            <h3 className="text-sm font-extrabold text-ink">{item.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-ink/55">{item.text}</p>
-          </article>
-        ))}
-      </div>
-      <p className="mt-5 rounded-2xl bg-ink/[.04] p-4 text-xs leading-5 text-ink/50">
-        Account sign-in can save the active in-progress Pizza Session to your account. It does not upload saved recipes, local BakeResults or Journal photos to Supabase.
-        Finished review history and photos are still local-only until future patches add those features.
-      </p>
-    </section>
     <InstallAppPrompt className="mt-8" />
     <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;

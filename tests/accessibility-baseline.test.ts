@@ -46,9 +46,12 @@ describe("core accessibility baseline", () => {
     const navigationSource = source("components/GlobalToolNavigation.tsx");
 
     expect(navigationSource).toContain("aria-label=\"DoughTools home\"");
-    expect(navigationSource).toContain("aria-label={signedIn ? copy.accountActive : copy.account}");
-    expect(navigationSource).toContain("aria-current={accountActive ? \"page\" : undefined}");
+    expect(navigationSource).toContain("aria-haspopup=\"menu\"");
+    expect(navigationSource).toContain("aria-expanded={guideMenuOpen}");
+    expect(navigationSource).toContain("aria-label=\"Guide menu\"");
     expect(navigationSource).toContain("focus-visible:ring");
+    expect(navigationSource).not.toContain("Your account");
+    expect(navigationSource).not.toContain('href="/account"');
     expect(navigationSource).not.toContain("aria-expanded={expanded}");
     expect(navigationSource).not.toContain("aria-controls={panelId}");
     for (const item of navigationItems) {
@@ -101,7 +104,8 @@ describe("core accessibility baseline", () => {
     expect(accountSource).toContain("role=\"group\"");
     expect(accountSource).toContain("aria-label=\"Account experience level options\"");
     expect(accountSource).toContain("aria-pressed={active}");
-    expect(accountSource).toContain("Active Pizza Sessions can be saved separately");
+    expect(accountSource).not.toContain("Saved recipe value");
+    expect(accountSource).not.toContain("Save recipes to make progress repeatable.");
   });
 
   it("keeps guide, updates and accessibility docs with meaningful headings", () => {

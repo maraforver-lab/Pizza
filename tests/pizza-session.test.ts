@@ -295,7 +295,9 @@ describe("Pizza Session local storage", () => {
     expect(component).toContain("Signed-in users can save an in-progress copy");
     expect(component).toContain("focus-visible:ring");
     expect(homepage).toContain("ContinuePizzaSessionCard");
-    expect(account).toContain("Active in-progress Pizza Sessions can be saved to your account");
+    expect(account).toContain("AccountActivePizzaSessionCard");
+    expect(account).toContain("AccountPizzaSessionHistory");
+    expect(account).not.toContain("Save recipes to make progress repeatable.");
     expect([component, homepage, account].join("\n")).not.toMatch(
       /Available on all devices|Backed up in the cloud|Cloud sync is active|Synced across devices|Push notifications enabled/i,
     );

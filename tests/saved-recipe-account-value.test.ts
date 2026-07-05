@@ -95,14 +95,13 @@ describe("saved recipe account value UX", () => {
     expect(page).not.toMatch(/publish saved recipe|copy public recipe link|upload recipe to account/i);
   });
 
-  it("keeps the account page honest about local-first saved recipe behavior", () => {
+  it("removes the public saved recipe account value promotion from the account page", () => {
     const account = source("app/account/page.tsx");
 
-    expect(account).toContain("Saved recipe value");
-    expect(account).toContain("remains local-first for recipes and bake notes");
-    expect(account).toContain("Active in-progress Pizza Sessions can be saved to your account");
-    expect(account).toContain("Active Pizza Sessions can be saved separately");
-    expect(account).toContain("does not upload saved recipes, local BakeResults or Journal photos to Supabase");
+    expect(account).not.toContain("Saved recipe value");
+    expect(account).not.toContain("Save recipes to make progress repeatable.");
+    expect(account).not.toContain("remains local-first for recipes and bake notes");
+    expect(account).not.toContain("does not upload saved recipes, local BakeResults or Journal photos to Supabase");
     expect(account).not.toMatch(/recipes sync to your account|cloud recipe sync is available|account-based recipe storage is active/i);
   });
 
