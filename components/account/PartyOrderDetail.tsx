@@ -111,10 +111,15 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       </section>
 
       <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4">
-        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Future guest link</p>
-        <p className="mt-2 break-all rounded-2xl bg-white/80 p-3 text-sm font-extrabold text-ink/70">{shareLink}</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Public guest link</p>
+        <Link
+          href={shareLink || "#"}
+          className="mt-2 block break-all rounded-2xl bg-white/80 p-3 text-sm font-extrabold text-ink/70 transition hover:text-tomato"
+        >
+          {shareLink}
+        </Link>
         <p className="mt-3 text-sm leading-6 text-ink/60">
-          Guest order collection will be added in the next patch. This link token is ready, but the public guest form is not live yet.
+          Guests can open this link to preview the available pizzas. Guest order submission will be added in the next patch.
         </p>
       </section>
     </article>

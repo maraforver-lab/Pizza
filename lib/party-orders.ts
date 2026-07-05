@@ -20,6 +20,17 @@ export type PartyOrderRow = {
   updated_at: string;
 };
 
+export type PublicPartyOrder = Pick<PartyOrderRow,
+  "public_token"
+  | "title"
+  | "pizza_datetime"
+  | "orders_close_at"
+  | "guest_note"
+  | "allowed_pizza_ids"
+  | "status"
+  | "updated_at"
+>;
+
 export const PARTY_ORDER_SELECT = "id,user_id,public_token,title,pizza_datetime,orders_close_at,guest_note,allowed_pizza_ids,status,created_at,updated_at";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -66,6 +77,29 @@ export function normalizePartyOrderRow(value: unknown): PartyOrderRow | undefine
     allowed_pizza_ids: allowedPizzaIds,
     status,
     created_at: createdAt,
+    updated_at: updatedAt,
+  };
+}
+
+export function normalizePublicPartyOrder(value: unknown): PublicPartyOrder | undefined {
+  if (!isRecord(value)) return undefined;
+  const publicToken = stringField(value, "public_token", "publicToken");
+  const title = typeof value.title === "string" && value.title.trim() ? value.title.trim() : undefined;
+  const pizzaDateTime = validDateTime(stringField(value, "pizza_datetime", "pizzaDateTime"));
+  const ordersCloseAt = validDateTime(stringField(value, "orders_close_at", "ordersCloseAt"));
+  const updatedAt = validDateTime(stringField(value, "updated_at", "updatedAt"));
+  const status = normalizeStatus(value.status);
+  const allowedPizzaIds = normalizePizzaCatalogIds(value.allowed_pizza_ids ?? value.allowedPizzaIds);
+  if (!publicToken || !title || !pizzaDateTime || !ordersCloseAt || !updatedAt || !status) return undefined;
+  if (allowedPizzaIds.length === 0) return undefined;
+  return {
+    public_token: publicToken,
+    title,
+    pizza_datetime: pizzaDateTime,
+    orders_close_at: ordersCloseAt,
+    guest_note: typeof value.guest_note === "string" ? value.guest_note : null,
+    allowed_pizza_ids: allowedPizzaIds,
+    status,
     updated_at: updatedAt,
   };
 }

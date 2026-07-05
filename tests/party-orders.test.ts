@@ -7,6 +7,7 @@ import {
   normalizePizzaCatalogIds,
 } from "@/lib/pizza-catalog";
 import {
+  normalizePublicPartyOrder,
   normalizePartyOrderRow,
   partyOrderAllowedPizzaOptions,
   validatePartyOrderInput,
@@ -129,6 +130,33 @@ describe("Party Orders foundation", () => {
     ]);
   });
 
+  it("normalizes public party order rows without owner-only fields", () => {
+    const event = normalizePublicPartyOrder({
+      id: "hidden-owner-row",
+      user_id: "hidden-user",
+      public_token: "public-token",
+      title: "Guest pizza night",
+      pizza_datetime: "2026-07-11T18:00:00.000Z",
+      orders_close_at: "2026-07-11T15:00:00.000Z",
+      guest_note: "Pick your pizza.",
+      allowed_pizza_ids: ["margherita", "funghi", "not-real"],
+      status: "open",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+
+    expect(event).toEqual({
+      public_token: "public-token",
+      title: "Guest pizza night",
+      pizza_datetime: "2026-07-11T18:00:00.000Z",
+      orders_close_at: "2026-07-11T15:00:00.000Z",
+      guest_note: "Pick your pizza.",
+      allowed_pizza_ids: ["margherita", "funghi"],
+      status: "open",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+    expect(JSON.stringify(event)).not.toContain("hidden-user");
+  });
+
   it("adds a secure owner-only party_orders persistence model", () => {
     const migration = source("supabase/migrations/20260705200000_create_party_orders.sql");
     expect(migration).toContain("create table if not exists public.party_orders");
@@ -138,6 +166,16 @@ describe("Party Orders foundation", () => {
     expect(migration).toContain("constraint party_orders_close_before_pizza_check check (orders_close_at <= pizza_datetime)");
     expect(migration).toContain("alter table public.party_orders enable row level security");
     expect(migration).toContain("auth.uid() = user_id");
+  });
+
+  it("adds a token-only public lookup function without relaxing table RLS", () => {
+    const migration = source("supabase/migrations/20260705203000_create_public_party_order_lookup.sql");
+    expect(migration).toContain("create or replace function public.get_public_party_order(token_value text)");
+    expect(migration).toContain("security definer");
+    expect(migration).toContain("where party_orders.public_token = token_value");
+    expect(migration).toContain("grant execute on function public.get_public_party_order(text) to anon, authenticated");
+    expect(migration).not.toContain("user_id");
+    expect(migration).not.toContain("alter table public.party_orders disable row level security");
   });
 
   it("wires authenticated list and create API routes with ownership filtering", () => {
@@ -189,9 +227,21 @@ describe("Party Orders foundation", () => {
     expect(list).toContain("Open");
 
     const detail = source("components/account/PartyOrderDetail.tsx");
-    expect(detail).toContain("Future guest link");
+    expect(detail).toContain("Public guest link");
     expect(detail).toContain("/order/${event.public_token}");
-    expect(detail).toContain("Guest order collection will be added in the next patch");
+    expect(detail).toContain("Guest order submission will be added in the next patch");
     expect(detail).toContain("Selected allowed pizzas");
+  });
+
+  it("adds a public guest order route by token", () => {
+    const page = source("app/order/[publicToken]/page.tsx");
+    expect(page).toContain("params: Promise<{ publicToken: string }>");
+    expect(page).toContain(".rpc(\"get_public_party_order\", { token_value: publicToken })");
+    expect(page).toContain("normalizePublicPartyOrder(data)");
+    expect(page).toContain("DoughTools Party Order");
+    expect(page).toContain("Choose from these pizzas");
+    expect(page).toContain("partyOrderAllowedPizzaOptions(event)");
+    expect(page).toContain("Guest order submission will be added in the next Party Orders patch");
+    expect(page).not.toContain("supabase.auth.getUser()");
   });
 });
