@@ -58,6 +58,41 @@ function drawText(context: CanvasRenderingContext2D, text: string, x: number, y:
   context.fillText(text, x, y, options.maxWidth);
 }
 
+function wrapTextLines(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+    if (currentLine && context.measureText(nextLine).width > maxWidth) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = nextLine;
+    }
+  });
+
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
+function drawWrappedText(context: CanvasRenderingContext2D, text: string, x: number, y: number, options: {
+  color?: string;
+  font: string;
+  lineHeight: number;
+  maxWidth: number;
+  maxLines?: number;
+}) {
+  context.fillStyle = options.color ?? "#1F1F1F";
+  context.font = options.font;
+  const lines = wrapTextLines(context, text, options.maxWidth).slice(0, options.maxLines);
+  lines.forEach((line, index) => {
+    context.fillText(line, x, y + index * options.lineHeight, options.maxWidth);
+  });
+  return lines.length;
+}
+
 function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlayModel, image: HTMLImageElement) {
   const size = PIZZA_PHOTO_OVERLAY_SIZE;
   context.clearRect(0, 0, size, size);
@@ -121,9 +156,9 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   });
 
   const footerX = 54;
-  const footerY = 876;
+  const footerY = 848;
   const footerWidth = 972;
-  const footerHeight = 132;
+  const footerHeight = 172;
   roundedRect(context, footerX, footerY, footerWidth, footerHeight, 30);
   context.fillStyle = "rgba(8, 24, 20, 0.64)";
   context.fill();
@@ -142,15 +177,17 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
     font: "900 20px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     maxWidth: footerWidth - 68,
   });
-  drawText(context, model.footerMain, footerX + 34, footerY + 99, {
+  const footerMainLines = drawWrappedText(context, model.footerMain, footerX + 34, footerY + 101, {
     color: "#FFF8F1",
-    font: "900 30px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: 700,
+    font: "900 28px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    lineHeight: 34,
+    maxWidth: footerWidth - 68,
+    maxLines: 2,
   });
-  drawText(context, model.footerWebsite, footerX + footerWidth - 292, footerY + 99, {
+  drawText(context, model.footerWebsite, footerX + 34, footerY + 101 + footerMainLines * 34 + 18, {
     color: "#3BA66B",
-    font: "900 25px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: 258,
+    font: "900 24px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: footerWidth - 68,
   });
 }
 

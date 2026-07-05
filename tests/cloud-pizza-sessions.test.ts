@@ -1211,6 +1211,9 @@ describe("cloud pizza session foundation", () => {
     expect(overlayComponent).toContain("document.createElement(\"canvas\")");
     expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_SIZE");
     expect(overlayComponent).toContain("drawCoverImage");
+    expect(overlayComponent).toContain("wrapTextLines");
+    expect(overlayComponent).toContain("context.measureText(nextLine).width > maxWidth");
+    expect(overlayComponent).toContain("drawWrappedText");
     expect(overlayComponent).toContain("cornerGradient");
     expect(overlayComponent).toContain("panelWidth = 318");
     expect(overlayComponent).toContain("model.fields.slice(0, 3)");
@@ -1219,11 +1222,13 @@ describe("cloud pizza session foundation", () => {
     expect(overlayComponent).toContain("rgba(59, 166, 107, 0.42)");
     expect(overlayComponent).toContain("model.brand");
     expect(overlayComponent).toContain("model.title");
-    expect(overlayComponent).toContain("footerY = 876");
-    expect(overlayComponent).toContain("footerHeight = 132");
+    expect(overlayComponent).toContain("footerY = 848");
+    expect(overlayComponent).toContain("footerHeight = 172");
     expect(overlayComponent).toContain("model.footerLabel");
     expect(overlayComponent).toContain("model.footerMain");
     expect(overlayComponent).toContain("model.footerWebsite");
+    expect(overlayComponent).toContain("maxLines: 2");
+    expect(overlayComponent).toContain("footerMainLines * 34 + 18");
     expect(overlayComponent).not.toContain("model.footerQuestion");
     expect(overlayComponent).not.toContain("model.footerAction");
     expect(overlayComponent).not.toContain("model.ctaQuestion");
