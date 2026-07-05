@@ -107,6 +107,12 @@ export type PizzaSessionPhoto = {
   uploadedAt: string;
   contentType: string;
   size: number;
+  originalFileName?: string;
+  originalContentType?: string;
+  originalSize?: number;
+  optimizedSize?: number;
+  width?: number;
+  height?: number;
   url?: string;
 };
 

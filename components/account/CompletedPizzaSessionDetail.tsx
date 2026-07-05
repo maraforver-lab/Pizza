@@ -11,11 +11,14 @@ import { migratePizzaSession } from "@/lib/pizza-session";
 import {
   PIZZA_SESSION_PHOTO_ACCEPTED_TYPES,
   PIZZA_SESSION_PHOTO_MAX_BYTES,
+  PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
+  PIZZA_SESSION_PHOTO_PROCESS_ERROR,
   PIZZA_SESSION_PHOTO_SIZE_ERROR,
   PIZZA_SESSION_PHOTO_TYPE_ERROR,
   PIZZA_SESSION_PHOTO_UPLOAD_ERROR,
   isAcceptedPizzaSessionPhotoType,
 } from "@/lib/pizza-session-photo";
+import { optimizePizzaSessionPhotoForUpload } from "@/lib/pizza-session-photo-optimizer";
 
 type CompletedPizzaSessionDetailProps = {
   sessionId: string;
@@ -104,8 +107,15 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
 
     setUploadingPhoto(true);
     try {
+      const optimizedPhoto = await optimizePizzaSessionPhotoForUpload(file);
       const formData = new FormData();
-      formData.set("photo", file);
+      formData.set("photo", optimizedPhoto.file);
+      formData.set("originalFileName", optimizedPhoto.originalFileName);
+      formData.set("originalContentType", optimizedPhoto.originalContentType);
+      formData.set("originalSize", String(optimizedPhoto.originalSize));
+      formData.set("optimizedSize", String(optimizedPhoto.optimizedSize));
+      formData.set("width", String(optimizedPhoto.width));
+      formData.set("height", String(optimizedPhoto.height));
       const response = await fetch(`/api/pizza-sessions/history/${sessionId}/photo`, {
         method: "POST",
         body: formData,
@@ -117,7 +127,8 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
       setSession(nextSession);
       setPhotoMessage("Pizza photo saved");
     } catch (caught) {
-      setPhotoError(caught instanceof Error ? caught.message : PIZZA_SESSION_PHOTO_UPLOAD_ERROR);
+      const message = caught instanceof Error ? caught.message : PIZZA_SESSION_PHOTO_UPLOAD_ERROR;
+      setPhotoError(message === PIZZA_SESSION_PHOTO_PROCESS_ERROR ? PIZZA_SESSION_PHOTO_PROCESS_ERROR : message);
     } finally {
       setUploadingPhoto(false);
     }
@@ -166,6 +177,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
             <input
               type="file"
               accept={PIZZA_SESSION_PHOTO_ACCEPTED_TYPES.join(",")}
+              data-output-type={PIZZA_SESSION_PHOTO_OUTPUT_TYPE}
               className="sr-only"
               disabled={uploadingPhoto}
               onChange={(event) => {

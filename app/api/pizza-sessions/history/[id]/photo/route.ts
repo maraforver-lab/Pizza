@@ -8,6 +8,7 @@ import {
   isAcceptedPizzaSessionPhotoType,
   PIZZA_SESSION_PHOTO_BUCKET,
   PIZZA_SESSION_PHOTO_MAX_BYTES,
+  PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
   PIZZA_SESSION_PHOTO_SIZE_ERROR,
   PIZZA_SESSION_PHOTO_TYPE_ERROR,
   PIZZA_SESSION_PHOTO_UPLOAD_ERROR,
@@ -49,6 +50,16 @@ function randomPhotoPath(userId: string, sessionId: string, contentType: string)
   return `${userId}/${sessionId}/${uniqueId}.${extension}`;
 }
 
+function formText(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function formPositiveNumber(formData: FormData, key: string) {
+  const value = Number(formText(formData, key));
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -72,10 +83,12 @@ export async function POST(
   if (!(file instanceof File)) {
     return NextResponse.json({ error: PIZZA_SESSION_PHOTO_UPLOAD_ERROR }, { status: 400 });
   }
-  if (!isAcceptedPizzaSessionPhotoType(file.type)) {
+  const originalContentType = formText(formData, "originalContentType") ?? file.type;
+  const originalSize = formPositiveNumber(formData, "originalSize") ?? file.size;
+  if (!isAcceptedPizzaSessionPhotoType(originalContentType) || file.type !== PIZZA_SESSION_PHOTO_OUTPUT_TYPE) {
     return NextResponse.json({ error: PIZZA_SESSION_PHOTO_TYPE_ERROR }, { status: 400 });
   }
-  if (file.size > PIZZA_SESSION_PHOTO_MAX_BYTES) {
+  if (originalSize > PIZZA_SESSION_PHOTO_MAX_BYTES || file.size > PIZZA_SESSION_PHOTO_MAX_BYTES) {
     return NextResponse.json({ error: PIZZA_SESSION_PHOTO_SIZE_ERROR }, { status: 400 });
   }
 
@@ -92,11 +105,11 @@ export async function POST(
   if (!existingSession) return NextResponse.json({ error: "Completed pizza session not found." }, { status: 404 });
 
   const oldPhotoPath = existingSession.photo?.path;
-  const path = randomPhotoPath(user.id, id, file.type);
+  const path = randomPhotoPath(user.id, id, PIZZA_SESSION_PHOTO_OUTPUT_TYPE);
   const { error: uploadError } = await supabase.storage
     .from(PIZZA_SESSION_PHOTO_BUCKET)
     .upload(path, file, {
-      contentType: file.type,
+      contentType: PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
       upsert: false,
     });
 
@@ -106,8 +119,14 @@ export async function POST(
   const photo: PizzaSessionPhoto = {
     path,
     uploadedAt,
-    contentType: file.type,
+    contentType: PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
     size: file.size,
+    originalFileName: formText(formData, "originalFileName"),
+    originalContentType,
+    originalSize,
+    optimizedSize: formPositiveNumber(formData, "optimizedSize") ?? file.size,
+    width: formPositiveNumber(formData, "width"),
+    height: formPositiveNumber(formData, "height"),
   };
   const sessionWithPhoto = createPizzaSession({
     ...existingSession,

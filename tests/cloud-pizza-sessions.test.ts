@@ -417,6 +417,12 @@ describe("cloud pizza session foundation", () => {
         uploadedAt: "2026-07-04T12:00:00.000Z",
         contentType: "image/webp",
         size: 123456,
+        originalFileName: "phone-pizza.jpg",
+        originalContentType: "image/jpeg",
+        originalSize: 4_500_000,
+        optimizedSize: 123456,
+        width: 1600,
+        height: 1200,
       },
     });
 
@@ -425,6 +431,12 @@ describe("cloud pizza session foundation", () => {
       uploadedAt: "2026-07-04T12:00:00.000Z",
       contentType: "image/webp",
       size: 123456,
+      originalFileName: "phone-pizza.jpg",
+      originalContentType: "image/jpeg",
+      originalSize: 4_500_000,
+      optimizedSize: 123456,
+      width: 1600,
+      height: 1200,
     });
   });
 
@@ -625,6 +637,7 @@ describe("cloud pizza session foundation", () => {
     const detailPage = source("app/account/pizza-sessions/[id]/page.tsx");
     const detailComponent = source("components/account/CompletedPizzaSessionDetail.tsx");
     const photoHelper = source("lib/pizza-session-photo.ts");
+    const photoOptimizer = source("lib/pizza-session-photo-optimizer.ts");
 
     expect(accountPage).toContain("AccountPizzaSessionHistory");
     expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
@@ -658,6 +671,12 @@ describe("cloud pizza session foundation", () => {
     expect(detailComponent).toContain("Add a photo of your finished pizza to remember this bake.");
     expect(detailComponent).toContain("Upload pizza photo");
     expect(detailComponent).toContain("Pizza photo saved");
+    expect(detailComponent).toContain("optimizePizzaSessionPhotoForUpload(file)");
+    expect(detailComponent).toContain("formData.set(\"originalFileName\", optimizedPhoto.originalFileName)");
+    expect(detailComponent).toContain("formData.set(\"optimizedSize\", String(optimizedPhoto.optimizedSize))");
+    expect(detailComponent).toContain("formData.set(\"width\", String(optimizedPhoto.width))");
+    expect(detailComponent).toContain("formData.set(\"height\", String(optimizedPhoto.height))");
+    expect(detailComponent).toContain("PIZZA_SESSION_PHOTO_PROCESS_ERROR");
     expect(detailComponent).toContain("Finished pizza photo");
     expect(detailComponent).toContain("Review notes");
     expect(detailComponent).toContain("What happened");
@@ -666,18 +685,35 @@ describe("cloud pizza session foundation", () => {
     expect(detailComponent).toContain("No review notes were saved for this session.");
     expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_BUCKET = \"pizza-session-photos\"");
     expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MAX_BYTES = 5 * 1024 * 1024");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_OUTPUT_TYPE = \"image/webp\"");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MAX_DIMENSION = 1600");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_WEBP_QUALITY = 0.82");
     expect(photoHelper).toContain("Please upload a JPG, PNG or WebP image.");
     expect(photoHelper).toContain("Please upload an image under 5 MB.");
+    expect(photoHelper).toContain("Could not process pizza photo. Please try another image.");
+    expect(photoOptimizer).toContain("canvas.toBlob");
+    expect(photoOptimizer).toContain("PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
+    expect(photoOptimizer).toContain("PIZZA_SESSION_PHOTO_WEBP_QUALITY");
+    expect(photoOptimizer).toContain("PIZZA_SESSION_PHOTO_MAX_DIMENSION / Math.max(image.width, image.height)");
     expect(photoRoute).toContain("supabase.auth.getUser()");
     expect(photoRoute).toContain(".eq(\"id\", id)");
     expect(photoRoute).toContain(".eq(\"user_id\", user.id)");
     expect(photoRoute).toContain(".eq(\"status\", \"completed\")");
     expect(photoRoute).toContain("formData.get(\"photo\")");
     expect(photoRoute).toContain("file instanceof File");
-    expect(photoRoute).toContain("isAcceptedPizzaSessionPhotoType(file.type)");
+    expect(photoRoute).toContain("isAcceptedPizzaSessionPhotoType(originalContentType)");
+    expect(photoRoute).toContain("file.type !== PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
     expect(photoRoute).toContain("file.size > PIZZA_SESSION_PHOTO_MAX_BYTES");
+    expect(photoRoute).toContain("originalSize > PIZZA_SESSION_PHOTO_MAX_BYTES");
     expect(photoRoute).toContain(".from(PIZZA_SESSION_PHOTO_BUCKET)");
     expect(photoRoute).toContain(".upload(path, file");
+    expect(photoRoute).toContain("contentType: PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
+    expect(photoRoute).toContain("originalFileName: formText(formData, \"originalFileName\")");
+    expect(photoRoute).toContain("originalContentType");
+    expect(photoRoute).toContain("originalSize");
+    expect(photoRoute).toContain("optimizedSize: formPositiveNumber(formData, \"optimizedSize\") ?? file.size");
+    expect(photoRoute).toContain("width: formPositiveNumber(formData, \"width\")");
+    expect(photoRoute).toContain("height: formPositiveNumber(formData, \"height\")");
     expect(photoRoute).toContain("session_data: sessionWithPhoto");
     expect(photoRoute).toContain("oldPhotoPath && oldPhotoPath !== path");
     expect(photoRoute).toContain(".remove([oldPhotoPath])");
