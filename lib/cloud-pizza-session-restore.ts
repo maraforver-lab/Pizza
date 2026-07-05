@@ -8,6 +8,6 @@ export function restoreCloudPizzaSessionToLocal(row: CloudPizzaSessionRow): Pizz
   if (!session) return undefined;
   const restored = savePizzaSession(session);
   setActivePizzaSession(restored.id);
-  markCloudBackedPizzaSession(restored.id);
+  markCloudBackedPizzaSession(restored.id, row.id);
   return restored;
 }

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
+  cloudBackedPizzaSessionRowId,
   clearCloudBackedPizzaSession,
   CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY,
   completeCloudBackedPizzaSession,
@@ -150,6 +151,9 @@ describe("cloud pizza session foundation", () => {
     const route = source("app/api/pizza-sessions/active/route.ts");
 
     expect(route).toContain("export async function PATCH");
+    expect(route).toContain("requestedCloudSessionId");
+    expect(route).toContain("record.cloudSessionId ?? record.cloud_session_id");
+    expect(route).toContain(".eq(\"id\", requestedCloudSessionId)");
     expect(route).toContain('record.complete === true || record.status === "completed"');
     expect(route).toContain("if (!existing?.id) return NextResponse.json({ session: null, skipped: true })");
     expect(route).toContain("completed_at: shouldComplete ? updatedAt : null");
@@ -163,13 +167,27 @@ describe("cloud pizza session foundation", () => {
     storage.setItem("unrelated-key", "untouched");
 
     expect(isCloudBackedPizzaSession(session, storage)).toBe(false);
-    markCloudBackedPizzaSession(session.id, storage);
-    expect(storage.getItem(CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY)).toBe(session.id);
+    markCloudBackedPizzaSession(session.id, "cloud-row-1", storage);
+    expect(JSON.parse(storage.getItem(CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY) ?? "{}")).toMatchObject({
+      sessionId: session.id,
+      cloudSessionId: "cloud-row-1",
+    });
     expect(isCloudBackedPizzaSession(session, storage)).toBe(true);
+    expect(cloudBackedPizzaSessionRowId(session, storage)).toBe("cloud-row-1");
     expect(isCloudBackedPizzaSession(createPizzaSession({ id: "different-session" }), storage)).toBe(false);
     clearCloudBackedPizzaSession(storage);
     expect(isCloudBackedPizzaSession(session, storage)).toBe(false);
     expect(storage.getItem("unrelated-key")).toBe("untouched");
+  });
+
+  it("keeps legacy cloud-backed local session markers readable", () => {
+    const storage = new MemoryStorage();
+    const session = createPizzaSession({ id: "legacy-cloud-backed-local", currentStep: "recipe" });
+
+    storage.setItem(CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY, session.id);
+
+    expect(isCloudBackedPizzaSession(session, storage)).toBe(true);
+    expect(cloudBackedPizzaSessionRowId(session, storage)).toBeUndefined();
   });
 
   it("does not treat completed cloud sessions as active account sessions", () => {
@@ -359,7 +377,7 @@ describe("cloud pizza session foundation", () => {
       value: { localStorage: storage },
       configurable: true,
     });
-    markCloudBackedPizzaSession(completed.id, storage);
+    markCloudBackedPizzaSession(completed.id, "cloud-row-review", storage);
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => (
       new Response(JSON.stringify({ completed: true, session: null }), {
         status: 200,
@@ -381,6 +399,7 @@ describe("cloud pizza session foundation", () => {
     expect(init?.method).toBe("PATCH");
     const body = JSON.parse(String(init?.body));
     expect(body.complete).toBe(true);
+    expect(body.cloudSessionId).toBe("cloud-row-review");
     expect(body.sessionData).toMatchObject({
       id: completed.id,
       status: "completed",
@@ -466,7 +485,7 @@ describe("cloud pizza session foundation", () => {
     expect(saveComponent).toContain('fetch("/api/pizza-sessions/active"');
     expect(saveComponent).toContain("normalizeCloudPizzaSessionRow(payload.session)");
     expect(saveComponent).toContain("Saved pizza session could not be verified.");
-    expect(saveComponent).toContain("markCloudBackedPizzaSession(session.id)");
+    expect(saveComponent).toContain("markCloudBackedPizzaSession(session.id, savedSession.id)");
   });
 
   it("shows a cloud Active Pizza Session card without breaking local continuation", () => {
@@ -482,7 +501,7 @@ describe("cloud pizza session foundation", () => {
     expect(continueCard).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
     expect(restore).toContain("savePizzaSession(session)");
     expect(restore).toContain("setActivePizzaSession(restored.id)");
-    expect(restore).toContain("markCloudBackedPizzaSession(restored.id)");
+    expect(restore).toContain("markCloudBackedPizzaSession(restored.id, row.id)");
     expect(continueCard).toContain("router.push(pizzaSessionContinueHref(restored))");
   });
 

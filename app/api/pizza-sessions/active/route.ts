@@ -102,14 +102,28 @@ export async function PATCH(request: Request) {
   const session = migratePizzaSession(record.sessionData ?? record.session_data);
   if (!session) return NextResponse.json({ error: "Invalid pizza session data." }, { status: 400 });
 
-  const { data: existing, error: existingError } = await supabase
-    .from("pizza_sessions")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("status", "in_progress")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const requestedCloudSessionId = typeof (record.cloudSessionId ?? record.cloud_session_id) === "string"
+    ? String(record.cloudSessionId ?? record.cloud_session_id)
+    : undefined;
+
+  const existingQuery = requestedCloudSessionId
+    ? supabase
+      .from("pizza_sessions")
+      .select("id")
+      .eq("id", requestedCloudSessionId)
+      .eq("user_id", user.id)
+      .eq("status", "in_progress")
+      .maybeSingle()
+    : supabase
+      .from("pizza_sessions")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("status", "in_progress")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+  const { data: existing, error: existingError } = await existingQuery;
 
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
   if (!existing?.id) return NextResponse.json({ session: null, skipped: true });

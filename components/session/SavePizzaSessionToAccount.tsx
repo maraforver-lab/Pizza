@@ -56,7 +56,7 @@ export function SavePizzaSessionToAccount({ session }: SavePizzaSessionToAccount
       if (!response.ok) throw new Error(payload.error || "Saving failed.");
       const savedSession = normalizeCloudPizzaSessionRow(payload.session);
       if (!savedSession) throw new Error("Saved pizza session could not be verified.");
-      markCloudBackedPizzaSession(session.id);
+      markCloudBackedPizzaSession(session.id, savedSession.id);
       setMessage("Saved to your account");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Saving failed.");
