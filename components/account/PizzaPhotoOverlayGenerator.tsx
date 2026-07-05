@@ -63,47 +63,47 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   context.clearRect(0, 0, size, size);
   drawCoverImage(context, image, size);
 
-  const leftGradient = context.createLinearGradient(0, 0, 420, 0);
-  leftGradient.addColorStop(0, "rgba(9, 41, 31, 0.18)");
-  leftGradient.addColorStop(0.55, "rgba(9, 41, 31, 0.07)");
-  leftGradient.addColorStop(1, "rgba(9, 41, 31, 0)");
-  context.fillStyle = leftGradient;
+  const cornerGradient = context.createRadialGradient(0, 0, 40, 0, 0, 580);
+  cornerGradient.addColorStop(0, "rgba(9, 29, 23, 0.34)");
+  cornerGradient.addColorStop(0.52, "rgba(9, 29, 23, 0.12)");
+  cornerGradient.addColorStop(1, "rgba(9, 29, 23, 0)");
+  context.fillStyle = cornerGradient;
   context.fillRect(0, 0, size, size);
 
-  const panelX = 44;
-  const panelY = 58;
-  const panelWidth = 286;
-  const panelHeight = 908;
+  const panelX = 46;
+  const panelY = 50;
+  const panelWidth = 318;
+  const fields = model.fields.slice(0, 3);
+  const panelHeight = 174 + fields.length * 92;
   roundedRect(context, panelX, panelY, panelWidth, panelHeight, 34);
-  context.fillStyle = "rgba(9, 29, 23, 0.48)";
+  context.fillStyle = "rgba(8, 24, 20, 0.68)";
   context.fill();
-  context.strokeStyle = "rgba(255, 248, 241, 0.18)";
-  context.lineWidth = 1.5;
+  context.strokeStyle = "rgba(59, 166, 107, 0.42)";
+  context.lineWidth = 2;
   context.stroke();
 
   context.beginPath();
-  context.moveTo(panelX + 30, panelY + 164);
-  context.lineTo(panelX + panelWidth - 30, panelY + 164);
+  context.moveTo(panelX + 28, panelY + 140);
+  context.lineTo(panelX + panelWidth - 28, panelY + 140);
   context.strokeStyle = "rgba(59, 166, 107, 0.75)";
   context.lineWidth = 3;
   context.stroke();
 
-  drawText(context, model.brand, panelX + 30, panelY + 58, {
+  drawText(context, model.brand, panelX + 28, panelY + 56, {
     color: "#F9F1E7",
     font: "900 25px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 60,
+    maxWidth: panelWidth - 56,
   });
-  drawText(context, model.title, panelX + 30, panelY + 102, {
+  drawText(context, model.title, panelX + 28, panelY + 101, {
     color: "#3BA66B",
-    font: "900 30px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 60,
+    font: "900 29px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: panelWidth - 56,
   });
 
-  const fields = model.fields.slice(0, 6);
-  const fieldTop = panelY + 214;
+  const fieldTop = panelY + 188;
   fields.forEach((field, index) => {
-    const x = panelX + 30;
-    const y = fieldTop + index * 88;
+    const x = panelX + 28;
+    const y = fieldTop + index * 92;
     context.beginPath();
     context.arc(x + 5, y - 8, 5, 0, Math.PI * 2);
     context.fillStyle = "#3BA66B";
@@ -115,42 +115,42 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
     });
     drawText(context, field.value, x, y + 44, {
       color: "#FFF8F1",
-      font: "900 32px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      maxWidth: panelWidth - 60,
+      font: "900 34px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      maxWidth: panelWidth - 56,
     });
   });
 
-  const footerX = 44;
-  const footerY = 900;
-  const footerWidth = 992;
-  const footerHeight = 118;
+  const footerX = 54;
+  const footerY = 876;
+  const footerWidth = 972;
+  const footerHeight = 132;
   roundedRect(context, footerX, footerY, footerWidth, footerHeight, 30);
-  context.fillStyle = "rgba(9, 29, 23, 0.56)";
+  context.fillStyle = "rgba(8, 24, 20, 0.64)";
   context.fill();
-  context.strokeStyle = "rgba(255, 248, 241, 0.18)";
-  context.lineWidth = 1.5;
+  context.strokeStyle = "rgba(59, 166, 107, 0.36)";
+  context.lineWidth = 2;
   context.stroke();
   context.beginPath();
-  context.moveTo(footerX + 34, footerY + 30);
-  context.lineTo(footerX + 158, footerY + 30);
+  context.moveTo(footerX + 34, footerY + 31);
+  context.lineTo(footerX + 170, footerY + 31);
   context.strokeStyle = "rgba(59, 166, 107, 0.86)";
   context.lineWidth = 4;
   context.stroke();
 
-  drawText(context, model.footerLabel, footerX + 34, footerY + 60, {
+  drawText(context, model.footerLabel, footerX + 34, footerY + 61, {
     color: "rgba(249, 241, 231, 0.68)",
-    font: "900 19px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: 450,
+    font: "900 20px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: footerWidth - 68,
   });
-  drawText(context, model.footerQuestion, footerX + 34, footerY + 96, {
+  drawText(context, model.footerMain, footerX + 34, footerY + 99, {
     color: "#FFF8F1",
-    font: "900 31px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: 390,
+    font: "900 30px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 700,
   });
-  drawText(context, model.footerAction, footerX + 470, footerY + 83, {
+  drawText(context, model.footerWebsite, footerX + footerWidth - 292, footerY + 99, {
     color: "#3BA66B",
-    font: "900 27px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: 500,
+    font: "900 25px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 258,
   });
 }
 
