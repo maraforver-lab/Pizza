@@ -11,6 +11,7 @@ import {
   normalizePartyOrderRow,
   isPartyOrderOpen,
   partyOrderAllowedPizzaOptions,
+  partyOrderInvitationText,
   summarizePartyOrderActivity,
   validatePublicPartyOrderSubmissionInput,
   validatePartyOrderInput,
@@ -372,15 +373,62 @@ describe("Party Orders foundation", () => {
     expect(list).toContain("Open");
 
     const detail = source("components/account/PartyOrderDetail.tsx");
-    expect(detail).toContain("Public guest link");
+    const invitation = source("components/account/PartyOrderInvitationCard.tsx");
+    expect(detail).toContain("PartyOrderInvitationCard");
     expect(detail).toContain("/order/${event.public_token}");
+    expect(invitation).toContain("Public guest link");
     expect(detail).toContain("Guest orders:");
     expect(detail).toContain("Total pizzas:");
     expect(detail).toContain("Pizza mix");
     expect(detail).toContain("Comment:");
     expect(detail).toContain("Share the public guest link to start collecting pizza choices.");
-    expect(detail).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
+    expect(invitation).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
     expect(detail).toContain("Selected allowed pizzas");
+  });
+
+  it("builds plain-text invitation copy for WhatsApp and messages", () => {
+    const event = normalizePartyOrderRow({
+      id: "event-1",
+      user_id: "user-1",
+      public_token: "public-token",
+      title: "Friday pizza party",
+      pizza_datetime: "2026-07-10T18:00:00.000Z",
+      orders_close_at: "2026-07-09T20:00:00.000Z",
+      guest_note: "Bring appetite.",
+      allowed_pizza_ids: ["margherita"],
+      status: "open",
+      created_at: "2026-07-05T10:00:00.000Z",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+
+    expect(event).toBeTruthy();
+    if (!event) return;
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("You're invited to Friday pizza party 🍕");
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Pizza time: Fri 10 Jul, 21:00");
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Please order by: Thu 9 Jul, 23:00");
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Bring appetite.");
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Choose your pizza here:");
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("https://doughtools.app/order/public-token");
+  });
+
+  it("renders a shareable invitation card with QR code, background image, and copy actions", () => {
+    const invitation = source("components/account/PartyOrderInvitationCard.tsx");
+
+    expect(invitation).toContain("QRCode.toDataURL(shareLink");
+    expect(invitation).toContain("data-qr-url={shareLink}");
+    expect(invitation).toContain("QR code for public pizza order link");
+    expect(invitation).toContain("DoughTools · Pizza Party");
+    expect(invitation).toContain("Pizza time:");
+    expect(invitation).toContain("Order by:");
+    expect(invitation).toContain("Scan to choose");
+    expect(invitation).toContain("Public guest link");
+    expect(invitation).toContain("Copy link");
+    expect(invitation).toContain("Copy invitation text");
+    expect(invitation).toContain("partyOrderInvitationText(event, shareLink)");
+    expect(invitation).toContain("navigator.clipboard.writeText");
+    expect(invitation).toContain("/images/homepage/hero-desktop-bg.png");
+    expect(invitation).toContain("linear-gradient");
+    expect(invitation).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
   });
 
   it("summarizes owner party orders by pizza type and guest order details", () => {

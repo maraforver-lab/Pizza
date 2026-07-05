@@ -388,6 +388,25 @@ export function partyOrderDateTimeLabel(value: string) {
   }).format(date);
 }
 
+export function partyOrderInvitationText(
+  order: Pick<PartyOrderRow, "title" | "pizza_datetime" | "orders_close_at" | "guest_note">,
+  publicGuestLink: string,
+) {
+  const lines = [
+    `You're invited to ${order.title} 🍕`,
+    "",
+    `Pizza time: ${partyOrderDateTimeLabel(order.pizza_datetime)}`,
+    `Please order by: ${partyOrderDateTimeLabel(order.orders_close_at)}`,
+  ];
+
+  if (order.guest_note?.trim()) {
+    lines.push("", order.guest_note.trim());
+  }
+
+  lines.push("", "Choose your pizza here:", publicGuestLink);
+  return lines.join("\n");
+}
+
 export function partyOrderAllowedPizzaOptions(order: Pick<PartyOrderRow, "allowed_pizza_ids">) {
   return pizzaCatalogOptionsForIds(order.allowed_pizza_ids);
 }

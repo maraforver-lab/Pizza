@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { PartyOrderInvitationCard } from "@/components/account/PartyOrderInvitationCard";
 import {
   normalizePartyOrderActivity,
   normalizePartyOrderRow,
@@ -105,6 +106,8 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         </section>
       )}
 
+      <PartyOrderInvitationCard event={event} shareLink={shareLink} />
+
       <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4" aria-labelledby="party-order-summary-heading">
         <h2 id="party-order-summary-heading" className="font-display text-2xl font-semibold">Summary</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -196,18 +199,6 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         </div>
       </section>
 
-      <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4">
-        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Public guest link</p>
-        <Link
-          href={shareLink || "#"}
-          className="mt-2 block break-all rounded-2xl bg-white/80 p-3 text-sm font-extrabold text-ink/70 transition hover:text-tomato"
-        >
-          {shareLink}
-        </Link>
-        <p className="mt-3 text-sm leading-6 text-ink/60">
-          Guests can open this link to choose pizzas and send their order without signing in.
-        </p>
-      </section>
     </article>
   );
 }
