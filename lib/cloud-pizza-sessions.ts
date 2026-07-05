@@ -35,6 +35,72 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function finiteNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function meaningfulText(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function hoursBetween(start?: string, end?: string) {
+  if (!start || !end) return undefined;
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) return undefined;
+  return Math.round(((endTime - startTime) / 3_600_000) * 10) / 10;
+}
+
+function inferFermentationModeFromTimeline(session: PizzaSession) {
+  const labels = session.timeline?.steps
+    .map((step) => `${step.id} ${step.label} ${step.description ?? ""}`.toLowerCase())
+    .join(" ") ?? "";
+  if (labels.includes("cold")) return "cold" as const;
+  if (labels.includes("room fermentation") || labels.includes("room temperature")) return "room" as const;
+  return undefined;
+}
+
+function fermentationBasisFromCompletedSession(session: PizzaSession) {
+  if (finiteNumber(session.plannedFermentationHours)) {
+    return undefined;
+  }
+
+  const mixStep = session.timeline?.steps.find((step) => step.id === "mix-dough");
+  const bakeStep = session.timeline?.steps.find((step) => step.id === "bake-pizza");
+  const fermentationHours = hoursBetween(
+    mixStep?.scheduledAt,
+    bakeStep?.scheduledAt ?? session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime,
+  );
+  const fermentationMode = inferFermentationModeFromTimeline(session);
+  if (!fermentationHours || !fermentationMode) return undefined;
+  const temperatureC = finiteNumber(session.fermentationTemperatureCOverride);
+  return {
+    fermentationHours,
+    fermentationMode,
+    temperatureC,
+  };
+}
+
+function hasReviewNotes(session: PizzaSession) {
+  return Boolean(
+    meaningfulText(session.notes)
+    || meaningfulText(session.review?.whatWorked)
+    || meaningfulText(session.review?.improveNextTime)
+    || meaningfulText(session.review?.nextTimeTry),
+  );
+}
+
+function cloudPizzaSessionReviewSummary(session: PizzaSession) {
+  const rating = typeof session.rating === "number" && Number.isFinite(session.rating)
+    ? `${session.rating}/5`
+    : undefined;
+  const notes = hasReviewNotes(session);
+  if (rating && notes) return `Review: ${rating} · Notes saved`;
+  if (rating) return `Review: ${rating}`;
+  if (notes) return "Review: Notes saved";
+  return undefined;
+}
+
 export function normalizeCloudPizzaSessionRow(value: unknown): CloudPizzaSessionRow | undefined {
   return normalizeCloudPizzaSessionRowForStatus(value, "in_progress");
 }
@@ -164,16 +230,15 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
     };
   }
   const hydration = session.recipeSnapshot?.hydration ?? session.hydrationPercentOverride;
-  const fermentation = buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot });
+  const fermentation = buildSessionFermentationDisplay({
+    session,
+    snapshot: session.recipeSnapshot,
+    basis: fermentationBasisFromCompletedSession(session),
+  });
   const fermentationLine = fermentation.durationHours && fermentation.mode
     ? `Fermentation: ${fermentation.fullLabel}`
     : undefined;
-  const hasReviewNotes = Boolean(session.notes || session.review?.whatWorked || session.review?.improveNextTime || session.review?.nextTimeTry);
-  const reviewLine = typeof session.rating === "number" && Number.isFinite(session.rating)
-    ? `Review: ${session.rating}/5`
-    : hasReviewNotes
-      ? "Review: Notes saved"
-      : undefined;
+  const reviewLine = cloudPizzaSessionReviewSummary(session);
 
   return {
     title: "Completed pizza session",

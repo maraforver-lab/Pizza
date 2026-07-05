@@ -162,10 +162,129 @@ describe("cloud pizza session foundation", () => {
       doughLine: "6 dough balls · 260 g each",
       hydrationLine: "Hydration: 65%",
       fermentationLine: "Fermentation: 24h cold fermentation · fridge 4 °C",
-      reviewLine: "Review: 5/5",
+      reviewLine: "Review: 5/5 · Notes saved",
       bakeLine: "Bake time: Saturday 20:00",
     });
     expect(cloudPizzaSessionCompletedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toBe("Completed 3 Jul 2026");
+  });
+
+  it("uses the selected completed-session fermentation plan instead of stale recipe defaults", () => {
+    const history = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-selected-fermentation",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "selected-fermentation-history",
+        status: "completed",
+        currentStep: "review",
+        plannedFermentationHours: 48,
+        fermentationTemperatureCOverride: 4,
+        recipeSnapshot: {
+          balls: 4,
+          ballWeight: 260,
+          hydration: 65,
+          fermentation: "12h-room",
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    const summary = cloudPizzaSessionHistorySummary(history, new Date("2026-07-04T12:00:00.000Z"));
+
+    expect(summary.fermentationLine).toBe("Fermentation: 48h cold fermentation · fridge 4 °C");
+    expect(summary.fermentationLine).not.toContain("12h room fermentation");
+    expect(summary.hydrationLine).toBe("Hydration: 65%");
+  });
+
+  it("uses persisted timeline timing as completed-session fermentation display basis when no selected duration is stored", () => {
+    const history = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-timeline-fermentation",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "timeline-fermentation-history",
+        status: "completed",
+        currentStep: "review",
+        fermentationTemperatureCOverride: 5,
+        targetEatTime: "2026-07-04T12:00:00.000Z",
+        recipeSnapshot: {
+          balls: 4,
+          ballWeight: 260,
+          hydration: 66,
+          fermentation: "12h-room",
+        },
+        timeline: {
+          targetEatTime: "2026-07-04T12:00:00.000Z",
+          steps: [
+            { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-02T20:00:00.000Z", status: "todo", kind: "active" },
+            { id: "cold-ferment", label: "Cold ferment", scheduledAt: "2026-07-02T21:00:00.000Z", status: "todo", kind: "passive" },
+            { id: "bake-pizza", label: "Bake pizza", scheduledAt: "2026-07-04T12:00:00.000Z", status: "todo", kind: "active" },
+          ],
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    const summary = cloudPizzaSessionHistorySummary(history, new Date("2026-07-04T12:00:00.000Z"));
+
+    expect(summary.fermentationLine).toBe("Fermentation: 40h cold fermentation · fridge 5 °C");
+    expect(summary.fermentationLine).not.toContain("12h room fermentation");
+  });
+
+  it("summarizes completed review notes alongside rating only when meaningful notes exist", () => {
+    const rowFor = (sessionData: ReturnType<typeof createPizzaSession>) => normalizeCloudPizzaSessionHistoryRow({
+      id: sessionData.id,
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: sessionData,
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    const ratingAndNotes = cloudPizzaSessionHistorySummary(rowFor(createPizzaSession({
+      id: "review-rating-and-notes",
+      status: "completed",
+      currentStep: "review",
+      rating: 3,
+      review: { improveNextTime: "Dry mushrooms better." },
+    })));
+    const ratingOnly = cloudPizzaSessionHistorySummary(rowFor(createPizzaSession({
+      id: "review-rating-only",
+      status: "completed",
+      currentStep: "review",
+      rating: 3,
+      notes: "   ",
+      review: { whatWorked: "  " },
+    })));
+    const notesOnly = cloudPizzaSessionHistorySummary(rowFor(createPizzaSession({
+      id: "review-notes-only",
+      status: "completed",
+      currentStep: "review",
+      review: { nextTimeTry: "Use stronger flour." },
+    })));
+    const emptyNotes = cloudPizzaSessionHistorySummary(rowFor(createPizzaSession({
+      id: "review-empty-notes",
+      status: "completed",
+      currentStep: "review",
+      notes: "",
+      review: { improveNextTime: " " },
+    })));
+
+    expect(ratingAndNotes.reviewLine).toBe("Review: 3/5 · Notes saved");
+    expect(ratingOnly.reviewLine).toBe("Review: 3/5");
+    expect(notesOnly.reviewLine).toBe("Review: Notes saved");
+    expect(emptyNotes.reviewLine).toBeUndefined();
   });
 
   it("sends completed review data to the existing cloud session row", async () => {
