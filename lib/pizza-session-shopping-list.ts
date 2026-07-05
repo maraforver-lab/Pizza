@@ -11,6 +11,10 @@ import {
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
 import {
+  PIZZA_CATALOG_IDS,
+  PIZZA_CATALOG_OPTIONS,
+} from "@/lib/pizza-catalog";
+import {
   findPizzaSessionPreset,
   pizzaSessionPresets,
 } from "@/lib/pizza-session-presets";
@@ -18,67 +22,11 @@ import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export const SHOPPING_LIST_LOCAL_ONLY_COPY = "Shopping lists are saved locally in this browser on this device.";
 
-export const PIZZA_MIX_TYPES: PizzaSessionPizzaMixType[] = [
-  "margherita",
-  "marinara",
-  "diavola",
-  "funghi",
-  "prosciutto",
-  "quattro-formaggi",
-];
+export const PIZZA_MIX_TYPES: PizzaSessionPizzaMixType[] = [...PIZZA_CATALOG_IDS];
 
 export type PizzaMixAllocation = Record<PizzaSessionPizzaMixType, number>;
 
-export const PIZZA_MIX_OPTIONS: Array<{
-  id: PizzaSessionPizzaMixType;
-  name: string;
-  marker: string;
-  shortDescription: string;
-  ingredientSummary: string;
-}> = [
-  {
-    id: "margherita",
-    name: "Margherita",
-    marker: "🍅",
-    shortDescription: "Classic tomato, mozzarella, basil and olive oil.",
-    ingredientSummary: "Tomato sauce, mozzarella, basil, olive oil",
-  },
-  {
-    id: "marinara",
-    name: "Marinara",
-    marker: "🧄",
-    shortDescription: "Tomato-forward pizza without cheese.",
-    ingredientSummary: "Tomato sauce, garlic, oregano, olive oil",
-  },
-  {
-    id: "diavola",
-    name: "Diavola",
-    marker: "🌶️",
-    shortDescription: "Tomato, mozzarella and spicy salami.",
-    ingredientSummary: "Tomato sauce, mozzarella, spicy salami, herbs",
-  },
-  {
-    id: "funghi",
-    name: "Funghi",
-    marker: "🍄",
-    shortDescription: "Tomato, mozzarella and mushrooms.",
-    ingredientSummary: "Tomato sauce, mozzarella, mushrooms, olive oil",
-  },
-  {
-    id: "prosciutto",
-    name: "Prosciutto",
-    marker: "🥓",
-    shortDescription: "Tomato, mozzarella and prosciutto.",
-    ingredientSummary: "Tomato sauce, mozzarella, prosciutto, basil or arugula",
-  },
-  {
-    id: "quattro-formaggi",
-    name: "Quattro Formaggi",
-    marker: "🧀",
-    shortDescription: "A simple four-cheese plan.",
-    ingredientSummary: "Mozzarella, gorgonzola, parmesan, fontina",
-  },
-];
+export const PIZZA_MIX_OPTIONS = PIZZA_CATALOG_OPTIONS;
 
 export type ShoppingListGenerationResult =
   | { ok: true; shoppingList: PizzaSessionShoppingList; pizzaMix: PizzaMixAllocation }
