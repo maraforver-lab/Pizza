@@ -649,6 +649,7 @@ describe("Party Orders foundation", () => {
 
   it("renders a shareable invitation card with QR code, background image, and copy actions", () => {
     const invitation = source("components/account/PartyOrderInvitationCard.tsx");
+    const exportHelper = source("lib/party-order-invitation-export.ts");
 
     expect(invitation).toContain("QRCode.toDataURL(shareLink");
     expect(invitation).toContain("data-qr-url={shareLink}");
@@ -662,9 +663,21 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("Copy invitation text");
     expect(invitation).toContain("partyOrderInvitationText(event, shareLink)");
     expect(invitation).toContain("navigator.clipboard.writeText");
+    expect(invitation).toContain("PartyOrderInvitationExportCard");
+    expect(invitation).toContain("Download invitation image");
+    expect(invitation).toContain("Download invitation PDF");
+    expect(invitation).toContain("downloadPartyOrderInvitationImage(exportCardRef.current)");
+    expect(invitation).toContain("downloadPartyOrderInvitationPdf(exportCardRef.current)");
     expect(invitation).toContain("/images/homepage/hero-desktop-bg.png");
     expect(invitation).toContain("linear-gradient");
     expect(invitation).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
+    expect(exportHelper).toContain("INVITATION_EXPORT_WIDTH = 1080");
+    expect(exportHelper).toContain("INVITATION_EXPORT_HEIGHT = 1350");
+    expect(exportHelper).toContain("toPng(element");
+    expect(exportHelper).toContain("doughtools-party-invitation.png");
+    expect(exportHelper).toContain("toJpeg(element");
+    expect(exportHelper).toContain("%PDF-1.4");
+    expect(exportHelper).toContain("doughtools-party-invitation.pdf");
   });
 
   it("summarizes owner party orders by pizza type and guest order details", () => {
