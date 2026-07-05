@@ -1,4 +1,4 @@
-import type { PizzaSessionPizzaMixType } from "@/lib/pizza-session";
+import type { PizzaSessionPizzaMix, PizzaSessionPizzaMixType } from "@/lib/pizza-session";
 import {
   PIZZA_CATALOG_OPTIONS,
   isPizzaCatalogId,
@@ -63,6 +63,16 @@ export type PartyOrderPizzaMixItem = PartyOrderSubmissionItem;
 export type PartyOrderGuestOrderSummary = PartyOrderSubmissionSummary & {
   id: string;
   created_at: string;
+};
+
+export type PartyOrderPizzaSessionHandoff = {
+  partyOrderId: string;
+  title: string;
+  pizzaTime: string;
+  pizzaCount: number;
+  pizzaMix: PizzaSessionPizzaMix;
+  pizzaMixRows: PartyOrderPizzaMixItem[];
+  skippedPizzaNames: string[];
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -422,6 +432,36 @@ export function normalizePartyOrderActivity(value: unknown): PartyOrderActivity 
       : guestOrders.map((order) => order.guest_name).slice(0, 3),
     pizzaMix,
     guestOrders,
+  };
+}
+
+export function buildPartyOrderPizzaSessionHandoff(
+  order: Pick<PartyOrderRow, "id" | "title" | "pizza_datetime">,
+  activity: PartyOrderActivity,
+): PartyOrderPizzaSessionHandoff | undefined {
+  if (activity.totalPizzaCount < 1 || activity.pizzaMix.length < 1) return undefined;
+
+  const pizzaMix: PizzaSessionPizzaMix = {};
+  const pizzaMixRows: PartyOrderPizzaMixItem[] = [];
+  const skippedPizzaNames: string[] = [];
+
+  for (const item of activity.pizzaMix) {
+    if (isPizzaCatalogId(item.pizza_id)) {
+      pizzaMix[item.pizza_id] = item.quantity;
+      pizzaMixRows.push(item);
+    } else {
+      skippedPizzaNames.push(item.pizza_name_snapshot);
+    }
+  }
+
+  return {
+    partyOrderId: order.id,
+    title: order.title,
+    pizzaTime: order.pizza_datetime,
+    pizzaCount: activity.totalPizzaCount,
+    pizzaMix,
+    pizzaMixRows,
+    skippedPizzaNames,
   };
 }
 

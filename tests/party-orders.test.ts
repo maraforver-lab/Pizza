@@ -7,6 +7,7 @@ import {
   normalizePizzaCatalogIds,
 } from "@/lib/pizza-catalog";
 import {
+  buildPartyOrderPizzaSessionHandoff,
   normalizePublicPartyOrder,
   normalizePartyOrderRow,
   isPartyOrderOpen,
@@ -451,6 +452,7 @@ describe("Party Orders foundation", () => {
     const invitation = source("components/account/PartyOrderInvitationCard.tsx");
     expect(detail).toContain("Edit party details");
     expect(detail).toContain("PartyOrderSettingsEditForm");
+    expect(detail).toContain("PartyOrderSessionHandoff");
     expect(editForm).toContain("Event title");
     expect(editForm).toContain("Pizza date/time");
     expect(editForm).toContain("Orders close date/time");
@@ -476,6 +478,41 @@ describe("Party Orders foundation", () => {
     expect(detail).toContain("Share the public guest link to start collecting pizza choices.");
     expect(invitation).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
     expect(detail).toContain("Selected allowed pizzas");
+  });
+
+  it("adds an owner-only Pizza Session handoff without mutating Party Orders", () => {
+    const route = source("app/api/party-orders/[id]/session-handoff/route.ts");
+    const handoff = source("components/account/PartyOrderSessionHandoff.tsx");
+    const detail = source("components/account/PartyOrderDetail.tsx");
+
+    expect(route).toContain("export async function POST");
+    expect(route).toContain("supabase.auth.getUser()");
+    expect(route).toContain(".from(\"party_orders\")");
+    expect(route).toContain(".eq(\"id\", id)");
+    expect(route).toContain(".eq(\"user_id\", user.id)");
+    expect(route).toContain(".from(\"party_order_submissions\")");
+    expect(route).toContain(".from(\"party_order_items\")");
+    expect(route).toContain("summarizePartyOrderActivity(submissions, itemRows)");
+    expect(route).toContain("buildPartyOrderPizzaSessionHandoff(event, activity)");
+    expect(route).toContain("Collect at least one guest order before creating a Pizza Session.");
+    expect(route).not.toContain(".update(");
+
+    expect(detail).toContain("<PartyOrderSessionHandoff event={event} activity={activity} />");
+    expect(handoff).toContain("Plan production");
+    expect(handoff).toContain("Create Pizza Session from this order");
+    expect(handoff).toContain("Collect at least one guest order before creating a Pizza Session.");
+    expect(handoff).toContain("Total pizzas:");
+    expect(handoff).toContain("Pizza time:");
+    expect(handoff).toContain("Review these older pizza names in the normal Pizza Session flow:");
+    expect(handoff).toContain("fetch(`/api/party-orders/${event.id}/session-handoff`");
+    expect(handoff).toContain("method: \"POST\"");
+    expect(handoff).toContain("createAndSavePizzaSession");
+    expect(handoff).toContain("targetEatTime: handoff.pizzaTime");
+    expect(handoff).toContain("pizzaCount: handoff.pizzaCount");
+    expect(handoff).toContain("pizzaMix: handoff.pizzaMix");
+    expect(handoff).toContain("setActivePizzaSession(session.id)");
+    expect(handoff).toContain("clearCloudBackedPizzaSession()");
+    expect(handoff).toContain("router.push(\"/session/start\")");
   });
 
   it("builds plain-text invitation copy for WhatsApp and messages", () => {
@@ -572,6 +609,71 @@ describe("Party Orders foundation", () => {
       { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
       { pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
     ]);
+  });
+
+  it("builds a Pizza Session handoff from Party Order pizza time, total count, and supported pizza mix", () => {
+    const event = normalizePartyOrderRow({
+      id: "event-handoff",
+      user_id: "user-1",
+      public_token: "handoff-token",
+      title: "Friday production",
+      pizza_datetime: "2026-07-10T18:00:00.000Z",
+      orders_close_at: "2026-07-10T15:00:00.000Z",
+      guest_note: null,
+      allowed_pizza_ids: ["margherita", "diavola", "quattro-formaggi"],
+      status: "open",
+      created_at: "2026-07-05T10:00:00.000Z",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+    const activity = summarizePartyOrderActivity([
+      { id: "submission-1", guest_name: "Anna", guest_comment: null, created_at: "2026-07-05T12:00:00.000Z" },
+      { id: "submission-2", guest_name: "Mikko", guest_comment: null, created_at: "2026-07-05T13:00:00.000Z" },
+    ], [
+      { submission_id: "submission-1", pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 2 },
+      { submission_id: "submission-1", pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
+      { submission_id: "submission-2", pizza_id: "quattro-formaggi", pizza_name_snapshot: "Four Cheese Snapshot", quantity: 2 },
+      { submission_id: "submission-2", pizza_id: "old-party-special", pizza_name_snapshot: "Old Party Special", quantity: 1 },
+    ]);
+
+    expect(event).toBeTruthy();
+    if (!event) return;
+    expect(buildPartyOrderPizzaSessionHandoff(event, activity)).toEqual({
+      partyOrderId: "event-handoff",
+      title: "Friday production",
+      pizzaTime: "2026-07-10T18:00:00.000Z",
+      pizzaCount: 6,
+      pizzaMix: {
+        margherita: 2,
+        diavola: 1,
+        "quattro-formaggi": 2,
+      },
+      pizzaMixRows: [
+        { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 2 },
+        { pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
+        { pizza_id: "quattro-formaggi", pizza_name_snapshot: "Quattro Formaggi", quantity: 2 },
+      ],
+      skippedPizzaNames: ["Old Party Special"],
+    });
+  });
+
+  it("does not build a Pizza Session handoff before guest orders exist", () => {
+    const event = normalizePartyOrderRow({
+      id: "event-empty-handoff",
+      user_id: "user-1",
+      public_token: "empty-handoff-token",
+      title: "Friday production",
+      pizza_datetime: "2026-07-10T18:00:00.000Z",
+      orders_close_at: "2026-07-10T15:00:00.000Z",
+      guest_note: null,
+      allowed_pizza_ids: ["margherita"],
+      status: "open",
+      created_at: "2026-07-05T10:00:00.000Z",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+
+    expect(event).toBeTruthy();
+    if (!event) return;
+    expect(buildPartyOrderPizzaSessionHandoff(event, summarizePartyOrderActivity([], []))).toBeUndefined();
   });
 
   it("adds a public guest order route by token with an order form", () => {
