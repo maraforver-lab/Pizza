@@ -470,6 +470,8 @@ describe("cloud pizza session foundation", () => {
         fermentationTemperatureCOverride: 4,
         pizzaCount: 4,
         doughBallWeight: 260,
+        flourSituation: "has_w_range",
+        availableFlourWRanges: ["w_260_300"],
         rating: 5,
         recipeSnapshot: {
           balls: 4,
@@ -491,16 +493,55 @@ describe("cloud pizza session foundation", () => {
     })!;
 
     expect(buildPizzaPhotoOverlayModel(history)).toEqual({
-      title: "DoughTools Bake",
-      brandLine: "Planned with DoughTools",
-      siteLine: "doughtools.app",
+      brand: "DOUGHTOOLS",
+      title: "PIZZA BAKE LOG",
+      footer: "planned with doughtools.app",
+      tagline: "Plan your next bake",
       fields: [
-        { label: "Hydration", value: "64%" },
-        { label: "Fermentation", value: "48h cold fermentation · fridge 4 °C" },
-        { label: "Dough balls", value: "4 × 260 g" },
-        { label: "Rating", value: "Rating 5/5" },
+        { label: "HYDRATION", value: "64%" },
+        { label: "FERMENTATION", value: "48H COLD" },
+        { label: "FRIDGE", value: "4°C" },
+        { label: "FLOUR W", value: "260–300" },
+        { label: "RATING", value: "5/5" },
       ],
     });
+    expect(buildPizzaPhotoOverlayModel(history)?.fields.some((field) => field.label === "Dough balls")).toBe(false);
+  });
+
+  it("builds room-temperature overlay fields from selected fermentation data", () => {
+    const history = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-overlay-room-photo",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "overlay-room-photo-session",
+        status: "completed",
+        currentStep: "review",
+        fermentationTemperatureCOverride: 22,
+        recipeSnapshot: {
+          hydration: 62,
+          fermentation: "12h-room",
+        },
+        photo: {
+          path: "user-1/row-overlay-room-photo/photo.webp",
+          url: "https://example.test/room.webp",
+          uploadedAt: "2026-07-04T12:00:00.000Z",
+          contentType: "image/webp",
+          size: 123456,
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    expect(buildPizzaPhotoOverlayModel(history)?.fields).toEqual([
+      { label: "HYDRATION", value: "62%" },
+      { label: "FERMENTATION", value: "12H ROOM" },
+      { label: "ROOM", value: "22°C" },
+    ]);
   });
 
   it("omits missing optional overlay fields and does not render without a photo URL", () => {
@@ -545,9 +586,7 @@ describe("cloud pizza session foundation", () => {
     })!;
 
     expect(buildPizzaPhotoOverlayModel(withoutPhoto)).toBeNull();
-    expect(buildPizzaPhotoOverlayModel(minimal)?.fields).toEqual([
-      { label: "Dough balls", value: "2 × 260 g" },
-    ]);
+    expect(buildPizzaPhotoOverlayModel(minimal)?.fields).toEqual([]);
   });
 
   it("detects unsupported iPhone HEIC and HEIF photo inputs", () => {
@@ -871,13 +910,21 @@ describe("cloud pizza session foundation", () => {
     expect(PIZZA_PHOTO_OVERLAY_FILE_NAME).toBe("doughtools-pizza-bake.png");
     expect(overlayHelper).toContain("buildPizzaPhotoOverlayModel");
     expect(overlayHelper).toContain("cloudPizzaSessionDetailSummary(row)");
-    expect(overlayHelper).toContain("Hydration");
-    expect(overlayHelper).toContain("Fermentation");
-    expect(overlayHelper).toContain("Dough balls");
-    expect(overlayHelper).toContain("Rating");
+    expect(overlayHelper).toContain("HYDRATION");
+    expect(overlayHelper).toContain("FERMENTATION");
+    expect(overlayHelper).toContain("FRIDGE");
+    expect(overlayHelper).toContain("ROOM");
+    expect(overlayHelper).toContain("FLOUR W");
+    expect(overlayHelper).toContain("RATING");
+    expect(overlayHelper).not.toContain("Dough balls");
     expect(overlayComponent).toContain("document.createElement(\"canvas\")");
     expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_SIZE");
     expect(overlayComponent).toContain("drawCoverImage");
+    expect(overlayComponent).toContain("leftGradient");
+    expect(overlayComponent).toContain("panelWidth = 342");
+    expect(overlayComponent).toContain("model.brand");
+    expect(overlayComponent).toContain("model.title");
+    expect(overlayComponent).not.toContain("cardY = 678");
     expect(overlayComponent).toContain("Preview share image");
     expect(overlayComponent).toContain("Download image");
     expect(overlayComponent).toContain("Share image");
