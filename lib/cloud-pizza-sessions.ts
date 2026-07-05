@@ -43,6 +43,11 @@ function meaningfulText(value: unknown) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function stringField(record: Record<string, unknown>, snakeKey: string, camelKey: string) {
+  const value = record[snakeKey] ?? record[camelKey];
+  return typeof value === "string" ? value : undefined;
+}
+
 function hoursBetween(start?: string, end?: string) {
   if (!start || !end) return undefined;
   const startTime = new Date(start).getTime();
@@ -115,23 +120,23 @@ function normalizeCloudPizzaSessionRowForStatus(
 ): CloudPizzaSessionRow | undefined {
   if (!isRecord(value)) return undefined;
   const status = value.status;
-  const session = migratePizzaSession(value.session_data);
+  const session = migratePizzaSession(value.session_data ?? value.sessionData);
   if (!session || status !== expectedStatus) return undefined;
   const id = typeof value.id === "string" ? value.id : undefined;
-  const userId = typeof value.user_id === "string" ? value.user_id : undefined;
-  const createdAt = typeof value.created_at === "string" ? value.created_at : undefined;
-  const updatedAt = typeof value.updated_at === "string" ? value.updated_at : undefined;
+  const userId = stringField(value, "user_id", "userId");
+  const createdAt = stringField(value, "created_at", "createdAt");
+  const updatedAt = stringField(value, "updated_at", "updatedAt");
   if (!id || !userId || !createdAt || !updatedAt) return undefined;
   return {
     id,
     user_id: userId,
     status: expectedStatus,
     title: typeof value.title === "string" ? value.title : null,
-    current_step: typeof value.current_step === "string" ? value.current_step : null,
+    current_step: stringField(value, "current_step", "currentStep") ?? null,
     session_data: session,
     created_at: createdAt,
     updated_at: updatedAt,
-    completed_at: typeof value.completed_at === "string" ? value.completed_at : null,
+    completed_at: stringField(value, "completed_at", "completedAt") ?? null,
   };
 }
 

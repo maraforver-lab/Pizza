@@ -76,7 +76,11 @@ export async function POST(request: Request) {
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ session: normalizeCloudPizzaSessionRow(data) });
+  const savedSession = normalizeCloudPizzaSessionRow(data);
+  if (!savedSession) {
+    return NextResponse.json({ error: "Saved pizza session could not be verified." }, { status: 500 });
+  }
+  return NextResponse.json({ session: savedSession });
 }
 
 export async function PATCH(request: Request) {
@@ -128,8 +132,12 @@ export async function PATCH(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const syncedSession = shouldComplete ? null : normalizeCloudPizzaSessionRow(data);
+  if (!shouldComplete && !syncedSession) {
+    return NextResponse.json({ error: "Saved pizza session could not be verified." }, { status: 500 });
+  }
   return NextResponse.json({
-    session: shouldComplete ? null : normalizeCloudPizzaSessionRow(data),
+    session: syncedSession,
     completed: shouldComplete,
   });
 }

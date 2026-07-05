@@ -72,6 +72,56 @@ describe("cloud pizza session foundation", () => {
     expect(cloudPizzaSessionUpdatedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toContain("Updated");
   });
 
+  it("normalizes active API session rows without completed-history parsing assumptions", () => {
+    const activeSession = createPizzaSession({
+      id: "active-normalized-cloud-session",
+      status: "planning",
+      currentStep: "shopping",
+      pizzaCount: 6,
+      doughBallWeight: 260,
+      targetEatTime: "2026-07-04T17:00:00.000Z",
+      recipeSnapshot: {
+        balls: 6,
+        ballWeight: 260,
+        hydration: 65,
+        fermentation: "12h-room",
+      },
+    });
+
+    const active = normalizeCloudPizzaSessionRow({
+      id: "active-row",
+      userId: "user-1",
+      status: "in_progress",
+      title: "Active pizza session",
+      currentStep: "shopping",
+      sessionData: activeSession,
+      createdAt: "2026-07-04T09:00:00.000Z",
+      updatedAt: "2026-07-04T10:00:00.000Z",
+      completedAt: null,
+    });
+    const completed = normalizeCloudPizzaSessionHistoryRow({
+      id: "active-row",
+      userId: "user-1",
+      status: "in_progress",
+      title: "Active pizza session",
+      currentStep: "shopping",
+      sessionData: activeSession,
+      createdAt: "2026-07-04T09:00:00.000Z",
+      updatedAt: "2026-07-04T10:00:00.000Z",
+      completedAt: null,
+    });
+
+    expect(active).toBeTruthy();
+    expect(completed).toBeUndefined();
+    expect(cloudPizzaSessionSummary(active!, new Date("2026-07-04T12:00:00.000Z"))).toMatchObject({
+      title: "Active pizza session",
+      statusLine: "In progress · Updated today",
+      doughLine: "6 dough balls · 260 g each",
+      bakeLine: "Bake time: Saturday 20:00",
+      stepLine: "Current step: Shopping list",
+    });
+  });
+
   it("adds a pizza_sessions table with owner-only RLS policies", () => {
     const migration = source("supabase/migrations/20260704183000_create_pizza_sessions.sql");
 
@@ -93,6 +143,7 @@ describe("cloud pizza session foundation", () => {
     expect(route).toContain(".insert({ ...payload, user_id: user.id");
     expect(route).toContain(".update({ ...payload, updated_at: updatedAt })");
     expect(route).toContain("normalizeCloudPizzaSessionRow(data)");
+    expect(route).toContain("Saved pizza session could not be verified.");
   });
 
   it("syncs saved cloud sessions without creating cloud rows for local-only sessions", () => {
@@ -413,6 +464,8 @@ describe("cloud pizza session foundation", () => {
     expect(saveComponent).toContain("Saved to your account");
     expect(saveComponent).toContain("Sign in to save this session across devices.");
     expect(saveComponent).toContain('fetch("/api/pizza-sessions/active"');
+    expect(saveComponent).toContain("normalizeCloudPizzaSessionRow(payload.session)");
+    expect(saveComponent).toContain("Saved pizza session could not be verified.");
     expect(saveComponent).toContain("markCloudBackedPizzaSession(session.id)");
   });
 
