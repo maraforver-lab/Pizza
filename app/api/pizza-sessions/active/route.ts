@@ -78,3 +78,58 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ session: normalizeCloudPizzaSessionRow(data) });
 }
+
+export async function PATCH(request: Request) {
+  const supabase = await getSupabaseServerClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to sync saved pizza sessions." }, { status: 401 });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid session payload." }, { status: 400 });
+  }
+
+  const record = body && typeof body === "object" ? body as Record<string, unknown> : {};
+  const session = migratePizzaSession(record.sessionData ?? record.session_data);
+  if (!session) return NextResponse.json({ error: "Invalid pizza session data." }, { status: 400 });
+
+  const { data: existing, error: existingError } = await supabase
+    .from("pizza_sessions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "in_progress")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  if (!existing?.id) return NextResponse.json({ session: null, skipped: true });
+
+  const updatedAt = new Date().toISOString();
+  const shouldComplete = record.complete === true || record.status === "completed";
+  const payload = {
+    ...cloudPizzaSessionPayload(session),
+    status: shouldComplete ? "completed" : "in_progress",
+    completed_at: shouldComplete ? updatedAt : null,
+    updated_at: updatedAt,
+  };
+
+  const { data, error } = await supabase
+    .from("pizza_sessions")
+    .update(payload)
+    .eq("id", existing.id)
+    .eq("user_id", user.id)
+    .select(CLOUD_PIZZA_SESSION_SELECT)
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({
+    session: shouldComplete ? null : normalizeCloudPizzaSessionRow(data),
+    completed: shouldComplete,
+  });
+}

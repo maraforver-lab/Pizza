@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { markCloudBackedPizzaSession } from "@/lib/cloud-pizza-session-client";
 import type { PizzaSession } from "@/lib/pizza-session";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -52,6 +53,7 @@ export function SavePizzaSessionToAccount({ session }: SavePizzaSessionToAccount
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Saving failed.");
+      markCloudBackedPizzaSession(session.id);
       setMessage("Saved to your account");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Saving failed.");

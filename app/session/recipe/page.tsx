@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSessionToAccount";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
@@ -379,6 +380,7 @@ export default function SessionRecipePage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
+      <CloudPizzaSessionSync session={session} />
       <SessionWorkspaceLayout activeStep={6}>
         <SessionStepHero
           step={6}

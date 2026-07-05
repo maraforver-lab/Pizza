@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import type { PizzaSession } from "@/lib/pizza-session";
+import { completeCloudBackedPizzaSession } from "@/lib/cloud-pizza-session-client";
 import {
   getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
@@ -167,7 +169,7 @@ export default function SessionReviewPage() {
     setMessage(null);
   };
 
-  const finishSession = () => {
+  const finishSession = async () => {
     const completed = completeSessionReview(session, reviewInput);
     if (!completed) {
       setMessage("Could not finish this local session. Please refresh and try again.");
@@ -176,12 +178,16 @@ export default function SessionReviewPage() {
     setSession(completed);
     setSaved(true);
     setMessage(null);
+    await completeCloudBackedPizzaSession(completed).catch(() => {
+      // Finishing the local session should not be blocked by temporary account sync issues.
+    });
     router.push("/");
   };
 
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
+      <CloudPizzaSessionSync session={session} />
       <SessionWorkspaceLayout activeStep={10} hideLocalSaveNote>
         <SessionStepHero
           step={10}
