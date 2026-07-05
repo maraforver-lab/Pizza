@@ -6,6 +6,7 @@ import {
   normalizePartyOrderRow,
   partyOrderAllowedPizzaOptions,
   partyOrderDateTimeLabel,
+  type PartyOrderActivity,
   type PartyOrderRow,
 } from "@/lib/party-orders";
 
@@ -13,8 +14,23 @@ type PartyOrderDetailProps = {
   eventId: string;
 };
 
+function normalizeActivity(value: unknown): PartyOrderActivity {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { submissionCount: 0, totalPizzaCount: 0, latestGuestNames: [] };
+  }
+  const record = value as Record<string, unknown>;
+  return {
+    submissionCount: typeof record.submissionCount === "number" && Number.isFinite(record.submissionCount) ? record.submissionCount : 0,
+    totalPizzaCount: typeof record.totalPizzaCount === "number" && Number.isFinite(record.totalPizzaCount) ? record.totalPizzaCount : 0,
+    latestGuestNames: Array.isArray(record.latestGuestNames)
+      ? record.latestGuestNames.flatMap((name) => typeof name === "string" && name.trim() ? [name.trim()] : []).slice(0, 3)
+      : [],
+  };
+}
+
 export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   const [event, setEvent] = useState<PartyOrderRow | null>(null);
+  const [activity, setActivity] = useState<PartyOrderActivity | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const shareLink = useMemo(() => (
@@ -32,7 +48,10 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         if (!response.ok) throw new Error(payload.error || "Party Order could not be loaded.");
         const nextEvent = normalizePartyOrderRow(payload.event);
         if (!nextEvent) throw new Error("Party Order could not be found.");
-        if (mounted) setEvent(nextEvent);
+        if (mounted) {
+          setEvent(nextEvent);
+          setActivity(normalizeActivity(payload.activity));
+        }
       } catch (caught) {
         if (mounted) setError(caught instanceof Error ? caught.message : "Party Order could not be loaded.");
       } finally {
@@ -98,6 +117,25 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         </section>
       )}
 
+      <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4" aria-labelledby="party-order-activity-heading">
+        <h2 id="party-order-activity-heading" className="font-display text-2xl font-semibold">Order activity</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70">
+            Guest submissions: <strong className="text-ink">{activity?.submissionCount ?? 0}</strong>
+          </p>
+          <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70">
+            Total pizzas ordered: <strong className="text-ink">{activity?.totalPizzaCount ?? 0}</strong>
+          </p>
+        </div>
+        {activity?.latestGuestNames.length ? (
+          <p className="mt-3 text-sm leading-6 text-ink/60">
+            Latest guests: {activity.latestGuestNames.join(", ")}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-ink/55">No guest orders yet.</p>
+        )}
+      </section>
+
       <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4" aria-labelledby="selected-pizzas-heading">
         <h2 id="selected-pizzas-heading" className="font-display text-2xl font-semibold">Selected allowed pizzas</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -119,7 +157,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
           {shareLink}
         </Link>
         <p className="mt-3 text-sm leading-6 text-ink/60">
-          Guests can open this link to preview the available pizzas. Guest order submission will be added in the next patch.
+          Guests can open this link to choose pizzas and send their order without signing in.
         </p>
       </section>
     </article>

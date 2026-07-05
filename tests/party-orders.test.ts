@@ -9,7 +9,9 @@ import {
 import {
   normalizePublicPartyOrder,
   normalizePartyOrderRow,
+  isPartyOrderOpen,
   partyOrderAllowedPizzaOptions,
+  validatePublicPartyOrderSubmissionInput,
   validatePartyOrderInput,
 } from "@/lib/party-orders";
 import { PIZZA_MIX_OPTIONS } from "@/lib/pizza-session-shopping-list";
@@ -157,6 +159,103 @@ describe("Party Orders foundation", () => {
     expect(JSON.stringify(event)).not.toContain("hidden-user");
   });
 
+  const openPublicEvent = {
+    public_token: "public-token",
+    title: "Guest pizza night",
+    pizza_datetime: "2026-07-11T18:00:00.000Z",
+    orders_close_at: "2026-07-11T15:00:00.000Z",
+    guest_note: "Pick your pizza.",
+    allowed_pizza_ids: ["margherita", "funghi"],
+    status: "open" as const,
+    updated_at: "2026-07-05T11:00:00.000Z",
+  };
+
+  it("validates guest party order submissions", () => {
+    const result = validatePublicPartyOrderSubmissionInput({
+      guestName: "  Mara  ",
+      guestComment: " No onions please. ",
+      items: [
+        { pizzaId: "margherita", quantity: 2 },
+        { pizzaId: "funghi", quantity: 1 },
+      ],
+    }, openPublicEvent);
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        guest_name: "Mara",
+        guest_comment: "No onions please.",
+        totalQuantity: 3,
+        items: [
+          { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 2 },
+          { pizza_id: "funghi", pizza_name_snapshot: "Funghi", quantity: 1 },
+        ],
+      },
+    });
+  });
+
+  it("rejects invalid guest party order submissions", () => {
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "",
+      items: [{ pizzaId: "margherita", quantity: 1 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Your name is required." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "x".repeat(81),
+      items: [{ pizzaId: "margherita", quantity: 1 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Your name must be 80 characters or fewer." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      guestComment: "x".repeat(501),
+      items: [{ pizzaId: "margherita", quantity: 1 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Comments must be 500 characters or fewer." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      items: [],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Choose at least one pizza." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      items: [{ pizzaId: "diavola", quantity: 1 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Choose a pizza from this party menu." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      items: [{ pizzaId: "not-real", quantity: 1 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Choose a pizza from this party menu." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      items: [{ pizzaId: "margherita", quantity: 0 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Choose at least one pizza." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      items: [{ pizzaId: "margherita", quantity: -1 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Choose at least one pizza." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      items: [{ pizzaId: "margherita", quantity: 11 }],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Please keep each pizza choice to 10 or fewer." });
+
+    expect(validatePublicPartyOrderSubmissionInput({
+      guestName: "Mara",
+      items: [
+        { pizzaId: "margherita", quantity: 10 },
+        { pizzaId: "funghi", quantity: 11 },
+      ],
+    }, openPublicEvent)).toMatchObject({ ok: false, error: "Please keep each pizza choice to 10 or fewer." });
+  });
+
+  it("detects open and closed party order windows", () => {
+    expect(isPartyOrderOpen(openPublicEvent, new Date("2026-07-11T14:00:00.000Z"))).toBe(true);
+    expect(isPartyOrderOpen(openPublicEvent, new Date("2026-07-11T16:00:00.000Z"))).toBe(false);
+    expect(isPartyOrderOpen({ ...openPublicEvent, status: "closed" }, new Date("2026-07-11T14:00:00.000Z"))).toBe(false);
+  });
+
   it("adds a secure owner-only party_orders persistence model", () => {
     const migration = source("supabase/migrations/20260705200000_create_party_orders.sql");
     expect(migration).toContain("create table if not exists public.party_orders");
@@ -178,6 +277,29 @@ describe("Party Orders foundation", () => {
     expect(migration).not.toContain("alter table public.party_orders disable row level security");
   });
 
+  it("adds guest order tables, RLS, grants, owner reads, and a public submit RPC", () => {
+    const migration = source("supabase/migrations/20260705210000_create_party_order_submissions.sql");
+    expect(migration).toContain("create table if not exists public.party_order_submissions");
+    expect(migration).toContain("create table if not exists public.party_order_items");
+    expect(migration).toContain("party_order_id uuid not null references public.party_orders(id) on delete cascade");
+    expect(migration).toContain("submission_id uuid not null references public.party_order_submissions(id) on delete cascade");
+    expect(migration).toContain("constraint party_order_items_quantity_check check (quantity between 1 and 10)");
+    expect(migration).toContain("alter table public.party_order_submissions enable row level security");
+    expect(migration).toContain("alter table public.party_order_items enable row level security");
+    expect(migration).toContain("grant usage on schema public to anon, authenticated");
+    expect(migration).toContain("grant select, insert on public.party_order_submissions to anon, authenticated");
+    expect(migration).toContain("grant select, insert on public.party_order_items to anon, authenticated");
+    expect(migration).toContain("Owners can read their party order submissions");
+    expect(migration).toContain("Owners can read their party order items");
+    expect(migration).toContain("create or replace function public.submit_public_party_order");
+    expect(migration).toContain("security definer");
+    expect(migration).toContain("party_orders.public_token = token_value");
+    expect(migration).toContain("party_orders.status = 'open'");
+    expect(migration).toContain("party_orders.orders_close_at >= timezone('utc', now())");
+    expect(migration).toContain("not (item.pizza_id = any(allowed_ids))");
+    expect(migration).toContain("grant execute on function public.submit_public_party_order(text, text, text, jsonb) to anon, authenticated");
+  });
+
   it("wires authenticated list and create API routes with ownership filtering", () => {
     const route = source("app/api/party-orders/route.ts");
     expect(route).toContain("randomBytes(24).toString(\"base64url\")");
@@ -196,6 +318,11 @@ describe("Party Orders foundation", () => {
     expect(route).toContain(".eq(\"id\", id)");
     expect(route).toContain(".eq(\"user_id\", user.id)");
     expect(route).toContain("maybeSingle()");
+    expect(route).toContain(".from(\"party_order_submissions\")");
+    expect(route).toContain(".from(\"party_order_items\")");
+    expect(route).toContain("submissionCount");
+    expect(route).toContain("totalPizzaCount");
+    expect(route).toContain("latestGuestNames");
   });
 
   it("adds logged-in owner list, create, and detail pages", () => {
@@ -229,11 +356,13 @@ describe("Party Orders foundation", () => {
     const detail = source("components/account/PartyOrderDetail.tsx");
     expect(detail).toContain("Public guest link");
     expect(detail).toContain("/order/${event.public_token}");
-    expect(detail).toContain("Guest order submission will be added in the next patch");
+    expect(detail).toContain("Guest submissions:");
+    expect(detail).toContain("Total pizzas ordered:");
+    expect(detail).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
     expect(detail).toContain("Selected allowed pizzas");
   });
 
-  it("adds a public guest order route by token", () => {
+  it("adds a public guest order route by token with an order form", () => {
     const page = source("app/order/[publicToken]/page.tsx");
     expect(page).toContain("params: Promise<{ publicToken: string }>");
     expect(page).toContain(".rpc(\"get_public_party_order\", { token_value: publicToken })");
@@ -241,7 +370,32 @@ describe("Party Orders foundation", () => {
     expect(page).toContain("DoughTools Party Order");
     expect(page).toContain("Choose from these pizzas");
     expect(page).toContain("partyOrderAllowedPizzaOptions(event)");
-    expect(page).toContain("Guest order submission will be added in the next Party Orders patch");
+    expect(page).toContain("PublicPartyOrderForm");
     expect(page).not.toContain("supabase.auth.getUser()");
+
+    const form = source("components/party-orders/PublicPartyOrderForm.tsx");
+    expect(form).toContain("Your name");
+    expect(form).toContain("Choose your pizzas");
+    expect(form).toContain("Comments");
+    expect(form).toContain("Send order");
+    expect(form).toContain("Thanks, your pizza order was received.");
+    expect(form).toContain("Remove one");
+    expect(form).toContain("Add one");
+    expect(form).toContain("disabled={quantity === 0}");
+    expect(form).toContain("disabled={quantity >= MAX_QUANTITY_PER_PIZZA}");
+    expect(form).toContain("Orders are closed");
+    expect(form).not.toContain("supabase.auth.getUser()");
+  });
+
+  it("wires public guest submission through server-side validation and RPC", () => {
+    const route = source("app/api/party-orders/public/[publicToken]/submissions/route.ts");
+    expect(route).toContain(".rpc(\"get_public_party_order\", { token_value: publicToken })");
+    expect(route).toContain("isPartyOrderOpen(partyOrder)");
+    expect(route).toContain("validatePublicPartyOrderSubmissionInput(body, partyOrder)");
+    expect(route).toContain(".rpc(\"submit_public_party_order\"");
+    expect(route).toContain("guest_name_value: validation.value.guest_name");
+    expect(route).toContain("items_value: validation.value.items");
+    expect(route).not.toContain("supabase.auth.getUser()");
+    expect(route).not.toContain(".from(\"party_order_submissions\").select");
   });
 });

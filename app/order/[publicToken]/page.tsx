@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PublicPartyOrderForm } from "@/components/party-orders/PublicPartyOrderForm";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import {
   normalizePublicPartyOrder,
@@ -91,18 +91,7 @@ export default async function PublicPartyOrderPage({
           </div>
         </section>
 
-        <section className="border-t border-ink/10 bg-leaf/[.06] p-5 sm:p-8">
-          <h2 className="font-display text-2xl font-semibold">Guest ordering is almost ready</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/60">
-            This public link is active. Guest order submission will be added in the next Party Orders patch, so for now use this page as the shareable menu preview.
-          </p>
-          <Link
-            href="/"
-            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-          >
-            Made with DoughTools
-          </Link>
-        </section>
+        <PublicPartyOrderForm event={event} allowedPizzas={allowedPizzas} isOpen={isOpen} />
       </article>
     </main>
   );
