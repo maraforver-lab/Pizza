@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
+  normalizePartyOrderActivity,
   normalizePartyOrderRow,
+  partyOrderEmptyActivity,
   partyOrderAllowedPizzaOptions,
   partyOrderDateTimeLabel,
   type PartyOrderActivity,
@@ -14,23 +16,9 @@ type PartyOrderDetailProps = {
   eventId: string;
 };
 
-function normalizeActivity(value: unknown): PartyOrderActivity {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return { submissionCount: 0, totalPizzaCount: 0, latestGuestNames: [] };
-  }
-  const record = value as Record<string, unknown>;
-  return {
-    submissionCount: typeof record.submissionCount === "number" && Number.isFinite(record.submissionCount) ? record.submissionCount : 0,
-    totalPizzaCount: typeof record.totalPizzaCount === "number" && Number.isFinite(record.totalPizzaCount) ? record.totalPizzaCount : 0,
-    latestGuestNames: Array.isArray(record.latestGuestNames)
-      ? record.latestGuestNames.flatMap((name) => typeof name === "string" && name.trim() ? [name.trim()] : []).slice(0, 3)
-      : [],
-  };
-}
-
 export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   const [event, setEvent] = useState<PartyOrderRow | null>(null);
-  const [activity, setActivity] = useState<PartyOrderActivity | null>(null);
+  const [activity, setActivity] = useState<PartyOrderActivity>(partyOrderEmptyActivity);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const shareLink = useMemo(() => (
@@ -50,7 +38,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         if (!nextEvent) throw new Error("Party Order could not be found.");
         if (mounted) {
           setEvent(nextEvent);
-          setActivity(normalizeActivity(payload.activity));
+          setActivity(normalizePartyOrderActivity(payload.activity));
         }
       } catch (caught) {
         if (mounted) setError(caught instanceof Error ? caught.message : "Party Order could not be loaded.");
@@ -117,22 +105,82 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         </section>
       )}
 
-      <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4" aria-labelledby="party-order-activity-heading">
-        <h2 id="party-order-activity-heading" className="font-display text-2xl font-semibold">Order activity</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4" aria-labelledby="party-order-summary-heading">
+        <h2 id="party-order-summary-heading" className="font-display text-2xl font-semibold">Summary</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70">
-            Guest submissions: <strong className="text-ink">{activity?.submissionCount ?? 0}</strong>
+            Guest orders: <strong className="text-ink">{activity.submissionCount}</strong>
           </p>
           <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70">
-            Total pizzas ordered: <strong className="text-ink">{activity?.totalPizzaCount ?? 0}</strong>
+            Total pizzas: <strong className="text-ink">{activity.totalPizzaCount}</strong>
+          </p>
+          <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70">
+            Order status: <strong className="capitalize text-ink">{event.status}</strong>
+          </p>
+          <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70">
+            Pizza time: <strong className="text-ink">{partyOrderDateTimeLabel(event.pizza_datetime)}</strong>
+          </p>
+          <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70 sm:col-span-2">
+            Orders close: <strong className="text-ink">{partyOrderDateTimeLabel(event.orders_close_at)}</strong>
           </p>
         </div>
-        {activity?.latestGuestNames.length ? (
-          <p className="mt-3 text-sm leading-6 text-ink/60">
-            Latest guests: {activity.latestGuestNames.join(", ")}
-          </p>
+      </section>
+
+      <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4" aria-labelledby="party-order-pizza-mix-heading">
+        <h2 id="party-order-pizza-mix-heading" className="font-display text-2xl font-semibold">Pizza mix</h2>
+        {activity.pizzaMix.length ? (
+          <div className="mt-4 grid gap-2">
+            {activity.pizzaMix.map((pizza) => (
+              <div key={pizza.pizza_id} className="flex items-center justify-between gap-4 rounded-[1.15rem] border border-ink/10 bg-cream/65 px-4 py-3">
+                <span className="text-sm font-extrabold text-ink">{pizza.pizza_name_snapshot}</span>
+                <span className="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-extrabold text-leaf ring-1 ring-leaf/15">
+                  {pizza.quantity}
+                </span>
+              </div>
+            ))}
+          </div>
         ) : (
-          <p className="mt-3 text-sm leading-6 text-ink/55">No guest orders yet.</p>
+          <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
+            <h3 className="text-base font-extrabold text-ink">No guest orders yet.</h3>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              Share the public guest link to start collecting pizza choices.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4" aria-labelledby="party-order-guest-orders-heading">
+        <h2 id="party-order-guest-orders-heading" className="font-display text-2xl font-semibold">Guest orders</h2>
+        {activity.guestOrders.length ? (
+          <div className="mt-4 grid gap-3">
+            {activity.guestOrders.map((order) => (
+              <article key={order.id} className="rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                  <h3 className="text-base font-extrabold text-ink">{order.guest_name}</h3>
+                  <p className="text-xs font-bold text-ink/45">Submitted {partyOrderDateTimeLabel(order.created_at)}</p>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {order.items.map((item, index) => (
+                    <p key={`${order.id}-${item.pizza_id}-${index}`} className="text-sm font-bold leading-6 text-ink/68">
+                      {item.quantity} × {item.pizza_name_snapshot}
+                    </p>
+                  ))}
+                </div>
+                {order.guest_comment && (
+                  <p className="mt-3 rounded-2xl bg-white/75 p-3 text-sm leading-6 text-ink/65">
+                    <span className="font-extrabold text-ink">Comment:</span> {order.guest_comment}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
+            <h3 className="text-base font-extrabold text-ink">No guest orders yet.</h3>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              Share the public guest link to start collecting pizza choices.
+            </p>
+          </div>
         )}
       </section>
 

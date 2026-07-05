@@ -39,10 +39,12 @@ export type PartyOrderActivity = {
   submissionCount: number;
   totalPizzaCount: number;
   latestGuestNames: string[];
+  pizzaMix: PartyOrderPizzaMixItem[];
+  guestOrders: PartyOrderGuestOrderSummary[];
 };
 
 export type PartyOrderSubmissionItem = {
-  pizza_id: PizzaSessionPizzaMixType;
+  pizza_id: string;
   pizza_name_snapshot: string;
   quantity: number;
 };
@@ -52,6 +54,13 @@ export type PartyOrderSubmissionSummary = {
   guest_comment: string | null;
   items: PartyOrderSubmissionItem[];
   totalQuantity: number;
+};
+
+export type PartyOrderPizzaMixItem = PartyOrderSubmissionItem;
+
+export type PartyOrderGuestOrderSummary = PartyOrderSubmissionSummary & {
+  id: string;
+  created_at: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -67,6 +76,11 @@ function validDateTime(value: string | undefined) {
   if (!value) return undefined;
   const timestamp = new Date(value).getTime();
   return Number.isFinite(timestamp) ? value : undefined;
+}
+
+function normalizePositiveInteger(value: unknown) {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isInteger(number) && number > 0 ? number : undefined;
 }
 
 function normalizeStatus(value: unknown): PartyOrderStatus | undefined {
@@ -210,6 +224,155 @@ export function validatePublicPartyOrderSubmissionInput(
       items,
       totalQuantity,
     },
+  };
+}
+
+export function partyOrderEmptyActivity(): PartyOrderActivity {
+  return {
+    submissionCount: 0,
+    totalPizzaCount: 0,
+    latestGuestNames: [],
+    pizzaMix: [],
+    guestOrders: [],
+  };
+}
+
+export function summarizePartyOrderActivity(submissionRows: unknown[], itemRows: unknown[]): PartyOrderActivity {
+  const submissions = submissionRows.flatMap((row) => {
+    if (!isRecord(row)) return [];
+    const id = typeof row.id === "string" ? row.id : "";
+    const guestName = typeof row.guest_name === "string" && row.guest_name.trim() ? row.guest_name.trim() : "";
+    const guestComment = typeof row.guest_comment === "string" && row.guest_comment.trim() ? row.guest_comment.trim() : null;
+    const createdAt = validDateTime(stringField(row, "created_at", "createdAt"));
+    if (!id || !guestName || !createdAt) return [];
+    return [{
+      id,
+      guest_name: guestName,
+      guest_comment: guestComment,
+      created_at: createdAt,
+      items: [] as PartyOrderSubmissionItem[],
+      totalQuantity: 0,
+    }];
+  });
+
+  const bySubmissionId = new Map(submissions.map((submission) => [submission.id, submission]));
+  const catalogOrder = new Map(PIZZA_CATALOG_OPTIONS.map((option, index) => [option.id, index]));
+  const catalogNameById = new Map(PIZZA_CATALOG_OPTIONS.map((option) => [option.id, option.name]));
+  const pizzaMixById = new Map<string, PartyOrderPizzaMixItem>();
+
+  for (const row of itemRows) {
+    if (!isRecord(row)) continue;
+    const submissionId = typeof row.submission_id === "string" ? row.submission_id : "";
+    const submission = bySubmissionId.get(submissionId);
+    if (!submission) continue;
+    const pizzaId = typeof row.pizza_id === "string" && row.pizza_id.trim() ? row.pizza_id.trim() : "";
+    const snapshot = typeof row.pizza_name_snapshot === "string" && row.pizza_name_snapshot.trim()
+      ? row.pizza_name_snapshot.trim()
+      : "";
+    const quantity = normalizePositiveInteger(row.quantity);
+    if (!pizzaId || !snapshot || !quantity) continue;
+    const item: PartyOrderSubmissionItem = {
+      pizza_id: pizzaId,
+      pizza_name_snapshot: snapshot,
+      quantity,
+    };
+    submission.items.push(item);
+    submission.totalQuantity += quantity;
+
+    const existing = pizzaMixById.get(pizzaId);
+    pizzaMixById.set(pizzaId, {
+      pizza_id: pizzaId,
+      pizza_name_snapshot: catalogNameById.get(pizzaId as PizzaSessionPizzaMixType) ?? existing?.pizza_name_snapshot ?? snapshot,
+      quantity: (existing?.quantity ?? 0) + quantity,
+    });
+  }
+
+  const guestOrders = submissions
+    .map((submission) => ({
+      ...submission,
+      items: submission.items.sort((a, b) => {
+        const aOrder = catalogOrder.get(a.pizza_id as PizzaSessionPizzaMixType) ?? Number.MAX_SAFE_INTEGER;
+        const bOrder = catalogOrder.get(b.pizza_id as PizzaSessionPizzaMixType) ?? Number.MAX_SAFE_INTEGER;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.pizza_name_snapshot.localeCompare(b.pizza_name_snapshot);
+      }),
+    }))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const pizzaMix = [...pizzaMixById.values()].sort((a, b) => {
+    const aOrder = catalogOrder.get(a.pizza_id as PizzaSessionPizzaMixType) ?? Number.MAX_SAFE_INTEGER;
+    const bOrder = catalogOrder.get(b.pizza_id as PizzaSessionPizzaMixType) ?? Number.MAX_SAFE_INTEGER;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return a.pizza_name_snapshot.localeCompare(b.pizza_name_snapshot);
+  });
+
+  return {
+    submissionCount: guestOrders.length,
+    totalPizzaCount: pizzaMix.reduce((total, item) => total + item.quantity, 0),
+    latestGuestNames: guestOrders.map((submission) => submission.guest_name).slice(0, 3),
+    pizzaMix,
+    guestOrders,
+  };
+}
+
+export function normalizePartyOrderActivity(value: unknown): PartyOrderActivity {
+  if (!isRecord(value)) return partyOrderEmptyActivity();
+  const guestOrders = Array.isArray(value.guestOrders)
+    ? value.guestOrders.flatMap((order) => {
+      if (!isRecord(order)) return [];
+      const id = typeof order.id === "string" ? order.id : "";
+      const guestName = typeof order.guest_name === "string" && order.guest_name.trim() ? order.guest_name.trim() : "";
+      const guestComment = typeof order.guest_comment === "string" && order.guest_comment.trim() ? order.guest_comment.trim() : null;
+      const createdAt = validDateTime(stringField(order, "created_at", "createdAt"));
+      const items = Array.isArray(order.items)
+        ? order.items.flatMap((item) => {
+          if (!isRecord(item)) return [];
+          const pizzaId = typeof item.pizza_id === "string" && item.pizza_id.trim() ? item.pizza_id.trim() : "";
+          const snapshot = typeof item.pizza_name_snapshot === "string" && item.pizza_name_snapshot.trim()
+            ? item.pizza_name_snapshot.trim()
+            : "";
+          const quantity = normalizePositiveInteger(item.quantity);
+          return pizzaId && snapshot && quantity ? [{ pizza_id: pizzaId, pizza_name_snapshot: snapshot, quantity }] : [];
+        })
+        : [];
+      if (!id || !guestName || !createdAt) return [];
+      return [{
+        id,
+        guest_name: guestName,
+        guest_comment: guestComment,
+        created_at: createdAt,
+        items,
+        totalQuantity: items.reduce((total, item) => total + item.quantity, 0),
+      }];
+    })
+    : [];
+
+  const pizzaMix = Array.isArray(value.pizzaMix)
+    ? value.pizzaMix.flatMap((item) => {
+      if (!isRecord(item)) return [];
+      const pizzaId = typeof item.pizza_id === "string" && item.pizza_id.trim() ? item.pizza_id.trim() : "";
+      const snapshot = typeof item.pizza_name_snapshot === "string" && item.pizza_name_snapshot.trim()
+        ? item.pizza_name_snapshot.trim()
+        : "";
+      const quantity = normalizePositiveInteger(item.quantity);
+      return pizzaId && snapshot && quantity ? [{ pizza_id: pizzaId, pizza_name_snapshot: snapshot, quantity }] : [];
+    })
+    : [];
+
+  const totalPizzaCount = typeof value.totalPizzaCount === "number" && Number.isFinite(value.totalPizzaCount)
+    ? value.totalPizzaCount
+    : pizzaMix.reduce((total, item) => total + item.quantity, 0);
+
+  return {
+    submissionCount: typeof value.submissionCount === "number" && Number.isFinite(value.submissionCount)
+      ? value.submissionCount
+      : guestOrders.length,
+    totalPizzaCount,
+    latestGuestNames: Array.isArray(value.latestGuestNames)
+      ? value.latestGuestNames.flatMap((name) => typeof name === "string" && name.trim() ? [name.trim()] : []).slice(0, 3)
+      : guestOrders.map((order) => order.guest_name).slice(0, 3),
+    pizzaMix,
+    guestOrders,
   };
 }
 

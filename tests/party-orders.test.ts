@@ -11,6 +11,7 @@ import {
   normalizePartyOrderRow,
   isPartyOrderOpen,
   partyOrderAllowedPizzaOptions,
+  summarizePartyOrderActivity,
   validatePublicPartyOrderSubmissionInput,
   validatePartyOrderInput,
 } from "@/lib/party-orders";
@@ -320,9 +321,9 @@ describe("Party Orders foundation", () => {
     expect(route).toContain("maybeSingle()");
     expect(route).toContain(".from(\"party_order_submissions\")");
     expect(route).toContain(".from(\"party_order_items\")");
-    expect(route).toContain("submissionCount");
-    expect(route).toContain("totalPizzaCount");
-    expect(route).toContain("latestGuestNames");
+    expect(route).toContain("guest_comment");
+    expect(route).toContain("pizza_name_snapshot");
+    expect(route).toContain("summarizePartyOrderActivity(submissions, itemRows)");
   });
 
   it("adds logged-in owner list, create, and detail pages", () => {
@@ -373,10 +374,46 @@ describe("Party Orders foundation", () => {
     const detail = source("components/account/PartyOrderDetail.tsx");
     expect(detail).toContain("Public guest link");
     expect(detail).toContain("/order/${event.public_token}");
-    expect(detail).toContain("Guest submissions:");
-    expect(detail).toContain("Total pizzas ordered:");
+    expect(detail).toContain("Guest orders:");
+    expect(detail).toContain("Total pizzas:");
+    expect(detail).toContain("Pizza mix");
+    expect(detail).toContain("Comment:");
+    expect(detail).toContain("Share the public guest link to start collecting pizza choices.");
     expect(detail).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
     expect(detail).toContain("Selected allowed pizzas");
+  });
+
+  it("summarizes owner party orders by pizza type and guest order details", () => {
+    const activity = summarizePartyOrderActivity([
+      { id: "submission-1", guest_name: "Anna", guest_comment: "No mushrooms", created_at: "2026-07-05T12:00:00.000Z" },
+      { id: "submission-2", guest_name: "Mikko", guest_comment: null, created_at: "2026-07-05T13:00:00.000Z" },
+      { id: "submission-3", guest_name: "Laura", guest_comment: "Less cheese if possible", created_at: "2026-07-05T14:00:00.000Z" },
+    ], [
+      { submission_id: "submission-1", pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
+      { submission_id: "submission-1", pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
+      { submission_id: "submission-2", pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 2 },
+      { submission_id: "submission-3", pizza_id: "quattro-formaggi", pizza_name_snapshot: "Four Cheese Snapshot", quantity: 1 },
+      { submission_id: "submission-3", pizza_id: "old-special", pizza_name_snapshot: "Old Special", quantity: 2 },
+    ]);
+
+    expect(activity.submissionCount).toBe(3);
+    expect(activity.totalPizzaCount).toBe(7);
+    expect(activity.pizzaMix).toEqual([
+      { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
+      { pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 3 },
+      { pizza_id: "quattro-formaggi", pizza_name_snapshot: "Quattro Formaggi", quantity: 1 },
+      { pizza_id: "old-special", pizza_name_snapshot: "Old Special", quantity: 2 },
+    ]);
+    expect(activity.guestOrders.map((order) => order.guest_name)).toEqual(["Laura", "Mikko", "Anna"]);
+    expect(activity.guestOrders[0]).toMatchObject({
+      guest_name: "Laura",
+      guest_comment: "Less cheese if possible",
+      totalQuantity: 3,
+    });
+    expect(activity.guestOrders[2].items).toEqual([
+      { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
+      { pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
+    ]);
   });
 
   it("adds a public guest order route by token with an order form", () => {
@@ -389,6 +426,8 @@ describe("Party Orders foundation", () => {
     expect(page).toContain("partyOrderAllowedPizzaOptions(event)");
     expect(page).toContain("PublicPartyOrderForm");
     expect(page).not.toContain("supabase.auth.getUser()");
+    expect(page).not.toContain("Guest orders");
+    expect(page).not.toContain("party_order_submissions");
 
     const form = source("components/party-orders/PublicPartyOrderForm.tsx");
     expect(form).toContain("Your name");
