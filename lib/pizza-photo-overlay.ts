@@ -18,7 +18,8 @@ export type PizzaPhotoOverlayModel = {
   brand: "DOUGHTOOLS";
   title: "PIZZA BAKE LOG";
   footer: "planned with doughtools.app";
-  tagline: "Plan your next bake";
+  ctaQuestion: "Want to make pizza like this?";
+  ctaAction: "Plan it with DoughTools";
   fields: PizzaPhotoOverlayField[];
 };
 
@@ -84,7 +85,8 @@ export function buildPizzaPhotoOverlayModel(row: CloudPizzaSessionRow): PizzaPho
     brand: "DOUGHTOOLS",
     title: "PIZZA BAKE LOG",
     footer: "planned with doughtools.app",
-    tagline: "Plan your next bake",
+    ctaQuestion: "Want to make pizza like this?",
+    ctaAction: "Plan it with DoughTools",
     fields,
   };
 }

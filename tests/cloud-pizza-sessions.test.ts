@@ -496,7 +496,8 @@ describe("cloud pizza session foundation", () => {
       brand: "DOUGHTOOLS",
       title: "PIZZA BAKE LOG",
       footer: "planned with doughtools.app",
-      tagline: "Plan your next bake",
+      ctaQuestion: "Want to make pizza like this?",
+      ctaAction: "Plan it with DoughTools",
       fields: [
         { label: "HYDRATION", value: "64%" },
         { label: "FERMENTATION", value: "48H COLD" },
@@ -910,6 +911,9 @@ describe("cloud pizza session foundation", () => {
     expect(PIZZA_PHOTO_OVERLAY_FILE_NAME).toBe("doughtools-pizza-bake.png");
     expect(overlayHelper).toContain("buildPizzaPhotoOverlayModel");
     expect(overlayHelper).toContain("cloudPizzaSessionDetailSummary(row)");
+    expect(overlayHelper).toContain("planned with doughtools.app");
+    expect(overlayHelper).toContain("Want to make pizza like this?");
+    expect(overlayHelper).toContain("Plan it with DoughTools");
     expect(overlayHelper).toContain("HYDRATION");
     expect(overlayHelper).toContain("FERMENTATION");
     expect(overlayHelper).toContain("FRIDGE");
@@ -921,9 +925,14 @@ describe("cloud pizza session foundation", () => {
     expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_SIZE");
     expect(overlayComponent).toContain("drawCoverImage");
     expect(overlayComponent).toContain("leftGradient");
-    expect(overlayComponent).toContain("panelWidth = 342");
+    expect(overlayComponent).toContain("panelWidth = 286");
+    expect(overlayComponent).toContain("panelHeight = 908");
+    expect(overlayComponent).toContain("rgba(9, 29, 23, 0.48)");
+    expect(overlayComponent).toContain("rgba(9, 41, 31, 0.18)");
     expect(overlayComponent).toContain("model.brand");
     expect(overlayComponent).toContain("model.title");
+    expect(overlayComponent).toContain("model.ctaQuestion");
+    expect(overlayComponent).toContain("model.ctaAction");
     expect(overlayComponent).not.toContain("cardY = 678");
     expect(overlayComponent).toContain("Preview share image");
     expect(overlayComponent).toContain("Download image");

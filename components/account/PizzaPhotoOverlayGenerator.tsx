@@ -63,79 +63,84 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   context.clearRect(0, 0, size, size);
   drawCoverImage(context, image, size);
 
-  const leftGradient = context.createLinearGradient(0, 0, 620, 0);
-  leftGradient.addColorStop(0, "rgba(9, 41, 31, 0.68)");
-  leftGradient.addColorStop(0.52, "rgba(9, 41, 31, 0.28)");
+  const leftGradient = context.createLinearGradient(0, 0, 420, 0);
+  leftGradient.addColorStop(0, "rgba(9, 41, 31, 0.18)");
+  leftGradient.addColorStop(0.55, "rgba(9, 41, 31, 0.07)");
   leftGradient.addColorStop(1, "rgba(9, 41, 31, 0)");
   context.fillStyle = leftGradient;
   context.fillRect(0, 0, size, size);
 
   const panelX = 44;
-  const panelY = 44;
-  const panelWidth = 342;
-  const panelHeight = 992;
+  const panelY = 58;
+  const panelWidth = 286;
+  const panelHeight = 908;
   roundedRect(context, panelX, panelY, panelWidth, panelHeight, 34);
-  context.fillStyle = "rgba(9, 29, 23, 0.68)";
+  context.fillStyle = "rgba(9, 29, 23, 0.48)";
   context.fill();
-  context.strokeStyle = "rgba(255, 248, 241, 0.22)";
+  context.strokeStyle = "rgba(255, 248, 241, 0.18)";
   context.lineWidth = 1.5;
   context.stroke();
 
   context.beginPath();
-  context.moveTo(panelX + 36, panelY + 164);
-  context.lineTo(panelX + panelWidth - 36, panelY + 164);
+  context.moveTo(panelX + 30, panelY + 164);
+  context.lineTo(panelX + panelWidth - 30, panelY + 164);
   context.strokeStyle = "rgba(59, 166, 107, 0.75)";
   context.lineWidth = 3;
   context.stroke();
 
-  drawText(context, model.brand, panelX + 36, panelY + 64, {
+  drawText(context, model.brand, panelX + 30, panelY + 58, {
     color: "#F9F1E7",
-    font: "900 30px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 72,
+    font: "900 25px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: panelWidth - 60,
   });
-  drawText(context, model.title, panelX + 36, panelY + 114, {
+  drawText(context, model.title, panelX + 30, panelY + 102, {
     color: "#3BA66B",
-    font: "900 38px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 72,
+    font: "900 30px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: panelWidth - 60,
   });
 
   const fields = model.fields.slice(0, 6);
-  const fieldTop = panelY + 238;
+  const fieldTop = panelY + 214;
   fields.forEach((field, index) => {
-    const x = panelX + 36;
-    const y = fieldTop + index * 104;
+    const x = panelX + 30;
+    const y = fieldTop + index * 88;
     context.beginPath();
     context.arc(x + 5, y - 8, 5, 0, Math.PI * 2);
     context.fillStyle = "#3BA66B";
     context.fill();
     drawText(context, field.label, x + 22, y, {
       color: "rgba(249, 241, 231, 0.62)",
-      font: "900 20px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      maxWidth: panelWidth - 72,
+      font: "900 17px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      maxWidth: panelWidth - 60,
     });
     drawText(context, field.value, x, y + 44, {
       color: "#FFF8F1",
-      font: "900 38px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      maxWidth: panelWidth - 72,
+      font: "900 32px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      maxWidth: panelWidth - 60,
     });
   });
 
   context.beginPath();
-  context.moveTo(panelX + 36, panelY + panelHeight - 124);
-  context.lineTo(panelX + panelWidth - 36, panelY + panelHeight - 124);
+  context.moveTo(panelX + 30, panelY + panelHeight - 158);
+  context.lineTo(panelX + panelWidth - 30, panelY + panelHeight - 158);
   context.strokeStyle = "rgba(255, 248, 241, 0.2)";
   context.lineWidth = 1.5;
   context.stroke();
 
-  drawText(context, model.footer, panelX + 36, panelY + panelHeight - 74, {
+  drawText(context, model.footer, panelX + 30, panelY + panelHeight - 112, {
     color: "#FFF8F1",
-    font: "800 23px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 72,
+    font: "800 18px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: panelWidth - 60,
   });
-  drawText(context, model.tagline, panelX + 36, panelY + panelHeight - 38, {
+  drawText(context, model.ctaQuestion, panelX + 30, panelY + panelHeight - 72, {
     color: "rgba(249, 241, 231, 0.62)",
-    font: "800 20px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 72,
+    font: "800 17px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: panelWidth - 60,
+  });
+  drawText(context, model.ctaAction, panelX + 30, panelY + panelHeight - 38, {
+    color: "#3BA66B",
+    font: "900 20px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: panelWidth - 60,
   });
 }
 
