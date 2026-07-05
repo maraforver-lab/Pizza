@@ -7,6 +7,15 @@ import {
   normalizeCloudPizzaSessionHistoryRow,
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
+import { migratePizzaSession } from "@/lib/pizza-session";
+import {
+  PIZZA_SESSION_PHOTO_ACCEPTED_TYPES,
+  PIZZA_SESSION_PHOTO_MAX_BYTES,
+  PIZZA_SESSION_PHOTO_SIZE_ERROR,
+  PIZZA_SESSION_PHOTO_TYPE_ERROR,
+  PIZZA_SESSION_PHOTO_UPLOAD_ERROR,
+  isAcceptedPizzaSessionPhotoType,
+} from "@/lib/pizza-session-photo";
 
 type CompletedPizzaSessionDetailProps = {
   sessionId: string;
@@ -16,6 +25,9 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   const [session, setSession] = useState<CloudPizzaSessionRow | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
+  const [photoMessage, setPhotoMessage] = useState("");
+  const [photoError, setPhotoError] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -74,6 +86,42 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   }
 
   const summary = cloudPizzaSessionDetailSummary(session);
+  const sessionData = migratePizzaSession(session.session_data);
+  const photo = sessionData?.photo;
+
+  const uploadPhoto = async (file: File | undefined) => {
+    setPhotoMessage("");
+    setPhotoError("");
+    if (!file) return;
+    if (!isAcceptedPizzaSessionPhotoType(file.type)) {
+      setPhotoError(PIZZA_SESSION_PHOTO_TYPE_ERROR);
+      return;
+    }
+    if (file.size > PIZZA_SESSION_PHOTO_MAX_BYTES) {
+      setPhotoError(PIZZA_SESSION_PHOTO_SIZE_ERROR);
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.set("photo", file);
+      const response = await fetch(`/api/pizza-sessions/history/${sessionId}/photo`, {
+        method: "POST",
+        body: formData,
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || PIZZA_SESSION_PHOTO_UPLOAD_ERROR);
+      const nextSession = normalizeCloudPizzaSessionHistoryRow(payload.session);
+      if (!nextSession) throw new Error(PIZZA_SESSION_PHOTO_UPLOAD_ERROR);
+      setSession(nextSession);
+      setPhotoMessage("Pizza photo saved");
+    } catch (caught) {
+      setPhotoError(caught instanceof Error ? caught.message : PIZZA_SESSION_PHOTO_UPLOAD_ERROR);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   return (
     <article className="rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7">
@@ -100,6 +148,46 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
         {summary.fermentationLine && (
           <p className="rounded-[1.15rem] bg-white/85 p-4 text-sm font-bold leading-6 text-ink/70">{summary.fermentationLine}</p>
         )}
+      </section>
+
+      <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-white p-4 sm:p-5" aria-labelledby="completed-session-photo-heading">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Pizza photo</p>
+            <h2 id="completed-session-photo-heading" className="mt-2 font-display text-3xl font-semibold">Pizza photo</h2>
+            {!photo?.url && (
+              <p className="mt-2 text-sm leading-6 text-ink/60">
+                Add a photo of your finished pizza to remember this bake.
+              </p>
+            )}
+          </div>
+          <label className="inline-flex min-h-11 w-fit cursor-pointer items-center justify-center rounded-2xl bg-tomato px-4 text-xs font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus-within:outline-none focus-within:ring-2 focus-within:ring-tomato focus-within:ring-offset-2 focus-within:ring-offset-cream">
+            {uploadingPhoto ? "Uploading…" : "Upload pizza photo"}
+            <input
+              type="file"
+              accept={PIZZA_SESSION_PHOTO_ACCEPTED_TYPES.join(",")}
+              className="sr-only"
+              disabled={uploadingPhoto}
+              onChange={(event) => {
+                uploadPhoto(event.currentTarget.files?.[0]);
+                event.currentTarget.value = "";
+              }}
+            />
+          </label>
+        </div>
+
+        {photo?.url && (
+          <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-ink/10 bg-cream/60">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photo.url}
+              alt="Finished pizza photo"
+              className="max-h-[36rem] w-full object-cover"
+            />
+          </div>
+        )}
+        {photoMessage && <p role="status" className="mt-3 text-sm font-extrabold text-leaf">{photoMessage}</p>}
+        {photoError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{photoError}</p>}
       </section>
 
       <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 sm:p-5" aria-labelledby="completed-session-review-heading">

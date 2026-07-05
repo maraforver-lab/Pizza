@@ -3,6 +3,7 @@ import {
   normalizeExperienceLevel,
   type ExperienceLevel,
 } from "@/lib/experience-levels";
+import { normalizePizzaSessionPhoto } from "@/lib/pizza-session-photo";
 import { normalizeSessionYeastType } from "@/lib/yeast-types";
 
 export const PIZZA_SESSION_SCHEMA_VERSION = 1;
@@ -101,6 +102,14 @@ export type PizzaSessionShoppingList = {
   }>;
 };
 
+export type PizzaSessionPhoto = {
+  path: string;
+  uploadedAt: string;
+  contentType: string;
+  size: number;
+  url?: string;
+};
+
 export type PizzaSession = {
   id: string;
   schemaVersion: typeof PIZZA_SESSION_SCHEMA_VERSION;
@@ -134,6 +143,7 @@ export type PizzaSession = {
   shoppingList?: PizzaSessionShoppingList;
   notes?: string;
   rating?: number;
+  photo?: PizzaSessionPhoto;
   review?: {
     whatWorked?: string;
     improveNextTime?: string;
@@ -387,6 +397,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     shoppingList: cloneShoppingList(input.shoppingList),
     notes: stringValue(input.notes),
     rating: numberValue(input.rating),
+    photo: normalizePizzaSessionPhoto(input.photo),
     review: cloneReview(input.review),
   };
 }

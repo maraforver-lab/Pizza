@@ -135,6 +135,20 @@ describe("cloud pizza session foundation", () => {
     expect(migration).toContain("auth.uid() = user_id");
   });
 
+  it("adds a private pizza session photos storage bucket with owner-only policies", () => {
+    const migration = source("supabase/migrations/20260705113000_create_pizza_session_photos_bucket.sql");
+
+    expect(migration).toContain("pizza-session-photos");
+    expect(migration).toContain("public = false");
+    expect(migration).toContain("file_size_limit = 5242880");
+    expect(migration).toContain("array['image/jpeg', 'image/png', 'image/webp']");
+    expect(migration).toContain("Users can read their own pizza session photos");
+    expect(migration).toContain("Users can upload their own pizza session photos");
+    expect(migration).toContain("Users can replace their own pizza session photos");
+    expect(migration).toContain("Users can delete their own pizza session photos");
+    expect(migration).toContain("auth.uid()::text = (storage.foldername(name))[1]");
+  });
+
   it("uses the signed-in Supabase user for save and fetch API access", () => {
     const route = source("app/api/pizza-sessions/active/route.ts");
 
@@ -393,6 +407,27 @@ describe("cloud pizza session foundation", () => {
     expect(detail.review.hasReview).toBe(true);
   });
 
+  it("preserves completed session photo metadata without requiring a public URL", () => {
+    const session = createPizzaSession({
+      id: "detail-photo-session",
+      status: "completed",
+      currentStep: "review",
+      photo: {
+        path: "user-1/row-detail-photo/photo.webp",
+        uploadedAt: "2026-07-04T12:00:00.000Z",
+        contentType: "image/webp",
+        size: 123456,
+      },
+    });
+
+    expect(session.photo).toMatchObject({
+      path: "user-1/row-detail-photo/photo.webp",
+      uploadedAt: "2026-07-04T12:00:00.000Z",
+      contentType: "image/webp",
+      size: 123456,
+    });
+  });
+
   it("sends completed review data to the existing cloud session row", async () => {
     const storage = new MemoryStorage();
     const completed = createPizzaSession({
@@ -585,9 +620,11 @@ describe("cloud pizza session foundation", () => {
     const accountPage = source("app/account/page.tsx");
     const historyRoute = source("app/api/pizza-sessions/history/route.ts");
     const detailRoute = source("app/api/pizza-sessions/history/[id]/route.ts");
+    const photoRoute = source("app/api/pizza-sessions/history/[id]/photo/route.ts");
     const historyComponent = source("components/account/AccountPizzaSessionHistory.tsx");
     const detailPage = source("app/account/pizza-sessions/[id]/page.tsx");
     const detailComponent = source("components/account/CompletedPizzaSessionDetail.tsx");
+    const photoHelper = source("lib/pizza-session-photo.ts");
 
     expect(accountPage).toContain("AccountPizzaSessionHistory");
     expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
@@ -612,14 +649,37 @@ describe("cloud pizza session foundation", () => {
     expect(detailRoute).toContain(".eq(\"id\", id)");
     expect(detailRoute).toContain(".eq(\"user_id\", user.id)");
     expect(detailRoute).toContain(".eq(\"status\", \"completed\")");
-    expect(detailRoute).toContain("normalizeCloudPizzaSessionHistoryRow(data)");
+    expect(detailRoute).toContain("normalizeCloudPizzaSessionHistoryRow(await withSignedPizzaPhotoUrl(data, supabase))");
+    expect(detailRoute).toContain("createSignedUrl(session.photo.path");
     expect(detailPage).toContain("CompletedPizzaSessionDetail");
     expect(detailComponent).toContain("fetch(`/api/pizza-sessions/history/${sessionId}`");
     expect(detailComponent).toContain("cloudPizzaSessionDetailSummary(session)");
+    expect(detailComponent).toContain("Pizza photo");
+    expect(detailComponent).toContain("Add a photo of your finished pizza to remember this bake.");
+    expect(detailComponent).toContain("Upload pizza photo");
+    expect(detailComponent).toContain("Pizza photo saved");
+    expect(detailComponent).toContain("Finished pizza photo");
     expect(detailComponent).toContain("Review notes");
     expect(detailComponent).toContain("What happened");
     expect(detailComponent).toContain("summary.review.ratingLine");
     expect(detailComponent).toContain("summary.review.notes.map");
     expect(detailComponent).toContain("No review notes were saved for this session.");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_BUCKET = \"pizza-session-photos\"");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MAX_BYTES = 5 * 1024 * 1024");
+    expect(photoHelper).toContain("Please upload a JPG, PNG or WebP image.");
+    expect(photoHelper).toContain("Please upload an image under 5 MB.");
+    expect(photoRoute).toContain("supabase.auth.getUser()");
+    expect(photoRoute).toContain(".eq(\"id\", id)");
+    expect(photoRoute).toContain(".eq(\"user_id\", user.id)");
+    expect(photoRoute).toContain(".eq(\"status\", \"completed\")");
+    expect(photoRoute).toContain("formData.get(\"photo\")");
+    expect(photoRoute).toContain("file instanceof File");
+    expect(photoRoute).toContain("isAcceptedPizzaSessionPhotoType(file.type)");
+    expect(photoRoute).toContain("file.size > PIZZA_SESSION_PHOTO_MAX_BYTES");
+    expect(photoRoute).toContain(".from(PIZZA_SESSION_PHOTO_BUCKET)");
+    expect(photoRoute).toContain(".upload(path, file");
+    expect(photoRoute).toContain("session_data: sessionWithPhoto");
+    expect(photoRoute).toContain("oldPhotoPath && oldPhotoPath !== path");
+    expect(photoRoute).toContain(".remove([oldPhotoPath])");
   });
 });

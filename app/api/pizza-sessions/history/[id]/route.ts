@@ -3,7 +3,32 @@ import {
   CLOUD_PIZZA_SESSION_SELECT,
   normalizeCloudPizzaSessionHistoryRow,
 } from "@/lib/cloud-pizza-sessions";
+import { migratePizzaSession } from "@/lib/pizza-session";
+import { PIZZA_SESSION_PHOTO_BUCKET } from "@/lib/pizza-session-photo";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+
+async function withSignedPizzaPhotoUrl(row: unknown, supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) return row;
+  const record = row as Record<string, unknown>;
+  const session = migratePizzaSession(record.session_data ?? record.sessionData);
+  if (!session?.photo?.path) return row;
+
+  const { data } = await supabase.storage
+    .from(PIZZA_SESSION_PHOTO_BUCKET)
+    .createSignedUrl(session.photo.path, 60 * 60);
+  if (!data?.signedUrl) return row;
+
+  return {
+    ...record,
+    session_data: {
+      ...session,
+      photo: {
+        ...session.photo,
+        url: data.signedUrl,
+      },
+    },
+  };
+}
 
 export async function GET(
   _request: Request,
@@ -26,7 +51,7 @@ export async function GET(
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  const session = normalizeCloudPizzaSessionHistoryRow(data);
+  const session = normalizeCloudPizzaSessionHistoryRow(await withSignedPizzaPhotoUrl(data, supabase));
   if (!session) return NextResponse.json({ session: null }, { status: 404 });
 
   return NextResponse.json({ session });
