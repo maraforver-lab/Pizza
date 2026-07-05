@@ -569,6 +569,79 @@ describe("cloud pizza session foundation", () => {
     ]);
   });
 
+  it("shows overlay flour W when a stored used W range exists", () => {
+    const session = createPizzaSession({
+      id: "overlay-stored-w-session",
+      status: "completed",
+      currentStep: "review",
+      plannedFermentationHours: 72,
+      fermentationTemperatureCOverride: 4,
+      flourSituation: "recommend",
+      recipeSnapshot: {
+        hydration: 65,
+        fermentation: "12h-room",
+      },
+      photo: {
+        path: "user-1/row-overlay-stored-w/photo.webp",
+        url: "https://example.test/stored-w.webp",
+        uploadedAt: "2026-07-04T12:00:00.000Z",
+        contentType: "image/webp",
+        size: 123456,
+      },
+    });
+
+    const model = buildPizzaPhotoOverlayModel({
+      id: "row-overlay-stored-w",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: {
+        ...session,
+        usedFlourWRanges: ["w_300_340"],
+      },
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    });
+
+    expect(model?.fields.find((field) => field.label === "FLOUR W")?.value).toBe("300–340");
+  });
+
+  it("shows overlay flour W from the followed system recommendation", () => {
+    const history = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-overlay-recommended-w",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "overlay-recommended-w-session",
+        status: "completed",
+        currentStep: "review",
+        plannedFermentationHours: 48,
+        fermentationTemperatureCOverride: 4,
+        flourSituation: "recommend",
+        recipeSnapshot: {
+          hydration: 65,
+          fermentation: "12h-room",
+        },
+        photo: {
+          path: "user-1/row-overlay-recommended-w/photo.webp",
+          url: "https://example.test/recommended-w.webp",
+          uploadedAt: "2026-07-04T12:00:00.000Z",
+          contentType: "image/webp",
+          size: 123456,
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    expect(buildPizzaPhotoOverlayModel(history)?.fields.find((field) => field.label === "FLOUR W")?.value).toBe("260–300");
+  });
+
   it("omits optional overlay flour W and bake time when session data cannot determine them", () => {
     const history = normalizeCloudPizzaSessionHistoryRow({
       id: "row-overlay-optional-fields",
@@ -581,7 +654,6 @@ describe("cloud pizza session foundation", () => {
         status: "completed",
         currentStep: "review",
         ovenType: "pan",
-        flourSituation: "recommend",
         recipeSnapshot: {
           hydration: 63,
           fermentation: "12h-room",
@@ -1263,7 +1335,8 @@ describe("cloud pizza session foundation", () => {
     expect(overlayComponent).toContain("model.fields.slice(0, 5)");
     expect(overlayComponent).toContain("fieldGap = 76");
     expect(overlayComponent).toContain("panelHeight = 156 + fields.length * fieldGap");
-    expect(overlayComponent).toContain("rgba(8, 24, 20, 0.68)");
+    expect(overlayComponent).toContain("rgba(8, 24, 20, 0.52)");
+    expect(overlayComponent).toContain("rgba(8, 24, 20, 0.48)");
     expect(overlayComponent).toContain("rgba(59, 166, 107, 0.42)");
     expect(overlayComponent).toContain("model.brand");
     expect(overlayComponent).toContain("model.title");

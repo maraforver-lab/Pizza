@@ -99,8 +99,8 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   drawCoverImage(context, image, size);
 
   const cornerGradient = context.createRadialGradient(0, 0, 40, 0, 0, 580);
-  cornerGradient.addColorStop(0, "rgba(9, 29, 23, 0.34)");
-  cornerGradient.addColorStop(0.52, "rgba(9, 29, 23, 0.12)");
+  cornerGradient.addColorStop(0, "rgba(9, 29, 23, 0.24)");
+  cornerGradient.addColorStop(0.52, "rgba(9, 29, 23, 0.08)");
   cornerGradient.addColorStop(1, "rgba(9, 29, 23, 0)");
   context.fillStyle = cornerGradient;
   context.fillRect(0, 0, size, size);
@@ -112,7 +112,7 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   const fieldGap = 76;
   const panelHeight = 156 + fields.length * fieldGap;
   roundedRect(context, panelX, panelY, panelWidth, panelHeight, 34);
-  context.fillStyle = "rgba(8, 24, 20, 0.68)";
+  context.fillStyle = "rgba(8, 24, 20, 0.52)";
   context.fill();
   context.strokeStyle = "rgba(59, 166, 107, 0.42)";
   context.lineWidth = 2;
@@ -161,7 +161,7 @@ function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlay
   const footerWidth = 972;
   const footerHeight = 172;
   roundedRect(context, footerX, footerY, footerWidth, footerHeight, 30);
-  context.fillStyle = "rgba(8, 24, 20, 0.64)";
+  context.fillStyle = "rgba(8, 24, 20, 0.48)";
   context.fill();
   context.strokeStyle = "rgba(59, 166, 107, 0.36)";
   context.lineWidth = 2;
