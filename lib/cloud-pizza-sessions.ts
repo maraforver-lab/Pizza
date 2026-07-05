@@ -107,7 +107,7 @@ export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Da
       statusLine: `In progress · ${cloudPizzaSessionUpdatedLabel(row.updated_at, now)}`,
       doughLine: "Dough plan not complete",
       bakeLine: "Bake time not set",
-      stepLine: "Current step: Setup",
+      stepLine: "Current step not set",
     };
   }
   return {

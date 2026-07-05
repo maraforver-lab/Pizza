@@ -8,12 +8,11 @@ import {
   normalizeCloudPizzaSessionRow,
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
+import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
 import { pizzaSessionContinueHref, type PizzaSession } from "@/lib/pizza-session";
 import {
   getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
-  savePizzaSession,
-  setActivePizzaSession,
 } from "@/lib/pizza-session-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -79,8 +78,8 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
 
   const continueCloudSession = () => {
     if (!cloudSession) return;
-    const restored = savePizzaSession(cloudSession.session_data as PizzaSession);
-    setActivePizzaSession(restored.id);
+    const restored = restoreCloudPizzaSessionToLocal(cloudSession);
+    if (!restored) return;
     router.push(pizzaSessionContinueHref(restored));
   };
 

@@ -96,6 +96,7 @@ describe("cloud pizza session foundation", () => {
 
   it("shows a cloud Active Pizza Session card without breaking local continuation", () => {
     const continueCard = source("components/ContinuePizzaSessionCard.tsx");
+    const restore = source("lib/cloud-pizza-session-restore.ts");
 
     expect(continueCard).toContain("const localSession = getActivePizzaSession() ?? null");
     expect(continueCard).toContain("if (localSession)");
@@ -103,8 +104,31 @@ describe("cloud pizza session foundation", () => {
     expect(continueCard).toContain("Active pizza session");
     expect(continueCard).toContain("summary.statusLine");
     expect(continueCard).toContain("Continue Pizza Session");
-    expect(continueCard).toContain("savePizzaSession(cloudSession.session_data as PizzaSession)");
-    expect(continueCard).toContain("setActivePizzaSession(restored.id)");
+    expect(continueCard).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
+    expect(restore).toContain("savePizzaSession(session)");
+    expect(restore).toContain("setActivePizzaSession(restored.id)");
     expect(continueCard).toContain("router.push(pizzaSessionContinueHref(restored))");
+  });
+
+  it("shows saved active sessions on the Account page with an empty state", () => {
+    const accountPage = source("app/account/page.tsx");
+    const accountCard = source("components/account/AccountActivePizzaSessionCard.tsx");
+
+    expect(accountPage).toContain("AccountActivePizzaSessionCard");
+    expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled={Boolean(user)} />");
+    expect(accountCard).toContain("fetch(\"/api/pizza-sessions/active\"");
+    expect(accountCard).toContain("summary.title");
+    expect(accountCard).toContain("summary.statusLine");
+    expect(accountCard).toContain("summary.doughLine");
+    expect(accountCard).toContain("summary.bakeLine");
+    expect(accountCard).toContain("summary.stepLine");
+    expect(accountCard).toContain("Continue Pizza Session");
+    expect(accountCard).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
+    expect(accountCard).toContain("router.push(pizzaSessionContinueHref(restored))");
+    expect(accountCard).toContain("No active pizza session");
+    expect(accountCard).toContain("Start a new Pizza Session and save it to your account to continue later.");
+    expect(accountCard).toContain("Start Pizza Session");
+    expect(accountCard).toContain('href="/session/start"');
+    expect(accountCard).toContain("if (!enabled) return null");
   });
 });
