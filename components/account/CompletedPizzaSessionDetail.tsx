@@ -116,6 +116,8 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
       formData.set("optimizedSize", String(optimizedPhoto.optimizedSize));
       formData.set("width", String(optimizedPhoto.width));
       formData.set("height", String(optimizedPhoto.height));
+      formData.set("compressionQuality", String(optimizedPhoto.compressionQuality));
+      formData.set("maxDimensionUsed", String(optimizedPhoto.maxDimensionUsed));
       const response = await fetch(`/api/pizza-sessions/history/${sessionId}/photo`, {
         method: "POST",
         body: formData,

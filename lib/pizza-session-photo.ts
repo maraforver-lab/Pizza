@@ -4,13 +4,19 @@ export const PIZZA_SESSION_PHOTO_BUCKET = "pizza-session-photos";
 export const PIZZA_SESSION_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 export const PIZZA_SESSION_PHOTO_ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export const PIZZA_SESSION_PHOTO_OUTPUT_TYPE = "image/webp";
-export const PIZZA_SESSION_PHOTO_MAX_DIMENSION = 1600;
-export const PIZZA_SESSION_PHOTO_WEBP_QUALITY = 0.82;
+export const PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES = 800 * 1024;
+export const PIZZA_SESSION_PHOTO_MAX_DIMENSION = 1200;
+export const PIZZA_SESSION_PHOTO_MIN_DIMENSION = 800;
+export const PIZZA_SESSION_PHOTO_WEBP_QUALITY = 0.70;
+export const PIZZA_SESSION_PHOTO_MIN_WEBP_QUALITY = 0.50;
+export const PIZZA_SESSION_PHOTO_DIMENSION_STEPS = [1200, 1000, 900, 800] as const;
+export const PIZZA_SESSION_PHOTO_QUALITY_STEPS = [0.70, 0.65, 0.60, 0.55, 0.50] as const;
 
 export const PIZZA_SESSION_PHOTO_TYPE_ERROR = "Please upload a JPG, PNG or WebP image.";
 export const PIZZA_SESSION_PHOTO_SIZE_ERROR = "Please upload an image under 5 MB.";
 export const PIZZA_SESSION_PHOTO_UPLOAD_ERROR = "Could not upload pizza photo. Please try again.";
 export const PIZZA_SESSION_PHOTO_PROCESS_ERROR = "Could not process pizza photo. Please try another image.";
+export const PIZZA_SESSION_PHOTO_COMPRESS_ERROR = "Could not compress pizza photo enough. Please try a smaller image.";
 
 const extensionByContentType: Record<(typeof PIZZA_SESSION_PHOTO_ACCEPTED_TYPES)[number], string> = {
   "image/jpeg": "jpg",
@@ -55,6 +61,8 @@ export function normalizePizzaSessionPhoto(value: unknown): PizzaSessionPhoto | 
     optimizedSize: finitePositivePhotoNumber(record.optimizedSize),
     width: finitePositivePhotoNumber(record.width),
     height: finitePositivePhotoNumber(record.height),
+    compressionQuality: finitePositivePhotoNumber(record.compressionQuality),
+    maxDimensionUsed: finitePositivePhotoNumber(record.maxDimensionUsed),
     url: typeof record.url === "string" && record.url.trim() ? record.url.trim() : undefined,
   };
 }

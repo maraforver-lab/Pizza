@@ -113,6 +113,8 @@ export type PizzaSessionPhoto = {
   optimizedSize?: number;
   width?: number;
   height?: number;
+  compressionQuality?: number;
+  maxDimensionUsed?: number;
   url?: string;
 };
 

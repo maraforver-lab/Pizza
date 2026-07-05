@@ -7,6 +7,8 @@ import { createPizzaSession, migratePizzaSession, type PizzaSessionPhoto } from 
 import {
   isAcceptedPizzaSessionPhotoType,
   PIZZA_SESSION_PHOTO_BUCKET,
+  PIZZA_SESSION_PHOTO_COMPRESS_ERROR,
+  PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES,
   PIZZA_SESSION_PHOTO_MAX_BYTES,
   PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
   PIZZA_SESSION_PHOTO_SIZE_ERROR,
@@ -91,6 +93,10 @@ export async function POST(
   if (originalSize > PIZZA_SESSION_PHOTO_MAX_BYTES || file.size > PIZZA_SESSION_PHOTO_MAX_BYTES) {
     return NextResponse.json({ error: PIZZA_SESSION_PHOTO_SIZE_ERROR }, { status: 400 });
   }
+  const optimizedSize = formPositiveNumber(formData, "optimizedSize") ?? file.size;
+  if (file.size > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES || optimizedSize > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES) {
+    return NextResponse.json({ error: PIZZA_SESSION_PHOTO_COMPRESS_ERROR }, { status: 400 });
+  }
 
   const { data: existing, error: existingError } = await supabase
     .from("pizza_sessions")
@@ -124,9 +130,11 @@ export async function POST(
     originalFileName: formText(formData, "originalFileName"),
     originalContentType,
     originalSize,
-    optimizedSize: formPositiveNumber(formData, "optimizedSize") ?? file.size,
+    optimizedSize,
     width: formPositiveNumber(formData, "width"),
     height: formPositiveNumber(formData, "height"),
+    compressionQuality: formPositiveNumber(formData, "compressionQuality"),
+    maxDimensionUsed: formPositiveNumber(formData, "maxDimensionUsed"),
   };
   const sessionWithPhoto = createPizzaSession({
     ...existingSession,
