@@ -334,6 +334,23 @@ describe("Party Orders foundation", () => {
     expect(source("app/account/party-orders/[id]/page.tsx")).toContain("redirect(\"/account\")");
   });
 
+  it("adds a signed-in Account page entry card for Party Orders discovery", () => {
+    const accountPage = source("app/account/page.tsx");
+    const card = source("components/account/PartyOrdersAccountEntryCard.tsx");
+
+    expect(accountPage).toContain("PartyOrdersAccountEntryCard");
+    expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled={Boolean(user)} />");
+    expect(accountPage).toContain("<PartyOrdersAccountEntryCard enabled={Boolean(user)} />");
+    expect(card).toContain("if (!enabled) return null");
+    expect(card).toContain("PIZZA PARTY ORDERS");
+    expect(card).toContain("Collect pizza orders from guests");
+    expect(card).toContain("Create a party order link, choose which DoughTools pizzas guests can order");
+    expect(card).toContain("href=\"/account/party-orders\"");
+    expect(card).toContain("Open Party Orders →");
+    expect(card).toContain("href=\"/account/party-orders/new\"");
+    expect(card).toContain("Create party order →");
+  });
+
   it("renders the owner create form with event details and shared pizza options", () => {
     const form = source("components/account/PartyOrderCreateForm.tsx");
     expect(form).toContain("Event title");

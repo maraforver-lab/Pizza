@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import AppSignature from "@/components/AppSignature";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
+import { PartyOrdersAccountEntryCard } from "@/components/account/PartyOrdersAccountEntryCard";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -73,6 +74,7 @@ export default function AccountPage() {
       </section>
     </section>
     <AccountActivePizzaSessionCard enabled={Boolean(user)} />
+    <PartyOrdersAccountEntryCard enabled={Boolean(user)} />
     <AccountPizzaSessionHistory enabled={Boolean(user)} />
     <InstallAppPrompt className="mt-8" />
     <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
