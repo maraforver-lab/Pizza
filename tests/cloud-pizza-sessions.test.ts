@@ -12,6 +12,7 @@ import {
 } from "@/lib/cloud-pizza-session-client";
 import {
   cloudPizzaSessionCompletedLabel,
+  cloudPizzaSessionDetailSummary,
   cloudPizzaSessionDoughSummary,
   cloudPizzaSessionHistorySummary,
   cloudPizzaSessionPayload,
@@ -356,6 +357,42 @@ describe("cloud pizza session foundation", () => {
     expect(emptyNotes.reviewLine).toBeUndefined();
   });
 
+  it("builds completed session detail review notes from saved review fields", () => {
+    const history = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-detail-review",
+      user_id: "user-1",
+      status: "completed",
+      title: "Active pizza session",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "detail-review-session",
+        status: "completed",
+        currentStep: "review",
+        rating: 4,
+        notes: "Crust had good color.",
+        review: {
+          whatWorked: "Long preheat helped.",
+          improveNextTime: "Use less sauce.",
+          nextTimeTry: "Try 48h cold fermentation.",
+        },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    const detail = cloudPizzaSessionDetailSummary(history, new Date("2026-07-04T12:00:00.000Z"));
+
+    expect(detail.review.ratingLine).toBe("Rating: 4/5");
+    expect(detail.review.notes).toEqual([
+      { label: "General notes", value: "Crust had good color." },
+      { label: "What worked", value: "Long preheat helped." },
+      { label: "Improve next time", value: "Use less sauce." },
+      { label: "Next time try", value: "Try 48h cold fermentation." },
+    ]);
+    expect(detail.review.hasReview).toBe(true);
+  });
+
   it("sends completed review data to the existing cloud session row", async () => {
     const storage = new MemoryStorage();
     const completed = createPizzaSession({
@@ -547,7 +584,10 @@ describe("cloud pizza session foundation", () => {
   it("shows completed Pizza Session history on the Account page", () => {
     const accountPage = source("app/account/page.tsx");
     const historyRoute = source("app/api/pizza-sessions/history/route.ts");
+    const detailRoute = source("app/api/pizza-sessions/history/[id]/route.ts");
     const historyComponent = source("components/account/AccountPizzaSessionHistory.tsx");
+    const detailPage = source("app/account/pizza-sessions/[id]/page.tsx");
+    const detailComponent = source("components/account/CompletedPizzaSessionDetail.tsx");
 
     expect(accountPage).toContain("AccountPizzaSessionHistory");
     expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
@@ -564,8 +604,22 @@ describe("cloud pizza session foundation", () => {
     expect(historyComponent).toContain("summary.fermentationLine");
     expect(historyComponent).toContain("summary.reviewLine");
     expect(historyComponent).toContain("summary.bakeLine");
+    expect(historyComponent).toContain("View session");
+    expect(historyComponent).toContain("href={`/account/pizza-sessions/${session.id}`}");
     expect(historyComponent).toContain("No completed pizza sessions yet");
     expect(historyComponent).toContain("Finish a Pizza Session to save it here.");
     expect(historyComponent).toContain("if (!enabled) return null");
+    expect(detailRoute).toContain(".eq(\"id\", id)");
+    expect(detailRoute).toContain(".eq(\"user_id\", user.id)");
+    expect(detailRoute).toContain(".eq(\"status\", \"completed\")");
+    expect(detailRoute).toContain("normalizeCloudPizzaSessionHistoryRow(data)");
+    expect(detailPage).toContain("CompletedPizzaSessionDetail");
+    expect(detailComponent).toContain("fetch(`/api/pizza-sessions/history/${sessionId}`");
+    expect(detailComponent).toContain("cloudPizzaSessionDetailSummary(session)");
+    expect(detailComponent).toContain("Review notes");
+    expect(detailComponent).toContain("What happened");
+    expect(detailComponent).toContain("summary.review.ratingLine");
+    expect(detailComponent).toContain("summary.review.notes.map");
+    expect(detailComponent).toContain("No review notes were saved for this session.");
   });
 });

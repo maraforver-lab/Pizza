@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   cloudPizzaSessionHistorySummary,
@@ -100,6 +101,12 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
                   {summary.reviewLine && <p>{summary.reviewLine}</p>}
                   <p>{summary.bakeLine}</p>
                 </div>
+                <Link
+                  href={`/account/pizza-sessions/${session.id}`}
+                  className="mt-4 inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                >
+                  View session
+                </Link>
               </article>
             );
           })}

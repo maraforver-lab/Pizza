@@ -106,6 +106,27 @@ function cloudPizzaSessionReviewSummary(session: PizzaSession) {
   return undefined;
 }
 
+export function cloudPizzaSessionReviewDetails(session: PizzaSession) {
+  const ratingLine = typeof session.rating === "number" && Number.isFinite(session.rating)
+    ? `Rating: ${session.rating}/5`
+    : undefined;
+  const notes = [
+    { label: "General notes", value: session.notes },
+    { label: "What worked", value: session.review?.whatWorked },
+    { label: "Improve next time", value: session.review?.improveNextTime },
+    { label: "Next time try", value: session.review?.nextTimeTry },
+  ].flatMap((item) => {
+    const value = typeof item.value === "string" ? item.value.trim() : "";
+    return value ? [{ label: item.label, value }] : [];
+  });
+
+  return {
+    ratingLine,
+    notes,
+    hasReview: Boolean(ratingLine || notes.length > 0),
+  };
+}
+
 export function normalizeCloudPizzaSessionRow(value: unknown): CloudPizzaSessionRow | undefined {
   return normalizeCloudPizzaSessionRowForStatus(value, "in_progress");
 }
@@ -255,5 +276,18 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
       : undefined,
     fermentationLine,
     reviewLine,
+  };
+}
+
+export function cloudPizzaSessionDetailSummary(row: CloudPizzaSessionRow, now = new Date()) {
+  const summary = cloudPizzaSessionHistorySummary(row, now);
+  const session = migratePizzaSession(row.session_data);
+  return {
+    ...summary,
+    review: session ? cloudPizzaSessionReviewDetails(session) : {
+      ratingLine: undefined,
+      notes: [],
+      hasReview: false,
+    },
   };
 }
