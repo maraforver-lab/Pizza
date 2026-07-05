@@ -14,9 +14,9 @@ import {
   PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
   PIZZA_SESSION_PHOTO_PROCESS_ERROR,
   PIZZA_SESSION_PHOTO_SIZE_ERROR,
-  PIZZA_SESSION_PHOTO_TYPE_ERROR,
   PIZZA_SESSION_PHOTO_UPLOAD_ERROR,
   isAcceptedPizzaSessionPhotoType,
+  pizzaSessionPhotoTypeErrorFor,
 } from "@/lib/pizza-session-photo";
 import { optimizePizzaSessionPhotoForUpload } from "@/lib/pizza-session-photo-optimizer";
 
@@ -97,7 +97,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
     setPhotoError("");
     if (!file) return;
     if (!isAcceptedPizzaSessionPhotoType(file.type)) {
-      setPhotoError(PIZZA_SESSION_PHOTO_TYPE_ERROR);
+      setPhotoError(pizzaSessionPhotoTypeErrorFor(file));
       return;
     }
     if (file.size > PIZZA_SESSION_PHOTO_MAX_BYTES) {

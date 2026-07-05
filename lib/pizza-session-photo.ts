@@ -6,17 +6,18 @@ export const PIZZA_SESSION_PHOTO_ACCEPTED_TYPES = ["image/jpeg", "image/png", "i
 export const PIZZA_SESSION_PHOTO_OUTPUT_TYPE = "image/webp";
 export const PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES = 800 * 1024;
 export const PIZZA_SESSION_PHOTO_MAX_DIMENSION = 1200;
-export const PIZZA_SESSION_PHOTO_MIN_DIMENSION = 800;
+export const PIZZA_SESSION_PHOTO_MIN_DIMENSION = 600;
 export const PIZZA_SESSION_PHOTO_WEBP_QUALITY = 0.70;
-export const PIZZA_SESSION_PHOTO_MIN_WEBP_QUALITY = 0.50;
-export const PIZZA_SESSION_PHOTO_DIMENSION_STEPS = [1200, 1000, 900, 800] as const;
-export const PIZZA_SESSION_PHOTO_QUALITY_STEPS = [0.70, 0.65, 0.60, 0.55, 0.50] as const;
+export const PIZZA_SESSION_PHOTO_MIN_WEBP_QUALITY = 0.40;
+export const PIZZA_SESSION_PHOTO_DIMENSION_STEPS = [1200, 1000, 900, 800, 700, 600] as const;
+export const PIZZA_SESSION_PHOTO_QUALITY_STEPS = [0.70, 0.65, 0.60, 0.55, 0.50, 0.45, 0.40] as const;
 
 export const PIZZA_SESSION_PHOTO_TYPE_ERROR = "Please upload a JPG, PNG or WebP image.";
-export const PIZZA_SESSION_PHOTO_SIZE_ERROR = "Please upload an image under 5 MB.";
+export const PIZZA_SESSION_PHOTO_SIZE_ERROR = "Please choose a photo under 5 MB, or reduce the photo size before uploading.";
 export const PIZZA_SESSION_PHOTO_UPLOAD_ERROR = "Could not upload pizza photo. Please try again.";
-export const PIZZA_SESSION_PHOTO_PROCESS_ERROR = "Could not process pizza photo. Please try another image.";
+export const PIZZA_SESSION_PHOTO_PROCESS_ERROR = "Could not process this photo. Please try a JPG version or a smaller image.";
 export const PIZZA_SESSION_PHOTO_COMPRESS_ERROR = "Could not compress pizza photo enough. Please try a smaller image.";
+export const PIZZA_SESSION_PHOTO_HEIC_ERROR = "Please upload a JPG, PNG or WebP image. iPhone HEIC photos are not supported yet.";
 
 const extensionByContentType: Record<(typeof PIZZA_SESSION_PHOTO_ACCEPTED_TYPES)[number], string> = {
   "image/jpeg": "jpg",
@@ -26,6 +27,20 @@ const extensionByContentType: Record<(typeof PIZZA_SESSION_PHOTO_ACCEPTED_TYPES)
 
 export function isAcceptedPizzaSessionPhotoType(value: string): value is (typeof PIZZA_SESSION_PHOTO_ACCEPTED_TYPES)[number] {
   return PIZZA_SESSION_PHOTO_ACCEPTED_TYPES.includes(value as (typeof PIZZA_SESSION_PHOTO_ACCEPTED_TYPES)[number]);
+}
+
+export function isUnsupportedHeicPizzaSessionPhoto(file: Pick<File, "name" | "type">) {
+  const type = file.type.toLowerCase();
+  const name = file.name.toLowerCase();
+  return type === "image/heic"
+    || type === "image/heif"
+    || name.endsWith(".heic")
+    || name.endsWith(".heif");
+}
+
+export function pizzaSessionPhotoTypeErrorFor(file: Pick<File, "name" | "type">) {
+  if (isUnsupportedHeicPizzaSessionPhoto(file)) return PIZZA_SESSION_PHOTO_HEIC_ERROR;
+  return PIZZA_SESSION_PHOTO_TYPE_ERROR;
 }
 
 export function pizzaSessionPhotoExtension(contentType: string) {

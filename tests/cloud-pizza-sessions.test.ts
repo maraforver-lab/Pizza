@@ -23,6 +23,12 @@ import {
   sortCloudPizzaSessionHistoryRows,
 } from "@/lib/cloud-pizza-sessions";
 import { createPizzaSession } from "@/lib/pizza-session";
+import {
+  PIZZA_SESSION_PHOTO_HEIC_ERROR,
+  PIZZA_SESSION_PHOTO_TYPE_ERROR,
+  isUnsupportedHeicPizzaSessionPhoto,
+  pizzaSessionPhotoTypeErrorFor,
+} from "@/lib/pizza-session-photo";
 import { MemoryStorage } from "./helpers";
 
 function source(path: string) {
@@ -444,6 +450,16 @@ describe("cloud pizza session foundation", () => {
     });
   });
 
+  it("detects unsupported iPhone HEIC and HEIF photo inputs", () => {
+    expect(isUnsupportedHeicPizzaSessionPhoto({ name: "pizza.heic", type: "" })).toBe(true);
+    expect(isUnsupportedHeicPizzaSessionPhoto({ name: "pizza.HEIF", type: "" })).toBe(true);
+    expect(isUnsupportedHeicPizzaSessionPhoto({ name: "pizza", type: "image/heic" })).toBe(true);
+    expect(isUnsupportedHeicPizzaSessionPhoto({ name: "pizza", type: "image/heif" })).toBe(true);
+    expect(isUnsupportedHeicPizzaSessionPhoto({ name: "pizza.jpg", type: "image/jpeg" })).toBe(false);
+    expect(pizzaSessionPhotoTypeErrorFor({ name: "pizza.heic", type: "" })).toBe(PIZZA_SESSION_PHOTO_HEIC_ERROR);
+    expect(pizzaSessionPhotoTypeErrorFor({ name: "pizza.bmp", type: "image/bmp" })).toBe(PIZZA_SESSION_PHOTO_TYPE_ERROR);
+  });
+
   it("sends completed review data to the existing cloud session row", async () => {
     const storage = new MemoryStorage();
     const completed = createPizzaSession({
@@ -683,6 +699,7 @@ describe("cloud pizza session foundation", () => {
     expect(detailComponent).toContain("formData.set(\"compressionQuality\", String(optimizedPhoto.compressionQuality))");
     expect(detailComponent).toContain("formData.set(\"maxDimensionUsed\", String(optimizedPhoto.maxDimensionUsed))");
     expect(detailComponent).toContain("PIZZA_SESSION_PHOTO_PROCESS_ERROR");
+    expect(detailComponent).toContain("pizzaSessionPhotoTypeErrorFor(file)");
     expect(detailComponent).toContain("Finished pizza photo");
     expect(detailComponent).toContain("Review notes");
     expect(detailComponent).toContain("What happened");
@@ -694,15 +711,17 @@ describe("cloud pizza session foundation", () => {
     expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_OUTPUT_TYPE = \"image/webp\"");
     expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES = 800 * 1024");
     expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MAX_DIMENSION = 1200");
-    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MIN_DIMENSION = 800");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MIN_DIMENSION = 600");
     expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_WEBP_QUALITY = 0.70");
-    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MIN_WEBP_QUALITY = 0.50");
-    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_DIMENSION_STEPS = [1200, 1000, 900, 800]");
-    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_QUALITY_STEPS = [0.70, 0.65, 0.60, 0.55, 0.50]");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_MIN_WEBP_QUALITY = 0.40");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_DIMENSION_STEPS = [1200, 1000, 900, 800, 700, 600]");
+    expect(photoHelper).toContain("PIZZA_SESSION_PHOTO_QUALITY_STEPS = [0.70, 0.65, 0.60, 0.55, 0.50, 0.45, 0.40]");
     expect(photoHelper).toContain("Please upload a JPG, PNG or WebP image.");
-    expect(photoHelper).toContain("Please upload an image under 5 MB.");
-    expect(photoHelper).toContain("Could not process pizza photo. Please try another image.");
+    expect(photoHelper).toContain("Please choose a photo under 5 MB, or reduce the photo size before uploading.");
+    expect(photoHelper).toContain("Please upload a JPG, PNG or WebP image. iPhone HEIC photos are not supported yet.");
+    expect(photoHelper).toContain("Could not process this photo. Please try a JPG version or a smaller image.");
     expect(photoHelper).toContain("Could not compress pizza photo enough. Please try a smaller image.");
+    expect(photoHelper).toContain("isUnsupportedHeicPizzaSessionPhoto");
     expect(photoOptimizer).toContain("canvas.toBlob");
     expect(photoOptimizer).toContain("PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
     expect(photoOptimizer).toContain("PIZZA_SESSION_PHOTO_QUALITY_STEPS");
@@ -718,15 +737,20 @@ describe("cloud pizza session foundation", () => {
     expect(photoRoute).toContain("file instanceof File");
     expect(photoRoute).toContain("isAcceptedPizzaSessionPhotoType(originalContentType)");
     expect(photoRoute).toContain("file.type !== PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
+    expect(photoRoute).toContain("pizzaSessionPhotoTypeErrorFor({ name: originalFileName, type: originalContentType })");
     expect(photoRoute).toContain("file.size > PIZZA_SESSION_PHOTO_MAX_BYTES");
     expect(photoRoute).toContain("originalSize > PIZZA_SESSION_PHOTO_MAX_BYTES");
+    expect(photoRoute).toContain("reason: \"unsupported_type\"");
+    expect(photoRoute).toContain("reason: \"original_too_large\"");
+    expect(photoRoute).toContain("reason: \"optimized_too_large\"");
     expect(photoRoute).toContain("file.size > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES");
     expect(photoRoute).toContain("optimizedSize > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES");
     expect(photoRoute).toContain("PIZZA_SESSION_PHOTO_COMPRESS_ERROR");
     expect(photoRoute).toContain(".from(PIZZA_SESSION_PHOTO_BUCKET)");
     expect(photoRoute).toContain(".upload(path, file");
     expect(photoRoute).toContain("contentType: PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
-    expect(photoRoute).toContain("originalFileName: formText(formData, \"originalFileName\")");
+    expect(photoRoute).toContain("const originalFileName = formText(formData, \"originalFileName\") ?? file.name");
+    expect(photoRoute).toContain("originalFileName,");
     expect(photoRoute).toContain("originalContentType");
     expect(photoRoute).toContain("originalSize");
     expect(photoRoute).toContain("optimizedSize,");

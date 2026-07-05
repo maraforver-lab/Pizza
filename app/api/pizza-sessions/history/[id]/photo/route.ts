@@ -12,9 +12,9 @@ import {
   PIZZA_SESSION_PHOTO_MAX_BYTES,
   PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
   PIZZA_SESSION_PHOTO_SIZE_ERROR,
-  PIZZA_SESSION_PHOTO_TYPE_ERROR,
   PIZZA_SESSION_PHOTO_UPLOAD_ERROR,
   pizzaSessionPhotoExtension,
+  pizzaSessionPhotoTypeErrorFor,
 } from "@/lib/pizza-session-photo";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -87,15 +87,19 @@ export async function POST(
   }
   const originalContentType = formText(formData, "originalContentType") ?? file.type;
   const originalSize = formPositiveNumber(formData, "originalSize") ?? file.size;
+  const originalFileName = formText(formData, "originalFileName") ?? file.name;
   if (!isAcceptedPizzaSessionPhotoType(originalContentType) || file.type !== PIZZA_SESSION_PHOTO_OUTPUT_TYPE) {
-    return NextResponse.json({ error: PIZZA_SESSION_PHOTO_TYPE_ERROR }, { status: 400 });
+    return NextResponse.json({
+      error: pizzaSessionPhotoTypeErrorFor({ name: originalFileName, type: originalContentType }),
+      reason: "unsupported_type",
+    }, { status: 400 });
   }
   if (originalSize > PIZZA_SESSION_PHOTO_MAX_BYTES || file.size > PIZZA_SESSION_PHOTO_MAX_BYTES) {
-    return NextResponse.json({ error: PIZZA_SESSION_PHOTO_SIZE_ERROR }, { status: 400 });
+    return NextResponse.json({ error: PIZZA_SESSION_PHOTO_SIZE_ERROR, reason: "original_too_large" }, { status: 400 });
   }
   const optimizedSize = formPositiveNumber(formData, "optimizedSize") ?? file.size;
   if (file.size > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES || optimizedSize > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES) {
-    return NextResponse.json({ error: PIZZA_SESSION_PHOTO_COMPRESS_ERROR }, { status: 400 });
+    return NextResponse.json({ error: PIZZA_SESSION_PHOTO_COMPRESS_ERROR, reason: "optimized_too_large" }, { status: 400 });
   }
 
   const { data: existing, error: existingError } = await supabase
@@ -127,7 +131,7 @@ export async function POST(
     uploadedAt,
     contentType: PIZZA_SESSION_PHOTO_OUTPUT_TYPE,
     size: file.size,
-    originalFileName: formText(formData, "originalFileName"),
+    originalFileName,
     originalContentType,
     originalSize,
     optimizedSize,
