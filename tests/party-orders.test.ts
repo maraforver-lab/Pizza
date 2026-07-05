@@ -14,6 +14,7 @@ import {
   partyOrderAllowedPizzaOptions,
   partyOrderInvitationText,
   partyOrderOwnerStatusSummary,
+  partyOrderPrepSummaryText,
   summarizePartyOrderActivity,
   validatePartyOrderStatusUpdate,
   validatePublicPartyOrderSubmissionInput,
@@ -450,9 +451,11 @@ describe("Party Orders foundation", () => {
     const detail = source("components/account/PartyOrderDetail.tsx");
     const editForm = source("components/account/PartyOrderSettingsEditForm.tsx");
     const invitation = source("components/account/PartyOrderInvitationCard.tsx");
+    const prepSummary = source("components/account/PartyOrderPrepSummaryCard.tsx");
     expect(detail).toContain("Edit party details");
     expect(detail).toContain("PartyOrderSettingsEditForm");
     expect(detail).toContain("PartyOrderSessionHandoff");
+    expect(detail).toContain("PartyOrderPrepSummaryCard");
     expect(editForm).toContain("Event title");
     expect(editForm).toContain("Pizza date/time");
     expect(editForm).toContain("Orders close date/time");
@@ -478,6 +481,10 @@ describe("Party Orders foundation", () => {
     expect(detail).toContain("Share the public guest link to start collecting pizza choices.");
     expect(invitation).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
     expect(detail).toContain("Selected allowed pizzas");
+    expect(prepSummary).toContain("Prep summary");
+    expect(prepSummary).toContain("Copy prep summary");
+    expect(prepSummary).toContain("partyOrderPrepSummaryText(event, activity, shareLink)");
+    expect(prepSummary).toContain("navigator.clipboard.writeText");
   });
 
   it("adds an owner-only Pizza Session handoff without mutating Party Orders", () => {
@@ -540,6 +547,86 @@ describe("Party Orders foundation", () => {
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("https://doughtools.app/order/public-token");
   });
 
+  it("builds a kitchen-ready prep summary with totals, pizza mix, guest orders, comments, and link", () => {
+    const event = normalizePartyOrderRow({
+      id: "prep-summary-event",
+      user_id: "user-1",
+      public_token: "prep-summary-token",
+      title: "Friday pizza party",
+      pizza_datetime: "2026-07-10T18:00:00.000Z",
+      orders_close_at: "2026-07-09T20:00:00.000Z",
+      guest_note: "Pick your pizza.",
+      allowed_pizza_ids: ["margherita", "diavola", "marinara"],
+      status: "open",
+      created_at: "2026-07-05T10:00:00.000Z",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+    const activity = summarizePartyOrderActivity([
+      { id: "submission-1", guest_name: "Anna", guest_comment: "No mushrooms", created_at: "2026-07-05T12:00:00.000Z" },
+      { id: "submission-2", guest_name: "Mikko", guest_comment: null, created_at: "2026-07-05T13:00:00.000Z" },
+      { id: "submission-3", guest_name: "Laura", guest_comment: "Less cheese", created_at: "2026-07-05T14:00:00.000Z" },
+    ], [
+      { submission_id: "submission-1", pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
+      { submission_id: "submission-1", pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
+      { submission_id: "submission-2", pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 2 },
+      { submission_id: "submission-3", pizza_id: "marinara", pizza_name_snapshot: "Marinara Snapshot", quantity: 1 },
+    ]);
+
+    expect(event).toBeTruthy();
+    if (!event) return;
+    const summary = partyOrderPrepSummaryText(
+      event,
+      activity,
+      "https://doughtools.app/order/prep-summary-token",
+      new Date("2026-07-09T18:00:00.000Z"),
+    );
+
+    expect(summary).toContain("Pizza Party: Friday pizza party");
+    expect(summary).toContain("Pizza time:");
+    expect(summary).toContain("Orders close:");
+    expect(summary).toContain("Status:\nopen");
+    expect(summary).toContain("- Guest orders: 3");
+    expect(summary).toContain("- Pizzas: 5");
+    expect(summary).toContain("Pizza mix:");
+    expect(summary).toContain("- Margherita: 1");
+    expect(summary).toContain("- Diavola: 3");
+    expect(summary).toContain("- Marinara: 1");
+    expect(summary).toContain("Guest orders:");
+    expect(summary).toContain("- Laura: 1 × Marinara Snapshot");
+    expect(summary).toContain("  Note: Less cheese");
+    expect(summary).toContain("- Mikko: 2 × Diavola");
+    expect(summary).toContain("- Anna: 1 × Margherita, 1 × Diavola");
+    expect(summary).toContain("  Note: No mushrooms");
+    expect(summary).toContain("Public guest link:");
+    expect(summary).toContain("https://doughtools.app/order/prep-summary-token");
+    expect(summary).not.toContain("user-1");
+  });
+
+  it("marks prep summaries as closed by deadline when the order window has passed", () => {
+    const event = normalizePartyOrderRow({
+      id: "prep-expired-event",
+      user_id: "user-1",
+      public_token: "prep-expired-token",
+      title: "Expired pizza party",
+      pizza_datetime: "2026-07-10T18:00:00.000Z",
+      orders_close_at: "2026-07-09T20:00:00.000Z",
+      guest_note: null,
+      allowed_pizza_ids: ["margherita"],
+      status: "open",
+      created_at: "2026-07-05T10:00:00.000Z",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+
+    expect(event).toBeTruthy();
+    if (!event) return;
+    expect(partyOrderPrepSummaryText(
+      event,
+      summarizePartyOrderActivity([], []),
+      undefined,
+      new Date("2026-07-09T21:00:00.000Z"),
+    )).toContain("Status:\nclosed by deadline");
+  });
+
   it("keeps public and invitation surfaces bound to current Party Order fields", () => {
     const publicPage = source("app/order/[publicToken]/page.tsx");
     const invitation = source("components/account/PartyOrderInvitationCard.tsx");
@@ -551,6 +638,8 @@ describe("Party Orders foundation", () => {
     expect(publicPage).toContain("partyOrderDateTimeLabel(event.orders_close_at)");
     expect(publicPage).toContain("partyOrderAllowedPizzaOptions(event)");
     expect(publicPage).not.toContain("party_order_submissions");
+    expect(publicPage).not.toContain("Copy prep summary");
+    expect(publicPage).not.toContain("Prep summary");
     expect(invitation).toContain("{event.title}");
     expect(invitation).toContain("event.guest_note");
     expect(invitation).toContain("partyOrderDateTimeLabel(event.pizza_datetime)");

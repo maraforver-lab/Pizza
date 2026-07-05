@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PartyOrderInvitationCard } from "@/components/account/PartyOrderInvitationCard";
+import { PartyOrderPrepSummaryCard } from "@/components/account/PartyOrderPrepSummaryCard";
 import { PartyOrderSessionHandoff } from "@/components/account/PartyOrderSessionHandoff";
 import { PartyOrderSettingsEditForm } from "@/components/account/PartyOrderSettingsEditForm";
 import {
@@ -226,6 +227,8 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       </section>
 
       <PartyOrderSessionHandoff event={event} activity={activity} />
+
+      <PartyOrderPrepSummaryCard event={event} activity={activity} shareLink={shareLink} />
 
       <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4" aria-labelledby="party-order-pizza-mix-heading">
         <h2 id="party-order-pizza-mix-heading" className="font-display text-2xl font-semibold">Pizza mix</h2>

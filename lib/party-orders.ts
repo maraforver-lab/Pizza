@@ -477,6 +477,67 @@ export function partyOrderDateTimeLabel(value: string) {
   }).format(date);
 }
 
+function partyOrderPrepStatusLabel(
+  order: Pick<PartyOrderRow | PublicPartyOrder, "status" | "orders_close_at">,
+  now = new Date(),
+) {
+  if (partyOrderDeadlineHasPassed(order, now)) return "closed by deadline";
+  return order.status;
+}
+
+export function partyOrderPrepSummaryText(
+  order: Pick<PartyOrderRow, "title" | "pizza_datetime" | "orders_close_at" | "status">,
+  activity: PartyOrderActivity,
+  publicGuestLink?: string,
+  now = new Date(),
+) {
+  const lines = [
+    `Pizza Party: ${order.title}`,
+    "",
+    "Pizza time:",
+    partyOrderDateTimeLabel(order.pizza_datetime),
+    "",
+    "Orders close:",
+    partyOrderDateTimeLabel(order.orders_close_at),
+    "",
+    "Status:",
+    partyOrderPrepStatusLabel(order, now),
+    "",
+    "Total:",
+    `- Guest orders: ${activity.submissionCount}`,
+    `- Pizzas: ${activity.totalPizzaCount}`,
+    "",
+    "Pizza mix:",
+  ];
+
+  if (activity.pizzaMix.length) {
+    for (const pizza of activity.pizzaMix) {
+      lines.push(`- ${pizza.pizza_name_snapshot}: ${pizza.quantity}`);
+    }
+  } else {
+    lines.push("- No guest orders yet.");
+  }
+
+  lines.push("", "Guest orders:");
+  if (activity.guestOrders.length) {
+    for (const order of activity.guestOrders) {
+      const itemSummary = order.items.length
+        ? order.items.map((item) => `${item.quantity} × ${item.pizza_name_snapshot}`).join(", ")
+        : "No pizzas";
+      lines.push(`- ${order.guest_name}: ${itemSummary}`);
+      if (order.guest_comment?.trim()) lines.push(`  Note: ${order.guest_comment.trim()}`);
+    }
+  } else {
+    lines.push("- No guest orders yet.");
+  }
+
+  if (publicGuestLink?.trim()) {
+    lines.push("", "Public guest link:", publicGuestLink.trim());
+  }
+
+  return lines.join("\n");
+}
+
 export function partyOrderInvitationText(
   order: Pick<PartyOrderRow, "title" | "pizza_datetime" | "orders_close_at" | "guest_note">,
   publicGuestLink: string,
