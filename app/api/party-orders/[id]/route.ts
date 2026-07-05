@@ -3,6 +3,7 @@ import {
   normalizePartyOrderRow,
   PARTY_ORDER_SELECT,
   summarizePartyOrderActivity,
+  validatePartyOrderStatusUpdate,
 } from "@/lib/party-orders";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -55,4 +56,54 @@ export async function GET(
   const activity = summarizePartyOrderActivity(submissions, itemRows);
 
   return NextResponse.json({ event, activity });
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  const { id } = await context.params;
+  const supabase = await getSupabaseServerClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to update this Party Order." }, { status: 401 });
+  }
+
+  const { data: existingData, error: existingError } = await supabase
+    .from("party_orders")
+    .select(PARTY_ORDER_SELECT)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  const existing = normalizePartyOrderRow(existingData);
+  if (!existing) return NextResponse.json({ error: "Party Order could not be found." }, { status: 404 });
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Party Order status is invalid." }, { status: 400 });
+  }
+
+  const validation = validatePartyOrderStatusUpdate(body, existing);
+  if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
+
+  const { data, error } = await supabase
+    .from("party_orders")
+    .update({
+      status: validation.value.status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", existing.id)
+    .eq("user_id", user.id)
+    .select(PARTY_ORDER_SELECT)
+    .maybeSingle();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const event = normalizePartyOrderRow(data);
+  if (!event) return NextResponse.json({ error: "Party Order could not be updated." }, { status: 500 });
+  return NextResponse.json({ event });
 }

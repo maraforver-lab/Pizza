@@ -12,7 +12,9 @@ import {
   isPartyOrderOpen,
   partyOrderAllowedPizzaOptions,
   partyOrderInvitationText,
+  partyOrderOwnerStatusSummary,
   summarizePartyOrderActivity,
+  validatePartyOrderStatusUpdate,
   validatePublicPartyOrderSubmissionInput,
   validatePartyOrderInput,
 } from "@/lib/party-orders";
@@ -258,6 +260,52 @@ describe("Party Orders foundation", () => {
     expect(isPartyOrderOpen({ ...openPublicEvent, status: "closed" }, new Date("2026-07-11T14:00:00.000Z"))).toBe(false);
   });
 
+  it("summarizes owner close/reopen status states and validates transitions", () => {
+    const futureOrder = {
+      orders_close_at: "2026-07-11T15:00:00.000Z",
+      status: "open" as const,
+    };
+    const closedFutureOrder = { ...futureOrder, status: "closed" as const };
+    const expiredOrder = {
+      orders_close_at: "2026-07-11T15:00:00.000Z",
+      status: "closed" as const,
+    };
+    const nowBeforeDeadline = new Date("2026-07-11T14:00:00.000Z");
+    const nowAfterDeadline = new Date("2026-07-11T16:00:00.000Z");
+
+    expect(partyOrderOwnerStatusSummary(futureOrder, nowBeforeDeadline)).toMatchObject({
+      label: "Orders open",
+      canClose: true,
+      canReopen: false,
+    });
+    expect(partyOrderOwnerStatusSummary(closedFutureOrder, nowBeforeDeadline)).toMatchObject({
+      label: "Orders closed",
+      canClose: false,
+      canReopen: true,
+    });
+    expect(partyOrderOwnerStatusSummary(expiredOrder, nowAfterDeadline)).toMatchObject({
+      label: "Orders closed by deadline",
+      canClose: false,
+      canReopen: false,
+    });
+    expect(validatePartyOrderStatusUpdate({ status: "closed" }, futureOrder, nowBeforeDeadline)).toMatchObject({
+      ok: true,
+      value: { status: "closed" },
+    });
+    expect(validatePartyOrderStatusUpdate({ status: "open" }, closedFutureOrder, nowBeforeDeadline)).toMatchObject({
+      ok: true,
+      value: { status: "open" },
+    });
+    expect(validatePartyOrderStatusUpdate({ status: "open" }, expiredOrder, nowAfterDeadline)).toMatchObject({
+      ok: false,
+      error: "Orders cannot be reopened after the deadline.",
+    });
+    expect(validatePartyOrderStatusUpdate({ status: "archived" }, futureOrder, nowBeforeDeadline)).toMatchObject({
+      ok: false,
+      error: "Party Order status is invalid.",
+    });
+  });
+
   it("adds a secure owner-only party_orders persistence model", () => {
     const migration = source("supabase/migrations/20260705200000_create_party_orders.sql");
     expect(migration).toContain("create table if not exists public.party_orders");
@@ -325,6 +373,11 @@ describe("Party Orders foundation", () => {
     expect(route).toContain("guest_comment");
     expect(route).toContain("pizza_name_snapshot");
     expect(route).toContain("summarizePartyOrderActivity(submissions, itemRows)");
+    expect(route).toContain("export async function PATCH");
+    expect(route).toContain("validatePartyOrderStatusUpdate(body, existing)");
+    expect(route).toContain(".update({");
+    expect(route).toContain("status: validation.value.status");
+    expect(source("lib/party-orders.ts")).toContain("Orders cannot be reopened after the deadline.");
   });
 
   it("adds logged-in owner list, create, and detail pages", () => {
@@ -379,6 +432,10 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("Public guest link");
     expect(detail).toContain("Guest orders:");
     expect(detail).toContain("Total pizzas:");
+    expect(detail).toContain("Order status");
+    expect(detail).toContain("Close orders");
+    expect(detail).toContain("Reopen orders");
+    expect(source("lib/party-orders.ts")).toContain("Orders closed by deadline");
     expect(detail).toContain("Pizza mix");
     expect(detail).toContain("Comment:");
     expect(detail).toContain("Share the public guest link to start collecting pizza choices.");

@@ -175,6 +175,51 @@ export function isPartyOrderOpen(order: Pick<PublicPartyOrder, "status" | "order
   return Number.isFinite(closeTime) && closeTime >= now.getTime();
 }
 
+export function partyOrderDeadlineHasPassed(order: Pick<PartyOrderRow | PublicPartyOrder, "orders_close_at">, now = new Date()) {
+  const closeTime = new Date(order.orders_close_at).getTime();
+  return Number.isFinite(closeTime) && closeTime < now.getTime();
+}
+
+export function partyOrderOwnerStatusSummary(order: Pick<PartyOrderRow | PublicPartyOrder, "status" | "orders_close_at">, now = new Date()) {
+  const expired = partyOrderDeadlineHasPassed(order, now);
+  if (expired) {
+    return {
+      label: "Orders closed by deadline",
+      helper: "The order deadline has passed.",
+      canClose: false,
+      canReopen: false,
+    };
+  }
+  if (order.status === "closed") {
+    return {
+      label: "Orders closed",
+      helper: "Guests cannot submit new orders while this is closed.",
+      canClose: false,
+      canReopen: true,
+    };
+  }
+  return {
+    label: "Orders open",
+    helper: "Guests can still submit pizza orders until the deadline unless you close orders now.",
+    canClose: true,
+    canReopen: false,
+  };
+}
+
+export function validatePartyOrderStatusUpdate(
+  value: unknown,
+  order: Pick<PartyOrderRow, "orders_close_at">,
+  now = new Date(),
+) {
+  const record = isRecord(value) ? value : {};
+  const status = normalizeStatus(record.status);
+  if (!status) return { ok: false as const, error: "Party Order status is invalid." };
+  if (status === "open" && partyOrderDeadlineHasPassed(order, now)) {
+    return { ok: false as const, error: "Orders cannot be reopened after the deadline." };
+  }
+  return { ok: true as const, value: { status } };
+}
+
 export function validatePublicPartyOrderSubmissionInput(
   value: unknown,
   order: Pick<PublicPartyOrder, "allowed_pizza_ids">,

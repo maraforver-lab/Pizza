@@ -9,7 +9,9 @@ import {
   partyOrderEmptyActivity,
   partyOrderAllowedPizzaOptions,
   partyOrderDateTimeLabel,
+  partyOrderOwnerStatusSummary,
   type PartyOrderActivity,
+  type PartyOrderStatus,
   type PartyOrderRow,
 } from "@/lib/party-orders";
 
@@ -22,6 +24,9 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   const [activity, setActivity] = useState<PartyOrderActivity>(partyOrderEmptyActivity);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusError, setStatusError] = useState("");
   const shareLink = useMemo(() => (
     event && typeof location !== "undefined" ? `${location.origin}/order/${event.public_token}` : ""
   ), [event]);
@@ -76,6 +81,30 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   }
 
   const allowedPizzas = partyOrderAllowedPizzaOptions(event);
+  const statusSummary = partyOrderOwnerStatusSummary(event);
+
+  const updateOrderStatus = async (status: PartyOrderStatus) => {
+    setStatusUpdating(true);
+    setStatusMessage("");
+    setStatusError("");
+    try {
+      const response = await fetch(`/api/party-orders/${event.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Party Order status could not be updated.");
+      const nextEvent = normalizePartyOrderRow(payload.event);
+      if (!nextEvent) throw new Error("Party Order status could not be verified.");
+      setEvent(nextEvent);
+      setStatusMessage(status === "closed" ? "Orders are now closed." : "Orders are open again.");
+    } catch (caught) {
+      setStatusError(caught instanceof Error ? caught.message : "Party Order status could not be updated.");
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
 
   return (
     <article className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7">
@@ -97,6 +126,40 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         <p className="rounded-[1.25rem] bg-cream/70 p-4 text-sm font-bold leading-6 text-ink/70">
           Orders close: {partyOrderDateTimeLabel(event.orders_close_at)}
         </p>
+      </section>
+
+      <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4" aria-labelledby="party-order-status-control-heading">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Order status</p>
+            <h2 id="party-order-status-control-heading" className="mt-2 font-display text-2xl font-semibold">
+              {statusSummary.label}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-ink/60">{statusSummary.helper}</p>
+            {statusMessage && <p role="status" className="mt-3 text-sm font-extrabold text-leaf">{statusMessage}</p>}
+            {statusError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{statusError}</p>}
+          </div>
+          {statusSummary.canClose && (
+            <button
+              type="button"
+              onClick={() => updateOrderStatus("closed")}
+              disabled={statusUpdating}
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-sm font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {statusUpdating ? "Closing…" : "Close orders"}
+            </button>
+          )}
+          {statusSummary.canReopen && (
+            <button
+              type="button"
+              onClick={() => updateOrderStatus("open")}
+              disabled={statusUpdating}
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {statusUpdating ? "Reopening…" : "Reopen orders"}
+            </button>
+          )}
+        </div>
       </section>
 
       {event.guest_note && (
