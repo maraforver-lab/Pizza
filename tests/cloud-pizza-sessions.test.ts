@@ -27,6 +27,12 @@ import {
   PIZZA_PHOTO_OVERLAY_SIZE,
   buildPizzaPhotoOverlayModel,
 } from "@/lib/pizza-photo-overlay";
+import {
+  PIZZA_PHOTO_MODERATION_ERROR,
+  PIZZA_PHOTO_MODERATION_MODEL,
+  PIZZA_PHOTO_UNSAFE_ERROR,
+  moderatePizzaPhotoImage,
+} from "@/lib/pizza-photo-moderation";
 import { createPizzaSession } from "@/lib/pizza-session";
 import {
   PIZZA_SESSION_PHOTO_HEIC_ERROR,
@@ -606,6 +612,68 @@ describe("cloud pizza session foundation", () => {
     expect(pizzaSessionPhotoTypeErrorFor({ name: "pizza.bmp", type: "image/bmp" })).toBe(PIZZA_SESSION_PHOTO_TYPE_ERROR);
   });
 
+  it("moderates optimized pizza photos server-side and approves only unflagged images", async () => {
+    const file = new File(["safe-webp"], "pizza.webp", { type: "image/webp" });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body));
+      expect(body.model).toBe(PIZZA_PHOTO_MODERATION_MODEL);
+      expect(body.input[0].type).toBe("image_url");
+      expect(body.input[0].image_url.url).toMatch(/^data:image\/webp;base64,/);
+      expect(String(init?.headers)).not.toContain("test-key");
+      return new Response(JSON.stringify({ results: [{ flagged: false }] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    await expect(moderatePizzaPhotoImage(file, { apiKey: "test-key", fetcher: fetchMock as unknown as typeof fetch })).resolves.toMatchObject({
+      approved: true,
+      flagged: false,
+      reasonCode: "safe",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects flagged pizza photo moderation results without exposing moderation labels", async () => {
+    const file = new File(["unsafe-webp"], "pizza.webp", { type: "image/webp" });
+    const fetchMock = vi.fn(async () => (
+      new Response(JSON.stringify({
+        results: [{
+          flagged: true,
+          categories: { violence: true },
+          category_scores: { violence: 0.99 },
+        }],
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    ));
+
+    await expect(moderatePizzaPhotoImage(file, { apiKey: "test-key", fetcher: fetchMock as unknown as typeof fetch })).resolves.toMatchObject({
+      approved: false,
+      flagged: true,
+      reasonCode: "unsafe_content",
+    });
+    expect(PIZZA_PHOTO_UNSAFE_ERROR).not.toMatch(/violence|category|score/i);
+  });
+
+  it("fails closed when pizza photo moderation fails or has no API key", async () => {
+    const file = new File(["photo-webp"], "pizza.webp", { type: "image/webp" });
+    const failingFetch = vi.fn(async () => new Response("{}", { status: 500 }));
+
+    await expect(moderatePizzaPhotoImage(file, { apiKey: "test-key", fetcher: failingFetch as unknown as typeof fetch })).resolves.toMatchObject({
+      approved: false,
+      flagged: false,
+      reasonCode: "moderation_failed",
+    });
+    await expect(moderatePizzaPhotoImage(file, { apiKey: "", fetcher: failingFetch as unknown as typeof fetch })).resolves.toMatchObject({
+      approved: false,
+      flagged: false,
+      reasonCode: "moderation_failed",
+    });
+    expect(PIZZA_PHOTO_MODERATION_ERROR).not.toMatch(/category|score|OPENAI_API_KEY/i);
+  });
+
   it("sends completed review data to the existing cloud session row", async () => {
     const storage = new MemoryStorage();
     const completed = createPizzaSession({
@@ -806,6 +874,7 @@ describe("cloud pizza session foundation", () => {
     const overlayHelper = source("lib/pizza-photo-overlay.ts");
     const photoHelper = source("lib/pizza-session-photo.ts");
     const photoOptimizer = source("lib/pizza-session-photo-optimizer.ts");
+    const moderationHelper = source("lib/pizza-photo-moderation.ts");
 
     expect(accountPage).toContain("AccountPizzaSessionHistory");
     expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
@@ -919,6 +988,13 @@ describe("cloud pizza session foundation", () => {
     expect(photoRoute).toContain("file.size > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES");
     expect(photoRoute).toContain("optimizedSize > PIZZA_SESSION_PHOTO_HARD_MAX_OPTIMIZED_BYTES");
     expect(photoRoute).toContain("PIZZA_SESSION_PHOTO_COMPRESS_ERROR");
+    expect(photoRoute).toContain("moderatePizzaPhotoImage(file)");
+    expect(photoRoute).toContain("PIZZA_PHOTO_UNSAFE_ERROR");
+    expect(photoRoute).toContain("PIZZA_PHOTO_MODERATION_ERROR");
+    expect(photoRoute).toContain("reason: moderation.reasonCode");
+    expect(photoRoute.indexOf("moderatePizzaPhotoImage(file)")).toBeGreaterThan(-1);
+    expect(photoRoute.indexOf("moderatePizzaPhotoImage(file)")).toBeLessThan(photoRoute.indexOf(".upload(path, file"));
+    expect(photoRoute.indexOf("moderatePizzaPhotoImage(file)")).toBeLessThan(photoRoute.indexOf("session_data: sessionWithPhoto"));
     expect(photoRoute).toContain(".from(PIZZA_SESSION_PHOTO_BUCKET)");
     expect(photoRoute).toContain(".upload(path, file");
     expect(photoRoute).toContain("contentType: PIZZA_SESSION_PHOTO_OUTPUT_TYPE");
@@ -934,6 +1010,17 @@ describe("cloud pizza session foundation", () => {
     expect(photoRoute).toContain("session_data: sessionWithPhoto");
     expect(photoRoute).toContain("oldPhotoPath && oldPhotoPath !== path");
     expect(photoRoute).toContain(".remove([oldPhotoPath])");
+    expect(moderationHelper).toContain("PIZZA_PHOTO_MODERATION_MODEL = \"omni-moderation-latest\"");
+    expect(moderationHelper).toContain("process.env.OPENAI_API_KEY");
+    expect(moderationHelper).toContain("https://api.openai.com/v1/moderations");
+    expect(moderationHelper).toContain("type: \"image_url\"");
+    expect(moderationHelper).toContain("data:${file.type};base64");
+    expect(moderationHelper).toContain("approved: reasonCode === \"safe\"");
+    expect(moderationHelper).toContain("reasonCode === \"unsafe_content\"");
+    expect(moderationHelper).toContain("moderation_failed");
+    expect(moderationHelper).toContain("AbortController");
+    expect(moderationHelper).not.toContain("NEXT_PUBLIC_OPENAI");
+    expect(moderationHelper).not.toContain("console.log");
     expect(overlayHelper).toContain("PIZZA_PHOTO_OVERLAY_SIZE = 1080");
     expect(PIZZA_PHOTO_OVERLAY_SIZE).toBe(1080);
     expect(PIZZA_PHOTO_OVERLAY_FILE_NAME).toBe("doughtools-pizza-bake.png");

@@ -3,6 +3,11 @@ import {
   CLOUD_PIZZA_SESSION_SELECT,
   normalizeCloudPizzaSessionHistoryRow,
 } from "@/lib/cloud-pizza-sessions";
+import {
+  moderatePizzaPhotoImage,
+  PIZZA_PHOTO_MODERATION_ERROR,
+  PIZZA_PHOTO_UNSAFE_ERROR,
+} from "@/lib/pizza-photo-moderation";
 import { createPizzaSession, migratePizzaSession, type PizzaSessionPhoto } from "@/lib/pizza-session";
 import {
   isAcceptedPizzaSessionPhotoType,
@@ -113,6 +118,14 @@ export async function POST(
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
   const existingSession = migratePizzaSession(existing?.session_data);
   if (!existingSession) return NextResponse.json({ error: "Completed pizza session not found." }, { status: 404 });
+
+  const moderation = await moderatePizzaPhotoImage(file);
+  if (!moderation.approved) {
+    return NextResponse.json({
+      error: moderation.reasonCode === "unsafe_content" ? PIZZA_PHOTO_UNSAFE_ERROR : PIZZA_PHOTO_MODERATION_ERROR,
+      reason: moderation.reasonCode,
+    }, { status: moderation.reasonCode === "unsafe_content" ? 400 : 503 });
+  }
 
   const oldPhotoPath = existingSession.photo?.path;
   const path = randomPhotoPath(user.id, id, PIZZA_SESSION_PHOTO_OUTPUT_TYPE);
