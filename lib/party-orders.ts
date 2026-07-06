@@ -6,7 +6,7 @@ import {
   pizzaCatalogOptionsForIds,
 } from "@/lib/pizza-catalog";
 
-export type PartyOrderStatus = "open" | "closed";
+export type PartyOrderStatus = "open" | "closed" | "archived";
 
 export type PartyOrderRow = {
   id: string;
@@ -96,7 +96,7 @@ function normalizePositiveInteger(value: unknown) {
 }
 
 function normalizeStatus(value: unknown): PartyOrderStatus | undefined {
-  return value === "open" || value === "closed" ? value : undefined;
+  return value === "open" || value === "closed" || value === "archived" ? value : undefined;
 }
 
 export function normalizePartyOrderRow(value: unknown): PartyOrderRow | undefined {
@@ -195,6 +195,16 @@ export function partyOrderDeadlineHasPassed(order: Pick<PartyOrderRow | PublicPa
 }
 
 export function partyOrderOwnerStatusSummary(order: Pick<PartyOrderRow | PublicPartyOrder, "status" | "orders_close_at">, now = new Date()) {
+  if (order.status === "archived") {
+    return {
+      label: "Archived",
+      helper: "Archived party orders are hidden from the active list and do not accept new guest orders.",
+      canClose: false,
+      canReopen: false,
+      canArchive: false,
+      canRestore: true,
+    };
+  }
   const expired = partyOrderDeadlineHasPassed(order, now);
   if (expired) {
     return {
@@ -202,6 +212,8 @@ export function partyOrderOwnerStatusSummary(order: Pick<PartyOrderRow | PublicP
       helper: "The order deadline has passed.",
       canClose: false,
       canReopen: false,
+      canArchive: true,
+      canRestore: false,
     };
   }
   if (order.status === "closed") {
@@ -210,6 +222,8 @@ export function partyOrderOwnerStatusSummary(order: Pick<PartyOrderRow | PublicP
       helper: "Guests cannot submit new orders while this is closed.",
       canClose: false,
       canReopen: true,
+      canArchive: true,
+      canRestore: false,
     };
   }
   return {
@@ -217,6 +231,8 @@ export function partyOrderOwnerStatusSummary(order: Pick<PartyOrderRow | PublicP
     helper: "Guests can still submit pizza orders until the deadline unless you close orders now.",
     canClose: true,
     canReopen: false,
+    canArchive: true,
+    canRestore: false,
   };
 }
 
@@ -228,10 +244,18 @@ export function validatePartyOrderStatusUpdate(
   const record = isRecord(value) ? value : {};
   const status = normalizeStatus(record.status);
   if (!status) return { ok: false as const, error: "Party Order status is invalid." };
+  if (status === "archived") return { ok: true as const, value: { status } };
   if (status === "open" && partyOrderDeadlineHasPassed(order, now)) {
     return { ok: false as const, error: "Orders cannot be reopened after the deadline." };
   }
   return { ok: true as const, value: { status } };
+}
+
+export function restorePartyOrderStatus(
+  order: Pick<PartyOrderRow, "orders_close_at">,
+  now = new Date(),
+): Exclude<PartyOrderStatus, "archived"> {
+  return partyOrderDeadlineHasPassed(order, now) ? "closed" : "open";
 }
 
 export function validatePublicPartyOrderSubmissionInput(

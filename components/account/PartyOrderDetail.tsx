@@ -103,7 +103,15 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       const nextEvent = normalizePartyOrderRow(payload.event);
       if (!nextEvent) throw new Error("Party Order status could not be verified.");
       setEvent(nextEvent);
-      setStatusMessage(status === "closed" ? "Orders are now closed." : "Orders are open again.");
+      setStatusMessage(
+        nextEvent.status === "archived"
+          ? "Party Order archived."
+          : status === "closed"
+            ? "Orders are now closed."
+            : event.status === "archived"
+              ? "Party Order restored."
+              : "Orders are open again.",
+      );
     } catch (caught) {
       setStatusError(caught instanceof Error ? caught.message : "Party Order status could not be updated.");
     } finally {
@@ -193,7 +201,32 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
               {statusUpdating ? "Reopening…" : "Reopen orders"}
             </button>
           )}
+          {statusSummary.canArchive && (
+            <button
+              type="button"
+              onClick={() => updateOrderStatus("archived")}
+              disabled={statusUpdating}
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/70 transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {statusUpdating ? "Archiving…" : "Archive party order"}
+            </button>
+          )}
+          {statusSummary.canRestore && (
+            <button
+              type="button"
+              onClick={() => updateOrderStatus("open")}
+              disabled={statusUpdating}
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {statusUpdating ? "Restoring…" : "Restore party order"}
+            </button>
+          )}
         </div>
+        {event.status !== "archived" && (
+          <p className="mt-4 rounded-2xl bg-white/70 p-3 text-sm font-bold leading-6 text-ink/58">
+            Archived party orders are hidden from the active list. Existing guest orders are kept.
+          </p>
+        )}
       </section>
 
       {event.guest_note && (
@@ -204,6 +237,15 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       )}
 
       <PartyOrderInvitationCard event={event} shareLink={shareLink} />
+
+      {event.status === "archived" && (
+        <section className="mt-5 rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-4">
+          <h2 className="font-display text-2xl font-semibold">Public ordering is paused</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/60">
+            This Party Order is archived, so the public link is visible but not accepting guest orders.
+          </p>
+        </section>
+      )}
 
       <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4" aria-labelledby="party-order-summary-heading">
         <h2 id="party-order-summary-heading" className="font-display text-2xl font-semibold">Summary</h2>

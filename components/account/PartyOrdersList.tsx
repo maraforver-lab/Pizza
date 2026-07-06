@@ -5,13 +5,60 @@ import { useEffect, useState } from "react";
 import {
   normalizePartyOrderRow,
   partyOrderDateTimeLabel,
+  type PartyOrderStatus,
   type PartyOrderRow,
 } from "@/lib/party-orders";
+
+function PartyOrderListCard({
+  event,
+  onRestore,
+  restoring,
+}: {
+  event: PartyOrderRow;
+  onRestore?: (event: PartyOrderRow) => void;
+  restoring?: boolean;
+}) {
+  return (
+    <article className="rounded-[1.5rem] border border-ink/10 bg-cream/60 p-4 sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-semibold">{event.title}</h2>
+          <p className="mt-2 text-sm font-bold text-ink/60">Pizza time: {partyOrderDateTimeLabel(event.pizza_datetime)}</p>
+          <p className="mt-1 text-sm font-bold text-ink/50">Orders close: {partyOrderDateTimeLabel(event.orders_close_at)}</p>
+          <p className="mt-3 text-xs font-extrabold uppercase tracking-[.16em] text-leaf">
+            {event.status} · {event.allowed_pizza_ids.length} pizza options
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <Link
+            href={`/account/party-orders/${event.id}`}
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            Open
+          </Link>
+          {onRestore && (
+            <button
+              type="button"
+              onClick={() => onRestore(event)}
+              disabled={restoring}
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-sm font-extrabold text-leaf transition hover:border-leaf/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {restoring ? "Restoring…" : "Restore"}
+            </button>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export function PartyOrdersList() {
   const [events, setEvents] = useState<PartyOrderRow[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusError, setStatusError] = useState("");
+  const [restoringId, setRestoringId] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -40,6 +87,32 @@ export function PartyOrdersList() {
     };
   }, []);
 
+  const activeEvents = events.filter((event) => event.status !== "archived");
+  const archivedEvents = events.filter((event) => event.status === "archived");
+
+  const updateEventStatus = async (event: PartyOrderRow, status: PartyOrderStatus) => {
+    setRestoringId(event.id);
+    setStatusMessage("");
+    setStatusError("");
+    try {
+      const response = await fetch(`/api/party-orders/${event.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Party Order status could not be updated.");
+      const nextEvent = normalizePartyOrderRow(payload.event);
+      if (!nextEvent) throw new Error("Party Order status could not be verified.");
+      setEvents((current) => current.map((item) => item.id === nextEvent.id ? nextEvent : item));
+      setStatusMessage(nextEvent.status === "archived" ? "Party Order archived." : "Party Order restored.");
+    } catch (caught) {
+      setStatusError(caught instanceof Error ? caught.message : "Party Order status could not be updated.");
+    } finally {
+      setRestoringId("");
+    }
+  };
+
   return (
     <section className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -60,8 +133,10 @@ export function PartyOrdersList() {
 
       {!ready && <p className="mt-6 text-sm font-bold text-ink/45">Loading Party Orders…</p>}
       {error && <p role="alert" className="mt-6 rounded-2xl bg-tomato/10 p-4 text-sm font-extrabold text-tomato">{error}</p>}
+      {statusMessage && <p role="status" className="mt-6 rounded-2xl bg-leaf/10 p-4 text-sm font-extrabold text-leaf">{statusMessage}</p>}
+      {statusError && <p role="alert" className="mt-6 rounded-2xl bg-tomato/10 p-4 text-sm font-extrabold text-tomato">{statusError}</p>}
 
-      {ready && !error && events.length === 0 && (
+      {ready && !error && activeEvents.length === 0 && archivedEvents.length === 0 && (
         <div className="mt-6 rounded-[1.5rem] border border-dashed border-ink/15 bg-cream/70 p-5">
           <h2 className="font-display text-2xl font-semibold">No Party Orders yet</h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
@@ -70,27 +145,37 @@ export function PartyOrdersList() {
         </div>
       )}
 
-      {events.length > 0 && (
+      {ready && !error && activeEvents.length === 0 && archivedEvents.length > 0 && (
+        <div className="mt-6 rounded-[1.5rem] border border-dashed border-ink/15 bg-cream/70 p-5">
+          <h2 className="font-display text-2xl font-semibold">No active Party Orders</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/60">
+            Archived Party Orders are saved below if you need to review or restore them.
+          </p>
+        </div>
+      )}
+
+      {activeEvents.length > 0 && (
         <div className="mt-6 grid gap-3">
-          {events.map((event) => (
-            <article key={event.id} className="rounded-[1.5rem] border border-ink/10 bg-cream/60 p-4 sm:p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="font-display text-2xl font-semibold">{event.title}</h2>
-                  <p className="mt-2 text-sm font-bold text-ink/60">Pizza time: {partyOrderDateTimeLabel(event.pizza_datetime)}</p>
-                  <p className="mt-1 text-sm font-bold text-ink/50">Orders close: {partyOrderDateTimeLabel(event.orders_close_at)}</p>
-                  <p className="mt-3 text-xs font-extrabold uppercase tracking-[.16em] text-leaf">
-                    {event.status} · {event.allowed_pizza_ids.length} pizza options
-                  </p>
-                </div>
-                <Link
-                  href={`/account/party-orders/${event.id}`}
-                  className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                >
-                  Open
-                </Link>
-              </div>
-            </article>
+          <h2 className="font-display text-2xl font-semibold">Active Party Orders</h2>
+          {activeEvents.map((event) => (
+            <PartyOrderListCard key={event.id} event={event} />
+          ))}
+        </div>
+      )}
+
+      {archivedEvents.length > 0 && (
+        <div className="mt-8 grid gap-3">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">History</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold">Archived Party Orders</h2>
+          </div>
+          {archivedEvents.map((event) => (
+            <PartyOrderListCard
+              key={event.id}
+              event={event}
+              restoring={restoringId === event.id}
+              onRestore={(order) => updateEventStatus(order, "open")}
+            />
           ))}
         </div>
       )}

@@ -3,6 +3,7 @@ import {
   normalizePartyOrderRow,
   PARTY_ORDER_SELECT,
   summarizePartyOrderActivity,
+  restorePartyOrderStatus,
   validatePartyOrderInput,
   validatePartyOrderStatusUpdate,
 } from "@/lib/party-orders";
@@ -93,7 +94,7 @@ export async function PATCH(
   const detailKeys = ["title", "pizzaDateTime", "ordersCloseAt", "guestNote", "allowedPizzaIds", "pizza_datetime", "orders_close_at", "guest_note", "allowed_pizza_ids"];
   const isStatusUpdate = typeof record.status === "string" && !detailKeys.some((key) => key in record);
   let updateValues: {
-    status?: "open" | "closed";
+    status?: "open" | "closed" | "archived";
     title?: string;
     pizza_datetime?: string;
     orders_close_at?: string;
@@ -105,7 +106,9 @@ export async function PATCH(
     const validation = validatePartyOrderStatusUpdate(body, existing);
     if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
     updateValues = {
-      status: validation.value.status,
+      status: existing.status === "archived" && validation.value.status === "open"
+        ? restorePartyOrderStatus(existing)
+        : validation.value.status,
       updated_at: new Date().toISOString(),
     };
   } else {

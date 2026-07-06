@@ -15,6 +15,7 @@ import {
   partyOrderInvitationText,
   partyOrderOwnerStatusSummary,
   partyOrderPrepSummaryText,
+  restorePartyOrderStatus,
   summarizePartyOrderActivity,
   validatePartyOrderStatusUpdate,
   validatePublicPartyOrderSubmissionInput,
@@ -277,7 +278,7 @@ describe("Party Orders foundation", () => {
     expect(isPartyOrderOpen({ ...openPublicEvent, status: "closed" }, new Date("2026-07-11T14:00:00.000Z"))).toBe(false);
   });
 
-  it("summarizes owner close/reopen status states and validates transitions", () => {
+  it("summarizes owner close/reopen/archive status states and validates transitions", () => {
     const futureOrder = {
       orders_close_at: "2026-07-11T15:00:00.000Z",
       status: "open" as const,
@@ -287,6 +288,7 @@ describe("Party Orders foundation", () => {
       orders_close_at: "2026-07-11T15:00:00.000Z",
       status: "closed" as const,
     };
+    const archivedFutureOrder = { ...futureOrder, status: "archived" as const };
     const nowBeforeDeadline = new Date("2026-07-11T14:00:00.000Z");
     const nowAfterDeadline = new Date("2026-07-11T16:00:00.000Z");
 
@@ -294,16 +296,29 @@ describe("Party Orders foundation", () => {
       label: "Orders open",
       canClose: true,
       canReopen: false,
+      canArchive: true,
+      canRestore: false,
     });
     expect(partyOrderOwnerStatusSummary(closedFutureOrder, nowBeforeDeadline)).toMatchObject({
       label: "Orders closed",
       canClose: false,
       canReopen: true,
+      canArchive: true,
+      canRestore: false,
+    });
+    expect(partyOrderOwnerStatusSummary(archivedFutureOrder, nowBeforeDeadline)).toMatchObject({
+      label: "Archived",
+      canClose: false,
+      canReopen: false,
+      canArchive: false,
+      canRestore: true,
     });
     expect(partyOrderOwnerStatusSummary(expiredOrder, nowAfterDeadline)).toMatchObject({
       label: "Orders closed by deadline",
       canClose: false,
       canReopen: false,
+      canArchive: true,
+      canRestore: false,
     });
     expect(validatePartyOrderStatusUpdate({ status: "closed" }, futureOrder, nowBeforeDeadline)).toMatchObject({
       ok: true,
@@ -313,14 +328,20 @@ describe("Party Orders foundation", () => {
       ok: true,
       value: { status: "open" },
     });
+    expect(validatePartyOrderStatusUpdate({ status: "archived" }, futureOrder, nowBeforeDeadline)).toMatchObject({
+      ok: true,
+      value: { status: "archived" },
+    });
     expect(validatePartyOrderStatusUpdate({ status: "open" }, expiredOrder, nowAfterDeadline)).toMatchObject({
       ok: false,
       error: "Orders cannot be reopened after the deadline.",
     });
-    expect(validatePartyOrderStatusUpdate({ status: "archived" }, futureOrder, nowBeforeDeadline)).toMatchObject({
+    expect(validatePartyOrderStatusUpdate({ status: "deleted" }, futureOrder, nowBeforeDeadline)).toMatchObject({
       ok: false,
       error: "Party Order status is invalid.",
     });
+    expect(restorePartyOrderStatus(archivedFutureOrder, nowBeforeDeadline)).toBe("open");
+    expect(restorePartyOrderStatus(archivedFutureOrder, nowAfterDeadline)).toBe("closed");
   });
 
   it("adds a secure owner-only party_orders persistence model", () => {
@@ -332,6 +353,10 @@ describe("Party Orders foundation", () => {
     expect(migration).toContain("constraint party_orders_close_before_pizza_check check (orders_close_at <= pizza_datetime)");
     expect(migration).toContain("alter table public.party_orders enable row level security");
     expect(migration).toContain("auth.uid() = user_id");
+
+    const archiveMigration = source("supabase/migrations/20260706093000_allow_archived_party_orders.sql");
+    expect(archiveMigration).toContain("drop constraint if exists party_orders_status_check");
+    expect(archiveMigration).toContain("check (status in ('open', 'closed', 'archived'))");
   });
 
   it("adds a token-only public lookup function without relaxing table RLS", () => {
@@ -392,6 +417,7 @@ describe("Party Orders foundation", () => {
     expect(route).toContain("summarizePartyOrderActivity(submissions, itemRows)");
     expect(route).toContain("export async function PATCH");
     expect(route).toContain("validatePartyOrderStatusUpdate(body, existing)");
+    expect(route).toContain("restorePartyOrderStatus(existing)");
     expect(route).toContain("validatePartyOrderInput(body)");
     expect(route).toContain("title: validation.value.title");
     expect(route).toContain("pizza_datetime: validation.value.pizza_datetime");
@@ -399,8 +425,10 @@ describe("Party Orders foundation", () => {
     expect(route).toContain("guest_note: validation.value.guest_note");
     expect(route).toContain("allowed_pizza_ids: validation.value.allowed_pizza_ids");
     expect(route).toContain(".update(updateValues)");
-    expect(route).toContain("status: validation.value.status");
+    expect(route).toContain("validation.value.status === \"open\"");
+    expect(route).toContain(": validation.value.status");
     expect(source("lib/party-orders.ts")).toContain("Orders cannot be reopened after the deadline.");
+    expect(source("lib/party-orders.ts")).toContain("Archived party orders are hidden from the active list");
   });
 
   it("adds logged-in owner list, create, and detail pages", () => {
@@ -446,6 +474,11 @@ describe("Party Orders foundation", () => {
     expect(list).toContain("Party Orders");
     expect(list).toContain("Create party order");
     expect(list).toContain("fetch(\"/api/party-orders\")");
+    expect(list).toContain("activeEvents");
+    expect(list).toContain("archivedEvents");
+    expect(list).toContain("Active Party Orders");
+    expect(list).toContain("Archived Party Orders");
+    expect(list).toContain("Restore");
     expect(list).toContain("Open");
 
     const detail = source("components/account/PartyOrderDetail.tsx");
@@ -475,6 +508,9 @@ describe("Party Orders foundation", () => {
     expect(detail).toContain("Order status");
     expect(detail).toContain("Close orders");
     expect(detail).toContain("Reopen orders");
+    expect(detail).toContain("Archive party order");
+    expect(detail).toContain("Restore party order");
+    expect(detail).toContain("This Party Order is archived, so the public link is visible but not accepting guest orders.");
     expect(source("lib/party-orders.ts")).toContain("Orders closed by deadline");
     expect(detail).toContain("Pizza mix");
     expect(detail).toContain("Comment:");
@@ -637,6 +673,7 @@ describe("Party Orders foundation", () => {
     expect(publicPage).toContain("partyOrderDateTimeLabel(event.pizza_datetime)");
     expect(publicPage).toContain("partyOrderDateTimeLabel(event.orders_close_at)");
     expect(publicPage).toContain("partyOrderAllowedPizzaOptions(event)");
+    expect(publicPage).toContain("order.status === \"closed\" || order.status === \"archived\"");
     expect(publicPage).not.toContain("party_order_submissions");
     expect(publicPage).not.toContain("Copy prep summary");
     expect(publicPage).not.toContain("Prep summary");

@@ -19,7 +19,7 @@ async function loadPublicPartyOrder(publicToken: string) {
 }
 
 function orderStatusLabel(order: PublicPartyOrder, now = new Date()) {
-  if (order.status === "closed") return "Orders closed";
+  if (order.status === "closed" || order.status === "archived") return "Orders closed";
   const closeTime = new Date(order.orders_close_at).getTime();
   if (Number.isFinite(closeTime) && closeTime < now.getTime()) return "Orders closed";
   return "Orders open";
