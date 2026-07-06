@@ -674,6 +674,11 @@ describe("Party Orders foundation", () => {
     expect(publicPage).toContain("partyOrderDateTimeLabel(event.orders_close_at)");
     expect(publicPage).toContain("partyOrderAllowedPizzaOptions(event)");
     expect(publicPage).toContain("order.status === \"closed\" || order.status === \"archived\"");
+    expect(publicPage).toContain("const token = publicToken.trim()");
+    expect(publicPage).toContain("if (!token) return undefined");
+    expect(publicPage).toContain("if (error) return undefined");
+    expect(publicPage).toContain("} catch {");
+    expect(publicPage).not.toContain("if (error) throw");
     expect(publicPage).not.toContain("party_order_submissions");
     expect(publicPage).not.toContain("Copy prep summary");
     expect(publicPage).not.toContain("Prep summary");
@@ -826,7 +831,7 @@ describe("Party Orders foundation", () => {
   it("adds a public guest order route by token with an order form", () => {
     const page = source("app/order/[publicToken]/page.tsx");
     expect(page).toContain("params: Promise<{ publicToken: string }>");
-    expect(page).toContain(".rpc(\"get_public_party_order\", { token_value: publicToken })");
+    expect(page).toContain(".rpc(\"get_public_party_order\", { token_value: token })");
     expect(page).toContain("normalizePublicPartyOrder(data)");
     expect(page).toContain("DoughTools Party Order");
     expect(page).toContain("Choose from these pizzas");

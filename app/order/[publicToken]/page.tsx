@@ -9,13 +9,20 @@ import {
 } from "@/lib/party-orders";
 
 async function loadPublicPartyOrder(publicToken: string) {
-  const supabase = await getSupabaseServerClient();
-  const { data, error } = await supabase
-    .rpc("get_public_party_order", { token_value: publicToken })
-    .maybeSingle();
+  const token = publicToken.trim();
+  if (!token) return undefined;
 
-  if (error) throw new Error(error.message);
-  return normalizePublicPartyOrder(data);
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data, error } = await supabase
+      .rpc("get_public_party_order", { token_value: token })
+      .maybeSingle();
+
+    if (error) return undefined;
+    return normalizePublicPartyOrder(data);
+  } catch {
+    return undefined;
+  }
 }
 
 function orderStatusLabel(order: PublicPartyOrder, now = new Date()) {
