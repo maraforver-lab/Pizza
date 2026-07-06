@@ -694,7 +694,10 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("DoughTools · Pizza Party");
     expect(invitation).toContain("Pizza time:");
     expect(invitation).toContain("Order by:");
-    expect(invitation).toContain("Scan to choose");
+    expect(invitation).toContain("Scan to choose your pizza");
+    expect(invitation).toContain("Open the menu, pick your pizzas, and send your order.");
+    expect(invitation).toContain("displayShareLink(shareLink)");
+    expect(invitation).toContain("data-invitation-lower-panel=\"true\"");
     expect(invitation).toContain("Public guest link");
     expect(invitation).toContain("Copy link");
     expect(invitation).toContain("Copy invitation text");
@@ -707,6 +710,11 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("downloadPartyOrderInvitationPdf(exportCardRef.current)");
     expect(invitation).toContain("/images/homepage/hero-desktop-bg.png");
     expect(invitation).toContain("linear-gradient");
+    expect(invitation).toContain("bg-[#fff8f1]");
+    expect(invitation).toContain("data-qr-container=\"true\"");
+    expect(invitation).toContain("margin: 4");
+    expect(invitation).toContain("width: 640");
+    expect(invitation).toContain("imageRendering: \"pixelated\"");
     expect(invitation).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
     expect(exportHelper).toContain("INVITATION_EXPORT_WIDTH = 1080");
     expect(exportHelper).toContain("INVITATION_EXPORT_HEIGHT = 1350");

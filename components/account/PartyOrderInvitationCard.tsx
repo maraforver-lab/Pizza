@@ -21,6 +21,16 @@ type PartyOrderInvitationCardProps = {
 type CopyState = "idle" | "copied" | "unavailable";
 type ExportState = "idle" | "preparing" | "saved" | "error";
 
+function displayShareLink(value: string) {
+  try {
+    const url = new URL(value);
+    const displayValue = `${url.host}${url.pathname}`;
+    return displayValue.length > 46 ? `${displayValue.slice(0, 34)}…${displayValue.slice(-8)}` : displayValue;
+  } catch {
+    return value.length > 46 ? `${value.slice(0, 34)}…${value.slice(-8)}` : value;
+  }
+}
+
 async function copyText(value: string, setState: (state: CopyState) => void) {
   try {
     if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
@@ -42,6 +52,8 @@ function PartyOrderInvitationExportCard({
   qrCodeDataUrl: string;
   shareLink: string;
 }) {
+  const displayedShareLink = displayShareLink(shareLink);
+
   return (
     <div
       className="relative overflow-hidden bg-ink text-white"
@@ -78,18 +90,29 @@ function PartyOrderInvitationExportCard({
           )}
         </div>
 
-        <div className="grid grid-cols-[1fr_330px] items-end gap-8 rounded-[48px] border border-white/18 bg-white/92 p-9 text-ink shadow-[0_30px_100px_rgba(0,0,0,.32)]">
+        <div
+          className="grid grid-cols-[1fr_356px] items-center gap-8 rounded-[48px] border border-white/65 bg-[#fff8f1] p-9 text-ink shadow-[0_30px_100px_rgba(0,0,0,.32)]"
+          data-invitation-lower-panel="true"
+        >
           <div>
             <p className="text-2xl font-black uppercase tracking-[.16em] text-leaf">Scan to choose your pizza</p>
             <p className="mt-4 text-4xl font-black leading-tight text-ink">Open the menu, pick your pizzas, and send your order.</p>
-            <p className="mt-6 break-all text-2xl font-bold leading-snug text-ink/58">{shareLink}</p>
+            <p className="mt-6 max-w-[570px] truncate text-2xl font-extrabold leading-snug text-ink/72">{displayedShareLink}</p>
           </div>
-          <div className="rounded-[32px] border border-ink/10 bg-white p-6">
+          <div
+            className="rounded-[34px] border border-ink/10 bg-white p-7 shadow-[0_18px_55px_rgba(0,0,0,.16)]"
+            data-qr-container="true"
+          >
             {qrCodeDataUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={qrCodeDataUrl} alt="QR code for public pizza order link" className="h-[282px] w-[282px]" />
+              <img
+                src={qrCodeDataUrl}
+                alt="QR code for public pizza order link"
+                className="h-[286px] w-[286px]"
+                style={{ imageRendering: "pixelated" }}
+              />
             ) : (
-              <div className="grid h-[282px] w-[282px] place-items-center text-lg font-bold text-ink/45">
+              <div className="grid h-[286px] w-[286px] place-items-center text-lg font-bold text-ink/45">
                 QR code loading…
               </div>
             )}
@@ -109,6 +132,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
   const [pdfExportState, setPdfExportState] = useState<ExportState>("idle");
   const [exportError, setExportError] = useState("");
   const invitationText = useMemo(() => partyOrderInvitationText(event, shareLink), [event, shareLink]);
+  const displayedShareLink = useMemo(() => displayShareLink(shareLink), [shareLink]);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,8 +143,8 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
 
     QRCode.toDataURL(shareLink, {
       errorCorrectionLevel: "M",
-      margin: 1,
-      width: 360,
+      margin: 4,
+      width: 640,
       color: {
         dark: "#20251f",
         light: "#ffffff",
@@ -187,7 +211,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
           backgroundSize: "cover",
         }}
       >
-        <div className="grid gap-5 p-5 sm:grid-cols-[1fr_auto] sm:p-6">
+        <div className="grid gap-5 p-5 sm:p-6">
           <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/75">DoughTools · Pizza Party</p>
             <h3 className="mt-3 break-words font-display text-4xl font-semibold leading-[.95] sm:text-5xl">
@@ -210,21 +234,36 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
             )}
           </div>
 
-          <div className="rounded-[1.5rem] border border-white/25 bg-white p-4 text-center text-ink shadow-card sm:w-64">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Scan to choose</p>
-            <div
-              className="mx-auto mt-3 grid aspect-square w-44 place-items-center rounded-2xl bg-white sm:w-48"
-              data-qr-url={shareLink}
-              aria-label={`QR code for ${shareLink}`}
-            >
-              {qrCodeDataUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={qrCodeDataUrl} alt="QR code for public pizza order link" className="h-full w-full" />
-              ) : (
-                <span className="text-xs font-bold leading-5 text-ink/45">QR code loading…</span>
-              )}
+          <div
+            className="grid gap-4 rounded-[1.5rem] border border-white/60 bg-[#fff8f1] p-4 text-ink shadow-card sm:grid-cols-[1fr_auto] sm:items-center sm:p-5"
+            data-invitation-lower-panel="true"
+          >
+            <div className="min-w-0">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Scan to choose your pizza</p>
+              <p className="mt-2 text-xl font-black leading-tight text-ink">
+                Open the menu, pick your pizzas, and send your order.
+              </p>
+              <p className="mt-3 truncate text-sm font-extrabold leading-6 text-ink/70">{displayedShareLink}</p>
             </div>
-            <p className="mt-3 break-all text-xs font-bold leading-5 text-ink/55">{shareLink}</p>
+            <div className="rounded-[1.35rem] border border-ink/10 bg-white p-3 text-center shadow-sm sm:w-56" data-qr-container="true">
+              <div
+                className="mx-auto grid aspect-square w-48 place-items-center rounded-2xl bg-white"
+                data-qr-url={shareLink}
+                aria-label={`QR code for ${shareLink}`}
+              >
+                {qrCodeDataUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={qrCodeDataUrl}
+                    alt="QR code for public pizza order link"
+                    className="h-full w-full"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                ) : (
+                  <span className="text-xs font-bold leading-5 text-ink/45">QR code loading…</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
