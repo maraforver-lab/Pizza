@@ -24,7 +24,8 @@ import {
 } from "@/lib/cloud-pizza-sessions";
 import {
   PIZZA_PHOTO_OVERLAY_FILE_NAME,
-  PIZZA_PHOTO_OVERLAY_SIZE,
+  PIZZA_PHOTO_OVERLAY_HEIGHT,
+  PIZZA_PHOTO_OVERLAY_WIDTH,
   buildPizzaPhotoOverlayModel,
 } from "@/lib/pizza-photo-overlay";
 import {
@@ -514,21 +515,20 @@ describe("cloud pizza session foundation", () => {
 
     expect(buildPizzaPhotoOverlayModel(history)).toEqual({
       brand: "DOUGHTOOLS",
-      title: "PIZZA BAKE LOG",
-      footerLabel: "CREATED WITH DOUGHTOOLS",
-      footerMain: "Plan your ingredients, hydration and bake with DoughTools",
-      footerWebsite: "www.doughtools.app",
+      title: "BAKE LOG",
+      footerLabel: "PLANNED, BAKED, DELIVERED",
+      footerMain: "WITH DOUGHTOOLS.APP",
+      footerWebsite: "doughtools.app",
       fields: [
         { label: "HYDRATION", value: "64%" },
         { label: "FERMENTATION", value: "48H COLD" },
         { label: "FRIDGE", value: "4°C" },
-        { label: "FLOUR W", value: "260–300" },
-        { label: "BAKE TIME", value: "90 SEC" },
-        { label: "RATING", value: "5/5" },
+        { label: "FLOUR", value: "W 260–300" },
+        { label: "BAKE", value: "90 SEC" },
       ],
     });
     expect(buildPizzaPhotoOverlayModel(history)?.fields.some((field) => field.label === "Dough balls")).toBe(false);
-    expect(buildPizzaPhotoOverlayModel(history)?.fields.find((field) => field.label === "FLOUR W")?.value).not.toContain("W ");
+    expect(buildPizzaPhotoOverlayModel(history)?.fields.find((field) => field.label === "FLOUR")?.value).toBe("W 260–300");
   });
 
   it("builds room-temperature overlay fields from selected fermentation data", () => {
@@ -565,7 +565,7 @@ describe("cloud pizza session foundation", () => {
       { label: "HYDRATION", value: "62%" },
       { label: "FERMENTATION", value: "12H ROOM" },
       { label: "ROOM", value: "22°C" },
-      { label: "BAKE TIME", value: "5 MIN" },
+      { label: "BAKE", value: "5 MIN" },
     ]);
   });
 
@@ -605,7 +605,7 @@ describe("cloud pizza session foundation", () => {
       completed_at: "2026-07-04T10:00:00.000Z",
     });
 
-    expect(model?.fields.find((field) => field.label === "FLOUR W")?.value).toBe("300–340");
+    expect(model?.fields.find((field) => field.label === "FLOUR")?.value).toBe("W 300–340");
   });
 
   it("shows overlay flour W from the followed system recommendation", () => {
@@ -639,7 +639,7 @@ describe("cloud pizza session foundation", () => {
       completed_at: "2026-07-04T10:00:00.000Z",
     })!;
 
-    expect(buildPizzaPhotoOverlayModel(history)?.fields.find((field) => field.label === "FLOUR W")?.value).toBe("260–300");
+    expect(buildPizzaPhotoOverlayModel(history)?.fields.find((field) => field.label === "FLOUR")?.value).toBe("W 260–300");
   });
 
   it("omits optional overlay flour W and bake time when session data cannot determine them", () => {
@@ -673,8 +673,8 @@ describe("cloud pizza session foundation", () => {
 
     const fields = buildPizzaPhotoOverlayModel(history)?.fields ?? [];
 
-    expect(fields.some((field) => field.label === "FLOUR W")).toBe(false);
-    expect(fields.some((field) => field.label === "BAKE TIME")).toBe(false);
+    expect(fields.some((field) => field.label === "FLOUR")).toBe(false);
+    expect(fields.some((field) => field.label === "BAKE")).toBe(false);
   });
 
   it("omits missing optional overlay fields and does not render without a photo URL", () => {
@@ -1303,14 +1303,19 @@ describe("cloud pizza session foundation", () => {
     expect(relevanceHelper).toContain("AbortController");
     expect(relevanceHelper).not.toContain("NEXT_PUBLIC_OPENAI");
     expect(relevanceHelper).not.toContain("console.log");
-    expect(overlayHelper).toContain("PIZZA_PHOTO_OVERLAY_SIZE = 1080");
-    expect(PIZZA_PHOTO_OVERLAY_SIZE).toBe(1080);
+    expect(overlayHelper).toContain("PIZZA_PHOTO_OVERLAY_WIDTH = 1080");
+    expect(overlayHelper).toContain("PIZZA_PHOTO_OVERLAY_HEIGHT = 1350");
+    expect(PIZZA_PHOTO_OVERLAY_WIDTH).toBe(1080);
+    expect(PIZZA_PHOTO_OVERLAY_HEIGHT).toBe(1350);
     expect(PIZZA_PHOTO_OVERLAY_FILE_NAME).toBe("doughtools-pizza-bake.png");
     expect(overlayHelper).toContain("buildPizzaPhotoOverlayModel");
     expect(overlayHelper).toContain("cloudPizzaSessionDetailSummary(row)");
-    expect(overlayHelper).toContain("CREATED WITH DOUGHTOOLS");
-    expect(overlayHelper).toContain("Plan your ingredients, hydration and bake with DoughTools");
-    expect(overlayHelper).toContain("www.doughtools.app");
+    expect(overlayHelper).toContain("PLANNED, BAKED, DELIVERED");
+    expect(overlayHelper).toContain("WITH DOUGHTOOLS.APP");
+    expect(overlayHelper).toContain("doughtools.app");
+    expect(overlayHelper).not.toContain("CREATED WITH DOUGHTOOLS");
+    expect(overlayHelper).not.toContain("Plan your ingredients, hydration and bake with DoughTools");
+    expect(overlayHelper).not.toContain("www.doughtools.app");
     expect(overlayHelper).not.toContain("BAKED WITH A DOUGHTOOLS PLAN");
     expect(overlayHelper).not.toContain("Want to make pizza like this?");
     expect(overlayHelper).not.toContain("Plan your dough, fermentation and bake at doughtools.app");
@@ -1318,35 +1323,33 @@ describe("cloud pizza session foundation", () => {
     expect(overlayHelper).toContain("FERMENTATION");
     expect(overlayHelper).toContain("FRIDGE");
     expect(overlayHelper).toContain("ROOM");
-    expect(overlayHelper).toContain("FLOUR W");
-    expect(overlayHelper).toContain("BAKE TIME");
+    expect(overlayHelper).toContain("FLOUR");
+    expect(overlayHelper).toContain("`W ${flourW}`");
+    expect(overlayHelper).toContain("BAKE");
     expect(overlayHelper).toContain("\"90 SEC\"");
     expect(overlayHelper).toContain("\"5 MIN\"");
-    expect(overlayHelper).toContain("RATING");
+    expect(overlayHelper).not.toContain("RATING");
     expect(overlayHelper).not.toContain("Dough balls");
     expect(overlayComponent).toContain("document.createElement(\"canvas\")");
-    expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_SIZE");
+    expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_WIDTH");
+    expect(overlayComponent).toContain("PIZZA_PHOTO_OVERLAY_HEIGHT");
     expect(overlayComponent).toContain("drawCoverImage");
-    expect(overlayComponent).toContain("wrapTextLines");
-    expect(overlayComponent).toContain("context.measureText(nextLine).width > maxWidth");
-    expect(overlayComponent).toContain("drawWrappedText");
-    expect(overlayComponent).toContain("cornerGradient");
-    expect(overlayComponent).toContain("panelWidth = 318");
+    expect(overlayComponent).toContain("leftGradient");
+    expect(overlayComponent).toContain("footerGradient");
+    expect(overlayComponent).toContain("strokeIcon");
+    expect(overlayComponent).not.toContain("roundedRect");
+    expect(overlayComponent).not.toContain("panelWidth = 318");
     expect(overlayComponent).toContain("model.fields.slice(0, 5)");
-    expect(overlayComponent).toContain("fieldGap = 76");
-    expect(overlayComponent).toContain("panelHeight = 156 + fields.length * fieldGap");
-    expect(overlayComponent).toContain("rgba(8, 24, 20, 0.52)");
-    expect(overlayComponent).toContain("rgba(8, 24, 20, 0.48)");
-    expect(overlayComponent).toContain("rgba(59, 166, 107, 0.42)");
+    expect(overlayComponent).toContain("rowHeight = 123");
+    expect(overlayComponent).toContain("rgba(0, 0, 0, 0.58)");
+    expect(overlayComponent).not.toContain("rgba(8, 24, 20, 0.52)");
+    expect(overlayComponent).not.toContain("rgba(8, 24, 20, 0.48)");
     expect(overlayComponent).toContain("model.brand");
     expect(overlayComponent).toContain("model.title");
-    expect(overlayComponent).toContain("footerY = 848");
-    expect(overlayComponent).toContain("footerHeight = 172");
+    expect(overlayComponent).toContain("footerY = 1188");
     expect(overlayComponent).toContain("model.footerLabel");
     expect(overlayComponent).toContain("model.footerMain");
     expect(overlayComponent).toContain("model.footerWebsite");
-    expect(overlayComponent).toContain("maxLines: 2");
-    expect(overlayComponent).toContain("footerMainLines * 34 + 18");
     expect(overlayComponent).not.toContain("model.footerQuestion");
     expect(overlayComponent).not.toContain("model.footerAction");
     expect(overlayComponent).not.toContain("model.ctaQuestion");

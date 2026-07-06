@@ -5,7 +5,8 @@ import {
 import { buildSessionFlourWGuidance } from "@/lib/session-flour-w-guidance";
 import { migratePizzaSession, type PizzaSessionFlourWRange } from "@/lib/pizza-session";
 
-export const PIZZA_PHOTO_OVERLAY_SIZE = 1080;
+export const PIZZA_PHOTO_OVERLAY_WIDTH = 1080;
+export const PIZZA_PHOTO_OVERLAY_HEIGHT = 1350;
 export const PIZZA_PHOTO_OVERLAY_FILE_NAME = "doughtools-pizza-bake.png";
 export const PIZZA_PHOTO_OVERLAY_MIME_TYPE = "image/png";
 export const PIZZA_PHOTO_OVERLAY_SHARE_FALLBACK = "Download the image and upload it to Instagram.";
@@ -17,10 +18,10 @@ export type PizzaPhotoOverlayField = {
 
 export type PizzaPhotoOverlayModel = {
   brand: "DOUGHTOOLS";
-  title: "PIZZA BAKE LOG";
-  footerLabel: "CREATED WITH DOUGHTOOLS";
-  footerMain: "Plan your ingredients, hydration and bake with DoughTools";
-  footerWebsite: "www.doughtools.app";
+  title: "BAKE LOG";
+  footerLabel: "PLANNED, BAKED, DELIVERED";
+  footerMain: "WITH DOUGHTOOLS.APP";
+  footerWebsite: "doughtools.app";
   fields: PizzaPhotoOverlayField[];
 };
 
@@ -35,11 +36,6 @@ const W_RANGE_LABELS: Record<PizzaSessionFlourWRange, string> = {
 function removePrefix(value: string | undefined, prefix: string) {
   if (!value) return undefined;
   return value.startsWith(prefix) ? value.slice(prefix.length).trim() : value.trim();
-}
-
-function ratingValue(value: string | undefined) {
-  const rating = removePrefix(value, "Rating:");
-  return rating || undefined;
 }
 
 function splitFermentation(value: string | undefined) {
@@ -150,24 +146,22 @@ export function buildPizzaPhotoOverlayModel(row: CloudPizzaSessionRow): PizzaPho
   const fermentation = splitFermentation(summary.fermentationLine);
   const flourW = resolvedFlourWValue({ row, session, fermentation });
   const bakeTime = bakeTimeValue(session.ovenType ?? session.recipeSnapshot?.oven);
-  const rating = ratingValue(summary.review.ratingLine);
 
   const fields: PizzaPhotoOverlayField[] = [
     hydration ? { label: "HYDRATION", value: hydration } : null,
     fermentation.fermentation ? { label: "FERMENTATION", value: fermentation.fermentation } : null,
     fermentation.fridge ? { label: "FRIDGE", value: fermentation.fridge } : null,
     fermentation.room ? { label: "ROOM", value: fermentation.room } : null,
-    flourW ? { label: "FLOUR W", value: flourW } : null,
-    bakeTime ? { label: "BAKE TIME", value: bakeTime } : null,
-    rating ? { label: "RATING", value: rating } : null,
+    flourW ? { label: "FLOUR", value: `W ${flourW}` } : null,
+    bakeTime ? { label: "BAKE", value: bakeTime } : null,
   ].filter((field): field is PizzaPhotoOverlayField => Boolean(field));
 
   return {
     brand: "DOUGHTOOLS",
-    title: "PIZZA BAKE LOG",
-    footerLabel: "CREATED WITH DOUGHTOOLS",
-    footerMain: "Plan your ingredients, hydration and bake with DoughTools",
-    footerWebsite: "www.doughtools.app",
+    title: "BAKE LOG",
+    footerLabel: "PLANNED, BAKED, DELIVERED",
+    footerMain: "WITH DOUGHTOOLS.APP",
+    footerWebsite: "doughtools.app",
     fields,
   };
 }

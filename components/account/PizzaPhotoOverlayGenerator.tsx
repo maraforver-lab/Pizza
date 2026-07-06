@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   PIZZA_PHOTO_OVERLAY_FILE_NAME,
+  PIZZA_PHOTO_OVERLAY_HEIGHT,
   PIZZA_PHOTO_OVERLAY_MIME_TYPE,
   PIZZA_PHOTO_OVERLAY_SHARE_FALLBACK,
-  PIZZA_PHOTO_OVERLAY_SIZE,
+  PIZZA_PHOTO_OVERLAY_WIDTH,
   type PizzaPhotoOverlayModel,
 } from "@/lib/pizza-photo-overlay";
 
@@ -14,19 +15,10 @@ type PizzaPhotoOverlayGeneratorProps = {
   photoUrl: string;
 };
 
-function roundedRect(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
-  context.beginPath();
-  context.moveTo(x + radius, y);
-  context.lineTo(x + width - radius, y);
-  context.quadraticCurveTo(x + width, y, x + width, y + radius);
-  context.lineTo(x + width, y + height - radius);
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  context.lineTo(x + radius, y + height);
-  context.quadraticCurveTo(x, y + height, x, y + height - radius);
-  context.lineTo(x, y + radius);
-  context.quadraticCurveTo(x, y, x + radius, y);
-  context.closePath();
-}
+const OVERLAY_GREEN = "#3BA66B";
+const OVERLAY_WHITE = "#FFF8F1";
+const OVERLAY_MUTED = "rgba(255, 248, 241, 0.86)";
+const OVERLAY_DIVIDER = "rgba(255, 248, 241, 0.28)";
 
 function loadImage(source: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -38,14 +30,14 @@ function loadImage(source: string) {
   });
 }
 
-function drawCoverImage(context: CanvasRenderingContext2D, image: HTMLImageElement, size: number) {
+function drawCoverImage(context: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
   const imageRatio = image.naturalWidth / image.naturalHeight;
-  const targetRatio = 1;
+  const targetRatio = width / height;
   const sourceWidth = imageRatio > targetRatio ? image.naturalHeight * targetRatio : image.naturalWidth;
   const sourceHeight = imageRatio > targetRatio ? image.naturalHeight : image.naturalWidth / targetRatio;
-  const sourceX = (image.naturalWidth - sourceWidth) / 2;
-  const sourceY = (image.naturalHeight - sourceHeight) / 2;
-  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, size, size);
+  const sourceX = Math.max(0, Math.min(image.naturalWidth - sourceWidth, (image.naturalWidth - sourceWidth) * 0.62));
+  const sourceY = Math.max(0, Math.min(image.naturalHeight - sourceHeight, (image.naturalHeight - sourceHeight) * 0.54));
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
 }
 
 function drawText(context: CanvasRenderingContext2D, text: string, x: number, y: number, options: {
@@ -53,142 +45,204 @@ function drawText(context: CanvasRenderingContext2D, text: string, x: number, y:
   font: string;
   maxWidth?: number;
 }) {
+  context.save();
+  context.shadowColor = "rgba(0, 0, 0, 0.5)";
+  context.shadowBlur = 16;
+  context.shadowOffsetY = 4;
   context.fillStyle = options.color ?? "#1F1F1F";
   context.font = options.font;
   context.fillText(text, x, y, options.maxWidth);
+  context.restore();
 }
 
-function wrapTextLines(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let currentLine = "";
+function strokeIcon(context: CanvasRenderingContext2D, label: string, x: number, y: number) {
+  context.save();
+  context.strokeStyle = OVERLAY_GREEN;
+  context.fillStyle = OVERLAY_GREEN;
+  context.lineWidth = 4;
+  context.lineCap = "round";
+  context.lineJoin = "round";
 
-  words.forEach((word) => {
-    const nextLine = currentLine ? `${currentLine} ${word}` : word;
-    if (currentLine && context.measureText(nextLine).width > maxWidth) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = nextLine;
-    }
-  });
+  if (label === "HYDRATION") {
+    context.beginPath();
+    context.moveTo(x, y - 22);
+    context.bezierCurveTo(x - 22, y + 4, x - 22, y + 28, x, y + 28);
+    context.bezierCurveTo(x + 22, y + 28, x + 22, y + 4, x, y - 22);
+    context.stroke();
+  } else if (label === "FERMENTATION") {
+    context.beginPath();
+    context.arc(x, y + 4, 25, 0, Math.PI * 2);
+    context.moveTo(x, y - 12);
+    context.lineTo(x, y + 5);
+    context.lineTo(x + 13, y + 15);
+    context.stroke();
+  } else if (label === "FRIDGE" || label === "ROOM") {
+    context.beginPath();
+    context.moveTo(x, y - 28);
+    context.lineTo(x, y + 10);
+    context.arc(x, y + 21, 11, -Math.PI * 0.15, Math.PI * 1.15);
+    context.moveTo(x - 10, y - 28);
+    context.quadraticCurveTo(x - 18, y - 28, x - 18, y - 20);
+    context.lineTo(x - 18, y + 8);
+    context.moveTo(x + 10, y - 28);
+    context.quadraticCurveTo(x + 18, y - 28, x + 18, y - 20);
+    context.lineTo(x + 18, y + 8);
+    context.stroke();
+  } else if (label === "FLOUR") {
+    context.beginPath();
+    context.moveTo(x, y - 30);
+    context.lineTo(x, y + 30);
+    context.moveTo(x, y - 18);
+    context.lineTo(x - 18, y - 30);
+    context.moveTo(x, y - 18);
+    context.lineTo(x + 18, y - 30);
+    context.moveTo(x, y - 3);
+    context.lineTo(x - 20, y - 15);
+    context.moveTo(x, y - 3);
+    context.lineTo(x + 20, y - 15);
+    context.moveTo(x, y + 13);
+    context.lineTo(x - 18, y + 1);
+    context.moveTo(x, y + 13);
+    context.lineTo(x + 18, y + 1);
+    context.stroke();
+  } else if (label === "PIZZA") {
+    context.beginPath();
+    context.moveTo(x - 30, y - 32);
+    context.quadraticCurveTo(x + 4, y - 46, x + 34, y - 28);
+    context.lineTo(x - 6, y + 42);
+    context.closePath();
+    context.stroke();
+    context.beginPath();
+    context.arc(x - 4, y - 8, 4, 0, Math.PI * 2);
+    context.arc(x + 10, y - 23, 4, 0, Math.PI * 2);
+    context.arc(x + 4, y + 14, 4, 0, Math.PI * 2);
+    context.fill();
+  } else {
+    context.beginPath();
+    context.moveTo(x, y + 30);
+    context.bezierCurveTo(x - 28, y + 12, x - 12, y - 8, x - 18, y - 28);
+    context.bezierCurveTo(x + 2, y - 15, x + 5, y - 35, x + 13, y - 45);
+    context.bezierCurveTo(x + 25, y - 18, x + 38, y + 0, x + 22, y + 27);
+    context.bezierCurveTo(x + 12, y + 37, x - 2, y + 37, x, y + 30);
+    context.stroke();
+  }
 
-  if (currentLine) lines.push(currentLine);
-  return lines;
-}
-
-function drawWrappedText(context: CanvasRenderingContext2D, text: string, x: number, y: number, options: {
-  color?: string;
-  font: string;
-  lineHeight: number;
-  maxWidth: number;
-  maxLines?: number;
-}) {
-  context.fillStyle = options.color ?? "#1F1F1F";
-  context.font = options.font;
-  const lines = wrapTextLines(context, text, options.maxWidth).slice(0, options.maxLines);
-  lines.forEach((line, index) => {
-    context.fillText(line, x, y + index * options.lineHeight, options.maxWidth);
-  });
-  return lines.length;
+  context.restore();
 }
 
 function drawOverlay(context: CanvasRenderingContext2D, model: PizzaPhotoOverlayModel, image: HTMLImageElement) {
-  const size = PIZZA_PHOTO_OVERLAY_SIZE;
-  context.clearRect(0, 0, size, size);
-  drawCoverImage(context, image, size);
+  const width = PIZZA_PHOTO_OVERLAY_WIDTH;
+  const height = PIZZA_PHOTO_OVERLAY_HEIGHT;
+  context.clearRect(0, 0, width, height);
+  drawCoverImage(context, image, width, height);
 
-  const cornerGradient = context.createRadialGradient(0, 0, 40, 0, 0, 580);
-  cornerGradient.addColorStop(0, "rgba(9, 29, 23, 0.24)");
-  cornerGradient.addColorStop(0.52, "rgba(9, 29, 23, 0.08)");
-  cornerGradient.addColorStop(1, "rgba(9, 29, 23, 0)");
-  context.fillStyle = cornerGradient;
-  context.fillRect(0, 0, size, size);
+  const leftGradient = context.createLinearGradient(0, 0, width * 0.68, 0);
+  leftGradient.addColorStop(0, "rgba(0, 0, 0, 0.58)");
+  leftGradient.addColorStop(0.45, "rgba(0, 0, 0, 0.28)");
+  leftGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = leftGradient;
+  context.fillRect(0, 0, width, height);
 
-  const panelX = 46;
-  const panelY = 50;
-  const panelWidth = 318;
-  const fields = model.fields.slice(0, 5);
-  const fieldGap = 76;
-  const panelHeight = 156 + fields.length * fieldGap;
-  roundedRect(context, panelX, panelY, panelWidth, panelHeight, 34);
-  context.fillStyle = "rgba(8, 24, 20, 0.52)";
-  context.fill();
-  context.strokeStyle = "rgba(59, 166, 107, 0.42)";
-  context.lineWidth = 2;
-  context.stroke();
+  const footerGradient = context.createRadialGradient(0, height, 120, 0, height, 620);
+  footerGradient.addColorStop(0, "rgba(0, 0, 0, 0.42)");
+  footerGradient.addColorStop(0.55, "rgba(0, 0, 0, 0.20)");
+  footerGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = footerGradient;
+  context.fillRect(0, 0, width, height);
 
+  const titleX = 56;
+  const titleY = 108;
+  drawText(context, model.brand, titleX, titleY, {
+    color: OVERLAY_WHITE,
+    font: "900 32px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 390,
+  });
+  drawText(context, model.title, titleX, titleY + 74, {
+    color: OVERLAY_GREEN,
+    font: "1000 68px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 430,
+  });
   context.beginPath();
-  context.moveTo(panelX + 28, panelY + 132);
-  context.lineTo(panelX + panelWidth - 28, panelY + 132);
-  context.strokeStyle = "rgba(59, 166, 107, 0.75)";
-  context.lineWidth = 3;
-  context.stroke();
-
-  drawText(context, model.brand, panelX + 28, panelY + 56, {
-    color: "#F9F1E7",
-    font: "900 25px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 56,
-  });
-  drawText(context, model.title, panelX + 28, panelY + 100, {
-    color: "#3BA66B",
-    font: "900 29px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: panelWidth - 56,
-  });
-
-  const fieldTop = panelY + 172;
-  fields.forEach((field, index) => {
-    const x = panelX + 28;
-    const y = fieldTop + index * fieldGap;
-    context.beginPath();
-    context.arc(x + 5, y - 8, 5, 0, Math.PI * 2);
-    context.fillStyle = "#3BA66B";
-    context.fill();
-    drawText(context, field.label, x + 22, y, {
-      color: "rgba(249, 241, 231, 0.62)",
-      font: "900 15px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      maxWidth: panelWidth - 60,
-    });
-    drawText(context, field.value, x, y + 38, {
-      color: "#FFF8F1",
-      font: "900 29px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      maxWidth: panelWidth - 56,
-    });
-  });
-
-  const footerX = 54;
-  const footerY = 848;
-  const footerWidth = 972;
-  const footerHeight = 172;
-  roundedRect(context, footerX, footerY, footerWidth, footerHeight, 30);
-  context.fillStyle = "rgba(8, 24, 20, 0.48)";
-  context.fill();
-  context.strokeStyle = "rgba(59, 166, 107, 0.36)";
-  context.lineWidth = 2;
-  context.stroke();
-  context.beginPath();
-  context.moveTo(footerX + 34, footerY + 31);
-  context.lineTo(footerX + 170, footerY + 31);
-  context.strokeStyle = "rgba(59, 166, 107, 0.86)";
+  context.moveTo(titleX, titleY + 112);
+  context.lineTo(titleX + 374, titleY + 112);
+  context.strokeStyle = OVERLAY_GREEN;
   context.lineWidth = 4;
   context.stroke();
 
-  drawText(context, model.footerLabel, footerX + 34, footerY + 61, {
-    color: "rgba(249, 241, 231, 0.68)",
-    font: "900 20px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: footerWidth - 68,
+  const fields = model.fields.slice(0, 5);
+  const rowX = 56;
+  const iconX = 76;
+  const dividerX = 120;
+  const textX = 136;
+  const firstRowY = 312;
+  const rowHeight = 123;
+  fields.forEach((field, index) => {
+    const rowTop = firstRowY + index * rowHeight;
+    const iconY = rowTop + 32;
+    strokeIcon(context, field.label, iconX, iconY);
+
+    context.beginPath();
+    context.moveTo(dividerX, rowTop - 8);
+    context.lineTo(dividerX, rowTop + 72);
+    context.strokeStyle = OVERLAY_DIVIDER;
+    context.lineWidth = 2;
+    context.stroke();
+
+    drawText(context, field.label, textX, rowTop + 18, {
+      color: OVERLAY_MUTED,
+      font: "800 21px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      maxWidth: 260,
+    });
+    drawText(context, field.value, textX, rowTop + 64, {
+      color: OVERLAY_WHITE,
+      font: "1000 39px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      maxWidth: 330,
+    });
+
+    if (index < fields.length - 1) {
+      context.beginPath();
+      context.moveTo(rowX, rowTop + 100);
+      context.lineTo(rowX + 340, rowTop + 100);
+      context.strokeStyle = OVERLAY_DIVIDER;
+      context.lineWidth = 1.5;
+      context.stroke();
+    }
   });
-  const footerMainLines = drawWrappedText(context, model.footerMain, footerX + 34, footerY + 101, {
-    color: "#FFF8F1",
-    font: "900 28px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    lineHeight: 34,
-    maxWidth: footerWidth - 68,
-    maxLines: 2,
+
+  const footerY = 1188;
+  strokeIcon(context, "PIZZA", 82, footerY + 24);
+  context.beginPath();
+  context.moveTo(132, footerY - 38);
+  context.lineTo(132, footerY + 96);
+  context.strokeStyle = OVERLAY_DIVIDER;
+  context.lineWidth = 2;
+  context.stroke();
+
+  const footerTextX = 160;
+  drawText(context, model.footerLabel, footerTextX, footerY - 4, {
+    color: OVERLAY_WHITE,
+    font: "1000 32px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 620,
   });
-  drawText(context, model.footerWebsite, footerX + 34, footerY + 101 + footerMainLines * 34 + 18, {
-    color: "#3BA66B",
-    font: "900 24px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    maxWidth: footerWidth - 68,
+
+  context.save();
+  context.shadowColor = "rgba(0, 0, 0, 0.5)";
+  context.shadowBlur = 16;
+  context.shadowOffsetY = 4;
+  context.font = "1000 32px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  const highlightedDomain = "DOUGHTOOLS.APP";
+  const footerPrefix = model.footerMain.replace(highlightedDomain, "");
+  context.fillStyle = OVERLAY_WHITE;
+  context.fillText(footerPrefix, footerTextX, footerY + 36);
+  const withWidth = context.measureText(footerPrefix).width;
+  context.fillStyle = OVERLAY_GREEN;
+  context.fillText(highlightedDomain, footerTextX + withWidth, footerY + 36);
+  context.restore();
+
+  drawText(context, model.footerWebsite, footerTextX, footerY + 78, {
+    color: OVERLAY_WHITE,
+    font: "800 27px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    maxWidth: 440,
   });
 }
 
@@ -204,8 +258,8 @@ async function canvasToBlob(canvas: HTMLCanvasElement) {
 async function createOverlayBlob(photoUrl: string, model: PizzaPhotoOverlayModel) {
   const image = await loadImage(photoUrl);
   const canvas = document.createElement("canvas");
-  canvas.width = PIZZA_PHOTO_OVERLAY_SIZE;
-  canvas.height = PIZZA_PHOTO_OVERLAY_SIZE;
+  canvas.width = PIZZA_PHOTO_OVERLAY_WIDTH;
+  canvas.height = PIZZA_PHOTO_OVERLAY_HEIGHT;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Could not create share image.");
   drawOverlay(context, model, image);
@@ -345,7 +399,7 @@ export function PizzaPhotoOverlayGenerator({ model, photoUrl }: PizzaPhotoOverla
           <img
             src={previewUrl}
             alt="DoughTools branded pizza bake image"
-            className="mx-auto aspect-square w-full max-w-md rounded-[1.15rem] object-cover"
+            className="mx-auto aspect-[4/5] w-full max-w-md rounded-[1.15rem] object-cover"
           />
         </div>
       )}
