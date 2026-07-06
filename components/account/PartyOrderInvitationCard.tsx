@@ -31,6 +31,16 @@ function displayShareLink(value: string) {
   }
 }
 
+function normalizePublicGuestUrl(value: string) {
+  const compactValue = value.trim().replace(/\s+/g, "");
+  if (!compactValue) return "";
+  try {
+    return new URL(compactValue).toString();
+  } catch {
+    return compactValue;
+  }
+}
+
 async function copyText(value: string, setState: (state: CopyState) => void) {
   try {
     if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
@@ -46,13 +56,13 @@ async function copyText(value: string, setState: (state: CopyState) => void) {
 function PartyOrderInvitationExportCard({
   event,
   qrCodeDataUrl,
-  shareLink,
+  publicGuestUrl,
 }: {
   event: PartyOrderRow;
   qrCodeDataUrl: string;
-  shareLink: string;
+  publicGuestUrl: string;
 }) {
-  const displayedShareLink = displayShareLink(shareLink);
+  const displayedShareLink = displayShareLink(publicGuestUrl);
 
   return (
     <div
@@ -131,17 +141,18 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
   const [imageExportState, setImageExportState] = useState<ExportState>("idle");
   const [pdfExportState, setPdfExportState] = useState<ExportState>("idle");
   const [exportError, setExportError] = useState("");
-  const invitationText = useMemo(() => partyOrderInvitationText(event, shareLink), [event, shareLink]);
-  const displayedShareLink = useMemo(() => displayShareLink(shareLink), [shareLink]);
+  const publicGuestUrl = useMemo(() => normalizePublicGuestUrl(shareLink), [shareLink]);
+  const invitationText = useMemo(() => partyOrderInvitationText(event, publicGuestUrl), [event, publicGuestUrl]);
+  const displayedShareLink = useMemo(() => displayShareLink(publicGuestUrl), [publicGuestUrl]);
 
   useEffect(() => {
     let cancelled = false;
-    if (!shareLink) {
+    if (!publicGuestUrl) {
       setQrCodeDataUrl("");
       return;
     }
 
-    QRCode.toDataURL(shareLink, {
+    QRCode.toDataURL(publicGuestUrl, {
       errorCorrectionLevel: "M",
       margin: 4,
       width: 640,
@@ -160,7 +171,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
     return () => {
       cancelled = true;
     };
-  }, [shareLink]);
+  }, [publicGuestUrl]);
 
   const exportInvitation = async (type: "image" | "pdf") => {
     const setState = type === "image" ? setImageExportState : setPdfExportState;
@@ -191,14 +202,14 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
             Pizza party invitation
           </h2>
         </div>
-        <Link href={shareLink || "#"} className="text-sm font-extrabold text-tomato transition hover:text-ink">
+        <Link href={publicGuestUrl || "#"} className="text-sm font-extrabold text-tomato transition hover:text-ink">
           Open public guest page →
         </Link>
       </div>
 
       <div className="pointer-events-none fixed left-[-12000px] top-0" aria-hidden="true">
         <div ref={exportCardRef}>
-          <PartyOrderInvitationExportCard event={event} qrCodeDataUrl={qrCodeDataUrl} shareLink={shareLink} />
+          <PartyOrderInvitationExportCard event={event} qrCodeDataUrl={qrCodeDataUrl} publicGuestUrl={publicGuestUrl} />
         </div>
       </div>
 
@@ -248,8 +259,8 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
             <div className="rounded-[1.35rem] border border-ink/10 bg-white p-3 text-center shadow-sm sm:w-56" data-qr-container="true">
               <div
                 className="mx-auto grid aspect-square w-48 place-items-center rounded-2xl bg-white"
-                data-qr-url={shareLink}
-                aria-label={`QR code for ${shareLink}`}
+                data-qr-url={publicGuestUrl}
+                aria-label={`QR code for ${publicGuestUrl}`}
               >
                 {qrCodeDataUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -270,14 +281,14 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
 
       <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-white/85 p-4">
         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Public guest link</p>
-        <p className="mt-2 break-all text-sm font-extrabold text-ink/70">{shareLink}</p>
+        <p className="mt-2 break-all text-sm font-extrabold text-ink/70">{publicGuestUrl}</p>
         <p className="mt-3 text-sm leading-6 text-ink/60">
           Guests can open this link to choose pizzas and send their order without signing in.
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
-            onClick={() => copyText(shareLink, setCopyLinkState)}
+            onClick={() => copyText(publicGuestUrl, setCopyLinkState)}
             className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
             {copyLinkState === "copied" ? "Link copied" : copyLinkState === "unavailable" ? "Copy unavailable" : "Copy link"}
