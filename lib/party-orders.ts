@@ -58,6 +58,14 @@ export type PartyOrderSubmissionSummary = {
   totalQuantity: number;
 };
 
+export type PublicPartyOrderEditableSubmission = {
+  event: PublicPartyOrder;
+  submission: PartyOrderSubmissionSummary & {
+    id: string;
+    updated_at: string;
+  };
+};
+
 export type PartyOrderPizzaMixItem = PartyOrderSubmissionItem;
 
 export type PartyOrderGuestOrderSummary = PartyOrderSubmissionSummary & {
@@ -148,6 +156,38 @@ export function normalizePublicPartyOrder(value: unknown): PublicPartyOrder | un
     allowed_pizza_ids: allowedPizzaIds,
     status,
     updated_at: updatedAt,
+  };
+}
+
+export function normalizePublicPartyOrderEditableSubmission(value: unknown): PublicPartyOrderEditableSubmission | undefined {
+  if (!isRecord(value)) return undefined;
+  const event = normalizePublicPartyOrder(value);
+  const submissionId = stringField(value, "submission_id", "submissionId");
+  const guestName = typeof value.guest_name === "string" && value.guest_name.trim() ? value.guest_name.trim() : undefined;
+  const guestComment = typeof value.guest_comment === "string" && value.guest_comment.trim() ? value.guest_comment.trim() : null;
+  const updatedAt = validDateTime(stringField(value, "submission_updated_at", "submissionUpdatedAt"));
+  const rawItems = Array.isArray(value.items) ? value.items : [];
+  const items = rawItems.flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const pizzaId = typeof item.pizza_id === "string" && item.pizza_id.trim() ? item.pizza_id.trim() : "";
+    const snapshot = typeof item.pizza_name_snapshot === "string" && item.pizza_name_snapshot.trim()
+      ? item.pizza_name_snapshot.trim()
+      : "";
+    const quantity = normalizePositiveInteger(item.quantity);
+    return pizzaId && snapshot && quantity ? [{ pizza_id: pizzaId, pizza_name_snapshot: snapshot, quantity }] : [];
+  });
+
+  if (!event || !submissionId || !guestName || !updatedAt) return undefined;
+  return {
+    event,
+    submission: {
+      id: submissionId,
+      guest_name: guestName,
+      guest_comment: guestComment,
+      items,
+      totalQuantity: items.reduce((total, item) => total + item.quantity, 0),
+      updated_at: updatedAt,
+    },
   };
 }
 

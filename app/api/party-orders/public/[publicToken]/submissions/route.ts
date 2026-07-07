@@ -44,11 +44,14 @@ export async function POST(
   if (error || !data) {
     return NextResponse.json({ error: "Your order could not be saved. Please try again." }, { status: 500 });
   }
-  const submissionRow = data as { submission_id?: unknown; created_at?: unknown };
+  const submissionRow = data as { submission_id?: unknown; edit_token?: unknown; created_at?: unknown };
+  const editToken = typeof submissionRow.edit_token === "string" ? submissionRow.edit_token : "";
 
   return NextResponse.json({
     submission: {
       id: typeof submissionRow.submission_id === "string" ? submissionRow.submission_id : undefined,
+      editToken: editToken || undefined,
+      editPath: editToken ? `/order/${partyOrder.public_token}/edit/${editToken}` : undefined,
       createdAt: typeof submissionRow.created_at === "string" ? submissionRow.created_at : undefined,
       guestName: validation.value.guest_name,
       guestComment: validation.value.guest_comment,

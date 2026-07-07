@@ -9,6 +9,7 @@ import {
 import {
   buildPartyOrderPizzaSessionHandoff,
   normalizePublicPartyOrder,
+  normalizePublicPartyOrderEditableSubmission,
   normalizePartyOrderRow,
   isPartyOrderOpen,
   partyOrderAllowedPizzaOptions,
@@ -179,6 +180,44 @@ describe("Party Orders foundation", () => {
       updated_at: "2026-07-05T11:00:00.000Z",
     });
     expect(JSON.stringify(event)).not.toContain("hidden-user");
+  });
+
+  it("normalizes a private editable guest submission without exposing other guest data", () => {
+    const editable = normalizePublicPartyOrderEditableSubmission({
+      public_token: "public-token",
+      title: "Guest pizza night",
+      pizza_datetime: "2026-07-11T18:00:00.000Z",
+      orders_close_at: "2026-07-11T15:00:00.000Z",
+      guest_note: "Pick your pizza.",
+      allowed_pizza_ids: ["margherita", "funghi"],
+      status: "open",
+      updated_at: "2026-07-05T11:00:00.000Z",
+      submission_id: "submission-1",
+      guest_name: "Mara",
+      guest_comment: "No onions",
+      submission_updated_at: "2026-07-05T12:00:00.000Z",
+      items: [
+        { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 2 },
+        { pizza_id: "funghi", pizza_name_snapshot: "Funghi", quantity: 1 },
+      ],
+      other_guest_name: "Hidden",
+    });
+
+    expect(editable).toBeTruthy();
+    if (!editable) return;
+    expect(editable.event.public_token).toBe("public-token");
+    expect(editable.submission).toMatchObject({
+      id: "submission-1",
+      guest_name: "Mara",
+      guest_comment: "No onions",
+      totalQuantity: 3,
+      updated_at: "2026-07-05T12:00:00.000Z",
+    });
+    expect(editable.submission.items).toEqual([
+      { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 2 },
+      { pizza_id: "funghi", pizza_name_snapshot: "Funghi", quantity: 1 },
+    ]);
+    expect(JSON.stringify(editable)).not.toContain("Hidden");
   });
 
   const openPublicEvent = {
@@ -395,6 +434,23 @@ describe("Party Orders foundation", () => {
     expect(deleteMigration).toContain("grant delete on public.party_order_submissions to authenticated");
     expect(deleteMigration).toContain("Owners can delete their party order submissions");
     expect(deleteMigration).toContain("party_orders.user_id = auth.uid()");
+
+    const editMigration = source("supabase/migrations/20260707110000_add_party_order_submission_edit_tokens.sql");
+    expect(editMigration).toContain("add column if not exists edit_token text");
+    expect(editMigration).toContain("set edit_token = encode(gen_random_bytes(24), 'hex')");
+    expect(editMigration).toContain("party_order_submissions_edit_token_idx");
+    expect(editMigration).toContain("drop function if exists public.submit_public_party_order(text, text, text, jsonb)");
+    expect(editMigration).toContain("edit_token text");
+    expect(editMigration).toContain("next_edit_token text := encode(gen_random_bytes(24), 'hex')");
+    expect(editMigration).toContain("party_order_submissions.edit_token");
+    expect(editMigration).toContain("create or replace function public.get_public_party_order_submission");
+    expect(editMigration).toContain("party_order_submissions.edit_token = edit_token_value");
+    expect(editMigration).toContain("create or replace function public.update_public_party_order_submission");
+    expect(editMigration).toContain("party_orders.status = 'open'");
+    expect(editMigration).toContain("party_orders.orders_close_at >= timezone('utc', now())");
+    expect(editMigration).toContain("delete from public.party_order_items");
+    expect(editMigration).toContain("grant execute on function public.get_public_party_order_submission(text, text) to anon, authenticated");
+    expect(editMigration).toContain("grant execute on function public.update_public_party_order_submission(text, text, text, text, jsonb) to anon, authenticated");
   });
 
   it("wires authenticated list and create API routes with ownership filtering", () => {
@@ -465,6 +521,45 @@ describe("Party Orders foundation", () => {
     expect(publicRoute).not.toContain("export async function DELETE");
     expect(publicPage).not.toContain("Delete order");
     expect(publicPage).not.toContain("party_order_submissions");
+  });
+
+  it("wires guest self-edit through private edit tokens", () => {
+    const submitRoute = source("app/api/party-orders/public/[publicToken]/submissions/route.ts");
+    const editRoute = source("app/api/party-orders/public/[publicToken]/submissions/[editToken]/route.ts");
+    const editPage = source("app/order/[publicToken]/edit/[submissionToken]/page.tsx");
+    const submitForm = source("components/party-orders/PublicPartyOrderForm.tsx");
+    const editForm = source("components/party-orders/PublicPartyOrderEditForm.tsx");
+
+    expect(submitRoute).toContain("edit_token");
+    expect(submitRoute).toContain("editToken");
+    expect(submitRoute).toContain("editPath: editToken ? `/order/${partyOrder.public_token}/edit/${editToken}` : undefined");
+
+    expect(submitForm).toContain("Keep this private edit link if you need to change your order:");
+    expect(submitForm).toContain("Copy edit link");
+    expect(submitForm).toContain("navigator.clipboard.writeText(editLink)");
+
+    expect(editRoute).toContain("export async function GET");
+    expect(editRoute).toContain("export async function PATCH");
+    expect(editRoute).toContain(".rpc(\"get_public_party_order_submission\"");
+    expect(editRoute).toContain(".rpc(\"update_public_party_order_submission\"");
+    expect(editRoute).toContain("normalizePublicPartyOrderEditableSubmission");
+    expect(editRoute).toContain("isPartyOrderOpen(existing.event)");
+    expect(editRoute).toContain("validatePublicPartyOrderSubmissionInput(body, existing.event)");
+    expect(editRoute).toContain("Orders are closed for this party.");
+    expect(editRoute).not.toContain("supabase.auth.getUser()");
+
+    expect(editPage).toContain("params: Promise<{ publicToken: string; submissionToken: string }>");
+    expect(editPage).toContain("get_public_party_order_submission");
+    expect(editPage).toContain("PublicPartyOrderEditForm");
+    expect(editPage).not.toContain("party_order_submissions");
+
+    expect(editForm).toContain("Edit your pizza order");
+    expect(editForm).toContain("Save changes");
+    expect(editForm).toContain("Your pizza order was updated.");
+    expect(editForm).toContain("Only the currently available party menu can be saved.");
+    expect(editForm).toContain("Saving replaces your previous pizza quantities.");
+    expect(editForm).toContain("method: \"PATCH\"");
+    expect(editForm).toContain("disabled={saving || totalQuantity < 1}");
   });
 
   it("adds logged-in owner list, create, and detail pages", () => {
