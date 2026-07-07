@@ -100,17 +100,17 @@ function PartyOrderInvitationExportCard({
           )}
         </div>
 
-        <div
-          className="grid grid-cols-[1fr_356px] items-center gap-8 rounded-[48px] border border-white/65 bg-[#fff8f1] p-9 text-ink shadow-[0_30px_100px_rgba(0,0,0,.32)]"
-          data-invitation-lower-panel="true"
-        >
-          <div>
+        <div className="grid grid-cols-[1fr_356px] items-center gap-8" data-invitation-lower-layout="separate">
+          <div
+            className="rounded-[48px] border border-white/65 bg-[#fff8f1] p-9 text-ink shadow-[0_10px_28px_rgba(0,0,0,.14)]"
+            data-invitation-lower-panel="true"
+          >
             <p className="text-2xl font-black uppercase tracking-[.16em] text-leaf">Scan to choose your pizza</p>
             <p className="mt-4 text-4xl font-black leading-tight text-ink">Open the menu, pick your pizzas, and send your order.</p>
             <p className="mt-6 max-w-[570px] truncate text-2xl font-extrabold leading-snug text-ink/72">{displayedShareLink}</p>
           </div>
           <div
-            className="rounded-[34px] border border-ink/10 bg-white p-7 shadow-[0_18px_55px_rgba(0,0,0,.16)]"
+            className="relative z-10 rounded-[34px] border border-ink/10 bg-white p-7 shadow-[0_18px_55px_rgba(0,0,0,.16)]"
             data-qr-container="true"
           >
             {qrCodeDataUrl ? (
@@ -245,18 +245,18 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
             )}
           </div>
 
-          <div
-            className="grid gap-4 rounded-[1.5rem] border border-white/60 bg-[#fff8f1] p-4 text-ink shadow-card sm:grid-cols-[1fr_auto] sm:items-center sm:p-5"
-            data-invitation-lower-panel="true"
-          >
-            <div className="min-w-0">
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center" data-invitation-lower-layout="separate">
+            <div
+              className="min-w-0 rounded-[1.5rem] border border-white/60 bg-[#fff8f1] p-4 text-ink shadow-sm sm:p-5"
+              data-invitation-lower-panel="true"
+            >
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Scan to choose your pizza</p>
               <p className="mt-2 text-xl font-black leading-tight text-ink">
                 Open the menu, pick your pizzas, and send your order.
               </p>
               <p className="mt-3 truncate text-sm font-extrabold leading-6 text-ink/70">{displayedShareLink}</p>
             </div>
-            <div className="rounded-[1.35rem] border border-ink/10 bg-white p-3 text-center shadow-sm sm:w-56" data-qr-container="true">
+            <div className="relative z-10 rounded-[1.35rem] border border-ink/10 bg-white p-3 text-center shadow-sm sm:w-56" data-qr-container="true">
               <div
                 className="mx-auto grid aspect-square w-48 place-items-center rounded-2xl bg-white"
                 data-qr-url={publicGuestUrl}

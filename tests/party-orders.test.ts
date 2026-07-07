@@ -710,6 +710,7 @@ describe("Party Orders foundation", () => {
     expect(invitation).not.toContain("QRCode.toDataURL(displayedShareLink");
     expect(invitation).not.toContain("data-qr-url={displayedShareLink}");
     expect(invitation).not.toContain("copyText(displayedShareLink");
+    expect(invitation).toContain("data-invitation-lower-layout=\"separate\"");
     expect(invitation).toContain("data-invitation-lower-panel=\"true\"");
     expect(invitation).toContain("Public guest link");
     expect(invitation).toContain("Copy link");
@@ -725,6 +726,9 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("linear-gradient");
     expect(invitation).toContain("bg-[#fff8f1]");
     expect(invitation).toContain("data-qr-container=\"true\"");
+    expect(invitation).toContain("relative z-10 rounded-[34px]");
+    expect(invitation).toContain("relative z-10 rounded-[1.35rem]");
+    expect(invitation).not.toContain("shadow-[0_30px_100px_rgba(0,0,0,.26)]");
     expect(invitation).toContain("margin: 4");
     expect(invitation).toContain("width: 640");
     expect(invitation).toContain("imageRendering: \"pixelated\"");
