@@ -49,7 +49,7 @@ export function PartyOrderPrepSummaryCard({ event, activity, shareLink }: PartyO
         <button
           type="button"
           onClick={() => copyText(prepSummary, setCopyState)}
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
         >
           {copyState === "copied" ? "Copied" : copyState === "unavailable" ? "Copy unavailable" : "Copy prep summary"}
         </button>

@@ -141,7 +141,7 @@ export function PublicPartyOrderEditForm({ editable, editToken, allowedPizzas, i
                       <p className="text-base font-extrabold text-ink">{pizza.marker} {pizza.name}</p>
                       <p className="mt-1 text-sm leading-5 text-ink/55">{pizza.ingredientSummary}</p>
                     </div>
-                    <div className="flex min-w-40 items-center justify-between rounded-2xl bg-cream/70 p-1">
+                    <div className="flex w-full items-center justify-between rounded-2xl bg-cream/70 p-1 sm:w-40 sm:min-w-40">
                       <button
                         type="button"
                         onClick={() => updateQuantity(pizza.id, -1)}
@@ -185,7 +185,7 @@ export function PublicPartyOrderEditForm({ editable, editToken, allowedPizzas, i
           type="button"
           onClick={saveOrder}
           disabled={saving || totalQuantity < 1}
-          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-55"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
         >
           {saving ? "Saving…" : "Save changes"}
         </button>

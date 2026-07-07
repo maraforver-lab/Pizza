@@ -616,7 +616,11 @@ describe("Party Orders foundation", () => {
     const editForm = source("components/account/PartyOrderSettingsEditForm.tsx");
     const invitation = source("components/account/PartyOrderInvitationCard.tsx");
     const prepSummary = source("components/account/PartyOrderPrepSummaryCard.tsx");
+    const handoff = source("components/account/PartyOrderSessionHandoff.tsx");
+    const publicForm = source("components/party-orders/PublicPartyOrderForm.tsx");
+    const publicEditForm = source("components/party-orders/PublicPartyOrderEditForm.tsx");
     expect(detail).toContain("Edit party details");
+    expect(detail).toContain("Quick actions");
     expect(detail).toContain("PartyOrderSettingsEditForm");
     expect(detail).toContain("PartyOrderSessionHandoff");
     expect(detail).toContain("PartyOrderPrepSummaryCard");
@@ -652,6 +656,30 @@ describe("Party Orders foundation", () => {
     expect(prepSummary).toContain("Copy prep summary");
     expect(prepSummary).toContain("partyOrderPrepSummaryText(event, activity, shareLink)");
     expect(prepSummary).toContain("navigator.clipboard.writeText");
+
+    const summaryIndex = detail.indexOf("party-order-summary-heading");
+    const productionIndex = detail.indexOf("<PartyOrderSessionHandoff event={event} activity={activity} />");
+    const invitationIndex = detail.indexOf("<PartyOrderInvitationCard event={event} shareLink={shareLink} />");
+    const pizzaMixIndex = detail.indexOf("party-order-pizza-mix-heading");
+    const guestOrdersIndex = detail.indexOf("party-order-guest-orders-heading");
+    const prepIndex = detail.indexOf("<PartyOrderPrepSummaryCard event={event} activity={activity} shareLink={shareLink} />");
+    const allowedPizzasIndex = detail.indexOf("selected-pizzas-heading");
+    expect(summaryIndex).toBeGreaterThan(-1);
+    expect(productionIndex).toBeGreaterThan(summaryIndex);
+    expect(invitationIndex).toBeGreaterThan(productionIndex);
+    expect(pizzaMixIndex).toBeGreaterThan(invitationIndex);
+    expect(guestOrdersIndex).toBeGreaterThan(pizzaMixIndex);
+    expect(prepIndex).toBeGreaterThan(guestOrdersIndex);
+    expect(allowedPizzasIndex).toBeGreaterThan(prepIndex);
+
+    expect(detail).toContain("w-full items-center justify-center");
+    expect(handoff).toContain("w-full items-center justify-center");
+    expect(prepSummary).toContain("w-full items-center justify-center");
+    expect(invitation).toContain("sm:flex-row sm:flex-wrap");
+    expect(publicForm).toContain("w-full items-center justify-between rounded-2xl bg-cream/70 p-1 sm:w-40");
+    expect(publicForm).toContain("w-full items-center justify-center rounded-2xl bg-tomato");
+    expect(publicEditForm).toContain("w-full items-center justify-between rounded-2xl bg-cream/70 p-1 sm:w-40");
+    expect(publicEditForm).toContain("w-full items-center justify-center rounded-2xl bg-tomato");
   });
 
   it("adds an owner-only Pizza Session handoff without mutating Party Orders", () => {

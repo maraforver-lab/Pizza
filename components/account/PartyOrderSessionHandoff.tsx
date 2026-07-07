@@ -119,7 +119,7 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
           type="button"
           onClick={createSessionFromOrder}
           disabled={!hasGuestOrders || submitting}
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-55"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-55 lg:w-auto"
         >
           {submitting ? "Creating Pizza Session…" : "Create Pizza Session from this order"}
         </button>

@@ -202,7 +202,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
             Pizza party invitation
           </h2>
         </div>
-        <Link href={publicGuestUrl || "#"} className="text-sm font-extrabold text-tomato transition hover:text-ink">
+        <Link href={publicGuestUrl || "#"} className="inline-flex min-h-10 items-center text-sm font-extrabold text-tomato transition hover:text-ink">
           Open public guest page →
         </Link>
       </div>
@@ -285,7 +285,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
         <p className="mt-3 text-sm leading-6 text-ink/60">
           Guests can open this link to choose pizzas and send their order without signing in.
         </p>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={() => copyText(publicGuestUrl, setCopyLinkState)}

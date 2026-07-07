@@ -135,7 +135,7 @@ export function PublicPartyOrderForm({ event, allowedPizzas, isOpen }: PublicPar
             <button
               type="button"
               onClick={copyEditLink}
-              className="mt-4 inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink transition hover:border-leaf/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink transition hover:border-leaf/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
             >
               {copyState === "copied" ? "Edit link copied" : copyState === "unavailable" ? "Copy unavailable" : "Copy edit link"}
             </button>
@@ -177,7 +177,7 @@ export function PublicPartyOrderForm({ event, allowedPizzas, isOpen }: PublicPar
                       <p className="text-base font-extrabold text-ink">{pizza.marker} {pizza.name}</p>
                       <p className="mt-1 text-sm leading-5 text-ink/55">{pizza.ingredientSummary}</p>
                     </div>
-                    <div className="flex min-w-40 items-center justify-between rounded-2xl bg-cream/70 p-1">
+                    <div className="flex w-full items-center justify-between rounded-2xl bg-cream/70 p-1 sm:w-40 sm:min-w-40">
                       <button
                         type="button"
                         onClick={() => updateQuantity(pizza.id, -1)}
@@ -222,7 +222,7 @@ export function PublicPartyOrderForm({ event, allowedPizzas, isOpen }: PublicPar
           type="button"
           onClick={submitOrder}
           disabled={saving || totalQuantity < 1}
-          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-55"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
         >
           {saving ? "Sending…" : "Send order"}
         </button>

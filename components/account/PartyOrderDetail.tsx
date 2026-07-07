@@ -154,19 +154,21 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   };
 
   return (
-    <article className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7">
+    <article className="mt-6 rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:mt-8 sm:p-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Party Order</p>
-          <h1 className="mt-3 font-display text-4xl font-semibold leading-tight sm:text-5xl">{event.title}</h1>
+          <h1 className="mt-3 break-words font-display text-4xl font-semibold leading-tight sm:text-5xl">{event.title}</h1>
           <p className="mt-3 text-xs font-extrabold uppercase tracking-[.16em] text-leaf">{event.status}</p>
         </div>
-        <Link href="/account/party-orders" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-cream/60 px-4 text-sm font-extrabold text-ink">
+        <Link href="/account/party-orders" className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-cream/60 px-4 text-sm font-extrabold text-ink sm:w-auto">
           ← Back
         </Link>
       </div>
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 rounded-[1.5rem] border border-ink/10 bg-cream/55 p-4">
+        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Quick actions</p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-6 text-ink/55">
           Edit the invitation details and allowed pizza options without changing existing guest orders.
         </p>
@@ -176,10 +178,11 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
             setEditing(true);
             setDetailsMessage("");
           }}
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
         >
           Edit party details
         </button>
+        </div>
       </div>
       {detailsMessage && <p role="status" className="mt-3 text-sm font-extrabold text-leaf">{detailsMessage}</p>}
 
@@ -220,7 +223,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
               type="button"
               onClick={() => updateOrderStatus("closed")}
               disabled={statusUpdating}
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-sm font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-sm font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {statusUpdating ? "Closing…" : "Close orders"}
             </button>
@@ -230,7 +233,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
               type="button"
               onClick={() => updateOrderStatus("open")}
               disabled={statusUpdating}
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {statusUpdating ? "Reopening…" : "Reopen orders"}
             </button>
@@ -240,7 +243,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
               type="button"
               onClick={() => updateOrderStatus("archived")}
               disabled={statusUpdating}
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/70 transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/70 transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {statusUpdating ? "Archiving…" : "Archive party order"}
             </button>
@@ -250,7 +253,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
               type="button"
               onClick={() => updateOrderStatus("open")}
               disabled={statusUpdating}
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {statusUpdating ? "Restoring…" : "Restore party order"}
             </button>
@@ -267,17 +270,6 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-cream/60 p-4">
           <h2 className="text-sm font-extrabold uppercase tracking-[.16em] text-ink/45">Guest note</h2>
           <p className="mt-2 whitespace-pre-line text-sm leading-6 text-ink/70">{event.guest_note}</p>
-        </section>
-      )}
-
-      <PartyOrderInvitationCard event={event} shareLink={shareLink} />
-
-      {event.status === "archived" && (
-        <section className="mt-5 rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-4">
-          <h2 className="font-display text-2xl font-semibold">Public ordering is paused</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/60">
-            This Party Order is archived, so the public link is visible but not accepting guest orders.
-          </p>
         </section>
       )}
 
@@ -304,7 +296,16 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
 
       <PartyOrderSessionHandoff event={event} activity={activity} />
 
-      <PartyOrderPrepSummaryCard event={event} activity={activity} shareLink={shareLink} />
+      <PartyOrderInvitationCard event={event} shareLink={shareLink} />
+
+      {event.status === "archived" && (
+        <section className="mt-5 rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-4">
+          <h2 className="font-display text-2xl font-semibold">Public ordering is paused</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/60">
+            This Party Order is archived, so the public link is visible but not accepting guest orders.
+          </p>
+        </section>
+      )}
 
       <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4" aria-labelledby="party-order-pizza-mix-heading">
         <h2 id="party-order-pizza-mix-heading" className="font-display text-2xl font-semibold">Pizza mix</h2>
@@ -349,7 +350,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
                           setDeleteMessage("");
                           setDeleteError("");
                         }}
-                        className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-3 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                        className="inline-flex min-h-10 w-full items-center justify-center rounded-2xl border border-tomato/15 bg-white px-3 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
                       >
                         Delete order
                       </button>
@@ -406,6 +407,8 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
           </div>
         )}
       </section>
+
+      <PartyOrderPrepSummaryCard event={event} activity={activity} shareLink={shareLink} />
 
       <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4" aria-labelledby="selected-pizzas-heading">
         <h2 id="selected-pizzas-heading" className="font-display text-2xl font-semibold">Selected allowed pizzas</h2>
