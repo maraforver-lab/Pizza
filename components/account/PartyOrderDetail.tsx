@@ -22,6 +22,18 @@ type PartyOrderDetailProps = {
   eventId: string;
 };
 
+async function loadPartyOrderDetail(eventId: string) {
+  const response = await fetch(`/api/party-orders/${eventId}`);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "Party Order could not be loaded.");
+  const nextEvent = normalizePartyOrderRow(payload.event);
+  if (!nextEvent) throw new Error("Party Order could not be found.");
+  return {
+    event: nextEvent,
+    activity: normalizePartyOrderActivity(payload.activity),
+  };
+}
+
 export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   const [event, setEvent] = useState<PartyOrderRow | null>(null);
   const [activity, setActivity] = useState<PartyOrderActivity>(partyOrderEmptyActivity);
@@ -32,6 +44,10 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   const [statusError, setStatusError] = useState("");
   const [editing, setEditing] = useState(false);
   const [detailsMessage, setDetailsMessage] = useState("");
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState("");
+  const [deletingSubmissionId, setDeletingSubmissionId] = useState("");
+  const [deleteMessage, setDeleteMessage] = useState("");
+  const [deleteError, setDeleteError] = useState("");
   const shareLink = useMemo(() => (
     event && typeof location !== "undefined" ? `${location.origin}/order/${event.public_token}` : ""
   ), [event]);
@@ -42,14 +58,10 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       setReady(false);
       setError("");
       try {
-        const response = await fetch(`/api/party-orders/${eventId}`);
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(payload.error || "Party Order could not be loaded.");
-        const nextEvent = normalizePartyOrderRow(payload.event);
-        if (!nextEvent) throw new Error("Party Order could not be found.");
+        const nextDetail = await loadPartyOrderDetail(eventId);
         if (mounted) {
-          setEvent(nextEvent);
-          setActivity(normalizePartyOrderActivity(payload.activity));
+          setEvent(nextDetail.event);
+          setActivity(nextDetail.activity);
         }
       } catch (caught) {
         if (mounted) setError(caught instanceof Error ? caught.message : "Party Order could not be loaded.");
@@ -116,6 +128,28 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       setStatusError(caught instanceof Error ? caught.message : "Party Order status could not be updated.");
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const deleteGuestOrder = async (submissionId: string) => {
+    setDeletingSubmissionId(submissionId);
+    setDeleteMessage("");
+    setDeleteError("");
+    try {
+      const response = await fetch(`/api/party-orders/${event.id}/submissions/${submissionId}`, {
+        method: "DELETE",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Guest order could not be deleted.");
+      const nextDetail = await loadPartyOrderDetail(event.id);
+      setEvent(nextDetail.event);
+      setActivity(nextDetail.activity);
+      setConfirmingDeleteId("");
+      setDeleteMessage("Guest order deleted.");
+    } catch (caught) {
+      setDeleteError(caught instanceof Error ? caught.message : "Guest order could not be deleted.");
+    } finally {
+      setDeletingSubmissionId("");
     }
   };
 
@@ -297,13 +331,30 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
 
       <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4" aria-labelledby="party-order-guest-orders-heading">
         <h2 id="party-order-guest-orders-heading" className="font-display text-2xl font-semibold">Guest orders</h2>
+        {deleteMessage && <p role="status" className="mt-3 text-sm font-extrabold text-leaf">{deleteMessage}</p>}
+        {deleteError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{deleteError}</p>}
         {activity.guestOrders.length ? (
           <div className="mt-4 grid gap-3">
             {activity.guestOrders.map((order) => (
               <article key={order.id} className="rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <h3 className="text-base font-extrabold text-ink">{order.guest_name}</h3>
-                  <p className="text-xs font-bold text-ink/45">Submitted {partyOrderDateTimeLabel(order.created_at)}</p>
+                  <div className="flex flex-col gap-2 sm:items-end">
+                    <p className="text-xs font-bold text-ink/45">Submitted {partyOrderDateTimeLabel(order.created_at)}</p>
+                    {confirmingDeleteId !== order.id && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConfirmingDeleteId(order.id);
+                          setDeleteMessage("");
+                          setDeleteError("");
+                        }}
+                        className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-3 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                      >
+                        Delete order
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-3 grid gap-2">
                   {order.items.map((item, index) => (
@@ -316,6 +367,32 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
                   <p className="mt-3 rounded-2xl bg-white/75 p-3 text-sm leading-6 text-ink/65">
                     <span className="font-extrabold text-ink">Comment:</span> {order.guest_comment}
                   </p>
+                )}
+                {confirmingDeleteId === order.id && (
+                  <div className="mt-4 rounded-[1.1rem] border border-tomato/15 bg-white p-4">
+                    <h4 className="text-sm font-extrabold text-ink">Delete this guest order?</h4>
+                    <p className="mt-2 text-sm leading-6 text-ink/60">
+                      This will remove the guest’s pizzas from the party summary. This cannot be undone.
+                    </p>
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingDeleteId("")}
+                        disabled={deletingSubmissionId === order.id}
+                        className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/70 transition hover:border-ink/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteGuestOrder(order.id)}
+                        disabled={Boolean(deletingSubmissionId)}
+                        className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {deletingSubmissionId === order.id ? "Deleting…" : "Delete order"}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </article>
             ))}

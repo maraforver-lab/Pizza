@@ -390,6 +390,11 @@ describe("Party Orders foundation", () => {
     expect(migration).toContain("party_orders.orders_close_at >= timezone('utc', now())");
     expect(migration).toContain("not (item.pizza_id = any(allowed_ids))");
     expect(migration).toContain("grant execute on function public.submit_public_party_order(text, text, text, jsonb) to anon, authenticated");
+
+    const deleteMigration = source("supabase/migrations/20260707103000_allow_owner_delete_party_order_submissions.sql");
+    expect(deleteMigration).toContain("grant delete on public.party_order_submissions to authenticated");
+    expect(deleteMigration).toContain("Owners can delete their party order submissions");
+    expect(deleteMigration).toContain("party_orders.user_id = auth.uid()");
   });
 
   it("wires authenticated list and create API routes with ownership filtering", () => {
@@ -429,6 +434,37 @@ describe("Party Orders foundation", () => {
     expect(route).toContain(": validation.value.status");
     expect(source("lib/party-orders.ts")).toContain("Orders cannot be reopened after the deadline.");
     expect(source("lib/party-orders.ts")).toContain("Archived party orders are hidden from the active list");
+  });
+
+  it("wires owner-only guest submission deletion without exposing public deletes", () => {
+    const route = source("app/api/party-orders/[id]/submissions/[submissionId]/route.ts");
+    const detail = source("components/account/PartyOrderDetail.tsx");
+    const publicRoute = source("app/api/party-orders/public/[publicToken]/submissions/route.ts");
+    const publicPage = source("app/order/[publicToken]/page.tsx");
+
+    expect(route).toContain("export async function DELETE");
+    expect(route).toContain("supabase.auth.getUser()");
+    expect(route).toContain(".from(\"party_orders\")");
+    expect(route).toContain(".eq(\"id\", id)");
+    expect(route).toContain(".eq(\"user_id\", user.id)");
+    expect(route).toContain(".from(\"party_order_submissions\")");
+    expect(route).toContain(".eq(\"id\", submissionId)");
+    expect(route).toContain(".eq(\"party_order_id\", event.id)");
+    expect(route).toContain(".delete()");
+    expect(route).toContain("Sign in to delete this guest order.");
+    expect(route).toContain("Guest order could not be found.");
+
+    expect(detail).toContain("Delete order");
+    expect(detail).toContain("Delete this guest order?");
+    expect(detail).toContain("This will remove the guest’s pizzas from the party summary. This cannot be undone.");
+    expect(detail).toContain("Cancel");
+    expect(detail).toContain("loadPartyOrderDetail(event.id)");
+    expect(detail).toContain("setActivity(nextDetail.activity)");
+    expect(detail).toContain("Guest order deleted.");
+
+    expect(publicRoute).not.toContain("export async function DELETE");
+    expect(publicPage).not.toContain("Delete order");
+    expect(publicPage).not.toContain("party_order_submissions");
   });
 
   it("adds logged-in owner list, create, and detail pages", () => {
@@ -773,6 +809,52 @@ describe("Party Orders foundation", () => {
       { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
       { pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
     ]);
+  });
+
+  it("updates party order summaries when a guest submission is removed", () => {
+    const remainingActivity = summarizePartyOrderActivity([
+      { id: "submission-1", guest_name: "Anna", guest_comment: "No mushrooms", created_at: "2026-07-05T12:00:00.000Z" },
+      { id: "submission-3", guest_name: "Laura", guest_comment: "Less cheese if possible", created_at: "2026-07-05T14:00:00.000Z" },
+    ], [
+      { submission_id: "submission-1", pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
+      { submission_id: "submission-1", pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
+      { submission_id: "submission-3", pizza_id: "quattro-formaggi", pizza_name_snapshot: "Four Cheese Snapshot", quantity: 1 },
+    ]);
+
+    expect(remainingActivity.submissionCount).toBe(2);
+    expect(remainingActivity.totalPizzaCount).toBe(3);
+    expect(remainingActivity.pizzaMix).toEqual([
+      { pizza_id: "margherita", pizza_name_snapshot: "Margherita", quantity: 1 },
+      { pizza_id: "diavola", pizza_name_snapshot: "Diavola", quantity: 1 },
+      { pizza_id: "quattro-formaggi", pizza_name_snapshot: "Quattro Formaggi", quantity: 1 },
+    ]);
+    expect(remainingActivity.guestOrders.map((order) => order.guest_name)).toEqual(["Laura", "Anna"]);
+  });
+
+  it("shows empty summaries and disables handoff when the last guest submission is removed", () => {
+    const event = normalizePartyOrderRow({
+      id: "event-empty-after-delete",
+      user_id: "user-1",
+      public_token: "empty-after-delete-token",
+      title: "Friday production",
+      pizza_datetime: "2026-07-10T18:00:00.000Z",
+      orders_close_at: "2026-07-10T15:00:00.000Z",
+      guest_note: null,
+      allowed_pizza_ids: ["margherita"],
+      status: "open",
+      created_at: "2026-07-05T10:00:00.000Z",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+    const emptyActivity = summarizePartyOrderActivity([], []);
+
+    expect(emptyActivity.submissionCount).toBe(0);
+    expect(emptyActivity.totalPizzaCount).toBe(0);
+    expect(emptyActivity.pizzaMix).toEqual([]);
+    expect(emptyActivity.guestOrders).toEqual([]);
+    expect(event).toBeTruthy();
+    if (!event) return;
+    expect(buildPartyOrderPizzaSessionHandoff(event, emptyActivity)).toBeUndefined();
+    expect(partyOrderPrepSummaryText(event, emptyActivity)).toContain("- No guest orders yet.");
   });
 
   it("builds a Pizza Session handoff from Party Order pizza time, total count, and supported pizza mix", () => {
