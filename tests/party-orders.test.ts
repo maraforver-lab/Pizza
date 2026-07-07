@@ -609,8 +609,14 @@ describe("Party Orders foundation", () => {
     expect(list).toContain("archivedEvents");
     expect(list).toContain("Active Party Orders");
     expect(list).toContain("Archived Party Orders");
-    expect(list).toContain("Restore");
-    expect(list).toContain("Open");
+    expect(list).toContain("Current");
+    expect(list).toContain("History");
+    expect(list).toContain("Archived · Not accepting guest orders");
+    expect(list).toContain("Archived Party Orders stay viewable, but guests cannot submit or edit orders while they are archived.");
+    expect(list).toContain("Saved for review. Restore it to move it back to your active list.");
+    expect(list).toContain("Open / View");
+    expect(list).toContain("Restore party order");
+    expect(list).toContain("partyOrderOwnerStatusSummary(event)");
 
     const detail = source("components/account/PartyOrderDetail.tsx");
     const editForm = source("components/account/PartyOrderSettingsEditForm.tsx");
@@ -645,6 +651,7 @@ describe("Party Orders foundation", () => {
     expect(detail).toContain("Reopen orders");
     expect(detail).toContain("Archive party order");
     expect(detail).toContain("Restore party order");
+    expect(detail).toContain("Move this Party Order back to your active list.");
     expect(detail).toContain("This Party Order is archived, so the public link is visible but not accepting guest orders.");
     expect(source("lib/party-orders.ts")).toContain("Orders closed by deadline");
     expect(detail).toContain("Pizza mix");

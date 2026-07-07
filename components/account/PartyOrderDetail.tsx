@@ -249,14 +249,19 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
             </button>
           )}
           {statusSummary.canRestore && (
-            <button
-              type="button"
-              onClick={() => updateOrderStatus("open")}
-              disabled={statusUpdating}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-            >
-              {statusUpdating ? "Restoring…" : "Restore party order"}
-            </button>
+            <div className="w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => updateOrderStatus("open")}
+                disabled={statusUpdating}
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              >
+                {statusUpdating ? "Restoring…" : "Restore party order"}
+              </button>
+              <p className="mt-2 max-w-52 text-xs font-bold leading-5 text-ink/50">
+                Move this Party Order back to your active list.
+              </p>
+            </div>
           )}
         </div>
         {event.status !== "archived" && (
