@@ -25,18 +25,20 @@ import {
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 
-function formatDateTime(value?: string) {
+function formatKitchenStepTime(value?: string) {
   if (!value) return "Time not set";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Time not set";
-  return new Intl.DateTimeFormat("en-GB", {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     weekday: "short",
     day: "numeric",
     month: "short",
-    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(date);
+    hour12: false,
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("weekday")}, ${part("day")} ${part("month")} · ${part("hour")}:${part("minute")}`;
 }
 
 function relativeFromTarget(stepTime?: string, targetTime?: string) {
@@ -53,7 +55,7 @@ function relativeFromTarget(stepTime?: string, targetTime?: string) {
     hours ? `${hours}h` : "",
     minutes ? `${minutes}m` : "",
   ].filter(Boolean).join(" ");
-  return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} target`;
+  return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} bake time`;
 }
 
 function kitchenBackHrefFromSource(value?: string | null) {
@@ -130,6 +132,7 @@ export default function SessionKitchenPage() {
   const currentStep = kitchenState.currentStep;
   const kitchenMode = getKitchenModeForStep(currentStep);
   const taskPresentation = getKitchenTaskPresentation(currentStep, session);
+  const nextTaskPresentation = getKitchenTaskPresentation(kitchenState.nextStep, session);
   const ingredients = doughKitchenIngredientLines(session.recipeSnapshot);
   const targetTime = session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime;
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
@@ -161,15 +164,42 @@ export default function SessionKitchenPage() {
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
-                  <h2 id="current-kitchen-task" className="font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h2>
-                  <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{taskPresentation.shortInstruction}</p>
-                  <p className="mt-3 text-sm font-bold text-ink/55">{formatDateTime(currentStep.scheduledAt)}</p>
-                  <p className="mt-3 text-sm leading-6 text-ink/55">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
-                  {taskPresentation.helperCopy && (
-                    <p className="mt-4 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
-                      {taskPresentation.helperCopy}
-                    </p>
-                  )}
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
+                    Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount} · Kitchen Mode
+                  </p>
+                  <h2 id="current-kitchen-task" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h2>
+
+                  <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+                    <section className="rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-4 sm:p-5 lg:col-start-1 lg:row-start-1" aria-labelledby="kitchen-do-this-heading">
+                      <p id="kitchen-do-this-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this</p>
+                      <p className="mt-2 text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
+                    </section>
+
+                    <section className="rounded-[1.5rem] border border-white bg-white p-4 shadow-sm sm:p-5 lg:col-start-2 lg:row-start-1" aria-labelledby="kitchen-when-heading">
+                      <p id="kitchen-when-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">When</p>
+                      <p className="mt-2 font-display text-3xl font-semibold leading-tight text-ink">{formatKitchenStepTime(currentStep.scheduledAt)}</p>
+                      <p className="mt-2 text-sm font-extrabold leading-6 text-ink/60">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
+                    </section>
+
+                    <section className="rounded-[1.5rem] border border-ink/10 bg-cream p-4 sm:p-5 lg:col-start-1 lg:row-start-2" aria-labelledby="kitchen-done-heading">
+                      <p id="kitchen-done-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">You are done when</p>
+                      <p className="mt-2 text-sm font-bold leading-6 text-ink/70 sm:text-base">{taskPresentation.doneCondition}</p>
+                    </section>
+
+                    {taskPresentation.helperCopy && (
+                      <section className="rounded-[1.5rem] border border-leaf/15 bg-leaf/[.08] p-4 sm:p-5 lg:col-start-1 lg:row-start-3" aria-labelledby="kitchen-technique-heading">
+                        <p id="kitchen-technique-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Technique note</p>
+                        <p className="mt-2 text-sm font-bold leading-6 text-ink/65 sm:text-base">{taskPresentation.helperCopy}</p>
+                      </section>
+                    )}
+
+                    <section className="rounded-[1.5rem] border border-ink/10 bg-white/80 p-4 sm:p-5 lg:col-start-2 lg:row-start-2" aria-labelledby="kitchen-next-heading">
+                      <p id="kitchen-next-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Next</p>
+                      <p className="mt-2 text-base font-extrabold leading-6 text-ink/70">
+                        Next: {kitchenState.nextStep ? nextTaskPresentation.title : "Review your pizza session"}
+                      </p>
+                    </section>
+                  </div>
                 </section>
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length > 0 && (

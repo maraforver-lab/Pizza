@@ -38,6 +38,7 @@ export type KitchenModeKind = "dough" | "service" | "complete" | "unknown";
 export type KitchenTaskPresentation = {
   title: string;
   shortInstruction: string;
+  doneCondition: string;
   helperCopy?: string;
 };
 
@@ -110,19 +111,33 @@ export const kitchenTaskInstructions: Record<string, KitchenTaskInstruction> = {
 const coldFermentationPresentation: KitchenTaskPresentation = {
   title: "Cold ferment",
   shortInstruction: "Move the covered dough to the fridge if your plan uses cold fermentation.",
+  doneCondition: "The dough is covered and resting in the fridge for the planned cold fermentation time.",
   helperCopy: "Cold time slows fermentation and gives more scheduling flexibility.",
 };
 
 const roomFermentationPresentation: KitchenTaskPresentation = {
   title: "Room temperature ferment",
   shortInstruction: "Keep the covered dough at room temperature for the planned fermentation time.",
+  doneCondition: "The dough is covered and resting at room temperature on the planned schedule.",
   helperCopy: "Room temperature fermentation moves faster, so follow the planned timing closely.",
 };
 
 const neutralFermentationPresentation: KitchenTaskPresentation = {
   title: "Ferment dough",
   shortInstruction: "Keep the dough covered and follow the planned fermentation timing.",
+  doneCondition: "The dough is covered and fermenting according to the planned timing.",
   helperCopy: "Fermentation timing affects dough strength, flavor, and readiness.",
+};
+
+const kitchenDoneConditions: Record<string, string> = {
+  "mix-dough": "No dry flour remains and the dough is covered for the next rest.",
+  "rest-dough": "The dough has relaxed and is still covered.",
+  "ball-dough": "Each dough ball is smooth, tight, and placed seam-side down.",
+  "room-temperature-rest": "The dough balls feel relaxed and ready to open without tearing.",
+  "preheat-oven": "The oven and baking surface are fully hot before opening the pizza.",
+  "prepare-sauce-toppings": "Sauce, cheese and toppings are ready before the dough is stretched.",
+  "bake-pizza": "The rim is browned, the bottom is baked, and the cheese is melted.",
+  "review-result": "Your notes capture what worked and what to adjust next time.",
 };
 
 function fermentationModeFromPreset(value?: string): KitchenFermentationMode {
@@ -172,7 +187,7 @@ export function getKitchenFermentationStepCopy(
 
 export function getKitchenTaskPresentation(
   step?: PizzaSessionTimelineStep,
-  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "pizzaCount" | "doughBallWeight"> | null,
 ): KitchenTaskPresentation {
   const instruction = getKitchenTaskInstruction(step);
 
@@ -180,9 +195,17 @@ export function getKitchenTaskPresentation(
     return getKitchenFermentationStepCopy(session, step);
   }
 
+  const balls = session?.recipeSnapshot?.balls ?? session?.pizzaCount;
+  const ballWeight = session?.recipeSnapshot?.ballWeight ?? session?.doughBallWeight;
+  const isBallDough = step?.id === "ball-dough" || step?.label.toLowerCase() === "ball dough";
+  const ballInstruction = balls && ballWeight
+    ? `Shape ${balls} dough balls, ${ballWeight} g each.`
+    : "Divide the dough into the planned portions and shape each one into a smooth dough ball.";
+
   return {
     title: step?.label ?? "Kitchen Mode",
-    shortInstruction: instruction.shortInstruction,
+    shortInstruction: isBallDough ? ballInstruction : instruction.shortInstruction,
+    doneCondition: step ? kitchenDoneConditions[step.id] ?? "The step is complete and you are ready for the next task." : "You are ready for the next task.",
     helperCopy: step?.helperCopy,
   };
 }

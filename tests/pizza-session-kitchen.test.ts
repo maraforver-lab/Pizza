@@ -331,6 +331,12 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("step={9}");
     expect(page).toContain("Needed now");
+    expect(page).toContain("Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount} · Kitchen Mode");
+    expect(page).toContain("Do this");
+    expect(page).toContain("When");
+    expect(page).toContain("You are done when");
+    expect(page).toContain("Technique note");
+    expect(page).toContain("Next: {kitchenState.nextStep ? nextTaskPresentation.title : \"Review your pizza session\"}");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href={backHref}");
     expect(page).toContain("Mark step as done →");
@@ -344,6 +350,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("Step 9: Kitchen Mode");
     expect(page).not.toContain("Current step");
     expect(page).not.toContain("Do this now");
+    expect(page).not.toContain("before target");
     expect(page).not.toContain("SessionLocalOnlyNote");
     expect(page).not.toContain("saveMessage");
     expect(page).not.toContain("marked done. Progress saved in this browser.");
@@ -377,6 +384,52 @@ describe("Pizza Session Kitchen Mode", () => {
     }
   });
 
+  it("renders clearer Kitchen Mode timing and technique hierarchy without alert styling for normal guidance", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("function formatKitchenStepTime");
+    expect(page).toContain("formatKitchenStepTime(currentStep.scheduledAt)");
+    expect(page).toContain("bake time");
+    expect(page).toContain("diffMinutes < 0 ? \"before\" : \"after\"");
+    expect(page).toContain("rounded-[1.5rem] border border-leaf/15 bg-leaf/[.08]");
+    expect(page).toContain("Quiet-hours warning");
+    expect(page).toContain("rounded-2xl bg-tomato/10");
+    expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("When"));
+    expect(page.indexOf("When")).toBeLessThan(page.indexOf("You are done when"));
+    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("Technique note"));
+    expect(page.indexOf("Technique note")).toBeLessThan(page.indexOf("Next"));
+  });
+
+  it("uses a clearer ball-dough action and done condition when dough-ball amounts are available", () => {
+    const copy = getKitchenTaskPresentation({
+      id: "ball-dough",
+      label: "Ball dough",
+      status: "todo",
+      helperCopy: "Balling creates the final portions and builds surface tension.",
+    }, createPizzaSession({
+      id: "kitchen-ball-copy",
+      recipeSnapshot: {
+        balls: 8,
+        ballWeight: 260,
+      },
+    }));
+
+    expect(copy.title).toBe("Ball dough");
+    expect(copy.shortInstruction).toBe("Shape 8 dough balls, 260 g each.");
+    expect(copy.doneCondition).toBe("Each dough ball is smooth, tight, and placed seam-side down.");
+    expect(copy.helperCopy).toBe("Balling creates the final portions and builds surface tension.");
+  });
+
+  it("falls back to safe ball-dough instruction when dough-ball amounts are unavailable", () => {
+    const copy = getKitchenTaskPresentation({
+      id: "ball-dough",
+      label: "Ball dough",
+      status: "todo",
+    }, createPizzaSession({ id: "kitchen-ball-copy-fallback" }));
+
+    expect(copy.shortInstruction).toBe("Divide the dough into the planned portions and shape each one into a smooth dough ball.");
+  });
+
   it("renders room-temperature fermentation copy in Kitchen Mode when the selected plan is room fermentation", () => {
     const page = source("app/session/kitchen/page.tsx");
     const session = createPizzaSession({
@@ -396,6 +449,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(copy).toEqual({
       title: "Room temperature ferment",
       shortInstruction: "Keep the covered dough at room temperature for the planned fermentation time.",
+      doneCondition: "The dough is covered and resting at room temperature on the planned schedule.",
       helperCopy: "Room temperature fermentation moves faster, so follow the planned timing closely.",
     });
     expect([copy.title, copy.shortInstruction, copy.helperCopy].join(" ")).not.toMatch(/Cold ferment|fridge|Cold time slows fermentation/i);
@@ -417,6 +471,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(copy).toEqual({
       title: "Cold ferment",
       shortInstruction: "Move the covered dough to the fridge if your plan uses cold fermentation.",
+      doneCondition: "The dough is covered and resting in the fridge for the planned cold fermentation time.",
       helperCopy: "Cold time slows fermentation and gives more scheduling flexibility.",
     });
   });
@@ -431,6 +486,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(copy).toEqual({
       title: "Ferment dough",
       shortInstruction: "Keep the dough covered and follow the planned fermentation timing.",
+      doneCondition: "The dough is covered and fermenting according to the planned timing.",
       helperCopy: "Fermentation timing affects dough strength, flavor, and readiness.",
     });
     expect([copy.title, copy.shortInstruction, copy.helperCopy].join(" ")).not.toMatch(/Cold ferment|fridge|Cold time slows fermentation/i);
