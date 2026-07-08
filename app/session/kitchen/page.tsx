@@ -17,7 +17,7 @@ import {
   doughKitchenIngredientLines,
   getKitchenModeForStep,
   getKitchenModeState,
-  getKitchenTaskInstruction,
+  getKitchenTaskPresentation,
   isMixDoughStep,
 } from "@/lib/pizza-session-kitchen";
 import {
@@ -129,7 +129,7 @@ export default function SessionKitchenPage() {
 
   const currentStep = kitchenState.currentStep;
   const kitchenMode = getKitchenModeForStep(currentStep);
-  const instruction = getKitchenTaskInstruction(currentStep);
+  const taskPresentation = getKitchenTaskPresentation(currentStep, session);
   const ingredients = doughKitchenIngredientLines(session.recipeSnapshot);
   const targetTime = session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime;
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
@@ -161,13 +161,13 @@ export default function SessionKitchenPage() {
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
-                  <h2 id="current-kitchen-task" className="font-display text-4xl font-semibold leading-none sm:text-6xl">{currentStep.label}</h2>
-                  <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{instruction.shortInstruction}</p>
+                  <h2 id="current-kitchen-task" className="font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h2>
+                  <p className="mt-3 text-base font-bold leading-6 text-ink/75 sm:mt-4 sm:text-lg sm:leading-7">{taskPresentation.shortInstruction}</p>
                   <p className="mt-3 text-sm font-bold text-ink/55">{formatDateTime(currentStep.scheduledAt)}</p>
                   <p className="mt-3 text-sm leading-6 text-ink/55">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
-                  {currentStep.helperCopy && (
+                  {taskPresentation.helperCopy && (
                     <p className="mt-4 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
-                      {currentStep.helperCopy}
+                      {taskPresentation.helperCopy}
                     </p>
                   )}
                 </section>

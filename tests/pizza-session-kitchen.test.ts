@@ -8,6 +8,7 @@ import {
   doughKitchenIngredientLines,
   getKitchenModeForStep,
   getKitchenModeState,
+  getKitchenTaskPresentation,
   getKitchenTaskInstruction,
   isMixDoughStep,
   recipeSnapshotIngredientLines,
@@ -374,6 +375,65 @@ describe("Pizza Session Kitchen Mode", () => {
       expect(copy.enthusiastWhy.length).toBeGreaterThan(10);
       expect(copy.pizzaNerdWhy.length).toBeGreaterThan(10);
     }
+  });
+
+  it("renders room-temperature fermentation copy in Kitchen Mode when the selected plan is room fermentation", () => {
+    const page = source("app/session/kitchen/page.tsx");
+    const session = createPizzaSession({
+      id: "kitchen-room-fermentation-copy",
+      recipeSnapshot: {
+        fermentation: "12h-room",
+      },
+    });
+    const copy = getKitchenTaskPresentation({
+      id: "cold-ferment",
+      label: "Cold ferment",
+      status: "todo",
+      helperCopy: "Cold time slows fermentation and gives more scheduling flexibility.",
+    }, session);
+
+    expect(page).toContain("getKitchenTaskPresentation(currentStep, session)");
+    expect(copy).toEqual({
+      title: "Room temperature ferment",
+      shortInstruction: "Keep the covered dough at room temperature for the planned fermentation time.",
+      helperCopy: "Room temperature fermentation moves faster, so follow the planned timing closely.",
+    });
+    expect([copy.title, copy.shortInstruction, copy.helperCopy].join(" ")).not.toMatch(/Cold ferment|fridge|Cold time slows fermentation/i);
+  });
+
+  it("keeps cold fermentation copy in Kitchen Mode when the selected plan is cold fermentation", () => {
+    const session = createPizzaSession({
+      id: "kitchen-cold-fermentation-copy",
+      recipeSnapshot: {
+        fermentation: "48h-cold",
+      },
+    });
+    const copy = getKitchenTaskPresentation({
+      id: "cold-ferment",
+      label: "Cold ferment",
+      status: "todo",
+    }, session);
+
+    expect(copy).toEqual({
+      title: "Cold ferment",
+      shortInstruction: "Move the covered dough to the fridge if your plan uses cold fermentation.",
+      helperCopy: "Cold time slows fermentation and gives more scheduling flexibility.",
+    });
+  });
+
+  it("uses neutral fermentation copy when Kitchen Mode cannot determine the selected fermentation type", () => {
+    const copy = getKitchenTaskPresentation({
+      id: "cold-ferment",
+      label: "Cold ferment",
+      status: "todo",
+    }, createPizzaSession({ id: "kitchen-unknown-fermentation-copy" }));
+
+    expect(copy).toEqual({
+      title: "Ferment dough",
+      shortInstruction: "Keep the dough covered and follow the planned fermentation timing.",
+      helperCopy: "Fermentation timing affects dough strength, flavor, and readiness.",
+    });
+    expect([copy.title, copy.shortInstruction, copy.helperCopy].join(" ")).not.toMatch(/Cold ferment|fridge|Cold time slows fermentation/i);
   });
 
   it("connects timeline and Continue Session to Kitchen Mode while shopping hands off to Timeline", () => {

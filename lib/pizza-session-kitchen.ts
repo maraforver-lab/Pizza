@@ -35,6 +35,14 @@ export type KitchenIngredientLine = {
 
 export type KitchenModeKind = "dough" | "service" | "complete" | "unknown";
 
+export type KitchenTaskPresentation = {
+  title: string;
+  shortInstruction: string;
+  helperCopy?: string;
+};
+
+type KitchenFermentationMode = "cold" | "room" | "unknown";
+
 const defaultInstruction: KitchenTaskInstruction = {
   shortInstruction: "Follow the timeline step, then mark it done when you are ready to continue.",
   beginnerWhy: "One step at a time keeps the session calm.",
@@ -98,6 +106,86 @@ export const kitchenTaskInstructions: Record<string, KitchenTaskInstruction> = {
     pizzaNerdWhy: "Record timing, temperature, texture and oven behavior while the result is still fresh.",
   },
 };
+
+const coldFermentationPresentation: KitchenTaskPresentation = {
+  title: "Cold ferment",
+  shortInstruction: "Move the covered dough to the fridge if your plan uses cold fermentation.",
+  helperCopy: "Cold time slows fermentation and gives more scheduling flexibility.",
+};
+
+const roomFermentationPresentation: KitchenTaskPresentation = {
+  title: "Room temperature ferment",
+  shortInstruction: "Keep the covered dough at room temperature for the planned fermentation time.",
+  helperCopy: "Room temperature fermentation moves faster, so follow the planned timing closely.",
+};
+
+const neutralFermentationPresentation: KitchenTaskPresentation = {
+  title: "Ferment dough",
+  shortInstruction: "Keep the dough covered and follow the planned fermentation timing.",
+  helperCopy: "Fermentation timing affects dough strength, flavor, and readiness.",
+};
+
+function fermentationModeFromPreset(value?: string): KitchenFermentationMode {
+  if (!value) return "unknown";
+  if (value.endsWith("-cold")) return "cold";
+  if (value.endsWith("-room")) return "room";
+  return "unknown";
+}
+
+function isFermentationTimelineStep(step?: PizzaSessionTimelineStep) {
+  if (!step) return false;
+  const label = step.label.toLowerCase();
+  return (
+    step.id === "cold-ferment"
+    || label.includes("room fermentation")
+    || label.includes("room temperature ferment")
+    || label.includes("ferment dough")
+  );
+}
+
+export function resolveKitchenFermentationMode(
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+  step?: PizzaSessionTimelineStep,
+): KitchenFermentationMode {
+  const label = step?.label.toLowerCase() ?? "";
+  if (label.includes("room fermentation") || label.includes("room temperature ferment")) return "room";
+
+  const presetMode = fermentationModeFromPreset(session?.recipeSnapshot?.fermentation);
+  if (presetMode !== "unknown") return presetMode;
+
+  if (typeof session?.plannedFermentationHours === "number" && Number.isFinite(session.plannedFermentationHours)) {
+    return "cold";
+  }
+
+  return "unknown";
+}
+
+export function getKitchenFermentationStepCopy(
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+  step?: PizzaSessionTimelineStep,
+): KitchenTaskPresentation {
+  const mode = resolveKitchenFermentationMode(session, step);
+  if (mode === "cold") return coldFermentationPresentation;
+  if (mode === "room") return roomFermentationPresentation;
+  return neutralFermentationPresentation;
+}
+
+export function getKitchenTaskPresentation(
+  step?: PizzaSessionTimelineStep,
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+): KitchenTaskPresentation {
+  const instruction = getKitchenTaskInstruction(step);
+
+  if (isFermentationTimelineStep(step)) {
+    return getKitchenFermentationStepCopy(session, step);
+  }
+
+  return {
+    title: step?.label ?? "Kitchen Mode",
+    shortInstruction: instruction.shortInstruction,
+    helperCopy: step?.helperCopy,
+  };
+}
 
 function nextTodoAfter(steps: PizzaSessionTimelineStep[], stepId: string) {
   const index = steps.findIndex((step) => step.id === stepId);
