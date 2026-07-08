@@ -1047,19 +1047,29 @@ describe("cloud pizza session foundation", () => {
     expect(sortCloudPizzaSessionHistoryRows([older, newerWithFallback]).map((row) => row.id)).toEqual(["newer", "older"]);
   });
 
-  it("renders account save UI on Dough Plan without changing calculations", () => {
+  it("auto-saves signed-in Dough Plan sessions while preserving manual fallback", () => {
     const recipePage = source("app/session/recipe/page.tsx");
     const saveComponent = source("components/session/SavePizzaSessionToAccount.tsx");
 
     expect(recipePage).toContain("SavePizzaSessionToAccount");
     expect(recipePage).toContain("<SavePizzaSessionToAccount session={session} />");
+    expect(saveComponent).toContain("doughPlanAccountSaveSnapshotKey");
+    expect(saveComponent).toContain("DOUGH_PLAN_AUTO_SAVE_SNAPSHOT_KEY");
+    expect(saveComponent).toContain("readAutoSavedSnapshotKey() === snapshotKey");
+    expect(saveComponent).toContain("lastAutoSavedKey.current === snapshotKey");
+    expect(saveComponent).toContain("inFlightSaveKey.current === snapshotKey");
+    expect(saveComponent).toContain("void saveToAccount(\"auto\")");
+    expect(saveComponent).toContain("Saving to your account…");
     expect(saveComponent).toContain("Save to account");
-    expect(saveComponent).toContain("Saved to your account");
+    expect(saveComponent).toContain("Saved to your account.");
+    expect(saveComponent).toContain("You can continue from your account later.");
+    expect(saveComponent).toContain("We could not auto-save this session. You can try saving it manually.");
     expect(saveComponent).toContain("Sign in to save this session across devices.");
     expect(saveComponent).toContain('fetch("/api/pizza-sessions/active"');
     expect(saveComponent).toContain("normalizeCloudPizzaSessionRow(payload.session)");
     expect(saveComponent).toContain("Saved pizza session could not be verified.");
     expect(saveComponent).toContain("markCloudBackedPizzaSession(session.id, savedSession.id)");
+    expect(saveComponent).not.toContain("Cloud sync is active");
   });
 
   it("shows a cloud Active Pizza Session card without breaking local continuation", () => {
