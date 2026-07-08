@@ -1,5 +1,6 @@
 import { getExperienceLevelConfig, type ExperienceLevel } from "@/lib/experience-levels";
 import { type PizzaSession, type PizzaSessionTimeline, type PizzaSessionTimelineStep } from "@/lib/pizza-session";
+import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
@@ -145,6 +146,42 @@ function parseTargetTime(value?: string): Date | undefined {
   return Number.isFinite(date.getTime()) ? date : undefined;
 }
 
+function stableDateIso(value?: string) {
+  const date = parseTargetTime(value);
+  return date?.toISOString();
+}
+
+function timelineAnchorTimeForSession(session: PizzaSession, now: Date) {
+  if (session.doughStartMode !== "now") return undefined;
+  return stableDateIso(session.timeline?.anchorTime) ?? now.toISOString();
+}
+
+export function buildPizzaSessionTimelineInputSignature(session: PizzaSession, anchorTime?: string) {
+  const signatureParts = [
+    ["targetEatTime", stableDateIso(session.targetEatTime)],
+    ["targetBakeTime", stableDateIso(session.targetBakeTime)],
+    ["doughStartMode", session.doughStartMode ?? "recommend"],
+    ["doughStartAnchor", session.doughStartMode === "now" ? stableDateIso(anchorTime) : undefined],
+    ["doughEarliestStartTime", session.doughStartMode === "later" ? stableDateIso(session.doughEarliestStartTime) : undefined],
+    ["recipeFermentation", session.recipeSnapshot?.fermentation],
+    ["plannedFermentationHours", session.plannedFermentationHours],
+    ["pizzaCount", session.recipeSnapshot?.balls ?? session.pizzaCount],
+    ["doughBallWeight", session.recipeSnapshot?.ballWeight ?? session.doughBallWeight],
+    ["ovenType", session.recipeSnapshot?.oven ?? session.ovenType],
+    ["pizzaStyle", session.recipeSnapshot?.pizzaStyle ?? session.pizzaStyle],
+    ["pizzaPreset", session.recipeSnapshot?.pizzaPreset ?? session.pizzaPreset],
+    ["yeastType", session.recipeSnapshot?.yeastType ?? session.yeastType],
+  ];
+  return JSON.stringify(signatureParts);
+}
+
+function hasUsableTimelineSnapshot(session?: PizzaSession, inputSignature?: string) {
+  const timeline = session?.timeline;
+  if (!timeline?.steps.length) return false;
+  if (!inputSignature || timeline.inputSignature !== inputSignature) return false;
+  return timeline.steps.every((step) => step.id && step.label && step.scheduledAt);
+}
+
 function scheduledAt(target: Date, offsetMinutes: number) {
   return new Date(target.getTime() + offsetMinutes * 60_000);
 }
@@ -207,8 +244,11 @@ export function generatePizzaSessionTimeline(
   if (!target) return { ok: false, missingReason: "invalid-target-time", assumptions: DEFAULT_TIMELINE_ASSUMPTIONS };
 
   const existingStatuses = new Map(session.timeline?.steps.map((step) => [step.id, step.status]));
+  const anchorTime = timelineAnchorTimeForSession(session, now);
+  const signature = buildPizzaSessionTimelineInputSignature(session, anchorTime);
+  const planningNow = parseTargetTime(anchorTime) ?? now;
   const selectedYeastLabel = yeastTypeLabel(session.recipeSnapshot?.yeastType ?? session.yeastType).toLowerCase();
-  const steps = timelineTemplate.map((step) => {
+  const templateSteps = timelineTemplate.map((step) => {
     const schedule = scheduleTemplateStep(target, step);
     return {
       id: step.id,
@@ -226,8 +266,17 @@ export function generatePizzaSessionTimeline(
       pizzaNerdNote: step.pizzaNerdNote,
     };
   });
+  const steps = timelineStepsForPlanningSummaryDisplay({
+    steps: templateSteps,
+    session,
+    now: planningNow,
+    anchorTime,
+    adjustSchedule: true,
+  });
   const timeline: PizzaSessionTimeline = {
     generatedAt: now.toISOString(),
+    anchorTime,
+    inputSignature: signature,
     targetEatTime: session.targetEatTime ?? session.targetBakeTime,
     assumptions: DEFAULT_TIMELINE_ASSUMPTIONS,
     steps,
@@ -243,6 +292,21 @@ export function generatePizzaSessionTimeline(
 
 export function generateAndSaveActivePizzaSessionTimeline(storage?: Storage, now = new Date()) {
   const session = getActivePizzaSession(storage);
+  const anchorTime = session ? timelineAnchorTimeForSession(session, now) : undefined;
+  const inputSignature = session ? buildPizzaSessionTimelineInputSignature(session, anchorTime) : undefined;
+  if (hasUsableTimelineSnapshot(session, inputSignature)) {
+    const timeline = session!.timeline!;
+    return {
+      session,
+      result: {
+        ok: true,
+        timeline,
+        nextStep: getNextTimelineStep(timeline),
+        assumptions: timeline.assumptions ?? DEFAULT_TIMELINE_ASSUMPTIONS,
+      },
+    };
+  }
+
   const result = generatePizzaSessionTimeline(session, now);
   if (!session || !result.timeline) return { session, result };
 

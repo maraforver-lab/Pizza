@@ -137,6 +137,7 @@ describe("Pizza Session timeline", () => {
       pizzaCount: 4,
       ovenType: "home",
       flour: "tipo-00",
+      recipeSnapshot: { fermentation: "6h-room" },
     }, now);
     const recipe = buildSessionRecipe(session, now);
     if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
@@ -145,17 +146,19 @@ describe("Pizza Session timeline", () => {
     expect(recipe.planningInfo.result.startWindowRecommendation?.category).toBe("start_now");
 
     const generated = generatePizzaSessionTimeline(session, now).timeline!;
-    expect(generated.steps.some((step) => step.id === "cold-ferment")).toBe(true);
+    expect(generated.steps.some((step) => step.id === "cold-ferment")).toBe(false);
+    expect(generated.steps.map((step) => step.label)).toContain("Room temperature ferment");
     const displayed = timelineStepsForPlanningSummaryDisplay({
       steps: generated.steps,
       planningResult: recipe.planningInfo.result,
+      session,
     });
 
     expect(displayed.some((step) => step.id === "cold-ferment")).toBe(false);
-    expect(displayed.map((step) => step.label)).toContain("Room fermentation");
+    expect(displayed.map((step) => step.label)).toContain("Room temperature ferment");
     expect(displayed.map((step) => step.label)).toContain("Final room rest");
     expect(displayed.find((step) => step.id === "room-temperature-rest")?.helperCopy)
-      .toContain("Same-day timing");
+      .toContain("final room rest");
     expect(new Date(displayed.find((step) => step.id === "mix-dough")?.scheduledAt ?? 0).getTime())
       .toBeGreaterThanOrEqual(now.getTime());
     expect(displayed.find((step) => step.id === "bake-pizza")?.scheduledAt)
@@ -178,6 +181,7 @@ describe("Pizza Session timeline", () => {
       pizzaCount: 4,
       ovenType: "home",
       flour: "tipo-00",
+      recipeSnapshot: { fermentation: "6h-room" },
     }, now);
     const recipe = buildSessionRecipe(session, now);
     if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
@@ -187,9 +191,10 @@ describe("Pizza Session timeline", () => {
       steps: generated.steps,
       planningResult: recipe.planningInfo.result,
       session,
+      anchorTime: generated.anchorTime,
     });
 
-    expect(resolveSessionDoughStartTime({ planningResult: recipe.planningInfo.result, session })).toMatchObject({
+    expect(resolveSessionDoughStartTime({ planningResult: recipe.planningInfo.result, session, anchorTime: generated.anchorTime })).toMatchObject({
       mode: "now",
       label: "Dough start: now",
       startsAt: now.toISOString(),
@@ -214,6 +219,7 @@ describe("Pizza Session timeline", () => {
       pizzaCount: 4,
       ovenType: "home",
       flour: "tipo-00",
+      plannedFermentationHours: 48,
     }, now);
     const recipe = buildSessionRecipe(session, now);
     if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
@@ -231,7 +237,7 @@ describe("Pizza Session timeline", () => {
     expect(displayed.find((step) => step.id === "rest-dough")?.scheduledAt).toBe(new Date(laterStartDate.getTime() + 30 * 60_000).toISOString());
     expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe(new Date(laterStartDate.getTime() + 60 * 60_000).toISOString());
     expect(displayed.find((step) => step.id === "mix-dough")?.status).toBe("done");
-    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt).not.toBe(laterStartDate.toISOString());
+    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(laterStartDate.toISOString());
   });
 
   it("keeps a cautious fallback when a later dough start time is invalid or after the bake target", () => {
@@ -262,8 +268,8 @@ describe("Pizza Session timeline", () => {
 
     expect(resolution.warning).toContain("after the bake target");
     expect(resolution.startsAt).toBeUndefined();
-    expect(displayed).not.toBe(generated.steps);
-    expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
+    expect(displayed).toBe(generated.steps);
+    expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt);
   });
 
   it("preserves recommendation-based timeline behavior when doughStartMode is recommend", () => {
@@ -297,7 +303,7 @@ describe("Pizza Session timeline", () => {
     expect(displayed).toBe(generated.steps);
   });
 
-  it("moves a missed recommended dough start to now without mutating persisted timeline steps", () => {
+  it("stores a missed recommended dough start as a stable timeline snapshot", () => {
     const now = new Date("2026-07-03T15:18:00");
     const target = new Date("2026-07-04T18:00:00");
     const session = createPizzaSession({
@@ -317,7 +323,7 @@ describe("Pizza Session timeline", () => {
 
     const generated = generatePizzaSessionTimeline(session, now).timeline!;
     const generatedMix = generated.steps.find((step) => step.id === "mix-dough");
-    expect(generatedMix?.scheduledAt).toBe(new Date("2026-07-03T12:00:00").toISOString());
+    expect(generatedMix?.scheduledAt).toBe(now.toISOString());
 
     const resolution = resolveSessionDoughStartTime({
       planningResult: recipe.planningInfo.result,
@@ -334,16 +340,14 @@ describe("Pizza Session timeline", () => {
 
     expect(resolution).toMatchObject({
       mode: "recommend",
-      label: "Dough start: start now",
-      startsAt: now.toISOString(),
+      label: "Dough start: DoughTools recommendation",
     });
-    expect(resolution.warning).toContain("ideal dough start time has passed");
+    expect(resolution.warning).toBeUndefined();
     expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
-    expect(displayed.find((step) => step.id === "mix-dough")?.helperCopy).toContain("ideal dough start time has passed");
     expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt)
       .toBe(new Date(now.getTime() + 60 * 60_000).toISOString());
     expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
-      .toBe(new Date("2026-07-03T12:00:00").toISOString());
+      .toBe(now.toISOString());
     expect(Math.round((target.getTime() - new Date(displayed.find((step) => step.id === "mix-dough")!.scheduledAt!).getTime()) / 3_600_000))
       .toBe(27);
   });
@@ -361,6 +365,7 @@ describe("Pizza Session timeline", () => {
       pizzaCount: 4,
       ovenType: "home",
       flour: "tipo-00",
+      recipeSnapshot: { fermentation: "48h-cold" },
     }, now);
     const recipe = buildSessionRecipe(session, now);
     if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
@@ -399,6 +404,7 @@ describe("Pizza Session timeline", () => {
       pizzaCount: 4,
       ovenType: "home",
       flour: "tipo-00",
+      recipeSnapshot: { fermentation: "48h-cold" },
     }, now);
     const recipe = buildSessionRecipe(session, now);
     if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
@@ -408,6 +414,7 @@ describe("Pizza Session timeline", () => {
       steps: generated.steps,
       planningResult: recipe.planningInfo.result,
       session,
+      anchorTime: generated.anchorTime,
     });
 
     expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
@@ -427,6 +434,7 @@ describe("Pizza Session timeline", () => {
       pizzaCount: 4,
       ovenType: "home",
       flour: "tipo-00",
+      recipeSnapshot: { fermentation: "48h-cold" },
     }, now);
     const recipe = buildSessionRecipe(session, now);
     if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
@@ -435,6 +443,7 @@ describe("Pizza Session timeline", () => {
     const displayed = timelineStepsForPlanningSummaryDisplay({
       steps: generated.steps,
       planningResult: recipe.planningInfo.result,
+      session,
     });
 
     expect(displayed).toBe(generated.steps);
@@ -463,6 +472,7 @@ describe("Pizza Session timeline", () => {
         pizzaCount: 4,
         ovenType: "home",
         flour: "tipo-00",
+        recipeSnapshot: { fermentation: "48h-cold" },
       }, now);
       const recipe = buildSessionRecipe(session, now);
       if (!recipe.ok || !recipe.planningInfo.ok) throw new Error(`Expected planning info for ${horizon.label}`);
@@ -472,11 +482,12 @@ describe("Pizza Session timeline", () => {
       const displayed = timelineStepsForPlanningSummaryDisplay({
         steps: generated.steps,
         planningResult: recipe.planningInfo.result,
+        session,
       });
 
       expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
       if (horizon.adjustsPastStart) {
-        expect(displayed).not.toBe(generated.steps);
+        expect(displayed).toBe(generated.steps);
         expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
       } else {
         expect(displayed).toBe(generated.steps);
@@ -516,7 +527,7 @@ describe("Pizza Session timeline", () => {
     });
 
     expect(recipe.continuousYeast?.basisLabel).toBe("48 h cold fermentation");
-    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt).not.toBe(selectedStart.toISOString());
+    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(selectedStart.toISOString());
     expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(selectedStart.toISOString());
     expect(displayed.find((step) => step.id === "rest-dough")?.scheduledAt)
       .toBe(new Date(selectedStart.getTime() + 30 * 60_000).toISOString());
@@ -717,9 +728,9 @@ describe("Pizza Session timeline", () => {
     expect(result.timeline?.steps.map((step) => step.label)).toEqual([
       "Mix dough",
       "Rest dough",
-      "Cold ferment",
+      "Room temperature ferment",
       "Ball dough",
-      "Room temperature rest",
+      "Final room rest",
       "Preheat oven",
       "Prepare sauce and toppings",
       "Bake pizza",
@@ -794,7 +805,7 @@ describe("Pizza Session timeline", () => {
 
     expect(passiveSteps.map((step) => step.label)).toEqual([
       "Rest dough",
-      "Cold ferment",
+      "Ferment dough",
       "Room temperature rest",
     ]);
     expect(passiveSteps.some((step) => isQuietHours(step.scheduledAt!))).toBe(true);
@@ -853,6 +864,70 @@ describe("Pizza Session timeline", () => {
     expect(updated?.timeline?.steps.length).toBeGreaterThan(0);
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("mix-dough");
     expect(getActivePizzaSession(storage)?.id).toBe(session.id);
+  });
+
+  it("keeps a start-now room-temperature Timeline stable after Kitchen Mode and Back", () => {
+    const storage = new MemoryStorage();
+    const firstOpen = new Date("2026-07-08T16:20:00.000Z");
+    const backToTimeline = new Date("2026-07-08T17:10:00.000Z");
+    const session = createAndSavePizzaSession({
+      id: "timeline-kitchen-back-stability",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-09T12:15:00.000Z",
+      targetBakeTime: "2026-07-09T12:15:00.000Z",
+      doughStartMode: "now",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      doughBallWeight: 260,
+      ovenType: "home",
+      flour: "tipo-00",
+      yeastType: "instant-dry",
+      recipeSnapshot: {
+        balls: 4,
+        ballWeight: 260,
+        fermentation: "12h-room",
+      },
+    }, storage, firstOpen);
+    setActivePizzaSession(session.id, storage);
+
+    const first = generateAndSaveActivePizzaSessionTimeline(storage, firstOpen).session!;
+    const firstRecipe = buildSessionRecipe(first, firstOpen);
+    if (!firstRecipe.ok || !firstRecipe.planningInfo.ok) throw new Error("Expected planning info");
+    const firstDisplayed = timelineStepsForPlanningSummaryDisplay({
+      steps: first.timeline!.steps,
+      planningResult: firstRecipe.planningInfo.result,
+      session: first,
+      anchorTime: first.timeline!.anchorTime,
+    });
+
+    const second = generateAndSaveActivePizzaSessionTimeline(storage, backToTimeline).session!;
+    const secondRecipe = buildSessionRecipe(second, backToTimeline);
+    if (!secondRecipe.ok || !secondRecipe.planningInfo.ok) throw new Error("Expected planning info");
+    const secondDisplayed = timelineStepsForPlanningSummaryDisplay({
+      steps: second.timeline!.steps,
+      planningResult: secondRecipe.planningInfo.result,
+      session: second,
+      anchorTime: second.timeline!.anchorTime,
+    });
+
+    expect(first.timeline?.anchorTime).toBe(firstOpen.toISOString());
+    expect(second.timeline?.anchorTime).toBe(firstOpen.toISOString());
+    expect(second.timeline?.generatedAt).toBe(first.timeline?.generatedAt);
+    expect(second.updatedAt).toBe(first.updatedAt);
+    expect(second.lastSavedAt).toBe(first.lastSavedAt);
+    expect(firstDisplayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(firstOpen.toISOString());
+    expect(secondDisplayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(firstOpen.toISOString());
+    expect(secondDisplayed.find((step) => step.id === "rest-dough")?.scheduledAt)
+      .toBe(new Date(firstOpen.getTime() + 30 * 60_000).toISOString());
+    expect(secondDisplayed.find((step) => step.id === "room-ferment")?.scheduledAt)
+      .toBe(new Date(firstOpen.getTime() + 60 * 60_000).toISOString());
+    expect(secondDisplayed.find((step) => step.id === "bake-pizza")?.scheduledAt)
+      .toBe("2026-07-09T12:00:00.000Z");
+    expect(secondDisplayed.some((step) => step.id === "cold-ferment")).toBe(false);
+    expect(secondDisplayed.map((step) => `${step.label} ${step.description} ${step.helperCopy}`).join(" "))
+      .not.toMatch(/Cold ferment|fridge|Take dough out|Cold time slows/i);
   });
 
   it("does not generate timeline for completed or archived active sessions", () => {

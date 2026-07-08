@@ -4,9 +4,13 @@ import type { PlanningResult } from "@/lib/planning-result";
 type TimelineDisplayInput = {
   steps: PizzaSessionTimelineStep[];
   planningResult?: PlanningResult | null;
-  session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime"> | null;
+  session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime" | "plannedFermentationHours" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null;
   now?: Date;
+  anchorTime?: string;
+  adjustSchedule?: boolean;
 };
+
+export type TimelineFermentationMode = "cold" | "room" | "unknown";
 
 export type ResolvedSessionDoughStartTime = {
   mode: "now" | "later" | "recommend";
@@ -40,6 +44,40 @@ function sameDayRoomPlanning(result?: PlanningResult | null) {
   );
 }
 
+function fermentationModeFromPreset(value?: string): TimelineFermentationMode {
+  if (!value) return "unknown";
+  if (value.endsWith("-cold")) return "cold";
+  if (value.endsWith("-room")) return "room";
+  return "unknown";
+}
+
+export function resolveSessionTimelineFermentationMode(
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null,
+  planningResult?: PlanningResult | null,
+): TimelineFermentationMode {
+  const presetMode = fermentationModeFromPreset(session?.recipeSnapshot?.fermentation);
+  if (presetMode !== "unknown") return presetMode;
+
+  if (typeof session?.plannedFermentationHours === "number" && Number.isFinite(session.plannedFermentationHours)) {
+    return "cold";
+  }
+
+  const selectedMode = planningResult?.fermentationSetupRecommendation?.selectedFermentationMode;
+  if (selectedMode === "cold" || selectedMode === "room") return selectedMode;
+
+  const recommendedMode = planningResult?.fermentationSetupRecommendation?.recommendedFermentationMode;
+  if (recommendedMode === "cold" || recommendedMode === "room") return recommendedMode;
+
+  if (session?.recipeSnapshot?.oven === "gas" || session?.ovenType === "gas" || session?.pizzaStyle === "pizza-oven") {
+    return "room";
+  }
+  if (session?.recipeSnapshot?.oven === "home" || session?.ovenType === "home" || session?.pizzaStyle === "home-oven") {
+    return "cold";
+  }
+
+  return "unknown";
+}
+
 function targetFromInput(
   planningResult?: PlanningResult | null,
   session?: Pick<PizzaSession, "targetEatTime" | "targetBakeTime"> | null,
@@ -58,17 +96,27 @@ export function resolveSessionDoughStartTime({
   session,
   steps,
   now,
+  anchorTime,
 }: {
   planningResult?: PlanningResult | null;
   session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime"> | null;
   steps?: PizzaSessionTimelineStep[];
   now?: Date;
+  anchorTime?: string;
 }): ResolvedSessionDoughStartTime {
   const mode = session?.doughStartMode ?? "recommend";
   const current = currentFromPlanning(planningResult) ?? now;
   const target = targetFromInput(planningResult, session);
 
   if (mode === "now") {
+    const anchoredStart = parsePlanningDate(anchorTime);
+    if (anchoredStart) {
+      return {
+        mode,
+        label: "Dough start: now",
+        startsAt: anchoredStart.toISOString(),
+      };
+    }
     if (!current) {
       return {
         mode,
@@ -143,6 +191,7 @@ function sameDayScheduleIso(step: PizzaSessionTimelineStep, current: Date, targe
 
   if (step.id === "mix-dough") return current.toISOString();
   if (step.id === "rest-dough") return addMinutes(current, Math.min(30, Math.max(0, availableMinutes - 180))).toISOString();
+  if (step.id === "room-ferment" || step.id === "ferment-dough") return addMinutes(current, 60).toISOString();
   if (step.id === "ball-dough") return safeBeforeTarget(180);
   if (step.id === "room-temperature-rest") return safeBeforeTarget(150);
   if (step.id === "preheat-oven") return safeBeforeTarget(60);
@@ -152,17 +201,17 @@ function sameDayScheduleIso(step: PizzaSessionTimelineStep, current: Date, targe
   return step.scheduledAt;
 }
 
-function safeColdStartIso(step: PizzaSessionTimelineStep, current: Date) {
+function safeFermentationStartIso(step: PizzaSessionTimelineStep, current: Date) {
   if (step.id === "mix-dough") return current.toISOString();
   if (step.id === "rest-dough") return addMinutes(current, 30).toISOString();
-  if (step.id === "cold-ferment") return addMinutes(current, 60).toISOString();
+  if (step.id === "cold-ferment" || step.id === "room-ferment" || step.id === "ferment-dough") return addMinutes(current, 60).toISOString();
   return step.scheduledAt;
 }
 
-function explicitDoughStartColdIso(step: PizzaSessionTimelineStep, start: Date) {
+function explicitDoughStartFermentationIso(step: PizzaSessionTimelineStep, start: Date) {
   if (step.id === "mix-dough") return start.toISOString();
   if (step.id === "rest-dough") return addMinutes(start, 30).toISOString();
-  if (step.id === "cold-ferment") return addMinutes(start, 60).toISOString();
+  if (step.id === "cold-ferment" || step.id === "room-ferment" || step.id === "ferment-dough") return addMinutes(start, 60).toISOString();
   return step.scheduledAt;
 }
 
@@ -171,24 +220,106 @@ function shouldUseSameDayFromResolvedStart(start: Date, target: Date) {
   return hours > 0 && hours < 8;
 }
 
+function roomFermentationCopy(step: PizzaSessionTimelineStep): Partial<PizzaSessionTimelineStep> {
+  if (step.id === "cold-ferment" || step.id === "room-ferment" || step.id === "ferment-dough") {
+    return {
+      id: "room-ferment",
+      label: "Room temperature ferment",
+      description: "Keep the covered dough at room temperature for the planned fermentation time.",
+      helperCopy: "Room temperature fermentation moves faster, so follow the planned timing closely.",
+      beginnerNote: "Keep the dough covered and let it rise at room temperature.",
+      enthusiastNote: "Room fermentation is the practical fit for this selected plan.",
+      pizzaNerdNote: "Use the selected room-temperature plan; fridge timing is not part of this fermentation step.",
+      quietHoursWarning: undefined,
+    };
+  }
+
+  if (step.id === "room-temperature-rest") {
+    return {
+      label: "Final room rest",
+      description: "Let the dough finish relaxing at room temperature before opening.",
+      helperCopy: "This is a final room rest before baking, not a cold-dough warm-up.",
+      beginnerNote: "Keep the dough covered until it feels relaxed enough to open.",
+      enthusiastNote: "Use this final rest to make the dough easier to stretch.",
+      pizzaNerdNote: "The final room rest improves extensibility before opening.",
+    };
+  }
+
+  return {};
+}
+
+function neutralFermentationCopy(step: PizzaSessionTimelineStep): Partial<PizzaSessionTimelineStep> {
+  if (step.id === "cold-ferment" || step.id === "room-ferment" || step.id === "ferment-dough") {
+    return {
+      id: "ferment-dough",
+      label: "Ferment dough",
+      description: "Keep the dough covered and follow the planned fermentation timing.",
+      helperCopy: "Fermentation timing affects dough strength, flavor, and readiness.",
+      beginnerNote: "Keep the dough covered while it ferments.",
+      enthusiastNote: "Follow the planned timing and watch dough condition.",
+      pizzaNerdNote: "This neutral step is used when DoughTools cannot confirm room or cold fermentation.",
+      quietHoursWarning: undefined,
+    };
+  }
+  return {};
+}
+
+function displayCopyForFermentationMode(step: PizzaSessionTimelineStep, mode: TimelineFermentationMode) {
+  if (mode === "room") return roomFermentationCopy(step);
+  if (mode === "unknown") return neutralFermentationCopy(step);
+  return {};
+}
+
+function normalizeStepsForFermentationMode(
+  steps: PizzaSessionTimelineStep[],
+  mode: TimelineFermentationMode,
+) {
+  if (mode === "cold") return steps;
+  return steps.map((step) => ({
+    ...step,
+    ...displayCopyForFermentationMode(step, mode),
+  }));
+}
+
 export function timelineStepsForPlanningSummaryDisplay({
   steps,
   planningResult,
   session,
   now,
+  anchorTime,
+  adjustSchedule = false,
 }: TimelineDisplayInput): PizzaSessionTimelineStep[] {
+  const fermentationMode = resolveSessionTimelineFermentationMode(session, planningResult);
+  const normalizedSteps = normalizeStepsForFermentationMode(steps, fermentationMode);
+  if (!adjustSchedule) return normalizedSteps;
+
   const current = currentFromPlanning(planningResult) ?? now;
   const target = targetFromInput(planningResult, session);
-  if (!current || !target) return steps;
+  if (!current || !target) return normalizedSteps;
 
-  const resolvedStart = resolveSessionDoughStartTime({ planningResult, session, steps, now });
+  const resolvedStart = resolveSessionDoughStartTime({ planningResult, session, steps: normalizedSteps, now, anchorTime });
   const explicitStart = parsePlanningDate(resolvedStart.startsAt);
   if (explicitStart) {
+    if (fermentationMode === "room" && !shouldUseSameDayFromResolvedStart(explicitStart, target)) {
+      return normalizedSteps.map((step) => {
+        if (!["mix-dough", "rest-dough", "room-ferment"].includes(step.id)) return step;
+        return {
+          ...step,
+          scheduledAt: explicitDoughStartFermentationIso(step, explicitStart),
+          helperCopy: step.id === "mix-dough" && resolvedStart.warning
+            ? resolvedStart.warning
+            : step.helperCopy,
+          quietHoursWarning: undefined,
+        };
+      });
+    }
+
     if (shouldUseSameDayFromResolvedStart(explicitStart, target)) {
-      return steps.flatMap((step) => {
-        if (step.id === "cold-ferment") return [];
+      return normalizedSteps.map((step) => {
         const scheduledAt = sameDayScheduleIso(step, explicitStart, target);
-        const sameDayCopy = step.id === "rest-dough"
+        const sameDayCopy = fermentationMode === "room"
+          ? displayCopyForFermentationMode(step, fermentationMode)
+          : step.id === "rest-dough"
           ? {
             label: "Room fermentation",
             description: "Keep the dough covered at room temperature for this same-day plan.",
@@ -208,20 +339,20 @@ export function timelineStepsForPlanningSummaryDisplay({
             }
           : {};
 
-        return [{
+        return {
           ...step,
           ...sameDayCopy,
           scheduledAt,
           quietHoursWarning: undefined,
-        }];
+        };
       });
     }
 
-    return steps.map((step) => {
-      if (!["mix-dough", "rest-dough", "cold-ferment"].includes(step.id)) return step;
+    return normalizedSteps.map((step) => {
+      if (!["mix-dough", "rest-dough", "cold-ferment", "room-ferment", "ferment-dough"].includes(step.id)) return step;
       return {
         ...step,
-        scheduledAt: explicitDoughStartColdIso(step, explicitStart),
+        scheduledAt: explicitDoughStartFermentationIso(step, explicitStart),
         helperCopy: step.id === "mix-dough" && resolvedStart.warning
           ? resolvedStart.warning
           : step.helperCopy,
@@ -233,25 +364,24 @@ export function timelineStepsForPlanningSummaryDisplay({
   if (!sameDayRoomPlanning(planningResult)) {
     const startWindowCategory = planningResult?.startWindowRecommendation?.category;
     const canSafelyShiftPastStart = startWindowCategory === "day_before" || startWindowCategory === "evening_before";
-    const hasPastDoughStart = steps.some((step) => (
-      ["mix-dough", "rest-dough", "cold-ferment"].includes(step.id)
+    const hasPastDoughStart = normalizedSteps.some((step) => (
+      ["mix-dough", "rest-dough", "cold-ferment", "room-ferment", "ferment-dough"].includes(step.id)
       && step.scheduledAt
       && new Date(step.scheduledAt).getTime() < current.getTime()
     ));
-    if (!hasPastDoughStart || !canSafelyShiftPastStart) return steps;
+    if (!hasPastDoughStart || !canSafelyShiftPastStart) return normalizedSteps;
 
-    return steps.map((step) => {
-      if (!["mix-dough", "rest-dough", "cold-ferment"].includes(step.id)) return step;
+    return normalizedSteps.map((step) => {
+      if (!["mix-dough", "rest-dough", "cold-ferment", "room-ferment", "ferment-dough"].includes(step.id)) return step;
       return {
         ...step,
-        scheduledAt: safeColdStartIso(step, current),
+        scheduledAt: safeFermentationStartIso(step, current),
         quietHoursWarning: undefined,
       };
     });
   }
 
-  return steps.flatMap((step) => {
-    if (step.id === "cold-ferment") return [];
+  return normalizedSteps.map((step) => {
     const scheduledAt = sameDayScheduleIso(step, current, target);
     const sameDayCopy = step.id === "rest-dough"
       ? {
@@ -273,11 +403,11 @@ export function timelineStepsForPlanningSummaryDisplay({
         }
       : {};
 
-    return [{
+    return {
       ...step,
       ...sameDayCopy,
       scheduledAt,
       quietHoursWarning: undefined,
-    }];
+    };
   });
 }

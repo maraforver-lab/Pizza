@@ -96,6 +96,7 @@ function timelineStepIcon(step: PizzaSessionTimelineStep) {
   if (step.id === "mix-dough") return "🥣";
   if (step.id === "rest-dough") return "⏳";
   if (step.id === "cold-ferment") return "❄️";
+  if (step.id === "room-ferment" || step.id === "ferment-dough") return "🌡️";
   if (step.id === "ball-dough") return "🍞";
   if (step.id === "room-temperature-rest") return "🌡️";
   if (step.id === "preheat-oven") return "🔥";
@@ -111,6 +112,8 @@ function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {
     "mix-dough",
     "rest-dough",
     "cold-ferment",
+    "room-ferment",
+    "ferment-dough",
     "ball-dough",
     "room-temperature-rest",
   ].includes(step.id);
@@ -310,7 +313,9 @@ function nextActionForTimeline({
 
 function criticalMomentTitle(step: PizzaSessionTimelineStep) {
   if (step.id === "cold-ferment") return "Put dough in fridge";
-  if (step.id === "room-temperature-rest" && step.helperCopy?.includes("Same-day timing")) return step.label;
+  if (step.id === "room-ferment") return "Room temperature ferment";
+  if (step.id === "ferment-dough") return "Ferment dough";
+  if (step.id === "room-temperature-rest" && step.label !== "Room temperature rest") return step.label;
   if (step.id === "room-temperature-rest") return "Take dough out";
   return step.label;
 }
@@ -318,6 +323,8 @@ function criticalMomentTitle(step: PizzaSessionTimelineStep) {
 function getCriticalMoments(steps: PizzaSessionTimelineStep[]) {
   const preferredIds = [
     "cold-ferment",
+    "room-ferment",
+    "ferment-dough",
     "room-temperature-rest",
     "preheat-oven",
     "bake-pizza",
@@ -430,6 +437,7 @@ export default function SessionTimelinePage() {
     steps: timeline.steps,
     planningResult,
     session,
+    anchorTime: timeline.anchorTime,
   });
   const nextStep = displayTimelineSteps.find((step) => step.status === "todo");
   const allStepsComplete = Boolean(displayTimelineSteps.length && displayTimelineSteps.every((step) => step.status === "done"));
@@ -445,7 +453,7 @@ export default function SessionTimelinePage() {
   const startWindow = planningResult?.startWindowRecommendation;
   const fermentationSetup = planningResult?.fermentationSetupRecommendation;
   const temperatureGuidance = planningResult?.temperatureGuidance;
-  const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session, steps: timeline.steps });
+  const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session, steps: timeline.steps, anchorTime: timeline.anchorTime });
   const fermentationDisplay = sessionRecipeResult.ok
     ? buildSessionFermentationDisplay({
       session,

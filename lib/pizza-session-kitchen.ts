@@ -152,6 +152,8 @@ function isFermentationTimelineStep(step?: PizzaSessionTimelineStep) {
   const label = step.label.toLowerCase();
   return (
     step.id === "cold-ferment"
+    || step.id === "room-ferment"
+    || step.id === "ferment-dough"
     || label.includes("room fermentation")
     || label.includes("room temperature ferment")
     || label.includes("ferment dough")
@@ -240,6 +242,7 @@ export function getKitchenModeState(session?: PizzaSession, now = new Date()): K
     planningResult,
     session,
     now,
+    anchorTime: session.timeline.anchorTime,
   });
 
   const currentStep = displaySteps.find((step) => step.status === "todo" && step.id !== "review-result");
@@ -272,6 +275,8 @@ export function getKitchenModeForStep(step?: PizzaSessionTimelineStep): KitchenM
     haystack.includes("mix")
     || haystack.includes("rest-dough")
     || haystack.includes("cold-ferment")
+    || haystack.includes("room-ferment")
+    || haystack.includes("ferment-dough")
     || haystack.includes("ferment")
     || haystack.includes("ball")
     || haystack.includes("room-temperature")

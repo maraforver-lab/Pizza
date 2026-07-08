@@ -77,6 +77,8 @@ export type PizzaSessionTimelineStep = {
 
 export type PizzaSessionTimeline = {
   generatedAt?: string;
+  anchorTime?: string;
+  inputSignature?: string;
   targetEatTime?: string;
   assumptions?: string[];
   steps: PizzaSessionTimelineStep[];
@@ -311,6 +313,8 @@ function cloneTimeline(timeline?: PizzaSessionTimeline): PizzaSessionTimeline | 
   });
   return steps.length ? {
     generatedAt: stringValue(timeline.generatedAt),
+    anchorTime: stringValue(timeline.anchorTime),
+    inputSignature: stringValue(timeline.inputSignature),
     targetEatTime: stringValue(timeline.targetEatTime),
     assumptions: Array.isArray(timeline.assumptions)
       ? timeline.assumptions.flatMap((item) => {

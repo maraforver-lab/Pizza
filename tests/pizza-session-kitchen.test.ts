@@ -141,7 +141,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(getKitchenModeState(createPizzaSession({ id: "missing-timeline" }))).toEqual({ ok: false, missingReason: "missing-timeline" });
   });
 
-  it("does not show Kitchen Mode Mix dough in the past when the recommended start has passed", () => {
+  it("uses the stable Timeline snapshot when Kitchen Mode opens after a missed recommended start", () => {
     const now = new Date("2026-07-03T15:18:00");
     const session = createPizzaSession({
       id: "kitchen-missed-recommend-start",
@@ -169,16 +169,15 @@ describe("Pizza Session Kitchen Mode", () => {
     }, now);
 
     const storedMix = session.timeline?.steps.find((step) => step.id === "mix-dough");
-    expect(storedMix?.scheduledAt).toBe(new Date("2026-07-03T12:00:00").toISOString());
+    expect(storedMix?.scheduledAt).toBe(now.toISOString());
 
     const state = getKitchenModeState(session, now);
     expect(state.ok).toBe(true);
     if (!state.ok) throw new Error("Expected kitchen state");
     expect(state.currentStep?.id).toBe("mix-dough");
     expect(state.currentStep?.scheduledAt).toBe(now.toISOString());
-    expect(state.currentStep?.helperCopy).toContain("ideal dough start time has passed");
     expect(session.timeline?.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
-      .toBe(new Date("2026-07-03T12:00:00").toISOString());
+      .toBe(now.toISOString());
   });
 
   it("uses a selected long-horizon plan for Kitchen Mode displayed dough timing", () => {
@@ -210,7 +209,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(state.currentStep?.id).toBe("mix-dough");
     expect(state.currentStep?.scheduledAt).toBe(selectedStart.toISOString());
     expect(session.timeline?.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
-      .not.toBe(selectedStart.toISOString());
+      .toBe(selectedStart.toISOString());
   });
 
   it("marks the current kitchen task done, advances currentStep and preserves local session data", () => {
