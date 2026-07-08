@@ -25,6 +25,10 @@ import {
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
+import {
+  formatEarlyTimelineStartTime,
+  shouldWarnBeforeEarlyTimelineStart,
+} from "@/lib/timeline-early-start-warning";
 import { MemoryStorage } from "./helpers";
 
 function source(path: string) {
@@ -57,7 +61,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Start dough →");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/shopping\"");
-    expect(page).toContain("href={nextAction.href}");
+    expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("desktopAside={renderNextActionCard()}");
     expect(page).toContain("<div className=\"lg:hidden\">");
     expect(page).not.toContain("Session summary");
@@ -527,7 +531,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("cta: \"Start dough →\"");
     expect(page).toContain("cta: \"Continue baking →\"");
     expect(page).toContain("cta: \"Review your pizza →\"");
-    expect(page).toContain("href={nextAction.href}");
+    expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("{nextAction.title}");
     expect(page).toContain("{nextAction.subtext}");
     expect(page).toContain("const renderNextActionCard");
@@ -640,10 +644,45 @@ describe("Pizza Session timeline", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("href=\"/session/shopping\"");
-    expect(page).toContain("href={nextAction.href}");
+    expect(page).toContain("router.push(nextAction.href)");
     expect(page).toContain("{nextAction.cta}");
     expect(page).toContain("BottomActionBar");
     expect(page).not.toContain("Review dough plan →");
+  });
+
+  it("warns before starting a scheduled dough step more than 60 minutes early", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(shouldWarnBeforeEarlyTimelineStart(
+      "2026-07-08T20:00:00",
+      new Date("2026-07-08T10:00:00"),
+    )).toBe(true);
+    expect(formatEarlyTimelineStartTime("2026-07-08T20:00:00")).toBe("Wed 8 Jul at 20:00");
+    expect(page).toContain("shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt)");
+    expect(page).toContain("setEarlyStartStep(nextStep ?? null)");
+    expect(page).toContain("This step is scheduled for later");
+    expect(page).toContain("This dough step is planned for");
+    expect(page).toContain("Starting now may affect the fermentation schedule and final dough quality.");
+    expect(page).toContain("Start anyway");
+    expect(page).toContain("Go back");
+    expect(page).toContain("router.push(\"/session/kitchen?from=timeline\")");
+    expect(page).toContain("aria-modal=\"true\"");
+  });
+
+  it("does not warn at 60 minutes, due time or overdue time", () => {
+    expect(shouldWarnBeforeEarlyTimelineStart(
+      "2026-07-08T20:00:00",
+      new Date("2026-07-08T19:00:00"),
+    )).toBe(false);
+    expect(shouldWarnBeforeEarlyTimelineStart(
+      "2026-07-08T20:00:00",
+      new Date("2026-07-08T20:00:00"),
+    )).toBe(false);
+    expect(shouldWarnBeforeEarlyTimelineStart(
+      "2026-07-08T20:00:00",
+      new Date("2026-07-08T20:05:00"),
+    )).toBe(false);
+    expect(shouldWarnBeforeEarlyTimelineStart("not-a-date", new Date("2026-07-08T10:00:00"))).toBe(false);
   });
 
   it("keeps timeline page focused without repeated metadata or footer clutter", () => {

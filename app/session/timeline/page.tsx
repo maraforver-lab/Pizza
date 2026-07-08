@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
@@ -25,6 +26,10 @@ import {
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import { buildSessionRecipe } from "@/lib/session-recipe";
+import {
+  formatEarlyTimelineStartTime,
+  shouldWarnBeforeEarlyTimelineStart,
+} from "@/lib/timeline-early-start-warning";
 
 function formatDateTime(value?: string) {
   if (!value) return "Time not set";
@@ -278,6 +283,7 @@ function nextActionForTimeline({
       title: nextStep.label,
       subtext: "This is your next dough preparation step.",
       kind: "dough",
+      scheduledAt: nextStep.scheduledAt,
     };
   }
 
@@ -288,6 +294,7 @@ function nextActionForTimeline({
       title: nextStep.label,
       subtext: "Kitchen Mode will guide the active cooking steps.",
       kind: "service",
+      scheduledAt: nextStep.scheduledAt,
     };
   }
 
@@ -297,6 +304,7 @@ function nextActionForTimeline({
     title: allStepsComplete ? "Review your pizza" : "Review your session",
     subtext: "Save what worked for next time.",
     kind: "review",
+    scheduledAt: undefined,
   };
 }
 
@@ -366,9 +374,11 @@ function ShoppingCheckpointRow({
 }
 
 export default function SessionTimelinePage() {
+  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [missingReason, setMissingReason] = useState<string | null>(null);
+  const [earlyStartStep, setEarlyStartStep] = useState<PizzaSessionTimelineStep | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -472,6 +482,21 @@ export default function SessionTimelinePage() {
     selectedFermentationLabel,
     selectedStartLabel,
   });
+  const handleNextAction = () => {
+    if (
+      nextAction.kind === "dough" &&
+      shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt)
+    ) {
+      setEarlyStartStep(nextStep ?? null);
+      return;
+    }
+
+    router.push(nextAction.href);
+  };
+  const continueToKitchenAnyway = () => {
+    setEarlyStartStep(null);
+    router.push("/session/kitchen?from=timeline");
+  };
   const renderNextActionCard = () => (
     <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
@@ -485,12 +510,13 @@ export default function SessionTimelinePage() {
           {formatTimelineTime(nextUpTime)}
         </span>
       </div>
-      <Link
-        href={nextAction.href}
+      <button
+        type="button"
+        onClick={handleNextAction}
         className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
       >
         {nextAction.cta}
-      </Link>
+      </button>
     </div>
   );
 
@@ -720,14 +746,54 @@ export default function SessionTimelinePage() {
             </Link>
           )}
           primary={(
-            <Link
-              href={nextAction.href}
+            <button
+              type="button"
+              onClick={handleNextAction}
               className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
             >
               {nextAction.cta}
-            </Link>
+            </button>
           )}
         />
+
+        {earlyStartStep && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-ink/45 px-4 py-5 backdrop-blur-sm sm:items-center sm:py-8"
+            role="presentation"
+          >
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="early-timeline-start-title"
+              aria-describedby="early-timeline-start-body"
+              className="w-full max-w-lg rounded-[1.75rem] border border-white/80 bg-white p-5 text-ink shadow-card sm:rounded-[2rem] sm:p-6"
+            >
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Timing check</p>
+              <h2 id="early-timeline-start-title" className="mt-2 font-display text-3xl font-semibold">
+                This step is scheduled for later
+              </h2>
+              <p id="early-timeline-start-body" className="mt-3 text-sm font-bold leading-6 text-ink/65">
+                This dough step is planned for {formatEarlyTimelineStartTime(earlyStartStep.scheduledAt)}. Starting now may affect the fermentation schedule and final dough quality.
+              </p>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row-reverse sm:justify-start">
+                <button
+                  type="button"
+                  onClick={continueToKitchenAnyway}
+                  className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+                >
+                  Start anyway
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEarlyStartStep(null)}
+                  className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+                >
+                  Go back
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
 
         <SessionLocalOnlyNote>
           {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
