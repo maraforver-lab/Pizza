@@ -35,6 +35,12 @@ export type KitchenIngredientLine = {
 
 export type KitchenModeKind = "dough" | "service" | "complete" | "unknown";
 
+export type KitchenStepWaitInfo = {
+  isTooEarly: boolean;
+  remainingMinutes: number;
+  waitLabel?: string;
+};
+
 export type KitchenTaskPresentation = {
   title: string;
   shortInstruction: string;
@@ -301,6 +307,39 @@ export function getKitchenModeForStep(step?: PizzaSessionTimelineStep): KitchenM
   }
 
   return "unknown";
+}
+
+export function formatKitchenStepWaitLabel(remainingMinutes: number) {
+  const safeMinutes = Math.max(0, Math.ceil(remainingMinutes));
+  if (safeMinutes < 60) return `Wait ${safeMinutes} min`;
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+  return `Wait ${hours} h${minutes ? ` ${minutes} min` : ""}`;
+}
+
+export function getKitchenStepWaitInfo(
+  step?: Pick<PizzaSessionTimelineStep, "scheduledAt">,
+  now = new Date(),
+): KitchenStepWaitInfo {
+  if (!step?.scheduledAt) return { isTooEarly: false, remainingMinutes: 0 };
+  const scheduledAt = new Date(step.scheduledAt);
+  if (!Number.isFinite(scheduledAt.getTime()) || !Number.isFinite(now.getTime())) {
+    return { isTooEarly: false, remainingMinutes: 0 };
+  }
+  const remainingMinutes = Math.ceil((scheduledAt.getTime() - now.getTime()) / 60_000);
+  if (remainingMinutes <= 0) return { isTooEarly: false, remainingMinutes: 0 };
+  return {
+    isTooEarly: true,
+    remainingMinutes,
+    waitLabel: formatKitchenStepWaitLabel(remainingMinutes),
+  };
+}
+
+export function shouldConfirmEarlyKitchenStepCompletion(
+  step?: Pick<PizzaSessionTimelineStep, "scheduledAt">,
+  now = new Date(),
+) {
+  return getKitchenStepWaitInfo(step, now).isTooEarly;
 }
 
 export function completeKitchenTimelineStep(

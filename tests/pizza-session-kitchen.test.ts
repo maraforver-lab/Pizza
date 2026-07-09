@@ -6,12 +6,15 @@ import { generatePizzaSessionTimeline } from "@/lib/pizza-session-timeline";
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
+  formatKitchenStepWaitLabel,
   getKitchenModeForStep,
   getKitchenModeState,
+  getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
   getKitchenTaskInstruction,
   isMixDoughStep,
   recipeSnapshotIngredientLines,
+  shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
 import {
   createAndSavePizzaSession,
@@ -70,14 +73,15 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("\"use client\"");
     expect(page).toContain("Kitchen Mode");
-    expect(page).toContain("SessionStepHero");
-    expect(page).toContain("step={9}");
-    expect(page).toContain("hideMeta");
+    expect(page).not.toContain("SessionStepHero");
+    expect(page).not.toContain("Follow one step at a time.");
+    expect(page).toContain("hideLocalSaveNote");
     expect(page).toContain("Mark step as done");
     expect(page).toContain("No active pizza session");
     expect(page).toContain("Create a timeline first");
     expect(page).toContain("Ingredient amounts unavailable");
-    expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
+    expect(page).not.toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
+    expect(page).not.toContain("Saved as you go.");
     expect(page).toContain("kitchenBackHrefFromSource");
     expect(page).not.toMatch(/Cloud sync is active|push notifications enabled|Google indexing enabled/i);
   });
@@ -328,13 +332,17 @@ describe("Pizza Session Kitchen Mode", () => {
   it("aligns Kitchen Mode with Pizza Session V2 execution structure", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("step={9}");
+    expect(page).toContain("activeStep={9}");
+    expect(page).toContain("hideLocalSaveNote");
     expect(page).toContain("Needed now");
-    expect(page).toContain("Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount} · Kitchen Mode");
+    expect(page).toContain("Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount}");
+    expect(page).toContain("<h1 id=\"current-kitchen-task\"");
     expect(page).toContain("Do this");
     expect(page).toContain("When");
     expect(page).toContain("You are done when");
     expect(page).toContain("Technique note");
+    expect(page).toContain("{experience.label} guidance");
+    expect(page).toContain("levelGuidanceForStep(currentStep, session.experienceLevel)");
     expect(page).toContain("Next: {kitchenState.nextStep ? nextTaskPresentation.title : \"Review your pizza session\"}");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href={backHref}");
@@ -353,12 +361,51 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("SessionLocalOnlyNote");
     expect(page).not.toContain("saveMessage");
     expect(page).not.toContain("marked done. Progress saved in this browser.");
-    expect(page).not.toContain('role="status"');
     expect(page).not.toContain("<AppSignature");
     expect(page).not.toContain("Open full Calculator");
     expect(page).not.toContain("Open baking timer");
     expect(page).not.toContain("Review dough plan");
     expect(page).not.toContain("Back to timeline");
+  });
+
+  it("renders the Kitchen Mode early-step wait notice and confirmation controls", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("getKitchenStepWaitInfo(currentStep, currentTime)");
+    expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
+    expect(page).toContain("{waitInfo.waitLabel} before this step.");
+    expect(page).toContain("This step is scheduled for {formatKitchenStepTime(currentStep.scheduledAt)}.");
+    expect(page).toContain("This step is scheduled later");
+    expect(page).toContain("Do you still want to continue?");
+    expect(page).toContain("Go back");
+    expect(page).toContain("Continue anyway");
+    expect(page).toContain("setConfirmEarlyCompletion(false)");
+    expect(page).toContain("completeCurrentStep");
+  });
+
+  it("calculates Kitchen Mode wait labels and early completion confirmation from scheduled time", () => {
+    const now = new Date("2026-07-10T08:00:00.000Z");
+    const fiveMinutes = { scheduledAt: "2026-07-10T08:05:00.000Z" };
+    const seventyFiveMinutes = { scheduledAt: "2026-07-10T09:15:00.000Z" };
+    const due = { scheduledAt: "2026-07-10T08:00:00.000Z" };
+    const overdue = { scheduledAt: "2026-07-10T07:55:00.000Z" };
+
+    expect(formatKitchenStepWaitLabel(5)).toBe("Wait 5 min");
+    expect(formatKitchenStepWaitLabel(75)).toBe("Wait 1 h 15 min");
+    expect(getKitchenStepWaitInfo(fiveMinutes, now)).toEqual({
+      isTooEarly: true,
+      remainingMinutes: 5,
+      waitLabel: "Wait 5 min",
+    });
+    expect(getKitchenStepWaitInfo(seventyFiveMinutes, now)).toEqual({
+      isTooEarly: true,
+      remainingMinutes: 75,
+      waitLabel: "Wait 1 h 15 min",
+    });
+    expect(getKitchenStepWaitInfo(due, now)).toEqual({ isTooEarly: false, remainingMinutes: 0 });
+    expect(getKitchenStepWaitInfo(overdue, now)).toEqual({ isTooEarly: false, remainingMinutes: 0 });
+    expect(shouldConfirmEarlyKitchenStepCompletion(fiveMinutes, now)).toBe(true);
+    expect(shouldConfirmEarlyKitchenStepCompletion(due, now)).toBe(false);
   });
 
   it("provides task instructions for required timeline labels and level-aware copy", () => {

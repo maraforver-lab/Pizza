@@ -5,9 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
-import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
+import { getExperienceLevelConfig, type ExperienceLevel } from "@/lib/experience-levels";
 import {
   type PizzaSession,
   type PizzaSessionTimelineStep,
@@ -17,13 +17,13 @@ import {
   doughKitchenIngredientLines,
   getKitchenModeForStep,
   getKitchenModeState,
+  getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
+  getKitchenTaskInstruction,
   isMixDoughStep,
+  shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
-import {
-  getActivePizzaSession,
-  PIZZA_SESSION_LOCAL_ONLY_COPY,
-} from "@/lib/pizza-session-storage";
+import { getActivePizzaSession } from "@/lib/pizza-session-storage";
 
 function formatKitchenStepTime(value?: string) {
   if (!value) return "Time not set";
@@ -58,6 +58,13 @@ function relativeFromTarget(stepTime?: string, targetTime?: string) {
   return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} bake time`;
 }
 
+function levelGuidanceForStep(step: PizzaSessionTimelineStep | undefined, level: ExperienceLevel) {
+  const instruction = getKitchenTaskInstruction(step);
+  if (level === "pizza_nerd") return instruction.pizzaNerdWhy;
+  if (level === "enthusiast") return instruction.enthusiastWhy;
+  return instruction.beginnerWhy;
+}
+
 function kitchenBackHrefFromSource(value?: string | null) {
   if (value === "timeline") return "/session/timeline";
   if (value === "review") return "/session/review";
@@ -82,14 +89,23 @@ export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [backHref, setBackHref] = useState("/session/shopping");
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [confirmEarlyCompletion, setConfirmEarlyCompletion] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = "en";
     setSession(getActivePizzaSession() ?? null);
     const source = new URLSearchParams(window.location.search).get("from");
     setBackHref(source ? kitchenBackHrefFromSource(source) : kitchenBackHrefFromReferrer(document.referrer));
+    setCurrentTime(new Date());
     setReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!ready) return undefined;
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, [ready]);
 
   const kitchenState = useMemo(() => getKitchenModeState(session ?? undefined), [session]);
 
@@ -109,7 +125,6 @@ export default function SessionKitchenPage() {
         eyebrow="Kitchen Mode"
         title="No active pizza session"
         body="Start a Pizza Session first, then Kitchen Mode will guide you through the next step."
-        localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications or account sync are active.`}
       />
     );
   }
@@ -122,7 +137,6 @@ export default function SessionKitchenPage() {
         body="Kitchen Mode needs a session timeline so it knows the next practical task."
         actionHref="/session/timeline"
         actionLabel="Create session timeline →"
-        localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, reminders, notifications or account sync are active.`}
       />
     );
   }
@@ -136,38 +150,63 @@ export default function SessionKitchenPage() {
   const ingredients = doughKitchenIngredientLines(session.recipeSnapshot);
   const targetTime = session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime;
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
+  const waitInfo = currentTime ? getKitchenStepWaitInfo(currentStep, currentTime) : getKitchenStepWaitInfo(undefined);
+  const experience = getExperienceLevelConfig(session.experienceLevel);
+  const levelGuidance = levelGuidanceForStep(currentStep, session.experienceLevel);
 
-  const markDone = () => {
+  const completeCurrentStep = () => {
     if (!session || !currentStep) return;
     const updated = completeKitchenTimelineStep(session, currentStep.id);
     if (!updated) return;
+    setConfirmEarlyCompletion(false);
     setSession(updated);
+  };
+
+  const markDone = () => {
+    if (!currentStep) return;
+    if (shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())) {
+      setCurrentTime(new Date());
+      setConfirmEarlyCompletion(true);
+      return;
+    }
+    completeCurrentStep();
   };
 
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
       <CloudPizzaSessionSync session={session} />
-      <SessionWorkspaceLayout activeStep={9}>
-        <SessionStepHero
-          step={9}
-          label="Kitchen Mode"
-          pageType="Execution page"
-          title="Kitchen Mode"
-          body="Follow one step at a time."
-          level={session.experienceLevel}
-          hideMeta
-        />
-
-        <section className="mt-4 sm:mt-6">
+      <SessionWorkspaceLayout activeStep={9} hideLocalSaveNote>
+        <section>
           <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7">
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
-                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
-                    Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount} · Kitchen Mode
-                  </p>
-                  <h2 id="current-kitchen-task" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-leaf/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-leaf">
+                      Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount}
+                    </span>
+                    <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/45">
+                      Kitchen Mode
+                    </span>
+                    {waitInfo.isTooEarly && waitInfo.waitLabel && (
+                      <span className="rounded-full bg-tomato/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-tomato">
+                        {waitInfo.waitLabel}
+                      </span>
+                    )}
+                  </div>
+                  <h1 id="current-kitchen-task" className="mt-4 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
+
+                  {waitInfo.isTooEarly && waitInfo.waitLabel && (
+                    <div className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
+                      <p className="text-sm font-extrabold leading-6 text-tomato">
+                        {waitInfo.waitLabel} before this step.
+                      </p>
+                      <p className="mt-1 text-sm font-bold leading-6 text-ink/65">
+                        This step is scheduled for {formatKitchenStepTime(currentStep.scheduledAt)}.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
                     <section className="rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-4 sm:p-5 lg:col-start-1 lg:row-start-1" aria-labelledby="kitchen-do-this-heading">
@@ -200,6 +239,11 @@ export default function SessionKitchenPage() {
                       </p>
                     </section>
                   </div>
+
+                  <section className={`mt-5 rounded-[1.5rem] border p-4 sm:mt-6 sm:p-5 ${experience.cardClassName}`} aria-labelledby="kitchen-level-guidance-heading">
+                    <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
+                    <p className="mt-2 text-sm font-bold leading-6 text-ink/70 sm:text-base">{levelGuidance}</p>
+                  </section>
                 </section>
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length > 0 && (
@@ -256,6 +300,33 @@ export default function SessionKitchenPage() {
                     </button>
                   )}
                 />
+
+                {confirmEarlyCompletion && waitInfo.waitLabel && (
+                  <div className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="early-kitchen-step-heading">
+                    <div className="w-full max-w-md rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card">
+                      <h2 id="early-kitchen-step-heading" className="font-display text-3xl font-semibold leading-none">This step is scheduled later</h2>
+                      <p className="mt-3 text-sm font-bold leading-6 text-ink/65">
+                        You should {waitInfo.waitLabel.toLowerCase()} before this step. Do you still want to continue?
+                      </p>
+                      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfirmEarlyCompletion(false)}
+                          className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                        >
+                          Go back
+                        </button>
+                        <button
+                          type="button"
+                          onClick={completeCurrentStep}
+                          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                        >
+                          Continue anyway
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <>

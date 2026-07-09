@@ -65,12 +65,11 @@ describe("Pizza Session desktop refinement components", () => {
     expect(sidebar).toContain('href: "/session/kitchen"');
   });
 
-  it("uses the shared desktop step hero on Pizza Session steps 6 through 10", () => {
+  it("uses the shared desktop step hero on planning/reference steps and keeps Kitchen Mode focused", () => {
     const pages = [
       "app/session/recipe/page.tsx",
       "app/session/timeline/page.tsx",
       "app/session/shopping/page.tsx",
-      "app/session/kitchen/page.tsx",
       "app/session/review/page.tsx",
     ];
 
@@ -79,6 +78,13 @@ describe("Pizza Session desktop refinement components", () => {
       expect(page).toContain("SessionStepHero");
       expect(page).toContain("SessionViewportReset");
     }
+
+    const kitchenPage = source("app/session/kitchen/page.tsx");
+    expect(kitchenPage).not.toContain("SessionStepHero");
+    expect(kitchenPage).toContain("SessionWorkspaceLayout");
+    expect(kitchenPage).toContain("SessionViewportReset");
+    expect(kitchenPage).toContain("hideLocalSaveNote");
+    expect(kitchenPage).toContain("<h1 id=\"current-kitchen-task\"");
   });
 
   it("adds persistent desktop session progress sidebar to steps 6 through 10", () => {

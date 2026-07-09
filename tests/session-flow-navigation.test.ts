@@ -90,15 +90,18 @@ describe("Pizza Session flow navigation integrity", () => {
     const kitchen = source("app/session/kitchen/page.tsx");
     const review = source("app/session/review/page.tsx");
 
-    expect(kitchen).toContain("hideMeta");
+    expect(kitchen).toContain("hideLocalSaveNote");
     expect(kitchen).toContain("Mark step as done →");
     expect(kitchen).toContain("Pizza session complete");
     expect(kitchen).toContain("Review your pizza →");
     expect(kitchen).toContain('href="/session/review"');
     expect(kitchen).toContain("href={backHref}");
+    expect(kitchen).toContain("This step is scheduled later");
+    expect(kitchen).toContain("Continue anyway");
     expect(kitchen).not.toContain("Step 9: Kitchen Mode");
     expect(kitchen).not.toContain("Current step");
     expect(kitchen).not.toContain("Do this now");
+    expect(kitchen).not.toContain("SessionStepHero");
     expect(kitchen).not.toMatch(/Review dough plan|Open shopping list|Save and continue later|Open full Calculator/);
     expect(review).toContain("Save review →");
     expect(review).toContain("Review saved in this browser.");
