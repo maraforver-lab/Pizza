@@ -286,7 +286,11 @@ describe("homepage content model", () => {
     const header = source("components/GlobalToolNavigation.tsx");
     const homepage = source("app/page.tsx");
 
-    expect(header).toContain("<details");
+    expect(header).toContain("const [toolsMenuOpen, setToolsMenuOpen] = useState(false)");
+    expect(header).toContain("aria-expanded={toolsMenuOpen}");
+    expect(header).toContain("setToolsMenuOpen(false)");
+    expect(header).not.toContain("<details");
+    expect(header).not.toContain("<summary");
     expect(header).toContain("Tools");
     expect(header).toContain("Pizza dough calculator");
     expect(header).toContain("Calculate flour, water, salt and yeast.");

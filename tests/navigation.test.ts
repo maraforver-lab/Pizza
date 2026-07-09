@@ -99,6 +99,10 @@ describe("shared navigation model", () => {
 
     expect(header).toContain('href="/"');
     expect(header).toContain("Tools");
+    expect(header).toContain("const [toolsMenuOpen, setToolsMenuOpen] = useState(false)");
+    expect(header).toContain("setToolsMenuOpen(false)");
+    expect(header).toContain("aria-expanded={toolsMenuOpen}");
+    expect(header).toContain('aria-label="Tools menu"');
     expect(header).toContain('const accountActive = pathname === "/account"');
     expect(header).toContain('href="/account"');
     expect(header).toContain("Sign in");
@@ -106,6 +110,24 @@ describe("shared navigation model", () => {
     expect(header).not.toContain("Start Pizza Session");
     expect(header).not.toContain('href="/session/start"');
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
+  });
+
+  it("closes the Tools dropdown on navigation, item click, outside click and Escape", () => {
+    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+
+    expect(header).toContain("const [toolsMenuOpen, setToolsMenuOpen] = useState(false)");
+    expect(header).toContain("const toolsMenuRef = useRef<HTMLDivElement>(null)");
+    expect(header).toContain("setToolsMenuOpen(false)");
+    expect(header).toContain("}, [pathname]);");
+    expect(header).toContain("toolsMenuOpen && !toolsMenuRef.current?.contains(target)");
+    expect(header).toContain("event.key === \"Escape\"");
+    expect(header).toContain("onClick={() => setToolsMenuOpen(false)}");
+    expect(header).toContain("aria-expanded={toolsMenuOpen}");
+    expect(header).toContain('aria-controls="global-tools-menu"');
+    expect(header).toContain('role="menu" aria-label="Tools menu"');
+    expect(header).toContain('role="menuitem"');
+    expect(header).not.toContain("<details");
+    expect(header).not.toContain("<summary");
   });
 
   it("detects active pages and hash destinations without query strings", () => {

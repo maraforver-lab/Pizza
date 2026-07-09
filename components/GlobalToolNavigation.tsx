@@ -29,26 +29,34 @@ export default function GlobalToolNavigation() {
   const [signedIn, setSignedIn] = useState(false);
   const [authPulse, setAuthPulse] = useState(false);
   const [guideMenuOpen, setGuideMenuOpen] = useState(false);
+  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const guideMenuRef = useRef<HTMLDivElement>(null);
+  const toolsMenuRef = useRef<HTMLDivElement>(null);
   const accountActive = pathname === "/account";
 
   useEffect(() => {
     document.documentElement.lang = "en";
     setGuideMenuOpen(false);
+    setToolsMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    if (!guideMenuOpen) return;
+    if (!guideMenuOpen && !toolsMenuOpen) return;
 
     const closeOnPointerDown = (event: PointerEvent) => {
-      if (!guideMenuRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (guideMenuOpen && !guideMenuRef.current?.contains(target)) {
         setGuideMenuOpen(false);
+      }
+      if (toolsMenuOpen && !toolsMenuRef.current?.contains(target)) {
+        setToolsMenuOpen(false);
       }
     };
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setGuideMenuOpen(false);
+        setToolsMenuOpen(false);
       }
     };
 
@@ -59,7 +67,7 @@ export default function GlobalToolNavigation() {
       document.removeEventListener("pointerdown", closeOnPointerDown);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [guideMenuOpen]);
+  }, [guideMenuOpen, toolsMenuOpen]);
 
   useEffect(() => {
     let pulseTimer: number | undefined;
@@ -146,37 +154,52 @@ export default function GlobalToolNavigation() {
               {copy.about}
             </Link>
           </nav>
-          <details className="group relative">
-            <summary className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream [&::-webkit-details-marker]:hidden">
+          <div ref={toolsMenuRef} className="relative">
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={toolsMenuOpen}
+              aria-controls="global-tools-menu"
+              onClick={() => setToolsMenuOpen((open) => !open)}
+              className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
               {copy.tools}
               <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2">
                 <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </summary>
-            <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur">
-              <Link
-                href="/?calculator=1"
-                className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-              >
-                <span className="block text-sm font-extrabold">{copy.calculator}</span>
-                <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorDescription}</span>
-              </Link>
-              <Link
-                href="/?calculator=1"
-                className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-              >
-                <span className="block text-sm font-extrabold">{copy.calculatorV1}</span>
-                <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorV1Description}</span>
-              </Link>
-              <Link
-                href="/?calculator=2"
-                className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-              >
-                <span className="block text-sm font-extrabold">{copy.calculatorV2}</span>
-                <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorV2Description}</span>
-              </Link>
-            </div>
-          </details>
+            </button>
+            {toolsMenuOpen && (
+              <div id="global-tools-menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Tools menu">
+                <Link
+                  href="/?calculator=1"
+                  role="menuitem"
+                  onClick={() => setToolsMenuOpen(false)}
+                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  <span className="block text-sm font-extrabold">{copy.calculator}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorDescription}</span>
+                </Link>
+                <Link
+                  href="/?calculator=1"
+                  role="menuitem"
+                  onClick={() => setToolsMenuOpen(false)}
+                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  <span className="block text-sm font-extrabold">{copy.calculatorV1}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorV1Description}</span>
+                </Link>
+                <Link
+                  href="/?calculator=2"
+                  role="menuitem"
+                  onClick={() => setToolsMenuOpen(false)}
+                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  <span className="block text-sm font-extrabold">{copy.calculatorV2}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorV2Description}</span>
+                </Link>
+              </div>
+            )}
+          </div>
 
           <Link
             href="/account"

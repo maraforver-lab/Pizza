@@ -48,7 +48,10 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).toContain("aria-label=\"DoughTools home\"");
     expect(navigationSource).toContain("aria-haspopup=\"menu\"");
     expect(navigationSource).toContain("aria-expanded={guideMenuOpen}");
+    expect(navigationSource).toContain("aria-expanded={toolsMenuOpen}");
+    expect(navigationSource).toContain("aria-controls=\"global-tools-menu\"");
     expect(navigationSource).toContain("aria-label=\"Guide menu\"");
+    expect(navigationSource).toContain("aria-label=\"Tools menu\"");
     expect(navigationSource).toContain("focus-visible:ring");
     expect(navigationSource).toContain('const accountActive = pathname === "/account"');
     expect(navigationSource).toContain('href="/account"');
