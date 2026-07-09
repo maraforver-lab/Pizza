@@ -42,11 +42,6 @@ function planningRiskTone(risk?: string) {
   return "border-leaf/25 bg-leaf/[.08] text-leaf";
 }
 
-function readablePlanningLabel(value?: string | null) {
-  if (!value) return "Not enough information";
-  return value.replaceAll("_", " ");
-}
-
 function formatAvailableHours(value?: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "Time not available";
   if (value < 1) return `${Math.round(value * 60)} min`;
@@ -253,6 +248,9 @@ export default function SessionRecipePage() {
     snapshot: result.recipeSnapshot,
     basis: result.continuousYeast?.recommendation,
   });
+  const doughPlanHeroBody = fermentationDisplay.durationHours && fermentationDisplay.durationHours > 24
+    ? "Choose the fermentation length that fits your bake day. Longer fermentation can build deeper flavor, but it also needs flour strong enough for the selected time."
+    : "Get your dough ingredients and amounts ready before you start.";
   const longHorizonRecommendation = buildLongHorizonStartRecommendation({
     planningResult,
     selectedFlourLabel: selectedFlourLabel(session.flour),
@@ -387,7 +385,7 @@ export default function SessionRecipePage() {
           label="Dough Plan"
           pageType="Reference page"
           title="Your Dough Plan is ready."
-          body="Get your dough ingredients and amounts ready before you start."
+          body={doughPlanHeroBody}
           level={session.experienceLevel}
           hideMeta
         />
@@ -508,8 +506,69 @@ export default function SessionRecipePage() {
               </div>
             </article>
 
+            {longHorizonRecommendation && (
+              <article className="rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7" aria-labelledby="long-horizon-start-plan-heading">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Long-horizon start plan</p>
+                    <h3 id="long-horizon-start-plan-heading" className="mt-2 font-display text-3xl font-semibold">{longHorizonRecommendation.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-ink/65">{longHorizonRecommendation.summary}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/70 lg:min-w-[17rem]">
+                    <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Recommended plan</span>
+                    <span className="mt-1 block font-extrabold text-ink">
+                      Start {formatPlanningDateTime(longHorizonRecommendation.recommendedStartIso)}
+                    </span>
+                    <span className="mt-1 block">48h cold fermentation</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-2 lg:grid-cols-3">
+                  {longHorizonRecommendation.options.map((option) => (
+                    <button
+                      key={option.durationHours}
+                      type="button"
+                      onClick={() => updateLongHorizonPlan(option)}
+                      aria-pressed={longHorizonOptionIsSelected(session, option)}
+                      className={`rounded-2xl border bg-white p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                        longHorizonOptionIsSelected(session, option)
+                          ? "border-tomato/45 ring-2 ring-tomato/20"
+                          : option.isRecommended
+                            ? "border-leaf/30 ring-1 ring-leaf/20 hover:border-tomato/30"
+                            : "border-ink/10 hover:border-tomato/30"
+                      }`}
+                    >
+                      <span className="block text-sm font-extrabold text-ink">{option.label}</span>
+                      <span className="mt-1 block text-sm leading-6 text-ink/65">
+                        Start {formatPlanningDateTime(option.startIso)}
+                      </span>
+                      <span className="mt-2 block text-xs font-bold leading-5 text-ink/55">{option.flourGuidance}</span>
+                      <span className={`mt-3 inline-flex min-h-10 items-center justify-center rounded-2xl px-3 text-xs font-extrabold ${
+                        longHorizonOptionIsSelected(session, option)
+                          ? "bg-tomato text-white"
+                          : "bg-cream text-ink/65"
+                      }`}>
+                        {longHorizonOptionIsSelected(session, option) ? "Selected plan ✓" : "Select this plan"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {!selectedLongHorizonOption && (
+                  <p className="mt-3 rounded-2xl bg-white/80 p-3 text-sm font-extrabold leading-6 text-tomato">
+                    Select one of these plans before continuing so DoughTools can calculate yeast, flour guidance, Timeline, and Kitchen Mode from the chosen fermentation window.
+                  </p>
+                )}
+
+                <div className="mt-3 grid gap-2 rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/65 sm:grid-cols-2">
+                  <p><span className="font-extrabold text-ink">Selected flour:</span> {longHorizonRecommendation.selectedFlourLabel}</p>
+                  <p><span className="font-extrabold text-ink">Recommended flour for 48–72h cold fermentation:</span> {longHorizonRecommendation.recommendedFlourLabel}, {longHorizonRecommendation.recommendedFlourStrengthGuidance}</p>
+                </div>
+              </article>
+            )}
+
             <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7" aria-labelledby="dough-planning-notes-heading">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-2xl">
                 <div className="min-w-0">
                   <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning guidance</p>
                   <h3 id="dough-planning-notes-heading" className="mt-2 font-display text-3xl font-semibold">Dough planning notes</h3>
@@ -517,9 +576,6 @@ export default function SessionRecipePage() {
                     Planning guidance is based on available session choices. It does not change your dough formula or ingredient amounts.
                   </p>
                 </div>
-                <span className={`w-fit rounded-full border px-3 py-2 text-xs font-extrabold capitalize ${planningRiskTone(combinedRisk?.overallRiskLevel ?? (planningInfo.ok ? "low" : "not_enough_information"))}`}>
-                  {readablePlanningLabel(combinedRisk?.overallRiskLevel ?? (planningInfo.ok ? "low" : "not_enough_information"))}
-                </span>
               </div>
 
               {planningResult && combinedRisk ? (
@@ -605,66 +661,6 @@ export default function SessionRecipePage() {
                     </section>
                   )}
 
-                  {longHorizonRecommendation && (
-                    <section className="rounded-[1.25rem] border border-tomato/20 bg-tomato/[.06] p-4">
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Long-horizon start plan</p>
-                          <h4 className="mt-2 font-display text-2xl font-semibold">{longHorizonRecommendation.title}</h4>
-                          <p className="mt-2 text-sm leading-6 text-ink/65">{longHorizonRecommendation.summary}</p>
-                        </div>
-                        <div className="rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/70 lg:min-w-[17rem]">
-                          <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Recommended plan</span>
-                          <span className="mt-1 block font-extrabold text-ink">
-                            Start {formatPlanningDateTime(longHorizonRecommendation.recommendedStartIso)}
-                          </span>
-                          <span className="mt-1 block">48h cold fermentation</span>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-2 lg:grid-cols-3">
-                        {longHorizonRecommendation.options.map((option) => (
-                          <button
-                            key={option.durationHours}
-                            type="button"
-                            onClick={() => updateLongHorizonPlan(option)}
-                            aria-pressed={longHorizonOptionIsSelected(session, option)}
-                            className={`rounded-2xl border bg-white p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                              longHorizonOptionIsSelected(session, option)
-                                ? "border-tomato/45 ring-2 ring-tomato/20"
-                                : option.isRecommended
-                                  ? "border-leaf/30 ring-1 ring-leaf/20 hover:border-tomato/30"
-                                  : "border-ink/10 hover:border-tomato/30"
-                            }`}
-                          >
-                            <span className="block text-sm font-extrabold text-ink">{option.label}</span>
-                            <span className="mt-1 block text-sm leading-6 text-ink/65">
-                              Start {formatPlanningDateTime(option.startIso)}
-                            </span>
-                            <span className="mt-2 block text-xs font-bold leading-5 text-ink/55">{option.flourGuidance}</span>
-                            <span className={`mt-3 inline-flex min-h-10 items-center justify-center rounded-2xl px-3 text-xs font-extrabold ${
-                              longHorizonOptionIsSelected(session, option)
-                                ? "bg-tomato text-white"
-                                : "bg-cream text-ink/65"
-                            }`}>
-                              {longHorizonOptionIsSelected(session, option) ? "Selected plan ✓" : "Select this plan"}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-
-                      {!selectedLongHorizonOption && (
-                        <p className="mt-3 rounded-2xl bg-white/80 p-3 text-sm font-extrabold leading-6 text-tomato">
-                          Select one of these plans before continuing so DoughTools can calculate yeast, flour guidance, Timeline, and Kitchen Mode from the chosen fermentation window.
-                        </p>
-                      )}
-
-                      <div className="mt-3 grid gap-2 rounded-2xl bg-white/80 p-3 text-sm leading-6 text-ink/65 sm:grid-cols-2">
-                        <p><span className="font-extrabold text-ink">Selected flour:</span> {longHorizonRecommendation.selectedFlourLabel}</p>
-                        <p><span className="font-extrabold text-ink">Recommended flour for 48–72h cold fermentation:</span> {longHorizonRecommendation.recommendedFlourLabel}, {longHorizonRecommendation.recommendedFlourStrengthGuidance}</p>
-                      </div>
-                    </section>
-                  )}
                 </div>
               ) : (
                 <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">

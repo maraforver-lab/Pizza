@@ -61,6 +61,9 @@ describe("Session recipe build step", () => {
     expect(page).toContain("hideMeta");
     expect(page).toContain("Your Dough Plan is ready.");
     expect(page).toContain("Get your dough ingredients and amounts ready before you start.");
+    expect(page).toContain("doughPlanHeroBody");
+    expect(page).toContain("fermentationDisplay.durationHours > 24");
+    expect(page).toContain("Choose the fermentation length that fits your bake day. Longer fermentation can build deeper flavor, but it also needs flour strong enough for the selected time.");
     expect(page).toContain("Dough balls");
     expect(page).toContain("{result.settings.pizzas} × {result.settings.ballWeight} g");
     expect(page).not.toContain("Dough ball size");
@@ -168,6 +171,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Selected flour:");
     expect(page).toContain("Recommended flour for 48–72h cold fermentation:");
     expect(page).toContain("recommendedFlourStrengthGuidance");
+    expect(page).not.toMatch(/Not enough information/i);
+    expect(page.indexOf("Long-horizon start plan")).toBeLessThan(page.indexOf("Dough planning notes"));
     expect(page).not.toContain("Set the bake target first");
     expect(page).not.toContain("Add a bake date and time to get a stronger planning risk summary.");
     expect(page).not.toContain("Calculator v1");
