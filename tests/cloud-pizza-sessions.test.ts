@@ -185,6 +185,11 @@ describe("cloud pizza session foundation", () => {
     expect(route).toContain(".update({ ...payload, updated_at: updatedAt })");
     expect(route).toContain("normalizeCloudPizzaSessionRow(data)");
     expect(route).toContain("Saved pizza session could not be verified.");
+    expect(route).toContain("export async function DELETE");
+    expect(route).toContain("Sign in to delete this saved pizza session.");
+    expect(route).toContain(".update({ status: \"archived\", updated_at: updatedAt })");
+    expect(route).toContain(".eq(\"status\", \"in_progress\")");
+    expect(route).toContain("return NextResponse.json({ archived: true");
   });
 
   it("syncs saved cloud sessions without creating cloud rows for local-only sessions", () => {
@@ -1112,19 +1117,35 @@ describe("cloud pizza session foundation", () => {
 
     expect(accountPage).toContain("AccountActivePizzaSessionCard");
     expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled={Boolean(user)} />");
+    expect(accountPage).toContain("Back to homepage");
+    expect(accountPage).toContain('<Link href="/"');
+    expect(accountPage).toContain("t.signedIn");
+    expect(accountPage).toContain("user.email");
+    expect(accountPage).toContain("t.signOut");
+    expect(accountPage).not.toContain("Your password is handled by Supabase and is not stored in DoughTools code.");
     expect(accountCard).toContain("fetch(\"/api/pizza-sessions/active\"");
     expect(accountCard).toContain("summary.title");
-    expect(accountCard).toContain("summary.statusLine");
     expect(accountCard).toContain("summary.doughLine");
     expect(accountCard).toContain("summary.bakeLine");
     expect(accountCard).toContain("summary.stepLine");
     expect(accountCard).toContain("Continue Pizza Session");
     expect(accountCard).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
     expect(accountCard).toContain("router.push(pizzaSessionContinueHref(restored))");
+    expect(accountCard).toContain("Delete pizza session");
+    expect(accountCard).toContain("Delete pizza session?");
+    expect(accountCard).toContain("This will remove your active in-progress Pizza Session. This cannot be undone.");
+    expect(accountCard).toContain("Delete session");
+    expect(accountCard).toContain("Cancel");
+    expect(accountCard).toContain('fetch("/api/pizza-sessions/active", { method: "DELETE" })');
+    expect(accountCard).toContain("clearMatchingLocalActiveSession(cloudSession)");
+    expect(accountCard).toContain("setCloudSession(null)");
+    expect(accountCard).toContain("archivePizzaSession(localSession.id)");
+    expect(accountCard).toContain("clearActivePizzaSession()");
+    expect(accountCard).toContain("clearCloudBackedPizzaSession()");
     expect(accountCard).toContain("No active pizza session");
-    expect(accountCard).toContain("Start a new Pizza Session and save it to your account to continue later.");
-    expect(accountCard).toContain("Start Pizza Session");
-    expect(accountCard).toContain('href="/session/start"');
+    expect(accountCard).toContain("Start a new Pizza Session from the homepage.");
+    expect(accountCard).toContain("Back to homepage");
+    expect(accountCard).toContain('href="/"');
     expect(accountCard).toContain("if (!enabled) return null");
   });
 

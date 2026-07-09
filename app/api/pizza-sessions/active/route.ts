@@ -155,3 +155,37 @@ export async function PATCH(request: Request) {
     completed: shouldComplete,
   });
 }
+
+export async function DELETE() {
+  const supabase = await getSupabaseServerClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to delete this saved pizza session." }, { status: 401 });
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("pizza_sessions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "in_progress")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  if (!existing?.id) return NextResponse.json({ archived: false, session: null });
+
+  const updatedAt = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("pizza_sessions")
+    .update({ status: "archived", updated_at: updatedAt })
+    .eq("id", existing.id)
+    .eq("user_id", user.id)
+    .eq("status", "in_progress")
+    .select(CLOUD_PIZZA_SESSION_SELECT)
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ archived: true, session: data ? normalizeCloudPizzaSessionRow(data) : null });
+}
