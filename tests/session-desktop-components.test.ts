@@ -84,6 +84,7 @@ describe("Pizza Session desktop refinement components", () => {
     expect(kitchenPage).toContain("SessionWorkspaceLayout");
     expect(kitchenPage).toContain("SessionViewportReset");
     expect(kitchenPage).toContain("hideLocalSaveNote");
+    expect(source("app/session/timeline/page.tsx")).toContain("<SessionWorkspaceLayout activeStep={8} hideLocalSaveNote>");
     expect(kitchenPage).toContain("<h1 id=\"current-kitchen-task\"");
   });
 

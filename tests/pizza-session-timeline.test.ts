@@ -62,8 +62,10 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("onClick={handleNextAction}");
-    expect(page).toContain("desktopAside={renderNextActionCard()}");
-    expect(page).toContain("<div className=\"lg:hidden\">");
+    expect(page).toContain("<SessionWorkspaceLayout activeStep={8} hideLocalSaveNote>");
+    expect(page).toContain("{renderNextActionCard()}");
+    expect(page).toContain("max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70");
+    expect(page).not.toContain("desktopAside={renderNextActionCard()}");
     expect(page).not.toContain("Session summary");
     expect(page).not.toContain("Step 7: Timeline");
     expect(page).not.toContain("This page is for timing. Kitchen Mode is where you do the active cooking steps.");
@@ -87,6 +89,9 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("resolveSessionDoughStartTime");
     expect(page).toContain("Timeline planning summary");
     expect(page).toContain("Timeline guidance is based on available session choices.");
+    expect(page).not.toContain("readablePlanningLabel");
+    expect(page).not.toMatch(/Not enough information/i);
+    expect(page).not.toContain("Saved as you go.");
     expect(page).toContain("Overall risk");
     expect(page).toContain("What to adjust first");
     expect(page).toContain("displayedRiskSummary");
@@ -101,6 +106,8 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Use the selected ${selectedFermentationLabel} plan.");
     expect(page).toContain("Start dough at ${selectedStartLabel} for the selected ${selectedFermentationLabel}.");
     expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
+    expect(page.indexOf("Bake target")).toBeLessThan(page.indexOf("Overall risk"));
+    expect(page.indexOf("Fermentation temperature")).toBeLessThan(page.indexOf("What to adjust first"));
     expect(page).not.toContain("Dough planning notes");
     expect(helper).not.toContain("buildPlanningResult");
     expect(helper).not.toContain("buildSessionRecipe");

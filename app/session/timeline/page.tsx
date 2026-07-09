@@ -180,11 +180,6 @@ function formatAvailableHours(value?: number) {
   return `${rounded} h`;
 }
 
-function readablePlanningLabel(value?: string | null) {
-  if (!value) return "Not enough information";
-  return value.replaceAll("_", " ");
-}
-
 function planningRiskTone(risk?: string) {
   if (risk === "high_risk" || risk === "not_recommended") return "border-tomato/35 bg-tomato/[.08] text-tomato";
   if (risk === "caution") return "border-tomato/25 bg-tomato/[.06] text-tomato";
@@ -197,7 +192,7 @@ function fermentationPlaceLabel(value?: string | null) {
   if (value === "hybrid") return "Room + fridge";
   if (value === "room") return "Room temperature";
   if (value === "not_recommended") return "Not recommended";
-  return "Not enough information";
+  return "Fermentation details unavailable";
 }
 
 function selectedFlourLabel(value?: string) {
@@ -506,7 +501,7 @@ export default function SessionTimelinePage() {
     router.push("/session/kitchen?from=timeline");
   };
   const renderNextActionCard = () => (
-    <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
+    <div className="max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm">
       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
       <h2 className="mt-2 font-display text-3xl font-semibold text-ink">{nextAction.title}</h2>
       <p className="mt-2 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
@@ -532,7 +527,7 @@ export default function SessionTimelinePage() {
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
       <CloudPizzaSessionSync session={session} />
-      <SessionWorkspaceLayout activeStep={8}>
+      <SessionWorkspaceLayout activeStep={8} hideLocalSaveNote>
         <SessionStepHero
           step={8}
           label="Timeline"
@@ -541,15 +536,12 @@ export default function SessionTimelinePage() {
           body="Follow the key moments and you’ll always know what to do next."
           level={session.experienceLevel}
           hideMeta
-          desktopAside={renderNextActionCard()}
         >
-          <div className="lg:hidden">
-            {renderNextActionCard()}
-          </div>
+          {renderNextActionCard()}
         </SessionStepHero>
 
         <section aria-labelledby="timeline-planning-summary-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
             <div className="min-w-0">
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning timing notes</p>
               <h2 id="timeline-planning-summary-heading" className="mt-2 font-display text-3xl font-semibold">Timeline planning summary</h2>
@@ -557,23 +549,11 @@ export default function SessionTimelinePage() {
                 Timeline guidance is based on available session choices. It does not replace the timeline steps below or change Kitchen Mode.
               </p>
             </div>
-            <span className={`w-fit rounded-full border px-3 py-2 text-xs font-extrabold capitalize ${planningRiskTone(combinedRisk?.overallRiskLevel ?? (planningResult ? "low" : "not_enough_information"))}`}>
-              {readablePlanningLabel(combinedRisk?.overallRiskLevel ?? (planningResult ? "low" : "not_enough_information"))}
-            </span>
           </div>
 
           {planningResult && combinedRisk ? (
-            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
-                <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
-                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
-                <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
-                  <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                  <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
-                </div>
-              </section>
-
-              <dl className="grid gap-2 rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3">
+              <dl className="grid gap-2 rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="rounded-2xl bg-white p-3">
                   <dt className="text-xs font-extrabold text-ink/45">Bake target</dt>
                   <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{formatDateTime(targetTime)}</dd>
@@ -584,7 +564,7 @@ export default function SessionTimelinePage() {
                 </div>
                 <div className="rounded-2xl bg-white p-3">
                   <dt className="text-xs font-extrabold text-ink/45">Start window</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{startWindow?.startWindowLabel ?? "Not enough information"}</dd>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{startWindow?.startWindowLabel ?? "Timing details unavailable"}</dd>
                 </div>
                 {fermentationDisplay.mode && (
                   <div className="rounded-2xl bg-white p-3">
@@ -611,7 +591,7 @@ export default function SessionTimelinePage() {
                         : fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode)}
                   </dd>
                 </div>
-                <div className="rounded-2xl bg-white p-3 sm:col-span-2">
+                <div className="rounded-2xl bg-white p-3 sm:col-span-2 lg:col-span-3">
                   <dt className="text-xs font-extrabold text-ink/45">Fermentation temperature</dt>
                   <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
                     {fermentationDisplay.placeTemperatureLabel
@@ -622,6 +602,14 @@ export default function SessionTimelinePage() {
                   </dd>
                 </div>
               </dl>
+              <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
+                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
+                <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
+                  <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
+                  <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
+                </div>
+              </section>
             </div>
           ) : (
             <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">
