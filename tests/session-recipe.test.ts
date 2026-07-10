@@ -78,6 +78,8 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("Open Dough Doctor");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("No cloud sync, tracking or public sharing is active.");
+    expect(page).toContain("<SessionWorkspaceLayout activeStep={6} hideLocalSaveNote>");
+    expect(page).not.toContain("Saved as you go.");
     expect(page).not.toMatch(/Cloud sync is active|Tracking is active|Public sharing is active/);
   });
 
@@ -131,27 +133,27 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain('label: "Mixing bowl"');
     expect(page).not.toContain('label: "Dough scraper or sturdy spoon"');
     expect(page).not.toContain('label: "Covered container or bowl"');
-    expect(page).toContain("Dough planning notes");
-    expect(page).toContain("PlanningGuidanceCard");
-    expect(page).toContain("PlanningStatusCard");
-    expect(page).toContain("PlanningWatchCard");
-    expect(page).toContain("PlanningDetailsList");
-    expect(page).toContain("PlanningDetailRow");
     expect(page).toContain("buildSessionFermentationDisplay");
-    expect(page).toContain("fermentationDisplay.fullLabel");
-    expect(page).toContain("Planning guidance is based on available session choices.");
-    expect(page).toContain("Overall risk");
-    expect(page).toContain("What to adjust first");
-    expect(page).toContain("Session planning context");
-    expect(page).toContain("Available time");
-    expect(page).toContain("Start window");
-    expect(page).toContain("Recommended setup");
-    expect(page).toContain("W-value");
+    expect(page).toContain("fermentationDisplay.durationHours");
+    expect(page).not.toContain("Dough planning notes");
+    expect(page).not.toMatch(/Planning guidance/i);
+    expect(page).not.toContain("PlanningGuidanceCard");
+    expect(page).not.toContain("PlanningStatusCard");
+    expect(page).not.toContain("PlanningWatchCard");
+    expect(page).not.toContain("PlanningDetailsList");
+    expect(page).not.toContain("PlanningDetailRow");
+    expect(page).not.toContain("Planning guidance is based on available session choices.");
+    expect(page).not.toContain("Overall risk");
+    expect(page).not.toContain("What to adjust first");
+    expect(page).not.toContain("Session planning context");
+    expect(page).not.toContain("Available time");
+    expect(page).not.toContain("Recommended setup");
+    expect(page).not.toContain("W-value");
     expect(page).toContain("Yeast");
-    expect(page).toContain("Planned fermentation length");
-    expect(page).toContain("fermentationDisplay.label");
-    expect(page).toContain("Fermentation place / temperature");
-    expect(page).toContain("fermentationDisplay.temperatureC");
+    expect(page).not.toContain("Planned fermentation length");
+    expect(page).not.toContain("fermentationDisplay.label");
+    expect(page).not.toContain("Fermentation place / temperature");
+    expect(page).not.toContain("fermentationDisplay.temperatureC");
     expect(page).toContain("Choose your fermentation length");
     expect(page).toContain("Pick the cold fermentation length that fits your bake day.");
     expect(page).toContain("A longer fermentation can build deeper flavor and a more developed dough");
@@ -165,10 +167,6 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("Buy guidance");
     expect(page).not.toContain("Buy Recommended");
     expect(page).toContain("Long-horizon start plan");
-    expect(page).toContain("This bake target is far enough away that you should not start immediately.");
-    expect(page).toContain("Select one of the planned 24h, 48h or 72h cold-fermentation start times below.");
-    expect(page).toContain("DoughTools will use the selected");
-    expect(page).toContain("Choose a 24h, 48h or 72h cold fermentation plan closer to bake day.");
     expect(page).toContain("48h cold fermentation");
     expect(page).toContain("updateLongHorizonPlan");
     expect(page).toContain("doughStartMode: \"later\"");
@@ -181,12 +179,11 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Selected flour:");
     expect(page).toContain("Recommended flour for 48–72h cold fermentation:");
     expect(page).toContain("recommendedFlourStrengthGuidance");
-    expect(page.match(/>Planning guidance<\/p>/g)).toHaveLength(1);
-    expect(page.match(/Overall risk/g)).toHaveLength(1);
-    expect(page.match(/What to adjust first/g)).toHaveLength(1);
-    expect(page.match(/Session planning context/g)).toHaveLength(1);
+    expect(page.match(/>Planning guidance<\/p>/g)).toBeNull();
+    expect(page.match(/Overall risk/g)).toBeNull();
+    expect(page.match(/What to adjust first/g)).toBeNull();
+    expect(page.match(/Session planning context/g)).toBeNull();
     expect(page).not.toMatch(/Not enough information/i);
-    expect(page.indexOf("Long-horizon start plan")).toBeLessThan(page.indexOf("Dough planning notes"));
     expect(page).not.toContain("Set the bake target first");
     expect(page).not.toContain("Add a bake date and time to get a stronger planning risk summary.");
     expect(page).not.toContain("Calculator v1");
@@ -194,11 +191,10 @@ describe("Session recipe build step", () => {
     expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Choose your fermentation length"));
     expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("<SavePizzaSessionToAccount session={session} />"));
     expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Ingredients & amounts"));
-    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Dough planning notes"));
     expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
   });
 
-  it("defines reusable planning guidance primitives without changing generated values", () => {
+  it("keeps planning guidance primitives unused on the Dough Plan page", () => {
     const component = source("components/session/PlanningGuidance.tsx");
     const page = source("app/session/recipe/page.tsx");
 
@@ -214,12 +210,12 @@ describe("Session recipe build step", () => {
     expect(component).toContain("<dl");
     expect(component).toContain("<dt");
     expect(component).toContain("<dd");
-    expect(page).toContain("displayedRiskSummary");
-    expect(page).toContain("displayedFirstAdjustment");
-    expect(page).toContain("formatAvailableHours(planningResult.availableFermentationHours)");
-    expect(page).toContain("planningHighlights.slice(0, 4).map");
-    expect(page).toContain("fermentationDisplay.label");
-    expect(page).toContain("fermentationDisplay.temperatureC");
+    expect(page).not.toContain("displayedRiskSummary");
+    expect(page).not.toContain("displayedFirstAdjustment");
+    expect(page).not.toContain("formatAvailableHours(planningResult.availableFermentationHours)");
+    expect(page).not.toContain("planningHighlights.slice(0, 4).map");
+    expect(page).not.toContain("fermentationDisplay.label");
+    expect(page).not.toContain("fermentationDisplay.temperatureC");
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {

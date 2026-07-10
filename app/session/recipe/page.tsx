@@ -4,13 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
-import {
-  PlanningDetailRow,
-  PlanningDetailsList,
-  PlanningGuidanceCard,
-  PlanningStatusCard,
-  PlanningWatchCard,
-} from "@/components/session/PlanningGuidance";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSessionToAccount";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
@@ -40,13 +33,6 @@ function amountCardTone(label: string) {
   if (label === "Salt") return "text-ink/55";
   if (label.startsWith("Yeast")) return "text-tomato";
   return "text-leaf";
-}
-
-function planningRiskTone(risk?: string) {
-  if (risk === "high_risk" || risk === "not_recommended") return "border-tomato/35 bg-tomato/[.08] text-tomato";
-  if (risk === "caution") return "border-tomato/25 bg-tomato/[.06] text-tomato";
-  if (risk === "not_enough_information") return "border-ink/10 bg-cream text-ink/65";
-  return "border-leaf/25 bg-leaf/[.08] text-leaf";
 }
 
 function formatAvailableHours(value?: number) {
@@ -128,34 +114,6 @@ function selectedFlourLabel(value?: string) {
   if (value === "bread") return "Bread flour / strong flour";
   if (value === "tipo-00") return "Pizza flour / Tipo 00";
   return "Pizza flour / Tipo 00";
-}
-
-function sessionPlanningRiskSummary({
-  summary,
-  isColdFermentation,
-}: {
-  summary?: string | null;
-  isColdFermentation: boolean;
-}) {
-  if (!summary) return summary;
-  if (isColdFermentation && summary.includes("long room-temperature plan")) {
-    return "This plan can work, but cold fermentation gives more control; timing, fridge temperature, and flour strength still matter.";
-  }
-  return summary;
-}
-
-function sessionPlanningFirstAdjustment({
-  adjustment,
-  isColdFermentation,
-}: {
-  adjustment?: string | null;
-  isColdFermentation: boolean;
-}) {
-  if (!adjustment) return adjustment;
-  if (isColdFermentation && adjustment.includes("toward cold")) {
-    return "Keep the selected cold fermentation length, then watch fridge temperature and dough condition.";
-  }
-  return adjustment;
 }
 
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
@@ -248,8 +206,6 @@ export default function SessionRecipePage() {
   ];
   const planningInfo = result.planningInfo;
   const planningResult = planningInfo.ok ? planningInfo.result : null;
-  const combinedRisk = planningResult?.combinedRiskSummary;
-  const flourWGuidance = result.flourWGuidance;
   const fermentationDisplay = buildSessionFermentationDisplay({
     session,
     snapshot: result.recipeSnapshot,
@@ -266,47 +222,6 @@ export default function SessionRecipePage() {
     longHorizonOptionIsSelected(session, option)
   ));
   const longHorizonNeedsSelection = Boolean(longHorizonRecommendation && !selectedLongHorizonOption);
-  const planningHighlights = planningResult
-    ? [
-      longHorizonRecommendation ? {
-        label: "Start window",
-        value: "Choose a 24h, 48h or 72h cold fermentation plan closer to bake day.",
-      } : planningResult.startWindowRecommendation && {
-        label: "Start window",
-        value: planningResult.startWindowRecommendation.startWindowLabel,
-      },
-      planningResult.fermentationSetupRecommendation && {
-        label: "Recommended setup",
-        value: fermentationDisplay.fullLabel,
-      },
-      planningResult.availableFlourRecommendation && {
-        label: "W-value",
-        value: flourWGuidance?.recommendationLabel
-          ?? planningResult.availableFlourRecommendation.recommendedFlour?.label
-          ?? planningResult.availableFlourRecommendation.summary,
-      },
-      planningResult.yeastGuidance && {
-        label: "Yeast",
-        value: planningResult.yeastGuidance.title,
-      },
-    ].filter((item): item is { label: string; value: string } => Boolean(item))
-    : [];
-  const displayedRiskSummary = longHorizonRecommendation
-    ? selectedLongHorizonOption
-      ? `This bake target is far enough away that you should not start immediately. DoughTools will use the selected ${selectedLongHorizonOption.durationHours}h cold-fermentation plan.`
-      : "This bake target is far enough away that you should not start immediately. Select one of the planned 24h, 48h or 72h cold-fermentation start times below."
-    : sessionPlanningRiskSummary({
-      summary: combinedRisk?.summary,
-      isColdFermentation: result.continuousYeast?.recommendation.fermentationMode === "cold",
-    });
-  const displayedFirstAdjustment = longHorizonRecommendation
-    ? selectedLongHorizonOption
-      ? `Start at ${formatPlanningDateTime(selectedLongHorizonOption.startIso)} for the selected ${selectedLongHorizonOption.durationHours}h cold fermentation.`
-      : "Choose a long-horizon plan before continuing to Shopping."
-    : sessionPlanningFirstAdjustment({
-      adjustment: combinedRisk?.suggestedFirstAdjustment,
-      isColdFermentation: result.continuousYeast?.recommendation.fermentationMode === "cold",
-    });
   const coldFermentationOptions = fermentationDurationOptions(result.continuousYeast?.availableFermentationHours);
   const showColdFermentationSelector = Boolean(
     result.continuousYeast?.recommendation.fermentationMode === "cold"
@@ -386,7 +301,7 @@ export default function SessionRecipePage() {
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
       <CloudPizzaSessionSync session={session} />
-      <SessionWorkspaceLayout activeStep={6}>
+      <SessionWorkspaceLayout activeStep={6} hideLocalSaveNote>
         <SessionStepHero
           step={6}
           label="Dough Plan"
@@ -607,63 +522,6 @@ export default function SessionRecipePage() {
                 </div>
               </article>
             )}
-
-            <article className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-6 lg:p-7" aria-labelledby="dough-planning-notes-heading">
-              <div className="max-w-2xl">
-                <div className="min-w-0">
-                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning guidance</p>
-                  <h3 id="dough-planning-notes-heading" className="mt-2 font-display text-3xl font-semibold">Dough planning notes</h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                    Planning guidance is based on available session choices. It does not change your dough formula or ingredient amounts.
-                  </p>
-                </div>
-              </div>
-
-              {planningResult && combinedRisk ? (
-                <PlanningGuidanceCard className="mt-4">
-                  <PlanningStatusCard className={planningRiskTone(combinedRisk.overallRiskLevel)}>
-                    <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-60">Overall risk</p>
-                    <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
-                  </PlanningStatusCard>
-
-                  <div className="grid gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(18rem,1.1fr)]">
-                    <PlanningWatchCard>
-                      <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                      <span className="mt-1 block text-sm font-bold leading-6 text-ink/65">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
-                    </PlanningWatchCard>
-
-                    <section className="rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 shadow-sm sm:p-5">
-                      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Session planning context</p>
-                      <PlanningDetailsList className="mt-3">
-                        <PlanningDetailRow
-                          label="Available time"
-                          value={<span className="font-extrabold text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</span>}
-                        />
-                        {planningHighlights.slice(0, 4).map((item) => (
-                          <PlanningDetailRow key={item.label} label={item.label} value={item.value} />
-                        ))}
-                        {result.continuousYeast && (
-                          <>
-                            <PlanningDetailRow label="Planned fermentation length" value={fermentationDisplay.label} />
-                            <PlanningDetailRow
-                              className="sm:col-span-2"
-                              label="Fermentation place / temperature"
-                              value={result.continuousYeast.recommendation.fermentationMode === "cold"
-                                ? `Cold fermentation in the fridge · ${fermentationDisplay.temperatureC} °C`
-                                : `Room fermentation · ${fermentationDisplay.temperatureC} °C`}
-                            />
-                          </>
-                        )}
-                      </PlanningDetailsList>
-                    </section>
-                  </div>
-                </PlanningGuidanceCard>
-              ) : (
-                <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">
-                  Add a valid target pizza time for stronger recommendations. The dough amounts above are still calculated from your saved session choices.
-                </div>
-              )}
-            </article>
           </div>
         </section>
 
