@@ -316,7 +316,7 @@ function actionableTimelineSteps(steps: PizzaSessionTimelineStep[]) {
 }
 
 function criticalMomentTitle(step: PizzaSessionTimelineStep) {
-  if (step.id === "cold-ferment") return "Put dough in fridge";
+  if (step.id === "cold-ferment") return "Cold fermentation";
   if (step.id === "room-ferment") return "Room temperature ferment";
   if (step.id === "ferment-dough") return "Ferment dough";
   if (step.id === "room-temperature-rest" && step.label !== "Room temperature rest") return step.label;

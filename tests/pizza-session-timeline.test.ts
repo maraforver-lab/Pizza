@@ -333,7 +333,7 @@ describe("Pizza Session timeline", () => {
 
     expect(resolution.warning).toContain("after the bake target");
     expect(resolution.startsAt).toBeUndefined();
-    expect(displayed).toBe(generated.steps);
+    expect(displayed).toStrictEqual(generated.steps);
     expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt);
   });
 
@@ -365,7 +365,7 @@ describe("Pizza Session timeline", () => {
       mode: "recommend",
       label: "Dough start: DoughTools recommendation",
     });
-    expect(displayed).toBe(generated.steps);
+    expect(displayed).toStrictEqual(generated.steps);
   });
 
   it("stores a missed recommended dough start as a stable timeline snapshot", () => {
@@ -451,7 +451,7 @@ describe("Pizza Session timeline", () => {
 
     expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
       .toBe(new Date("2026-07-03T12:00:00").toISOString());
-    expect(displayed).toBe(generated.steps);
+    expect(displayed).toStrictEqual(generated.steps);
     expect(resolution.warning).toBeUndefined();
     expect(resolution.label).toBe("Dough start: DoughTools recommendation");
   });
@@ -483,8 +483,61 @@ describe("Pizza Session timeline", () => {
     });
 
     expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
+    expect(displayed.find((step) => step.id === "cold-ferment")).toMatchObject({
+      label: "Cold fermentation",
+      description: "Keep the covered dough in the fridge for the planned cold fermentation time.",
+      beginnerNote: "Keep the dough covered in the fridge at the planned temperature.",
+    });
+    expect(displayed.map((step) => `${step.label} ${step.description} ${step.beginnerNote}`).join(" "))
+      .not.toMatch(/Room temperature ferment|at room temperature/i);
     expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
     expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe(new Date(now.getTime() + 60 * 60_000).toISOString());
+  });
+
+  it("normalizes stale room fermentation timeline copy to cold copy when the selected plan is cold", () => {
+    const now = new Date("2026-07-02T18:00:00");
+    const session = createPizzaSession({
+      id: "timeline-stale-room-copy-cold-plan",
+      status: "planning",
+      currentStep: "timeline",
+      targetEatTime: "2026-07-04T12:00",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+      recipeSnapshot: { fermentation: "48h-cold" },
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const staleSteps = generated.steps.map((step) => (
+      step.id === "cold-ferment"
+        ? {
+          ...step,
+          id: "room-ferment",
+          label: "Room temperature ferment",
+          description: "Keep the covered dough at room temperature for the planned fermentation time.",
+          beginnerNote: "Keep the dough covered and let it rise at room temperature.",
+        }
+        : step
+    ));
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: staleSteps,
+      planningResult: recipe.planningInfo.result,
+      session,
+    });
+    const fermentationStep = displayed.find((step) => step.id === "cold-ferment");
+
+    expect(fermentationStep).toMatchObject({
+      label: "Cold fermentation",
+      description: "Keep the covered dough in the fridge for the planned cold fermentation time.",
+      beginnerNote: "Keep the dough covered in the fridge at the planned temperature.",
+    });
+    expect(displayed.some((step) => step.id === "room-ferment")).toBe(false);
+    expect(displayed.map((step) => `${step.label} ${step.description} ${step.beginnerNote}`).join(" "))
+      .not.toMatch(/Room temperature ferment|at room temperature/i);
   });
 
   it("preserves longer cold-fermentation timeline display when same-day start-now alignment does not apply", () => {
@@ -511,8 +564,8 @@ describe("Pizza Session timeline", () => {
       session,
     });
 
-    expect(displayed).toBe(generated.steps);
     expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
+    expect(displayed.find((step) => step.id === "cold-ferment")?.label).toBe("Cold fermentation");
     expect(displayed.find((step) => step.id === "room-temperature-rest")?.label)
       .toBe("Room temperature rest");
   });
@@ -552,10 +605,8 @@ describe("Pizza Session timeline", () => {
 
       expect(displayed.some((step) => step.id === "cold-ferment")).toBe(true);
       if (horizon.adjustsPastStart) {
-        expect(displayed).toBe(generated.steps);
         expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
       } else {
-        expect(displayed).toBe(generated.steps);
         expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt);
       }
       expect(new Date(displayed.find((step) => step.id === "mix-dough")?.scheduledAt ?? 0).getTime()).toBeGreaterThanOrEqual(now.getTime());
@@ -598,6 +649,65 @@ describe("Pizza Session timeline", () => {
       .toBe(new Date(selectedStart.getTime() + 30 * 60_000).toISOString());
     expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt)
       .toBe(new Date(selectedStart.getTime() + 60 * 60_000).toISOString());
+    expect(displayed.find((step) => step.id === "cold-ferment")?.label).toBe("Cold fermentation");
+  });
+
+  it("keeps room-temperature fermentation Timeline copy for room fermentation plans", () => {
+    const now = new Date("2026-07-08T10:00:00.000Z");
+    const session = createPizzaSession({
+      id: "timeline-room-fermentation-copy",
+      status: "planning",
+      currentStep: "timeline",
+      targetEatTime: "2026-07-08T20:00",
+      doughStartMode: "now",
+      pizzaStyle: "pizza-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "gas",
+      flour: "tipo-00",
+      recipeSnapshot: { fermentation: "12h-room" },
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+      anchorTime: generated.anchorTime,
+    });
+    const fermentationStep = displayed.find((step) => step.id === "room-ferment");
+
+    expect(fermentationStep).toMatchObject({
+      label: "Room temperature ferment",
+      description: "Keep the covered dough at room temperature for the planned fermentation time.",
+      beginnerNote: "Keep the dough covered and let it rise at room temperature.",
+    });
+    expect(displayed.map((step) => `${step.label} ${step.description} ${step.beginnerNote}`).join(" "))
+      .not.toMatch(/Cold fermentation|fridge/i);
+  });
+
+  it("uses neutral Timeline fermentation copy when fermentation type cannot be resolved", () => {
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: [{
+        id: "cold-ferment",
+        label: "Cold ferment",
+        status: "todo",
+        kind: "passive",
+        description: "Move the dough into a cool fermentation phase if your plan uses cold time.",
+        helperCopy: "Cold time slows fermentation and gives more scheduling flexibility.",
+      }],
+    });
+
+    expect(displayed[0]).toMatchObject({
+      id: "ferment-dough",
+      label: "Ferment dough",
+      description: "Keep the dough covered and follow the planned fermentation timing.",
+      helperCopy: "Fermentation timing affects dough strength, flavor, and readiness.",
+    });
+    expect(`${displayed[0].label} ${displayed[0].description} ${displayed[0].helperCopy}`)
+      .not.toMatch(/fridge|cold fermentation|room temperature/i);
   });
 
   it("derives current and next actionable Timeline steps from the generated step order", () => {
@@ -754,7 +864,8 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("\"bake-pizza\"");
     expect(page).toContain("criticalMoments.map((step)");
     expect(page).toContain("criticalMomentTitle(step)");
-    expect(page).toContain("Put dough in fridge");
+    expect(page).toContain("Cold fermentation");
+    expect(page).not.toContain("Put dough in fridge");
     expect(page).toContain("Take dough out");
     expect(page).toContain("formatTimelineDate(step.scheduledAt)");
     expect(page).toContain("formatTimelineTime(step.scheduledAt)");

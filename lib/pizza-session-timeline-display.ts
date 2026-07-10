@@ -248,6 +248,23 @@ function roomFermentationCopy(step: PizzaSessionTimelineStep): Partial<PizzaSess
   return {};
 }
 
+function coldFermentationCopy(step: PizzaSessionTimelineStep): Partial<PizzaSessionTimelineStep> {
+  if (step.id === "cold-ferment" || step.id === "room-ferment" || step.id === "ferment-dough") {
+    return {
+      id: "cold-ferment",
+      label: "Cold fermentation",
+      description: "Keep the covered dough in the fridge for the planned cold fermentation time.",
+      helperCopy: "Cold fermentation slows activity and gives more scheduling flexibility.",
+      beginnerNote: "Keep the dough covered in the fridge at the planned temperature.",
+      enthusiastNote: "Cold fermentation helps flavor and makes timing easier to control.",
+      pizzaNerdNote: "Use the selected cold fermentation plan; room-temperature timing is not part of this fermentation step.",
+      quietHoursWarning: undefined,
+    };
+  }
+
+  return {};
+}
+
 function neutralFermentationCopy(step: PizzaSessionTimelineStep): Partial<PizzaSessionTimelineStep> {
   if (step.id === "cold-ferment" || step.id === "room-ferment" || step.id === "ferment-dough") {
     return {
@@ -265,6 +282,7 @@ function neutralFermentationCopy(step: PizzaSessionTimelineStep): Partial<PizzaS
 }
 
 function displayCopyForFermentationMode(step: PizzaSessionTimelineStep, mode: TimelineFermentationMode) {
+  if (mode === "cold") return coldFermentationCopy(step);
   if (mode === "room") return roomFermentationCopy(step);
   if (mode === "unknown") return neutralFermentationCopy(step);
   return {};
@@ -274,11 +292,17 @@ function normalizeStepsForFermentationMode(
   steps: PizzaSessionTimelineStep[],
   mode: TimelineFermentationMode,
 ) {
-  if (mode === "cold") return steps;
-  return steps.map((step) => ({
-    ...step,
-    ...displayCopyForFermentationMode(step, mode),
-  }));
+  let changed = false;
+  const normalized = steps.map((step) => {
+    const copy = displayCopyForFermentationMode(step, mode);
+    if (!Object.keys(copy).length) return step;
+    changed = true;
+    return {
+      ...step,
+      ...copy,
+    };
+  });
+  return changed ? normalized : steps;
 }
 
 export function timelineStepsForPlanningSummaryDisplay({
