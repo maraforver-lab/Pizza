@@ -447,6 +447,9 @@ export default function SessionTimelinePage() {
     steps: timeline.steps,
     planningResult,
     session,
+    fermentationMode: sessionRecipeResult.ok
+      ? sessionRecipeResult.continuousYeast?.recommendation.fermentationMode
+      : undefined,
     anchorTime: timeline.anchorTime,
   });
   const actionableSteps = actionableTimelineSteps(displayTimelineSteps);

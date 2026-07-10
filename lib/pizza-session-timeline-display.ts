@@ -5,6 +5,7 @@ type TimelineDisplayInput = {
   steps: PizzaSessionTimelineStep[];
   planningResult?: PlanningResult | null;
   session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime" | "plannedFermentationHours" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null;
+  fermentationMode?: "room" | "cold" | null;
   now?: Date;
   anchorTime?: string;
   adjustSchedule?: boolean;
@@ -54,7 +55,10 @@ function fermentationModeFromPreset(value?: string): TimelineFermentationMode {
 export function resolveSessionTimelineFermentationMode(
   session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null,
   planningResult?: PlanningResult | null,
+  fermentationMode?: "room" | "cold" | null,
 ): TimelineFermentationMode {
+  if (fermentationMode === "cold" || fermentationMode === "room") return fermentationMode;
+
   if (typeof session?.plannedFermentationHours === "number" && Number.isFinite(session.plannedFermentationHours)) {
     return "cold";
   }
@@ -309,12 +313,13 @@ export function timelineStepsForPlanningSummaryDisplay({
   steps,
   planningResult,
   session,
+  fermentationMode,
   now,
   anchorTime,
   adjustSchedule = false,
 }: TimelineDisplayInput): PizzaSessionTimelineStep[] {
-  const fermentationMode = resolveSessionTimelineFermentationMode(session, planningResult);
-  const normalizedSteps = normalizeStepsForFermentationMode(steps, fermentationMode);
+  const resolvedFermentationMode = resolveSessionTimelineFermentationMode(session, planningResult, fermentationMode);
+  const normalizedSteps = normalizeStepsForFermentationMode(steps, resolvedFermentationMode);
   if (!adjustSchedule) return normalizedSteps;
 
   const current = currentFromPlanning(planningResult) ?? now;
@@ -324,7 +329,7 @@ export function timelineStepsForPlanningSummaryDisplay({
   const resolvedStart = resolveSessionDoughStartTime({ planningResult, session, steps: normalizedSteps, now, anchorTime });
   const explicitStart = parsePlanningDate(resolvedStart.startsAt);
   if (explicitStart) {
-    if (fermentationMode === "room" && !shouldUseSameDayFromResolvedStart(explicitStart, target)) {
+    if (resolvedFermentationMode === "room" && !shouldUseSameDayFromResolvedStart(explicitStart, target)) {
       return normalizedSteps.map((step) => {
         if (!["mix-dough", "rest-dough", "room-ferment"].includes(step.id)) return step;
         return {
@@ -341,8 +346,8 @@ export function timelineStepsForPlanningSummaryDisplay({
     if (shouldUseSameDayFromResolvedStart(explicitStart, target)) {
       return normalizedSteps.map((step) => {
         const scheduledAt = sameDayScheduleIso(step, explicitStart, target);
-        const sameDayCopy = fermentationMode === "room"
-          ? displayCopyForFermentationMode(step, fermentationMode)
+        const sameDayCopy = resolvedFermentationMode === "room"
+          ? displayCopyForFermentationMode(step, resolvedFermentationMode)
           : step.id === "rest-dough"
           ? {
             label: "Room fermentation",

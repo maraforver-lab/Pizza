@@ -705,6 +705,46 @@ describe("Pizza Session timeline", () => {
       .not.toMatch(/Room temperature ferment|at room temperature/i);
   });
 
+  it("uses the recipe cold fermentation basis over a stale room recipe snapshot in Timeline display", () => {
+    const now = new Date("2026-07-02T20:00:00");
+    const session = createPizzaSession({
+      id: "timeline-recipe-cold-basis-stale-room-snapshot",
+      status: "planning",
+      currentStep: "timeline",
+      targetEatTime: "2026-07-04T12:00",
+      doughStartMode: "now",
+      pizzaStyle: "pizza-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "gas",
+      flour: "tipo-00",
+      recipeSnapshot: { fermentation: "12h-room" },
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: generated.steps,
+      planningResult: recipe.planningInfo.result,
+      session,
+      fermentationMode: recipe.continuousYeast?.recommendation.fermentationMode,
+      anchorTime: generated.anchorTime,
+    });
+    const fermentationStep = displayed.find((step) => step.id === "cold-ferment");
+
+    expect(recipe.continuousYeast?.basisLabel).toBe("40 h cold fermentation");
+    expect(generated.steps.some((step) => step.id === "room-ferment")).toBe(true);
+    expect(fermentationStep).toMatchObject({
+      label: "Cold fermentation",
+      description: "Keep the covered dough in the fridge for the planned cold fermentation time.",
+      beginnerNote: "Keep the dough covered in the fridge at the planned temperature.",
+    });
+    expect(displayed.some((step) => step.id === "room-ferment")).toBe(false);
+    expect(`${fermentationStep?.label} ${fermentationStep?.description} ${fermentationStep?.beginnerNote}`)
+      .not.toMatch(/Room temperature ferment|at room temperature/i);
+  });
+
   it("keeps room-temperature fermentation Timeline copy for room fermentation plans", () => {
     const now = new Date("2026-07-08T10:00:00.000Z");
     const session = createPizzaSession({

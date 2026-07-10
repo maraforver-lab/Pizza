@@ -467,6 +467,9 @@ export function getKitchenModeState(session?: PizzaSession, now = new Date()): K
     steps: session.timeline.steps,
     planningResult,
     session,
+    fermentationMode: recipe.ok
+      ? recipe.continuousYeast?.recommendation.fermentationMode
+      : undefined,
     now,
     anchorTime: session.timeline.anchorTime,
   });
