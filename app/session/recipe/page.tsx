@@ -390,6 +390,40 @@ export default function SessionRecipePage() {
           hideMeta
         />
 
+        {showColdFermentationSelector && (
+          <section className="mt-4 rounded-[1.5rem] border border-leaf/25 bg-leaf/[.07] p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6 lg:p-7" aria-labelledby="fermentation-duration-heading">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Fermentation length</p>
+                <h2 id="fermentation-duration-heading" className="mt-2 font-display text-3xl font-semibold">Choose your fermentation length</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+                  Pick the cold fermentation length that fits your bake day. A longer fermentation can build deeper flavor and a more developed dough, but it also needs flour strong enough to hold its structure over time. DoughTools uses your choice to guide yeast amount, start time, and flour-strength recommendations.
+                </p>
+              </div>
+              <span className="w-fit rounded-full bg-white/80 px-3 py-2 text-xs font-extrabold text-ink/55">
+                Available window: {formatAvailableHours(result.continuousYeast?.availableFermentationHours)}
+              </span>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {coldFermentationOptions.map((hours) => (
+                <button
+                  key={hours}
+                  type="button"
+                  onClick={() => updatePlannedFermentationHours(hours)}
+                  aria-pressed={fermentationOptionIsActive(selectedFermentationHours, hours)}
+                  className={`min-h-11 rounded-2xl px-4 text-sm font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                    fermentationOptionIsActive(selectedFermentationHours, hours)
+                      ? "bg-tomato text-white"
+                      : "bg-white text-ink/65 ring-1 ring-ink/10 hover:text-tomato"
+                  }`}
+                >
+                  {formatFermentationLength(hours)} cold
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="mt-4 sm:mt-6">
           <SavePizzaSessionToAccount session={session} />
         </div>
@@ -626,40 +660,6 @@ export default function SessionRecipePage() {
                       </dl>
                     </section>
                   </div>
-
-                  {showColdFermentationSelector && (
-                    <section className="rounded-[1.25rem] border border-leaf/25 bg-leaf/[.07] p-4" aria-labelledby="fermentation-duration-heading">
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Fermentation length</p>
-                          <h4 id="fermentation-duration-heading" className="mt-2 font-display text-2xl font-semibold">Choose a cold fermentation length</h4>
-                          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                            Your current window can support a cold fridge fermentation between 24h and 72h. Pick the length you want DoughTools to use for yeast and flour-strength guidance.
-                          </p>
-                        </div>
-                        <span className="w-fit rounded-full bg-white/80 px-3 py-2 text-xs font-extrabold text-ink/55">
-                          Available window: {formatAvailableHours(result.continuousYeast?.availableFermentationHours)}
-                        </span>
-                      </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {coldFermentationOptions.map((hours) => (
-                          <button
-                            key={hours}
-                            type="button"
-                            onClick={() => updatePlannedFermentationHours(hours)}
-                            aria-pressed={fermentationOptionIsActive(selectedFermentationHours, hours)}
-                            className={`min-h-11 rounded-2xl px-4 text-sm font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                              fermentationOptionIsActive(selectedFermentationHours, hours)
-                                ? "bg-tomato text-white"
-                                : "bg-white text-ink/65 ring-1 ring-ink/10 hover:text-tomato"
-                            }`}
-                          >
-                            {formatFermentationLength(hours)} cold
-                          </button>
-                        ))}
-                      </div>
-                    </section>
-                  )}
 
                 </div>
               ) : (

@@ -147,8 +147,13 @@ describe("Session recipe build step", () => {
     expect(page).toContain("fermentationDisplay.label");
     expect(page).toContain("Fermentation place / temperature");
     expect(page).toContain("fermentationDisplay.temperatureC");
-    expect(page).toContain("Choose a cold fermentation length");
-    expect(page).toContain("Pick the length you want DoughTools to use for yeast and flour-strength guidance.");
+    expect(page).toContain("Choose your fermentation length");
+    expect(page).toContain("Pick the cold fermentation length that fits your bake day.");
+    expect(page).toContain("A longer fermentation can build deeper flavor and a more developed dough");
+    expect(page).toContain("flour strong enough to hold its structure over time");
+    expect(page).toContain("DoughTools uses your choice to guide yeast amount, start time, and flour-strength recommendations.");
+    expect(page).not.toContain("Choose a cold fermentation length");
+    expect(page).not.toContain("Pick the length you want DoughTools to use for yeast and flour-strength guidance.");
     expect(page).not.toContain("W-value guidance");
     expect(page).not.toContain("Recommended flour strength");
     expect(page).not.toContain("What makes flour suitable");
@@ -177,6 +182,10 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("Add a bake date and time to get a stronger planning risk summary.");
     expect(page).not.toContain("Calculator v1");
     expect(page).not.toContain("Calculator v2");
+    expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Choose your fermentation length"));
+    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("<SavePizzaSessionToAccount session={session} />"));
+    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Ingredients & amounts"));
+    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Dough planning notes"));
     expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
   });
 
