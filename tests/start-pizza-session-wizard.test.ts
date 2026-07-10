@@ -173,7 +173,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("if (shouldShowPizzaNerdDoughControls(level)) return {}");
     expect(page).toContain("doughBallWeight: SIMPLE_SESSION_DOUGH_BALL_WEIGHT");
     expect(page).toContain("yeastType: DEFAULT_SESSION_YEAST_TYPE");
-    expect(page).toContain("const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(level, supportedSession)");
+    expect(page).toContain("const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession)");
     expect(page).toContain("setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)))");
     expect(source("lib/yeast-types.ts")).toContain('DEFAULT_SESSION_YEAST_TYPE: YeastType = "ady"');
   });
@@ -420,6 +420,73 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("status: \"planning\"");
     expect(page).toContain("currentStep");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
+  });
+
+  it("uses session experience level as the source of truth after local or cloud restore", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("const preferredLevel = readExperienceLevelPreference()");
+    expect(page).toContain("experienceLevel: preferredLevel");
+    expect(page).toContain("const sessionLevel = baseSession.experienceLevel");
+    expect(page).toContain("experienceLevel: sessionLevel");
+    expect(page).toContain("simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession)");
+    expect(page).toContain("setExperienceLevel(sessionLevel)");
+    expect(page).not.toContain("const level = readExperienceLevelPreference()");
+    expect(page).not.toContain("setExperienceLevel(level)");
+    expect(page).not.toContain("simpleDoughDefaultsPatchForLevel(level, supportedSession)");
+  });
+
+  it("keeps Beginner, Enthusiast and Pizza Nerd on the active local session across updates", () => {
+    for (const level of ["beginner", "enthusiast", "pizza_nerd"] as const) {
+      const storage = new MemoryStorage();
+      const started = createAndSavePizzaSession(
+        { id: `local-${level}`, status: "planning", currentStep: "style", experienceLevel: level },
+        storage,
+        new Date("2026-07-10T10:00:00.000Z"),
+      );
+      setActivePizzaSession(started.id, storage);
+
+      const updated = updatePizzaSession(
+        started.id,
+        {
+          currentStep: "recipe",
+          pizzaStyle: "pizza-oven",
+          targetEatTime: "2026-07-11T18:00",
+          experienceLevel: getActivePizzaSession(storage)?.experienceLevel,
+        },
+        storage,
+        new Date("2026-07-10T10:05:00.000Z"),
+      );
+
+      expect(updated?.experienceLevel).toBe(level);
+      expect(getActivePizzaSession(storage)?.experienceLevel).toBe(level);
+    }
+  });
+
+  it("does not let stale local default preference overwrite an existing Pizza Nerd session", () => {
+    const storage = new MemoryStorage();
+    storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "beginner");
+    const started = createAndSavePizzaSession(
+      { id: "stale-default-guard", status: "planning", currentStep: "style", experienceLevel: "pizza_nerd" },
+      storage,
+      new Date("2026-07-10T10:00:00.000Z"),
+    );
+    setActivePizzaSession(started.id, storage);
+
+    const sessionLevel = getActivePizzaSession(storage)?.experienceLevel;
+    const updated = updatePizzaSession(
+      started.id,
+      {
+        currentStep: "recipe",
+        experienceLevel: sessionLevel,
+      },
+      storage,
+      new Date("2026-07-10T10:05:00.000Z"),
+    );
+
+    expect(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("beginner");
+    expect(updated?.experienceLevel).toBe("pizza_nerd");
+    expect(getActivePizzaSession(storage)?.experienceLevel).toBe("pizza_nerd");
   });
 
   it("persists wizard-like session choices locally and updates the active session", () => {

@@ -445,7 +445,7 @@ function StartPizzaSessionContent() {
     let mounted = true;
 
     async function loadInitialSession() {
-      const level = readExperienceLevelPreference();
+      const preferredLevel = readExperienceLevelPreference();
       const query = new URLSearchParams(window.location.search);
       const shouldStartNewSession = query.get("new") === "1";
       if (shouldStartNewSession) {
@@ -478,7 +478,7 @@ function StartPizzaSessionContent() {
       const baseSession = active ?? createAndSavePizzaSession({
         status: "planning",
         currentStep: "style",
-        experienceLevel: level,
+        experienceLevel: preferredLevel,
         pizzaStyle: "pizza-oven",
         ovenType: "gas",
         pizzaPreset: DEFAULT_SESSION_TOPPING_PRESET,
@@ -486,6 +486,7 @@ function StartPizzaSessionContent() {
         flourSituation: "recommend",
         flour: DEFAULT_SESSION_FORMULA_FLOUR,
       });
+      const sessionLevel = baseSession.experienceLevel;
       const hasSavedTargetTime = isValidTargetTime(baseSession.targetEatTime);
       const defaultTargetEatTime = getDefaultPizzaSessionTargetTime();
       const nextSession = hasSavedTargetTime
@@ -494,7 +495,7 @@ function StartPizzaSessionContent() {
           targetEatTime: defaultTargetEatTime,
           status: "planning",
           currentStep: baseSession.currentStep,
-          experienceLevel: level,
+          experienceLevel: sessionLevel,
         }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
 
       const supportedSession = nextSession.pizzaStyle === "not-sure" || nextSession.flour === "not-sure" || nextSession.flourSituation === "unknown_w"
@@ -504,7 +505,7 @@ function StartPizzaSessionContent() {
           ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
           status: "planning",
           currentStep: nextSession.currentStep,
-          experienceLevel: level,
+          experienceLevel: sessionLevel,
         }) ?? {
           ...nextSession,
           ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
@@ -513,23 +514,23 @@ function StartPizzaSessionContent() {
         }
         : nextSession;
 
-      const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(level, supportedSession);
+      const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession);
       const experienceScopedSession = Object.keys(simpleDefaultsPatch).length
         ? updatePizzaSession(supportedSession.id, {
           ...simpleDefaultsPatch,
           status: "planning",
           currentStep: supportedSession.currentStep,
-          experienceLevel: level,
+          experienceLevel: sessionLevel,
         }) ?? {
           ...supportedSession,
           ...simpleDefaultsPatch,
-          experienceLevel: level,
+          experienceLevel: sessionLevel,
         }
         : supportedSession;
 
       if (!mounted) return;
       setActivePizzaSession(experienceScopedSession.id);
-      setExperienceLevel(level);
+      setExperienceLevel(sessionLevel);
       setSession(experienceScopedSession);
       setTargetTimeDraft(experienceScopedSession.targetEatTime ?? "");
       setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)));

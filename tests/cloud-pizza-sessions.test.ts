@@ -11,6 +11,7 @@ import {
   markCloudBackedPizzaSession,
   syncCloudBackedPizzaSession,
 } from "@/lib/cloud-pizza-session-client";
+import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
 import {
   cloudPizzaSessionCompletedLabel,
   cloudPizzaSessionDetailSummary,
@@ -48,6 +49,7 @@ import {
   PIZZA_SESSIONS_STORAGE_KEY,
   setActivePizzaSession,
 } from "@/lib/pizza-session-storage";
+import { EXPERIENCE_LEVEL_STORAGE_KEY } from "@/lib/experience-levels";
 import {
   PIZZA_SESSION_PHOTO_HEIC_ERROR,
   PIZZA_SESSION_PHOTO_TYPE_ERROR,
@@ -153,6 +155,40 @@ describe("cloud pizza session foundation", () => {
       bakeLine: "Bake time: Saturday 20:00",
       stepLine: "Current step: Shopping list",
     });
+  });
+
+  it("preserves the cloud-selected experience level when restoring an active cloud session locally", () => {
+    const storage = new MemoryStorage();
+    storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "beginner");
+    const cloudSession = createPizzaSession({
+      id: "cloud-pizza-nerd-session",
+      status: "planning",
+      currentStep: "prep",
+      experienceLevel: "pizza_nerd",
+      pizzaCount: 4,
+      doughBallWeight: 260,
+      timeline: {
+        steps: [{ id: "mix-dough", label: "Mix dough", status: "todo", kind: "active" }],
+      },
+    });
+    const row = normalizeCloudPizzaSessionRow({
+      id: "cloud-row-pizza-nerd",
+      user_id: "user-1",
+      status: "in_progress",
+      title: "Active pizza session",
+      current_step: "prep",
+      session_data: cloudSession,
+      created_at: "2026-07-10T09:00:00.000Z",
+      updated_at: "2026-07-10T10:00:00.000Z",
+      completed_at: null,
+    })!;
+
+    const restored = restoreCloudPizzaSessionToLocal(row, storage);
+
+    expect(restored?.experienceLevel).toBe("pizza_nerd");
+    expect(getActivePizzaSession(storage)?.experienceLevel).toBe("pizza_nerd");
+    expect(cloudBackedPizzaSessionRowId(restored, storage)).toBe("cloud-row-pizza-nerd");
+    expect(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("beginner");
   });
 
   it("adds a pizza_sessions table with owner-only RLS policies", () => {
@@ -1117,9 +1153,9 @@ describe("cloud pizza session foundation", () => {
     expect(continueCard).toContain("summary.statusLine");
     expect(continueCard).toContain("Continue Pizza Session");
     expect(continueCard).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
-    expect(restore).toContain("savePizzaSession(session)");
-    expect(restore).toContain("setActivePizzaSession(restored.id)");
-    expect(restore).toContain("markCloudBackedPizzaSession(restored.id, row.id)");
+    expect(restore).toContain("savePizzaSession(session, storage)");
+    expect(restore).toContain("setActivePizzaSession(restored.id, storage)");
+    expect(restore).toContain("markCloudBackedPizzaSession(restored.id, row.id, storage)");
     expect(continueCard).toContain("router.push(pizzaSessionContinueHref(restored))");
   });
 
