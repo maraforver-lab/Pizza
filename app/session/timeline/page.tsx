@@ -20,11 +20,9 @@ import {
   getTimelineNote,
 } from "@/lib/pizza-session-timeline";
 import {
-  resolveSessionDoughStartTime,
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
-import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import {
@@ -45,11 +43,6 @@ function formatDateTime(value?: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
-}
-
-function hasValidDateTime(value?: string) {
-  if (!value) return false;
-  return Number.isFinite(new Date(value).getTime());
 }
 
 function formatShortDateTime(value?: string) {
@@ -182,84 +175,12 @@ function formatAvailableHours(value?: number) {
   return `${rounded} h`;
 }
 
-function planningRiskTone(risk?: string) {
-  if (risk === "high_risk" || risk === "not_recommended") return "border-tomato/35 bg-tomato/[.08] text-tomato";
-  if (risk === "caution") return "border-tomato/25 bg-tomato/[.06] text-tomato";
-  if (risk === "not_enough_information") return "border-ink/10 bg-cream text-ink/65";
-  return "border-leaf/25 bg-leaf/[.08] text-leaf";
-}
-
 function fermentationPlaceLabel(value?: string | null) {
   if (value === "cold") return "Fridge / cold fermentation";
   if (value === "hybrid") return "Room + fridge";
   if (value === "room") return "Room temperature";
   if (value === "not_recommended") return "Not recommended";
   return "Fermentation details unavailable";
-}
-
-function selectedFlourLabel(value?: string) {
-  if (value === "plain") return "All-purpose flour";
-  if (value === "bread") return "Bread flour / strong flour";
-  if (value === "tipo-00") return "Pizza flour / Tipo 00";
-  return "Pizza flour / Tipo 00";
-}
-
-function sessionPlanningRiskSummary({
-  summary,
-  hasBakeTarget,
-  isColdFermentation,
-  isLongHorizon,
-  selectedFermentationLabel,
-}: {
-  summary?: string | null;
-  hasBakeTarget: boolean;
-  isColdFermentation: boolean;
-  isLongHorizon: boolean;
-  selectedFermentationLabel?: string;
-}) {
-  if (isLongHorizon) {
-    if (selectedFermentationLabel) {
-      return `Use the selected ${selectedFermentationLabel} plan.`;
-    }
-    return "This bake target is far enough away that you should not start immediately. Use one of the planned 24h, 48h or 72h cold-fermentation start times.";
-  }
-  if (hasBakeTarget && summary?.includes("bake date and time")) {
-    return "Timeline guidance is using your saved bake target. The current v1 planner needs a shorter or clearer fermentation window for stronger risk guidance.";
-  }
-  if (isColdFermentation && summary?.includes("long room-temperature plan")) {
-    return "This plan can work, but cold fermentation gives more control; timing, fridge temperature, and flour strength still matter.";
-  }
-  return summary;
-}
-
-function sessionPlanningFirstAdjustment({
-  adjustment,
-  hasBakeTarget,
-  isColdFermentation,
-  isLongHorizon,
-  selectedFermentationLabel,
-  selectedStartLabel,
-}: {
-  adjustment?: string | null;
-  hasBakeTarget: boolean;
-  isColdFermentation: boolean;
-  isLongHorizon: boolean;
-  selectedFermentationLabel?: string;
-  selectedStartLabel?: string;
-}) {
-  if (isLongHorizon) {
-    if (selectedFermentationLabel && selectedStartLabel) {
-      return `Start dough at ${selectedStartLabel} for the selected ${selectedFermentationLabel}.`;
-    }
-    return "Start at the selected cold-fermentation option’s start time, not before.";
-  }
-  if (hasBakeTarget && adjustment?.includes("Set the bake target")) {
-    return "Use the timing notes and long-horizon options, or choose a closer bake target for stronger guidance.";
-  }
-  if (isColdFermentation && adjustment?.includes("toward cold")) {
-    return "Keep the selected cold fermentation length, then watch fridge temperature and dough condition.";
-  }
-  return adjustment;
 }
 
 type ShoppingCheckpointState = "Check" | "Done";
@@ -476,11 +397,7 @@ export default function SessionTimelinePage() {
       ? `Step ${actionableSteps.length} of ${actionableSteps.length}`
       : "Step timing unavailable";
   const criticalMoments = getCriticalMoments(displayTimelineSteps);
-  const combinedRisk = planningResult?.combinedRiskSummary;
-  const startWindow = planningResult?.startWindowRecommendation;
   const fermentationSetup = planningResult?.fermentationSetupRecommendation;
-  const temperatureGuidance = planningResult?.temperatureGuidance;
-  const doughStartResolution = resolveSessionDoughStartTime({ planningResult, session, steps: timeline.steps, anchorTime: timeline.anchorTime });
   const fermentationDisplay = sessionRecipeResult.ok
     ? buildSessionFermentationDisplay({
       session,
@@ -488,35 +405,8 @@ export default function SessionTimelinePage() {
       basis: sessionRecipeResult.continuousYeast?.recommendation,
     })
     : buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot });
-  const selectedFermentationLabel = sessionRecipeResult.ok && sessionRecipeResult.continuousYeast?.selectedByUser
-    ? fermentationDisplay.label
-    : undefined;
-  const selectedStartLabel = doughStartResolution.startsAt
-    ? formatShortDateTime(doughStartResolution.startsAt)
-    : undefined;
-  const longHorizonRecommendation = buildLongHorizonStartRecommendation({
-    planningResult,
-    selectedFlourLabel: selectedFlourLabel(session.flour),
-  });
-  const hasBakeTarget = hasValidDateTime(targetTime);
-  const isColdFermentation = sessionRecipeResult.ok
-    ? sessionRecipeResult.continuousYeast?.recommendation.fermentationMode === "cold"
-    : fermentationSetup?.recommendedFermentationMode === "cold";
-  const displayedRiskSummary = sessionPlanningRiskSummary({
-    summary: combinedRisk?.summary,
-    hasBakeTarget,
-    isColdFermentation,
-    isLongHorizon: Boolean(longHorizonRecommendation),
-    selectedFermentationLabel,
-  });
-  const displayedFirstAdjustment = sessionPlanningFirstAdjustment({
-    adjustment: combinedRisk?.suggestedFirstAdjustment,
-    hasBakeTarget,
-    isColdFermentation,
-    isLongHorizon: Boolean(longHorizonRecommendation),
-    selectedFermentationLabel,
-    selectedStartLabel,
-  });
+  const fermentationPlanPlace = fermentationDisplay.placeTemperatureLabel
+    ?? fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode);
   const handleNextAction = () => {
     if (
       nextAction.kind === "dough" &&
@@ -616,7 +506,7 @@ export default function SessionTimelinePage() {
             </div>
           </div>
 
-          {planningResult && combinedRisk ? (
+          {planningResult ? (
             <div className="mt-4 grid gap-3">
               <dl className="grid gap-2 rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="rounded-2xl bg-white p-3">
@@ -627,54 +517,12 @@ export default function SessionTimelinePage() {
                   <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
                   <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
                 </div>
-                <div className="rounded-2xl bg-white p-3">
-                  <dt className="text-xs font-extrabold text-ink/45">Start window</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{startWindow?.startWindowLabel ?? "Timing details unavailable"}</dd>
-                </div>
-                {fermentationDisplay.mode && (
-                  <div className="rounded-2xl bg-white p-3">
-                    <dt className="text-xs font-extrabold text-ink/45">Selected fermentation</dt>
-                    <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{fermentationDisplay.label}</dd>
-                  </div>
-                )}
-                <div className="rounded-2xl bg-white p-3">
-                  <dt className="text-xs font-extrabold text-ink/45">Dough start</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
-                    {doughStartResolution.startsAt ? formatShortDateTime(doughStartResolution.startsAt) : doughStartResolution.label.replace("Dough start: ", "")}
-                  </dd>
-                  {doughStartResolution.warning && (
-                    <p className="mt-1 text-xs font-bold leading-5 text-tomato">{doughStartResolution.warning}</p>
-                  )}
-                </div>
-                <div className="rounded-2xl bg-white p-3">
-                  <dt className="text-xs font-extrabold text-ink/45">Fermentation place</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
-                    {fermentationDisplay.mode === "cold"
-                      ? "Fridge / cold fermentation"
-                      : fermentationDisplay.mode === "room"
-                        ? "Room temperature"
-                        : fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode)}
-                  </dd>
-                </div>
-                <div className="rounded-2xl bg-white p-3 sm:col-span-2 lg:col-span-3">
-                  <dt className="text-xs font-extrabold text-ink/45">Fermentation temperature</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">
-                    {fermentationDisplay.placeTemperatureLabel
-                      ? fermentationDisplay.placeTemperatureLabel
-                      : temperatureGuidance
-                      ? `Room ${temperatureGuidance.roomTemperature} °C · Fridge ${temperatureGuidance.fridgeTemperature} °C`
-                      : "Add dough plan details for stronger temperature guidance."}
-                  </dd>
+                <div className="rounded-2xl bg-white p-3 sm:col-span-2 lg:col-span-1">
+                  <dt className="text-xs font-extrabold text-ink/45">Fermentation plan</dt>
+                  <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{fermentationDisplay.label}</dd>
+                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/60">{fermentationPlanPlace}</dd>
                 </div>
               </dl>
-              <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
-                <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
-                <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
-                <div className="mt-3 rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
-                  <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                  <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
-                </div>
-              </section>
             </div>
           ) : (
             <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">

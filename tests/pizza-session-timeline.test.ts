@@ -144,47 +144,46 @@ describe("Pizza Session timeline", () => {
 
     expect(page).toContain("buildSessionRecipe(session ?? undefined)");
     expect(page).toContain("timelineStepsForPlanningSummaryDisplay");
-    expect(page).toContain("resolveSessionDoughStartTime");
     expect(page).toContain("Timeline planning summary");
     expect(page).toContain("Timeline guidance is based on available session choices.");
     expect(page).not.toContain("readablePlanningLabel");
     expect(page).not.toMatch(/Not enough information/i);
     expect(page).not.toContain("Saved as you go.");
-    expect(page).toContain("Overall risk");
-    expect(page).toContain("What to adjust first");
-    expect(page).toContain("displayedRiskSummary");
     expect(page).toContain("Bake target");
     expect(page).toContain("Available time");
-    expect(page).toContain("Start window");
-    expect(page).toContain("Dough start");
-    expect(page).toContain("Fermentation place");
-    expect(page).toContain("Fermentation temperature");
-    expect(page).toContain("Selected fermentation");
+    expect(page).toContain("Fermentation plan");
+    expect(page).toContain("fermentationDisplay.label");
+    expect(page).toContain("fermentationPlanPlace");
+    expect(page).not.toContain("Overall risk");
+    expect(page).not.toContain("What to adjust first");
+    expect(page).not.toContain("displayedRiskSummary");
+    expect(page).not.toContain("Start window");
+    expect(page).not.toContain("Dough start");
+    expect(page).not.toContain("Fermentation place");
+    expect(page).not.toContain("Fermentation temperature");
+    expect(page).not.toContain("Selected fermentation");
     expect(page).toContain("buildSessionFermentationDisplay");
-    expect(page).toContain("Use the selected ${selectedFermentationLabel} plan.");
-    expect(page).toContain("Start dough at ${selectedStartLabel} for the selected ${selectedFermentationLabel}.");
     expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
-    expect(page.indexOf("Bake target")).toBeLessThan(page.indexOf("Overall risk"));
-    expect(page.indexOf("Fermentation temperature")).toBeLessThan(page.indexOf("What to adjust first"));
+    expect(page.indexOf("Bake target")).toBeLessThan(page.indexOf("Fermentation plan"));
+    expect(page.indexOf("Available time")).toBeLessThan(page.indexOf("Fermentation plan"));
     expect(page).not.toContain("Dough planning notes");
     expect(helper).not.toContain("buildPlanningResult");
     expect(helper).toContain("buildSessionRecipe");
   });
 
-  it("keeps Timeline missing-target fallback copy only for genuinely missing bake targets", () => {
+  it("keeps the simplified Timeline fallback copy without risk-specific guidance", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("hasValidDateTime(targetTime)");
-    expect(page).toContain("hasBakeTarget && summary?.includes(\"bake date and time\")");
-    expect(page).toContain("Timeline guidance is using your saved bake target.");
-    expect(page).toContain("hasBakeTarget && adjustment?.includes(\"Set the bake target\")");
-    expect(page).toContain("Use the timing notes and long-horizon options");
+    expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
+    expect(page).not.toContain("Timeline guidance is using your saved bake target.");
+    expect(page).not.toContain("Use the timing notes and long-horizon options");
   });
 
-  it("uses cold-specific session risk copy when the active fermentation basis is cold", () => {
+  it("keeps cold-specific fermentation copy in Timeline steps instead of the removed risk block", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("cold fermentation gives more control");
+    expect(page).toContain("Cold fermentation");
+    expect(page).not.toContain("cold fermentation gives more control");
   });
 
   it("aligns the displayed full timeline with a 7-hour same-day room planning summary", () => {
