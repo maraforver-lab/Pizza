@@ -1065,13 +1065,15 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("statusLabel(step, currentActionStep)");
     expect(page).toContain("relativeFromTarget(step.scheduledAt, targetTime)");
     expect(page).toContain("step.id === currentActionStep?.id");
-    expect(page).toContain('data-testid="timeline-step-watermark"');
-    expect(page).toContain("relative overflow-hidden rounded-[1.25rem]");
-    expect(page).toContain("pointer-events-none absolute");
-    expect(page).toContain("pr-16 sm:pr-28");
-    expect(page).toContain("timelineStepIcon(step)");
-    expect(page).toContain("timelineStepIconTone(step)");
+    expect(page).toContain('data-testid="timeline-step-media-panel"');
+    expect(page).toContain("function TimelineStepMediaPanel");
+    expect(page).toContain("flex min-w-0 items-stretch gap-3");
+    expect(page).toContain("w-[5.5rem]");
+    expect(page).toContain("<TimelineStepMediaPanel step={step} />");
+    expect(page).toContain("step.id === \"mix-dough\" || step.id === \"rest-dough\"");
+    expect(page).toContain("step.id === \"prepare-sauce-toppings\"");
     expect(page).not.toContain("rounded-2xl text-xl ring-1 sm:h-12 sm:w-12 sm:text-2xl");
+    expect(page).not.toContain('data-testid="timeline-step-watermark"');
     expect(page).not.toContain("onClick={() => markDone(step.id)}");
   });
 

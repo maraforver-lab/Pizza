@@ -112,6 +112,77 @@ function timelineStepIconTone(step?: PizzaSessionTimelineStep) {
   return "bg-white text-ink ring-ink/10";
 }
 
+function TimelineStepMediaPanel({ step }: { step: PizzaSessionTimelineStep }) {
+  const isCold = step.id === "cold-ferment";
+  const isRoom = step.id === "room-ferment" || step.id === "ferment-dough" || step.id === "room-temperature-rest";
+  const isBake = step.id === "preheat-oven" || step.id === "bake-pizza";
+  const panelTone = isBake
+    ? "from-tomato/20 via-tomato/[.08] to-white"
+    : isCold || isRoom
+      ? "from-leaf/20 via-leaf/[.08] to-white"
+      : "from-cream via-white to-leaf/[.06]";
+
+  return (
+    <div className={`relative h-full min-h-24 w-[5.5rem] shrink-0 overflow-hidden rounded-[1.35rem] bg-gradient-to-br ${panelTone} shadow-inner ring-1 ring-white/80 sm:min-h-32 sm:w-32`} aria-hidden="true" data-testid="timeline-step-media-panel">
+      <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/55 blur-xl" />
+      {(step.id === "mix-dough" || step.id === "rest-dough") && (
+        <>
+          <div className="absolute bottom-5 left-1/2 h-9 w-16 -translate-x-1/2 rounded-b-[2rem] rounded-t-lg bg-ink/10 shadow-sm sm:h-11 sm:w-20" />
+          <div className="absolute bottom-8 left-1/2 h-5 w-14 -translate-x-1/2 rounded-[999px] bg-[#d8b46f] shadow-sm sm:h-6 sm:w-16" />
+          <div className="absolute bottom-12 left-8 h-1.5 w-12 rotate-[-24deg] rounded-full bg-ink/25 sm:left-11 sm:w-16" />
+          {step.id === "rest-dough" && <div className="absolute bottom-14 left-1/2 h-5 w-16 -translate-x-1/2 rounded-t-[2rem] border-t-4 border-white/80 bg-white/45 sm:w-20" />}
+        </>
+      )}
+      {isCold && (
+        <>
+          <div className="absolute bottom-5 left-1/2 h-16 w-12 -translate-x-1/2 rounded-2xl bg-white/80 shadow-sm ring-1 ring-leaf/15 sm:h-20 sm:w-16" />
+          <div className="absolute bottom-12 left-1/2 h-px w-10 -translate-x-1/2 bg-leaf/20 sm:bottom-16 sm:w-14" />
+          <div className="absolute bottom-8 left-1/2 h-4 w-8 -translate-x-1/2 rounded-full bg-[#d8b46f]/90 sm:h-5 sm:w-10" />
+          <div className="absolute right-4 top-4 text-2xl text-leaf/70 sm:right-5 sm:top-5 sm:text-3xl">❄️</div>
+        </>
+      )}
+      {isRoom && (
+        <>
+          <div className="absolute bottom-7 left-5 h-8 w-8 rounded-full bg-[#d8b46f] shadow-sm sm:left-8 sm:h-10 sm:w-10" />
+          <div className="absolute bottom-7 right-5 h-7 w-7 rounded-full bg-[#d8b46f]/90 shadow-sm sm:right-8 sm:h-9 sm:w-9" />
+          <div className="absolute right-4 top-5 h-12 w-3 rounded-full bg-white/80 ring-1 ring-leaf/20 sm:right-6 sm:h-16">
+            <div className="absolute bottom-1 left-1/2 h-7 w-1 -translate-x-1/2 rounded-full bg-leaf/55 sm:h-10" />
+          </div>
+        </>
+      )}
+      {step.id === "ball-dough" && (
+        <>
+          {[0, 1, 2, 3].map((ball) => (
+            <div key={ball} className={`absolute h-8 w-8 rounded-full bg-[#d8b46f] shadow-sm sm:h-10 sm:w-10 ${ball === 0 ? "bottom-8 left-5 sm:left-8" : ball === 1 ? "bottom-8 right-5 sm:right-8" : ball === 2 ? "bottom-4 left-8 sm:left-12" : "bottom-14 left-1/2 -translate-x-1/2"}`} />
+          ))}
+        </>
+      )}
+      {isBake && (
+        <>
+          <div className="absolute bottom-5 left-1/2 h-14 w-16 -translate-x-1/2 rounded-2xl bg-ink/75 shadow-sm sm:h-20 sm:w-24" />
+          <div className="absolute bottom-8 left-1/2 h-8 w-12 -translate-x-1/2 rounded-xl bg-tomato/35 shadow-[0_0_22px_rgba(214,82,54,0.35)] sm:bottom-10 sm:h-12 sm:w-16" />
+          {step.id === "bake-pizza" && <div className="absolute bottom-9 left-1/2 h-9 w-9 -translate-x-1/2 rounded-full bg-[#d8b46f] ring-4 ring-tomato/35 sm:bottom-12 sm:h-12 sm:w-12" />}
+        </>
+      )}
+      {step.id === "prepare-sauce-toppings" && (
+        <>
+          <div className="absolute bottom-6 left-1/2 h-14 w-16 -translate-x-1/2 rotate-[-4deg] rounded-2xl bg-[#d8b46f]/80 shadow-sm sm:h-20 sm:w-24" />
+          <div className="absolute bottom-11 left-7 h-5 w-5 rounded-full bg-tomato sm:bottom-16 sm:left-10" />
+          <div className="absolute bottom-9 right-7 h-4 w-8 rounded-full bg-leaf/70 sm:bottom-14 sm:right-10" />
+        </>
+      )}
+      {step.id === "review-result" && (
+        <>
+          <div className="absolute bottom-5 left-1/2 h-16 w-12 -translate-x-1/2 rotate-[-5deg] rounded-xl bg-white/85 shadow-sm ring-1 ring-ink/10 sm:h-20 sm:w-16" />
+          <div className="absolute bottom-14 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full bg-leaf/35 sm:bottom-16 sm:w-10" />
+          <div className="absolute bottom-10 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-ink/15 sm:bottom-14 sm:w-9" />
+          <div className="absolute right-5 top-5 text-2xl text-leaf/70">✓</div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {
   if (!step) return false;
   return [
@@ -601,7 +672,7 @@ export default function SessionTimelinePage() {
                   <ShoppingCheckpointRow checkpointState={checkpointState} />
                 )}
                 <article
-                  className={`relative overflow-hidden rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
+                  className={`rounded-[1.25rem] border p-3 shadow-sm sm:rounded-[1.5rem] sm:p-4 ${
                     step.id === currentActionStep?.id
                       ? "border-leaf/30 bg-leaf/[.08]"
                       : step.id === "bake-pizza"
@@ -609,14 +680,8 @@ export default function SessionTimelinePage() {
                       : "border-white/80 bg-white/80"
                   }`}
                 >
-                  <div className="pointer-events-none absolute inset-y-2 right-2 grid w-24 place-items-center opacity-75 sm:inset-y-3 sm:right-4 sm:w-32" aria-hidden="true" data-testid="timeline-step-watermark">
-                    <div className={`absolute h-20 w-20 rounded-full blur-xl sm:h-24 sm:w-24 ${step.id === "bake-pizza" || step.id === "preheat-oven" ? "bg-tomato/10" : "bg-leaf/10"}`} />
-                    <div className={`relative grid h-16 w-16 place-items-center rounded-[1.5rem] text-4xl ring-1 sm:h-20 sm:w-20 sm:text-5xl ${timelineStepIconTone(step)}`}>
-                      {timelineStepIcon(step)}
-                    </div>
-                  </div>
-                  <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                    <div className="min-w-0 pr-16 sm:pr-28">
+                  <div className="flex min-w-0 items-stretch gap-3 sm:gap-4">
+                    <div className="flex min-w-0 flex-1 flex-col gap-3 p-1 sm:p-1.5">
                       <div className="min-w-0">
                         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
                           Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
@@ -630,15 +695,16 @@ export default function SessionTimelinePage() {
                           Quiet-hours warning: {step.quietHoursWarning}
                         </p>
                       )}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === currentActionStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
+                          {statusLabel(step, currentActionStep)}
+                        </span>
+                        <span className="text-sm font-bold text-ink/55">
+                          {relativeFromTarget(step.scheduledAt, targetTime)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                      <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === currentActionStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
-                        {statusLabel(step, currentActionStep)}
-                      </span>
-                      <span className="text-sm font-bold text-ink/55">
-                        {relativeFromTarget(step.scheduledAt, targetTime)}
-                      </span>
-                    </div>
+                    <TimelineStepMediaPanel step={step} />
                   </div>
                 </article>
               </div>
