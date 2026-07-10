@@ -62,6 +62,34 @@ function kitchenBackHrefFromReferrer(value?: string) {
   return "/session/shopping";
 }
 
+function kitchenStepIcon(step?: { id: string }) {
+  if (step?.id === "mix-dough") return "🥣";
+  if (step?.id === "rest-dough") return "⏳";
+  if (step?.id === "cold-ferment") return "❄️";
+  if (step?.id === "room-ferment" || step?.id === "ferment-dough") return "🌡️";
+  if (step?.id === "ball-dough") return "🍞";
+  if (step?.id === "room-temperature-rest") return "🌡️";
+  if (step?.id === "preheat-oven") return "🔥";
+  if (step?.id === "prepare-sauce-toppings") return "🍅";
+  if (step?.id === "bake-pizza") return "🍕";
+  if (step?.id === "review-result") return "📝";
+  return "✓";
+}
+
+function kitchenStepIconTone(step?: { id: string }) {
+  if (step?.id === "cold-ferment" || step?.id === "room-ferment" || step?.id === "ferment-dough" || step?.id === "room-temperature-rest") {
+    return "bg-leaf/10 text-leaf ring-leaf/15";
+  }
+  if (step?.id === "preheat-oven" || step?.id === "bake-pizza") {
+    return "bg-tomato/10 text-tomato ring-tomato/15";
+  }
+  return "bg-white text-ink ring-ink/10";
+}
+
+function levelModeLabel(label: string) {
+  return `${label} mode`;
+}
+
 export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -170,21 +198,36 @@ export default function SessionKitchenPage() {
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-leaf/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-leaf">
-                      Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount}
-                    </span>
-                    <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/45">
-                      Kitchen Mode
-                    </span>
-                    {waitInfo.isTooEarly && waitInfo.waitLabel && (
-                      <span className="rounded-full bg-tomato/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-tomato">
-                        {waitInfo.waitLabel}
-                      </span>
-                    )}
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-leaf/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-leaf">
+                          Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount}
+                        </span>
+                        <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/45">
+                          Kitchen Mode
+                        </span>
+                        {waitInfo.isTooEarly && waitInfo.waitLabel && (
+                          <span className="rounded-full bg-tomato/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-tomato">
+                            {waitInfo.waitLabel}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-5 flex min-w-0 items-start gap-3">
+                        <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
+                          {kitchenStepIcon(currentStep)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current step</p>
+                          <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`rounded-[1.5rem] border p-4 shadow-sm ${experience.cardClassName}`}>
+                      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{levelModeLabel(experience.label)}</p>
+                      <p className="mt-2 text-sm font-extrabold leading-6 text-ink/65">{experience.label} guidance</p>
+                    </div>
                   </div>
-                  <p className="mt-5 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current step</p>
-                  <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
 
                   <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-cream/70 p-4 shadow-sm sm:p-5" aria-labelledby="kitchen-current-timing-heading">
                     <p id="kitchen-current-timing-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned for</p>
@@ -207,13 +250,20 @@ export default function SessionKitchenPage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-4 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
-                      <span className="uppercase tracking-[.14em] text-ink/40">{currentStepIsWaiting ? "Next action:" : "Next:"}</span>{" "}
-                      {nextStepSummary}
-                      {kitchenState.nextStep && nextLiveTiming.kind !== "unknown" && (
-                        <span className="font-bold text-ink/45"> · {nextLiveTiming.label}{nextLiveTiming.value ? ` ${nextLiveTiming.value}` : ""}</span>
+                    <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
+                      {kitchenState.nextStep && (
+                        <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-base ring-1 ${kitchenStepIconTone(kitchenState.nextStep)}`} aria-hidden="true">
+                          {kitchenStepIcon(kitchenState.nextStep)}
+                        </span>
                       )}
-                    </p>
+                      <p className="min-w-0">
+                        <span className="uppercase tracking-[.14em] text-ink/40">{currentStepIsWaiting ? "Next action:" : "Next:"}</span>{" "}
+                        {nextStepSummary}
+                        {kitchenState.nextStep && nextLiveTiming.kind !== "unknown" && (
+                          <span className="font-bold text-ink/45"> · {nextLiveTiming.label}{nextLiveTiming.value ? ` ${nextLiveTiming.value}` : ""}</span>
+                        )}
+                      </p>
+                    </div>
                   </section>
 
                   {waitInfo.isTooEarly && waitInfo.waitLabel && (
@@ -227,39 +277,46 @@ export default function SessionKitchenPage() {
                     </div>
                   )}
 
-                  <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-                    <section className="rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-4 sm:p-5 lg:col-start-1 lg:row-start-1" aria-labelledby="kitchen-do-this-heading">
-                      <p id="kitchen-do-this-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{currentStepIsWaiting ? "What is happening now" : "Do this"}</p>
-                      <p className="mt-2 text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
+                  <div className="mt-5 grid gap-3 lg:gap-4">
+                    <section className="rounded-[1.5rem] border border-tomato/20 bg-tomato/[.08] p-4 shadow-sm sm:p-5" aria-labelledby="kitchen-do-this-heading">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
+                          {kitchenStepIcon(currentStep)}
+                        </span>
+                        <div className="min-w-0">
+                          <p id="kitchen-do-this-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{currentStepIsWaiting ? "What is happening now" : "Do this"}</p>
+                          <p className="mt-2 text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
+                        </div>
+                      </div>
                     </section>
 
-                    <section className="rounded-[1.5rem] border border-ink/10 bg-cream p-4 sm:p-5 lg:col-start-1 lg:row-start-2" aria-labelledby="kitchen-done-heading">
+                    <section className="rounded-[1.5rem] border border-ink/10 bg-cream/75 p-4 sm:p-5" aria-labelledby="kitchen-done-heading">
                       <p id="kitchen-done-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">You are done when</p>
                       <p className="mt-2 text-sm font-bold leading-6 text-ink/70 sm:text-base">{taskPresentation.doneCondition}</p>
                     </section>
 
+                    <section className={`rounded-[1.5rem] border p-4 sm:p-5 ${experience.cardClassName}`} aria-labelledby="kitchen-level-guidance-heading">
+                      <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
+                      <p className="mt-2 text-base font-extrabold leading-7 text-ink sm:text-lg">{levelGuidance.instruction}</p>
+                      {levelGuidanceDetails.length > 0 && (
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          {levelGuidanceDetails.map((item) => (
+                            <div key={item.label} className="rounded-2xl bg-white/70 p-3.5">
+                              <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/40">{item.label}</p>
+                              <p className="mt-1 text-sm font-bold leading-6 text-ink/70">{item.value}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+
                     {taskPresentation.helperCopy && (
-                      <section className="rounded-[1.5rem] border border-leaf/15 bg-leaf/[.08] p-4 sm:p-5 lg:col-start-1 lg:row-start-3" aria-labelledby="kitchen-technique-heading">
+                      <section className="rounded-[1.5rem] border border-leaf/10 bg-leaf/[.04] p-4 sm:p-5" aria-labelledby="kitchen-technique-heading">
                         <p id="kitchen-technique-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Technique note</p>
-                        <p className="mt-2 text-sm font-bold leading-6 text-ink/65 sm:text-base">{taskPresentation.helperCopy}</p>
+                        <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:text-base">{taskPresentation.helperCopy}</p>
                       </section>
                     )}
                   </div>
-
-                  <section className={`mt-5 rounded-[1.5rem] border p-4 sm:mt-6 sm:p-5 ${experience.cardClassName}`} aria-labelledby="kitchen-level-guidance-heading">
-                    <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
-                    <p className="mt-2 text-base font-extrabold leading-7 text-ink sm:text-lg">{levelGuidance.instruction}</p>
-                    {levelGuidanceDetails.length > 0 && (
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        {levelGuidanceDetails.map((item) => (
-                          <div key={item.label} className="rounded-2xl bg-white/70 p-3.5">
-                            <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/40">{item.label}</p>
-                            <p className="mt-1 text-sm font-bold leading-6 text-ink/70">{item.value}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </section>
                 </section>
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length > 0 && (

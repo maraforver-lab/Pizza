@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getExperienceLevelConfig } from "@/lib/experience-levels";
 import { createPizzaSession, pizzaSessionContinueHref } from "@/lib/pizza-session";
 import { generatePizzaSessionTimeline } from "@/lib/pizza-session-timeline";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
@@ -345,6 +346,12 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Planned for");
     expect(page).toContain("Current step");
     expect(page).toContain("<h1 id=\"current-kitchen-task\"");
+    expect(page).toContain("levelModeLabel(experience.label)");
+    expect(page).toContain("${label} mode");
+    expect(page).toContain("kitchenStepIcon(currentStep)");
+    expect(page).toContain("kitchenStepIconTone(currentStep)");
+    expect(page).toContain("kitchenStepIcon(kitchenState.nextStep)");
+    expect(page).toContain("kitchenStepIconTone(kitchenState.nextStep)");
     expect(page).toContain("Do this");
     expect(page).toContain("What is happening now");
     expect(page).not.toContain("function formatKitchenClockTime");
@@ -383,6 +390,19 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("Open baking timer");
     expect(page).not.toContain("Review dough plan");
     expect(page).not.toContain("Back to timeline");
+  });
+
+  it("maps small Kitchen Mode visuals to key step types", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("function kitchenStepIcon(step?: { id: string })");
+    expect(page).toContain('step?.id === "mix-dough"');
+    expect(page).toContain('step?.id === "rest-dough"');
+    expect(page).toContain('step?.id === "cold-ferment"');
+    expect(page).toContain('step?.id === "bake-pizza"');
+    expect(page).toContain("function kitchenStepIconTone(step?: { id: string })");
+    expect(page).toContain("bg-leaf/10 text-leaf ring-leaf/15");
+    expect(page).toContain("bg-tomato/10 text-tomato ring-tomato/15");
   });
 
   it("renders the Kitchen Mode early-step wait notice and confirmation controls", () => {
@@ -513,6 +533,16 @@ describe("Pizza Session Kitchen Mode", () => {
     expect([enthusiast.instruction, enthusiast.whatToLookFor, enthusiast.whyItMatters].join(" ")).not.toMatch(/oxidation|full gluten development/i);
   });
 
+  it("renders selected experience level as a compact mode badge", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("levelModeLabel(experience.label)");
+    expect(page).toContain("${label} mode");
+    expect(getExperienceLevelConfig("beginner").label).toBe("Beginner");
+    expect(getExperienceLevelConfig("enthusiast").label).toBe("Enthusiast");
+    expect(getExperienceLevelConfig("pizza_nerd").label).toBe("Pizza Nerd");
+  });
+
   it("uses safe Beginner guidance for missing, unknown or legacy experience levels", () => {
     const bakeStep = { id: "bake-pizza", label: "Bake pizza", status: "todo" as const };
 
@@ -554,14 +584,15 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("formatKitchenStepTime(currentStep.scheduledAt)");
     expect(page).toContain("formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())");
     expect(page).toContain("formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())");
-    expect(page).toContain("rounded-[1.5rem] border border-leaf/15 bg-leaf/[.08]");
+    expect(page).toContain("rounded-[1.5rem] border border-leaf/10 bg-leaf/[.04]");
     expect(page).toContain("Quiet-hours warning");
     expect(page).toContain("rounded-2xl bg-tomato/10");
     expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned for"));
     expect(page.indexOf("Planned for")).toBeLessThan(page.indexOf("Next action"));
     expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("Do this"));
     expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("You are done when"));
-    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("Technique note"));
+    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
+    expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("Technique note"));
   });
 
   it("uses a clearer ball-dough action and done condition when dough-ball amounts are available", () => {
