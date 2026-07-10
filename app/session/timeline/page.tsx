@@ -601,19 +601,22 @@ export default function SessionTimelinePage() {
                   <ShoppingCheckpointRow checkpointState={checkpointState} />
                 )}
                 <article
-                  className={`rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
+                  className={`relative overflow-hidden rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
                     step.id === currentActionStep?.id
                       ? "border-leaf/30 bg-leaf/[.08]"
                       : step.id === "bake-pizza"
                         ? "border-tomato/20 bg-tomato/[.05]"
-                        : "border-white/80 bg-white/80"
+                      : "border-white/80 bg-white/80"
                   }`}
                 >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                    <div className="flex min-w-0 gap-3 sm:gap-4">
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xl ring-1 sm:h-12 sm:w-12 sm:text-2xl ${timelineStepIconTone(step)}`} aria-hidden="true">
-                        {timelineStepIcon(step)}
-                      </div>
+                  <div className="pointer-events-none absolute inset-y-2 right-2 grid w-24 place-items-center opacity-75 sm:inset-y-3 sm:right-4 sm:w-32" aria-hidden="true" data-testid="timeline-step-watermark">
+                    <div className={`absolute h-20 w-20 rounded-full blur-xl sm:h-24 sm:w-24 ${step.id === "bake-pizza" || step.id === "preheat-oven" ? "bg-tomato/10" : "bg-leaf/10"}`} />
+                    <div className={`relative grid h-16 w-16 place-items-center rounded-[1.5rem] text-4xl ring-1 sm:h-20 sm:w-20 sm:text-5xl ${timelineStepIconTone(step)}`}>
+                      {timelineStepIcon(step)}
+                    </div>
+                  </div>
+                  <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                    <div className="min-w-0 pr-16 sm:pr-28">
                       <div className="min-w-0">
                         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
                           Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
