@@ -721,7 +721,8 @@ describe("Party Orders foundation", () => {
     expect(handoff).toContain("pizzaMix: handoff.pizzaMix");
     expect(handoff).toContain("setActivePizzaSession(session.id)");
     expect(handoff).toContain("clearCloudBackedPizzaSession()");
-    expect(handoff).toContain("router.push(\"/session/start\")");
+    expect(handoff).toContain("saveCloudActivePizzaSession(session)");
+    expect(handoff).toContain("router.push(\"/session/start?handoff=1\")");
   });
 
   it("builds plain-text invitation copy for WhatsApp and messages", () => {

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { clearCloudBackedPizzaSession } from "@/lib/cloud-pizza-session-client";
+import { clearCloudBackedPizzaSession, saveCloudActivePizzaSession } from "@/lib/cloud-pizza-session-client";
 import { isPizzaCatalogId } from "@/lib/pizza-catalog";
 import type { PizzaSessionPizzaMix } from "@/lib/pizza-session";
 import { createAndSavePizzaSession, setActivePizzaSession } from "@/lib/pizza-session-storage";
@@ -95,7 +95,10 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
       });
       setActivePizzaSession(session.id);
       clearCloudBackedPizzaSession();
-      router.push("/session/start");
+      await saveCloudActivePizzaSession(session).catch(() => {
+        // Keep the Party Order handoff local and active if account sync is temporarily unavailable.
+      });
+      router.push("/session/start?handoff=1");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Pizza Session could not be created from this order.");
     } finally {

@@ -409,8 +409,10 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("setActivePizzaSession");
     expect(page).toContain("updatePizzaSession");
     expect(page).toContain('const shouldStartNewSession = query.get("new") === "1"');
+    expect(page).toContain('const shouldPreserveLocalHandoff = query.get("handoff") === "1"');
     expect(page).toContain("if (shouldStartNewSession)");
     expect(page).toContain("let active = shouldStartNewSession ? undefined : getActivePizzaSession()");
+    expect(page).toContain("if (!shouldStartNewSession && !shouldPreserveLocalHandoff)");
     expect(page).toContain("const { data } = await supabase.auth.getSession()");
     expect(page).toContain("fetch(\"/api/pizza-sessions/active\"");
     expect(page).toContain("normalizeCloudPizzaSessionRow(payload.session)");

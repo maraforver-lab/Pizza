@@ -448,12 +448,13 @@ function StartPizzaSessionContent() {
       const preferredLevel = readExperienceLevelPreference();
       const query = new URLSearchParams(window.location.search);
       const shouldStartNewSession = query.get("new") === "1";
+      const shouldPreserveLocalHandoff = query.get("handoff") === "1";
       if (shouldStartNewSession) {
         clearActivePizzaSession();
       }
 
       let active = shouldStartNewSession ? undefined : getActivePizzaSession();
-      if (!shouldStartNewSession) {
+      if (!shouldStartNewSession && !shouldPreserveLocalHandoff) {
         try {
           const supabase = getSupabaseBrowserClient();
           const { data } = await supabase.auth.getSession();
