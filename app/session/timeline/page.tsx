@@ -26,6 +26,7 @@ import {
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import { buildSessionRecipe } from "@/lib/session-recipe";
+import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import {
   formatEarlyTimelineStartTime,
   shouldWarnBeforeEarlyTimelineStart,
@@ -465,7 +466,7 @@ export default function SessionTimelinePage() {
   const nextAction = nextActionForTimeline({ nextStep: currentActionStep, allStepsComplete });
   const currentActionTime = currentActionStep?.scheduledAt ?? targetTime;
   const nextLiveTiming = formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime);
-  const currentLiveTiming = formatTimelineLiveTiming(currentActionStep?.scheduledAt, currentTime);
+  const currentLiveTiming = formatTimelineLiveTiming(currentActionTime, currentTime);
   const stepProgressLabel = currentActionStep && currentActionIndex >= 0
     ? `Step ${currentActionIndex + 1} of ${actionableSteps.length}`
     : allStepsComplete
@@ -528,64 +529,52 @@ export default function SessionTimelinePage() {
     setEarlyStartStep(null);
     router.push("/session/kitchen?from=timeline");
   };
+  const nextStepSummary = followingActionStep
+    ? `${followingActionStep.label} · ${formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)}`
+    : allStepsComplete
+      ? "Ready for Review"
+      : "Next step not available";
   const renderNextActionCard = () => (
-    <div className="max-w-3xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm" data-testid="timeline-current-action-card">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
-        <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Current step</p>
-          <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
-            {nextAction.title}
-          </h2>
-          <p className="mt-3 text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned at</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
-              currentLiveTiming.kind === "overdue"
-                ? "bg-tomato/10 text-tomato"
-                : "bg-leaf/10 text-leaf"
-            }`}>
-              {currentLiveTiming.label}
-            </span>
-            {currentLiveTiming.value && (
-              <span className="rounded-full bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">
-                {currentLiveTiming.value}
-              </span>
-            )}
-            <span className="rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/60">
-              {formatTimelineTime(currentActionTime)}
-            </span>
-          </div>
-          <p className="mt-3 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
-        </section>
-
-        <section aria-labelledby="timeline-next-step-heading" className="min-w-0 rounded-[1.25rem] border border-white/75 bg-white/85 p-4">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Next step</p>
-          <h3 id="timeline-next-step-heading" className="mt-2 font-display text-3xl font-semibold leading-none text-ink">
-            {followingActionStep?.label ?? (allStepsComplete ? "Ready for Review" : "Next step not available")}
-          </h3>
-          <p className="mt-3 break-words font-display text-4xl font-semibold leading-none text-leaf sm:text-5xl">
-            {formatTimelineTime(followingActionStep?.scheduledAt)}
+    <div className="max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm sm:p-5" data-testid="timeline-current-action-card">
+      <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
+        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Now</p>
+        <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
+          {nextAction.title}
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+        <div className="mt-4">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned for</p>
+          <p className="mt-1 font-display text-3xl font-semibold leading-none text-ink sm:text-4xl">
+            {formatSessionPlannedTime(currentActionTime, currentTime)}
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
-              nextLiveTiming.kind === "overdue"
-                ? "bg-tomato/10 text-tomato"
-                : nextLiveTiming.kind === "ready"
-                  ? "bg-leaf/10 text-leaf"
-                  : "bg-cream text-ink/60"
-            }`}>
-              {nextLiveTiming.label}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
+            currentLiveTiming.kind === "overdue"
+              ? "bg-tomato/10 text-tomato"
+              : currentLiveTiming.kind === "unknown"
+                ? "bg-white text-ink/55"
+                : "bg-leaf/10 text-leaf"
+          }`}>
+            {currentLiveTiming.label}
+          </span>
+          {currentLiveTiming.value && (
+            <span className="rounded-full bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">
+              {currentLiveTiming.value}
             </span>
-            {nextLiveTiming.value && (
-              <span className="rounded-full bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">
-                {nextLiveTiming.value}
-              </span>
-            )}
-            <span className="rounded-full bg-ink/[.06] px-3 py-2 text-xs font-extrabold text-ink/55">
-              {stepProgressLabel}
-            </span>
-          </div>
-        </section>
-      </div>
+          )}
+          <span className="rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/55">
+            {stepProgressLabel}
+          </span>
+        </div>
+        <p className="mt-4 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
+          <span className="uppercase tracking-[.14em] text-ink/40">Next:</span>{" "}
+          {nextStepSummary}
+          {followingActionStep && nextLiveTiming.kind !== "unknown" && (
+            <span className="font-bold text-ink/45"> · {nextLiveTiming.label}{nextLiveTiming.value ? ` ${nextLiveTiming.value}` : ""}</span>
+          )}
+        </p>
+      </section>
       <button
         type="button"
         onClick={handleNextAction}

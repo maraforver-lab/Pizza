@@ -341,14 +341,16 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("formatTimelineLiveTiming");
     expect(page).toContain("currentLiveTiming");
     expect(page).toContain("nextLiveTiming");
-    expect(page).toContain("function formatKitchenClockTime");
-    expect(page).toContain("Planned at");
-    expect(page).toContain("Live timing");
+    expect(page).toContain("formatSessionPlannedTime");
+    expect(page).toContain("Planned for");
     expect(page).toContain("Current step");
     expect(page).toContain("<h1 id=\"current-kitchen-task\"");
     expect(page).toContain("Do this");
     expect(page).toContain("What is happening now");
-    expect(page).toContain("When");
+    expect(page).not.toContain("function formatKitchenClockTime");
+    expect(page).not.toContain("Planned at");
+    expect(page).not.toContain("Live timing");
+    expect(page).not.toContain("When");
     expect(page).toContain("You are done when");
     expect(page).toContain("Technique note");
     expect(page).toContain("{experience.label} guidance");
@@ -357,8 +359,9 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Why it matters");
     expect(page).toContain("Keep in mind");
     expect(page).toContain("Next action");
-    expect(page).toContain("Next step");
-    expect(page).toContain("{kitchenState.nextStep ? nextTaskPresentation.title : \"Review your pizza session\"}");
+    expect(page).toContain("Next:");
+    expect(page).toContain("const nextStepSummary = kitchenState.nextStep");
+    expect(page).toContain(": \"Review your pizza session\"");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href={backHref}");
     expect(page).toContain("Mark step as done →");
@@ -403,6 +406,8 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("import { formatTimelineLiveTiming } from \"@/lib/timeline-live-timing\"");
     expect(page).toContain("const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, currentTime ?? new Date())");
     expect(page).toContain("const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date())");
+    expect(page).toContain("formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())");
+    expect(page).toContain("formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())");
     expect(page).toContain("currentLiveTiming.label");
     expect(page).toContain("currentLiveTiming.value");
     expect(page).toContain("nextLiveTiming.label");
@@ -546,21 +551,16 @@ describe("Pizza Session Kitchen Mode", () => {
   it("renders clearer Kitchen Mode timing and technique hierarchy without alert styling for normal guidance", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("function formatKitchenStepTime");
     expect(page).toContain("formatKitchenStepTime(currentStep.scheduledAt)");
-    expect(page).toContain("formatKitchenClockTime(currentStep.scheduledAt)");
-    expect(page).toContain("formatKitchenClockTime(kitchenState.nextStep?.scheduledAt)");
-    expect(page).toContain("bake time");
-    expect(page).toContain("diffMinutes < 0 ? \"before\" : \"after\"");
+    expect(page).toContain("formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())");
+    expect(page).toContain("formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())");
     expect(page).toContain("rounded-[1.5rem] border border-leaf/15 bg-leaf/[.08]");
     expect(page).toContain("Quiet-hours warning");
     expect(page).toContain("rounded-2xl bg-tomato/10");
-    expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned at"));
-    expect(page.indexOf("Planned at")).toBeLessThan(page.indexOf("Live timing"));
-    expect(page.indexOf("Live timing")).toBeLessThan(page.indexOf("Do this"));
-    expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("When"));
-    expect(page.indexOf("When")).toBeLessThan(page.indexOf("Next action"));
-    expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("You are done when"));
+    expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned for"));
+    expect(page.indexOf("Planned for")).toBeLessThan(page.indexOf("Next action"));
+    expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("Do this"));
+    expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("You are done when"));
     expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("Technique note"));
   });
 

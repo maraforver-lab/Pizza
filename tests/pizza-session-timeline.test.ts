@@ -29,6 +29,7 @@ import {
   formatEarlyTimelineStartTime,
   shouldWarnBeforeEarlyTimelineStart,
 } from "@/lib/timeline-early-start-warning";
+import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import { MemoryStorage } from "./helpers";
 
@@ -73,6 +74,17 @@ describe("Pizza Session timeline", () => {
     });
   });
 
+  it("formats planned Timeline and Kitchen times for nearby and future dates", () => {
+    const now = new Date("2026-07-10T09:00:00");
+
+    expect(formatSessionPlannedTime("2026-07-10T15:00:00", now)).toBe("Today 15:00");
+    expect(formatSessionPlannedTime("2026-07-11T15:00:00", now)).toBe("Tomorrow 15:00");
+    expect(formatSessionPlannedTime("2026-07-13T15:00:00", now)).toBe("Monday 15:00");
+    expect(formatSessionPlannedTime("2026-07-19T15:00:00", now)).toBe("Sun, 19 Jul · 15:00");
+    expect(formatSessionPlannedTime("2027-07-19T15:00:00", now)).toBe("Mon, 19 Jul 2027 · 15:00");
+    expect(formatSessionPlannedTime(undefined, now)).toBe("Timing not set");
+  });
+
   it("adds the /session/timeline route and timeline helper", () => {
     expect(existsSync(join(process.cwd(), "app", "session", "timeline", "page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "lib", "pizza-session-timeline.ts"))).toBe(true);
@@ -84,9 +96,9 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("hideMeta");
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).not.toContain("Next up</p>");
-    expect(page).toContain("Current step");
-    expect(page).toContain("Planned at");
-    expect(page).toContain("Next step");
+    expect(page).toContain("Now");
+    expect(page).toContain("Planned for");
+    expect(page).toContain("Next:");
     expect(page).toContain("timeline-current-action-card");
     expect(page).toContain("actionableTimelineSteps");
     expect(page).toContain("currentActionStep");
@@ -106,7 +118,11 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("<SessionWorkspaceLayout activeStep={8} hideLocalSaveNote>");
     expect(page).toContain("{renderNextActionCard()}");
-    expect(page).toContain("max-w-3xl rounded-2xl border border-leaf/15 bg-cream/70");
+    expect(page).toContain("max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70");
+    expect(page).toContain("formatSessionPlannedTime(currentActionTime, currentTime)");
+    expect(page).toContain("formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)");
+    expect(page).not.toContain("timeline-next-step-heading");
+    expect(page).not.toContain("rounded-[1.25rem] border border-white/75 bg-white/85 p-4");
     expect(page).not.toContain("desktopAside={renderNextActionCard()}");
     expect(page).not.toContain("Session summary");
     expect(page).not.toContain("Step 7: Timeline");
@@ -628,11 +644,14 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("function actionableTimelineSteps");
     expect(page).toContain("const currentActionStep = actionableSteps.find((step) => step.status === \"todo\")");
     expect(page).toContain("const followingActionStep = currentActionIndex >= 0");
-    expect(page).toContain("Current step");
-    expect(page).toContain("Planned at");
-    expect(page).toContain("Next step");
-    expect(page).toContain("formatTimelineLiveTiming(currentActionStep?.scheduledAt, currentTime)");
+    expect(page).toContain("Now");
+    expect(page).toContain("Planned for");
+    expect(page).toContain("Next:");
+    expect(page).toContain("formatTimelineLiveTiming(currentActionTime, currentTime)");
     expect(page).toContain("formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime)");
+    expect(page).toContain("const nextStepSummary = followingActionStep");
+    expect(page).toContain("formatSessionPlannedTime(currentActionTime, currentTime)");
+    expect(page).toContain("formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)");
     expect(page).not.toContain("Scheduled");
     expect(page).toContain("Step ${currentActionIndex + 1} of ${actionableSteps.length}");
     expect(page).toContain("cta: \"Start dough →\"");
@@ -644,6 +663,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("const renderNextActionCard");
     expect(page).not.toContain("const nextStep = displayTimelineSteps.find((step) => step.status === \"todo\")");
     expect(page).not.toContain("timeline-next-action-heading");
+    expect(page).not.toContain("timeline-next-step-heading");
     expect(page).toContain("Review shopping →");
     expect(page).toContain("href: \"/session/kitchen?from=timeline\"");
     expect(page).toContain("href: \"/session/review\"");
