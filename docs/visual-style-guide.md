@@ -658,6 +658,69 @@ Food/pizza hero imagery:
 - should not make the UI noisy
 - should not override the content hierarchy
 
+### Decorative imagery guardrails
+
+Future visual/layout patches may use small decorative pizza, dough or ingredient imagery when it supports the section hierarchy.
+
+Allowed:
+
+- max one decorative image per major card or section unless explicitly approved
+- existing local assets first
+- small inline SVGs or existing icon styles
+- decorative images with empty `alt` text or `aria-hidden`
+- meaningful images with short descriptive `alt` text
+
+Not allowed without explicit approval:
+
+- remote runtime image dependencies
+- images with embedded text
+- images that introduce claims or feature promises
+- images that cause mobile overflow
+- heavy assets that noticeably increase page weight
+
+If a patch adds a new image asset, document the file and purpose in the patch report.
+
+---
+
+## 17a. Visual/layout improvements vs copy changes
+
+Future UI patches may improve visual hierarchy with:
+
+- softer cards
+- warm cream backgrounds
+- soft green success/status cards
+- subtle gradients
+- rounded panels
+- subtle shadows
+- small icons
+- small decorative images
+- compact key-value rows
+- mobile stacked layouts
+- desktop two-column layouts
+
+For layout/design patches, do not introduce new user-facing copy unless the patch explicitly asks for it.
+
+Allowed without separate approval:
+
+- reuse existing copy
+- move existing copy
+- change layout around existing copy
+- shorten obviously duplicated copy only when the patch explicitly asks for duplicate-copy cleanup
+- change labels only when the patch explicitly asks for consistency
+
+Not allowed without separate approval:
+
+- new explanatory paragraphs
+- new section titles
+- new CTA labels
+- new helper text
+- duplicate info boxes
+- marketing-style claims
+- promises about features
+- guidance text that could conflict with calculation or planning logic
+
+If new copy is needed, Codex must list the proposed copy clearly before implementing unless the prompt already includes the exact approved copy.
+
 ---
 
 ## 18. Spacing and density

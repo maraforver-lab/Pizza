@@ -132,6 +132,11 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain('label: "Dough scraper or sturdy spoon"');
     expect(page).not.toContain('label: "Covered container or bowl"');
     expect(page).toContain("Dough planning notes");
+    expect(page).toContain("PlanningGuidanceCard");
+    expect(page).toContain("PlanningStatusCard");
+    expect(page).toContain("PlanningWatchCard");
+    expect(page).toContain("PlanningDetailsList");
+    expect(page).toContain("PlanningDetailRow");
     expect(page).toContain("buildSessionFermentationDisplay");
     expect(page).toContain("fermentationDisplay.fullLabel");
     expect(page).toContain("Planning guidance is based on available session choices.");
@@ -176,6 +181,10 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Selected flour:");
     expect(page).toContain("Recommended flour for 48–72h cold fermentation:");
     expect(page).toContain("recommendedFlourStrengthGuidance");
+    expect(page.match(/>Planning guidance<\/p>/g)).toHaveLength(1);
+    expect(page.match(/Overall risk/g)).toHaveLength(1);
+    expect(page.match(/What to adjust first/g)).toHaveLength(1);
+    expect(page.match(/Session planning context/g)).toHaveLength(1);
     expect(page).not.toMatch(/Not enough information/i);
     expect(page.indexOf("Long-horizon start plan")).toBeLessThan(page.indexOf("Dough planning notes"));
     expect(page).not.toContain("Set the bake target first");
@@ -187,6 +196,27 @@ describe("Session recipe build step", () => {
     expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Ingredients & amounts"));
     expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Dough planning notes"));
     expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
+  });
+
+  it("defines reusable planning guidance primitives without changing generated values", () => {
+    const component = source("components/session/PlanningGuidance.tsx");
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(component).toContain("export function PlanningGuidanceCard");
+    expect(component).toContain("export function PlanningStatusCard");
+    expect(component).toContain("export function PlanningWatchCard");
+    expect(component).toContain("export function PlanningDetailsList");
+    expect(component).toContain("export function PlanningDetailRow");
+    expect(component).toContain("export function PlanningIllustration");
+    expect(component).toContain("<dl");
+    expect(component).toContain("<dt");
+    expect(component).toContain("<dd");
+    expect(page).toContain("displayedRiskSummary");
+    expect(page).toContain("displayedFirstAdjustment");
+    expect(page).toContain("formatAvailableHours(planningResult.availableFermentationHours)");
+    expect(page).toContain("planningHighlights.slice(0, 4).map");
+    expect(page).toContain("fermentationDisplay.label");
+    expect(page).toContain("fermentationDisplay.temperatureC");
   });
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {

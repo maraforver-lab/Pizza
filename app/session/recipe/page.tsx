@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
+import {
+  PlanningDetailRow,
+  PlanningDetailsList,
+  PlanningGuidanceCard,
+  PlanningStatusCard,
+  PlanningWatchCard,
+} from "@/components/session/PlanningGuidance";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSessionToAccount";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
@@ -613,55 +620,44 @@ export default function SessionRecipePage() {
               </div>
 
               {planningResult && combinedRisk ? (
-                <div className="mt-4 grid gap-3">
-                  <div className="grid gap-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,1.05fr)]">
-                    <section className={`rounded-[1.25rem] border p-4 ${planningRiskTone(combinedRisk.overallRiskLevel)}`}>
-                      <div className="grid gap-3">
-                        <div>
-                          <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
-                          <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
-                        </div>
-                        <div className="rounded-2xl bg-white/70 p-3 text-sm leading-6 text-ink/65">
-                          <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
-                          <span className="mt-1 block font-bold">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
-                        </div>
-                      </div>
-                    </section>
+                <PlanningGuidanceCard className="mt-4">
+                  <PlanningStatusCard className={planningRiskTone(combinedRisk.overallRiskLevel)}>
+                    <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
+                    <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
+                  </PlanningStatusCard>
+
+                  <div className="grid gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(18rem,1.1fr)]">
+                    <PlanningWatchCard>
+                      <span className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">What to adjust first</span>
+                      <span className="mt-1 block text-sm font-bold leading-6 text-ink/65">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
+                    </PlanningWatchCard>
 
                     <section className="rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
                       <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Session planning context</p>
-                      <dl className="mt-3 grid gap-2 sm:grid-cols-2">
-                        <div className="grid gap-1 rounded-2xl bg-white/90 p-3">
-                          <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
-                          <dd className="text-sm font-extrabold leading-5 text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
-                        </div>
+                      <PlanningDetailsList className="mt-3">
+                        <PlanningDetailRow
+                          label="Available time"
+                          value={<span className="font-extrabold text-ink">{formatAvailableHours(planningResult.availableFermentationHours)}</span>}
+                        />
                         {planningHighlights.slice(0, 4).map((item) => (
-                          <div key={item.label} className="grid gap-1 rounded-2xl bg-white/90 p-3">
-                            <dt className="text-xs font-extrabold text-ink/45">{item.label}</dt>
-                            <dd className="text-sm font-bold leading-5 text-ink/70">{item.value}</dd>
-                          </div>
+                          <PlanningDetailRow key={item.label} label={item.label} value={item.value} />
                         ))}
                         {result.continuousYeast && (
                           <>
-                            <div className="grid gap-1 rounded-2xl bg-white/90 p-3">
-                              <dt className="text-xs font-extrabold text-ink/45">Planned fermentation length</dt>
-                              <dd className="text-sm font-bold leading-5 text-ink/70">{fermentationDisplay.label}</dd>
-                            </div>
-                            <div className="grid gap-1 rounded-2xl bg-white/90 p-3 sm:col-span-2">
-                              <dt className="text-xs font-extrabold text-ink/45">Fermentation place / temperature</dt>
-                              <dd className="text-sm font-bold leading-5 text-ink/70">
-                                {result.continuousYeast.recommendation.fermentationMode === "cold"
-                                  ? `Cold fermentation in the fridge · ${fermentationDisplay.temperatureC} °C`
-                                  : `Room fermentation · ${fermentationDisplay.temperatureC} °C`}
-                              </dd>
-                            </div>
+                            <PlanningDetailRow label="Planned fermentation length" value={fermentationDisplay.label} />
+                            <PlanningDetailRow
+                              className="sm:col-span-2"
+                              label="Fermentation place / temperature"
+                              value={result.continuousYeast.recommendation.fermentationMode === "cold"
+                                ? `Cold fermentation in the fridge · ${fermentationDisplay.temperatureC} °C`
+                                : `Room fermentation · ${fermentationDisplay.temperatureC} °C`}
+                            />
                           </>
                         )}
-                      </dl>
+                      </PlanningDetailsList>
                     </section>
                   </div>
-
-                </div>
+                </PlanningGuidanceCard>
               ) : (
                 <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">
                   Add a valid target pizza time for stronger recommendations. The dough amounts above are still calculated from your saved session choices.
