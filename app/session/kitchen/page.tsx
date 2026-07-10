@@ -7,7 +7,7 @@ import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSyn
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
-import { getExperienceLevelConfig, type ExperienceLevel } from "@/lib/experience-levels";
+import { getExperienceLevelConfig } from "@/lib/experience-levels";
 import {
   type PizzaSession,
   type PizzaSessionTimelineStep,
@@ -15,11 +15,11 @@ import {
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
+  getKitchenExperienceGuidance,
   getKitchenModeForStep,
   getKitchenModeState,
   getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
-  getKitchenTaskInstruction,
   isMixDoughStep,
   shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
@@ -56,13 +56,6 @@ function relativeFromTarget(stepTime?: string, targetTime?: string) {
     minutes ? `${minutes}m` : "",
   ].filter(Boolean).join(" ");
   return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} bake time`;
-}
-
-function levelGuidanceForStep(step: PizzaSessionTimelineStep | undefined, level: ExperienceLevel) {
-  const instruction = getKitchenTaskInstruction(step);
-  if (level === "pizza_nerd") return instruction.pizzaNerdWhy;
-  if (level === "enthusiast") return instruction.enthusiastWhy;
-  return instruction.beginnerWhy;
 }
 
 function kitchenBackHrefFromSource(value?: string | null) {
@@ -152,7 +145,13 @@ export default function SessionKitchenPage() {
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
   const waitInfo = currentTime ? getKitchenStepWaitInfo(currentStep, currentTime) : getKitchenStepWaitInfo(undefined);
   const experience = getExperienceLevelConfig(session.experienceLevel);
-  const levelGuidance = levelGuidanceForStep(currentStep, session.experienceLevel);
+  const levelGuidance = getKitchenExperienceGuidance(currentStep, session.experienceLevel, session);
+  const levelGuidanceDetails = [
+    levelGuidance.whatToLookFor && { label: "What to look for", value: levelGuidance.whatToLookFor },
+    levelGuidance.whyItMatters && { label: "Why it matters", value: levelGuidance.whyItMatters },
+    levelGuidance.technicalNote && { label: "Technical note", value: levelGuidance.technicalNote },
+    levelGuidance.reassuranceTip && { label: "Keep in mind", value: levelGuidance.reassuranceTip },
+  ].filter(Boolean) as { label: string; value: string }[];
 
   const completeCurrentStep = () => {
     if (!session || !currentStep) return;
@@ -242,7 +241,17 @@ export default function SessionKitchenPage() {
 
                   <section className={`mt-5 rounded-[1.5rem] border p-4 sm:mt-6 sm:p-5 ${experience.cardClassName}`} aria-labelledby="kitchen-level-guidance-heading">
                     <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
-                    <p className="mt-2 text-sm font-bold leading-6 text-ink/70 sm:text-base">{levelGuidance}</p>
+                    <p className="mt-2 text-base font-extrabold leading-7 text-ink sm:text-lg">{levelGuidance.instruction}</p>
+                    {levelGuidanceDetails.length > 0 && (
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        {levelGuidanceDetails.map((item) => (
+                          <div key={item.label} className="rounded-2xl bg-white/70 p-3.5">
+                            <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/40">{item.label}</p>
+                            <p className="mt-1 text-sm font-bold leading-6 text-ink/70">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </section>
                 </section>
 

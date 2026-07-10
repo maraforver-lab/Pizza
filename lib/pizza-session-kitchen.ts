@@ -5,6 +5,7 @@ import {
   type PizzaSessionTimeline,
   type PizzaSessionTimelineStep,
 } from "@/lib/pizza-session";
+import { normalizeExperienceLevel, type ExperienceLevel } from "@/lib/experience-levels";
 import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { updatePizzaSession } from "@/lib/pizza-session-storage";
@@ -27,6 +28,16 @@ export type KitchenTaskInstruction = {
   enthusiastWhy: string;
   pizzaNerdWhy: string;
 };
+
+export type KitchenExperienceGuidance = {
+  instruction: string;
+  whatToLookFor?: string;
+  whyItMatters?: string;
+  technicalNote?: string;
+  reassuranceTip?: string;
+};
+
+type KitchenExperienceGuidanceByLevel = Record<ExperienceLevel, KitchenExperienceGuidance>;
 
 export type KitchenIngredientLine = {
   label: string;
@@ -111,6 +122,215 @@ export const kitchenTaskInstructions: Record<string, KitchenTaskInstruction> = {
     beginnerWhy: "A small note makes the next pizza easier.",
     enthusiastWhy: "Tracking handling, bake color and moisture helps you repeat good results.",
     pizzaNerdWhy: "Record timing, temperature, texture and oven behavior while the result is still fresh.",
+  },
+};
+
+const defaultExperienceGuidance: KitchenExperienceGuidanceByLevel = {
+  beginner: {
+    instruction: "Follow the current step, then mark it done when it matches the description above.",
+    whatToLookFor: "The step should look finished before you move on.",
+    reassuranceTip: "If you are unsure, slow down and check the dough or pizza before continuing.",
+  },
+  enthusiast: {
+    instruction: "Use the current step as your checkpoint and compare what you see with the target state.",
+    whatToLookFor: "Look for the texture, timing and readiness cues before moving forward.",
+    whyItMatters: "Consistent checkpoints make the bake easier to repeat and improve.",
+  },
+  pizza_nerd: {
+    instruction: "Use the stored timeline step as the execution checkpoint.",
+    whatToLookFor: "Assess the physical state before relying on the clock alone.",
+    technicalNote: "Kitchen Mode reads the stored timeline and guidance; it does not recalculate formulas or timings here.",
+  },
+};
+
+const kitchenExperienceGuidance: Record<string, KitchenExperienceGuidanceByLevel> = {
+  "mix-dough": {
+    beginner: {
+      instruction: "Mix until no dry flour remains, then cover the dough.",
+      whatToLookFor: "The dough may look rough and sticky at first. That is normal.",
+      reassuranceTip: "Do not add extra flour just because it feels messy.",
+    },
+    enthusiast: {
+      instruction: "Mix until the flour is fully hydrated and the dough looks evenly combined.",
+      whatToLookFor: "The mass should become more cohesive, even if it is not smooth yet.",
+      whyItMatters: "Complete mixing makes later rests and folds more predictable.",
+      reassuranceTip: "Stickiness is expected early; judge by dry flour pockets, not by how clean your hands feel.",
+    },
+    pizza_nerd: {
+      instruction: "Build an even mix with no dry pockets while avoiding unnecessary oxidation or heat buildup.",
+      whatToLookFor: "Target a cohesive dough mass with moderate early strength, not full gluten development.",
+      technicalNote: "Assess dough temperature and hydration feel when available; do not mix only by the clock.",
+    },
+  },
+  "rest-dough": {
+    beginner: {
+      instruction: "Leave the dough covered and let it relax.",
+      whatToLookFor: "It should spread slightly and feel less tight after the rest.",
+      reassuranceTip: "Nothing dramatic needs to happen during this step.",
+    },
+    enthusiast: {
+      instruction: "Keep the dough covered so hydration can even out before the next handling step.",
+      whatToLookFor: "The surface should look calmer and the dough should resist less when touched.",
+      whyItMatters: "Resting reduces tearing and makes later shaping easier.",
+    },
+    pizza_nerd: {
+      instruction: "Use this passive rest to let hydration and gluten relaxation catch up.",
+      whatToLookFor: "Expect improved extensibility and less elastic snap-back.",
+      technicalNote: "This is a structure-management step; avoid turning it into extra kneading unless the dough clearly needs strength.",
+    },
+  },
+  "cold-ferment": {
+    beginner: {
+      instruction: "Keep the dough covered for the planned fermentation time.",
+      whatToLookFor: "The dough should stay protected and slowly become a little puffier.",
+      reassuranceTip: "Do not keep opening the container to check it.",
+    },
+    enthusiast: {
+      instruction: "Keep the dough covered and follow the selected fermentation place and timing.",
+      whatToLookFor: "Look for gradual rise, small bubbles and dough that still holds shape.",
+      whyItMatters: "Fermentation develops flavor and gas while timing controls dough strength.",
+    },
+    pizza_nerd: {
+      instruction: "Treat this as the controlled fermentation phase for the selected plan.",
+      whatToLookFor: "Track expansion, gas, surface tension and whether the dough is holding structure.",
+      technicalNote: "Use dough condition and actual temperature as control signals when available; do not infer cold handling for a room-temperature plan.",
+    },
+  },
+  "room-ferment": {
+    beginner: {
+      instruction: "Keep the dough covered at room temperature for the planned time.",
+      whatToLookFor: "It should slowly rise and look a little more alive.",
+      reassuranceTip: "Room-temperature dough moves faster, so stay close to the planned timing.",
+    },
+    enthusiast: {
+      instruction: "Keep the dough covered at a steady room temperature and watch its pace.",
+      whatToLookFor: "Look for visible gas, slight doming and dough that is active but not collapsing.",
+      whyItMatters: "Room fermentation is sensitive to temperature, so timing matters more.",
+    },
+    pizza_nerd: {
+      instruction: "Manage the room-temperature fermentation against dough strength and ambient temperature.",
+      whatToLookFor: "Balance gas production, extensibility and structure retention.",
+      technicalNote: "Warm rooms accelerate fermentation; judge readiness by dough behavior rather than duration alone.",
+    },
+  },
+  "ferment-dough": {
+    beginner: {
+      instruction: "Keep the dough covered and follow the planned fermentation timing.",
+      whatToLookFor: "The dough should become a little puffier and more relaxed.",
+      reassuranceTip: "If the plan is unclear, keep the dough covered and avoid extra handling.",
+    },
+    enthusiast: {
+      instruction: "Follow the planned fermentation timing while checking the dough condition.",
+      whatToLookFor: "Look for growth, gas and dough that still has enough strength.",
+      whyItMatters: "Fermentation changes flavor, structure and how the dough opens later.",
+    },
+    pizza_nerd: {
+      instruction: "Use the planned fermentation window as a guide and evaluate the dough state.",
+      whatToLookFor: "Assess expansion, gas retention, elasticity and signs of weakening.",
+      technicalNote: "When fermentation type is unknown, avoid assuming fridge-specific behavior.",
+    },
+  },
+  "ball-dough": {
+    beginner: {
+      instruction: "Divide the dough and shape each piece into a smooth ball.",
+      whatToLookFor: "Each ball should look round and sit seam-side down.",
+      reassuranceTip: "If the dough tears, stop tightening and let it rest briefly.",
+    },
+    enthusiast: {
+      instruction: "Shape the portions with enough surface tension to hold their form.",
+      whatToLookFor: "The balls should be smooth, lightly tight and not tearing.",
+      whyItMatters: "Good balling helps the dough open evenly and keeps gas in the rim.",
+    },
+    pizza_nerd: {
+      instruction: "Build controlled surface tension without degassing more than needed.",
+      whatToLookFor: "Target a tight skin, sealed seam and dough that still feels extensible.",
+      technicalNote: "Ball timing affects gas retention, extensibility and final cornicione behavior.",
+    },
+  },
+  "room-temperature-rest": {
+    beginner: {
+      instruction: "Keep the dough balls covered while they warm and relax.",
+      whatToLookFor: "They should feel softer and easier to stretch.",
+      reassuranceTip: "Do not leave them uncovered; dry skin makes opening harder.",
+    },
+    enthusiast: {
+      instruction: "Let the balls relax at room temperature until they open without fighting back.",
+      whatToLookFor: "Look for gentle spread, softness and slow spring-back when pressed.",
+      whyItMatters: "Final rest makes shaping easier and reduces tearing.",
+    },
+    pizza_nerd: {
+      instruction: "Use final rest to tune extensibility before opening.",
+      whatToLookFor: "Assess spread, gas distribution, extensibility and resistance.",
+      technicalNote: "Ball size, flour strength, dough temperature and room temperature all change the ideal rest.",
+    },
+  },
+  "preheat-oven": {
+    beginner: {
+      instruction: "Heat the oven and baking surface before you open the dough.",
+      whatToLookFor: "The oven should be fully hot before the pizza goes in.",
+      reassuranceTip: "Starting too cold often gives pale crust and a soft bottom.",
+    },
+    enthusiast: {
+      instruction: "Give the oven, stone, steel or pizza oven enough time to recover heat.",
+      whatToLookFor: "The baking surface should be hot, not just the oven air.",
+      whyItMatters: "Stored heat drives bottom bake and oven spring.",
+    },
+    pizza_nerd: {
+      instruction: "Stabilize the baking environment before launch.",
+      whatToLookFor: "Watch deck/surface heat, top heat and recovery between pizzas when you can.",
+      technicalNote: "Surface temperature, heat balance and recovery time drive browning, lift and bake speed.",
+    },
+  },
+  "prepare-sauce-toppings": {
+    beginner: {
+      instruction: "Get sauce, cheese and toppings ready before stretching.",
+      whatToLookFor: "Everything should be within reach and not dripping wet.",
+      reassuranceTip: "A ready topping setup keeps the dough from sitting too long.",
+    },
+    enthusiast: {
+      instruction: "Prepare a restrained, organized topping setup before opening the dough.",
+      whatToLookFor: "Wet toppings should be drained and cheese should be easy to portion.",
+      whyItMatters: "Too much moisture or delay can make the pizza harder to launch and bake.",
+    },
+    pizza_nerd: {
+      instruction: "Control topping moisture and load before the dough is opened.",
+      whatToLookFor: "Match topping weight and wetness to oven power and bake duration.",
+      technicalNote: "Slower ovens generally need a drier, lighter topping load than high-heat pizza ovens.",
+    },
+  },
+  "bake-pizza": {
+    beginner: {
+      instruction: "Bake one pizza at a time and watch the color.",
+      whatToLookFor: "The rim should brown, the cheese should melt and the bottom should be cooked.",
+      reassuranceTip: "Rotate if one side browns much faster than the other.",
+    },
+    enthusiast: {
+      instruction: "Launch cleanly, watch the rim and bottom, and rotate for even heat.",
+      whatToLookFor: "Aim for a browned rim, set toppings and a bottom that is baked but not burned.",
+      whyItMatters: "The bake locks in texture; small timing changes are very visible here.",
+    },
+    pizza_nerd: {
+      instruction: "Manage top heat, bottom heat and rotation through the bake.",
+      whatToLookFor: "Track rim color, leoparding, bottom bake, cheese melt and moisture release.",
+      technicalNote: "Bake time depends on oven type, surface temperature, dough thickness and topping moisture.",
+    },
+  },
+  "review-result": {
+    beginner: {
+      instruction: "Save one thing that worked and one thing to try next time.",
+      whatToLookFor: "Focus on simple notes you will understand later.",
+      reassuranceTip: "Even a short note makes the next bake easier.",
+    },
+    enthusiast: {
+      instruction: "Record the result while the bake is still fresh in your mind.",
+      whatToLookFor: "Capture handling, bake color, texture and anything you would adjust.",
+      whyItMatters: "Specific notes make improvement repeatable.",
+    },
+    pizza_nerd: {
+      instruction: "Log the variables that affected the result.",
+      whatToLookFor: "Record timing, temperature, dough feel, opening behavior, bake color and moisture.",
+      technicalNote: "Good notes turn one bake into useful comparative data for the next formula decision.",
+    },
   },
 };
 
@@ -271,6 +491,31 @@ export function getKitchenModeState(session?: PizzaSession, now = new Date()): K
 export function getKitchenTaskInstruction(step?: PizzaSessionTimelineStep): KitchenTaskInstruction {
   if (!step) return defaultInstruction;
   return kitchenTaskInstructions[step.id] ?? defaultInstruction;
+}
+
+function guidanceKeyForStep(
+  step?: PizzaSessionTimelineStep,
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+) {
+  if (!step) return undefined;
+  if (isFermentationTimelineStep(step)) {
+    const mode = resolveKitchenFermentationMode(session, step);
+    if (mode === "room") return "room-ferment";
+    if (mode === "cold") return "cold-ferment";
+    return "ferment-dough";
+  }
+  return step.id;
+}
+
+export function getKitchenExperienceGuidance(
+  step?: PizzaSessionTimelineStep,
+  level?: unknown,
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+): KitchenExperienceGuidance {
+  const normalizedLevel = normalizeExperienceLevel(level);
+  const key = guidanceKeyForStep(step, session);
+  const guidance = key ? kitchenExperienceGuidance[key] : undefined;
+  return guidance?.[normalizedLevel] ?? defaultExperienceGuidance[normalizedLevel];
 }
 
 export function getKitchenModeForStep(step?: PizzaSessionTimelineStep): KitchenModeKind {

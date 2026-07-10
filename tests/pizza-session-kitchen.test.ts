@@ -7,6 +7,7 @@ import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
   formatKitchenStepWaitLabel,
+  getKitchenExperienceGuidance,
   getKitchenModeForStep,
   getKitchenModeState,
   getKitchenStepWaitInfo,
@@ -342,7 +343,10 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("You are done when");
     expect(page).toContain("Technique note");
     expect(page).toContain("{experience.label} guidance");
-    expect(page).toContain("levelGuidanceForStep(currentStep, session.experienceLevel)");
+    expect(page).toContain("getKitchenExperienceGuidance(currentStep, session.experienceLevel, session)");
+    expect(page).toContain("What to look for");
+    expect(page).toContain("Why it matters");
+    expect(page).toContain("Keep in mind");
     expect(page).toContain("Next: {kitchenState.nextStep ? nextTaskPresentation.title : \"Review your pizza session\"}");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href={backHref}");
@@ -428,6 +432,64 @@ describe("Pizza Session Kitchen Mode", () => {
       expect(copy.enthusiastWhy.length).toBeGreaterThan(10);
       expect(copy.pizzaNerdWhy.length).toBeGreaterThan(10);
     }
+  });
+
+  it("adapts Kitchen Mode guidance to Beginner, Enthusiast and Pizza Nerd levels", () => {
+    const mixStep = { id: "mix-dough", label: "Mix dough", status: "todo" as const };
+
+    const beginner = getKitchenExperienceGuidance(mixStep, "beginner");
+    const enthusiast = getKitchenExperienceGuidance(mixStep, "enthusiast");
+    const pizzaNerd = getKitchenExperienceGuidance(mixStep, "pizza_nerd");
+
+    expect(beginner.instruction).toBe("Mix until no dry flour remains, then cover the dough.");
+    expect(beginner.reassuranceTip).toBe("Do not add extra flour just because it feels messy.");
+    expect(beginner.technicalNote).toBeUndefined();
+
+    expect(enthusiast.instruction).toContain("fully hydrated");
+    expect(enthusiast.whyItMatters).toContain("predictable");
+    expect(enthusiast.technicalNote).toBeUndefined();
+
+    expect(pizzaNerd.instruction).toContain("oxidation");
+    expect(pizzaNerd.technicalNote).toContain("dough temperature");
+    expect(pizzaNerd.reassuranceTip).toBeUndefined();
+
+    expect([beginner.instruction, beginner.whatToLookFor, beginner.reassuranceTip].join(" ")).not.toMatch(/oxidation|dough temperature|full gluten development/i);
+    expect([enthusiast.instruction, enthusiast.whatToLookFor, enthusiast.whyItMatters].join(" ")).not.toMatch(/oxidation|full gluten development/i);
+  });
+
+  it("uses safe Beginner guidance for missing, unknown or legacy experience levels", () => {
+    const bakeStep = { id: "bake-pizza", label: "Bake pizza", status: "todo" as const };
+
+    expect(getKitchenExperienceGuidance(bakeStep, undefined)).toEqual(getKitchenExperienceGuidance(bakeStep, "beginner"));
+    expect(getKitchenExperienceGuidance(bakeStep, "not-a-real-level")).toEqual(getKitchenExperienceGuidance(bakeStep, "beginner"));
+    expect(getKitchenExperienceGuidance(bakeStep, "intermediate")).toEqual(getKitchenExperienceGuidance(bakeStep, "enthusiast"));
+    expect(getKitchenExperienceGuidance(bakeStep, "advanced")).toEqual(getKitchenExperienceGuidance(bakeStep, "pizza_nerd"));
+  });
+
+  it("keeps fermentation guidance aligned to room, cold and neutral Kitchen Mode fermentation copy", () => {
+    const roomStep = { id: "cold-ferment", label: "Room temperature ferment", status: "todo" as const };
+    const coldStep = { id: "cold-ferment", label: "Cold ferment", status: "todo" as const };
+    const neutralStep = { id: "ferment-dough", label: "Ferment dough", status: "todo" as const };
+    const roomSession = createPizzaSession({
+      id: "room-guidance-session",
+      recipeSnapshot: { fermentation: "12h-room" },
+    });
+    const coldSession = createPizzaSession({
+      id: "cold-guidance-session",
+      recipeSnapshot: { fermentation: "48h-cold" },
+    });
+
+    const roomBeginner = getKitchenExperienceGuidance(roomStep, "beginner", roomSession);
+    const coldNerd = getKitchenExperienceGuidance(coldStep, "pizza_nerd", coldSession);
+    const neutralNerd = getKitchenExperienceGuidance(neutralStep, "pizza_nerd");
+
+    expect(roomBeginner.instruction).toContain("room temperature");
+    expect(roomBeginner.reassuranceTip).toContain("Room-temperature dough moves faster");
+    expect([roomBeginner.instruction, roomBeginner.whatToLookFor, roomBeginner.reassuranceTip].join(" ")).not.toMatch(/fridge|cold handling/i);
+
+    expect(coldNerd.instruction).toContain("selected plan");
+    expect(coldNerd.technicalNote).toContain("do not infer cold handling for a room-temperature plan");
+    expect(neutralNerd.technicalNote).toContain("avoid assuming fridge-specific behavior");
   });
 
   it("renders clearer Kitchen Mode timing and technique hierarchy without alert styling for normal guidance", () => {
