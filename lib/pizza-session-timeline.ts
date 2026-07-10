@@ -2,6 +2,7 @@ import { getExperienceLevelConfig, type ExperienceLevel } from "@/lib/experience
 import { type PizzaSession, type PizzaSessionTimeline, type PizzaSessionTimelineStep } from "@/lib/pizza-session";
 import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export type PizzaSessionTimelineResult = {
@@ -222,6 +223,74 @@ function scheduleTemplateStep(target: Date, step: TimelineTemplateStep) {
   };
 }
 
+function effectiveFermentationHoursForTimeline(
+  session: PizzaSession,
+  target: Date,
+  planningNow: Date,
+) {
+  const recipe = buildSessionRecipe(session, planningNow);
+  if (recipe.ok && recipe.continuousYeast?.appliedToIngredients) {
+    const hours = recipe.continuousYeast.selectedFermentationHours;
+    if (Number.isFinite(hours) && hours > 0) return {
+      hours,
+      fermentationMode: recipe.continuousYeast.recommendation.fermentationMode,
+    };
+  }
+
+  if (
+    typeof session.plannedFermentationHours === "number"
+    && Number.isFinite(session.plannedFermentationHours)
+    && session.plannedFermentationHours > 0
+  ) {
+    return {
+      hours: session.plannedFermentationHours,
+      fermentationMode: "cold" as const,
+    };
+  }
+
+  const fallbackHours = (target.getTime() - planningNow.getTime()) / 3_600_000;
+  return Number.isFinite(fallbackHours) && fallbackHours > 0 && fallbackHours <= 72
+    ? { hours: fallbackHours, fermentationMode: undefined }
+    : undefined;
+}
+
+function explicitLaterStartForSession(session: PizzaSession, target: Date, planningNow: Date) {
+  if (session.doughStartMode !== "later") return undefined;
+  const laterStart = parseTargetTime(session.doughEarliestStartTime);
+  if (!laterStart || laterStart.getTime() >= target.getTime()) return undefined;
+  return laterStart.getTime() < planningNow.getTime() ? planningNow : laterStart;
+}
+
+function selectedFermentationStartForSession(session: PizzaSession, target: Date, planningNow: Date) {
+  const explicitStart = explicitLaterStartForSession(session, target, planningNow);
+  if (explicitStart) return explicitStart;
+
+  const effective = effectiveFermentationHoursForTimeline(session, target, planningNow);
+  if (!effective) return undefined;
+
+  const selectedStart = new Date(target.getTime() - effective.hours * 3_600_000);
+  return selectedStart.getTime() < planningNow.getTime() ? planningNow : selectedStart;
+}
+
+function scheduleStepsFromDoughStart(
+  steps: PizzaSessionTimelineStep[],
+  doughStart: Date | undefined,
+) {
+  if (!doughStart) return steps;
+  return steps.map((step) => {
+    if (step.id === "mix-dough") {
+      return { ...step, scheduledAt: doughStart.toISOString(), quietHoursWarning: undefined };
+    }
+    if (step.id === "rest-dough") {
+      return { ...step, scheduledAt: new Date(doughStart.getTime() + 30 * 60_000).toISOString(), quietHoursWarning: undefined };
+    }
+    if (step.id === "cold-ferment" || step.id === "room-ferment" || step.id === "ferment-dough") {
+      return { ...step, scheduledAt: new Date(doughStart.getTime() + 60 * 60_000).toISOString(), quietHoursWarning: undefined };
+    }
+    return step;
+  });
+}
+
 export function getTimelineNote(step: PizzaSessionTimelineStep, level: ExperienceLevel) {
   if (level === "pizza_nerd") return step.pizzaNerdNote ?? step.helperCopy ?? step.description;
   if (level === "enthusiast") return step.enthusiastNote ?? step.helperCopy ?? step.description;
@@ -247,6 +316,7 @@ export function generatePizzaSessionTimeline(
   const anchorTime = timelineAnchorTimeForSession(session, now);
   const signature = buildPizzaSessionTimelineInputSignature(session, anchorTime);
   const planningNow = parseTargetTime(anchorTime) ?? now;
+  const effectiveFermentation = effectiveFermentationHoursForTimeline(session, target, planningNow);
   const selectedYeastLabel = yeastTypeLabel(session.recipeSnapshot?.yeastType ?? session.yeastType).toLowerCase();
   const templateSteps = timelineTemplate.map((step) => {
     const schedule = scheduleTemplateStep(target, step);
@@ -269,17 +339,22 @@ export function generatePizzaSessionTimeline(
   const steps = timelineStepsForPlanningSummaryDisplay({
     steps: templateSteps,
     session,
+    fermentationMode: effectiveFermentation?.fermentationMode,
     now: planningNow,
     anchorTime,
     adjustSchedule: true,
   });
+  const scheduledSteps = scheduleStepsFromDoughStart(
+    steps,
+    selectedFermentationStartForSession(session, target, planningNow),
+  );
   const timeline: PizzaSessionTimeline = {
     generatedAt: now.toISOString(),
     anchorTime,
     inputSignature: signature,
     targetEatTime: session.targetEatTime ?? session.targetBakeTime,
     assumptions: DEFAULT_TIMELINE_ASSUMPTIONS,
-    steps,
+    steps: scheduledSteps,
   };
 
   return {

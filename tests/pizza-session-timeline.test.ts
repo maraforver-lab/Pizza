@@ -168,7 +168,7 @@ describe("Pizza Session timeline", () => {
     expect(page.indexOf("Fermentation temperature")).toBeLessThan(page.indexOf("What to adjust first"));
     expect(page).not.toContain("Dough planning notes");
     expect(helper).not.toContain("buildPlanningResult");
-    expect(helper).not.toContain("buildSessionRecipe");
+    expect(helper).toContain("buildSessionRecipe");
   });
 
   it("keeps Timeline missing-target fallback copy only for genuinely missing bake targets", () => {
@@ -333,8 +333,8 @@ describe("Pizza Session timeline", () => {
 
     expect(resolution.warning).toContain("after the bake target");
     expect(resolution.startsAt).toBeUndefined();
-    expect(displayed).toStrictEqual(generated.steps);
     expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt);
+    expect(displayed.find((step) => step.id === "rest-dough")?.scheduledAt).toBe(generated.steps.find((step) => step.id === "rest-dough")?.scheduledAt);
   });
 
   it("preserves recommendation-based timeline behavior when doughStartMode is recommend", () => {
@@ -450,10 +450,115 @@ describe("Pizza Session timeline", () => {
     });
 
     expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
-      .toBe(new Date("2026-07-03T12:00:00").toISOString());
+      .toBe(now.toISOString());
+    expect(generated.steps.find((step) => step.id === "cold-ferment")?.scheduledAt)
+      .toBe(new Date(now.getTime() + 60 * 60_000).toISOString());
     expect(displayed).toStrictEqual(generated.steps);
     expect(resolution.warning).toBeUndefined();
     expect(resolution.label).toBe("Dough start: DoughTools recommendation");
+  });
+
+  it.each([
+    { label: "24h", plannedHours: 24 },
+    { label: "48h", plannedHours: 48 },
+    { label: "72h", plannedHours: 72 },
+    { label: "26.3h", plannedHours: 26.3 },
+  ])("uses the selected $label fermentation length as the Timeline dough-start basis", ({ plannedHours }) => {
+    const now = new Date("2026-07-02T09:00:00");
+    const target = new Date("2026-07-07T16:00:00");
+    const expectedStart = new Date(target.getTime() - plannedHours * 3_600_000);
+    const session = createPizzaSession({
+      id: `selected-fermentation-${plannedHours}-timeline`,
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-07T16:00",
+      doughStartMode: "recommend",
+      plannedFermentationHours: plannedHours,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+      recipeSnapshot: { fermentation: "12h-room" },
+    }, now);
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+
+    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .toBe(expectedStart.toISOString());
+    expect(generated.steps.find((step) => step.id === "rest-dough")?.scheduledAt)
+      .toBe(new Date(expectedStart.getTime() + 30 * 60_000).toISOString());
+    expect(generated.steps.find((step) => step.id === "cold-ferment")?.scheduledAt)
+      .toBe(new Date(expectedStart.getTime() + 60 * 60_000).toISOString());
+    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .not.toBe(new Date(target.getTime() - 30 * 3_600_000).toISOString());
+  });
+
+  it("uses an under-24h room fermentation basis without forcing the Timeline to 24h", () => {
+    const now = new Date("2026-07-02T08:00:00");
+    const target = new Date("2026-07-02T20:00:00");
+    const session = createPizzaSession({
+      id: "under-24h-room-fermentation-timeline",
+      status: "planning",
+      currentStep: "recipe",
+      targetEatTime: "2026-07-02T20:00",
+      doughStartMode: "recommend",
+      pizzaStyle: "pizza-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "gas",
+      flour: "tipo-00",
+      recipeSnapshot: { fermentation: "12h-room" },
+    }, now);
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const roomFerment = generated.steps.find((step) => step.id === "room-ferment");
+
+    expect(generated.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .toBe(new Date(target.getTime() - 12 * 3_600_000).toISOString());
+    expect(roomFerment?.scheduledAt).toBe(new Date(now.getTime() + 60 * 60_000).toISOString());
+    expect(roomFerment).toMatchObject({
+      label: "Room temperature ferment",
+      description: "Keep the covered dough at room temperature for the planned fermentation time.",
+    });
+    expect(generated.steps.some((step) => step.id === "cold-ferment")).toBe(false);
+  });
+
+  it("changes the generated schedule and input signature when selected fermentation length changes", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const base = {
+      status: "planning" as const,
+      currentStep: "recipe" as const,
+      targetEatTime: "2026-07-07T16:00",
+      doughStartMode: "recommend" as const,
+      pizzaStyle: "home-oven" as const,
+      pizzaPreset: "margherita" as const,
+      pizzaCount: 4,
+      ovenType: "home" as const,
+      flour: "tipo-00" as const,
+      recipeSnapshot: { fermentation: "12h-room" as const },
+    };
+    const selected24 = createPizzaSession({
+      ...base,
+      id: "selected-24h-timeline-signature",
+      plannedFermentationHours: 24,
+    }, now);
+    const selected48 = createPizzaSession({
+      ...base,
+      id: "selected-48h-timeline-signature",
+      plannedFermentationHours: 48,
+    }, now);
+
+    const timeline24 = generatePizzaSessionTimeline(selected24, now).timeline!;
+    const timeline48 = generatePizzaSessionTimeline(selected48, now).timeline!;
+
+    expect(timeline24.inputSignature).not.toBe(timeline48.inputSignature);
+    expect(timeline24.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .not.toBe(timeline48.steps.find((step) => step.id === "mix-dough")?.scheduledAt);
+    expect(timeline24.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .toBe(new Date("2026-07-06T16:00").toISOString());
+    expect(timeline48.steps.find((step) => step.id === "mix-dough")?.scheduledAt)
+      .toBe(new Date("2026-07-05T16:00").toISOString());
   });
 
   it("can anchor a weekend cold fermentation display from the stated dough start time", () => {
@@ -734,7 +839,8 @@ describe("Pizza Session timeline", () => {
     const fermentationStep = displayed.find((step) => step.id === "cold-ferment");
 
     expect(recipe.continuousYeast?.basisLabel).toBe("40 h cold fermentation");
-    expect(generated.steps.some((step) => step.id === "room-ferment")).toBe(true);
+    expect(generated.steps.some((step) => step.id === "cold-ferment")).toBe(true);
+    expect(generated.steps.some((step) => step.id === "room-ferment")).toBe(false);
     expect(fermentationStep).toMatchObject({
       label: "Cold fermentation",
       description: "Keep the covered dough in the fridge for the planned cold fermentation time.",
