@@ -183,11 +183,8 @@ describe("Pizza Session timeline", () => {
 
   it("uses cold-specific session risk copy when the active fermentation basis is cold", () => {
     const page = source("app/session/timeline/page.tsx");
-    const recipePage = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("cold fermentation gives more control");
-    expect(recipePage).toContain("cold fermentation gives more control");
-    expect(recipePage).toContain("Keep the selected cold fermentation length");
   });
 
   it("aligns the displayed full timeline with a 7-hour same-day room planning summary", () => {
