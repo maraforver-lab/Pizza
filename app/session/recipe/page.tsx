@@ -622,7 +622,7 @@ export default function SessionRecipePage() {
               {planningResult && combinedRisk ? (
                 <PlanningGuidanceCard className="mt-4">
                   <PlanningStatusCard className={planningRiskTone(combinedRisk.overallRiskLevel)}>
-                    <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-70">Overall risk</p>
+                    <p className="text-xs font-extrabold uppercase tracking-[.16em] opacity-60">Overall risk</p>
                     <p className="mt-2 text-sm font-extrabold leading-6 text-ink">{displayedRiskSummary}</p>
                   </PlanningStatusCard>
 
@@ -632,7 +632,7 @@ export default function SessionRecipePage() {
                       <span className="mt-1 block text-sm font-bold leading-6 text-ink/65">{displayedFirstAdjustment ?? "No major adjustment needed from the available session choices."}</span>
                     </PlanningWatchCard>
 
-                    <section className="rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
+                    <section className="rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 shadow-sm sm:p-5">
                       <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Session planning context</p>
                       <PlanningDetailsList className="mt-3">
                         <PlanningDetailRow

@@ -208,6 +208,9 @@ describe("Session recipe build step", () => {
     expect(component).toContain("export function PlanningDetailsList");
     expect(component).toContain("export function PlanningDetailRow");
     expect(component).toContain("export function PlanningIllustration");
+    expect(component).toContain("sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]");
+    expect(component).toContain("sm:text-right");
+    expect(component).toContain("break-words");
     expect(component).toContain("<dl");
     expect(component).toContain("<dt");
     expect(component).toContain("<dd");
