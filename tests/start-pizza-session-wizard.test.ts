@@ -400,7 +400,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain("rounded-2xl bg-leaf/[.08] px-4 py-3 text-sm font-bold text-leaf");
   });
 
-  it("uses Patch 31 local storage helpers for creation, active id and autosave", () => {
+  it("uses local storage for guests and cloud-first restoration for signed-in starts", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("getActivePizzaSession");
@@ -410,7 +410,13 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("updatePizzaSession");
     expect(page).toContain('const shouldStartNewSession = query.get("new") === "1"');
     expect(page).toContain("if (shouldStartNewSession)");
-    expect(page).toContain("const active = shouldStartNewSession ? undefined : getActivePizzaSession()");
+    expect(page).toContain("let active = shouldStartNewSession ? undefined : getActivePizzaSession()");
+    expect(page).toContain("const { data } = await supabase.auth.getSession()");
+    expect(page).toContain("fetch(\"/api/pizza-sessions/active\"");
+    expect(page).toContain("normalizeCloudPizzaSessionRow(payload.session)");
+    expect(page).toContain("active = restoreCloudPizzaSessionToLocal(row)");
+    expect(page).toContain("clearCloudBackedActivePizzaSessionPointer()");
+    expect(page).toContain("void saveCloudActivePizzaSession(session).catch");
     expect(page).toContain("status: \"planning\"");
     expect(page).toContain("currentStep");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");

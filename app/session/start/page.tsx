@@ -6,6 +6,12 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
+  clearCloudBackedActivePizzaSessionPointer,
+  saveCloudActivePizzaSession,
+} from "@/lib/cloud-pizza-session-client";
+import { normalizeCloudPizzaSessionRow } from "@/lib/cloud-pizza-sessions";
+import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
+import {
   getExperienceLevelCornerAccentStyle,
   readExperienceLevelPreference,
   type ExperienceLevel,
@@ -33,6 +39,7 @@ import {
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DEFAULT_SESSION_YEAST_TYPE, normalizeSessionYeastType, sessionYeastTypeOptions } from "@/lib/yeast-types";
 
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
@@ -431,83 +438,117 @@ function StartPizzaSessionContent() {
   const [selectedTimeChoice, setSelectedTimeChoice] = useState<PizzaSessionTimeQuickChoiceId | undefined>();
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
   const doughStartTimeInputRef = useRef<HTMLInputElement>(null);
+  const lastCloudSaveKey = useRef("");
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    const level = readExperienceLevelPreference();
-    const query = new URLSearchParams(window.location.search);
-    const shouldStartNewSession = query.get("new") === "1";
-    if (shouldStartNewSession) {
-      clearActivePizzaSession();
-    }
-    const active = shouldStartNewSession ? undefined : getActivePizzaSession();
-    const baseSession = active ?? createAndSavePizzaSession({
-      status: "planning",
-      currentStep: "style",
-      experienceLevel: level,
-      pizzaStyle: "pizza-oven",
-      ovenType: "gas",
-      pizzaPreset: DEFAULT_SESSION_TOPPING_PRESET,
-      pizzaCount: 4,
-      flourSituation: "recommend",
-      flour: DEFAULT_SESSION_FORMULA_FLOUR,
-    });
-    const hasSavedTargetTime = isValidTargetTime(baseSession.targetEatTime);
-    const defaultTargetEatTime = getDefaultPizzaSessionTargetTime();
-    const nextSession = hasSavedTargetTime
-      ? baseSession
-      : updatePizzaSession(baseSession.id, {
-        targetEatTime: defaultTargetEatTime,
-        status: "planning",
-        currentStep: baseSession.currentStep,
-        experienceLevel: level,
-      }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
+    let mounted = true;
 
-    const supportedSession = nextSession.pizzaStyle === "not-sure" || nextSession.flour === "not-sure" || nextSession.flourSituation === "unknown_w"
-      ? updatePizzaSession(nextSession.id, {
-        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
-        ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
-        ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
-        status: "planning",
-        currentStep: nextSession.currentStep,
-        experienceLevel: level,
-      }) ?? {
-        ...nextSession,
-        ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
-        ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
-        ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
+    async function loadInitialSession() {
+      const level = readExperienceLevelPreference();
+      const query = new URLSearchParams(window.location.search);
+      const shouldStartNewSession = query.get("new") === "1";
+      if (shouldStartNewSession) {
+        clearActivePizzaSession();
       }
-      : nextSession;
 
-    const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(level, supportedSession);
-    const experienceScopedSession = Object.keys(simpleDefaultsPatch).length
-      ? updatePizzaSession(supportedSession.id, {
-        ...simpleDefaultsPatch,
-        status: "planning",
-        currentStep: supportedSession.currentStep,
-        experienceLevel: level,
-      }) ?? {
-        ...supportedSession,
-        ...simpleDefaultsPatch,
-        experienceLevel: level,
+      let active = shouldStartNewSession ? undefined : getActivePizzaSession();
+      if (!shouldStartNewSession) {
+        try {
+          const supabase = getSupabaseBrowserClient();
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user) {
+            const response = await fetch("/api/pizza-sessions/active", { method: "GET" });
+            if (response.ok) {
+              const payload = await response.json().catch(() => ({}));
+              const row = normalizeCloudPizzaSessionRow(payload.session);
+              if (row) {
+                active = restoreCloudPizzaSessionToLocal(row);
+              } else {
+                clearCloudBackedActivePizzaSessionPointer();
+                active = undefined;
+              }
+            }
+          }
+        } catch {
+          // Fall back to the browser-local guest flow if account lookup is unavailable.
+        }
       }
-      : supportedSession;
 
-    setActivePizzaSession(experienceScopedSession.id);
-    setExperienceLevel(level);
-    setSession(experienceScopedSession);
-    setTargetTimeDraft(experienceScopedSession.targetEatTime ?? "");
-    setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)));
-    if (hasSavedTargetTime) {
-      setSelectedDayChoice("custom-date");
-      setSelectedTimeChoice("custom-time");
-    } else {
-      setSelectedDayChoice("tomorrow");
-      setSelectedTimeChoice("dinner");
+      const baseSession = active ?? createAndSavePizzaSession({
+        status: "planning",
+        currentStep: "style",
+        experienceLevel: level,
+        pizzaStyle: "pizza-oven",
+        ovenType: "gas",
+        pizzaPreset: DEFAULT_SESSION_TOPPING_PRESET,
+        pizzaCount: 4,
+        flourSituation: "recommend",
+        flour: DEFAULT_SESSION_FORMULA_FLOUR,
+      });
+      const hasSavedTargetTime = isValidTargetTime(baseSession.targetEatTime);
+      const defaultTargetEatTime = getDefaultPizzaSessionTargetTime();
+      const nextSession = hasSavedTargetTime
+        ? baseSession
+        : updatePizzaSession(baseSession.id, {
+          targetEatTime: defaultTargetEatTime,
+          status: "planning",
+          currentStep: baseSession.currentStep,
+          experienceLevel: level,
+        }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
+
+      const supportedSession = nextSession.pizzaStyle === "not-sure" || nextSession.flour === "not-sure" || nextSession.flourSituation === "unknown_w"
+        ? updatePizzaSession(nextSession.id, {
+          ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
+          ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
+          ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
+          status: "planning",
+          currentStep: nextSession.currentStep,
+          experienceLevel: level,
+        }) ?? {
+          ...nextSession,
+          ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
+          ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
+          ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
+        }
+        : nextSession;
+
+      const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(level, supportedSession);
+      const experienceScopedSession = Object.keys(simpleDefaultsPatch).length
+        ? updatePizzaSession(supportedSession.id, {
+          ...simpleDefaultsPatch,
+          status: "planning",
+          currentStep: supportedSession.currentStep,
+          experienceLevel: level,
+        }) ?? {
+          ...supportedSession,
+          ...simpleDefaultsPatch,
+          experienceLevel: level,
+        }
+        : supportedSession;
+
+      if (!mounted) return;
+      setActivePizzaSession(experienceScopedSession.id);
+      setExperienceLevel(level);
+      setSession(experienceScopedSession);
+      setTargetTimeDraft(experienceScopedSession.targetEatTime ?? "");
+      setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)));
+      if (hasSavedTargetTime) {
+        setSelectedDayChoice("custom-date");
+        setSelectedTimeChoice("custom-time");
+      } else {
+        setSelectedDayChoice("tomorrow");
+        setSelectedTimeChoice("dinner");
+      }
+      const requestedStep = wizardStepFromQuery(query.get("step"));
+      setStep(requestedStep ?? initialWizardStep(experienceScopedSession));
+      setReady(true);
     }
-    const requestedStep = wizardStepFromQuery(query.get("step"));
-    setStep(requestedStep ?? initialWizardStep(experienceScopedSession));
-    setReady(true);
+
+    void loadInitialSession();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -517,6 +558,22 @@ function StartPizzaSessionContent() {
       setStep((currentStep) => requestedStep === currentStep ? currentStep : requestedStep);
     }
   }, [ready, searchParams]);
+
+  useEffect(() => {
+    if (!ready || !session) return;
+    const cloudSaveKey = [
+      session.id,
+      session.currentStep,
+      session.status,
+      session.updatedAt,
+      session.lastSavedAt,
+    ].join(":");
+    if (lastCloudSaveKey.current === cloudSaveKey) return;
+    lastCloudSaveKey.current = cloudSaveKey;
+    void saveCloudActivePizzaSession(session).catch(() => {
+      // Keep the local guest/session flow usable if account sync is unavailable.
+    });
+  }, [ready, session]);
 
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);

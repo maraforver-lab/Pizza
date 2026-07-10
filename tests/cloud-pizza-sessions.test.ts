@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
   cloudBackedPizzaSessionRowId,
+  clearCloudBackedActivePizzaSessionPointer,
   clearCloudBackedPizzaSession,
   CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY,
   completeCloudBackedPizzaSession,
@@ -42,6 +43,11 @@ import {
   validatePizzaPhotoRelevance,
 } from "@/lib/pizza-photo-relevance";
 import { createPizzaSession } from "@/lib/pizza-session";
+import {
+  getActivePizzaSession,
+  PIZZA_SESSIONS_STORAGE_KEY,
+  setActivePizzaSession,
+} from "@/lib/pizza-session-storage";
 import {
   PIZZA_SESSION_PHOTO_HEIC_ERROR,
   PIZZA_SESSION_PHOTO_TYPE_ERROR,
@@ -233,6 +239,23 @@ describe("cloud pizza session foundation", () => {
 
     expect(isCloudBackedPizzaSession(session, storage)).toBe(true);
     expect(cloudBackedPizzaSessionRowId(session, storage)).toBeUndefined();
+  });
+
+  it("clears stale cloud-backed active pointers without removing unrelated local sessions", () => {
+    const storage = new MemoryStorage();
+    const cloudBacked = createPizzaSession({ id: "stale-cloud-backed-local", currentStep: "recipe" });
+    const localOnly = createPizzaSession({ id: "local-only-session", currentStep: "shopping" });
+    storage.setItem(PIZZA_SESSIONS_STORAGE_KEY, JSON.stringify([cloudBacked, localOnly]));
+    setActivePizzaSession(cloudBacked.id, storage);
+    markCloudBackedPizzaSession(cloudBacked.id, "missing-cloud-row", storage);
+
+    clearCloudBackedActivePizzaSessionPointer(storage);
+
+    expect(getActivePizzaSession(storage)).toBeUndefined();
+    expect(isCloudBackedPizzaSession(cloudBacked, storage)).toBe(false);
+    const savedSessions = JSON.parse(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY) ?? "[]") as Array<{ id: string; status: string }>;
+    expect(savedSessions.find((session) => session.id === cloudBacked.id)?.status).toBe("archived");
+    expect(savedSessions.find((session) => session.id === localOnly.id)?.status).toBe(localOnly.status);
   });
 
   it("does not treat completed cloud sessions as active account sessions", () => {
@@ -1077,13 +1100,19 @@ describe("cloud pizza session foundation", () => {
     expect(saveComponent).not.toContain("Cloud sync is active");
   });
 
-  it("shows a cloud Active Pizza Session card without breaking local continuation", () => {
+  it("prioritizes cloud Active Pizza Sessions for signed-in continuation", () => {
     const continueCard = source("components/ContinuePizzaSessionCard.tsx");
     const restore = source("lib/cloud-pizza-session-restore.ts");
 
     expect(continueCard).toContain("const localSession = getActivePizzaSession() ?? null");
-    expect(continueCard).toContain("if (localSession)");
+    expect(continueCard).toContain("if (!data.session?.user)");
     expect(continueCard).toContain("fetch(\"/api/pizza-sessions/active\"");
+    expect(continueCard.indexOf("if (!data.session?.user)")).toBeLessThan(continueCard.indexOf("setSession(localSession)"));
+    expect(continueCard.indexOf("setSession(localSession)")).toBeLessThan(continueCard.indexOf("fetch(\"/api/pizza-sessions/active\""));
+    expect(continueCard).toContain("setCloudSession(row)");
+    expect(continueCard).toContain("setSession(null)");
+    expect(continueCard).toContain("clearCloudBackedActivePizzaSessionPointer()");
+    expect(continueCard).toContain("cloudBackedPizzaSessionRowId(localSession)");
     expect(continueCard).toContain("Active pizza session");
     expect(continueCard).toContain("summary.statusLine");
     expect(continueCard).toContain("Continue Pizza Session");
@@ -1092,6 +1121,20 @@ describe("cloud pizza session foundation", () => {
     expect(restore).toContain("setActivePizzaSession(restored.id)");
     expect(restore).toContain("markCloudBackedPizzaSession(restored.id, row.id)");
     expect(continueCard).toContain("router.push(pizzaSessionContinueHref(restored))");
+  });
+
+  it("promotes signed-in Start Pizza Session changes to cloud without changing guest-local storage", () => {
+    const startPage = source("app/session/start/page.tsx");
+    const client = source("lib/cloud-pizza-session-client.ts");
+
+    expect(startPage).toContain("saveCloudActivePizzaSession");
+    expect(startPage).toContain("lastCloudSaveKey");
+    expect(startPage).toContain("void saveCloudActivePizzaSession(session).catch");
+    expect(client).toContain("const { data } = await supabase.auth.getSession()");
+    expect(client).toContain("if (!hasSignedInUser) return { skipped: true, reason: \"unauthenticated\" as const }");
+    expect(client).toContain('fetch("/api/pizza-sessions/active"');
+    expect(client).toContain("method: \"POST\"");
+    expect(client).toContain("markCloudBackedPizzaSession(session.id, savedSession.id)");
   });
 
   it("syncs cloud-backed sessions from the major Pizza Session step pages", () => {
@@ -1124,6 +1167,7 @@ describe("cloud pizza session foundation", () => {
     expect(accountPage).toContain("t.signOut");
     expect(accountPage).not.toContain("Your password is handled by Supabase and is not stored in DoughTools code.");
     expect(accountCard).toContain("fetch(\"/api/pizza-sessions/active\"");
+    expect(accountCard).toContain("if (!row) clearCloudBackedActivePizzaSessionPointer()");
     expect(accountCard).toContain("summary.title");
     expect(accountCard).toContain("summary.doughLine");
     expect(accountCard).toContain("summary.bakeLine");

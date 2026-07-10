@@ -1,5 +1,11 @@
 import { normalizeCloudPizzaSessionRow } from "@/lib/cloud-pizza-sessions";
 import type { PizzaSession } from "@/lib/pizza-session";
+import {
+  archivePizzaSession,
+  clearActivePizzaSession,
+  getActivePizzaSession,
+} from "@/lib/pizza-session-storage";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export const CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY = "doughtools:cloud-backed-pizza-session-id";
 
@@ -65,6 +71,40 @@ export function cloudBackedPizzaSessionRowId(
   if (!session?.id) return undefined;
   const marker = readCloudBackedPizzaSessionMarker(storage);
   return marker?.sessionId === session.id ? marker.cloudSessionId : undefined;
+}
+
+export function clearCloudBackedActivePizzaSessionPointer(storage?: StorageLike) {
+  const localSession = getActivePizzaSession(storage);
+  if (localSession && isCloudBackedPizzaSession(localSession, storage)) {
+    archivePizzaSession(localSession.id, storage);
+    clearActivePizzaSession(storage);
+  }
+  clearCloudBackedPizzaSession(storage);
+}
+
+export async function saveCloudActivePizzaSession(session: PizzaSession) {
+  let hasSignedInUser = false;
+  try {
+    const supabase = getSupabaseBrowserClient();
+    const { data } = await supabase.auth.getSession();
+    hasSignedInUser = Boolean(data.session?.user);
+  } catch {
+    hasSignedInUser = false;
+  }
+
+  if (!hasSignedInUser) return { skipped: true, reason: "unauthenticated" as const };
+
+  const response = await fetch("/api/pizza-sessions/active", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionData: session }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "Cloud session save failed.");
+  const savedSession = normalizeCloudPizzaSessionRow(payload.session);
+  if (!savedSession) throw new Error("Saved pizza session could not be verified.");
+  markCloudBackedPizzaSession(session.id, savedSession.id);
+  return { session: savedSession };
 }
 
 export async function syncCloudBackedPizzaSession(

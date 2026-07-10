@@ -9,6 +9,7 @@ import {
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
 import {
+  clearCloudBackedActivePizzaSessionPointer,
   clearCloudBackedPizzaSession,
   cloudBackedPizzaSessionRowId,
 } from "@/lib/cloud-pizza-session-client";
@@ -46,6 +47,7 @@ export function AccountActivePizzaSessionCard({ enabled }: AccountActivePizzaSes
         if (!response.ok) return;
         const payload = await response.json().catch(() => ({}));
         const row = normalizeCloudPizzaSessionRow(payload.session);
+        if (!row) clearCloudBackedActivePizzaSessionPointer();
         if (mounted) setCloudSession(row ?? null);
       } catch {
         if (mounted) setCloudSession(null);

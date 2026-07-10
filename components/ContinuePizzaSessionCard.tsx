@@ -8,6 +8,10 @@ import {
   normalizeCloudPizzaSessionRow,
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
+import {
+  clearCloudBackedActivePizzaSessionPointer,
+  cloudBackedPizzaSessionRowId,
+} from "@/lib/cloud-pizza-session-client";
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
 import { pizzaSessionContinueHref, type PizzaSession } from "@/lib/pizza-session";
 import {
@@ -43,26 +47,51 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
 
   useEffect(() => {
     let mounted = true;
-    const localSession = getActivePizzaSession() ?? null;
-    if (localSession) {
-      setSession(localSession);
-      setCloudSession(null);
-      setReady(true);
-      return;
-    }
 
     async function loadCloudSession() {
+      const localSession = getActivePizzaSession() ?? null;
       try {
         const supabase = getSupabaseBrowserClient();
         const { data } = await supabase.auth.getSession();
-        if (!data.session?.user) return;
+        if (!data.session?.user) {
+          if (mounted) {
+            setSession(localSession);
+            setCloudSession(null);
+          }
+          return;
+        }
+
         const response = await fetch("/api/pizza-sessions/active", { method: "GET" });
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (mounted) {
+            setSession(null);
+            setCloudSession(null);
+          }
+          return;
+        }
         const payload = await response.json().catch(() => ({}));
         const row = normalizeCloudPizzaSessionRow(payload.session);
-        if (mounted) setCloudSession(row ?? null);
+        if (row) {
+          if (mounted) {
+            setCloudSession(row);
+            setSession(null);
+          }
+          return;
+        }
+
+        if (localSession && cloudBackedPizzaSessionRowId(localSession)) {
+          clearCloudBackedActivePizzaSessionPointer();
+        }
+
+        if (mounted) {
+          setSession(null);
+          setCloudSession(null);
+        }
       } catch {
-        if (mounted) setCloudSession(null);
+        if (mounted) {
+          setSession(null);
+          setCloudSession(null);
+        }
       } finally {
         if (mounted) setReady(true);
       }
