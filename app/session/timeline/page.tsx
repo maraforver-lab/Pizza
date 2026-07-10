@@ -30,6 +30,7 @@ import {
   formatEarlyTimelineStartTime,
   shouldWarnBeforeEarlyTimelineStart,
 } from "@/lib/timeline-early-start-warning";
+import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 
 function formatDateTime(value?: string) {
   if (!value) return "Time not set";
@@ -306,6 +307,13 @@ function nextActionForTimeline({
   };
 }
 
+function actionableTimelineSteps(steps: PizzaSessionTimelineStep[]) {
+  return steps.filter((step) => (
+    step.id !== "review-result"
+    && (isDoughTimelineStep(step) || isServiceTimelineStep(step))
+  ));
+}
+
 function criticalMomentTitle(step: PizzaSessionTimelineStep) {
   if (step.id === "cold-ferment") return "Put dough in fridge";
   if (step.id === "room-ferment") return "Room temperature ferment";
@@ -381,6 +389,7 @@ export default function SessionTimelinePage() {
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [missingReason, setMissingReason] = useState<string | null>(null);
   const [earlyStartStep, setEarlyStartStep] = useState<PizzaSessionTimelineStep | null>(null);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -388,6 +397,11 @@ export default function SessionTimelinePage() {
     setSession(updatedSession ?? null);
     setMissingReason(result.ok ? null : result.missingReason ?? "unknown");
     setReady(true);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setCurrentTime(new Date()), 15_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   const timelineResult = useMemo(() => generatePizzaSessionTimeline(session ?? undefined), [session]);
@@ -434,15 +448,29 @@ export default function SessionTimelinePage() {
     session,
     anchorTime: timeline.anchorTime,
   });
-  const nextStep = displayTimelineSteps.find((step) => step.status === "todo");
-  const allStepsComplete = Boolean(displayTimelineSteps.length && displayTimelineSteps.every((step) => step.status === "done"));
+  const actionableSteps = actionableTimelineSteps(displayTimelineSteps);
+  const currentActionStep = actionableSteps.find((step) => step.status === "todo");
+  const currentActionIndex = currentActionStep
+    ? actionableSteps.findIndex((step) => step.id === currentActionStep.id)
+    : -1;
+  const followingActionStep = currentActionIndex >= 0
+    ? actionableSteps.slice(currentActionIndex + 1).find((step) => step.status === "todo")
+    : undefined;
+  const allStepsComplete = Boolean(actionableSteps.length && actionableSteps.every((step) => step.status === "done"));
   const checkpointState = shoppingCheckpointState(session);
   const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep);
   const shoppingCheckpointInsertIndex = firstServiceStepIndex >= 0
     ? firstServiceStepIndex
     : displayTimelineSteps.length;
-  const nextAction = nextActionForTimeline({ nextStep, allStepsComplete });
-  const nextUpTime = nextStep?.scheduledAt ?? targetTime;
+  const nextAction = nextActionForTimeline({ nextStep: currentActionStep, allStepsComplete });
+  const currentActionTime = currentActionStep?.scheduledAt ?? targetTime;
+  const nextLiveTiming = formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime);
+  const currentLiveTiming = formatTimelineLiveTiming(currentActionStep?.scheduledAt, currentTime);
+  const stepProgressLabel = currentActionStep && currentActionIndex >= 0
+    ? `Step ${currentActionIndex + 1} of ${actionableSteps.length}`
+    : allStepsComplete
+      ? `Step ${actionableSteps.length} of ${actionableSteps.length}`
+      : "Step timing unavailable";
   const criticalMoments = getCriticalMoments(displayTimelineSteps);
   const combinedRisk = planningResult?.combinedRiskSummary;
   const startWindow = planningResult?.startWindowRecommendation;
@@ -490,7 +518,7 @@ export default function SessionTimelinePage() {
       nextAction.kind === "dough" &&
       shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt)
     ) {
-      setEarlyStartStep(nextStep ?? null);
+      setEarlyStartStep(currentActionStep ?? null);
       return;
     }
 
@@ -501,17 +529,56 @@ export default function SessionTimelinePage() {
     router.push("/session/kitchen?from=timeline");
   };
   const renderNextActionCard = () => (
-    <div className="max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm">
-      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
-      <h2 className="mt-2 font-display text-3xl font-semibold text-ink">{nextAction.title}</h2>
-      <p className="mt-2 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <span className="rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/60">
-          {formatTimelineDate(nextUpTime)}
-        </span>
-        <span className="rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
-          {formatTimelineTime(nextUpTime)}
-        </span>
+    <div className="max-w-3xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm" data-testid="timeline-current-action-card">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
+        <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Current step</p>
+          <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
+            {nextAction.title}
+          </h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
+              currentLiveTiming.kind === "overdue"
+                ? "bg-tomato/10 text-tomato"
+                : "bg-leaf/10 text-leaf"
+            }`}>
+              {currentLiveTiming.kind === "future" ? "Scheduled" : currentLiveTiming.label}
+            </span>
+            <span className="rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/60">
+              {formatTimelineTime(currentActionTime)}
+            </span>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+        </section>
+
+        <section aria-labelledby="timeline-next-step-heading" className="min-w-0 rounded-[1.25rem] border border-white/75 bg-white/85 p-4">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Next step</p>
+          <h3 id="timeline-next-step-heading" className="mt-2 font-display text-3xl font-semibold leading-none text-ink">
+            {followingActionStep?.label ?? (allStepsComplete ? "Ready for Review" : "Next step not available")}
+          </h3>
+          <p className="mt-3 break-words font-display text-4xl font-semibold leading-none text-leaf sm:text-5xl">
+            {formatTimelineTime(followingActionStep?.scheduledAt)}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
+              nextLiveTiming.kind === "overdue"
+                ? "bg-tomato/10 text-tomato"
+                : nextLiveTiming.kind === "ready"
+                  ? "bg-leaf/10 text-leaf"
+                  : "bg-cream text-ink/60"
+            }`}>
+              {nextLiveTiming.label}
+            </span>
+            {nextLiveTiming.value && (
+              <span className="rounded-full bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">
+                {nextLiveTiming.value}
+              </span>
+            )}
+            <span className="rounded-full bg-ink/[.06] px-3 py-2 text-xs font-extrabold text-ink/55">
+              {stepProgressLabel}
+            </span>
+          </div>
+        </section>
       </div>
       <button
         type="button"
@@ -664,7 +731,7 @@ export default function SessionTimelinePage() {
                 )}
                 <article
                   className={`rounded-[1.25rem] border p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5 ${
-                    step.id === nextStep?.id
+                    step.id === currentActionStep?.id
                       ? "border-leaf/30 bg-leaf/[.08]"
                       : step.id === "bake-pizza"
                         ? "border-tomato/20 bg-tomato/[.05]"
@@ -691,8 +758,8 @@ export default function SessionTimelinePage() {
                       )}
                     </div>
                     <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                      <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === nextStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
-                        {statusLabel(step, nextStep)}
+                      <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === currentActionStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
+                        {statusLabel(step, currentActionStep)}
                       </span>
                       <span className="text-sm font-bold text-ink/55">
                         {relativeFromTarget(step.scheduledAt, targetTime)}
