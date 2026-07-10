@@ -55,12 +55,12 @@ export function resolveSessionTimelineFermentationMode(
   session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null,
   planningResult?: PlanningResult | null,
 ): TimelineFermentationMode {
-  const presetMode = fermentationModeFromPreset(session?.recipeSnapshot?.fermentation);
-  if (presetMode !== "unknown") return presetMode;
-
   if (typeof session?.plannedFermentationHours === "number" && Number.isFinite(session.plannedFermentationHours)) {
     return "cold";
   }
+
+  const presetMode = fermentationModeFromPreset(session?.recipeSnapshot?.fermentation);
+  if (presetMode !== "unknown") return presetMode;
 
   const selectedMode = planningResult?.fermentationSetupRecommendation?.selectedFermentationMode;
   if (selectedMode === "cold" || selectedMode === "room") return selectedMode;

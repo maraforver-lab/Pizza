@@ -652,6 +652,59 @@ describe("Pizza Session timeline", () => {
     expect(displayed.find((step) => step.id === "cold-ferment")?.label).toBe("Cold fermentation");
   });
 
+  it("prefers selected cold fermentation over a stale room recipe snapshot in Timeline display", () => {
+    const now = new Date("2026-07-02T09:00:00");
+    const target = new Date("2026-07-10T09:00:00");
+    const selectedStart = new Date(target.getTime() - 48 * 3_600_000);
+    const session = createPizzaSession({
+      id: "timeline-selected-cold-stale-room-snapshot",
+      status: "planning",
+      currentStep: "timeline",
+      targetEatTime: "2026-07-10T09:00",
+      doughStartMode: "later",
+      doughEarliestStartTime: selectedStart.toISOString(),
+      plannedFermentationHours: 48,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "home",
+      flour: "tipo-00",
+      recipeSnapshot: { fermentation: "12h-room" },
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok || !recipe.planningInfo.ok) throw new Error("Expected planning info");
+
+    const generated = generatePizzaSessionTimeline(session, now).timeline!;
+    const staleSteps = generated.steps.map((step) => (
+      step.id === "cold-ferment"
+        ? {
+          ...step,
+          id: "room-ferment",
+          label: "Room temperature ferment",
+          description: "Keep the covered dough at room temperature for the planned fermentation time.",
+          beginnerNote: "Keep the dough covered and let it rise at room temperature.",
+        }
+        : step
+    ));
+    const displayed = timelineStepsForPlanningSummaryDisplay({
+      steps: staleSteps,
+      planningResult: recipe.planningInfo.result,
+      session,
+      now,
+    });
+    const fermentationStep = displayed.find((step) => step.id === "cold-ferment");
+
+    expect(recipe.continuousYeast?.basisLabel).toBe("48 h cold fermentation");
+    expect(fermentationStep).toMatchObject({
+      label: "Cold fermentation",
+      description: "Keep the covered dough in the fridge for the planned cold fermentation time.",
+      beginnerNote: "Keep the dough covered in the fridge at the planned temperature.",
+    });
+    expect(displayed.some((step) => step.id === "room-ferment")).toBe(false);
+    expect(displayed.map((step) => `${step.label} ${step.description} ${step.beginnerNote}`).join(" "))
+      .not.toMatch(/Room temperature ferment|at room temperature/i);
+  });
+
   it("keeps room-temperature fermentation Timeline copy for room fermentation plans", () => {
     const now = new Date("2026-07-08T10:00:00.000Z");
     const session = createPizzaSession({
