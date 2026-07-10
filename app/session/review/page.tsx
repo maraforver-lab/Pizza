@@ -10,14 +10,16 @@ import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import type { PizzaSession } from "@/lib/pizza-session";
-import { completeCloudBackedPizzaSession } from "@/lib/cloud-pizza-session-client";
+import {
+  completeCloudBackedPizzaSession,
+  saveCloudActivePizzaSession,
+} from "@/lib/cloud-pizza-session-client";
 import {
   getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
 import {
   completeSessionReview,
-  saveSessionReview,
 } from "@/lib/pizza-session-review";
 
 const ratingOptions = [
@@ -122,7 +124,7 @@ export default function SessionReviewPage() {
   const [legacyImproveNextTime, setLegacyImproveNextTime] = useState("");
   const [legacyNextTimeTry, setLegacyNextTimeTry] = useState("");
   const [message, setMessage] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -158,29 +160,23 @@ export default function SessionReviewPage() {
     nextTimeTry: legacyNextTimeTry,
   };
 
-  const saveReview = () => {
-    const updated = saveSessionReview(session, reviewInput);
-    if (!updated) {
-      setMessage("Could not save this local review. Please refresh and try again.");
-      return;
-    }
-    setSession(updated);
-    setSaved(true);
-    setMessage(null);
-  };
-
-  const finishSession = async () => {
+  const saveReview = async () => {
+    if (saving) return;
+    setSaving(true);
     const completed = completeSessionReview(session, reviewInput);
     if (!completed) {
-      setMessage("Could not finish this local session. Please refresh and try again.");
+      setSaving(false);
+      setMessage("Could not save this review. Please refresh and try again.");
       return;
     }
     setSession(completed);
-    setSaved(true);
     setMessage(null);
-    await completeCloudBackedPizzaSession(completed).catch(() => {
-      // Finishing the local session should not be blocked by temporary account sync issues.
-    });
+    const accountSave = await saveCloudActivePizzaSession(completed).catch(() => ({ skipped: true as const }));
+    if (!("skipped" in accountSave)) {
+      await completeCloudBackedPizzaSession(completed).catch(() => {
+        // Finishing the local session should not be blocked by temporary account sync issues.
+      });
+    }
     router.push("/");
   };
 
@@ -198,7 +194,7 @@ export default function SessionReviewPage() {
           hideMeta
         />
 
-        {message && !saved && (
+        {message && (
           <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-bold text-ink/60 shadow-sm" role="status" aria-live="polite">
             {message}
           </p>
@@ -207,6 +203,14 @@ export default function SessionReviewPage() {
         <section className="mt-4 sm:mt-6">
           <section className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7" aria-labelledby="review-form-heading">
             <h2 id="review-form-heading" className="sr-only">Review form</h2>
+            <section className="mb-5 rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:mb-6" aria-labelledby="review-photo-sharing-heading">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">After saving</p>
+              <h3 id="review-photo-sharing-heading" className="mt-2 font-display text-2xl font-semibold">Add a pizza photo and share your bake</h3>
+              <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
+                If you’re signed in, you can also save a finished pizza photo as a memory after this review. DoughTools can create a share image with your bake and preparation parameters, so you can share the result with your network.
+              </p>
+            </section>
+
             <div>
               <p id="rating-label" className="text-sm font-extrabold text-ink/70">Overall result</p>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5" role="group" aria-labelledby="rating-label">
@@ -254,45 +258,23 @@ export default function SessionReviewPage() {
               </label>
             </div>
 
-            {!saved && (
-              <BottomActionBar
-                back={(
-                  <Link href="/session/kitchen" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
-                    Back
-                  </Link>
-                )}
-                primary={(
-                  <button
-                    type="button"
-                    onClick={saveReview}
-                    className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
-                  >
-                    Save review →
-                  </button>
-                )}
-              />
-            )}
-
-            {saved && (
-              <section className="mt-6 rounded-[1.5rem] bg-leaf/10 p-5" aria-labelledby="after-save-heading">
-                <h3 id="after-save-heading" className="font-display text-3xl font-semibold">Review saved</h3>
-                <p className="mt-2 text-sm font-bold text-leaf" role="status" aria-live="polite">
-                  Review saved in this browser.
-                </p>
-                <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Finish session closes this local session so the homepage is ready for a fresh pizza session.
-                </p>
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={finishSession}
-                    className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
-                  >
-                    Finish session
-                  </button>
-                </div>
-              </section>
-            )}
+            <BottomActionBar
+              back={(
+                <Link href="/session/kitchen" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+                  Back
+                </Link>
+              )}
+              primary={(
+                <button
+                  type="button"
+                  onClick={saveReview}
+                  disabled={saving}
+                  className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:opacity-60 sm:w-auto"
+                >
+                  {saving ? "Saving review…" : "Save review →"}
+                </button>
+              )}
+            />
           </section>
         </section>
       </SessionWorkspaceLayout>

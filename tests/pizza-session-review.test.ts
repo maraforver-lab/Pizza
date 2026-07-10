@@ -56,9 +56,13 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("What would you improve?");
     expect(page).toContain("Free notes");
     expect(page).toContain("Save review →");
-    expect(page).toContain("Review saved in this browser.");
-    expect(page).toContain("Finish session");
+    expect(page).toContain("Saving review…");
+    expect(page).toContain("Add a pizza photo and share your bake");
+    expect(page).toContain("If you’re signed in, you can also save a finished pizza photo as a memory after this review.");
+    expect(page).toContain("share image with your bake and preparation parameters");
     expect(page).toContain("completeSessionReview");
+    expect(page).toContain("saveCloudActivePizzaSession(completed)");
+    expect(page).toContain("completeCloudBackedPizzaSession(completed)");
     expect(page).toContain("router.push(\"/\")");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/kitchen\"");
@@ -111,15 +115,19 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).not.toContain("placeholder={copy.nextTimeTryPlaceholder}");
   });
 
-  it("keeps after-save actions clear", () => {
+  it("uses Save review as the final completion action", () => {
     const page = source("app/session/review/page.tsx");
 
-    expect(page).toContain("Review saved");
-    expect(page).toContain("Finish session");
-    expect(page).toContain("Finish session closes this local session");
-    expect(page).toContain("onClick={finishSession}");
+    expect(page).toContain("const saveReview = async () =>");
+    expect(page).toContain("onClick={saveReview}");
     expect(page).toContain("completeSessionReview(session, reviewInput)");
+    expect(page).toContain("saveCloudActivePizzaSession(completed)");
+    expect(page).toContain("completeCloudBackedPizzaSession(completed)");
     expect(page).toContain("router.push(\"/\")");
+    expect(page).toContain("Saving review…");
+    expect(page).not.toContain("const finishSession");
+    expect(page).not.toContain("Review saved");
+    expect(page).not.toContain("Finish session");
     expect(page).not.toContain("Back to homepage →");
     expect(page).not.toContain("Start a new Pizza Session →");
     expect(page).not.toContain('href="/session/start?new=1"');

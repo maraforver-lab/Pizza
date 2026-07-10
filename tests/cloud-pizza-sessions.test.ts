@@ -1151,6 +1151,7 @@ describe("cloud pizza session foundation", () => {
       expect(page).toContain("CloudPizzaSessionSync");
       expect(page).toContain("<CloudPizzaSessionSync session={session} />");
     });
+    expect(reviewPage).toContain("saveCloudActivePizzaSession(completed)");
     expect(reviewPage).toContain("completeCloudBackedPizzaSession(completed)");
   });
 
