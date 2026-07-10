@@ -19,11 +19,11 @@ function formatDurationParts(totalSeconds: number) {
 }
 
 export function formatTimelineLiveTiming(stepTime?: string, now = new Date()): TimelineLiveTiming {
-  if (!stepTime) return { kind: "unknown", label: "Timing unavailable" };
+  if (!stepTime) return { kind: "unknown", label: "Timing not set" };
 
   const scheduledAt = new Date(stepTime);
   if (!Number.isFinite(scheduledAt.getTime()) || !Number.isFinite(now.getTime())) {
-    return { kind: "unknown", label: "Timing unavailable" };
+    return { kind: "unknown", label: "Timing not set" };
   }
 
   const diffSeconds = Math.round((scheduledAt.getTime() - now.getTime()) / 1000);

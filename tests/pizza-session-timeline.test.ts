@@ -69,7 +69,7 @@ describe("Pizza Session timeline", () => {
     });
     expect(formatTimelineLiveTiming(undefined, now)).toEqual({
       kind: "unknown",
-      label: "Timing unavailable",
+      label: "Timing not set",
     });
   });
 
@@ -85,6 +85,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
     expect(page).not.toContain("Next up</p>");
     expect(page).toContain("Current step");
+    expect(page).toContain("Planned at");
     expect(page).toContain("Next step");
     expect(page).toContain("timeline-current-action-card");
     expect(page).toContain("actionableTimelineSteps");
@@ -628,8 +629,11 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("const currentActionStep = actionableSteps.find((step) => step.status === \"todo\")");
     expect(page).toContain("const followingActionStep = currentActionIndex >= 0");
     expect(page).toContain("Current step");
+    expect(page).toContain("Planned at");
     expect(page).toContain("Next step");
+    expect(page).toContain("formatTimelineLiveTiming(currentActionStep?.scheduledAt, currentTime)");
     expect(page).toContain("formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime)");
+    expect(page).not.toContain("Scheduled");
     expect(page).toContain("Step ${currentActionIndex + 1} of ${actionableSteps.length}");
     expect(page).toContain("cta: \"Start dough →\"");
     expect(page).toContain("cta: \"Continue baking →\"");

@@ -434,7 +434,7 @@ describe("Pizza Session Kitchen Mode", () => {
     });
     expect(formatTimelineLiveTiming(undefined, now)).toEqual({
       kind: "unknown",
-      label: "Timing unavailable",
+      label: "Timing not set",
     });
   });
 

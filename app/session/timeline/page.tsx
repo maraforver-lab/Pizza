@@ -536,14 +536,20 @@ export default function SessionTimelinePage() {
           <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
             {nextAction.title}
           </h2>
+          <p className="mt-3 text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned at</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
               currentLiveTiming.kind === "overdue"
                 ? "bg-tomato/10 text-tomato"
                 : "bg-leaf/10 text-leaf"
             }`}>
-              {currentLiveTiming.kind === "future" ? "Scheduled" : currentLiveTiming.label}
+              {currentLiveTiming.label}
             </span>
+            {currentLiveTiming.value && (
+              <span className="rounded-full bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">
+                {currentLiveTiming.value}
+              </span>
+            )}
             <span className="rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/60">
               {formatTimelineTime(currentActionTime)}
             </span>
