@@ -103,6 +103,10 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("actionableTimelineSteps");
     expect(page).toContain("currentActionStep");
     expect(page).toContain("followingActionStep");
+    expect(page).toContain("timelineStepIcon(currentActionStep)");
+    expect(page).toContain("timelineStepIconTone(currentActionStep)");
+    expect(page).toContain("timelineStepIcon(followingActionStep)");
+    expect(page).toContain("timelineStepIconTone(followingActionStep)");
     expect(page).toContain("formatTimelineLiveTiming");
     expect(page).toContain("stepProgressLabel");
     expect(page).toContain("setInterval(() => setCurrentTime(new Date()), 15_000)");
@@ -184,6 +188,23 @@ describe("Pizza Session timeline", () => {
 
     expect(page).toContain("Cold fermentation");
     expect(page).not.toContain("cold fermentation gives more control");
+  });
+
+  it("maps small visual badges to key timeline step types", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("function timelineStepIcon(step?: PizzaSessionTimelineStep)");
+    expect(page).toContain('step?.id === "mix-dough"');
+    expect(page).toContain('step?.id === "rest-dough"');
+    expect(page).toContain('step?.id === "cold-ferment"');
+    expect(page).toContain('step?.id === "room-ferment" || step?.id === "ferment-dough"');
+    expect(page).toContain('step?.id === "ball-dough"');
+    expect(page).toContain('step?.id === "preheat-oven"');
+    expect(page).toContain('step?.id === "prepare-sauce-toppings"');
+    expect(page).toContain('step?.id === "bake-pizza"');
+    expect(page).toContain("function timelineStepIconTone(step?: PizzaSessionTimelineStep)");
+    expect(page).toContain("bg-leaf/10 text-leaf ring-leaf/15");
+    expect(page).toContain("bg-tomato/10 text-tomato ring-tomato/15");
   });
 
   it("aligns the displayed full timeline with a 7-hour same-day room planning summary", () => {
@@ -1045,6 +1066,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("relativeFromTarget(step.scheduledAt, targetTime)");
     expect(page).toContain("step.id === currentActionStep?.id");
     expect(page).toContain("timelineStepIcon(step)");
+    expect(page).toContain("timelineStepIconTone(step)");
     expect(page).not.toContain("onClick={() => markDone(step.id)}");
   });
 

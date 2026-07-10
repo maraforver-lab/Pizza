@@ -87,18 +87,29 @@ function statusClass(status: "next" | "target" | "checkpoint" | PizzaSessionTime
   return "bg-cream text-ink/55 ring-ink/10";
 }
 
-function timelineStepIcon(step: PizzaSessionTimelineStep) {
-  if (step.id === "mix-dough") return "🥣";
-  if (step.id === "rest-dough") return "⏳";
-  if (step.id === "cold-ferment") return "❄️";
-  if (step.id === "room-ferment" || step.id === "ferment-dough") return "🌡️";
-  if (step.id === "ball-dough") return "🍞";
-  if (step.id === "room-temperature-rest") return "🌡️";
-  if (step.id === "preheat-oven") return "🔥";
-  if (step.id === "prepare-sauce-toppings") return "🍅";
-  if (step.id === "bake-pizza") return "🍕";
-  if (step.id === "review-result") return "📝";
+function timelineStepIcon(step?: PizzaSessionTimelineStep) {
+  if (step?.id === "mix-dough") return "🥣";
+  if (step?.id === "rest-dough") return "⏳";
+  if (step?.id === "cold-ferment") return "❄️";
+  if (step?.id === "room-ferment" || step?.id === "ferment-dough") return "🌡️";
+  if (step?.id === "ball-dough") return "🍞";
+  if (step?.id === "room-temperature-rest") return "🌡️";
+  if (step?.id === "preheat-oven") return "🔥";
+  if (step?.id === "prepare-sauce-toppings") return "🍅";
+  if (step?.id === "bake-pizza") return "🍕";
+  if (step?.id === "review-result") return "📝";
+  if (!step) return "✓";
   return "•";
+}
+
+function timelineStepIconTone(step?: PizzaSessionTimelineStep) {
+  if (step?.id === "cold-ferment" || step?.id === "room-ferment" || step?.id === "ferment-dough" || step?.id === "room-temperature-rest") {
+    return "bg-leaf/10 text-leaf ring-leaf/15";
+  }
+  if (step?.id === "preheat-oven" || step?.id === "bake-pizza") {
+    return "bg-tomato/10 text-tomato ring-tomato/15";
+  }
+  return "bg-white text-ink ring-ink/10";
 }
 
 function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {
@@ -430,11 +441,18 @@ export default function SessionTimelinePage() {
   const renderNextActionCard = () => (
     <div className="max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm sm:p-5" data-testid="timeline-current-action-card">
       <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
-        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Now</p>
-        <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
-          {nextAction.title}
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+        <div className="flex min-w-0 items-start gap-3">
+          <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-2xl ring-1 ${timelineStepIconTone(currentActionStep)}`} aria-hidden="true">
+            {timelineStepIcon(currentActionStep)}
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Now</p>
+            <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
+              {nextAction.title}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+          </div>
+        </div>
         <div className="mt-4">
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned for</p>
           <p className="mt-1 font-display text-3xl font-semibold leading-none text-ink sm:text-4xl">
@@ -460,13 +478,20 @@ export default function SessionTimelinePage() {
             {stepProgressLabel}
           </span>
         </div>
-        <p className="mt-4 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
-          <span className="uppercase tracking-[.14em] text-ink/40">Next:</span>{" "}
-          {nextStepSummary}
-          {followingActionStep && nextLiveTiming.kind !== "unknown" && (
-            <span className="font-bold text-ink/45"> · {nextLiveTiming.label}{nextLiveTiming.value ? ` ${nextLiveTiming.value}` : ""}</span>
+        <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
+          {followingActionStep && (
+            <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-base ring-1 ${timelineStepIconTone(followingActionStep)}`} aria-hidden="true">
+              {timelineStepIcon(followingActionStep)}
+            </span>
           )}
-        </p>
+          <p className="min-w-0">
+            <span className="uppercase tracking-[.14em] text-ink/40">Next:</span>{" "}
+            {nextStepSummary}
+            {followingActionStep && nextLiveTiming.kind !== "unknown" && (
+              <span className="font-bold text-ink/45"> · {nextLiveTiming.label}{nextLiveTiming.value ? ` ${nextLiveTiming.value}` : ""}</span>
+            )}
+          </p>
+        </div>
       </section>
       <button
         type="button"
@@ -586,7 +611,7 @@ export default function SessionTimelinePage() {
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                     <div className="flex min-w-0 gap-3 sm:gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cream text-xl sm:h-12 sm:w-12 sm:text-2xl" aria-hidden="true">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xl ring-1 sm:h-12 sm:w-12 sm:text-2xl ${timelineStepIconTone(step)}`} aria-hidden="true">
                         {timelineStepIcon(step)}
                       </div>
                       <div className="min-w-0">
