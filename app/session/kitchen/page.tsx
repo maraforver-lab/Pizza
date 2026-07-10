@@ -10,8 +10,8 @@ import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLay
 import { getExperienceLevelConfig } from "@/lib/experience-levels";
 import {
   type PizzaSession,
-  type PizzaSessionTimelineStep,
 } from "@/lib/pizza-session";
+import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
@@ -39,6 +39,17 @@ function formatKitchenStepTime(value?: string) {
   }).formatToParts(date);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
   return `${part("weekday")}, ${part("day")} ${part("month")} · ${part("hour")}:${part("minute")}`;
+}
+
+function formatKitchenClockTime(value?: string) {
+  if (!value) return "Time not set";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Time not set";
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
 }
 
 function relativeFromTarget(stepTime?: string, targetTime?: string) {
@@ -96,7 +107,7 @@ export default function SessionKitchenPage() {
 
   useEffect(() => {
     if (!ready) return undefined;
-    const timer = window.setInterval(() => setCurrentTime(new Date()), 30_000);
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 15_000);
     return () => window.clearInterval(timer);
   }, [ready]);
 
@@ -144,6 +155,9 @@ export default function SessionKitchenPage() {
   const targetTime = session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime;
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
   const waitInfo = currentTime ? getKitchenStepWaitInfo(currentStep, currentTime) : getKitchenStepWaitInfo(undefined);
+  const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, currentTime ?? new Date());
+  const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date());
+  const currentStepIsWaiting = currentStep?.kind === "passive";
   const experience = getExperienceLevelConfig(session.experienceLevel);
   const levelGuidance = getKitchenExperienceGuidance(currentStep, session.experienceLevel, session);
   const levelGuidanceDetails = [
@@ -194,7 +208,27 @@ export default function SessionKitchenPage() {
                       </span>
                     )}
                   </div>
-                  <h1 id="current-kitchen-task" className="mt-4 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
+                  <p className="mt-5 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current step</p>
+                  <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
+
+                  <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="kitchen-current-timing-heading">
+                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-end">
+                      <div>
+                        <p id="kitchen-current-timing-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned at</p>
+                        <p className="mt-2 font-display text-5xl font-semibold leading-none text-ink sm:text-6xl">{formatKitchenClockTime(currentStep.scheduledAt)}</p>
+                        <p className="mt-2 text-sm font-bold leading-6 text-ink/55">{formatKitchenStepTime(currentStep.scheduledAt)}</p>
+                      </div>
+                      <div className="rounded-[1.25rem] border border-leaf/15 bg-leaf/[.08] p-4">
+                        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Live timing</p>
+                        <p className={`mt-2 text-2xl font-extrabold leading-tight sm:text-3xl ${currentLiveTiming.kind === "overdue" ? "text-tomato" : "text-ink"}`}>
+                          {currentLiveTiming.label}
+                        </p>
+                        {currentLiveTiming.value && (
+                          <p className="mt-1 text-3xl font-extrabold leading-none text-tomato sm:text-4xl">{currentLiveTiming.value}</p>
+                        )}
+                      </div>
+                    </div>
+                  </section>
 
                   {waitInfo.isTooEarly && waitInfo.waitLabel && (
                     <div className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
@@ -209,14 +243,28 @@ export default function SessionKitchenPage() {
 
                   <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
                     <section className="rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-4 sm:p-5 lg:col-start-1 lg:row-start-1" aria-labelledby="kitchen-do-this-heading">
-                      <p id="kitchen-do-this-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this</p>
+                      <p id="kitchen-do-this-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{currentStepIsWaiting ? "What is happening now" : "Do this"}</p>
                       <p className="mt-2 text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
                     </section>
 
                     <section className="rounded-[1.5rem] border border-white bg-white p-4 shadow-sm sm:p-5 lg:col-start-2 lg:row-start-1" aria-labelledby="kitchen-when-heading">
                       <p id="kitchen-when-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">When</p>
-                      <p className="mt-2 font-display text-3xl font-semibold leading-tight text-ink">{formatKitchenStepTime(currentStep.scheduledAt)}</p>
+                      <p className="mt-2 font-display text-4xl font-semibold leading-tight text-ink">{formatKitchenClockTime(currentStep.scheduledAt)}</p>
+                      <p className={`mt-1 text-base font-extrabold leading-6 ${currentLiveTiming.kind === "overdue" ? "text-tomato" : "text-leaf"}`}>
+                        {currentLiveTiming.label}{currentLiveTiming.value ? ` · ${currentLiveTiming.value}` : ""}
+                      </p>
                       <p className="mt-2 text-sm font-extrabold leading-6 text-ink/60">{relativeFromTarget(currentStep.scheduledAt, targetTime)}</p>
+                    </section>
+
+                    <section className="rounded-[1.5rem] border border-ink/10 bg-white/80 p-4 sm:p-5 lg:col-start-2 lg:row-start-2" aria-labelledby="kitchen-next-heading">
+                      <p id="kitchen-next-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">{currentStepIsWaiting ? "Next action" : "Next step"}</p>
+                      <p className="mt-2 text-lg font-extrabold leading-6 text-ink">
+                        {kitchenState.nextStep ? nextTaskPresentation.title : "Review your pizza session"}
+                      </p>
+                      <p className="mt-3 font-display text-3xl font-semibold leading-none text-ink/80">{formatKitchenClockTime(kitchenState.nextStep?.scheduledAt)}</p>
+                      <p className={`mt-2 text-sm font-extrabold leading-6 ${nextLiveTiming.kind === "overdue" ? "text-tomato" : "text-ink/60"}`}>
+                        {nextLiveTiming.label}{nextLiveTiming.value ? ` · ${nextLiveTiming.value}` : ""}
+                      </p>
                     </section>
 
                     <section className="rounded-[1.5rem] border border-ink/10 bg-cream p-4 sm:p-5 lg:col-start-1 lg:row-start-2" aria-labelledby="kitchen-done-heading">
@@ -230,13 +278,6 @@ export default function SessionKitchenPage() {
                         <p className="mt-2 text-sm font-bold leading-6 text-ink/65 sm:text-base">{taskPresentation.helperCopy}</p>
                       </section>
                     )}
-
-                    <section className="rounded-[1.5rem] border border-ink/10 bg-white/80 p-4 sm:p-5 lg:col-start-2 lg:row-start-2" aria-labelledby="kitchen-next-heading">
-                      <p id="kitchen-next-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Next</p>
-                      <p className="mt-2 text-base font-extrabold leading-6 text-ink/70">
-                        Next: {kitchenState.nextStep ? nextTaskPresentation.title : "Review your pizza session"}
-                      </p>
-                    </section>
                   </div>
 
                   <section className={`mt-5 rounded-[1.5rem] border p-4 sm:mt-6 sm:p-5 ${experience.cardClassName}`} aria-labelledby="kitchen-level-guidance-heading">

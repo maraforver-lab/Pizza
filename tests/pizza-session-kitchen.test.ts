@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createPizzaSession, pizzaSessionContinueHref } from "@/lib/pizza-session";
 import { generatePizzaSessionTimeline } from "@/lib/pizza-session-timeline";
+import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
@@ -337,8 +338,16 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("hideLocalSaveNote");
     expect(page).toContain("Needed now");
     expect(page).toContain("Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount}");
+    expect(page).toContain("formatTimelineLiveTiming");
+    expect(page).toContain("currentLiveTiming");
+    expect(page).toContain("nextLiveTiming");
+    expect(page).toContain("function formatKitchenClockTime");
+    expect(page).toContain("Planned at");
+    expect(page).toContain("Live timing");
+    expect(page).toContain("Current step");
     expect(page).toContain("<h1 id=\"current-kitchen-task\"");
     expect(page).toContain("Do this");
+    expect(page).toContain("What is happening now");
     expect(page).toContain("When");
     expect(page).toContain("You are done when");
     expect(page).toContain("Technique note");
@@ -347,7 +356,9 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("What to look for");
     expect(page).toContain("Why it matters");
     expect(page).toContain("Keep in mind");
-    expect(page).toContain("Next: {kitchenState.nextStep ? nextTaskPresentation.title : \"Review your pizza session\"}");
+    expect(page).toContain("Next action");
+    expect(page).toContain("Next step");
+    expect(page).toContain("{kitchenState.nextStep ? nextTaskPresentation.title : \"Review your pizza session\"}");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href={backHref}");
     expect(page).toContain("Mark step as done →");
@@ -359,7 +370,6 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("return \"/session/shopping\"");
     expect(page).not.toContain("<StatusPill");
     expect(page).not.toContain("Step 9: Kitchen Mode");
-    expect(page).not.toContain("Current step");
     expect(page).not.toContain("Do this now");
     expect(page).not.toContain("before target");
     expect(page).not.toContain("SessionLocalOnlyNote");
@@ -385,6 +395,47 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Continue anyway");
     expect(page).toContain("setConfirmEarlyCompletion(false)");
     expect(page).toContain("completeCurrentStep");
+  });
+
+  it("reuses shared live timing language for Kitchen Mode current and next step timing", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("import { formatTimelineLiveTiming } from \"@/lib/timeline-live-timing\"");
+    expect(page).toContain("const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, currentTime ?? new Date())");
+    expect(page).toContain("const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date())");
+    expect(page).toContain("currentLiveTiming.label");
+    expect(page).toContain("currentLiveTiming.value");
+    expect(page).toContain("nextLiveTiming.label");
+    expect(page).toContain("nextLiveTiming.value");
+    expect(page).toContain("window.setInterval(() => setCurrentTime(new Date()), 15_000)");
+    expect(page).toContain("window.clearInterval(timer)");
+    expect(page).not.toContain("aria-live");
+  });
+
+  it("keeps Kitchen Mode timing states aligned with the Timeline live timing formatter", () => {
+    const now = new Date("2026-07-10T08:00:00.000Z");
+
+    expect(formatTimelineLiveTiming("2026-07-10T10:15:00.000Z", now)).toEqual({
+      kind: "future",
+      label: "Starts in 2 h 15 min",
+    });
+    expect(formatTimelineLiveTiming("2026-07-10T08:00:45.000Z", now)).toEqual({
+      kind: "future",
+      label: "Starts in 45 sec",
+    });
+    expect(formatTimelineLiveTiming("2026-07-10T08:00:00.000Z", now)).toEqual({
+      kind: "ready",
+      label: "READY NOW",
+    });
+    expect(formatTimelineLiveTiming("2026-07-10T07:48:00.000Z", now)).toEqual({
+      kind: "overdue",
+      label: "OVERDUE",
+      value: "−12 min",
+    });
+    expect(formatTimelineLiveTiming(undefined, now)).toEqual({
+      kind: "unknown",
+      label: "Timing unavailable",
+    });
   });
 
   it("calculates Kitchen Mode wait labels and early completion confirmation from scheduled time", () => {
@@ -497,15 +548,20 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("function formatKitchenStepTime");
     expect(page).toContain("formatKitchenStepTime(currentStep.scheduledAt)");
+    expect(page).toContain("formatKitchenClockTime(currentStep.scheduledAt)");
+    expect(page).toContain("formatKitchenClockTime(kitchenState.nextStep?.scheduledAt)");
     expect(page).toContain("bake time");
     expect(page).toContain("diffMinutes < 0 ? \"before\" : \"after\"");
     expect(page).toContain("rounded-[1.5rem] border border-leaf/15 bg-leaf/[.08]");
     expect(page).toContain("Quiet-hours warning");
     expect(page).toContain("rounded-2xl bg-tomato/10");
+    expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned at"));
+    expect(page.indexOf("Planned at")).toBeLessThan(page.indexOf("Live timing"));
+    expect(page.indexOf("Live timing")).toBeLessThan(page.indexOf("Do this"));
     expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("When"));
-    expect(page.indexOf("When")).toBeLessThan(page.indexOf("You are done when"));
+    expect(page.indexOf("When")).toBeLessThan(page.indexOf("Next action"));
+    expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("You are done when"));
     expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("Technique note"));
-    expect(page.indexOf("Technique note")).toBeLessThan(page.indexOf("Next"));
   });
 
   it("uses a clearer ball-dough action and done condition when dough-ball amounts are available", () => {

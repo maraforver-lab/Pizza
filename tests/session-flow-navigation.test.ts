@@ -98,8 +98,10 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("href={backHref}");
     expect(kitchen).toContain("This step is scheduled later");
     expect(kitchen).toContain("Continue anyway");
+    expect(kitchen).toContain("Current step");
+    expect(kitchen).toContain("Planned at");
+    expect(kitchen).toContain("Live timing");
     expect(kitchen).not.toContain("Step 9: Kitchen Mode");
-    expect(kitchen).not.toContain("Current step");
     expect(kitchen).not.toContain("Do this now");
     expect(kitchen).not.toContain("SessionStepHero");
     expect(kitchen).not.toMatch(/Review dough plan|Open shopping list|Save and continue later|Open full Calculator/);
