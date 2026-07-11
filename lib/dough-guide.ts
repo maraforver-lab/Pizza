@@ -634,7 +634,7 @@ export const doughGuideSteps = [
       "Dough temperature changes gluten relaxation and fermentation rate. Working temperature is a handling state, not just a clock target.",
       "Excessive warming can accelerate fermentation and reduce strength before opening.",
     ],
-    image: { src: "/dough-guide/guide-step-10-warm.webp", alt: "Dough balls resting at room temperature before stretching.", caption: "Cold dough should relax before evaluation; there is no universal warm-up duration.", kind: "photo", width: 1200, height: 900 },
+    image: { src: "/dough-guide/guide-step-10-warm.webp", alt: "Covered dough balls relaxing in a tray at room temperature after cold storage.", caption: "Cold dough should relax before evaluation; there is no universal warm-up duration.", kind: "photo", width: 1200, height: 900 },
     troubleshooting: [
       { topicId: "dough-springs-back", beginnerLabel: "Fix dough that springs back", enthusiastLabel: "Diagnose cold or tight dough", nerdLabel: "Check extensibility and spring-back" },
       { topicId: "dough-too-sticky", beginnerLabel: "Fix dough that became too loose", enthusiastLabel: "Diagnose overly warm sticky dough", nerdLabel: "Review temperature and weakened structure" },
@@ -736,7 +736,7 @@ export const doughGuideSteps = [
       "The goal is to preserve gas cells and surface integrity before opening. Rough release can erase fermentation gains in seconds.",
       "Excess bench flour can dry the surface and interfere with the final base texture.",
     ],
-    image: { src: "/dough-guide/guide-step-12-release.webp", alt: "A dough ball released intact onto a floured surface before stretching.", caption: "Release the dough intact, then stop before stretching.", kind: "photo", width: 1200, height: 900 },
+    image: { src: "/dough-guide/guide-step-12-release.webp", alt: "A dough scraper gently releasing an intact dough ball onto a floured work surface.", caption: "Release the dough intact, then stop before stretching.", kind: "photo", width: 1200, height: 900 },
     troubleshooting: [
       { topicId: "dough-too-sticky", beginnerLabel: "Fix dough that sticks", enthusiastLabel: "Diagnose sticking during release", nerdLabel: "Review stickiness and launch-floor variables" },
       { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing during release", nerdLabel: "Review tearing and surface integrity" },

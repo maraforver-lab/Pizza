@@ -302,6 +302,26 @@ describe("Pizza Dough Guide foundation", () => {
     }
   });
 
+  it("uses improved local Warm and Release step photos with accurate accessibility text", () => {
+    const warmStep = getDoughGuideStepById("warm-dough");
+    const releaseStep = getDoughGuideStepById("release-dough-ball");
+
+    expect(warmStep.image?.src).toBe("/dough-guide/guide-step-10-warm.webp");
+    expect(releaseStep.image?.src).toBe("/dough-guide/guide-step-12-release.webp");
+    expect(existsSync(join(process.cwd(), "public", warmStep.image!.src.slice(1)))).toBe(true);
+    expect(existsSync(join(process.cwd(), "public", releaseStep.image!.src.slice(1)))).toBe(true);
+    expect(warmStep.image?.src).not.toMatch(/^https?:\/\//);
+    expect(releaseStep.image?.src).not.toMatch(/^https?:\/\//);
+    expect(warmStep.image?.alt).toMatch(/covered dough balls/i);
+    expect(warmStep.image?.alt).toMatch(/room temperature|relaxing/i);
+    expect(warmStep.image?.alt).toMatch(/cold storage/i);
+    expect(`${warmStep.image?.alt} ${warmStep.image?.caption}`).not.toMatch(/\b2 h\b|two-hour|fixed time|universal waiting time/i);
+    expect(releaseStep.image?.alt).toMatch(/dough scraper/i);
+    expect(releaseStep.image?.alt).toMatch(/releasing an intact dough ball/i);
+    expect(releaseStep.image?.alt).toMatch(/floured work surface/i);
+    expect(releaseStep.doThisNow.join(" ")).toContain("the next action is stretching, which is outside this guide");
+  });
+
   it("defines local typed visual learning assets with alt text and dimensions", () => {
     const visuals = allGuideVisuals();
 
