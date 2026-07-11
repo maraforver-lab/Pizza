@@ -191,7 +191,33 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("Why this matters"));
     expect(page).toContain("Step {activeIndex + 1} of {doughGuideSteps.length}");
     expect(page).toContain("lg:grid-cols-[20rem_minmax(0,1fr)]");
+    expect(page).toContain('className="hidden lg:sticky lg:top-24 lg:block"');
     expect(page).not.toContain("<table");
+  });
+
+  it("uses the active Guide image as responsive layout media instead of a separate progress card", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).not.toContain("Current progress");
+    expect(page).not.toContain("Active step: {activeStep.actionName}. Guidance mode:");
+    expect(page).not.toContain("getExperienceLevelConfig");
+    expect(page).toContain("lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)]");
+    expect(page).toContain('className="mt-6 hidden lg:mt-0 lg:block"');
+    expect(page).toContain('className="mt-5 lg:hidden"');
+    expect(page.match(/<StepVisual step=\{activeStep\} priority \/>/g)).toHaveLength(2);
+    expect(page).not.toContain("xl:grid-cols-[minmax(0,1fr)_20rem]");
+  });
+
+  it("places the compact image after the active step orientation and before the immediate action", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    const summaryIndex = page.indexOf("{activeStep.summary}");
+    const mobileImageIndex = page.indexOf('className="mt-5 lg:hidden"');
+    const doThisNowIndex = page.indexOf("Do this now");
+
+    expect(summaryIndex).toBeGreaterThan(-1);
+    expect(mobileImageIndex).toBeGreaterThan(summaryIndex);
+    expect(mobileImageIndex).toBeLessThan(doThisNowIndex);
   });
 
   it("keeps the current instruction ahead of session and flour context", () => {

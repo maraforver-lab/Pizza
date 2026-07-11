@@ -34,7 +34,6 @@ import {
   type DoughGuideReturnPath,
 } from "@/lib/dough-guide-links";
 import {
-  getExperienceLevelConfig,
   readExperienceLevelPreference,
   type ExperienceLevel,
 } from "@/lib/experience-levels";
@@ -182,7 +181,7 @@ function DisclosureCard({ title, children }: { title: string; children: ReactNod
   );
 }
 
-function StepVisual({ step }: { step: DoughGuideStep }) {
+function StepVisual({ step, priority = false }: { step: DoughGuideStep; priority?: boolean }) {
   if (!step.image) {
     return (
       <div className="grid min-h-48 place-items-center rounded-[1.5rem] border border-white/70 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,.85),transparent_28%),radial-gradient(circle_at_75%_75%,rgba(233,75,46,.16),transparent_32%)] p-6 text-center" aria-hidden="true">
@@ -198,7 +197,7 @@ function StepVisual({ step }: { step: DoughGuideStep }) {
           src={step.image.src}
           alt={step.image.alt}
           fill
-          priority
+          priority={priority}
           sizes="(min-width: 1024px) 34vw, 100vw"
           className="object-cover"
         />
@@ -444,7 +443,6 @@ export default function DoughGuidePageClient() {
   const nextStep = activeIndex < doughGuideSteps.length - 1 ? doughGuideSteps[activeIndex + 1] : undefined;
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [sessionContext, setSessionContext] = useState<DoughGuideSessionContext>(() => getDoughGuideSessionContext(null));
-  const levelConfig = getExperienceLevelConfig(experienceLevel);
   const levelDetails = getDoughGuideLevelDetails(activeStep, experienceLevel);
   const flourGuidance = getDoughGuideFlourGuidance(sessionContext.flourContext, experienceLevel);
   const stepPersonalization = [
@@ -478,7 +476,7 @@ export default function DoughGuidePageClient() {
           )}
         </header>
 
-        <section className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/75 p-6 shadow-card backdrop-blur sm:p-8 lg:grid lg:grid-cols-[1fr_.72fr] lg:gap-8">
+        <section className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/75 p-6 shadow-card backdrop-blur sm:p-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)] lg:items-center lg:gap-8">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">DoughTools guide</p>
             <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-[.95] tracking-tight sm:text-6xl">
@@ -491,17 +489,13 @@ export default function DoughGuidePageClient() {
               This guide works with or without a Pizza Session. When a session is active, it adds your dough-plan values without changing the session.
             </p>
           </div>
-          <div className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/80 p-4 lg:mt-0">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Current progress</p>
-            <p className="mt-2 font-display text-3xl font-semibold">Step {activeIndex + 1} of {doughGuideSteps.length}</p>
-            <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
-              Active step: {activeStep.actionName}. Guidance mode: {levelConfig.label}.
-            </p>
+          <div className="mt-6 hidden lg:mt-0 lg:block">
+            <StepVisual step={activeStep} priority />
           </div>
         </section>
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
-          <aside className="lg:sticky lg:top-24">
+          <aside className="hidden lg:sticky lg:top-24 lg:block">
             <StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />
           </aside>
 
@@ -514,15 +508,14 @@ export default function DoughGuidePageClient() {
               <p className="mt-3 text-sm font-bold leading-7 text-ink/60">{activeStep.summary}</p>
             </div>
 
-            <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
-              <div>
-                <section className="rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 sm:p-5" aria-labelledby="do-this-now">
-                  <h3 id="do-this-now" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this now</h3>
-                  <BulletList items={activeStep.doThisNow} ordered />
-                </section>
-              </div>
-              <StepVisual step={activeStep} />
+            <div className="mt-5 lg:hidden">
+              <StepVisual step={activeStep} priority />
             </div>
+
+            <section className="mt-5 rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 sm:p-5" aria-labelledby="do-this-now">
+              <h3 id="do-this-now" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this now</h3>
+              <BulletList items={activeStep.doThisNow} ordered />
+            </section>
 
             {(hasStepPersonalization || showCurrentPlanCard) && (
               <div className={`mt-4 grid gap-4 ${hasStepPersonalization && showCurrentPlanCard ? "lg:grid-cols-[1fr_.92fr]" : ""}`}>
