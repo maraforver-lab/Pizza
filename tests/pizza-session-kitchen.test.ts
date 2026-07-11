@@ -354,6 +354,11 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("kitchenStepIconTone(kitchenState.nextStep)");
     expect(page).toContain("Do this");
     expect(page).toContain("What is happening now");
+    expect(page).toContain("Step guidance");
+    expect(page).toContain("What to do now");
+    expect(page).not.toContain("id=\"kitchen-do-this-heading\"");
+    expect(page).not.toContain("id=\"kitchen-done-heading\"");
+    expect(page).not.toContain("id=\"kitchen-technique-heading\"");
     expect(page).not.toContain("function formatKitchenClockTime");
     expect(page).not.toContain("Planned at");
     expect(page).not.toContain("Live timing");
@@ -584,12 +589,14 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("formatKitchenStepTime(currentStep.scheduledAt)");
     expect(page).toContain("formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())");
     expect(page).toContain("formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())");
-    expect(page).toContain("rounded-[1.5rem] border border-leaf/10 bg-leaf/[.04]");
+    expect(page).toContain("aria-labelledby=\"kitchen-step-guidance-heading\"");
+    expect(page).toContain("rounded-[1.25rem] border border-leaf/10 bg-white/65");
     expect(page).toContain("Quiet-hours warning");
     expect(page).toContain("rounded-2xl bg-tomato/10");
     expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned for"));
     expect(page.indexOf("Planned for")).toBeLessThan(page.indexOf("Next action"));
-    expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("Do this"));
+    expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("Step guidance"));
+    expect(page.indexOf("Step guidance")).toBeLessThan(page.indexOf("Do this"));
     expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("You are done when"));
     expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
     expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("Technique note"));
