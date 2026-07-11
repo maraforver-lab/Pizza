@@ -1,4 +1,5 @@
 import type { ExperienceLevel } from "@/lib/experience-levels";
+import type { PizzaTroubleshootingTopicId } from "@/lib/pizza-troubleshooting";
 
 export const DOUGH_GUIDE_STEP_IDS = [
   "prepare",
@@ -47,6 +48,13 @@ export type DoughGuideVisualComparison = {
   note?: string;
 };
 
+export type DoughGuideTroubleshootingReference = {
+  topicId: PizzaTroubleshootingTopicId;
+  beginnerLabel: string;
+  enthusiastLabel?: string;
+  nerdLabel?: string;
+};
+
 export type DoughReadinessState = {
   label: "Underproofed" | "Ready" | "Overproofed";
   signs: string[];
@@ -69,6 +77,7 @@ export type DoughGuideStep = {
   image?: DoughGuideImage;
   visualSequence?: DoughGuideVisualSequence;
   visualComparison?: DoughGuideVisualComparison;
+  troubleshooting?: DoughGuideTroubleshootingReference[];
 };
 
 export const DOUGH_GUIDE_LEVEL_LABELS: Record<ExperienceLevel, string> = {
@@ -195,6 +204,10 @@ export const doughGuideSteps = [
       "Treat the recipe as the controlled setup before technique variables enter.",
     ],
     image: { src: "/dough-guide/01-weigh.webp", alt: "Ingredients being weighed for pizza dough.", caption: "Weigh ingredients separately so the recipe stays controlled.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky dough", enthusiastLabel: "Diagnose sticky dough", nerdLabel: "Review hydration and stickiness causes" },
+      { topicId: "dough-tears", beginnerLabel: "Fix dry or tearing dough", enthusiastLabel: "Diagnose tearing or dry dough", nerdLabel: "Check gluten development and tearing causes" },
+    ],
     visualSequence: {
       title: "Measure before mixing",
       summary: "The visual goal is separate, checked ingredients — especially the small yeast amount.",
@@ -241,6 +254,10 @@ export const doughGuideSteps = [
       "Excessive mixing can warm the dough and change the fermentation path before the plan really begins.",
     ],
     image: { src: "/dough-guide/02-mix.webp", alt: "Hands mixing pizza dough in a bowl.", caption: "The first mix can look rough before the rest improves texture.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky dough", enthusiastLabel: "Diagnose sticky or weakened dough", nerdLabel: "Review hydration, flour strength and stickiness" },
+      { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing dough", nerdLabel: "Check gluten development and tearing" },
+    ],
     visualSequence: {
       title: "Rough is normal at first",
       summary: "Mix only until dry flour disappears; smoothness can improve after resting.",
@@ -291,6 +308,10 @@ export const doughGuideSteps = [
       "The goal is not inactivity; structure is changing while the dough sits covered.",
     ],
     image: { src: "/dough-guide/03-rest-v2.webp", alt: "Covered dough resting on a warm kitchen surface.", caption: "Covered rest protects the surface while the dough becomes more cohesive.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-too-sticky", beginnerLabel: "Still too sticky?", enthusiastLabel: "Diagnose sticky dough after rest", nerdLabel: "Review stickiness and rest variables" },
+      { topicId: "dough-springs-back", beginnerLabel: "Fix dough that stays tight", enthusiastLabel: "Diagnose tight dough", nerdLabel: "Check elasticity and spring-back" },
+    ],
     visualSequence: {
       title: "Before and after rest",
       summary: "Resting is active: flour hydrates and the dough often becomes calmer without force.",
@@ -336,6 +357,10 @@ export const doughGuideSteps = [
       "Controlled folds can strengthen high-hydration dough while limiting oxidation and heat gain.",
     ],
     image: { src: "/dough-guide/04-fold-v2.webp", alt: "Hands folding pizza dough to develop structure.", caption: "Develop structure with controlled handling, not brute force.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing or weak structure", nerdLabel: "Review gluten development and tearing" },
+      { topicId: "dough-springs-back", beginnerLabel: "Fix dough that springs back", enthusiastLabel: "Understand excessive tightness", nerdLabel: "Check extensibility and spring-back" },
+    ],
     visualSequence: {
       title: "Controlled structure",
       summary: "Use folds or gentle strengthening until the dough holds together and stretches more smoothly.",
@@ -381,6 +406,10 @@ export const doughGuideSteps = [
       "Cold fermentation can preserve strength while allowing flavor development; room fermentation progresses faster and needs closer observation.",
     ],
     image: { src: "/dough-guide/05-bulk-v2.webp", alt: "Pizza dough bulk fermenting in a covered container.", caption: "Look for gas and dough maturity, not one universal doubling target.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-not-rising", beginnerLabel: "Why is my dough not rising?", enthusiastLabel: "Diagnose slow fermentation", nerdLabel: "Review fermentation activity" },
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky or weak dough", enthusiastLabel: "Diagnose sticky or weakened dough", nerdLabel: "Review warmth, hydration and structure" },
+    ],
     visualSequence: {
       title: "Fermentation development",
       summary: "A mature dough shows gas and relaxation while still keeping enough strength to handle.",
@@ -427,6 +456,10 @@ export const doughGuideSteps = [
       "Minimizing degassing keeps fermentation gas available for the final bake structure.",
     ],
     image: { src: "/dough-guide/06-ball-new.webp", alt: "Dough pieces being divided before balling.", caption: "Cut and correct weights before final balling.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky dough", enthusiastLabel: "Diagnose difficult handling", nerdLabel: "Review stickiness and handling variables" },
+      { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing during handling", nerdLabel: "Check tearing and degassing causes" },
+    ],
     visualSequence: {
       title: "Cut, weigh, correct",
       summary: "Clean cuts and small weight corrections protect dough structure before final shaping.",
@@ -473,6 +506,11 @@ export const doughGuideSteps = [
       "A damaged surface can leak gas and dry faster during proofing.",
     ],
     image: { src: "/dough-guide/06-ball-new.webp", alt: "Smooth pizza dough balls on a floured surface.", caption: "The goal is a smooth ball with the seam underneath and no torn skin.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix dough balls that spread", enthusiastLabel: "Understand excessive spreading", nerdLabel: "Diagnose spreading and weakened structure" },
+      { topicId: "dough-tears", beginnerLabel: "Fix a torn dough ball", enthusiastLabel: "Diagnose torn surface", nerdLabel: "Review surface tearing and gas loss" },
+      { topicId: "dough-springs-back", beginnerLabel: "Fix dough that springs back", enthusiastLabel: "Understand over-tight balling", nerdLabel: "Check extensibility and spring-back" },
+    ],
     visualSequence: {
       title: "Ball dough sequence",
       summary: "Use this as a safe general method. It shows direction and stopping point, not one mandatory professional technique.",
@@ -547,6 +585,11 @@ export const doughGuideSteps = [
       "Overproofed balls spread and weaken; underproofed balls resist opening and bake denser.",
     ],
     image: { src: "/dough-guide/08-ready-v3.webp", alt: "Proofed pizza dough balls resting in a tray.", caption: "Proofed balls should relax and expand while staying covered and intact.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-not-rising", beginnerLabel: "Why is my dough not rising?", enthusiastLabel: "Check underproofing signs", nerdLabel: "Review underfermentation signals" },
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix spreading dough balls", enthusiastLabel: "Understand excessive spreading", nerdLabel: "Diagnose over-soft or weakened dough" },
+      { topicId: "dough-tears", beginnerLabel: "Fix dry or tearing dough", enthusiastLabel: "Diagnose dry surface or tearing", nerdLabel: "Check surface integrity" },
+    ],
     visualSequence: {
       title: "Proofing states",
       summary: "Compare shape, surface and spread rather than relying on a single time target.",
@@ -592,6 +635,10 @@ export const doughGuideSteps = [
       "Excessive warming can accelerate fermentation and reduce strength before opening.",
     ],
     image: { src: "/dough-guide/08-ready-new.webp", alt: "Dough balls coming to working temperature before stretching.", caption: "Cold dough should relax before evaluation; there is no universal warm-up duration.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-springs-back", beginnerLabel: "Fix dough that springs back", enthusiastLabel: "Diagnose cold or tight dough", nerdLabel: "Check extensibility and spring-back" },
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix dough that became too loose", enthusiastLabel: "Diagnose overly warm sticky dough", nerdLabel: "Review temperature and weakened structure" },
+    ],
     visualSequence: {
       title: "From tight to workable",
       summary: "Use the dough condition and your plan; do not force a cold, tight ball open.",
@@ -651,6 +698,11 @@ export const doughGuideSteps = [
       },
     ],
     image: { src: "/dough-guide/08-ready-v3.webp", alt: "A proofed dough ball ready to be checked before opening.", caption: "Check gas, shape, surface strength and relaxation together.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-not-rising", beginnerLabel: "Why is my dough underproofed?", enthusiastLabel: "Check underproofing signs", nerdLabel: "Review underfermentation" },
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix overproofed or spreading dough", enthusiastLabel: "Diagnose excessive spreading", nerdLabel: "Diagnose loss of dough strength" },
+      { topicId: "dough-springs-back", beginnerLabel: "Fix strong spring-back", enthusiastLabel: "Check spring-back causes", nerdLabel: "Check extensibility and spring-back" },
+    ],
     visualComparison: readinessComparison,
   },
   {
@@ -685,6 +737,10 @@ export const doughGuideSteps = [
       "Excess bench flour can dry the surface and interfere with the final base texture.",
     ],
     image: { src: "/dough-guide/09-open.webp", alt: "A dough ball released onto a floured surface before stretching.", caption: "Release the dough intact, then stop before stretching.", kind: "photo", width: 1200, height: 900 },
+    troubleshooting: [
+      { topicId: "dough-too-sticky", beginnerLabel: "Fix dough that sticks", enthusiastLabel: "Diagnose sticking during release", nerdLabel: "Review stickiness and launch-floor variables" },
+      { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing during release", nerdLabel: "Review tearing and surface integrity" },
+    ],
     visualSequence: {
       title: "Release without tearing",
       summary: "Use controlled bench flour and a scraper to preserve gas and surface integrity.",
@@ -721,4 +777,13 @@ export function getDoughGuideLevelDetails(step: DoughGuideStep, level: Experienc
   if (level === "pizza_nerd") return step.nerdGuidance;
   if (level === "enthusiast") return step.enthusiastGuidance;
   return step.beginnerGuidance;
+}
+
+export function getDoughGuideTroubleshootingLabel(
+  reference: DoughGuideTroubleshootingReference,
+  level: ExperienceLevel,
+) {
+  if (level === "pizza_nerd") return reference.nerdLabel ?? reference.enthusiastLabel ?? reference.beginnerLabel;
+  if (level === "enthusiast") return reference.enthusiastLabel ?? reference.beginnerLabel;
+  return reference.beginnerLabel;
 }

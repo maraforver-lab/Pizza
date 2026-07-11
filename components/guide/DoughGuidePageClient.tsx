@@ -11,8 +11,10 @@ import {
   getDoughGuideLevelDetails,
   getDoughGuideStepById,
   getDoughGuideStepIndex,
+  getDoughGuideTroubleshootingLabel,
   type DoughGuideImage,
   type DoughGuideStep,
+  type DoughGuideTroubleshootingReference,
   type DoughGuideVisualComparison,
   type DoughGuideVisualSequence,
 } from "@/lib/dough-guide";
@@ -315,6 +317,44 @@ function VisualComparisonCard({
   );
 }
 
+function troubleshootingHref(topicId: string, stepId: string) {
+  return `/guide/pizza-troubleshooting?topic=${topicId}&from=${encodeURIComponent(`/guides/dough?step=${stepId}`)}#topic-${topicId}`;
+}
+
+function TroubleshootingLinksCard({
+  links,
+  experienceLevel,
+  stepId,
+}: {
+  links: readonly DoughGuideTroubleshootingReference[] | undefined;
+  experienceLevel: ExperienceLevel;
+  stepId: string;
+}) {
+  if (!links?.length) return null;
+  return (
+    <section className="rounded-[1.5rem] border border-ink/10 bg-cream/80 p-4 sm:p-5" aria-labelledby="dough-guide-troubleshooting-links">
+      <h3 id="dough-guide-troubleshooting-links" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">
+        Need more help?
+      </h3>
+      <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
+        Open the existing troubleshooting guide for the problem that looks closest to what you see.
+      </p>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        {links.map((link) => (
+          <Link
+            key={`${stepId}-${link.topicId}`}
+            href={troubleshootingHref(link.topicId, stepId)}
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+            aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Pizza Troubleshooting Guide`}
+          >
+            {getDoughGuideTroubleshootingLabel(link, experienceLevel)}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function StepNavigation({ activeIndex }: { activeIndex: number }) {
   return (
     <nav className="rounded-[1.5rem] border border-white/80 bg-white/80 p-2 shadow-card backdrop-blur" aria-label="Dough Guide steps">
@@ -469,6 +509,14 @@ export default function DoughGuidePageClient() {
                 <h3 id="how-to-fix-it" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">How to fix it</h3>
                 <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.howToFix}</p>
               </section>
+            </div>
+
+            <div className="mt-4">
+              <TroubleshootingLinksCard
+                links={activeStep.troubleshooting}
+                experienceLevel={experienceLevel}
+                stepId={activeStep.id}
+              />
             </div>
 
             <ReadinessComparison step={activeStep} />

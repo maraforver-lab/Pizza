@@ -8,6 +8,7 @@ import {
   getDoughGuideLevelDetails,
   getDoughGuideStepById,
   getDoughGuideStepIndex,
+  getDoughGuideTroubleshootingLabel,
 } from "@/lib/dough-guide";
 import {
   getDoughGuideFlourGuidance,
@@ -16,6 +17,7 @@ import {
   getDoughGuideStepPersonalization,
 } from "@/lib/dough-guide-session-context";
 import { createPizzaSession } from "@/lib/pizza-session";
+import { isPizzaTroubleshootingTopicId } from "@/lib/pizza-troubleshooting";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -336,6 +338,42 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("priority");
     expect(page).not.toMatch(/carousel|swiper|slick|keen-slider/i);
     expect(packageJson).not.toMatch(/swiper|slick-carousel|keen-slider|embla-carousel/i);
+  });
+
+  it("maps Dough Guide mistakes only to existing troubleshooting topics", () => {
+    const mapped = doughGuideSteps.flatMap((step) => step.troubleshooting ?? []);
+
+    expect(mapped.length).toBeGreaterThan(12);
+    for (const link of mapped) {
+      expect(isPizzaTroubleshootingTopicId(link.topicId)).toBe(true);
+      expect(link.beginnerLabel).toBeTruthy();
+    }
+    expect(getDoughGuideStepById("mix-dough").troubleshooting?.map((link) => link.topicId)).toEqual(["dough-too-sticky", "dough-tears"]);
+    expect(getDoughGuideStepById("bulk-ferment").troubleshooting?.map((link) => link.topicId)).toContain("dough-not-rising");
+    expect(getDoughGuideStepById("ball-dough").troubleshooting?.map((link) => link.topicId)).toContain("dough-springs-back");
+    expect(getDoughGuideStepById("check-readiness").troubleshooting?.map((link) => link.topicId)).toEqual(["dough-not-rising", "dough-too-sticky", "dough-springs-back"]);
+  });
+
+  it("adapts troubleshooting link labels to the existing experience level", () => {
+    const link = getDoughGuideStepById("check-readiness").troubleshooting?.[0];
+    if (!link) throw new Error("Expected readiness troubleshooting link");
+
+    expect(getDoughGuideTroubleshootingLabel(link, "beginner")).toBe("Why is my dough underproofed?");
+    expect(getDoughGuideTroubleshootingLabel(link, "enthusiast")).toBe("Check underproofing signs");
+    expect(getDoughGuideTroubleshootingLabel(link, "pizza_nerd")).toBe("Review underfermentation");
+  });
+
+  it("renders contextual troubleshooting links as secondary actions with safe return context", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("Need more help?");
+    expect(page).toContain("getDoughGuideTroubleshootingLabel(link, experienceLevel)");
+    expect(page).toContain("/guide/pizza-troubleshooting?topic=${topicId}&from=");
+    expect(page).toContain("#topic-${topicId}");
+    expect(page).toContain("encodeURIComponent(`/guides/dough?step=${stepId}`)");
+    expect(page).toContain("aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Pizza Troubleshooting Guide`}");
+    expect(page).not.toMatch(/updatePizzaSession|setActivePizzaSession|localStorage\.setItem|mark.*done|complete/i);
+    expect(page.match(/Continue to \{nextStep\.actionName\}/g)).toHaveLength(1);
   });
 
   it("does not read or render active Pizza Session quantities or timeline times", () => {

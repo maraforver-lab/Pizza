@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+  findPizzaTroubleshootingProblem,
+  getSafeDoughGuideReturnPath,
+  isPizzaTroubleshootingTopicId,
+  pizzaTroubleshootingTopicIds,
+  troubleshootingSections,
+} from "@/lib/pizza-troubleshooting";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -20,27 +27,28 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("renders all four troubleshooting section headings", () => {
-    const page = source(troubleshootingRoute);
-
-    expect(page).toContain("Dough and fermentation");
-    expect(page).toContain("Shaping and launching");
-    expect(page).toContain("Baking and toppings");
-    expect(page).toContain("Home oven problems");
+    expect(troubleshootingSections.map((section) => section.title)).toEqual([
+      "Dough and fermentation",
+      "Shaping and launching",
+      "Baking and toppings",
+      "Home oven problems",
+    ]);
   });
 
   it("renders all ten requested problem titles", () => {
-    const page = source(troubleshootingRoute);
+    const titles = troubleshootingSections.flatMap((section) => section.problems.map((problem) => problem.title));
 
-    expect(page).toContain("Dough is not rising");
-    expect(page).toContain("Dough is too sticky");
-    expect(page).toContain("Dough springs back");
-    expect(page).toContain("Dough tears or gets holes");
-    expect(page).toContain("Pizza sticks to the peel");
-    expect(page).toContain("Pizza is soggy in the middle");
-    expect(page).toContain("Crust burns but middle is doughy");
-    expect(page).toContain("Base burns underneath");
-    expect(page).toContain("Toppings release too much water");
-    expect(page).toContain("Home oven pizza is pale or soft");
+    expect(titles).toContain("Dough is not rising");
+    expect(titles).toContain("Dough is too sticky");
+    expect(titles).toContain("Dough springs back");
+    expect(titles).toContain("Dough tears or gets holes");
+    expect(titles).toContain("Pizza sticks to the peel");
+    expect(titles).toContain("Pizza is soggy in the middle");
+    expect(titles).toContain("Crust burns but middle is doughy");
+    expect(titles).toContain("Base burns underneath");
+    expect(titles).toContain("Toppings release too much water");
+    expect(titles).toContain("Home oven pizza is pale or soft");
+    expect(pizzaTroubleshootingTopicIds).toHaveLength(10);
   });
 
   it("uses the requested problem-card fields", () => {
@@ -60,6 +68,33 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(page).toContain("aria-hidden=\"true\"");
     expect(page).not.toContain("http://");
     expect(page).not.toContain("https://");
+  });
+
+  it("supports stable topic deep links and invalid-topic fallback", () => {
+    const page = source(troubleshootingRoute);
+
+    expect(isPizzaTroubleshootingTopicId("dough-too-sticky")).toBe(true);
+    expect(isPizzaTroubleshootingTopicId("not-a-topic")).toBe(false);
+    expect(findPizzaTroubleshootingProblem("dough-too-sticky")?.problem.title).toBe("Dough is too sticky");
+    expect(findPizzaTroubleshootingProblem("not-a-topic")).toBeUndefined();
+    expect(page).toContain("searchParams?: Promise<Record<string, string | string[] | undefined>>");
+    expect(page).toContain("isPizzaTroubleshootingTopicId(requestedTopic)");
+    expect(page).toContain("Selected troubleshooting topic");
+    expect(page).toContain("aria-current={active ? \"true\" : undefined}");
+    expect(page).toContain("id={`topic-${problem.id}`}");
+  });
+
+  it("accepts only safe Dough Guide return paths", () => {
+    const page = source(troubleshootingRoute);
+
+    expect(getSafeDoughGuideReturnPath("/guides/dough?step=mix-dough")).toBe("/guides/dough?step=mix-dough");
+    expect(getSafeDoughGuideReturnPath(encodeURIComponent("/guides/dough?step=ball-dough"))).toBe("/guides/dough?step=ball-dough");
+    expect(getSafeDoughGuideReturnPath("https://evil.example/guides/dough")).toBeNull();
+    expect(getSafeDoughGuideReturnPath("//evil.example/guides/dough")).toBeNull();
+    expect(getSafeDoughGuideReturnPath("javascript:alert(1)")).toBeNull();
+    expect(getSafeDoughGuideReturnPath("/account")).toBeNull();
+    expect(page).toContain("Back to Dough Guide");
+    expect(page).toContain("getSafeDoughGuideReturnPath(params?.from)");
   });
 
   it("links the troubleshooting guide from the existing Guide index", () => {
@@ -91,10 +126,11 @@ describe("Pizza Troubleshooting Guide", () => {
 
   it("does not render the removed bottom CTA or footer meta area on the troubleshooting page", () => {
     const page = source(troubleshootingRoute);
+    const data = source("lib/pizza-troubleshooting.ts");
 
     expect(page).toContain("Pizza Troubleshooting Guide");
-    expect(page).toContain("Dough is not rising");
-    expect(page).toContain("Home oven pizza is pale or soft");
+    expect(data).toContain("Dough is not rising");
+    expect(data).toContain("Home oven pizza is pale or soft");
     expect(page).not.toContain("Plan your next pizza session");
     expect(page).not.toContain("Start Pizza Session");
     expect(page).not.toContain("Creator Mara Forever");
