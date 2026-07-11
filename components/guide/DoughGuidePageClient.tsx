@@ -14,10 +14,17 @@ import {
   type DoughGuideStep,
 } from "@/lib/dough-guide";
 import {
+  getDoughGuideSessionContext,
+  getDoughGuideStepPersonalization,
+  type DoughGuideFact,
+  type DoughGuideSessionContext,
+} from "@/lib/dough-guide-session-context";
+import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
   type ExperienceLevel,
 } from "@/lib/experience-levels";
+import { getActivePizzaSession } from "@/lib/pizza-session-storage";
 
 function BulletList({ items, ordered = false }: { items: readonly string[]; ordered?: boolean }) {
   const className = "mt-3 space-y-2 text-sm font-bold leading-6 text-ink/65";
@@ -38,6 +45,68 @@ function BulletList({ items, ordered = false }: { items: readonly string[]; orde
         </li>
       ))}
     </ul>
+  );
+}
+
+function FactList({ facts }: { facts: readonly DoughGuideFact[] }) {
+  if (!facts.length) return null;
+  return (
+    <dl className="mt-4 grid gap-2 sm:grid-cols-2">
+      {facts.map((fact) => (
+        <div key={`${fact.label}-${fact.value}`} className="rounded-2xl bg-white/75 p-3">
+          <dt className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">{fact.label}</dt>
+          <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function SessionContextCard({ context }: { context: DoughGuideSessionContext }) {
+  if (!context.hasActiveSession) {
+    return (
+      <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white/75 p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-no-session">
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div>
+            <h2 id="dough-guide-no-session" className="font-display text-2xl font-semibold">No active Pizza Session</h2>
+            <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
+              You can use this guide without a session. Start a Pizza Session to see your exact ingredient amounts, dough-ball size and fermentation plan inside each step.
+            </p>
+          </div>
+          <Link
+            href="/session/start"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            Start a Pizza Session
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-5 rounded-[1.5rem] border border-leaf/20 bg-leaf/[.08] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-current-plan">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Active Pizza Session</p>
+          <h2 id="dough-guide-current-plan" className="mt-1 font-display text-2xl font-semibold">Your current dough plan</h2>
+          <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/60">
+            These values come from your active Dough Plan. Missing optional values are simply left out.
+          </p>
+        </div>
+      </div>
+      <FactList facts={context.summaryRows} />
+    </section>
+  );
+}
+
+function StepPersonalizationCard({ facts }: { facts: readonly DoughGuideFact[] }) {
+  if (!facts.length) return null;
+  return (
+    <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="your-plan-for-this-step">
+      <h3 id="your-plan-for-this-step" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Your plan for this step</h3>
+      <FactList facts={facts} />
+    </section>
   );
 }
 
@@ -151,12 +220,15 @@ export default function DoughGuidePageClient() {
   const previousStep = activeIndex > 0 ? doughGuideSteps[activeIndex - 1] : undefined;
   const nextStep = activeIndex < doughGuideSteps.length - 1 ? doughGuideSteps[activeIndex + 1] : undefined;
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [sessionContext, setSessionContext] = useState<DoughGuideSessionContext>(() => getDoughGuideSessionContext(null));
   const levelConfig = getExperienceLevelConfig(experienceLevel);
   const levelDetails = getDoughGuideLevelDetails(activeStep, experienceLevel);
+  const stepPersonalization = getDoughGuideStepPersonalization(activeStep.id, sessionContext);
 
   useEffect(() => {
     document.documentElement.lang = "en";
     setExperienceLevel(readExperienceLevelPreference());
+    setSessionContext(getDoughGuideSessionContext(getActivePizzaSession()));
   }, []);
 
   return (
@@ -179,7 +251,7 @@ export default function DoughGuidePageClient() {
               Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
             </p>
             <p className="mt-4 max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65">
-              This is a standalone guide. It uses neutral instructions like “use the ingredient amounts from your recipe” and does not read active Pizza Session quantities or timeline times.
+              This guide works with or without a Pizza Session. When a session is active, it adds your dough-plan values without changing the session.
             </p>
           </div>
           <div className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/80 p-4 lg:mt-0">
@@ -190,6 +262,8 @@ export default function DoughGuidePageClient() {
             </p>
           </div>
         </section>
+
+        <SessionContextCard context={sessionContext} />
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
           <aside className="lg:sticky lg:top-24">
@@ -213,6 +287,7 @@ export default function DoughGuidePageClient() {
                 <h3 id="do-this-now" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this now</h3>
                 <BulletList items={activeStep.doThisNow} ordered />
               </section>
+              <StepPersonalizationCard facts={stepPersonalization} />
               <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="you-are-ready-when">
                 <h3 id="you-are-ready-when" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">You are ready when</h3>
                 <BulletList items={activeStep.readyWhen} />
