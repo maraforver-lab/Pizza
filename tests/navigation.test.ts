@@ -119,7 +119,8 @@ describe("shared navigation model", () => {
     expect(header).toContain("max-sm:sr-only");
     expect(header).not.toContain("Start Pizza Session");
     expect(header).not.toContain('href="/session/start"');
-    expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
+    expect(header).not.toMatch(/Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
+    expect(header).not.toContain('label: "Dough Calculator"');
   });
 
   it("removes Lab from the global header without deleting the legacy calculator route", () => {
@@ -155,15 +156,19 @@ describe("shared navigation model", () => {
     expect(header).not.toContain("<summary");
   });
 
-  it("limits the Tools dropdown to the current Calculator v2 destination", () => {
+  it("limits the Tools dropdown to the standalone Quick Dough Calculator destination", () => {
     const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
 
     expect(header).toContain("const toolsMenuItems = [");
     expect(header).toContain("toolsMenuItems.map");
-    expect(header).toContain("Calculator v2");
-    expect(header).toContain("Guided recommendation from bake time and ingredients.");
-    expect(header).toContain('href: "/?calculator=2"');
-    expect(header.split('href: "/?calculator=2"')).toHaveLength(2);
+    expect(header).toContain("Quick Dough Calculator");
+    expect(header).toContain("Standalone dough amounts, preferments, sizing and advanced tools.");
+    expect(header).toContain('href: "/calculator/quick"');
+    expect(header.split('href: "/calculator/quick"')).toHaveLength(2);
+    expect(header).toContain('const quickCalculatorActive = pathname === "/calculator/quick"');
+    expect(header).toContain('aria-current={quickCalculatorActive ? "page" : undefined}');
+    expect(header).toContain("guideMenuItemClass(quickCalculatorActive)");
+    expect(header).not.toContain("Calculator v2");
     expect(header).not.toContain("Pizza dough calculator");
     expect(header).not.toContain("Calculator v1");
     expect(header).not.toContain("Calculate flour, water, salt and yeast.");

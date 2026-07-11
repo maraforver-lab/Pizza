@@ -101,7 +101,9 @@ describe("Quick Dough Calculator isolated core UI", () => {
 
     expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).not.toContain("/calculator/quick");
-    expect(navigation).not.toContain("/calculator/quick");
+    expect(navigation).toContain('/calculator/quick');
+    expect(navigation).not.toContain('HomeCalculatorWorkspace');
+    expect(navigation).not.toContain('calculator=2');
   });
 
   it("calculates through the existing pure dough calculator and no duplicate formula", () => {

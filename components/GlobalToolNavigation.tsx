@@ -9,8 +9,8 @@ const copy = {
   account: "Sign in",
   accountActive: "Your account",
   tools: "Tools",
-  calculatorV2: "Calculator v2",
-  calculatorV2Description: "Guided recommendation from bake time and ingredients.",
+  quickCalculator: "Quick Dough Calculator",
+  quickCalculatorDescription: "Standalone dough amounts, preferments, sizing and advanced tools.",
   guide: "Guide",
   doughGuide: "Dough Guide",
   doughGuideDescription: "Step-by-step dough preparation from mixing to a ball ready to stretch.",
@@ -23,9 +23,9 @@ const copy = {
 
 const toolsMenuItems = [
   {
-    href: "/?calculator=2",
-    label: copy.calculatorV2,
-    description: copy.calculatorV2Description,
+    href: "/calculator/quick",
+    label: copy.quickCalculator,
+    description: copy.quickCalculatorDescription,
   },
 ] as const;
 
@@ -52,6 +52,7 @@ export default function GlobalToolNavigation() {
   const doughGuideActive = pathname === "/guides/dough";
   const guideGlossaryActive = pathname === "/guide";
   const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting";
+  const quickCalculatorActive = pathname === "/calculator/quick";
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -199,8 +200,9 @@ export default function GlobalToolNavigation() {
                     key={item.href}
                     href={item.href}
                     role="menuitem"
+                    aria-current={quickCalculatorActive ? "page" : undefined}
                     onClick={() => setOpenMenu(null)}
-                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                    className={guideMenuItemClass(quickCalculatorActive)}
                   >
                     <span className="block text-sm font-extrabold">{item.label}</span>
                     <span className="mt-1 block text-xs leading-5 text-ink/55">{item.description}</span>
