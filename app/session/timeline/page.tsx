@@ -24,6 +24,7 @@ import {
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
+import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import {
@@ -433,6 +434,7 @@ export default function SessionTimelinePage() {
     ? firstServiceStepIndex
     : displayTimelineSteps.length;
   const nextAction = nextActionForTimeline({ nextStep: currentActionStep, allStepsComplete });
+  const currentDoughGuideLink = getDoughGuideLinkForSessionStep(currentActionStep, "/session/timeline");
   const currentActionTime = currentActionStep?.scheduledAt ?? targetTime;
   const nextLiveTiming = formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime);
   const currentLiveTiming = formatTimelineLiveTiming(currentActionTime, currentTime);
@@ -534,6 +536,15 @@ export default function SessionTimelinePage() {
       >
         {nextAction.cta}
       </button>
+      {currentDoughGuideLink && (
+        <Link
+          href={currentDoughGuideLink.href}
+          aria-label={currentDoughGuideLink.ariaLabel}
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+        >
+          {currentDoughGuideLink.label}
+        </Link>
+      )}
     </div>
   );
 

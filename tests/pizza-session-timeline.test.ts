@@ -1471,4 +1471,16 @@ describe("Pizza Session timeline", () => {
     expect(changelog).toContain("No reminders, tracking, cloud sync or indexing behavior added");
     expect(changelog).not.toMatch(/cloud sync is active|push notifications enabled|email reminders enabled|Google indexing enabled/i);
   });
+
+  it("adds a secondary Dough Guide link to the current Timeline action without replacing the primary action", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("getDoughGuideLinkForSessionStep(currentActionStep, \"/session/timeline\")");
+    expect(page).toContain("currentDoughGuideLink.href");
+    expect(page).toContain("currentDoughGuideLink.ariaLabel");
+    expect(page).toContain("{currentDoughGuideLink.label}");
+    expect(page).toContain("{nextAction.cta}");
+    expect(page).toContain("onClick={handleNextAction}");
+    expect(page).toContain("shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt)");
+  });
 });

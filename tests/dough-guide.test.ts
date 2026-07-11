@@ -650,4 +650,13 @@ describe("Pizza Dough Guide foundation", () => {
     expect(finalStep.readyWhen.join(" ")).toContain("ready to stretch into a pizza base");
     expect(finalStep.doThisNow.join(" ")).toContain("the next action is stretching, which is outside this guide");
   });
+
+  it("supports safe return links from Timeline and Kitchen Mode without changing normal Guide visits", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain('getSafeDoughGuideSessionReturnPath(searchParams.get("from"))');
+    expect(page).toContain("Back to Timeline");
+    expect(page).toContain("Back to Kitchen Mode");
+    expect(page).toContain('href={sessionReturnPath}');
+  });
 });

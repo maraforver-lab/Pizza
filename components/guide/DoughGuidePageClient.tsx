@@ -27,6 +27,7 @@ import {
   type DoughGuideFlourGuidance,
   type DoughGuideSessionContext,
 } from "@/lib/dough-guide-session-context";
+import { getSafeDoughGuideSessionReturnPath } from "@/lib/dough-guide-links";
 import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
@@ -411,6 +412,12 @@ function ReadinessComparison({ step }: { step: DoughGuideStep }) {
 export default function DoughGuidePageClient() {
   const searchParams = useSearchParams();
   const stepParam = searchParams.get("step");
+  const sessionReturnPath = getSafeDoughGuideSessionReturnPath(searchParams.get("from"));
+  const sessionReturnLabel = sessionReturnPath === "/session/timeline"
+    ? "Back to Timeline"
+    : sessionReturnPath === "/session/kitchen"
+      ? "Back to Kitchen Mode"
+      : null;
   const activeStep = getDoughGuideStepById(stepParam);
   const activeIndex = getDoughGuideStepIndex(stepParam);
   const previousStep = activeIndex > 0 ? doughGuideSteps[activeIndex - 1] : undefined;
@@ -439,6 +446,14 @@ export default function DoughGuidePageClient() {
             <span aria-hidden="true">←</span>
             Back to Guide
           </Link>
+          {sessionReturnPath && sessionReturnLabel && (
+            <Link
+              href={sessionReturnPath}
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/10 bg-white/75 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+            >
+              {sessionReturnLabel}
+            </Link>
+          )}
         </header>
 
         <section className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/75 p-6 shadow-card backdrop-blur sm:p-8 lg:grid lg:grid-cols-[1fr_.72fr] lg:gap-8">

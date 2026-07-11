@@ -425,6 +425,17 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("completeCurrentStep");
   });
 
+  it("adds one secondary Dough Guide link for the active Kitchen Mode step", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("getDoughGuideLinkForSessionStep(currentStep, \"/session/kitchen\")");
+    expect(page).toContain("doughGuideLink.href");
+    expect(page).toContain("doughGuideLink.ariaLabel");
+    expect(page).toContain("{doughGuideLink.label}");
+    expect(page).toContain("Mark step as done →");
+    expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
+  });
+
   it("reuses shared live timing language for Kitchen Mode current and next step timing", () => {
     const page = source("app/session/kitchen/page.tsx");
 

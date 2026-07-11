@@ -8,6 +8,7 @@ import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import { getExperienceLevelConfig } from "@/lib/experience-levels";
+import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
 import {
   type PizzaSession,
 } from "@/lib/pizza-session";
@@ -158,6 +159,7 @@ export default function SessionKitchenPage() {
   const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, currentTime ?? new Date());
   const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date());
   const currentStepIsWaiting = currentStep?.kind === "passive";
+  const doughGuideLink = getDoughGuideLinkForSessionStep(currentStep, "/session/kitchen");
   const nextStepSummary = kitchenState.nextStep
     ? `${nextTaskPresentation.title} · ${formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())}`
     : "Review your pizza session";
@@ -292,6 +294,16 @@ export default function SessionKitchenPage() {
                         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{currentStepIsWaiting ? "What is happening now" : "Do this"}</p>
                         <p className="mt-2 text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
                       </div>
+
+                      {doughGuideLink && (
+                        <Link
+                          href={doughGuideLink.href}
+                          aria-label={doughGuideLink.ariaLabel}
+                          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+                        >
+                          {doughGuideLink.label}
+                        </Link>
+                      )}
 
                       <div className="rounded-[1.25rem] bg-white/70 p-4">
                         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">You are done when</p>
