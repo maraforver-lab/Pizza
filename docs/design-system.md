@@ -317,6 +317,53 @@ Rules:
 - Avoid overused Italian clichés.
 - Keep imagery consistent with DoughTools: real, warm, practical and made for pizza lovers.
 
+### Photo imagery direction
+
+DoughTools may use high-quality pizza-themed photography or photorealistic generated imagery when it improves understanding, orientation or emotional warmth.
+
+Approved uses:
+
+- local photo-style pizza images
+- realistic or lightly stylized food-prep images
+- instructional step photos for dough and baking workflows
+- warm hero/support images when relevant to the page
+- consistent image sequences for tutorials, Timeline, Kitchen Mode, Guide, Lab, Party Orders and other product areas
+
+Photography should feel like one coherent DoughTools visual world:
+
+- warm Italian-style kitchen atmosphere
+- artisan pizza-making mood
+- flour, dough, wood or stone counters, warm natural light
+- realistic food texture and practical prep context
+- warm cream, green and tomato UI palette should still fit the image
+
+Instructional dough-step imagery may show the same fictional/generic hands or person context across the sequence. Prefer mostly hands visible rather than faces. For example, a sequence can imply the same experienced pizza maker in the same kitchen, with the same hands, dough batch, lighting and camera mood.
+
+Images must help the user understand the task. They should not be random decoration or disconnected food moodboards.
+
+Asset rules:
+
+- store approved images locally under `/public/images/...`
+- prefer optimized WebP, PNG or JPG
+- avoid oversized files
+- do not hotlink or fetch remote marketing images at runtime
+- do not embed text inside images
+- make images responsive and mobile-safe
+- use meaningful `alt` text only when the image communicates content
+- decorative images should use empty `alt` text or `aria-hidden`
+- never let an image block understanding of text or controls
+
+Avoid:
+
+- cold corporate stock imagery
+- cartoon emoji look when realistic photos are requested
+- inconsistent hands, locations or lighting inside one instructional sequence
+- recognizable real people unless explicitly approved and rights are clear
+- third-party logos, trademarks or implied endorsements
+- copyrighted or stock images without confirmed rights
+
+For future image patches, first list proposed filenames and purpose. If images must be generated, keep one consistent prompt/style brief and save only approved final assets locally. Prefer a small curated asset set over many unrelated images.
+
 ## J. Future page checklist
 
 Every new page should define:

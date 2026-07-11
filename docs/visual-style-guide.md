@@ -680,6 +680,77 @@ Not allowed without explicit approval:
 
 If a patch adds a new image asset, document the file and purpose in the patch report.
 
+### Pizza-making photography and instructional imagery
+
+Future UI patches may use high-quality local photo-based pizza imagery across the site when it improves clarity, emotion or task understanding.
+
+Approved site-wide:
+
+- local pizza and dough photography
+- realistic or photorealistic food-prep images
+- instructional dough-step photos
+- warm hero/support images when relevant
+- consistent image sequences for tutorials and product flows
+- images for Timeline, Kitchen Mode, Guide, Lab, Party Orders and other areas when helpful
+
+The preferred visual world:
+
+- warm Italian-style kitchen atmosphere
+- artisan pizza-making mood
+- realistic food, dough and prep textures
+- flour, dough, wood or stone counters, and warm natural light
+- coherent lighting, surface, props and color palette across related images
+- mostly hands visible rather than faces for instructional work
+- fictional/generic, non-identifiable people only unless explicitly approved
+
+When building instructional pizza dough content, prefer a consistent sequence:
+
+- same hands
+- same kitchen
+- same dough batch feel
+- same camera mood
+- each image matches the specific step
+
+Step-image examples:
+
+- weighing ingredients
+- mixing dough
+- resting covered dough
+- cold fermentation
+- balling dough
+- final rest
+- opening or stretching
+- topping
+- baking
+- finished pizza or review
+
+Images must support the task. They should not be random decoration, a stock-photo moodboard, or a replacement for clear UI text.
+
+Asset and implementation rules:
+
+- store approved assets locally under `/public/images/...`
+- prefer WebP or optimized PNG/JPG
+- avoid oversized files
+- no runtime remote image dependencies
+- no hotlinked images
+- no embedded text inside images
+- image layout must be responsive and mobile-safe
+- meaningful images need short useful `alt` text
+- decorative images should use empty `alt` text or `aria-hidden`
+- images must not reduce text contrast or block controls
+
+Avoid:
+
+- cold corporate stock look
+- inconsistent hands, locations or lighting in one sequence
+- overused Italian clichés
+- cartoon emoji look when realistic photos are requested
+- recognizable real people without explicit approval and rights
+- third-party logos, trademarks or implied endorsements
+- copyrighted or stock images without confirmed rights
+
+Image patches should list proposed filenames and purpose before implementation. If images must be generated, use one consistent prompt/style brief and save only approved final assets locally. Prefer a small curated asset set over many unrelated images.
+
 ---
 
 ## 17a. Visual/layout improvements vs copy changes
