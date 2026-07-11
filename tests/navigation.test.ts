@@ -99,6 +99,7 @@ describe("shared navigation model", () => {
     const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
 
     expect(header).toContain('href="/"');
+    expect(header).toContain("max-sm:sr-only");
     expect(header).toContain("Tools");
     expect(header).toContain('type OpenNavigationMenu = "guide" | "tools" | null');
     expect(header).toContain("const [openMenu, setOpenMenu] = useState<OpenNavigationMenu>(null)");
@@ -115,6 +116,7 @@ describe("shared navigation model", () => {
     expect(header).toContain('href="/account"');
     expect(header).toContain("Sign in");
     expect(header).toContain("Your account");
+    expect(header).toContain("max-sm:sr-only");
     expect(header).not.toContain("Start Pizza Session");
     expect(header).not.toContain('href="/session/start"');
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
@@ -158,6 +160,20 @@ describe("shared navigation model", () => {
     expect(header).toContain("guideMenuItemClass(troubleshootingGuideActive)");
     expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
     expect(header).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
+  });
+
+  it("keeps compact header controls usable at narrow mobile widths", () => {
+    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+
+    expect(header).toContain('aria-label="DoughTools home"');
+    expect(header).toContain("max-sm:sr-only");
+    expect(header).toContain('aria-label={signedIn ? copy.accountActive : copy.account}');
+    expect(header).toContain("h-10");
+    expect(header).toContain("min-w-0");
+    expect(header).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
+    expect(header).toContain("w-64");
+    expect(header).toContain("max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto");
+    expect(header).not.toContain("overflow-x-hidden");
   });
 
   it("detects active pages and hash destinations without query strings", () => {

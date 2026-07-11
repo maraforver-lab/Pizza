@@ -114,7 +114,7 @@ export default function GlobalToolNavigation() {
           aria-label="DoughTools home"
         >
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-lg text-white shadow-lg shadow-tomato/15" aria-hidden="true">◉</span>
-          <strong className="text-lg tracking-tight">Dough<span className="text-tomato">Tools</span></strong>
+          <strong className="text-lg tracking-tight max-sm:sr-only">Dough<span className="text-tomato">Tools</span></strong>
         </Link>
 
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -147,7 +147,7 @@ export default function GlobalToolNavigation() {
               </svg>
             </button>
             {guideMenuOpen && (
-              <div id="global-guide-menu" className="absolute right-0 top-12 z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Guide menu">
+              <div id="global-guide-menu" className="absolute right-0 top-12 z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Guide menu">
                 <Link
                   href="/guides/dough"
                   role="menuitem"
@@ -196,7 +196,7 @@ export default function GlobalToolNavigation() {
               </svg>
             </button>
             {toolsMenuOpen && (
-              <div id="global-tools-menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Tools menu">
+              <div id="global-tools-menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Tools menu">
                 <Link
                   href="/?calculator=1"
                   role="menuitem"
@@ -244,7 +244,7 @@ export default function GlobalToolNavigation() {
               <circle cx="12" cy="8" r="3.5" />
               <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" strokeLinecap="round" />
             </svg>
-            <span className="text-[11px] font-extrabold">{signedIn ? copy.accountActive : copy.account}</span>
+            <span className="text-[11px] font-extrabold max-sm:sr-only">{signedIn ? copy.accountActive : copy.account}</span>
             {signedIn && (
               <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf" aria-hidden="true">
                 <span className={`absolute h-full w-full rounded-full bg-leaf ${authPulse ? "animate-ping" : ""}`} />
