@@ -10,10 +10,13 @@ import {
   getDoughGuideStepIndex,
 } from "@/lib/dough-guide";
 import {
+  getDoughGuideFlourGuidance,
   getDoughGuideSessionContext,
+  getDoughGuideStepFlourGuidance,
   getDoughGuideStepPersonalization,
 } from "@/lib/dough-guide-session-context";
 import { createPizzaSession } from "@/lib/pizza-session";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 const now = new Date("2026-07-11T10:00:00.000Z");
@@ -63,6 +66,65 @@ function roomSession() {
     yeastType: "ady",
     targetEatTime: "2026-07-11T18:00:00.000Z",
     fermentationTemperatureCOverride: 22,
+  }, now);
+}
+
+function shortRoomFlourSession() {
+  return createPizzaSession({
+    id: "dough-guide-short-room-flour-session",
+    status: "planning",
+    currentStep: "recipe",
+    experienceLevel: "beginner",
+    pizzaStyle: "pizza-oven",
+    pizzaPreset: "margherita",
+    pizzaCount: 4,
+    doughBallWeight: 260,
+    flour: "tipo-00",
+    flourSituation: "has_w_range",
+    availableFlourWRanges: ["w_180_220"],
+    yeastType: "ady",
+    targetEatTime: "2026-07-11T16:00:00.000Z",
+    fermentationTemperatureCOverride: 22,
+  }, now);
+}
+
+function seventyTwoHourFlourSession() {
+  return createPizzaSession({
+    id: "dough-guide-72h-flour-session",
+    status: "planning",
+    currentStep: "recipe",
+    experienceLevel: "pizza_nerd",
+    pizzaStyle: "home-oven",
+    pizzaPreset: "margherita",
+    pizzaCount: 4,
+    doughBallWeight: 260,
+    flour: "tipo-00",
+    flourSituation: "has_w_range",
+    availableFlourWRanges: ["w_300_340"],
+    yeastType: "idy",
+    targetEatTime: "2026-07-14T10:00:00.000Z",
+    plannedFermentationHours: 72,
+    fermentationTemperatureCOverride: 4,
+  }, now);
+}
+
+function cautionFlourSession() {
+  return createPizzaSession({
+    id: "dough-guide-caution-flour-session",
+    status: "planning",
+    currentStep: "recipe",
+    experienceLevel: "enthusiast",
+    pizzaStyle: "home-oven",
+    pizzaPreset: "margherita",
+    pizzaCount: 4,
+    doughBallWeight: 260,
+    flour: "tipo-00",
+    flourSituation: "has_w_range",
+    availableFlourWRanges: ["w_180_220"],
+    yeastType: "ady",
+    targetEatTime: "2026-07-13T10:00:00.000Z",
+    plannedFermentationHours: 48,
+    fermentationTemperatureCOverride: 4,
   }, now);
 }
 
@@ -306,10 +368,123 @@ describe("Pizza Dough Guide foundation", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
     expect(adapter).toContain("buildSessionRecipe(session, now)");
-    expect(adapter).not.toMatch(/calculateDoughIngredients|calculateContinuousYeastRecommendation|updatePizzaSession|setActivePizzaSession|localStorage\.setItem|complete|mark.*done/i);
+    expect(adapter).not.toMatch(/calculateDoughIngredients|calculateContinuousYeastRecommendation|updatePizzaSession|setActivePizzaSession|localStorage\.setItem|completeSession|completeKitchen|mark.*done/i);
     expect(page).not.toMatch(/updatePizzaSession|setActivePizzaSession|localStorage\.setItem|mark.*done|complete/i);
     expect(adapter).toContain("Flour strength");
     expect(adapter).not.toMatch(/W 220 versus W 340|too weak|too strong|risk|warning/i);
+  });
+
+  it("reuses the existing below-24-hour flour fit result for Guide flour guidance", () => {
+    const session = shortRoomFlourSession();
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok) throw new Error("Expected valid short room recipe");
+    const context = getDoughGuideSessionContext(session, now);
+    const guidance = getDoughGuideFlourGuidance(context.flourContext, "beginner");
+
+    expect(recipe.flourWGuidance?.recommendationLabel).toBe("W 180–260");
+    expect(context.flourContext?.recommendationLabel).toBe(recipe.flourWGuidance?.recommendationLabel);
+    expect(context.flourContext?.compatibilityCategory).toBe(recipe.flourWGuidance?.fitLevel);
+    expect(guidance?.explanation).toContain("closer attention");
+    expect(guidance?.payAttentionTo.join(" ")).toContain("dough balls beginning to spread");
+    expect(guidance?.levelDetails.join(" ")).toContain("active plan");
+  });
+
+  it("reuses the existing long-fermentation flour fit result without expanding the plan", () => {
+    const session = coldSession();
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok) throw new Error("Expected valid cold recipe");
+    const context = getDoughGuideSessionContext(session, now);
+    const guidance = getDoughGuideFlourGuidance(context.flourContext, "enthusiast");
+
+    expect(recipe.flourWGuidance?.recommendationLabel).toBe("W 260–300");
+    expect(recipe.flourWGuidance?.fitLevel).toBe("suitable");
+    expect(context.flourContext?.recommendationLabel).toBe("W 260–300");
+    expect(guidance?.facts).toContainEqual({ label: "Flour strength", value: "W 260–300" });
+    expect(guidance?.levelDetails.join(" ")).toContain("Long-process flour can tolerate a more demanding plan");
+    expect(guidance?.levelDetails.join(" ")).not.toContain("72");
+  });
+
+  it("reuses the existing up-to-72-hour behavior and Pizza Nerd technical context", () => {
+    const session = seventyTwoHourFlourSession();
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok) throw new Error("Expected valid 72h recipe");
+    const context = getDoughGuideSessionContext(session, now);
+    const guidance = getDoughGuideFlourGuidance(context.flourContext, "pizza_nerd");
+
+    expect(recipe.flourWGuidance).toMatchObject({
+      recommendationLabel: "W 300–340",
+      fitLevel: "suitable",
+    });
+    expect(context.flourContext?.recommendationLabel).toBe("W 300–340");
+    expect(guidance?.levelDetails.join(" ")).toContain("alveographic strength");
+    expect(guidance?.levelDetails.join(" ")).toContain("P/L balance");
+    expect(guidance?.levelDetails.join(" ")).toContain("similar W labels");
+    expect(guidance?.explanation).not.toContain("guarantee");
+  });
+
+  it("shows existing compatibility cautions as non-blocking flour guidance", () => {
+    const session = cautionFlourSession();
+    const recipe = buildSessionRecipe(session, now);
+    if (!recipe.ok) throw new Error("Expected valid caution recipe");
+    const context = getDoughGuideSessionContext(session, now);
+    const guidance = getDoughGuideFlourGuidance(context.flourContext, "enthusiast");
+
+    expect(recipe.flourWGuidance?.fitLevel).toBe("caution");
+    expect(context.flourContext?.compatibilityLabel).toBe("Pay closer attention");
+    expect(guidance?.caution).toBeTruthy();
+    expect(guidance?.explanation).toContain("does not change the recipe");
+    expect(guidance?.payAttentionTo.length).toBeGreaterThan(1);
+  });
+
+  it("adds step-specific flour guidance without changing quantities or schedule", () => {
+    const shortContext = getDoughGuideSessionContext(shortRoomFlourSession(), now);
+    const longContext = getDoughGuideSessionContext(coldSession(), now);
+
+    expect(getDoughGuideStepFlourGuidance("measure", shortContext.flourContext)).toContainEqual({
+      label: "Flour reminder",
+      value: "Use the calculated ingredient quantities. Do not change water or flour from this Guide.",
+    });
+    expect(getDoughGuideStepFlourGuidance("mix-dough", shortContext.flourContext)).toContainEqual({
+      label: "Flour handling",
+      value: "Avoid unnecessary prolonged mixing once the dough has the required structure.",
+    });
+    expect(getDoughGuideStepFlourGuidance("mix-dough", longContext.flourContext)).toContainEqual({
+      label: "Flour handling",
+      value: "Strong dough may initially feel resistant; rest can help more than extra mixing.",
+    });
+    expect(getDoughGuideStepFlourGuidance("proof-dough-balls", shortContext.flourContext).map((fact) => fact.value).join(" ")).toContain("loss of height");
+    expect(getDoughGuideStepFlourGuidance("check-readiness", longContext.flourContext).map((fact) => fact.value).join(" ")).toContain("Strong spring-back");
+    expect(getDoughGuideStepFlourGuidance("release-dough-ball", shortContext.flourContext).map((fact) => fact.value).join(" ")).not.toMatch(/top|bake|launch/i);
+  });
+
+  it("keeps missing flour, missing W and unknown compatibility neutral", () => {
+    const noFlour = createPizzaSession({
+      id: "dough-guide-no-flour",
+      status: "planning",
+      currentStep: "recipe",
+      pizzaCount: 4,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      targetEatTime: "2026-07-12T10:00:00.000Z",
+    }, now);
+    const context = getDoughGuideSessionContext(noFlour, now);
+    const guidance = getDoughGuideFlourGuidance(context.flourContext, "beginner");
+
+    expect(context.flourContext).toBeUndefined();
+    expect(guidance).toBeUndefined();
+    expect(getDoughGuideStepFlourGuidance("bulk-ferment", context.flourContext)).toEqual([]);
+  });
+
+  it("does not introduce independent Guide-only W bands or mutation paths", () => {
+    const adapter = source("lib/dough-guide-session-context.ts");
+    const component = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(adapter).toContain("type { SessionFlourWGuidance }");
+    expect(adapter).toContain("recommendationLabel");
+    expect(adapter).not.toMatch(/w_180_220|w_220_260|w_260_300|w_300_340|W 220–259|W 260–319|very strong|moderate|protein-to-W|W-to-protein/i);
+    expect(adapter).not.toMatch(/calculateDoughIngredients|calculateContinuousYeastRecommendation|updatePizzaSession|setActivePizzaSession|localStorage\.setItem|Timeline output|Kitchen Mode output/i);
+    expect(component).toContain("<FlourGuidanceCard guidance={flourGuidance} />");
+    expect(component.match(/Continue to \{nextStep\.actionName\}/g)).toHaveLength(1);
   });
 
   it("links Dough Guide from existing guide navigation while keeping troubleshooting available", () => {

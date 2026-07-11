@@ -1,5 +1,7 @@
 import type { DoughGuideStepId } from "@/lib/dough-guide";
 import type { PizzaSession, PizzaSessionTimelineStep } from "@/lib/pizza-session";
+import type { ExperienceLevel } from "@/lib/experience-levels";
+import type { SessionFlourWGuidance } from "@/lib/session-flour-w-guidance";
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { yeastTypeLabel } from "@/lib/yeast-types";
@@ -9,6 +11,31 @@ export type DoughGuideFermentationType = "room" | "cold";
 export type DoughGuideFact = {
   label: string;
   value: string;
+};
+
+export type DoughGuideFlourContext = {
+  flourName?: string;
+  flourW?: string;
+  recommendationLabel?: string;
+  compatibilityLabel?: string;
+  compatibilityCategory?: SessionFlourWGuidance["fitLevel"];
+  status?: SessionFlourWGuidance["status"];
+  availableFlourSummary?: string;
+  recommendedBuySummary?: string;
+  recommendationReason?: string;
+  caution?: string;
+  fermentationHours?: number;
+  fermentationType?: DoughGuideFermentationType;
+  hydrationPercent?: number;
+};
+
+export type DoughGuideFlourGuidance = {
+  heading: string;
+  facts: DoughGuideFact[];
+  explanation: string;
+  payAttentionTo: string[];
+  levelDetails: string[];
+  caution?: string;
 };
 
 export type DoughGuideSessionContext = {
@@ -35,6 +62,7 @@ export type DoughGuideSessionContext = {
   roomTemperatureFinishLabel?: string;
   bulkScheduledAtLabel?: string;
   bakeTargetLabel?: string;
+  flourContext?: DoughGuideFlourContext;
   summaryRows: DoughGuideFact[];
   ingredientRows: DoughGuideFact[];
 };
@@ -126,6 +154,29 @@ function isDisplayableFlourW(value?: string) {
   return Boolean(value && /^W\s/.test(value));
 }
 
+function planKind(context: DoughGuideFlourContext) {
+  const hours = context.fermentationHours;
+  if (typeof hours !== "number" || !Number.isFinite(hours)) return "unknown";
+  if (hours < 24) return "short";
+  if (hours >= 72) return "extended";
+  return "long";
+}
+
+function isKnownCompatibility(context: DoughGuideFlourContext) {
+  return context.compatibilityCategory
+    && context.compatibilityCategory !== "unknown"
+    && context.compatibilityCategory !== "not_enough_information";
+}
+
+function guideCompatibilityLabel(fitLevel?: SessionFlourWGuidance["fitLevel"]) {
+  if (!fitLevel) return undefined;
+  if (fitLevel === "suitable") return "Matches the active plan";
+  if (fitLevel === "caution") return "Pay closer attention";
+  if (fitLevel === "buy_recommended") return "DoughTools recommends a flour for this plan";
+  if (fitLevel === "long_horizon") return "Use the existing long-horizon flour guidance";
+  return undefined;
+}
+
 export function getDoughGuideSessionContext(
   session: PizzaSession | null | undefined,
   now = new Date(),
@@ -194,6 +245,32 @@ export function getDoughGuideSessionContext(
   addFact(ingredientRows, yeastLabel ? `Yeast — ${yeastLabel}` : "Yeast", formatGram(yeastGrams));
   addFact(ingredientRows, "Total dough", formatGram(totalDoughWeightGrams));
 
+  const flourContext: DoughGuideFlourContext | undefined = recipe.ok && recipe.flourWGuidance
+    ? {
+      flourName,
+      flourW,
+      recommendationLabel: recipe.flourWGuidance.recommendationLabel,
+      compatibilityLabel: guideCompatibilityLabel(recipe.flourWGuidance.fitLevel),
+      compatibilityCategory: recipe.flourWGuidance.fitLevel,
+      status: recipe.flourWGuidance.status,
+      availableFlourSummary: recipe.flourWGuidance.availableFlourSummary,
+      recommendedBuySummary: recipe.flourWGuidance.recommendedBuySummary,
+      recommendationReason: recipe.flourWGuidance.summary,
+      caution: recipe.flourWGuidance.cautions[0],
+      fermentationHours: totalFermentationHours,
+      fermentationType,
+      hydrationPercent,
+    }
+    : flourName || flourW
+      ? {
+        flourName,
+        flourW,
+        fermentationHours: totalFermentationHours,
+        fermentationType,
+        hydrationPercent,
+      }
+      : undefined;
+
   return {
     hasActiveSession: true,
     pizzaCount: finitePositive(session.pizzaCount),
@@ -218,9 +295,150 @@ export function getDoughGuideSessionContext(
     roomTemperatureFinishLabel,
     bulkScheduledAtLabel: formatDateTime(fermentStep?.scheduledAt),
     bakeTargetLabel: formatDateTime(session.timeline?.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime),
+    flourContext,
     summaryRows,
     ingredientRows,
   };
+}
+
+export function getDoughGuideFlourGuidance(
+  context: DoughGuideFlourContext | undefined,
+  level: ExperienceLevel,
+): DoughGuideFlourGuidance | undefined {
+  if (!context || (!context.flourName && !context.flourW && !context.recommendationLabel && !context.compatibilityLabel)) {
+    return undefined;
+  }
+
+  const kind = planKind(context);
+  const facts: DoughGuideFact[] = [];
+  addFact(facts, "Flour", context.flourName);
+  addFact(facts, "Flour strength", context.flourW ?? context.recommendationLabel);
+  addFact(facts, "Fit", context.compatibilityLabel);
+  addFact(facts, "Fermentation", context.fermentationHours && context.fermentationType
+    ? `${formatHours(context.fermentationHours)} ${context.fermentationType} fermentation`
+    : undefined);
+
+  const compatible = context.compatibilityCategory === "suitable";
+  const caution = context.compatibilityCategory === "caution" ? "Pay closer attention" : context.compatibilityLabel;
+  const unknown = !isKnownCompatibility(context);
+
+  const explanation = unknown
+    ? "Flour-specific fit is not fully available for this dough plan. Use the dough’s behavior as your guide: whether it holds shape, develops gas, relaxes and stretches without tearing."
+    : compatible
+      ? "This flour is within the range DoughTools uses for the active fermentation plan. It still needs normal dough-condition checks before opening."
+      : context.compatibilityCategory === "buy_recommended"
+        ? "DoughTools is using its existing recommendation for this plan. Treat the recommendation as guidance for flour choice, not as a change to the dough formula."
+        : context.compatibilityCategory === "long_horizon"
+          ? "DoughTools uses the existing 24h / 48h / 72h long-horizon flour guidance for this plan instead of inventing a new full-window flour target."
+          : "The existing DoughTools flour guidance asks for closer attention on this plan. The Guide does not change the recipe; it highlights what to observe.";
+
+  const payAttentionTo = kind === "short"
+    ? [
+      "dough balls beginning to spread",
+      "increasing stickiness late in fermentation",
+      "fragile surface or tearing during handling",
+      "extending the process beyond the active plan",
+    ]
+    : [
+      "strong spring-back",
+      "insufficient relaxation",
+      "unnecessary additional mixing",
+      "forcing the dough during handling",
+    ];
+
+  const levelDetails = level === "pizza_nerd"
+    ? [
+      "W is an alveographic strength indicator, but it is not the same thing as protein percentage.",
+      "P/L balance, water absorption, mixing tolerance and fermentation tolerance can differ between flours with similar W labels.",
+      context.hydrationPercent ? `At ${formatPercent(context.hydrationPercent)} hydration, evaluate both gas retention and extensibility before opening.` : "Use hydration as context, not as a Guide-only flour classification.",
+    ]
+    : level === "enthusiast"
+      ? [
+        kind === "short"
+          ? "Shorter-process flour can become usable sooner, but it may lose structure faster if the process is pushed beyond the plan."
+          : "Long-process flour can tolerate a more demanding plan, but it may stay tight until it has rested and fermented sufficiently.",
+        "Use the clock as a prompt to check the dough, not as the only readiness signal.",
+      ]
+      : [
+        kind === "short"
+          ? "Follow the active plan and check that the dough balls still hold their shape."
+          : "Give the dough enough planned rest before forcing it open.",
+        "If the dough feels wrong, slow down and use the readiness checks.",
+      ];
+
+  return {
+    heading: "For your flour",
+    facts,
+    explanation,
+    payAttentionTo,
+    levelDetails,
+    caution: context.compatibilityCategory === "caution" ? (context.caution ?? caution) : undefined,
+  };
+}
+
+export function getDoughGuideStepFlourGuidance(
+  stepId: DoughGuideStepId,
+  flourContext: DoughGuideFlourContext | undefined,
+): DoughGuideFact[] {
+  if (!flourContext || !isKnownCompatibility(flourContext)) return [];
+  const kind = planKind(flourContext);
+  const rows: DoughGuideFact[] = [];
+
+  if (stepId === "measure") {
+    addFact(rows, "Flour reminder", "Use the calculated ingredient quantities. Do not change water or flour from this Guide.");
+  }
+  if (stepId === "mix-dough") {
+    addFact(rows, "Flour handling", kind === "short"
+      ? "Avoid unnecessary prolonged mixing once the dough has the required structure."
+      : "Strong dough may initially feel resistant; rest can help more than extra mixing.");
+  }
+  if (stepId === "rest-dough") {
+    addFact(rows, "Rest cue", kind === "short"
+      ? "Let the planned rest happen before adding bench flour for stickiness."
+      : "Rest can help a tight dough become more extensible before more development.");
+  }
+  if (stepId === "develop-dough") {
+    addFact(rows, "Development cue", kind === "short"
+      ? "Use controlled development and stop if the dough begins losing cohesion."
+      : "Distinguish flour strength from readiness; avoid making the dough unnecessarily tight.");
+  }
+  if (stepId === "bulk-ferment") {
+    addFact(rows, "Flour watch", kind === "short"
+      ? "Watch for flattening, spreading and increased stickiness."
+      : "Expect better tolerance for the planned process, but still verify gas development and relaxation.");
+  }
+  if (stepId === "divide-dough") {
+    addFact(rows, "Dividing cue", kind === "short"
+      ? "Handle gently if the dough is already soft and complete weight corrections before final balling."
+      : "If pieces resist rounding, use the planned rest rather than forcing the dough.");
+  }
+  if (stepId === "ball-dough") {
+    addFact(rows, "Balling cue", kind === "short"
+      ? "Create only enough tension for a cohesive ball and monitor rapid spreading."
+      : "Avoid excessive tightening; persistent spring-back can mean the dough needs more relaxation.");
+  }
+  if (stepId === "proof-dough-balls") {
+    addFact(rows, "Proof cue", kind === "short"
+      ? "Watch for loss of height, spreading, fragile skin and excessive stickiness."
+      : "Watch for persistent tightness, limited relaxation and insufficient gas development.");
+  }
+  if (stepId === "warm-dough") {
+    addFact(rows, "Working-temperature cue", kind === "short"
+      ? "Do not leave the dough warm unnecessarily if it is already loose and ready."
+      : "Make sure the planned final relaxation has happened; use dough condition as well as time.");
+  }
+  if (stepId === "check-readiness") {
+    addFact(rows, "Flour readiness cue", kind === "short"
+      ? "Rapid spreading, weak surface and tearing can point to loss of structure."
+      : "Strong spring-back, tight structure and resistance to opening can point to insufficient relaxation.");
+  }
+  if (stepId === "release-dough-ball") {
+    addFact(rows, "Release cue", kind === "short"
+      ? "Support soft dough with the scraper and avoid stretching it during release."
+      : "If the dough still resists, return to condition-based readiness checks instead of forcing it.");
+  }
+
+  return rows;
 }
 
 export function getDoughGuideStepPersonalization(

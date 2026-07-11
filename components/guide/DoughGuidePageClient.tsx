@@ -15,8 +15,11 @@ import {
 } from "@/lib/dough-guide";
 import {
   getDoughGuideSessionContext,
+  getDoughGuideFlourGuidance,
+  getDoughGuideStepFlourGuidance,
   getDoughGuideStepPersonalization,
   type DoughGuideFact,
+  type DoughGuideFlourGuidance,
   type DoughGuideSessionContext,
 } from "@/lib/dough-guide-session-context";
 import {
@@ -96,6 +99,39 @@ function SessionContextCard({ context }: { context: DoughGuideSessionContext }) 
         </div>
       </div>
       <FactList facts={context.summaryRows} />
+    </section>
+  );
+}
+
+function FlourGuidanceCard({ guidance }: { guidance: DoughGuideFlourGuidance | undefined }) {
+  if (!guidance) return null;
+  return (
+    <section className="mt-4 rounded-[1.5rem] border border-orange/20 bg-[#fff7ed] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-flour-guidance">
+      <div className="grid gap-4 lg:grid-cols-[.85fr_1.15fr] lg:items-start">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Flour fit</p>
+          <h2 id="dough-guide-flour-guidance" className="mt-1 font-display text-2xl font-semibold">{guidance.heading}</h2>
+          <p className="mt-2 text-sm font-bold leading-6 text-ink/65">{guidance.explanation}</p>
+          {guidance.caution && (
+            <p className="mt-3 rounded-2xl border border-tomato/20 bg-white/70 p-3 text-sm font-extrabold leading-6 text-tomato">
+              Pay closer attention: {guidance.caution}
+            </p>
+          )}
+        </div>
+        <div>
+          <FactList facts={guidance.facts} />
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <section className="rounded-2xl bg-white/75 p-3">
+              <h3 className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Pay attention to</h3>
+              <BulletList items={guidance.payAttentionTo} />
+            </section>
+            <section className="rounded-2xl bg-white/75 p-3">
+              <h3 className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Guidance for your level</h3>
+              <BulletList items={guidance.levelDetails} />
+            </section>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
@@ -223,7 +259,11 @@ export default function DoughGuidePageClient() {
   const [sessionContext, setSessionContext] = useState<DoughGuideSessionContext>(() => getDoughGuideSessionContext(null));
   const levelConfig = getExperienceLevelConfig(experienceLevel);
   const levelDetails = getDoughGuideLevelDetails(activeStep, experienceLevel);
-  const stepPersonalization = getDoughGuideStepPersonalization(activeStep.id, sessionContext);
+  const flourGuidance = getDoughGuideFlourGuidance(sessionContext.flourContext, experienceLevel);
+  const stepPersonalization = [
+    ...getDoughGuideStepPersonalization(activeStep.id, sessionContext),
+    ...getDoughGuideStepFlourGuidance(activeStep.id, sessionContext.flourContext),
+  ];
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -264,6 +304,7 @@ export default function DoughGuidePageClient() {
         </section>
 
         <SessionContextCard context={sessionContext} />
+        <FlourGuidanceCard guidance={flourGuidance} />
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
           <aside className="lg:sticky lg:top-24">
