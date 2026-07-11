@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
   findPizzaTroubleshootingProblem,
   getSafeDoughGuideReturnPath,
   isPizzaTroubleshootingTopicId,
+  pizzaTroubleshootingTopicIds,
+  troubleshootingCategories,
   troubleshootingSections,
   type PizzaTroubleshootingProblem,
   type PizzaTroubleshootingSection,
@@ -30,7 +33,7 @@ function VisualPanel({ visual, index }: { visual: PizzaTroubleshootingSection["v
       <div className="absolute -left-8 bottom-5 h-28 w-28 rounded-full border-[18px] border-white/60 bg-orange/20" />
       <div className="absolute -right-10 -top-8 h-36 w-36 rounded-full bg-tomato/15" />
       <div className="absolute right-8 top-8 grid h-14 w-14 rotate-12 place-items-center rounded-[1.1rem] bg-white/75 text-xl shadow-sm">
-        {index === 0 ? "🌾" : index === 1 ? "🍕" : index === 2 ? "🍅" : "🔥"}
+        {index === 0 ? "🌾" : index === 1 ? "✋" : index === 2 ? "🍕" : index === 3 ? "🔥" : "🍅"}
       </div>
       <div className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/80 p-4 backdrop-blur">
         <span className={`mb-3 block h-1.5 w-16 rounded-full ${visual.accent}`} />
@@ -52,6 +55,10 @@ function BulletList({ items }: { items: string[] }) {
       ))}
     </ul>
   );
+}
+
+function StepLabel({ children }: { children: ReactNode }) {
+  return <h4 className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">{children}</h4>;
 }
 
 function ProblemCard({
@@ -76,21 +83,27 @@ function ProblemCard({
         </p>
       )}
       <h3 className="font-display text-2xl font-semibold text-ink">{problem.title}</h3>
+      {problem.quickCheck && (
+        <p className="mt-3 rounded-2xl border border-leaf/15 bg-leaf/[.07] p-3 text-sm font-bold leading-6 text-ink/70">
+          Quick check: {problem.quickCheck}
+        </p>
+      )}
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl bg-cream/70 p-4">
-          <h4 className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">What you see</h4>
-          <p className="mt-2 text-sm leading-6 text-ink/65">{problem.whatYouSee}</p>
+          <StepLabel>Symptom</StepLabel>
+          <p className="mt-2 text-sm leading-6 text-ink/65">{problem.shortSymptom}</p>
+          {problem.symptomDetails && <p className="mt-2 text-sm leading-6 text-ink/55">{problem.symptomDetails}</p>}
         </div>
         <div className="rounded-2xl bg-[#fff7ed]/80 p-4">
-          <h4 className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Likely causes</h4>
+          <StepLabel>Likely causes</StepLabel>
           <BulletList items={problem.likelyCauses} />
         </div>
         <div className="rounded-2xl bg-white p-4">
-          <h4 className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">Fix it now</h4>
+          <StepLabel>Fix now</StepLabel>
           <BulletList items={problem.fixNow} />
         </div>
         <div className="rounded-2xl bg-leaf/[.08] p-4">
-          <h4 className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Prevent it next time</h4>
+          <StepLabel>Prevent next time</StepLabel>
           <BulletList items={problem.preventNextTime} />
         </div>
       </div>
@@ -122,16 +135,16 @@ export default async function PizzaTroubleshootingGuidePage({ searchParams }: Tr
 
         <section className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white/70 p-6 shadow-card backdrop-blur sm:p-10 lg:grid lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-8">
           <div className="relative z-10">
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">DoughTools guide</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Pizza troubleshooting</p>
             <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-[.95] tracking-tight sm:text-6xl">
-              Pizza Troubleshooting Guide
+              What went wrong with your pizza?
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-7 text-ink/60 sm:text-base">
-              Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.
+              Choose the problem that looks closest to yours, then work through the likely causes and fixes.
             </p>
             <p className="mt-4 max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm leading-6 text-ink/65">
               Pizza usually goes wrong for a reason: timing, temperature, hydration, flour strength, toppings or oven setup.
-              This guide helps you diagnose common problems and choose a practical next step.
+              Use the closest symptom, make one change at a time, and compare what improves on the next bake.
             </p>
             {activeTopic && (
               <p className="mt-4 max-w-2xl rounded-2xl border border-tomato/20 bg-[#fff7ed] p-4 text-sm font-extrabold leading-6 text-ink/70">
@@ -146,19 +159,32 @@ export default async function PizzaTroubleshootingGuidePage({ searchParams }: Tr
             <div className="absolute bottom-8 left-10 right-10 rounded-[2rem] border-[18px] border-[#d9a85c]/45 bg-white/35 p-10 backdrop-blur-sm" />
             <div className="absolute bottom-8 right-8 rounded-2xl bg-ink px-5 py-4 text-white shadow-card">
               <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/45">Troubleshoot</p>
-              <p className="font-display text-3xl font-semibold">10 common problems</p>
+              <p className="font-display text-3xl font-semibold">{pizzaTroubleshootingTopicIds.length} common problems</p>
             </div>
           </div>
         </section>
 
-        <nav className="sticky top-2 z-20 -mx-1 my-8 overflow-x-auto rounded-2xl border border-white/80 bg-cream/90 p-1.5 shadow-lg shadow-ink/5 backdrop-blur" aria-label="Troubleshooting sections">
-          <div className="flex min-w-max gap-1">
-            {troubleshootingSections.map((section, index) => (
-              <a key={section.id} href={`#${section.id}`} className="rounded-xl px-3 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">
-                <span className="mr-1 text-tomato">{index + 1}.</span>
-                {section.title}
-              </a>
-            ))}
+        <nav className="my-8 rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur sm:p-5" aria-label="Quick problem finder">
+          <div className="mb-4">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Quick problem finder</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold text-ink">Start with the symptom area</h2>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {troubleshootingCategories.map((category, index) => {
+              const section = troubleshootingSections.find((item) => item.id === category.id);
+              const topicCount = section?.problems.length ?? 0;
+              return (
+                <a
+                  key={category.id}
+                  href={`#${category.id}`}
+                  className="group rounded-2xl border border-ink/10 bg-cream/70 p-4 transition hover:-translate-y-0.5 hover:border-tomato/25 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  <span className="text-[11px] font-extrabold uppercase tracking-[.18em] text-tomato">{index + 1}</span>
+                  <span className="mt-2 block text-sm font-extrabold text-ink">{category.title}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{topicCount} {topicCount === 1 ? "topic" : "topics"}</span>
+                </a>
+              );
+            })}
           </div>
         </nav>
 
@@ -172,6 +198,9 @@ export default async function PizzaTroubleshootingGuidePage({ searchParams }: Tr
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Section {sectionIndex + 1}</p>
                     <h2 className="mt-2 font-display text-3xl font-semibold">{section.title}</h2>
                     <p className="mt-3 text-sm leading-6 text-ink/60">{section.intro}</p>
+                    <p className="mt-4 text-xs font-bold uppercase tracking-[.14em] text-ink/35">
+                      Symptom → likely causes → fix now → prevent next time
+                    </p>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -183,6 +212,34 @@ export default async function PizzaTroubleshootingGuidePage({ searchParams }: Tr
             </section>
           ))}
         </div>
+
+        <section className="mt-12 grid gap-4 lg:grid-cols-[1fr_.85fr]">
+          <div className="rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">General diagnostic guidance</p>
+            <h2 className="mt-2 font-display text-3xl font-semibold">Change one variable at a time</h2>
+            <ul className="mt-4 grid gap-3 text-sm leading-6 text-ink/65 sm:grid-cols-2">
+              <li className="rounded-2xl bg-cream/70 p-4">Take notes on dough temperature, fermentation time and oven behavior.</li>
+              <li className="rounded-2xl bg-cream/70 p-4">Use the closest matching symptom instead of waiting for an exact visual match.</li>
+              <li className="rounded-2xl bg-cream/70 p-4">Change one thing on the next bake so you can tell what helped.</li>
+              <li className="rounded-2xl bg-cream/70 p-4">Compare dough handling, topping moisture and heat balance before changing the recipe.</li>
+            </ul>
+          </div>
+          <aside className="rounded-[1.75rem] border border-white/80 bg-cream/80 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="related-guides">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Related guides</p>
+            <h2 id="related-guides" className="mt-2 font-display text-2xl font-semibold">Useful next references</h2>
+            <div className="mt-4 grid gap-2">
+              <Link href="/guides/dough" className="rounded-2xl bg-white/80 p-4 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Dough Guide
+              </Link>
+              <Link href="/guide" className="rounded-2xl bg-white/80 p-4 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Guide and glossary
+              </Link>
+              <Link href="/calculator/quick" className="rounded-2xl bg-white/80 p-4 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Quick Dough Calculator
+              </Link>
+            </div>
+          </aside>
+        </section>
       </div>
     </main>
   );

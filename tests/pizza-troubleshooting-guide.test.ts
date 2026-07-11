@@ -6,6 +6,7 @@ import {
   getSafeDoughGuideReturnPath,
   isPizzaTroubleshootingTopicId,
   pizzaTroubleshootingTopicIds,
+  troubleshootingCategories,
   troubleshootingSections,
 } from "@/lib/pizza-troubleshooting";
 
@@ -14,25 +15,33 @@ const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 const troubleshootingRoute = "app/guide/pizza-troubleshooting/page.tsx";
 
 describe("Pizza Troubleshooting Guide", () => {
-  it("adds the standalone guide route with the requested title and subtitle", () => {
+  it("adds the standalone guide route with a symptom-first hero", () => {
     expect(existsSync(join(process.cwd(), troubleshootingRoute))).toBe(true);
 
     const page = source(troubleshootingRoute);
 
-    expect(page).toContain("Pizza Troubleshooting Guide");
-    expect(page).toContain(
-      "Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.",
-    );
+    expect(page).toContain("Pizza troubleshooting");
+    expect(page).toContain("What went wrong with your pizza?");
+    expect(page).toContain("Choose the problem that looks closest to yours");
     expect(page).toContain("Pizza usually goes wrong for a reason");
   });
 
-  it("renders all four troubleshooting section headings", () => {
-    expect(troubleshootingSections.map((section) => section.title)).toEqual([
-      "Dough and fermentation",
-      "Shaping and launching",
-      "Baking and toppings",
-      "Home oven problems",
+  it("renders the five workflow troubleshooting categories", () => {
+    expect(troubleshootingCategories.map((category) => category.id)).toEqual([
+      "dough-fermentation",
+      "shaping",
+      "launching",
+      "baking",
+      "toppings",
     ]);
+    expect(troubleshootingSections.map((section) => section.title)).toEqual([
+      "Dough & fermentation",
+      "Stretching & shaping",
+      "Launching",
+      "Baking",
+      "Toppings & cheese",
+    ]);
+    expect(troubleshootingSections.every((section) => section.problems.length > 0)).toBe(true);
   });
 
   it("renders all ten requested problem titles", () => {
@@ -53,11 +62,34 @@ describe("Pizza Troubleshooting Guide", () => {
 
   it("uses the requested problem-card fields", () => {
     const page = source(troubleshootingRoute);
+    const firstProblem = troubleshootingSections[0].problems[0];
 
-    expect(page).toContain("What you see");
+    expect(firstProblem.shortSymptom).toBeTruthy();
+    expect(page).toContain("Symptom");
     expect(page).toContain("Likely causes");
-    expect(page).toContain("Fix it now");
-    expect(page).toContain("Prevent it next time");
+    expect(page).toContain("Fix now");
+    expect(page).toContain("Prevent next time");
+    expect(page).toContain("Quick check:");
+  });
+
+  it("adds a quick problem finder and concise diagnostic guidance", () => {
+    const page = source(troubleshootingRoute);
+
+    expect(page).toContain("Quick problem finder");
+    expect(page).toContain("Start with the symptom area");
+    expect(page).toContain("Symptom → likely causes → fix now → prevent next time");
+    expect(page).toContain("General diagnostic guidance");
+    expect(page).toContain("Change one variable at a time");
+    expect(page).toContain("Take notes on dough temperature, fermentation time and oven behavior.");
+  });
+
+  it("keeps related guide links restrained and internal", () => {
+    const page = source(troubleshootingRoute);
+
+    expect(page).toContain("Related guides");
+    expect(page).toContain('href="/guides/dough"');
+    expect(page).toContain('href="/guide"');
+    expect(page).toContain('href="/calculator/quick"');
   });
 
   it("uses lightweight CSS-based guide visuals without remote images", () => {

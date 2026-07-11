@@ -10,17 +10,27 @@ export type PizzaTroubleshootingTopicId =
   | "toppings-release-water"
   | "home-oven-pale-soft";
 
+export type PizzaTroubleshootingCategoryId =
+  | "dough-fermentation"
+  | "shaping"
+  | "launching"
+  | "baking"
+  | "toppings";
+
 export type PizzaTroubleshootingProblem = {
   id: PizzaTroubleshootingTopicId;
   title: string;
-  whatYouSee: string;
+  shortSymptom: string;
+  symptomDetails?: string;
   likelyCauses: string[];
   fixNow: string[];
   preventNextTime: string[];
+  quickCheck?: string;
+  severity?: "common" | "advanced";
 };
 
 export type PizzaTroubleshootingSection = {
-  id: string;
+  id: PizzaTroubleshootingCategoryId;
   title: string;
   intro: string;
   visual: {
@@ -31,11 +41,39 @@ export type PizzaTroubleshootingSection = {
   problems: PizzaTroubleshootingProblem[];
 };
 
+export const troubleshootingCategories: Array<Pick<PizzaTroubleshootingSection, "id" | "title" | "intro">> = [
+  {
+    id: "dough-fermentation",
+    title: "Dough & fermentation",
+    intro: "Problems that start with yeast activity, time, temperature, hydration or dough strength.",
+  },
+  {
+    id: "shaping",
+    title: "Stretching & shaping",
+    intro: "Problems that show up when the dough ball is opened, stretched or handled.",
+  },
+  {
+    id: "launching",
+    title: "Launching",
+    intro: "Problems that happen when a topped pizza needs to slide cleanly into the oven.",
+  },
+  {
+    id: "baking",
+    title: "Baking",
+    intro: "Problems caused by heat balance, oven recovery, bake time or baking surface setup.",
+  },
+  {
+    id: "toppings",
+    title: "Toppings & cheese",
+    intro: "Problems caused by wet toppings, cheese moisture or too much weight in the center.",
+  },
+];
+
 export const troubleshootingSections: PizzaTroubleshootingSection[] = [
   {
-    id: "dough-and-fermentation",
-    title: "Dough and fermentation",
-    intro: "Most dough problems come from time, temperature, yeast activity, hydration or gluten development.",
+    id: "dough-fermentation",
+    title: "Dough & fermentation",
+    intro: troubleshootingCategories[0].intro,
     visual: {
       label: "Time, temperature and dough strength",
       accent: "bg-leaf",
@@ -45,8 +83,10 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
       {
         id: "dough-not-rising",
         title: "Dough is not rising",
-        whatYouSee:
+        shortSymptom:
           "The dough looks almost the same after resting, with little volume increase and few signs of fermentation.",
+        quickCheck: "Look for bubbles, volume increase and a softer feel before moving on.",
+        severity: "common",
         likelyCauses: [
           "yeast is old or inactive",
           "room temperature is too cold",
@@ -70,8 +110,10 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
       {
         id: "dough-too-sticky",
         title: "Dough is too sticky",
-        whatYouSee:
+        shortSymptom:
           "The dough sticks heavily to your hands, bench, container or peel and is difficult to shape.",
+        quickCheck: "If it smears instead of stretching, give it rest and use only light flour or oil.",
+        severity: "common",
         likelyCauses: [
           "hydration is high for the flour",
           "flour is too weak for the hydration",
@@ -94,10 +136,24 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "give the dough enough rest and structure",
         ],
       },
+    ],
+  },
+  {
+    id: "shaping",
+    title: "Stretching & shaping",
+    intro: troubleshootingCategories[1].intro,
+    visual: {
+      label: "Relaxed dough and gentle handling",
+      accent: "bg-tomato",
+      motif: "Shape",
+    },
+    problems: [
       {
         id: "dough-springs-back",
         title: "Dough springs back",
-        whatYouSee: "The dough stretches, then quickly pulls back and refuses to stay open.",
+        shortSymptom: "The dough stretches, then quickly pulls back and refuses to stay open.",
+        quickCheck: "Cover it and wait before forcing the shape wider.",
+        severity: "common",
         likelyCauses: [
           "dough is too cold",
           "gluten is too tight",
@@ -120,8 +176,10 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
       {
         id: "dough-tears",
         title: "Dough tears or gets holes",
-        whatYouSee:
+        shortSymptom:
           "The dough rips during shaping, becomes very thin in the center, or develops holes.",
+        quickCheck: "Stop stretching as soon as a weak spot appears.",
+        severity: "common",
         likelyCauses: [
           "gluten is underdeveloped",
           "dough has not rested enough",
@@ -146,12 +204,11 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
     ],
   },
   {
-    id: "shaping-and-launching",
-    title: "Shaping and launching",
-    intro:
-      "Many pizza problems happen after the dough is ready: stretching, topping and launching need a light touch and good timing.",
+    id: "launching",
+    title: "Launching",
+    intro: troubleshootingCategories[2].intro,
     visual: {
-      label: "Gentle handling and quick launch",
+      label: "Quick topping and clean release",
       accent: "bg-tomato",
       motif: "Launch",
     },
@@ -159,8 +216,10 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
       {
         id: "pizza-sticks-to-peel",
         title: "Pizza sticks to the peel",
-        whatYouSee:
+        shortSymptom:
           "The topped pizza will not slide from the peel into the oven, or it stretches and deforms when launched.",
+        quickCheck: "Shake the peel gently before launching; the pizza should move freely.",
+        severity: "common",
         likelyCauses: [
           "dough is too sticky",
           "peel is not floured enough",
@@ -186,12 +245,11 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
     ],
   },
   {
-    id: "baking-and-toppings",
-    title: "Baking and toppings",
-    intro:
-      "A good bake depends on heat balance, topping moisture and how much weight is placed on the center of the pizza.",
+    id: "baking",
+    title: "Baking",
+    intro: troubleshootingCategories[3].intro,
     visual: {
-      label: "Heat balance and topping moisture",
+      label: "Heat balance and oven recovery",
       accent: "bg-orange",
       motif: "Bake",
     },
@@ -199,7 +257,9 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
       {
         id: "pizza-soggy-middle",
         title: "Pizza is soggy in the middle",
-        whatYouSee: "The center is wet, soft or doughy even when the rim looks baked.",
+        shortSymptom: "The center is wet, soft or doughy even when the rim looks baked.",
+        quickCheck: "Check whether the center is overloaded or the baking surface has cooled down.",
+        severity: "common",
         likelyCauses: [
           "too much sauce",
           "wet mozzarella or toppings",
@@ -225,7 +285,9 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
       {
         id: "crust-burns-middle-doughy",
         title: "Crust burns but middle is doughy",
-        whatYouSee: "The rim gets dark or burns before the center and base are fully cooked.",
+        shortSymptom: "The rim gets dark or burns before the center and base are fully cooked.",
+        quickCheck: "Compare top heat with bottom heat before changing the dough.",
+        severity: "advanced",
         likelyCauses: [
           "top heat or flame is too strong",
           "stone is not heat-soaked enough",
@@ -250,7 +312,9 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
       {
         id: "base-burns-underneath",
         title: "Base burns underneath",
-        whatYouSee: "The bottom burns before the top is ready, often with bitter black flour spots.",
+        shortSymptom: "The bottom burns before the top is ready, often with bitter black flour spots.",
+        quickCheck: "Look for loose burnt flour and a baking surface that is too hot for the dough.",
+        severity: "advanced",
         likelyCauses: [
           "too much flour or semolina under the pizza",
           "stone is too hot for the dough style",
@@ -271,10 +335,50 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
         ],
       },
       {
+        id: "home-oven-pale-soft",
+        title: "Home oven pizza is pale or soft",
+        shortSymptom: "The pizza bakes slowly, the crust stays pale, or the base lacks crispness.",
+        quickCheck: "Check preheat time, surface heat and whether the oven is at its hottest safe setting.",
+        severity: "common",
+        likelyCauses: [
+          "oven is not hot enough",
+          "stone or steel was not preheated long enough",
+          "no stone, steel or hot baking surface is used",
+          "too much moisture from sauce or toppings",
+          "dough is too thick",
+        ],
+        fixNow: [
+          "bake longer if needed",
+          "move the pizza closer to stronger heat if safe",
+          "finish briefly under the grill or broiler if appropriate for the oven",
+        ],
+        preventNextTime: [
+          "preheat longer",
+          "use a pizza stone, steel or hot tray if available",
+          "use the hottest safe oven setting",
+          "reduce wet toppings",
+          "stretch the base thinner",
+        ],
+      },
+    ],
+  },
+  {
+    id: "toppings",
+    title: "Toppings & cheese",
+    intro: troubleshootingCategories[4].intro,
+    visual: {
+      label: "Moisture control and lighter topping load",
+      accent: "bg-ink",
+      motif: "Toppings",
+    },
+    problems: [
+      {
         id: "toppings-release-water",
         title: "Toppings release too much water",
-        whatYouSee:
+        shortSymptom:
           "The pizza looks watery, cheese slides, the center softens, or toppings pool liquid during baking.",
+        quickCheck: "Look for wet cheese, watery vegetables, thin sauce or too much topping in the center.",
+        severity: "common",
         likelyCauses: [
           "mozzarella was too wet",
           "mushrooms, vegetables or fresh toppings released water",
@@ -294,43 +398,6 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "pre-cook watery vegetables when needed",
           "use fewer toppings per pizza",
           "spread toppings evenly and lightly",
-        ],
-      },
-    ],
-  },
-  {
-    id: "home-oven-problems",
-    title: "Home oven problems",
-    intro:
-      "Home ovens usually need more heat management, longer preheating and a good baking surface to get closer to pizza-oven results.",
-    visual: {
-      label: "Heat-soaked stone, steel or tray",
-      accent: "bg-ink",
-      motif: "Home oven",
-    },
-    problems: [
-      {
-        id: "home-oven-pale-soft",
-        title: "Home oven pizza is pale or soft",
-        whatYouSee: "The pizza bakes slowly, the crust stays pale, or the base lacks crispness.",
-        likelyCauses: [
-          "oven is not hot enough",
-          "stone or steel was not preheated long enough",
-          "no stone, steel or hot baking surface is used",
-          "too much moisture from sauce or toppings",
-          "dough is too thick",
-        ],
-        fixNow: [
-          "bake longer if needed",
-          "move the pizza closer to stronger heat if safe",
-          "finish briefly under the grill or broiler if appropriate for the oven",
-        ],
-        preventNextTime: [
-          "preheat longer",
-          "use a pizza stone, steel or hot tray if available",
-          "use the hottest safe oven setting",
-          "reduce wet toppings",
-          "stretch the base thinner",
         ],
       },
     ],
