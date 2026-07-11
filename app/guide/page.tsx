@@ -170,6 +170,21 @@ export default function Guide() {
           </div>
         </section>
 
+        <section className="mb-6 rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="dough-guide-card">
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Step-by-step dough</p>
+              <h2 id="dough-guide-card" className="mt-2 font-display text-2xl font-semibold">Pizza Dough Guide</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+                Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
+              </p>
+            </div>
+            <Link href="/guides/dough" className="inline-flex min-h-11 items-center justify-center rounded-full bg-leaf px-4 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ink">
+              Open Dough Guide →
+            </Link>
+          </div>
+        </section>
+
         <section className="mb-6 rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="troubleshooting-guide-card">
           <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
             <div>

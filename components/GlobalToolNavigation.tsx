@@ -16,6 +16,8 @@ const copy = {
   calculatorV2: "Calculator v2",
   calculatorV2Description: "Guided recommendation from bake time and ingredients.",
   guide: "Guide",
+  doughGuide: "Dough Guide",
+  doughGuideDescription: "Step-by-step dough preparation from mixing to a ball ready to stretch.",
   guideGlossary: "Guide and glossary",
   guideGlossaryDescription: "Learn terminology, flour strength and dough principles.",
   troubleshootingGuide: "Pizza Troubleshooting Guide",
@@ -120,6 +122,15 @@ export default function GlobalToolNavigation() {
               </button>
               {guideMenuOpen && (
                 <div className="absolute left-0 top-10 z-50 w-72 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Guide menu">
+                  <Link
+                    href="/guides/dough"
+                    role="menuitem"
+                    onClick={() => setGuideMenuOpen(false)}
+                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  >
+                    <span className="block text-sm font-extrabold">{copy.doughGuide}</span>
+                    <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.doughGuideDescription}</span>
+                  </Link>
                   <Link
                     href="/guide"
                     role="menuitem"

@@ -10,6 +10,7 @@ export type NavigationItemId =
   | "doctor"
   | "styles"
   | "guide"
+  | "dough-guide"
   | "ovens"
   | "gear"
   | "history"
@@ -60,7 +61,8 @@ export const navigationGroups = [
     items: [
       { id: "doctor", label: "Dough Doctor", href: "/doctor", description: "Diagnose dough problems using the current recipe." },
       { id: "styles", label: "Pizza Styles", href: "/styles", description: "Pick a practical starting style and apply it to the calculator." },
-      { id: "guide", label: "Dough Guide", href: "/guide", description: "Learn terminology, flour strength and dough principles." },
+      { id: "guide", label: "Guide and glossary", href: "/guide", description: "Learn terminology, flour strength and dough principles." },
+      { id: "dough-guide", label: "Dough Guide", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
       { id: "ovens", label: "Oven Guide", href: "/ovens", description: "Compare oven types and understand trade-offs." },
       { id: "gear", label: "Equipment Guide", href: "/gear", description: "Build a practical pizza station around the oven." },
       { id: "history", label: "Pizza History", href: "/history", description: "Read the story and culture behind pizza." },

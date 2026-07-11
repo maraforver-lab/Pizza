@@ -20,6 +20,7 @@ const requiredRoutes = [
   "/doctor",
   "/styles",
   "/guide",
+  "/guides/dough",
   "/ovens",
   "/gear",
   "/history",
