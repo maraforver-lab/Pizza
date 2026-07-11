@@ -137,6 +137,26 @@ function ProblemCard({
           <BulletList items={problem.preventNextTime} />
         </div>
       </div>
+      {problem.relatedTopicIds && problem.relatedTopicIds.length > 0 && (
+        <nav className="mt-4 rounded-2xl border border-ink/10 bg-cream/70 p-4" aria-label={`Related troubleshooting topics for ${problem.title}`}>
+          <h4 className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">Related troubleshooting</h4>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {problem.relatedTopicIds.map((topicId) => {
+              const related = findPizzaTroubleshootingProblem(topicId);
+              if (!related) return null;
+              return (
+                <a
+                  key={topicId}
+                  href={`#topic-${topicId}`}
+                  className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/60 transition hover:border-tomato/25 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  {related.problem.title}
+                </a>
+              );
+            })}
+          </div>
+        </nav>
+      )}
     </article>
   );
 }

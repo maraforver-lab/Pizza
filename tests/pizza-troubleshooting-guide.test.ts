@@ -13,6 +13,31 @@ import {
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
 const troubleshootingRoute = "app/guide/pizza-troubleshooting/page.tsx";
+const patch304TopicIds = [
+  "dough-dry-skin",
+  "dough-balls-spread-flat",
+  "dough-underproofed",
+  "dough-overproofed",
+  "dough-too-cold",
+  "dough-too-warm",
+  "weak-gluten-structure",
+  "dough-collapses-after-rising",
+] as const;
+
+const originalTopicIds = [
+  "dough-not-rising",
+  "dough-too-sticky",
+  "dough-springs-back",
+  "dough-tears",
+  "pizza-sticks-to-peel",
+  "pizza-soggy-middle",
+  "crust-burns-middle-doughy",
+  "base-burns-underneath",
+  "toppings-release-water",
+  "home-oven-pale-soft",
+] as const;
+
+const allTopics = () => troubleshootingSections.flatMap((section) => section.problems);
 
 describe("Pizza Troubleshooting Guide", () => {
   it("adds the standalone guide route with a symptom-first hero", () => {
@@ -44,11 +69,20 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(troubleshootingSections.every((section) => section.problems.length > 0)).toBe(true);
   });
 
-  it("renders all ten requested problem titles", () => {
-    const titles = troubleshootingSections.flatMap((section) => section.problems.map((problem) => problem.title));
+  it("keeps the existing ten problem titles and adds the eight dough-fermentation topics", () => {
+    const topics = allTopics();
+    const titles = topics.map((problem) => problem.title);
 
     expect(titles).toContain("Dough is not rising");
     expect(titles).toContain("Dough is too sticky");
+    expect(titles).toContain("Dough develops a dry skin");
+    expect(titles).toContain("Dough balls spread flat");
+    expect(titles).toContain("Dough is underproofed");
+    expect(titles).toContain("Dough is overproofed");
+    expect(titles).toContain("Dough is too cold to stretch");
+    expect(titles).toContain("Dough is too warm and loose");
+    expect(titles).toContain("Weak gluten structure");
+    expect(titles).toContain("Dough collapses after rising");
     expect(titles).toContain("Dough springs back");
     expect(titles).toContain("Dough tears or gets holes");
     expect(titles).toContain("Pizza sticks to the peel");
@@ -57,7 +91,32 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(titles).toContain("Base burns underneath");
     expect(titles).toContain("Toppings release too much water");
     expect(titles).toContain("Home oven pizza is pale or soft");
-    expect(pizzaTroubleshootingTopicIds).toHaveLength(10);
+    expect(pizzaTroubleshootingTopicIds).toHaveLength(18);
+    expect(new Set(pizzaTroubleshootingTopicIds).size).toBe(pizzaTroubleshootingTopicIds.length);
+    for (const id of originalTopicIds) {
+      expect(pizzaTroubleshootingTopicIds).toContain(id);
+    }
+    for (const id of patch304TopicIds) {
+      expect(pizzaTroubleshootingTopicIds).toContain(id);
+    }
+  });
+
+  it("places Patch 304 topics only under Dough & fermentation without adding categories", () => {
+    const doughSection = troubleshootingSections.find((section) => section.id === "dough-fermentation");
+    if (!doughSection) throw new Error("Expected dough-fermentation section");
+
+    expect(troubleshootingSections.map((section) => section.id)).toEqual([
+      "dough-fermentation",
+      "shaping",
+      "launching",
+      "baking",
+      "toppings",
+    ]);
+    for (const id of patch304TopicIds) {
+      expect(doughSection.problems.map((problem) => problem.id)).toContain(id);
+      const owningSections = troubleshootingSections.filter((section) => section.problems.some((problem) => problem.id === id));
+      expect(owningSections.map((section) => section.id)).toEqual(["dough-fermentation"]);
+    }
   });
 
   it("uses the requested problem-card fields", () => {
@@ -106,9 +165,9 @@ describe("Pizza Troubleshooting Guide", () => {
   it("maps every current topic to a local diagnostic troubleshooting image", () => {
     const page = source(troubleshootingRoute);
     const data = source("lib/pizza-troubleshooting.ts");
-    const topics = troubleshootingSections.flatMap((section) => section.problems);
+    const topics = allTopics();
 
-    expect(topics).toHaveLength(10);
+    expect(topics).toHaveLength(18);
     expect(page).toContain("problem.image.src");
     expect(page).toContain("problem.image.alt");
     expect(page).toContain("problem.image.kind === \"comparison\"");
@@ -126,6 +185,53 @@ describe("Pizza Troubleshooting Guide", () => {
       expect(topic.image.src).not.toContain("http://");
       expect(topic.image.src).not.toContain("https://");
     }
+  });
+
+  it("adds distinct content and related links for the new dough-fermentation topics", () => {
+    const page = source(troubleshootingRoute);
+    const topics = allTopics();
+
+    expect(page).toContain("Related troubleshooting");
+    expect(page).toContain("Related troubleshooting topics for");
+    for (const id of patch304TopicIds) {
+      const topic = topics.find((problem) => problem.id === id);
+      if (!topic) throw new Error(`Missing ${id}`);
+      expect(topic.shortSymptom).toBeTruthy();
+      expect(topic.likelyCauses.length).toBeGreaterThanOrEqual(2);
+      expect(topic.fixNow.length).toBeGreaterThanOrEqual(1);
+      expect(topic.preventNextTime.length).toBeGreaterThanOrEqual(2);
+      expect(topic.quickCheck).toBeTruthy();
+      expect(topic.title).not.toMatch(/shaping|launch|bake|topping/i);
+      for (const relatedId of topic.relatedTopicIds ?? []) {
+        expect(isPizzaTroubleshootingTopicId(relatedId)).toBe(true);
+        expect(findPizzaTroubleshootingProblem(relatedId)).toBeTruthy();
+      }
+    }
+  });
+
+  it("keeps overlapping dough problems distinguishable", () => {
+    const underproofed = findPizzaTroubleshootingProblem("dough-underproofed")?.problem;
+    const tooCold = findPizzaTroubleshootingProblem("dough-too-cold")?.problem;
+    const overproofed = findPizzaTroubleshootingProblem("dough-overproofed")?.problem;
+    const tooWarm = findPizzaTroubleshootingProblem("dough-too-warm")?.problem;
+    const weakGluten = findPizzaTroubleshootingProblem("weak-gluten-structure")?.problem;
+    const tears = findPizzaTroubleshootingProblem("dough-tears")?.problem;
+    const spreadFlat = findPizzaTroubleshootingProblem("dough-balls-spread-flat")?.problem;
+    const collapsed = findPizzaTroubleshootingProblem("dough-collapses-after-rising")?.problem;
+    const drySkin = findPizzaTroubleshootingProblem("dough-dry-skin")?.problem;
+
+    expect(underproofed?.quickCheck).toContain("indentation");
+    expect(tooCold?.quickCheck).toContain("cold in the center");
+    expect(overproofed?.quickCheck).toContain("finger indentation");
+    expect(tooWarm?.quickCheck).toContain("noticeably warm");
+    expect(weakGluten?.quickCheck).toContain("thin, elastic membrane");
+    expect(tears?.quickCheck).toContain("weak spot");
+    expect(spreadFlat?.quickCheck).toContain("spread again quickly");
+    expect(collapsed?.quickCheck).toContain("rise well first");
+    expect(drySkin?.quickCheck).toContain("leathery");
+    expect(underproofed?.relatedTopicIds).toEqual(["dough-springs-back", "dough-not-rising", "dough-too-cold"]);
+    expect(overproofed?.relatedTopicIds).toEqual(["dough-balls-spread-flat", "dough-too-warm", "dough-collapses-after-rising"]);
+    expect(weakGluten?.relatedTopicIds).toEqual(["dough-tears", "dough-balls-spread-flat"]);
   });
 
   it("uses accessible HTML comparison labels instead of text embedded in images", () => {
