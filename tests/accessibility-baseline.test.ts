@@ -52,6 +52,11 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).toContain("aria-controls=\"global-tools-menu\"");
     expect(navigationSource).toContain("aria-label=\"Guide menu\"");
     expect(navigationSource).toContain("aria-label=\"Tools menu\"");
+    expect(navigationSource).toContain('aria-current={doughGuideActive ? "page" : undefined}');
+    expect(navigationSource).toContain('aria-current={guideGlossaryActive ? "page" : undefined}');
+    expect(navigationSource).toContain('aria-current={troubleshootingGuideActive ? "page" : undefined}');
+    expect(navigationSource).toContain("guideMenuItemClass");
+    expect(navigationSource).toContain("ring-tomato/20");
     expect(navigationSource).toContain("focus-visible:ring");
     expect(navigationSource).toContain('const accountActive = pathname === "/account"');
     expect(navigationSource).toContain('href="/account"');

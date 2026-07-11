@@ -109,6 +109,9 @@ describe("shared navigation model", () => {
     expect(header).toContain("Guide");
     expect(header).toContain('aria-label="Guide menu"');
     expect(header).toContain('const accountActive = pathname === "/account"');
+    expect(header).toContain('const doughGuideActive = pathname === "/guides/dough"');
+    expect(header).toContain('const guideGlossaryActive = pathname === "/guide"');
+    expect(header).toContain('const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting"');
     expect(header).toContain('href="/account"');
     expect(header).toContain("Sign in");
     expect(header).toContain("Your account");
@@ -147,6 +150,12 @@ describe("shared navigation model", () => {
     expect(header).toContain('role="menu" aria-label="Guide menu"');
     expect(header).toContain('href="/guides/dough"');
     expect(header).toContain('href="/guide/pizza-troubleshooting"');
+    expect(header).toContain('aria-current={doughGuideActive ? "page" : undefined}');
+    expect(header).toContain('aria-current={guideGlossaryActive ? "page" : undefined}');
+    expect(header).toContain('aria-current={troubleshootingGuideActive ? "page" : undefined}');
+    expect(header).toContain("guideMenuItemClass(doughGuideActive)");
+    expect(header).toContain("guideMenuItemClass(guideGlossaryActive)");
+    expect(header).toContain("guideMenuItemClass(troubleshootingGuideActive)");
     expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
     expect(header).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
   });

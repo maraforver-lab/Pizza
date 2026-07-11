@@ -28,6 +28,14 @@ const copy = {
 
 type OpenNavigationMenu = "guide" | "tools" | null;
 
+function guideMenuItemClass(active: boolean) {
+  return `block rounded-xl px-3 py-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+    active
+      ? "bg-cream text-ink ring-1 ring-tomato/20"
+      : "hover:bg-cream"
+  }`;
+}
+
 export default function GlobalToolNavigation() {
   const pathname = usePathname();
   const [signedIn, setSignedIn] = useState(false);
@@ -38,6 +46,9 @@ export default function GlobalToolNavigation() {
   const guideMenuRef = useRef<HTMLDivElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const accountActive = pathname === "/account";
+  const doughGuideActive = pathname === "/guides/dough";
+  const guideGlossaryActive = pathname === "/guide";
+  const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting";
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -140,8 +151,9 @@ export default function GlobalToolNavigation() {
                 <Link
                   href="/guides/dough"
                   role="menuitem"
+                  aria-current={doughGuideActive ? "page" : undefined}
                   onClick={() => setOpenMenu(null)}
-                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  className={guideMenuItemClass(doughGuideActive)}
                 >
                   <span className="block text-sm font-extrabold">{copy.doughGuide}</span>
                   <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.doughGuideDescription}</span>
@@ -149,8 +161,9 @@ export default function GlobalToolNavigation() {
                 <Link
                   href="/guide"
                   role="menuitem"
+                  aria-current={guideGlossaryActive ? "page" : undefined}
                   onClick={() => setOpenMenu(null)}
-                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  className={guideMenuItemClass(guideGlossaryActive)}
                 >
                   <span className="block text-sm font-extrabold">{copy.guideGlossary}</span>
                   <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.guideGlossaryDescription}</span>
@@ -158,8 +171,9 @@ export default function GlobalToolNavigation() {
                 <Link
                   href="/guide/pizza-troubleshooting"
                   role="menuitem"
+                  aria-current={troubleshootingGuideActive ? "page" : undefined}
                   onClick={() => setOpenMenu(null)}
-                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  className={guideMenuItemClass(troubleshootingGuideActive)}
                 >
                   <span className="block text-sm font-extrabold">{copy.troubleshootingGuide}</span>
                   <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.troubleshootingGuideDescription}</span>
