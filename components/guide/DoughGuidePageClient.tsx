@@ -74,8 +74,8 @@ function FactList({ facts }: { facts: readonly DoughGuideFact[] }) {
 function SessionContextCard({ context }: { context: DoughGuideSessionContext }) {
   if (!context.hasActiveSession) {
     return (
-      <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white/75 p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-no-session">
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+      <section className="rounded-[1.5rem] border border-ink/10 bg-white/75 p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-no-session">
+        <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <h2 id="dough-guide-no-session" className="font-display text-2xl font-semibold">No active Pizza Session</h2>
             <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
@@ -94,7 +94,7 @@ function SessionContextCard({ context }: { context: DoughGuideSessionContext }) 
   }
 
   return (
-    <section className="mt-5 rounded-[1.5rem] border border-leaf/20 bg-leaf/[.08] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-current-plan">
+    <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.08] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-current-plan">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Active Pizza Session</p>
@@ -112,7 +112,7 @@ function SessionContextCard({ context }: { context: DoughGuideSessionContext }) 
 function FlourGuidanceCard({ guidance }: { guidance: DoughGuideFlourGuidance | undefined }) {
   if (!guidance) return null;
   return (
-    <section className="mt-4 rounded-[1.5rem] border border-orange/20 bg-[#fff7ed] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-flour-guidance">
+    <section className="rounded-[1.5rem] border border-orange/20 bg-[#fff7ed] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-flour-guidance">
       <div className="grid gap-4 lg:grid-cols-[.85fr_1.15fr] lg:items-start">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Flour fit</p>
@@ -377,7 +377,14 @@ function StepNavigation({ activeIndex }: { activeIndex: number }) {
                   {index + 1}
                 </span>
                 <span>
-                  <span className="block font-extrabold">{step.actionName}</span>
+                  <span className="flex flex-wrap items-center gap-2 font-extrabold">
+                    {step.actionName}
+                    {active && (
+                      <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] uppercase tracking-[.14em] text-white/80">
+                        Current
+                      </span>
+                    )}
+                  </span>
                   <span className={`mt-0.5 block text-xs leading-5 ${active ? "text-white/65" : "text-ink/45"}`}>{step.title}</span>
                 </span>
               </Link>
@@ -431,6 +438,7 @@ export default function DoughGuidePageClient() {
     ...getDoughGuideStepPersonalization(activeStep.id, sessionContext),
     ...getDoughGuideStepFlourGuidance(activeStep.id, sessionContext.flourContext),
   ];
+  const hasStepPersonalization = stepPersonalization.length > 0;
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -441,7 +449,7 @@ export default function DoughGuidePageClient() {
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 flex items-center justify-between gap-4">
+        <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/guide" className="inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-extrabold text-ink/60 transition hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
             <span aria-hidden="true">←</span>
             Back to Guide
@@ -478,36 +486,53 @@ export default function DoughGuidePageClient() {
           </div>
         </section>
 
-        <SessionContextCard context={sessionContext} />
-        <FlourGuidanceCard guidance={flourGuidance} />
-
         <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
           <aside className="lg:sticky lg:top-24">
             <StepNavigation activeIndex={activeIndex} />
           </aside>
 
           <article className="rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6" aria-labelledby="active-dough-guide-step">
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
+            <div className="max-w-3xl">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Step {activeIndex + 1} of {doughGuideSteps.length}</p>
+              <h2 id="active-dough-guide-step" className="mt-2 font-display text-4xl font-semibold leading-tight">
+                {activeStep.title}
+              </h2>
+              <p className="mt-3 text-sm font-bold leading-7 text-ink/60">{activeStep.summary}</p>
+            </div>
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Step {activeIndex + 1} of {doughGuideSteps.length}</p>
-                <h2 id="active-dough-guide-step" className="mt-2 font-display text-4xl font-semibold leading-tight">
-                  {activeStep.title}
-                </h2>
-                <p className="mt-3 max-w-3xl text-sm font-bold leading-7 text-ink/60">{activeStep.summary}</p>
+                <section className="rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 sm:p-5" aria-labelledby="do-this-now">
+                  <h3 id="do-this-now" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this now</h3>
+                  <BulletList items={activeStep.doThisNow} ordered />
+                </section>
               </div>
               <StepVisual step={activeStep} />
             </div>
 
-            <div className="mt-5 grid gap-4 lg:grid-cols-[1.08fr_.92fr]">
-              <section className="rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 sm:p-5" aria-labelledby="do-this-now">
-                <h3 id="do-this-now" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this now</h3>
-                <BulletList items={activeStep.doThisNow} ordered />
-              </section>
-              <StepPersonalizationCard facts={stepPersonalization} />
+            <div className={`mt-4 grid gap-4 ${hasStepPersonalization ? "lg:grid-cols-[1fr_.92fr]" : ""}`}>
+              {hasStepPersonalization && <StepPersonalizationCard facts={stepPersonalization} />}
+              <SessionContextCard context={sessionContext} />
+            </div>
+
+            <div className="mt-4">
+              <FlourGuidanceCard guidance={flourGuidance} />
+            </div>
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-[1.08fr_.92fr]">
               <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="you-are-ready-when">
                 <h3 id="you-are-ready-when" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">You are ready when</h3>
                 <BulletList items={activeStep.readyWhen} />
               </section>
+              <section className="rounded-[1.5rem] border border-orange/25 bg-[#fff7ed] p-4 sm:p-5" aria-labelledby="common-mistake">
+                <h3 id="common-mistake" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Common mistake</h3>
+                <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.commonMistake}</p>
+              </section>
+            </div>
+
+            <div className="mt-4 rounded-[1.5rem] border border-ink/10 bg-cream/80 p-4 sm:p-5" aria-labelledby="how-to-fix-it">
+              <h3 id="how-to-fix-it" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">How to fix it</h3>
+              <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.howToFix}</p>
             </div>
 
             <div className="mt-4 space-y-4">
@@ -515,15 +540,8 @@ export default function DoughGuidePageClient() {
               <VisualComparisonCard comparison={activeStep.visualComparison} experienceLevel={experienceLevel} />
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <section className="rounded-[1.5rem] border border-orange/25 bg-[#fff7ed] p-4 sm:p-5" aria-labelledby="common-mistake">
-                <h3 id="common-mistake" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Common mistake</h3>
-                <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.commonMistake}</p>
-              </section>
-              <section className="rounded-[1.5rem] border border-ink/10 bg-cream/80 p-4 sm:p-5" aria-labelledby="how-to-fix-it">
-                <h3 id="how-to-fix-it" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">How to fix it</h3>
-                <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.howToFix}</p>
-              </section>
+            <div className="mt-4">
+              <ReadinessComparison step={activeStep} />
             </div>
 
             <div className="mt-4">
@@ -533,8 +551,6 @@ export default function DoughGuidePageClient() {
                 stepId={activeStep.id}
               />
             </div>
-
-            <ReadinessComparison step={activeStep} />
 
             <div className="mt-4 space-y-3">
               <DisclosureCard title="Why this matters">
@@ -549,7 +565,7 @@ export default function DoughGuidePageClient() {
               {previousStep ? (
                 <Link
                   href={`/guides/dough?step=${previousStep.id}`}
-                  className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  className="order-2 inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:order-1"
                 >
                   Previous step
                 </Link>
@@ -559,12 +575,12 @@ export default function DoughGuidePageClient() {
               {nextStep ? (
                 <Link
                   href={`/guides/dough?step=${nextStep.id}`}
-                  className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:justify-self-end"
+                  className="order-1 inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:order-2 sm:justify-self-end"
                 >
                   Continue to {nextStep.actionName}
                 </Link>
               ) : (
-                <p className="rounded-2xl bg-leaf px-5 py-3 text-center text-sm font-extrabold text-white sm:justify-self-end">
+                <p className="order-1 rounded-2xl bg-leaf px-5 py-3 text-center text-sm font-extrabold text-white sm:order-2 sm:justify-self-end">
                   Dough is ready to stretch
                 </p>
               )}

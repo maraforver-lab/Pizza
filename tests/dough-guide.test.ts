@@ -194,6 +194,25 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).not.toContain("<table");
   });
 
+  it("keeps the current instruction ahead of session and flour context", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("<SessionContextCard context={sessionContext} />"));
+    expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("<FlourGuidanceCard guidance={flourGuidance} />"));
+    expect(page).toContain("const hasStepPersonalization = stepPersonalization.length > 0");
+    expect(page).toContain("{hasStepPersonalization && <StepPersonalizationCard facts={stepPersonalization} />}");
+  });
+
+  it("keeps mobile step progression primary and labels the active step without relying only on color", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("aria-current={active ? \"step\" : undefined}");
+    expect(page).toContain("Current");
+    expect(page).toContain("order-1 inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato");
+    expect(page).toContain("order-2 inline-flex min-h-12 items-center justify-center rounded-2xl border");
+    expect(page.match(/Continue to \{nextStep\.actionName\}/g)).toHaveLength(1);
+  });
+
   it("uses query-string step navigation with previous and next actions", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
