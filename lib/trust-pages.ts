@@ -34,36 +34,37 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     href: "/about",
     navLabel: "About",
     eyebrow: "About DoughTools",
-    title: "A practical workspace for better pizza decisions.",
+    title: "Built from a love of Pizza Napoletana — and a need for clearer answers.",
     intro:
-      "DoughTools helps home pizza makers and serious hobbyists calculate dough, plan fermentation, prepare sauce and toppings, bake with better timing and learn from each result.",
+      "DoughTools was created by Marcin Arcisz, a home pizza maker who wanted one clearer way to connect time, yeast, temperature, flour and fermentation into a usable plan.",
     sections: [
       {
-        heading: "What DoughTools is",
+        heading: "A tool first built for one kitchen",
         paragraphs: [
-          "DoughTools is a pizza-making workspace, not a restaurant ordering service and not a promise of identical results every time. It connects dough calculation, fermentation planning, sauce and topping guidance, oven timing, saved recipes and troubleshooting into one practical flow.",
-          "The first action is still simple: build a dough recipe from pizza count, dough-ball weight, hydration, salt, leavening, fermentation and oven context.",
+          "DoughTools began with practical pizza-making questions: when to start, how much yeast to use, whether to ferment at room temperature or in the refrigerator, and which flour can handle the plan.",
+          "The public About page tells the founder story in more detail while preserving the same honest product limits used across DoughTools.",
         ],
       },
       {
         heading: "Who it is for",
         bullets: [
-          "Home pizza makers who want more repeatable dough.",
-          "Serious hobbyists comparing flour, hydration, fermentation and oven choices.",
-          "People using electric home ovens, baking steel or stone, and high-temperature pizza ovens where the current tools support them.",
+          "Beginner home pizza makers who want clear actions and sensible defaults.",
+          "Enthusiasts who want to understand why dough behaves differently across time, temperature and flour.",
+          "Pizza Nerds who want more control without losing the practical workflow.",
         ],
       },
       {
         heading: "What the product values",
         bullets: [
-          "Transparent baker’s percentage calculations.",
-          "Practical guidance that explains trade-offs instead of hiding them.",
-          "Honest limits: fermentation, flour strength, dough temperature and handling can change real-world results.",
+          "Good pizza begins with a plan, but the dough must still be observed.",
+          "Flour strength, temperature and fermentation time should be considered together.",
+          "Guidance should explain trade-offs instead of hiding them.",
+          "Pizza making should remain enjoyable.",
         ],
       },
       {
         heading: "Owner details",
-        paragraphs: [`DoughTools is maintained by ${projectOwner}.`],
+        paragraphs: [`DoughTools is built by ${projectOwner}, a home pizza maker and Pizza Napoletana enthusiast in ${projectJurisdiction}.`],
       },
     ],
   },

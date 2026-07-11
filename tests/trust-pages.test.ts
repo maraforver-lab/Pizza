@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   projectContactEmail,
@@ -85,11 +85,45 @@ describe("trust and legal pages", () => {
   });
 
   it("includes the required H1 text for each page", () => {
-    expect(trustPages.about.title).toBe("A practical workspace for better pizza decisions.");
+    expect(trustPages.about.title).toBe("Built from a love of Pizza Napoletana — and a need for clearer answers.");
     expect(trustPages.contact.title).toBe("Questions, corrections and feedback.");
     expect(trustPages.privacy.title).toBe("How DoughTools handles data.");
     expect(trustPages.terms.title).toBe("Use DoughTools as guidance, not a promise.");
     expect(trustPages.methodology.title).toBe("How the dough calculation works.");
+  });
+
+  it("renders the About page as a personal founder story with the supplied local portrait", () => {
+    const aboutPage = source("app/about/page.tsx");
+    const founderImage = join(process.cwd(), "public", "about", "marcin-arcisz-founder.webp");
+
+    expect(existsSync(founderImage)).toBe(true);
+    expect(aboutPage).toContain("Built from a love of Pizza Napoletana — and a need for clearer answers.");
+    expect(aboutPage).toContain("A tool I first built for myself");
+    expect(aboutPage).toContain("The questions that started DoughTools");
+    expect(aboutPage).toContain("Why another pizza tool?");
+    expect(aboutPage).toContain("What DoughTools connects");
+    expect(aboutPage).toContain("Made for real life");
+    expect(aboutPage).toContain("For three kinds of pizza makers");
+    expect(aboutPage).toContain("Why Pizza Napoletana?");
+    expect(aboutPage).toContain("What DoughTools believes");
+    expect(aboutPage).toContain("What DoughTools does not promise");
+    expect(aboutPage).toContain("Still learning, one pizza at a time");
+    expect(aboutPage).toContain("Built by Marcin Arcisz");
+    expect(aboutPage).toContain("Home pizza maker and Pizza Napoletana enthusiast, Finland.");
+    expect(aboutPage).toContain('src="/about/marcin-arcisz-founder.webp"');
+    expect(aboutPage).toContain("Marcin Arcisz, creator of DoughTools, photographed outdoors by the sea.");
+    expect(aboutPage).toContain('href="/session/start"');
+    expect(aboutPage).toContain("Start planning your next pizza session");
+  });
+
+  it("keeps the founder story grounded and avoids unsupported credentials or marketing claims", () => {
+    const aboutPage = source("app/about/page.tsx");
+
+    expect(aboutPage).toContain("DoughTools is not only a calculator");
+    expect(aboutPage).toContain("Dough still needs observation");
+    expect(aboutPage).toContain("that software replaces observation and practice");
+    expect(aboutPage).not.toMatch(/master pizzaiolo|chef|fermentation scientist|revolutionizing|guaranteed perfect|scientifically perfect/i);
+    expect(aboutPage).not.toMatch(/trusted by \d+|rated|testimonial|award-winning/i);
   });
 
   it("explains local browser storage, localStorage, IndexedDB and Supabase accurately", () => {
