@@ -485,7 +485,7 @@ export default function DoughGuidePageClient() {
             <p className="mt-5 max-w-2xl text-sm font-bold leading-7 text-ink/60 sm:text-base">
               Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
             </p>
-            <p className="mt-4 max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65">
+            <p className="mt-4 hidden max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65 lg:block">
               This guide works with or without a Pizza Session. When a session is active, it adds your dough-plan values without changing the session.
             </p>
           </div>

@@ -215,6 +215,13 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).not.toContain("xl:grid-cols-[minmax(0,1fr)_20rem]");
   });
 
+  it("keeps the generic hero information note desktop-only", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("This guide works with or without a Pizza Session. When a session is active, it adds your dough-plan values without changing the session.");
+    expect(page).toContain('className="mt-4 hidden max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65 lg:block"');
+  });
+
   it("places the compact image after the active step orientation and before the immediate action", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
