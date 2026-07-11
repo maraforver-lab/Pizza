@@ -273,8 +273,33 @@ describe("Pizza Dough Guide foundation", () => {
 
     expect(page).toContain("if (!step.image)");
     expect(page).toContain("<Image");
+    expect(imageSources).toHaveLength(12);
     expect(imageSources.every((src) => src?.startsWith("/dough-guide/"))).toBe(true);
+    expect(imageSources.every((src) => src?.startsWith("/dough-guide/guide-step-"))).toBe(true);
     expect(page).not.toMatch(/https?:\/\//);
+  });
+
+  it("uses the Patch 277 custom photo assets for all twelve Dough Guide steps", () => {
+    const imageSources = doughGuideSteps.map((step) => step.image?.src);
+
+    expect(imageSources).toEqual([
+      "/dough-guide/guide-step-01-prepare.webp",
+      "/dough-guide/guide-step-02-measure.webp",
+      "/dough-guide/guide-step-03-mix.webp",
+      "/dough-guide/guide-step-04-rest.webp",
+      "/dough-guide/guide-step-05-develop.webp",
+      "/dough-guide/guide-step-06-bulk.webp",
+      "/dough-guide/guide-step-07-divide.webp",
+      "/dough-guide/guide-step-08-ball.webp",
+      "/dough-guide/guide-step-09-proof.webp",
+      "/dough-guide/guide-step-10-warm.webp",
+      "/dough-guide/guide-step-11-readiness.webp",
+      "/dough-guide/guide-step-12-release.webp",
+    ]);
+    for (const src of imageSources) {
+      expect(src).toBeTruthy();
+      expect(existsSync(join(process.cwd(), "public", src!.slice(1)))).toBe(true);
+    }
   });
 
   it("defines local typed visual learning assets with alt text and dimensions", () => {
@@ -416,6 +441,14 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain('href="/session/start"');
     expect(page).toContain("Start a Pizza Session");
     expect(page).toContain("Continue to {nextStep.actionName}");
+  });
+
+  it("keeps the current dough plan card visible only on the Prepare step", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain('const showCurrentPlanCard = activeStep.id === "prepare"');
+    expect(page).toContain("{showCurrentPlanCard && <SessionContextCard context={sessionContext} />}");
+    expect(page).not.toContain("activeStep.id !== \"prepare\"");
   });
 
   it("builds a compact active-session summary from existing recipe/session values", () => {
@@ -653,10 +686,12 @@ describe("Pizza Dough Guide foundation", () => {
     const header = source("components/GlobalToolNavigation.tsx");
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(header).toContain("setGuideMenuOpen(false)");
+    expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("}, [pathname]);");
     expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
     expect(header).toContain("event.key === \"Escape\"");
+    expect(header).toContain('aria-controls="global-guide-menu"');
+    expect(header).toContain('role="menu" aria-label="Guide menu"');
     expect(page).toContain("aria-expanded={open}");
     expect(page).toContain("aria-controls={panelId}");
     expect(page).toContain("focus-visible:ring");

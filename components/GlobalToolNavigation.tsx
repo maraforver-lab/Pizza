@@ -26,20 +26,22 @@ const copy = {
   about: "About",
 } as const;
 
+type OpenNavigationMenu = "guide" | "tools" | null;
+
 export default function GlobalToolNavigation() {
   const pathname = usePathname();
   const [signedIn, setSignedIn] = useState(false);
   const [authPulse, setAuthPulse] = useState(false);
-  const [guideMenuOpen, setGuideMenuOpen] = useState(false);
-  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<OpenNavigationMenu>(null);
+  const guideMenuOpen = openMenu === "guide";
+  const toolsMenuOpen = openMenu === "tools";
   const guideMenuRef = useRef<HTMLDivElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const accountActive = pathname === "/account";
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    setGuideMenuOpen(false);
-    setToolsMenuOpen(false);
+    setOpenMenu(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -48,17 +50,16 @@ export default function GlobalToolNavigation() {
     const closeOnPointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
       if (guideMenuOpen && !guideMenuRef.current?.contains(target)) {
-        setGuideMenuOpen(false);
+        setOpenMenu(null);
       }
       if (toolsMenuOpen && !toolsMenuRef.current?.contains(target)) {
-        setToolsMenuOpen(false);
+        setOpenMenu(null);
       }
     };
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setGuideMenuOpen(false);
-        setToolsMenuOpen(false);
+        setOpenMenu(null);
       }
     };
 
@@ -107,51 +108,6 @@ export default function GlobalToolNavigation() {
 
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-            <div ref={guideMenuRef} className="relative">
-              <button
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={guideMenuOpen}
-                onClick={() => setGuideMenuOpen((open) => !open)}
-                className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-              >
-                {copy.guide}
-                <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2">
-                  <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              {guideMenuOpen && (
-                <div className="absolute left-0 top-10 z-50 w-72 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Guide menu">
-                  <Link
-                    href="/guides/dough"
-                    role="menuitem"
-                    onClick={() => setGuideMenuOpen(false)}
-                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                  >
-                    <span className="block text-sm font-extrabold">{copy.doughGuide}</span>
-                    <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.doughGuideDescription}</span>
-                  </Link>
-                  <Link
-                    href="/guide"
-                    role="menuitem"
-                    onClick={() => setGuideMenuOpen(false)}
-                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                  >
-                    <span className="block text-sm font-extrabold">{copy.guideGlossary}</span>
-                    <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.guideGlossaryDescription}</span>
-                  </Link>
-                  <Link
-                    href="/guide/pizza-troubleshooting"
-                    role="menuitem"
-                    onClick={() => setGuideMenuOpen(false)}
-                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                  >
-                    <span className="block text-sm font-extrabold">{copy.troubleshootingGuide}</span>
-                    <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.troubleshootingGuideDescription}</span>
-                  </Link>
-                </div>
-              )}
-            </div>
             <Link
               href="/?calculator=1"
               className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
@@ -165,13 +121,59 @@ export default function GlobalToolNavigation() {
               {copy.about}
             </Link>
           </nav>
+          <div ref={guideMenuRef} className="relative">
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={guideMenuOpen}
+              aria-controls="global-guide-menu"
+              onClick={() => setOpenMenu((menu) => menu === "guide" ? null : "guide")}
+              className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              {copy.guide}
+              <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2">
+                <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {guideMenuOpen && (
+              <div id="global-guide-menu" className="absolute right-0 top-12 z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Guide menu">
+                <Link
+                  href="/guides/dough"
+                  role="menuitem"
+                  onClick={() => setOpenMenu(null)}
+                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  <span className="block text-sm font-extrabold">{copy.doughGuide}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.doughGuideDescription}</span>
+                </Link>
+                <Link
+                  href="/guide"
+                  role="menuitem"
+                  onClick={() => setOpenMenu(null)}
+                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  <span className="block text-sm font-extrabold">{copy.guideGlossary}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.guideGlossaryDescription}</span>
+                </Link>
+                <Link
+                  href="/guide/pizza-troubleshooting"
+                  role="menuitem"
+                  onClick={() => setOpenMenu(null)}
+                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  <span className="block text-sm font-extrabold">{copy.troubleshootingGuide}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.troubleshootingGuideDescription}</span>
+                </Link>
+              </div>
+            )}
+          </div>
           <div ref={toolsMenuRef} className="relative">
             <button
               type="button"
               aria-haspopup="menu"
               aria-expanded={toolsMenuOpen}
               aria-controls="global-tools-menu"
-              onClick={() => setToolsMenuOpen((open) => !open)}
+              onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}
               className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               {copy.tools}
@@ -184,7 +186,7 @@ export default function GlobalToolNavigation() {
                 <Link
                   href="/?calculator=1"
                   role="menuitem"
-                  onClick={() => setToolsMenuOpen(false)}
+                  onClick={() => setOpenMenu(null)}
                   className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
                 >
                   <span className="block text-sm font-extrabold">{copy.calculator}</span>
@@ -193,7 +195,7 @@ export default function GlobalToolNavigation() {
                 <Link
                   href="/?calculator=1"
                   role="menuitem"
-                  onClick={() => setToolsMenuOpen(false)}
+                  onClick={() => setOpenMenu(null)}
                   className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
                 >
                   <span className="block text-sm font-extrabold">{copy.calculatorV1}</span>
@@ -202,7 +204,7 @@ export default function GlobalToolNavigation() {
                 <Link
                   href="/?calculator=2"
                   role="menuitem"
-                  onClick={() => setToolsMenuOpen(false)}
+                  onClick={() => setOpenMenu(null)}
                   className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
                 >
                   <span className="block text-sm font-extrabold">{copy.calculatorV2}</span>

@@ -100,10 +100,14 @@ describe("shared navigation model", () => {
 
     expect(header).toContain('href="/"');
     expect(header).toContain("Tools");
-    expect(header).toContain("const [toolsMenuOpen, setToolsMenuOpen] = useState(false)");
-    expect(header).toContain("setToolsMenuOpen(false)");
+    expect(header).toContain('type OpenNavigationMenu = "guide" | "tools" | null');
+    expect(header).toContain("const [openMenu, setOpenMenu] = useState<OpenNavigationMenu>(null)");
+    expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
+    expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("aria-expanded={toolsMenuOpen}");
     expect(header).toContain('aria-label="Tools menu"');
+    expect(header).toContain("Guide");
+    expect(header).toContain('aria-label="Guide menu"');
     expect(header).toContain('const accountActive = pathname === "/account"');
     expect(header).toContain('href="/account"');
     expect(header).toContain("Sign in");
@@ -116,19 +120,35 @@ describe("shared navigation model", () => {
   it("closes the Tools dropdown on navigation, item click, outside click and Escape", () => {
     const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
 
-    expect(header).toContain("const [toolsMenuOpen, setToolsMenuOpen] = useState(false)");
+    expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
     expect(header).toContain("const toolsMenuRef = useRef<HTMLDivElement>(null)");
-    expect(header).toContain("setToolsMenuOpen(false)");
+    expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("}, [pathname]);");
     expect(header).toContain("toolsMenuOpen && !toolsMenuRef.current?.contains(target)");
     expect(header).toContain("event.key === \"Escape\"");
-    expect(header).toContain("onClick={() => setToolsMenuOpen(false)}");
+    expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}');
     expect(header).toContain("aria-expanded={toolsMenuOpen}");
     expect(header).toContain('aria-controls="global-tools-menu"');
     expect(header).toContain('role="menu" aria-label="Tools menu"');
     expect(header).toContain('role="menuitem"');
     expect(header).not.toContain("<details");
     expect(header).not.toContain("<summary");
+  });
+
+  it("uses one controlled menu state for Guide and Tools dropdowns on desktop and mobile", () => {
+    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+
+    expect(header).toContain('const guideMenuOpen = openMenu === "guide"');
+    expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
+    expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "guide" ? null : "guide")}');
+    expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}');
+    expect(header).toContain('aria-controls="global-guide-menu"');
+    expect(header).toContain('id="global-guide-menu"');
+    expect(header).toContain('role="menu" aria-label="Guide menu"');
+    expect(header).toContain('href="/guides/dough"');
+    expect(header).toContain('href="/guide/pizza-troubleshooting"');
+    expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
+    expect(header).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
   });
 
   it("detects active pages and hash destinations without query strings", () => {

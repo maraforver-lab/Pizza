@@ -185,7 +185,8 @@ describe("homepage content model", () => {
     expect(header).toContain("Fix common dough, topping and baking problems.");
     expect(header).toContain('href="/guide/pizza-troubleshooting"');
     expect(header).toContain("aria-label=\"Guide menu\"");
-    expect(header).toContain("setGuideMenuOpen(false)");
+    expect(header).toContain('type OpenNavigationMenu = "guide" | "tools" | null');
+    expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("Lab");
     expect(header).toContain("About");
     expect(header).not.toContain("Start Pizza Session");
@@ -286,9 +287,10 @@ describe("homepage content model", () => {
     const header = source("components/GlobalToolNavigation.tsx");
     const homepage = source("app/page.tsx");
 
-    expect(header).toContain("const [toolsMenuOpen, setToolsMenuOpen] = useState(false)");
+    expect(header).toContain("const [openMenu, setOpenMenu] = useState<OpenNavigationMenu>(null)");
+    expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
     expect(header).toContain("aria-expanded={toolsMenuOpen}");
-    expect(header).toContain("setToolsMenuOpen(false)");
+    expect(header).toContain("setOpenMenu(null)");
     expect(header).not.toContain("<details");
     expect(header).not.toContain("<summary");
     expect(header).toContain("Tools");

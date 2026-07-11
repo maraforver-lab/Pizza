@@ -439,6 +439,7 @@ export default function DoughGuidePageClient() {
     ...getDoughGuideStepFlourGuidance(activeStep.id, sessionContext.flourContext),
   ];
   const hasStepPersonalization = stepPersonalization.length > 0;
+  const showCurrentPlanCard = activeStep.id === "prepare";
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -510,10 +511,12 @@ export default function DoughGuidePageClient() {
               <StepVisual step={activeStep} />
             </div>
 
-            <div className={`mt-4 grid gap-4 ${hasStepPersonalization ? "lg:grid-cols-[1fr_.92fr]" : ""}`}>
-              {hasStepPersonalization && <StepPersonalizationCard facts={stepPersonalization} />}
-              <SessionContextCard context={sessionContext} />
-            </div>
+            {(hasStepPersonalization || showCurrentPlanCard) && (
+              <div className={`mt-4 grid gap-4 ${hasStepPersonalization && showCurrentPlanCard ? "lg:grid-cols-[1fr_.92fr]" : ""}`}>
+                {hasStepPersonalization && <StepPersonalizationCard facts={stepPersonalization} />}
+                {showCurrentPlanCard && <SessionContextCard context={sessionContext} />}
+              </div>
+            )}
 
             <div className="mt-4">
               <FlourGuidanceCard guidance={flourGuidance} />
