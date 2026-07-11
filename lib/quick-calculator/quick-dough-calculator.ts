@@ -336,6 +336,12 @@ export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "i
       `Oil: ${Math.round(result.advancedTools.customIngredients.oilGrams)} g`,
       `Sugar: ${Math.round(result.advancedTools.customIngredients.sugarGrams)} g`,
       `Malt: ${Math.round(result.advancedTools.customIngredients.maltGrams)} g`,
+      `Enhanced dough total: ${Math.round(
+        result.ingredients.total
+        + result.advancedTools.customIngredients.oilGrams
+        + result.advancedTools.customIngredients.sugarGrams
+        + result.advancedTools.customIngredients.maltGrams,
+      )} g`,
     ] : []),
     ...(result.advancedTools.flourBlend.enabled ? [
       `Primary flour: ${Math.round(result.advancedTools.flourBlend.primaryFlourGrams)} g`,

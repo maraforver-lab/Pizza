@@ -589,6 +589,16 @@ export default function QuickDoughCalculator() {
               <div><dt className="text-ink/42">Sugar</dt><dd className="font-extrabold">{formatGrams(result.advancedTools.customIngredients.sugarGrams)} g</dd></div>
               <div><dt className="text-ink/42">Malt</dt><dd className="font-extrabold">{formatGrams(result.advancedTools.customIngredients.maltGrams)} g</dd></div>
             </dl>
+            {result.advancedTools.customIngredients.enabled && (
+              <p className="mt-3 rounded-2xl bg-ink/[.04] px-4 py-3 text-xs font-extrabold text-ink/58">
+                Enhanced dough total: {formatGrams(
+                  result.ingredients.total
+                  + result.advancedTools.customIngredients.oilGrams
+                  + result.advancedTools.customIngredients.sugarGrams
+                  + result.advancedTools.customIngredients.maltGrams,
+                )} g
+              </p>
+            )}
           </div>
           <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
             <label className="flex items-start gap-3 text-sm font-extrabold text-ink/72">
@@ -751,7 +761,7 @@ export default function QuickDoughCalculator() {
                     <p className="mt-2 text-xs leading-5 text-ink/45">
                       {savedRecipeSummary(recipe.input)}
                     </p>
-                    <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
                       <button type="button" onClick={() => loadSavedRecipe(recipe)} className="rounded-xl bg-tomato px-3 py-2.5 text-xs font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Load</button>
                       <button type="button" onClick={() => duplicateSavedRecipe(recipe.id)} className="rounded-xl border border-ink/10 px-3 py-2.5 text-xs font-extrabold text-ink/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Duplicate</button>
                       <button type="button" onClick={() => deleteSavedRecipe(recipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-extrabold text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Delete</button>
@@ -1175,6 +1185,16 @@ export default function QuickDoughCalculator() {
                 <div><dt className="text-white/45">Final flour</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.flourGrams)} g</dd></div>
                 <div><dt className="text-white/45">Final water</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.waterGrams)} g</dd></div>
                 <div><dt className="text-white/45">Target dough</dt><dd className="font-extrabold">{formatGrams(result.preferment.totalFormula.doughGrams)} g</dd></div>
+              </dl>
+            </section>
+
+            <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-working-assumptions">
+              <h3 id="quick-working-assumptions" className="text-sm font-extrabold text-white">Working assumptions</h3>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div><dt className="text-white/45">Dough method</dt><dd className="font-extrabold">{result.preferment.label}</dd></div>
+                <div><dt className="text-white/45">Fermentation temp</dt><dd className="font-extrabold">{formatTemperature(result.input.fermentationTemperatureCelsius)} °C</dd></div>
+                <div><dt className="text-white/45">Target dough temp</dt><dd className="font-extrabold">{formatTemperature(result.input.targetDoughTemperatureCelsius)} °C</dd></div>
+                <div><dt className="text-white/45">Water estimate</dt><dd className="font-extrabold">{formatTemperature(result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius)} °C</dd></div>
               </dl>
             </section>
 

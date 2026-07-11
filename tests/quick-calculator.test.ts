@@ -29,6 +29,7 @@ import {
   deleteQuickCalculatorSavedRecipe,
   duplicateQuickCalculatorSavedRecipe,
   loadQuickCalculatorSavedRecipes,
+  QUICK_CALCULATOR_MAX_SAVED_RECIPES,
   quickCalculatorInputFromSearch,
   quickCalculatorInputToShareParams,
   QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY,
@@ -224,6 +225,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Baker’s percentages");
     expect(component).toContain("Copy recipe");
     expect(component).toContain("Reset calculator");
+    expect(component).toContain("Working assumptions");
     expect(component).not.toContain("Start Pizza Session");
   });
 
@@ -279,6 +281,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("OptionalControlGroup");
     expect(component).toContain("Formula details");
     expect(component).toContain("Yeast and temperature details");
+    expect(component).toContain("Working assumptions");
   });
 
   it("normalizes advanced dough tool fields as optional Quick Calculator-only inputs", () => {
@@ -392,8 +395,45 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(target.advancedTools.customIngredients.oilGrams).toBeCloseTo(target.ingredients.flour * 0.03, 6);
     expect(target.advancedTools.customIngredients.sugarGrams).toBeCloseTo(target.ingredients.flour * 0.01, 6);
     expect(target.advancedTools.customIngredients.maltGrams).toBeCloseTo(target.ingredients.flour * 0.005, 6);
+    expect(target.summaryText).toContain("Enhanced dough total");
     expect(target.advancedTools.flourBlend.primaryFlourGrams).toBeCloseTo(target.ingredients.flour * 0.7, 6);
     expect(target.advancedTools.flourBlend.secondaryFlourGrams).toBeCloseTo(target.ingredients.flour * 0.3, 6);
+  });
+
+  it("keeps every calculated output finite and non-negative across representative methods", () => {
+    const cases = [
+      quickCalculatorDefaults,
+      { ...quickCalculatorDefaults, sizingMode: "round" as const, diameterCm: 38, thicknessFactor: 0.28 },
+      { ...quickCalculatorDefaults, sizingMode: "pan" as const, panWidthCm: 25, panLengthCm: 35, doughLoadingGramsPerSquareCm: 0.74 },
+      { ...quickCalculatorDefaults, sizingMode: "custom" as const, customDoughWeightGrams: 415 },
+      { ...quickCalculatorDefaults, prefermentMethod: "poolish" as const, prefermentedFlourPercent: 30, prefermentHydrationPercent: 100 },
+      { ...quickCalculatorDefaults, prefermentMethod: "biga" as const, prefermentedFlourPercent: 40, prefermentHydrationPercent: 50 },
+      { ...quickCalculatorDefaults, prefermentMethod: "levain" as const, prefermentedFlourPercent: 25, prefermentHydrationPercent: 100, prefermentInoculationPercent: 20 },
+      { ...quickCalculatorDefaults, customIngredientsEnabled: true, oilPercent: 3, sugarPercent: 1, maltPercent: 0.5, flourBlendEnabled: true, flourBlendPrimaryPercent: 65 },
+    ];
+
+    for (const input of cases) {
+      const result = calculateQuickDough(input);
+      const values = [
+        result.ingredients.total,
+        result.ingredients.flour,
+        result.ingredients.water,
+        result.ingredients.salt,
+        result.ingredients.leavener,
+        result.sizing.doughWeightPerPieceGrams,
+        result.preferment.build.flourGrams,
+        result.preferment.build.waterGrams,
+        result.preferment.finalDough.flourGrams,
+        result.preferment.finalDough.waterGrams,
+        result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius,
+        result.advancedTools.reverseFermentation.yeastGramsForTargetHours,
+        result.advancedTools.customIngredients.oilGrams,
+        result.advancedTools.flourBlend.primaryFlourGrams,
+        result.advancedTools.flourBlend.secondaryFlourGrams,
+      ];
+      expect(values.every(Number.isFinite)).toBe(true);
+      expect(values.filter((value) => value < 0)).toEqual([]);
+    }
   });
 
   it("does not let guidance mode change ingredient calculations for the same input", () => {
@@ -489,6 +529,53 @@ describe("Quick Dough Calculator isolated core UI", () => {
     const deleted = deleteQuickCalculatorSavedRecipe(duplicated, renamed[0].id);
     expect(deleted).toHaveLength(1);
     expect(deleted[0].name).toBe("Friday pizza copy");
+  });
+
+  it("limits saved Quick Calculator recipes locally without affecting the active calculator input", () => {
+    const manyRecipes = Array.from({ length: QUICK_CALCULATOR_MAX_SAVED_RECIPES + 5 }, (_, index) => (
+      createQuickCalculatorSavedRecipe(quickCalculatorDefaults, `Recipe ${index}`, `quick-${index}`, `2026-07-11T12:${String(index).padStart(2, "0")}:00.000Z`)
+    ));
+    const storage = new MemoryStorage();
+
+    storeQuickCalculatorSavedRecipes(manyRecipes, storage);
+    const loaded = loadQuickCalculatorSavedRecipes(storage);
+    const rawStored = JSON.parse(storage.getItem(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY) ?? "[]");
+    const saved = saveQuickCalculatorRecipe(manyRecipes, { ...quickCalculatorDefaults, pizzaCount: 7 }, "Newest");
+    const duplicated = duplicateQuickCalculatorSavedRecipe(manyRecipes, "quick-0");
+
+    expect(QUICK_CALCULATOR_MAX_SAVED_RECIPES).toBe(20);
+    expect(rawStored).toHaveLength(QUICK_CALCULATOR_MAX_SAVED_RECIPES);
+    expect(loaded).toHaveLength(QUICK_CALCULATOR_MAX_SAVED_RECIPES);
+    expect(saved).toHaveLength(QUICK_CALCULATOR_MAX_SAVED_RECIPES);
+    expect(saved[0].input.pizzaCount).toBe(7);
+    expect(duplicated).toHaveLength(QUICK_CALCULATOR_MAX_SAVED_RECIPES);
+  });
+
+  it("loads old Quick Calculator saved recipes and share URLs with new advanced defaults", () => {
+    const storage = new MemoryStorage();
+    const oldInput = {
+      pizzaCount: 3,
+      doughBallWeightGrams: 240,
+      hydrationPercent: 62,
+      saltPercent: 2.5,
+      yeastType: "idy",
+      fermentationDuration: "24h",
+      fermentationEnvironment: "room",
+      fermentationTemperatureCelsius: 22,
+      wastePercent: 2,
+    };
+
+    storage.setItem(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY, JSON.stringify([
+      { id: "old", version: 1, name: "Old quick recipe", createdAt: "2026-07-11T12:00:00.000Z", updatedAt: "2026-07-11T12:00:00.000Z", input: oldInput },
+    ]));
+
+    const loaded = loadQuickCalculatorSavedRecipes(storage)[0];
+    const shared = quickCalculatorInputFromSearch(`?quick=${encodeURIComponent(JSON.stringify(oldInput))}`);
+
+    expect(loaded.input.targetDoughTemperatureCelsius).toBe(24);
+    expect(loaded.input.prefermentMethod).toBe("direct");
+    expect(shared?.targetDoughTemperatureCelsius).toBe(24);
+    expect(shared?.pizzaCount).toBe(3);
   });
 
   it("creates and reads a shareable Quick Calculator URL with isolated query state", () => {
@@ -773,8 +860,10 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Final dough additions");
     expect(component).toContain("Required water");
     expect(component).toContain("Reverse fermentation target");
+    expect(component).toContain("Enhanced dough total");
     expect(component).toContain("Primary flour");
     expect(component).toContain("Secondary flour");
+    expect(component).toContain("mt-3 grid gap-2 sm:grid-cols-3");
     expect(sizing).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
     expect(preferments).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
   });

@@ -8,6 +8,7 @@ type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 export const QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY = "doughtools.quick-calculator.recipes.v1";
 export const QUICK_CALCULATOR_SHARE_PARAM = "quick";
+export const QUICK_CALCULATOR_MAX_SAVED_RECIPES = 20;
 
 export type QuickCalculatorSavedRecipeV1 = {
   id: string;
@@ -78,7 +79,7 @@ export function loadQuickCalculatorSavedRecipes(storage?: StorageLike): QuickCal
     return parsed.flatMap((item) => {
       const normalized = normalizeSavedRecipe(item);
       return normalized ? [normalized] : [];
-    });
+    }).slice(0, QUICK_CALCULATOR_MAX_SAVED_RECIPES);
   } catch {
     return [];
   }
@@ -89,7 +90,7 @@ export function storeQuickCalculatorSavedRecipes(
   storage?: StorageLike,
 ) {
   const target = getBrowserStorage(storage);
-  target?.setItem(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY, JSON.stringify(recipes));
+  target?.setItem(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY, JSON.stringify(recipes.slice(0, QUICK_CALCULATOR_MAX_SAVED_RECIPES)));
 }
 
 export function createQuickCalculatorSavedRecipe(
@@ -127,7 +128,7 @@ export function saveQuickCalculatorRecipe(
 
   return current
     ? recipes.map((recipe) => recipe.id === current.id ? nextRecipe : recipe)
-    : [nextRecipe, ...recipes];
+    : [nextRecipe, ...recipes].slice(0, QUICK_CALCULATOR_MAX_SAVED_RECIPES);
 }
 
 export function renameQuickCalculatorSavedRecipe(
@@ -148,7 +149,7 @@ export function duplicateQuickCalculatorSavedRecipe(
   const source = recipes.find((recipe) => recipe.id === id);
   if (!source) return [...recipes];
   const duplicate = createQuickCalculatorSavedRecipe(source.input, `${source.name} copy`);
-  return [duplicate, ...recipes];
+  return [duplicate, ...recipes].slice(0, QUICK_CALCULATOR_MAX_SAVED_RECIPES);
 }
 
 export function deleteQuickCalculatorSavedRecipe(
