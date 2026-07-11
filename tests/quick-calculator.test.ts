@@ -5,8 +5,10 @@ import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import {
   buildQuickRecipePlainText,
   calculateQuickDough,
+  getQuickCalculatorPresentation,
   normalizeQuickCalculatorInput,
   quickCalculatorDefaults,
+  quickCalculatorPresentations,
   quickFermentationToRecipePreset,
   quickCalculatorInputToRecipeSettings,
 } from "@/lib/quick-calculator/quick-dough-calculator";
@@ -196,5 +198,73 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("aria-label={`Increase ${label.toLowerCase()}`}");
     expect(component).toContain("focus-visible:ring");
     expect(packageJson).not.toMatch(/radix|headlessui|react-hook-form|zod/i);
+  });
+
+  it("reuses the existing experience-level system for the three Quick Calculator presentations", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(Object.keys(quickCalculatorPresentations)).toEqual(["beginner", "enthusiast", "pizza_nerd"]);
+    expect(getQuickCalculatorPresentation("beginner").badge).toBe("Beginner");
+    expect(getQuickCalculatorPresentation("enthusiast").badge).toBe("Enthusiast");
+    expect(getQuickCalculatorPresentation("pizza_nerd").badge).toBe("Pizza Nerd");
+    expect(component).toContain("ExperienceLevelSelector");
+    expect(component).toContain("readExperienceLevelPreference");
+    expect(component).toContain("GuidanceModeBadge");
+    expect(component).not.toContain("Beginner | Enthusiast | Pizza Nerd");
+  });
+
+  it("keeps Beginner simpler while preserving access to the same effective inputs", () => {
+    const beginner = getQuickCalculatorPresentation("beginner");
+    const enthusiast = getQuickCalculatorPresentation("enthusiast");
+    const nerd = getQuickCalculatorPresentation("pizza_nerd");
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(beginner.visibleGroups).toEqual(["batch", "fermentation"]);
+    expect(beginner.collapsedGroups).toContain("formula");
+    expect(beginner.collapsedGroups).toContain("advanced");
+    expect(enthusiast.visibleGroups).toContain("formula");
+    expect(enthusiast.collapsedGroups).toContain("advanced");
+    expect(nerd.visibleGroups).toEqual(["batch", "formula", "fermentation", "advanced"]);
+    expect(nerd.collapsedGroups).toEqual([]);
+    expect(component).toContain("OptionalControlGroup");
+    expect(component).toContain("Formula details");
+    expect(component).toContain("Yeast and temperature details");
+  });
+
+  it("does not let guidance mode change ingredient calculations for the same input", () => {
+    const input = {
+      ...quickCalculatorDefaults,
+      pizzaCount: 6,
+      doughBallWeightGrams: 270,
+      hydrationPercent: 66,
+      saltPercent: 2.6,
+      fermentationDuration: "48h" as const,
+      fermentationEnvironment: "cold" as const,
+      fermentationTemperatureCelsius: 4,
+    };
+
+    const baseline = calculateQuickDough(input);
+    for (const level of ["beginner", "enthusiast", "pizza_nerd"] as const) {
+      expect(getQuickCalculatorPresentation(level).level).toBe(level);
+      expect(calculateQuickDough(input).ingredients).toEqual(baseline.ingredients);
+      expect(calculateQuickDough(input).settings).toEqual(baseline.settings);
+    }
+  });
+
+  it("varies only result detail and explanations by level", () => {
+    const beginner = getQuickCalculatorPresentation("beginner");
+    const enthusiast = getQuickCalculatorPresentation("enthusiast");
+    const nerd = getQuickCalculatorPresentation("pizza_nerd");
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(beginner.resultDetail).toBe("simple");
+    expect(beginner.showTechnicalResult).toBe(false);
+    expect(enthusiast.resultDetail).toBe("guided");
+    expect(enthusiast.showTechnicalResult).toBe(true);
+    expect(nerd.resultDetail).toBe("technical");
+    expect(nerd.showTechnicalResult).toBe(true);
+    expect(component).toContain('presentation.resultDetail !== "simple"');
+    expect(component).toContain('presentation.resultDetail === "technical"');
+    expect(component).toContain("Same input values produce the same ingredient output");
   });
 });

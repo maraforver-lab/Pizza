@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import EditableNumberInput from "@/components/EditableNumberInput";
+import ExperienceLevelSelector, { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
+import {
+  readExperienceLevelPreference,
+  type ExperienceLevel,
+} from "@/lib/experience-levels";
 import {
   calculateQuickDough,
   defaultQuickFermentationTemperature,
+  getQuickCalculatorPresentation,
   quickCalculatorDefaults,
   quickCalculatorDurationOptions,
   quickCalculatorEnvironmentOptions,
@@ -133,14 +139,61 @@ function OptionButton<T extends string>({
   );
 }
 
+function OptionalControlGroup({
+  id,
+  title,
+  intro,
+  defaultOpen,
+  children,
+}: {
+  id: string;
+  title: string;
+  intro: string;
+  defaultOpen: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details
+      id={id}
+      open={defaultOpen}
+      className="group rounded-[2rem] border border-dashed border-ink/15 bg-white/45 p-5 shadow-sm backdrop-blur sm:p-6"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+        <span>
+          <span className="block text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Optional controls</span>
+          <span className="mt-2 block font-display text-2xl font-semibold text-ink">{title}</span>
+          <span className="mt-2 block text-xs leading-5 text-ink/52 sm:text-sm">{intro}</span>
+        </span>
+        <span className="shrink-0 rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/55 group-open:hidden">
+          Show
+        </span>
+        <span className="hidden shrink-0 rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/55 group-open:inline-flex">
+          Hide
+        </span>
+      </summary>
+      <div className="mt-5">{children}</div>
+    </details>
+  );
+}
+
 export default function QuickDoughCalculator() {
   const [input, setInput] = useState<QuickCalculatorInput>(quickCalculatorDefaults);
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const result = useMemo(() => calculateQuickDough(input), [input]);
+  const presentation = getQuickCalculatorPresentation(experienceLevel);
 
   const selectedEnvironment = quickCalculatorEnvironmentOptions.find((option) => option.value === result.input.fermentationEnvironment)
     ?? quickCalculatorEnvironmentOptions[0];
   const yeastLabel = quickCalculatorYeastOptions.find((option) => option.value === result.input.yeastType)?.label ?? "Leavening";
+  const showFormulaCard = presentation.visibleGroups.includes("formula");
+  const showAdvancedCard = presentation.visibleGroups.includes("advanced");
+  const formulaDefaultOpen = !presentation.collapsedGroups.includes("formula");
+  const advancedDefaultOpen = !presentation.collapsedGroups.includes("advanced");
+
+  useEffect(() => {
+    setExperienceLevel(readExperienceLevelPreference());
+  }, []);
 
   const resetCalculator = () => {
     setInput(quickCalculatorDefaults);
@@ -157,6 +210,69 @@ export default function QuickDoughCalculator() {
     }
   };
 
+  const formulaControls = (
+    <div className="grid gap-4 sm:grid-cols-3">
+      <NumberField
+        id="quick-hydration"
+        label="Hydration"
+        value={result.input.hydrationPercent}
+        min={40}
+        max={100}
+        step={0.5}
+        suffix="%"
+        onChange={(value) => updateInput(setInput, "hydrationPercent", value)}
+      />
+      <NumberField
+        id="quick-salt"
+        label="Salt"
+        value={result.input.saltPercent}
+        min={0}
+        max={10}
+        step={0.1}
+        suffix="%"
+        onChange={(value) => updateInput(setInput, "saltPercent", value)}
+      />
+      <NumberField
+        id="quick-extra-dough"
+        label="Extra dough"
+        value={result.input.wastePercent}
+        min={0}
+        max={25}
+        step={0.5}
+        suffix="%"
+        secondary
+        onChange={(value) => updateInput(setInput, "wastePercent", value)}
+      />
+    </div>
+  );
+
+  const advancedControls = (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <NumberField
+        id="quick-fermentation-temperature"
+        label="Fermentation temperature"
+        value={result.input.fermentationTemperatureCelsius}
+        min={0}
+        max={30}
+        suffix="°C"
+        onChange={(value) => updateInput(setInput, "fermentationTemperatureCelsius", value)}
+      />
+      <label className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+        <span className="text-sm font-extrabold text-ink/72">Yeast type</span>
+        <select
+          value={result.input.yeastType}
+          onChange={(event) => updateInput(setInput, "yeastType", event.target.value as YeastType)}
+          className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+          aria-label="Yeast type"
+        >
+          {quickCalculatorYeastOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+    </div>
+  );
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f6ecdf_48%,#fff8f1_100%)] px-4 py-6 text-ink sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -170,6 +286,10 @@ export default function QuickDoughCalculator() {
               <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/65 sm:text-base">
                 Enter dough values, get ingredient amounts, then leave with the recipe. This tool does not save or start a pizza workflow.
               </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <GuidanceModeBadge level={experienceLevel} />
+                <span className="rounded-full bg-ink/[.055] px-3 py-2 text-xs font-extrabold text-ink/45">{presentation.heading}</span>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3 rounded-[1.5rem] bg-ink/[.04] p-3 text-center">
               <div className="rounded-2xl bg-white p-3">
@@ -184,8 +304,23 @@ export default function QuickDoughCalculator() {
           </div>
         </section>
 
+        <ExperienceLevelSelector
+          value={experienceLevel}
+          onChange={setExperienceLevel}
+          compact
+          title="Quick calculator mode"
+          intro="Choose how much of the same calculator model you want visible while you work."
+          className="mt-5"
+        />
+
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)] lg:items-start">
           <section className="grid gap-5" aria-label="Quick calculator inputs">
+            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{presentation.badge} view</p>
+              <h2 className="mt-2 font-display text-3xl font-semibold">{presentation.heading}</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">{presentation.description}</p>
+            </div>
+
             <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -217,43 +352,25 @@ export default function QuickDoughCalculator() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">02 · Formula</p>
-              <h2 className="mt-2 font-display text-3xl font-semibold">Baker’s percentages</h2>
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                <NumberField
-                  id="quick-hydration"
-                  label="Hydration"
-                  value={result.input.hydrationPercent}
-                  min={40}
-                  max={100}
-                  step={0.5}
-                  suffix="%"
-                  onChange={(value) => updateInput(setInput, "hydrationPercent", value)}
-                />
-                <NumberField
-                  id="quick-salt"
-                  label="Salt"
-                  value={result.input.saltPercent}
-                  min={0}
-                  max={10}
-                  step={0.1}
-                  suffix="%"
-                  onChange={(value) => updateInput(setInput, "saltPercent", value)}
-                />
-                <NumberField
-                  id="quick-extra-dough"
-                  label="Extra dough"
-                  value={result.input.wastePercent}
-                  min={0}
-                  max={25}
-                  step={0.5}
-                  suffix="%"
-                  secondary
-                  onChange={(value) => updateInput(setInput, "wastePercent", value)}
-                />
+            {showFormulaCard ? (
+              <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">02 · Formula</p>
+                <h2 className="mt-2 font-display text-3xl font-semibold">Baker’s percentages</h2>
+                <p className="mt-2 text-sm leading-6 text-ink/55">
+                  Adjust hydration, salt and extra dough without changing any Pizza Session workflow.
+                </p>
+                <div className="mt-5">{formulaControls}</div>
               </div>
-            </div>
+            ) : (
+              <OptionalControlGroup
+                id="quick-optional-formula-controls"
+                title="Formula details"
+                intro="Hydration, salt and extra dough stay available for the same calculation, but are folded away in Beginner mode."
+                defaultOpen={formulaDefaultOpen}
+              >
+                {formulaControls}
+              </OptionalControlGroup>
+            )}
 
             <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">03 · Fermentation</p>
@@ -294,30 +411,20 @@ export default function QuickDoughCalculator() {
                 </div>
               </fieldset>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <NumberField
-                  id="quick-fermentation-temperature"
-                  label="Fermentation temperature"
-                  value={result.input.fermentationTemperatureCelsius}
-                  min={0}
-                  max={30}
-                  suffix="°C"
-                  onChange={(value) => updateInput(setInput, "fermentationTemperatureCelsius", value)}
-                />
-                <label className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
-                  <span className="text-sm font-extrabold text-ink/72">Yeast type</span>
-                  <select
-                    value={result.input.yeastType}
-                    onChange={(event) => updateInput(setInput, "yeastType", event.target.value as YeastType)}
-                    className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
-                    aria-label="Yeast type"
+              {showAdvancedCard ? (
+                <div className="mt-5">{advancedControls}</div>
+              ) : (
+                <div className="mt-5">
+                  <OptionalControlGroup
+                    id="quick-optional-advanced-controls"
+                    title="Yeast and temperature details"
+                    intro="Use these when you want to override the default yeast type or fermentation temperature."
+                    defaultOpen={advancedDefaultOpen}
                   >
-                    {quickCalculatorYeastOptions.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+                    {advancedControls}
+                  </OptionalControlGroup>
+                </div>
+              )}
             </div>
           </section>
 
@@ -327,6 +434,11 @@ export default function QuickDoughCalculator() {
             <p className="mt-3 text-sm leading-6 text-white/60">
               {result.input.pizzaCount} pizzas × {result.input.doughBallWeightGrams} g · {result.input.hydrationPercent}% hydration · {selectedEnvironment.label}
             </p>
+            {presentation.resultDetail !== "simple" && (
+              <p className="mt-2 text-xs leading-5 text-white/42">
+                Fermentation maps to the existing pure calculator preset: {result.settings.fermentation} at {result.settings.temperature} °C.
+              </p>
+            )}
 
             <dl className="mt-6 divide-y divide-white/10">
               {[
@@ -351,8 +463,15 @@ export default function QuickDoughCalculator() {
                 <div><dt className="text-white/45">Flour</dt><dd className="font-extrabold">100%</dd></div>
                 <div><dt className="text-white/45">Water</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.water)}%</dd></div>
                 <div><dt className="text-white/45">Salt</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.salt)}%</dd></div>
-                <div><dt className="text-white/45">{yeastLabel}</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.yeast, 3)}%</dd></div>
+                {presentation.showTechnicalResult && (
+                  <div><dt className="text-white/45">{yeastLabel}</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.yeast, 3)}%</dd></div>
+                )}
               </dl>
+              {presentation.resultDetail === "technical" && (
+                <p className="mt-3 text-xs leading-5 text-white/42">
+                  Same input values produce the same ingredient output in every guidance mode.
+                </p>
+              )}
             </section>
 
             <div className="mt-6 grid gap-2 sm:grid-cols-2">

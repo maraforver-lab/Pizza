@@ -1,4 +1,5 @@
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
+import type { ExperienceLevel } from "@/lib/experience-levels";
 import type { Fermentation, RecipeIngredients, RecipeSettings, YeastType } from "@/lib/saved-recipes";
 
 export type QuickFermentationDuration = "6h" | "12h" | "24h" | "48h";
@@ -29,6 +30,20 @@ export type QuickCalculatorBakerPercentages = {
   water: number;
   salt: number;
   yeast: number;
+};
+
+export type QuickCalculatorControlGroup = "batch" | "formula" | "fermentation" | "advanced";
+
+export type QuickCalculatorPresentation = {
+  level: ExperienceLevel;
+  badge: string;
+  heading: string;
+  description: string;
+  visibleGroups: QuickCalculatorControlGroup[];
+  collapsedGroups: QuickCalculatorControlGroup[];
+  resultDetail: "simple" | "guided" | "technical";
+  showExplanations: boolean;
+  showTechnicalResult: boolean;
 };
 
 export const quickCalculatorDefaults: QuickCalculatorInput = {
@@ -62,6 +77,46 @@ export const quickCalculatorYeastOptions: { value: YeastType; label: string }[] 
   { value: "ssd", label: "Stiff sourdough starter" },
   { value: "lsd", label: "Liquid sourdough starter" },
 ];
+
+export const quickCalculatorPresentations: Record<ExperienceLevel, QuickCalculatorPresentation> = {
+  beginner: {
+    level: "beginner",
+    badge: "Beginner",
+    heading: "Fast recipe, fewer decisions",
+    description: "Start with pizza count, ball size, yeast and fermentation. Formula details stay available without crowding the page.",
+    visibleGroups: ["batch", "fermentation"],
+    collapsedGroups: ["formula", "advanced"],
+    resultDetail: "simple",
+    showExplanations: true,
+    showTechnicalResult: false,
+  },
+  enthusiast: {
+    level: "enthusiast",
+    badge: "Enthusiast",
+    heading: "Practical control",
+    description: "Keep the main dough formula visible and tuck the finer temperature and extra-dough controls into an optional section.",
+    visibleGroups: ["batch", "formula", "fermentation"],
+    collapsedGroups: ["advanced"],
+    resultDetail: "guided",
+    showExplanations: true,
+    showTechnicalResult: true,
+  },
+  pizza_nerd: {
+    level: "pizza_nerd",
+    badge: "Pizza Nerd",
+    heading: "All variables exposed",
+    description: "Show every Quick Calculator input and the technical percentage readout by default.",
+    visibleGroups: ["batch", "formula", "fermentation", "advanced"],
+    collapsedGroups: [],
+    resultDetail: "technical",
+    showExplanations: true,
+    showTechnicalResult: true,
+  },
+};
+
+export function getQuickCalculatorPresentation(level: ExperienceLevel): QuickCalculatorPresentation {
+  return quickCalculatorPresentations[level] ?? quickCalculatorPresentations.beginner;
+}
 
 const clampNumber = (value: number, min: number, max: number) => (
   Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : min
