@@ -11,7 +11,18 @@ export type PizzaTroubleshootingTopicId =
   | "dough-collapses-after-rising"
   | "dough-springs-back"
   | "dough-tears"
+  | "dough-sticks-to-work-surface"
+  | "pizza-center-too-thin"
+  | "pizza-loses-round-shape"
+  | "rim-flattened-during-shaping"
+  | "dough-stretches-unevenly"
+  | "dough-tears-moving-to-peel"
   | "pizza-sticks-to-peel"
+  | "pizza-folds-during-launch"
+  | "toppings-slide-during-launch"
+  | "too-much-flour-under-pizza"
+  | "pizza-stretches-on-peel"
+  | "launch-takes-too-long"
   | "pizza-soggy-middle"
   | "crust-burns-middle-doughy"
   | "base-burns-underneath"
@@ -580,6 +591,242 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "keep dough covered so it does not dry out",
         ],
       },
+      {
+        id: "dough-sticks-to-work-surface",
+        title: "Dough sticks to the work surface",
+        shortSymptom:
+          "The dough adheres to the bench, drags when rotated, or tears when you try to lift it.",
+        symptomDetails:
+          "This happens before peel transfer: the underside is gripping the work surface instead of sliding freely as you shape.",
+        quickCheck: "Can the dough rotate freely after each few presses?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/dough-sticks-to-work-surface.webp",
+          alt: "Raw pizza dough sticking to a work surface while a dough scraper loosens one edge.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Bench sticking shows up while shaping, before the pizza ever reaches the peel.",
+        },
+        likelyCauses: [
+          "too little bench flour",
+          "dough is very warm, wet or high hydration",
+          "the bench material grips the dough",
+          "dough sat too long in one position",
+          "too much pressure was used while opening",
+        ],
+        fixNow: [
+          "loosen the stuck area carefully with a bench scraper",
+          "add a small amount of flour only under the sticky section",
+          "rotate the dough frequently",
+          "reduce pressure and avoid folding excess flour into the dough",
+        ],
+        preventNextTime: [
+          "lightly flour the bench before placing the dough down",
+          "keep dough temperature under control",
+          "work efficiently and keep the dough moving",
+          "use a smooth opening surface",
+          "adjust hydration if the flour consistently cannot support it",
+        ],
+        relatedTopicIds: ["dough-too-sticky", "dough-too-warm", "dough-tears-moving-to-peel"],
+      },
+      {
+        id: "pizza-center-too-thin",
+        title: "Center becomes too thin",
+        shortSymptom:
+          "The center turns translucent, weak or tear-prone while the rim remains much thicker.",
+        symptomDetails:
+          "The pizza may leak sauce or toppings through the middle if that weak area is topped heavily.",
+        quickCheck: "Can you see the bench clearly through one central area while the rest remains thicker?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/pizza-center-too-thin.webp",
+          alt: "Raw pizza dough with a translucent thin center and a thicker rim during shaping.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "A thin center is a local weak spot, not the same as a dough with weak structure everywhere.",
+        },
+        likelyCauses: [
+          "too much pressure was placed in the middle",
+          "the dough was lifted or stretched from the center",
+          "hand pressure was uneven",
+          "the target diameter is too large for the dough-ball weight",
+          "dough is too warm, weak or aggressively gravity-stretched",
+        ],
+        fixNow: [
+          "stop stretching and reduce the final diameter",
+          "move the dough carefully to the peel",
+          "pinch only a tiny hole closed if practical",
+          "avoid heavy wet toppings over the weak area",
+        ],
+        preventNextTime: [
+          "press from the center outward without over-thinning the final center",
+          "leave the rim untouched",
+          "rotate during opening",
+          "match diameter to dough-ball weight",
+          "use gentler hand pressure",
+        ],
+        relatedTopicIds: ["dough-tears", "dough-tears-moving-to-peel", "weak-gluten-structure"],
+      },
+      {
+        id: "pizza-loses-round-shape",
+        title: "Pizza loses its round shape",
+        shortSymptom:
+          "The dough becomes oval or irregular, with one side stretching more than the other.",
+        symptomDetails:
+          "A slightly rustic shape is fine; the problem is when uneven handling keeps making the dough weaker or harder to transfer.",
+        quickCheck: "Does one side remain visibly shorter before the dough reaches the peel?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/pizza-loses-round-shape.webp",
+          alt: "Raw pizza dough stretched into an uneven oval shape on a floured work surface.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Correct shape gently from the shorter side; do not chase perfect roundness until the dough weakens.",
+        },
+        likelyCauses: [
+          "uneven pressure during shaping",
+          "not rotating the dough often enough",
+          "pulling from one edge",
+          "dough sticking to the bench",
+          "dough is too soft, warm or roughly transferred",
+        ],
+        fixNow: [
+          "correct gently from the thicker or shorter edge",
+          "rotate and stretch only the short side",
+          "stop before overworking the dough",
+          "accept a slightly irregular shape rather than weakening it further",
+        ],
+        preventNextTime: [
+          "rotate continuously while opening",
+          "use even hand pressure",
+          "keep the dough moving on the bench",
+          "transfer with both hands or forearms evenly",
+          "avoid stretching after toppings are added",
+        ],
+        relatedTopicIds: ["dough-stretches-unevenly", "pizza-stretches-on-peel"],
+      },
+      {
+        id: "rim-flattened-during-shaping",
+        title: "Rim gets flattened during shaping",
+        shortSymptom:
+          "The edge looks pressed, dense or deflated and loses the gas that would normally help it lift.",
+        symptomDetails:
+          "This matters most for pizza styles that rely on an aerated rim; flatter styles may intentionally use less rim height.",
+        quickCheck: "Is the outer 1–2 cm visibly flatter than it was before shaping?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/rim-flattened-during-shaping.webp",
+          alt: "Hands pressing too close to the rim of a raw pizza dough base on a floured bench.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "For airy-rim styles, keep pressure inside the rim rather than flattening the perimeter.",
+        },
+        likelyCauses: [
+          "pressing all the way to the edge",
+          "pinching or squeezing the rim",
+          "using a rolling pin for a style that needs an aerated rim",
+          "aggressive handling after fermentation",
+          "transferring by gripping the outer edge",
+        ],
+        fixNow: [
+          "stop pressing the outer edge",
+          "continue stretching from inside the rim",
+          "handle the perimeter minimally",
+          "make a slightly smaller pizza if needed",
+        ],
+        preventNextTime: [
+          "leave a clear untouched rim",
+          "press from the center outward",
+          "avoid rolling pins for styles that rely on an aerated rim",
+          "lift from under the dough rather than squeezing the edge",
+          "transfer gently",
+        ],
+        relatedTopicIds: ["dough-not-rising", "dough-underproofed"],
+      },
+      {
+        id: "dough-stretches-unevenly",
+        title: "Dough stretches unevenly",
+        shortSymptom:
+          "One section stays thick while another thins quickly, leaving uneven patches in the base.",
+        symptomDetails:
+          "This is about inconsistent thickness during shaping, not a single tear or a general lack of gluten strength.",
+        quickCheck: "Does the same section repeatedly stay thick while the opposite side thins?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/dough-stretches-unevenly.webp",
+          alt: "Raw pizza dough with thick and thin patches while hands work the thicker area only.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Work the thicker areas and stop stretching the parts that are already thin.",
+        },
+        likelyCauses: [
+          "dough temperature is uneven",
+          "outer surface is warm while the center is cold",
+          "pressing pressure is inconsistent",
+          "flour lumps or dry skin resist stretching",
+          "dough structure is stronger on one side or it needed more rest after reballing",
+        ],
+        fixNow: [
+          "pause and rest the dough briefly under cover",
+          "work only the thicker areas",
+          "rotate frequently",
+          "reduce the final diameter",
+          "avoid repeatedly stretching the thinnest section",
+        ],
+        preventNextTime: [
+          "allow even dough temperature",
+          "ball consistently",
+          "cover dough properly",
+          "use uniform pressing",
+          "avoid cold spots and give reballed dough enough rest",
+        ],
+        relatedTopicIds: ["pizza-loses-round-shape", "dough-dry-skin", "dough-too-cold"],
+      },
+      {
+        id: "dough-tears-moving-to-peel",
+        title: "Dough tears while moving to the peel",
+        shortSymptom:
+          "The dough rips as it is lifted from the bench or transferred toward the peel.",
+        symptomDetails:
+          "Unlike general tearing during shaping, this problem starts during the transfer from work surface to peel.",
+        quickCheck: "Did the tear begin where the dough was sticking or visibly thinnest?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/dough-tears-moving-to-peel.webp",
+          alt: "Raw stretched pizza dough tearing while being moved from the work surface to a wooden peel.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Transfer tears usually begin at a stuck underside or a center that was already too thin.",
+        },
+        likelyCauses: [
+          "dough stuck to the bench",
+          "center was stretched too thin",
+          "gluten structure is weak",
+          "transfer was too slow or unsupported",
+          "fingers gripped through the dough or the peel was too far away",
+        ],
+        fixNow: [
+          "stop and support the torn area",
+          "place the dough back down carefully",
+          "pinch a small tear closed if practical",
+          "reduce the final size",
+          "discard only when the base cannot be restored safely",
+        ],
+        preventNextTime: [
+          "confirm the dough moves freely before lifting",
+          "place the peel close to the bench",
+          "use both hands or forearms evenly",
+          "avoid gripping the center",
+          "keep the center slightly thicker and work faster after final shaping",
+        ],
+        relatedTopicIds: ["dough-sticks-to-work-surface", "pizza-center-too-thin", "dough-tears"],
+      },
     ],
   },
   {
@@ -596,8 +843,10 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
         id: "pizza-sticks-to-peel",
         title: "Pizza sticks to the peel",
         shortSymptom:
-          "The topped pizza will not slide from the peel into the oven, or it stretches and deforms when launched.",
-        quickCheck: "Shake the peel gently before launching; the pizza should move freely.",
+          "The topped pizza will not slide from the peel into the oven, or one section stays attached and stretches.",
+        symptomDetails:
+          "This is a peel-stage problem: the pizza should move freely before you approach the oven.",
+        quickCheck: "Does the pizza move freely with a short forward-and-back shake before launch?",
         severity: "common",
         image: {
           src: "/images/troubleshooting/pizza-sticks-to-peel.webp",
@@ -608,26 +857,221 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           caption: "Before launch, the topped pizza should slide freely when the peel is shaken gently.",
         },
         likelyCauses: [
-          "dough is too sticky",
-          "peel is not floured enough",
+          "peel is not dusted lightly and evenly",
+          "dough is too wet or thin",
+          "sauce or moisture leaked through the base",
           "pizza sat too long on the peel",
-          "sauce or toppings made the base wet",
-          "the pizza is overloaded",
-          "a hole in the dough allowed moisture through",
+          "toppings are too heavy or the peel surface is rough or damp",
         ],
         fixNow: [
-          "gently shake the peel before launching",
-          "lift an edge and add a little flour if needed",
-          "launch quickly after topping",
-          "if it is badly stuck, rescue it before forcing the launch",
+          "gently lift the stuck edge and add a small amount of flour",
+          "use a thin spatula only when practical and safe",
+          "shake lightly to confirm movement",
+          "remove excess wet topping if necessary",
+          "launch promptly once the pizza moves freely",
         ],
         preventNextTime: [
-          "build one pizza at a time",
-          "keep toppings light",
-          "use a small amount of flour or semolina on the peel",
-          "avoid wet toppings leaking into the base",
-          "check that the dough moves before going to the oven",
+          "dust the peel lightly and evenly",
+          "build the pizza quickly",
+          "confirm the base is intact",
+          "use controlled topping amounts",
+          "shake-test before approaching the oven and keep the peel clean and dry",
         ],
+        relatedTopicIds: ["launch-takes-too-long", "toppings-slide-during-launch", "toppings-release-water", "pizza-stretches-on-peel"],
+      },
+      {
+        id: "pizza-folds-during-launch",
+        title: "Pizza folds during launch",
+        shortSymptom:
+          "The leading edge folds under, one side overlaps, or the pizza lands partly doubled on the baking surface.",
+        quickCheck: "Does the leading edge begin moving while the rear remains stuck?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/pizza-folds-during-launch.webp",
+          alt: "A topped raw pizza folding at the leading edge while sliding from a wooden peel toward the oven floor.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Folding usually starts when the front releases but the rear remains stuck or the launch motion hesitates.",
+        },
+        likelyCauses: [
+          "launch motion was hesitant",
+          "peel angle was too steep",
+          "pizza was not moving freely before launch",
+          "launch started too far from the baking surface",
+          "pizza is overloaded, too large for the peel or withdrawn unevenly",
+        ],
+        fixNow: [
+          "unfold carefully with a turning peel only if safe and accessible",
+          "avoid aggressive correction near flame or heating elements",
+          "continue baking if recovery is unsafe",
+          "remove a severely folded pizza only when safe to do so",
+        ],
+        preventNextTime: [
+          "confirm free movement before launch",
+          "use one smooth forward-and-back motion",
+          "launch close to the baking surface",
+          "align the peel with the intended landing spot",
+          "make the pizza slightly smaller and reduce topping weight",
+        ],
+        relatedTopicIds: ["pizza-sticks-to-peel", "pizza-stretches-on-peel", "launch-takes-too-long"],
+      },
+      {
+        id: "toppings-slide-during-launch",
+        title: "Toppings slide during launch",
+        shortSymptom:
+          "Cheese, sauce or toppings move toward one side or pile at the front as the pizza is launched.",
+        symptomDetails:
+          "This is launch-specific movement, not the same as toppings releasing water during the bake.",
+        quickCheck: "Do the toppings move when you perform the shake-test?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/toppings-slide-during-launch.webp",
+          alt: "Toppings and sauce sliding toward the front of a raw pizza on a tilted peel before launch.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "If toppings move during the shake-test, reduce load and correct the distribution before launch.",
+        },
+        likelyCauses: [
+          "launch was too abrupt or the peel angle was too steep",
+          "pizza is overloaded",
+          "toppings are wet or unevenly distributed",
+          "pizza was stuck before release",
+          "sauce was spread too close to the edge",
+        ],
+        fixNow: [
+          "correct only if safe before launch",
+          "remove excess wet topping",
+          "redistribute toppings while the pizza is still on the peel",
+          "clean sauce from peel edges",
+          "launch with a smoother motion",
+        ],
+        preventNextTime: [
+          "use less topping",
+          "drain wet ingredients",
+          "distribute toppings evenly",
+          "leave a clean border",
+          "confirm the pizza slides before approaching the oven",
+        ],
+        relatedTopicIds: ["pizza-sticks-to-peel", "toppings-release-water", "pizza-folds-during-launch"],
+      },
+      {
+        id: "too-much-flour-under-pizza",
+        title: "Too much flour or semolina burns underneath",
+        shortSymptom:
+          "Loose flour or semolina under the pizza burns into bitter specks, smoke or a gritty scorched base.",
+        symptomDetails:
+          "The visible symptom may appear after baking, but the cause often starts during bench and peel preparation.",
+        quickCheck: "Can you see loose flour or semolina moving under the pizza before launch?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/too-much-flour-under-pizza.webp",
+          alt: "A raw topped pizza lifted on a peel with excess flour and semolina visible underneath.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Use only enough dusting flour for release; loose buildup can scorch on a hot oven floor.",
+        },
+        likelyCauses: [
+          "too much bench flour",
+          "too much peel dusting",
+          "flour collected under the center",
+          "repeated launches happened without cleaning",
+          "very hot oven floor or heavy coarse semolina use",
+        ],
+        fixNow: [
+          "brush loose flour from the peel before topping",
+          "lift the dough and remove excess flour when practical",
+          "clean the oven floor between pizzas using safe equipment",
+          "reduce peel dusting for the next pizza",
+        ],
+        preventNextTime: [
+          "use only enough flour for release",
+          "shake off excess before transferring",
+          "keep bench and peel clean",
+          "use an appropriate dusting flour",
+          "monitor oven-floor buildup",
+        ],
+        relatedTopicIds: ["base-burns-underneath", "pizza-sticks-to-peel"],
+      },
+      {
+        id: "pizza-stretches-on-peel",
+        title: "Pizza stretches out of shape on the peel",
+        shortSymptom:
+          "The pizza becomes longer or wider after transfer, thins in the center, or hangs over the peel edge.",
+        symptomDetails:
+          "This happens after bench shaping: the peel stage keeps deforming the pizza before launch.",
+        quickCheck: "Does the pizza continue changing shape while it sits on the peel?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/pizza-stretches-on-peel.webp",
+          alt: "A topped raw pizza stretched into a long distorted shape while sitting on a wooden peel.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Once the pizza is on the peel, repeated shaking and slow topping can keep stretching the base.",
+        },
+        likelyCauses: [
+          "dough is too warm or weak",
+          "peel is too small",
+          "transfer was rough",
+          "shake-tests were repeated too aggressively",
+          "topping took too long or toppings are heavy",
+        ],
+        fixNow: [
+          "stop further stretching",
+          "adjust the edge gently",
+          "remove toppings from overhanging areas",
+          "launch promptly",
+          "reduce size only before topping when practical",
+        ],
+        preventNextTime: [
+          "use a suitably sized peel",
+          "make a smaller pizza",
+          "top quickly",
+          "control dough temperature",
+          "transfer evenly and avoid repeated aggressive shake-tests",
+        ],
+        relatedTopicIds: ["pizza-loses-round-shape", "pizza-sticks-to-peel", "dough-too-warm"],
+      },
+      {
+        id: "launch-takes-too-long",
+        title: "Launch takes too long",
+        shortSymptom:
+          "The pizza sits on the peel while the base absorbs moisture, begins sticking or deforms before baking.",
+        quickCheck: "Has the pizza been sitting on the peel long enough for the base to absorb moisture?",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/launch-takes-too-long.webp",
+          alt: "A topped raw pizza waiting on a peel beside prepared toppings and a hot oven.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Once the pizza is on the peel, the safest path is a simple topping plan and a prompt shake-test.",
+        },
+        likelyCauses: [
+          "toppings were not prepared beforehand",
+          "too many toppings or repeated adjustments slowed the workflow",
+          "oven was not ready",
+          "peel is too small or the pizza was built on the peel too slowly",
+          "launch technique feels uncertain",
+        ],
+        fixNow: [
+          "stop adding toppings",
+          "confirm the oven is ready",
+          "shake-test immediately",
+          "remove excess wet ingredients",
+          "launch once the pizza moves freely",
+        ],
+        preventNextTime: [
+          "prepare toppings before shaping",
+          "keep the topping plan simple",
+          "preheat fully",
+          "practice the launch motion with an untopped dough or cloth outside the oven",
+          "use a clear sequence and minimize time on the peel",
+        ],
+        relatedTopicIds: ["pizza-sticks-to-peel", "toppings-slide-during-launch", "pizza-stretches-on-peel"],
       },
     ],
   },

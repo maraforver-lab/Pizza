@@ -24,6 +24,26 @@ const patch304TopicIds = [
   "dough-collapses-after-rising",
 ] as const;
 
+const patch305ShapingTopicIds = [
+  "dough-sticks-to-work-surface",
+  "pizza-center-too-thin",
+  "pizza-loses-round-shape",
+  "rim-flattened-during-shaping",
+  "dough-stretches-unevenly",
+  "dough-tears-moving-to-peel",
+] as const;
+
+const patch305LaunchingTopicIds = [
+  "pizza-sticks-to-peel",
+  "pizza-folds-during-launch",
+  "toppings-slide-during-launch",
+  "too-much-flour-under-pizza",
+  "pizza-stretches-on-peel",
+  "launch-takes-too-long",
+] as const;
+
+const patch305TopicIds = [...patch305ShapingTopicIds, ...patch305LaunchingTopicIds] as const;
+
 const originalTopicIds = [
   "dough-not-rising",
   "dough-too-sticky",
@@ -69,7 +89,7 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(troubleshootingSections.every((section) => section.problems.length > 0)).toBe(true);
   });
 
-  it("keeps the existing ten problem titles and adds the eight dough-fermentation topics", () => {
+  it("keeps the existing ten problem titles and adds the Patch 304 and Patch 305 topics", () => {
     const topics = allTopics();
     const titles = topics.map((problem) => problem.title);
 
@@ -85,18 +105,32 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(titles).toContain("Dough collapses after rising");
     expect(titles).toContain("Dough springs back");
     expect(titles).toContain("Dough tears or gets holes");
+    expect(titles).toContain("Dough sticks to the work surface");
+    expect(titles).toContain("Center becomes too thin");
+    expect(titles).toContain("Pizza loses its round shape");
+    expect(titles).toContain("Rim gets flattened during shaping");
+    expect(titles).toContain("Dough stretches unevenly");
+    expect(titles).toContain("Dough tears while moving to the peel");
     expect(titles).toContain("Pizza sticks to the peel");
+    expect(titles).toContain("Pizza folds during launch");
+    expect(titles).toContain("Toppings slide during launch");
+    expect(titles).toContain("Too much flour or semolina burns underneath");
+    expect(titles).toContain("Pizza stretches out of shape on the peel");
+    expect(titles).toContain("Launch takes too long");
     expect(titles).toContain("Pizza is soggy in the middle");
     expect(titles).toContain("Crust burns but middle is doughy");
     expect(titles).toContain("Base burns underneath");
     expect(titles).toContain("Toppings release too much water");
     expect(titles).toContain("Home oven pizza is pale or soft");
-    expect(pizzaTroubleshootingTopicIds).toHaveLength(18);
+    expect(pizzaTroubleshootingTopicIds).toHaveLength(29);
     expect(new Set(pizzaTroubleshootingTopicIds).size).toBe(pizzaTroubleshootingTopicIds.length);
     for (const id of originalTopicIds) {
       expect(pizzaTroubleshootingTopicIds).toContain(id);
     }
     for (const id of patch304TopicIds) {
+      expect(pizzaTroubleshootingTopicIds).toContain(id);
+    }
+    for (const id of patch305TopicIds) {
       expect(pizzaTroubleshootingTopicIds).toContain(id);
     }
   });
@@ -117,6 +151,31 @@ describe("Pizza Troubleshooting Guide", () => {
       const owningSections = troubleshootingSections.filter((section) => section.problems.some((problem) => problem.id === id));
       expect(owningSections.map((section) => section.id)).toEqual(["dough-fermentation"]);
     }
+  });
+
+  it("places Patch 305 topics only under Stretching & shaping and Launching without adding categories", () => {
+    const shapingSection = troubleshootingSections.find((section) => section.id === "shaping");
+    const launchingSection = troubleshootingSections.find((section) => section.id === "launching");
+    if (!shapingSection || !launchingSection) throw new Error("Expected shaping and launching sections");
+
+    expect(troubleshootingSections.map((section) => section.id)).toEqual([
+      "dough-fermentation",
+      "shaping",
+      "launching",
+      "baking",
+      "toppings",
+    ]);
+    for (const id of patch305ShapingTopicIds) {
+      expect(shapingSection.problems.map((problem) => problem.id)).toContain(id);
+      const owningSections = troubleshootingSections.filter((section) => section.problems.some((problem) => problem.id === id));
+      expect(owningSections.map((section) => section.id)).toEqual(["shaping"]);
+    }
+    for (const id of patch305LaunchingTopicIds) {
+      expect(launchingSection.problems.map((problem) => problem.id)).toContain(id);
+      const owningSections = troubleshootingSections.filter((section) => section.problems.some((problem) => problem.id === id));
+      expect(owningSections.map((section) => section.id)).toEqual(["launching"]);
+    }
+    expect(pizzaTroubleshootingTopicIds.filter((id) => id === "pizza-sticks-to-peel")).toHaveLength(1);
   });
 
   it("uses the requested problem-card fields", () => {
@@ -167,7 +226,7 @@ describe("Pizza Troubleshooting Guide", () => {
     const data = source("lib/pizza-troubleshooting.ts");
     const topics = allTopics();
 
-    expect(topics).toHaveLength(18);
+    expect(topics).toHaveLength(29);
     expect(page).toContain("problem.image.src");
     expect(page).toContain("problem.image.alt");
     expect(page).toContain("problem.image.kind === \"comparison\"");
@@ -207,6 +266,66 @@ describe("Pizza Troubleshooting Guide", () => {
         expect(findPizzaTroubleshootingProblem(relatedId)).toBeTruthy();
       }
     }
+  });
+
+  it("adds complete content, local images and resolved related links for Patch 305 shaping and launching topics", () => {
+    const topics = allTopics();
+    const imagePaths = new Set<string>();
+
+    for (const id of patch305TopicIds) {
+      const topic = topics.find((problem) => problem.id === id);
+      if (!topic) throw new Error(`Missing ${id}`);
+      expect(topic.shortSymptom).toBeTruthy();
+      expect(topic.likelyCauses.length).toBeGreaterThanOrEqual(2);
+      expect(topic.fixNow.length).toBeGreaterThanOrEqual(1);
+      expect(topic.preventNextTime.length).toBeGreaterThanOrEqual(2);
+      expect(topic.quickCheck).toBeTruthy();
+      expect(topic.image.src).toMatch(/^\/images\/troubleshooting\/.*\.webp$/);
+      expect(existsSync(join(process.cwd(), "public", topic.image.src))).toBe(true);
+      expect(topic.image.width).toBe(1200);
+      expect(topic.image.height).toBe(800);
+      expect(topic.image.alt).toBeTruthy();
+      expect(topic.image.kind).toBe("symptom");
+      imagePaths.add(topic.image.src);
+      for (const relatedId of topic.relatedTopicIds ?? []) {
+        expect(isPizzaTroubleshootingTopicId(relatedId)).toBe(true);
+        expect(findPizzaTroubleshootingProblem(relatedId)).toBeTruthy();
+      }
+    }
+    expect(imagePaths.size).toBe(patch305TopicIds.length);
+    expect(findPizzaTroubleshootingProblem("pizza-sticks-to-peel")?.problem.image.src).toBe(
+      "/images/troubleshooting/pizza-sticks-to-peel.webp",
+    );
+  });
+
+  it("keeps shaping and launching overlaps distinguishable", () => {
+    const workSurface = findPizzaTroubleshootingProblem("dough-sticks-to-work-surface")?.problem;
+    const peelStick = findPizzaTroubleshootingProblem("pizza-sticks-to-peel")?.problem;
+    const transferTear = findPizzaTroubleshootingProblem("dough-tears-moving-to-peel")?.problem;
+    const generalTear = findPizzaTroubleshootingProblem("dough-tears")?.problem;
+    const centerThin = findPizzaTroubleshootingProblem("pizza-center-too-thin")?.problem;
+    const weakGluten = findPizzaTroubleshootingProblem("weak-gluten-structure")?.problem;
+    const roundShape = findPizzaTroubleshootingProblem("pizza-loses-round-shape")?.problem;
+    const peelDistortion = findPizzaTroubleshootingProblem("pizza-stretches-on-peel")?.problem;
+    const toppingSlide = findPizzaTroubleshootingProblem("toppings-slide-during-launch")?.problem;
+    const toppingWater = findPizzaTroubleshootingProblem("toppings-release-water")?.problem;
+    const flourBurn = findPizzaTroubleshootingProblem("too-much-flour-under-pizza")?.problem;
+    const baseBurn = findPizzaTroubleshootingProblem("base-burns-underneath")?.problem;
+    const launchDelay = findPizzaTroubleshootingProblem("launch-takes-too-long")?.problem;
+
+    expect(workSurface?.symptomDetails).toContain("before peel transfer");
+    expect(peelStick?.symptomDetails).toContain("peel-stage");
+    expect(transferTear?.symptomDetails).toContain("transfer from work surface to peel");
+    expect(generalTear?.quickCheck).toContain("weak spot");
+    expect(centerThin?.quickCheck).toContain("central area");
+    expect(weakGluten?.quickCheck).toContain("thin, elastic membrane");
+    expect(roundShape?.quickCheck).toContain("before the dough reaches the peel");
+    expect(peelDistortion?.symptomDetails).toContain("after bench shaping");
+    expect(toppingSlide?.symptomDetails).toContain("launch-specific");
+    expect(toppingWater?.quickCheck).toContain("watery");
+    expect(flourBurn?.symptomDetails).toContain("bench and peel preparation");
+    expect(baseBurn?.quickCheck).toContain("baking surface");
+    expect(launchDelay?.quickCheck).toContain("sitting on the peel");
   });
 
   it("keeps overlapping dough problems distinguishable", () => {
