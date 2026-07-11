@@ -139,10 +139,10 @@ function timelineStepImagePath(step: PizzaSessionTimelineStep) {
   if (step.id === "room-ferment" || step.id === "ferment-dough") return "/dough-guide/05-bulk-v2.webp";
   if (step.id === "ball-dough") return "/dough-guide/06-ball-new.webp";
   if (step.id === "room-temperature-rest") return "/dough-guide/08-ready-new.webp";
-  if (step.id === "preheat-oven") return "/dough-guide/09-open.webp";
-  if (step.id === "prepare-sauce-toppings") return "/dough-guide/09-open.webp";
-  if (step.id === "bake-pizza") return "/dough-guide/09-open.webp";
-  if (step.id === "review-result") return "/dough-guide/08-ready-new.webp";
+  if (step.id === "preheat-oven") return "/images/timeline/preheat-oven.webp";
+  if (step.id === "prepare-sauce-toppings") return "/images/timeline/prepare-toppings.webp";
+  if (step.id === "bake-pizza") return "/images/timeline/bake-pizza.webp";
+  if (step.id === "review-result") return "/images/timeline/review-result.webp";
   return "/dough-guide/02-mix.webp";
 }
 

@@ -1077,7 +1077,10 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain('return "/dough-guide/02-mix.webp"');
     expect(page).toContain('return "/dough-guide/03-rest-v2.webp"');
     expect(page).toContain('return "/dough-guide/07-cold.webp"');
-    expect(page).toContain('return "/dough-guide/09-open.webp"');
+    expect(page).toContain('return "/images/timeline/preheat-oven.webp"');
+    expect(page).toContain('return "/images/timeline/prepare-toppings.webp"');
+    expect(page).toContain('return "/images/timeline/bake-pizza.webp"');
+    expect(page).toContain('return "/images/timeline/review-result.webp"');
     expect(page).not.toMatch(/https?:\/\//);
     expect(page).not.toContain("bottom-5 left-1/2 h-9 w-16");
     expect(page).not.toContain("rounded-2xl text-xl ring-1 sm:h-12 sm:w-12 sm:text-2xl");
