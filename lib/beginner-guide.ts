@@ -1,4 +1,5 @@
 import type { InstructionLocale } from "@/lib/dough-instructions";
+import { getDoughStepPrimaryImageForBeginnerStep } from "@/lib/dough-step-images";
 
 export type BeginnerStepHelp = {
   image: string;
@@ -10,9 +11,16 @@ export type BeginnerStepHelp = {
 };
 
 const imageByStep: Record<string, string> = {
-  prepare: "/dough-guide/01-weigh.webp", mix: "/dough-guide/02-mix.webp", rest: "/dough-guide/03-rest-v2.webp",
-  knead: "/dough-guide/04-fold-v2.webp", bulk: "/dough-guide/05-bulk-v2.webp", ball: "/dough-guide/06-ball-v3.webp",
-  cold: "/dough-guide/07-cold.webp", warm: "/dough-guide/08-ready-v3.webp", final: "/dough-guide/08-ready-v3.webp", bake: "/dough-guide/09-open.webp",
+  prepare: getDoughStepPrimaryImageForBeginnerStep("prepare")?.src ?? "/dough-guide/guide-step-01-prepare.webp",
+  mix: getDoughStepPrimaryImageForBeginnerStep("mix")?.src ?? "/dough-guide/guide-step-03-mix.webp",
+  rest: getDoughStepPrimaryImageForBeginnerStep("rest")?.src ?? "/dough-guide/guide-step-04-rest.webp",
+  knead: getDoughStepPrimaryImageForBeginnerStep("knead")?.src ?? "/dough-guide/guide-step-05-develop.webp",
+  bulk: getDoughStepPrimaryImageForBeginnerStep("bulk")?.src ?? "/dough-guide/guide-step-06-bulk.webp",
+  ball: getDoughStepPrimaryImageForBeginnerStep("ball")?.src ?? "/dough-guide/guide-step-08-ball.webp",
+  cold: getDoughStepPrimaryImageForBeginnerStep("cold")?.src ?? "/dough-guide/guide-step-09-proof.webp",
+  warm: getDoughStepPrimaryImageForBeginnerStep("warm")?.src ?? "/dough-guide/guide-step-10-warm.webp",
+  final: getDoughStepPrimaryImageForBeginnerStep("final")?.src ?? "/dough-guide/guide-step-11-readiness.webp",
+  bake: "/dough-guide/09-open.webp",
 };
 
 const fi: Record<string, Omit<BeginnerStepHelp, "image">> = {

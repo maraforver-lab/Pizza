@@ -11,11 +11,17 @@ import {
   getDoughGuideTroubleshootingLabel,
 } from "@/lib/dough-guide";
 import {
+  DOUGH_STEP_PRIMARY_IMAGES,
+  getDoughStepPrimaryImageForBeginnerStep,
+  getDoughStepPrimaryImageForTimelineStep,
+} from "@/lib/dough-step-images";
+import {
   getDoughGuideFlourGuidance,
   getDoughGuideSessionContext,
   getDoughGuideStepFlourGuidance,
   getDoughGuideStepPersonalization,
 } from "@/lib/dough-guide-session-context";
+import { beginnerHelpFor } from "@/lib/beginner-guide";
 import { createPizzaSession } from "@/lib/pizza-session";
 import { isPizzaTroubleshootingTopicId } from "@/lib/pizza-troubleshooting";
 import { buildSessionRecipe } from "@/lib/session-recipe";
@@ -340,6 +346,56 @@ describe("Pizza Dough Guide foundation", () => {
       expect(src).toBeTruthy();
       expect(existsSync(join(process.cwd(), "public", src!.slice(1)))).toBe(true);
     }
+  });
+
+  it("uses the shared master primary image map for every Dough Guide hero image", () => {
+    const masterImages = DOUGH_GUIDE_STEP_IDS.map((id) => DOUGH_STEP_PRIMARY_IMAGES[id]);
+    const guideImages = doughGuideSteps.map((step) => step.image);
+    const guideSource = source("lib/dough-guide.ts");
+
+    expect(masterImages).toHaveLength(12);
+    expect(guideImages).toEqual(masterImages);
+    expect(guideSource).toContain('image: getDoughStepPrimaryImage("prepare")');
+    expect(guideSource).toContain('image: getDoughStepPrimaryImage("release-dough-ball")');
+    for (const image of masterImages) {
+      expect(image.src).toMatch(/^\/dough-guide\/guide-step-.*\.webp$/);
+      expect(image.src).not.toMatch(/teaching-step/);
+      expect(existsSync(join(process.cwd(), "public", image.src.slice(1)))).toBe(true);
+    }
+  });
+
+  it("maps matching Timeline dough actions to the shared primary images without taking over service steps", () => {
+    expect(getDoughStepPrimaryImageForTimelineStep("mix-dough")?.src).toBe(
+      DOUGH_STEP_PRIMARY_IMAGES["mix-dough"].src,
+    );
+    expect(getDoughStepPrimaryImageForTimelineStep("rest-dough")?.src).toBe(
+      DOUGH_STEP_PRIMARY_IMAGES["rest-dough"].src,
+    );
+    expect(getDoughStepPrimaryImageForTimelineStep("cold-ferment")?.src).toBe(
+      DOUGH_STEP_PRIMARY_IMAGES["bulk-ferment"].src,
+    );
+    expect(getDoughStepPrimaryImageForTimelineStep("room-temperature-rest")?.src).toBe(
+      DOUGH_STEP_PRIMARY_IMAGES["warm-dough"].src,
+    );
+    expect(getDoughStepPrimaryImageForTimelineStep("preheat-oven")).toBeUndefined();
+    expect(getDoughStepPrimaryImageForTimelineStep("prepare-toppings")).toBeUndefined();
+    expect(getDoughStepPrimaryImageForTimelineStep("bake-pizza")).toBeUndefined();
+  });
+
+  it("maps matching Beginner Guide steps to shared primary images while preserving the distinct bake image", () => {
+    expect(getDoughStepPrimaryImageForBeginnerStep("mix")?.src).toBe(DOUGH_STEP_PRIMARY_IMAGES["mix-dough"].src);
+    expect(getDoughStepPrimaryImageForBeginnerStep("knead")?.src).toBe(
+      DOUGH_STEP_PRIMARY_IMAGES["develop-dough"].src,
+    );
+    expect(getDoughStepPrimaryImageForBeginnerStep("cold")?.src).toBe(
+      DOUGH_STEP_PRIMARY_IMAGES["proof-dough-balls"].src,
+    );
+    expect(getDoughStepPrimaryImageForBeginnerStep("final")?.src).toBe(
+      DOUGH_STEP_PRIMARY_IMAGES["check-readiness"].src,
+    );
+    expect(getDoughStepPrimaryImageForBeginnerStep("bake")).toBeUndefined();
+    expect(beginnerHelpFor("mix", "en").image).toBe(DOUGH_STEP_PRIMARY_IMAGES["mix-dough"].src);
+    expect(beginnerHelpFor("bake", "en").image).toBe("/dough-guide/09-open.webp");
   });
 
   it("uses improved local Warm and Release step photos with accurate accessibility text", () => {

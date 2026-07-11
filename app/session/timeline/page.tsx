@@ -24,6 +24,7 @@ import {
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
+import { getDoughStepPrimaryImageForTimelineStep } from "@/lib/dough-step-images";
 import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
@@ -134,17 +135,13 @@ function TimelineStepMediaPanel({ step }: { step: PizzaSessionTimelineStep }) {
 }
 
 function timelineStepImagePath(step: PizzaSessionTimelineStep) {
-  if (step.id === "mix-dough") return "/dough-guide/02-mix.webp";
-  if (step.id === "rest-dough") return "/dough-guide/03-rest-v2.webp";
-  if (step.id === "cold-ferment") return "/dough-guide/07-cold.webp";
-  if (step.id === "room-ferment" || step.id === "ferment-dough") return "/dough-guide/05-bulk-v2.webp";
-  if (step.id === "ball-dough") return "/dough-guide/06-ball-new.webp";
-  if (step.id === "room-temperature-rest") return "/dough-guide/08-ready-new.webp";
+  const doughStepImage = getDoughStepPrimaryImageForTimelineStep(step.id);
+  if (doughStepImage) return doughStepImage.src;
   if (step.id === "preheat-oven") return "/images/timeline/preheat-oven.webp";
   if (step.id === "prepare-sauce-toppings") return "/images/timeline/prepare-toppings.webp";
   if (step.id === "bake-pizza") return "/images/timeline/bake-pizza.webp";
   if (step.id === "review-result") return "/images/timeline/review-result.webp";
-  return "/dough-guide/02-mix.webp";
+  return getDoughStepPrimaryImageForTimelineStep("mix-dough")?.src ?? "/dough-guide/guide-step-03-mix.webp";
 }
 
 function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {

@@ -1074,9 +1074,10 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain('data-testid="timeline-step-media-image"');
     expect(page).toContain('src={imagePath}');
     expect(page).toContain('alt=""');
-    expect(page).toContain('return "/dough-guide/02-mix.webp"');
-    expect(page).toContain('return "/dough-guide/03-rest-v2.webp"');
-    expect(page).toContain('return "/dough-guide/07-cold.webp"');
+    expect(page).toContain('getDoughStepPrimaryImageForTimelineStep(step.id)');
+    expect(page).toContain("return doughStepImage.src");
+    expect(page).toContain('getDoughStepPrimaryImageForTimelineStep("mix-dough")?.src');
+    expect(page).toContain('"/dough-guide/guide-step-03-mix.webp"');
     expect(page).toContain('return "/images/timeline/preheat-oven.webp"');
     expect(page).toContain('return "/images/timeline/prepare-toppings.webp"');
     expect(page).toContain('return "/images/timeline/bake-pizza.webp"');

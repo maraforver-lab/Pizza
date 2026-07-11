@@ -1,5 +1,6 @@
 import type { ExperienceLevel } from "@/lib/experience-levels";
 import type { PizzaTroubleshootingTopicId } from "@/lib/pizza-troubleshooting";
+import { getDoughStepPrimaryImage } from "@/lib/dough-step-images";
 
 export const DOUGH_GUIDE_STEP_IDS = [
   "prepare",
@@ -157,7 +158,7 @@ export const doughGuideSteps = [
       "Clean setup reduces uncontrolled variables: bench flour, evaporation, temperature drift and handling time.",
       "Keep salt and yeast organized so concentrated contact only happens according to the recipe method.",
     ],
-    image: { src: "/dough-guide/guide-step-01-prepare.webp", alt: "Measured dough ingredients and dough tools prepared on a warm kitchen work surface.", caption: "Keep the tools ready before the dough gets sticky.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("prepare"),
     visualSequence: {
       title: "Setup checklist",
       summary: "A calm bench reduces rushed decisions once flour and water are mixed.",
@@ -202,7 +203,7 @@ export const doughGuideSteps = [
       "Measurement accuracy protects baker’s percentages and keeps hydration, salt and leavening in the intended relationship.",
       "Treat the recipe as the controlled setup before technique variables enter.",
     ],
-    image: { src: "/dough-guide/guide-step-02-measure.webp", alt: "Flour being weighed in a bowl on a kitchen scale.", caption: "Weigh ingredients separately so the recipe stays controlled.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("measure"),
     troubleshooting: [
       { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky dough", enthusiastLabel: "Diagnose sticky dough", nerdLabel: "Review hydration and stickiness causes" },
       { topicId: "dough-tears", beginnerLabel: "Fix dry or tearing dough", enthusiastLabel: "Diagnose tearing or dry dough", nerdLabel: "Check gluten development and tearing causes" },
@@ -252,7 +253,7 @@ export const doughGuideSteps = [
       "Early mixing starts gluten formation, but hydration and rest can build structure with less mechanical work.",
       "Excessive mixing can warm the dough and change the fermentation path before the plan really begins.",
     ],
-    image: { src: "/dough-guide/guide-step-03-mix.webp", alt: "Hands mixing rough pizza dough in a ceramic bowl.", caption: "The first mix can look rough before the rest improves texture.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("mix-dough"),
     troubleshooting: [
       { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky dough", enthusiastLabel: "Diagnose sticky or weakened dough", nerdLabel: "Review hydration, flour strength and stickiness" },
       { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing dough", nerdLabel: "Check gluten development and tearing" },
@@ -306,7 +307,7 @@ export const doughGuideSteps = [
       "Rest shifts the dough toward extensibility by allowing hydration and reducing immediate elastic resistance.",
       "The goal is not inactivity; structure is changing while the dough sits covered.",
     ],
-    image: { src: "/dough-guide/guide-step-04-rest.webp", alt: "A covered bowl of dough resting on a warm kitchen counter.", caption: "Covered rest protects the surface while the dough becomes more cohesive.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("rest-dough"),
     troubleshooting: [
       { topicId: "dough-too-sticky", beginnerLabel: "Still too sticky?", enthusiastLabel: "Diagnose sticky dough after rest", nerdLabel: "Review stickiness and rest variables" },
       { topicId: "dough-springs-back", beginnerLabel: "Fix dough that stays tight", enthusiastLabel: "Diagnose tight dough", nerdLabel: "Check elasticity and spring-back" },
@@ -355,7 +356,7 @@ export const doughGuideSteps = [
       "Gluten development changes elasticity and extensibility. Excessive mechanical work can tighten the network and warm the dough.",
       "Controlled folds can strengthen high-hydration dough while limiting oxidation and heat gain.",
     ],
-    image: { src: "/dough-guide/guide-step-05-develop.webp", alt: "Hands gently folding pizza dough to develop structure.", caption: "Develop structure with controlled handling, not brute force.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("develop-dough"),
     troubleshooting: [
       { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing or weak structure", nerdLabel: "Review gluten development and tearing" },
       { topicId: "dough-springs-back", beginnerLabel: "Fix dough that springs back", enthusiastLabel: "Understand excessive tightness", nerdLabel: "Check extensibility and spring-back" },
@@ -404,7 +405,7 @@ export const doughGuideSteps = [
       "Bulk and ball fermentation affect gas distribution, strength and later extensibility differently.",
       "Cold fermentation can preserve strength while allowing flavor development; room fermentation progresses faster and needs closer observation.",
     ],
-    image: { src: "/dough-guide/guide-step-06-bulk.webp", alt: "Pizza dough bulk fermenting in a covered container with visible gas bubbles.", caption: "Look for gas and dough maturity, not one universal doubling target.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("bulk-ferment"),
     troubleshooting: [
       { topicId: "dough-not-rising", beginnerLabel: "Why is my dough not rising?", enthusiastLabel: "Diagnose slow fermentation", nerdLabel: "Review fermentation activity" },
       { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky or weak dough", enthusiastLabel: "Diagnose sticky or weakened dough", nerdLabel: "Review warmth, hydration and structure" },
@@ -454,7 +455,7 @@ export const doughGuideSteps = [
       "Clean cuts preserve strand structure better than pulling and tearing.",
       "Minimizing degassing keeps fermentation gas available for the final bake structure.",
     ],
-    image: { src: "/dough-guide/guide-step-07-divide.webp", alt: "Dough being divided into portions with a scraper beside a kitchen scale.", caption: "Cut and correct weights before final balling.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("divide-dough"),
     troubleshooting: [
       { topicId: "dough-too-sticky", beginnerLabel: "Fix sticky dough", enthusiastLabel: "Diagnose difficult handling", nerdLabel: "Review stickiness and handling variables" },
       { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing during handling", nerdLabel: "Check tearing and degassing causes" },
@@ -504,7 +505,7 @@ export const doughGuideSteps = [
       "Balling redistributes tension and sets the final proof geometry. Excess tension can reduce extensibility and encourage tearing.",
       "A damaged surface can leak gas and dry faster during proofing.",
     ],
-    image: { src: "/dough-guide/guide-step-08-ball.webp", alt: "Hands shaping a smooth pizza dough ball on a floured work surface.", caption: "The goal is a smooth ball with the seam underneath and no torn skin.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("ball-dough"),
     troubleshooting: [
       { topicId: "dough-too-sticky", beginnerLabel: "Fix dough balls that spread", enthusiastLabel: "Understand excessive spreading", nerdLabel: "Diagnose spreading and weakened structure" },
       { topicId: "dough-tears", beginnerLabel: "Fix a torn dough ball", enthusiastLabel: "Diagnose torn surface", nerdLabel: "Review surface tearing and gas loss" },
@@ -583,7 +584,7 @@ export const doughGuideSteps = [
       "Ball fermentation affects gas retention, surface integrity and extensibility at opening.",
       "Overproofed balls spread and weaken; underproofed balls resist opening and bake denser.",
     ],
-    image: { src: "/dough-guide/guide-step-09-proof.webp", alt: "Proofed pizza dough balls resting covered in a metal tray.", caption: "Proofed balls should relax and expand while staying covered and intact.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("proof-dough-balls"),
     troubleshooting: [
       { topicId: "dough-not-rising", beginnerLabel: "Why is my dough not rising?", enthusiastLabel: "Check underproofing signs", nerdLabel: "Review underfermentation signals" },
       { topicId: "dough-too-sticky", beginnerLabel: "Fix spreading dough balls", enthusiastLabel: "Understand excessive spreading", nerdLabel: "Diagnose over-soft or weakened dough" },
@@ -633,7 +634,7 @@ export const doughGuideSteps = [
       "Dough temperature changes gluten relaxation and fermentation rate. Working temperature is a handling state, not just a clock target.",
       "Excessive warming can accelerate fermentation and reduce strength before opening.",
     ],
-    image: { src: "/dough-guide/guide-step-10-warm.webp", alt: "Covered dough balls relaxing in a tray at room temperature after cold storage.", caption: "Cold dough should relax before evaluation; there is no universal warm-up duration.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("warm-dough"),
     troubleshooting: [
       { topicId: "dough-springs-back", beginnerLabel: "Fix dough that springs back", enthusiastLabel: "Diagnose cold or tight dough", nerdLabel: "Check extensibility and spring-back" },
       { topicId: "dough-too-sticky", beginnerLabel: "Fix dough that became too loose", enthusiastLabel: "Diagnose overly warm sticky dough", nerdLabel: "Review temperature and weakened structure" },
@@ -696,7 +697,7 @@ export const doughGuideSteps = [
         signs: ["very loose structure", "rapid spreading", "fragile or tearing surface", "excessive stickiness", "indentation does not recover", "collapse during handling"],
       },
     ],
-    image: { src: "/dough-guide/guide-step-11-readiness.webp", alt: "A finger gently checking the readiness of a proofed dough ball.", caption: "Check gas, shape, surface strength and relaxation together.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("check-readiness"),
     troubleshooting: [
       { topicId: "dough-not-rising", beginnerLabel: "Why is my dough underproofed?", enthusiastLabel: "Check underproofing signs", nerdLabel: "Review underfermentation" },
       { topicId: "dough-too-sticky", beginnerLabel: "Fix overproofed or spreading dough", enthusiastLabel: "Diagnose excessive spreading", nerdLabel: "Diagnose loss of dough strength" },
@@ -735,7 +736,7 @@ export const doughGuideSteps = [
       "The goal is to preserve gas cells and surface integrity before opening. Rough release can erase fermentation gains in seconds.",
       "Excess bench flour can dry the surface and interfere with the final base texture.",
     ],
-    image: { src: "/dough-guide/guide-step-12-release.webp", alt: "A dough scraper gently releasing an intact dough ball onto a floured work surface.", caption: "Release the dough intact, then stop before stretching.", kind: "photo", width: 1200, height: 900 },
+    image: getDoughStepPrimaryImage("release-dough-ball"),
     troubleshooting: [
       { topicId: "dough-too-sticky", beginnerLabel: "Fix dough that sticks", enthusiastLabel: "Diagnose sticking during release", nerdLabel: "Review stickiness and launch-floor variables" },
       { topicId: "dough-tears", beginnerLabel: "Fix dough that tears", enthusiastLabel: "Diagnose tearing during release", nerdLabel: "Review tearing and surface integrity" },
