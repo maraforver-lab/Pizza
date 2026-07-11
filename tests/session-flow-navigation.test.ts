@@ -72,8 +72,13 @@ describe("Pizza Session flow navigation integrity", () => {
   it("keeps the Shopping page as pizza choice and shopping before Timeline", () => {
     const shopping = source("app/session/shopping/page.tsx");
 
-    expect(shopping).toContain("Choose pizzas and build the shopping list.");
-    expect(shopping).toContain("What pizzas are you making?");
+    expect(shopping).toContain("Shopping & Pizza Menu");
+    expect(shopping).toContain("Choose what you’ll make and get your ingredients ready.");
+    expect(shopping).toContain("Pizza Menu");
+    expect(shopping).toContain("Shopping Checklist");
+    expect(shopping).toContain("Before Timeline");
+    expect(shopping.indexOf("Pizza Menu")).toBeLessThan(shopping.indexOf("Shopping Checklist"));
+    expect(shopping.indexOf("Shopping Checklist")).toBeLessThan(shopping.indexOf("Before Timeline"));
     expect(shopping).toContain("Dough style and dough formula stay in the Dough Plan.");
     expect(shopping).toContain("Total selected:");
     expect(shopping).toContain("Dough ingredients");

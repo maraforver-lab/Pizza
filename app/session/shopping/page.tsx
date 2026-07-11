@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
@@ -44,6 +45,16 @@ function sectionLabel(group: string) {
   return group;
 }
 
+function pizzaMenuImagePath(pizzaType: PizzaSessionPizzaMixType) {
+  if (pizzaType === "margherita") return "/pizza-styles/neapolitan.webp";
+  if (pizzaType === "marinara") return "/sauce/marinara.webp";
+  if (pizzaType === "diavola") return "/pizza-styles/new-york.webp";
+  if (pizzaType === "funghi") return "/toppings/balanced.webp";
+  if (pizzaType === "prosciutto") return "/pizza-styles/contemporary.webp";
+  if (pizzaType === "quattro-formaggi") return "/pizza-styles/roman-thin.webp";
+  return "/pizza-styles/neapolitan.webp";
+}
+
 export default function SessionShoppingPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -83,20 +94,6 @@ export default function SessionShoppingPage() {
   const allocatedPizzaCount = pizzaMix
     ? Object.values(pizzaMix).reduce((total, value) => total + value, 0)
     : 0;
-  const renderNextActionCard = () => (
-    <div className="rounded-2xl border border-leaf/15 bg-white p-4 shadow-sm">
-      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Next up</p>
-      <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Timeline</h2>
-      <p className="mt-2 text-sm leading-6 text-ink/60">After shopping, check when to mix, rest, proof and bake.</p>
-      <Link
-        href="/session/timeline"
-        className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
-      >
-        Continue to Timeline →
-      </Link>
-    </div>
-  );
-
   const updatePizzaMix = (pizzaType: PizzaSessionPizzaMixType, delta: number) => {
     if (!session || !pizzaMix || pizzaCount < 1) return;
     const nextMix = adjustPizzaMixAllocation(pizzaMix, pizzaType, delta, pizzaCount);
@@ -177,22 +174,17 @@ export default function SessionShoppingPage() {
           step={7}
           label="Choose pizzas & Shopping"
           pageType="Checklist page"
-          title="Choose pizzas and build the shopping list."
-          body="Pick the topping plan for this session, then check what you already have."
+          title="Shopping & Pizza Menu"
+          body="Choose what you’ll make and get your ingredients ready."
           level={session.experienceLevel}
           hideMeta
-          desktopAside={renderNextActionCard()}
-        >
-          <div className="lg:hidden">
-            {renderNextActionCard()}
-          </div>
-        </SessionStepHero>
+        />
 
         <section className="mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-labelledby="choose-pizzas-heading">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Choose toppings</p>
-              <h2 id="choose-pizzas-heading" className="mt-1 font-display text-3xl font-semibold">What pizzas are you making?</h2>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza Menu</p>
+              <h2 id="choose-pizzas-heading" className="mt-1 font-display text-3xl font-semibold">Pizza Menu</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
                 Allocate your {pizzaCount || "selected"} pizzas across the topping plans. Dough style and dough formula stay in the Dough Plan.
               </p>
@@ -211,44 +203,56 @@ export default function SessionShoppingPage() {
               return (
                 <article
                   key={option.id}
-                  className={`min-h-32 rounded-[1.35rem] border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 ${
+                  className={`overflow-hidden rounded-[1.35rem] border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 ${
                     selected
                       ? "border-tomato/45 bg-tomato/[.08] shadow-sm"
                       : "border-ink/10 bg-cream/65 hover:border-tomato/25 hover:bg-white"
                   }`}
                 >
-                  <span className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2">
-                      <span className="text-xl" aria-hidden="true">{option.marker}</span>
-                      <span className="text-sm font-extrabold text-ink">{option.name}</span>
-                    </span>
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${selected ? "bg-tomato text-white" : "bg-white text-ink/45"}`}>
-                      {quantity} pizza{quantity === 1 ? "" : "s"}
-                    </span>
-                  </span>
-                  <span className="mt-3 block text-sm leading-5 text-ink/60">{option.shortDescription}</span>
-                  <span className="mt-2 block text-xs font-bold leading-5 text-ink/45">{option.ingredientSummary}</span>
-                  <span className="mt-4 flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => updatePizzaMix(option.id, -1)}
-                      disabled={!canDecrement}
-                      aria-label={`Decrease ${option.name} quantity`}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
-                    >
-                      −
-                    </button>
-                    <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => updatePizzaMix(option.id, 1)}
-                      disabled={!canIncrement}
-                      aria-label={`Increase ${option.name} quantity`}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
-                    >
-                      +
-                    </button>
-                  </span>
+                  <div className="relative h-28 overflow-hidden bg-cream sm:h-32" aria-hidden="true">
+                    <Image
+                      src={pizzaMenuImagePath(option.id)}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      className="object-cover"
+                    />
+                    <span className="absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-white/5" />
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl" aria-hidden="true">{option.marker}</span>
+                        <span className="text-sm font-extrabold text-ink">{option.name}</span>
+                      </div>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${selected ? "bg-tomato text-white" : "bg-white text-ink/45"}`}>
+                        {quantity} pizza{quantity === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <span className="mt-3 block text-sm leading-5 text-ink/60">{option.shortDescription}</span>
+                    <span className="mt-2 block text-xs font-bold leading-5 text-ink/45">{option.ingredientSummary}</span>
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => updatePizzaMix(option.id, -1)}
+                        disabled={!canDecrement}
+                        aria-label={`Decrease ${option.name} quantity`}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
+                      >
+                        −
+                      </button>
+                      <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => updatePizzaMix(option.id, 1)}
+                        disabled={!canIncrement}
+                        aria-label={`Increase ${option.name} quantity`}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </article>
               );
             })}
@@ -259,9 +263,10 @@ export default function SessionShoppingPage() {
           </p>
         </section>
 
-        <section className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/85 shadow-card sm:mt-6 sm:rounded-[2rem]" aria-label="Grouped shopping list">
+        <section className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/85 shadow-card sm:mt-6 sm:rounded-[2rem]" aria-labelledby="shopping-checklist-heading">
           <div className="border-b border-ink/10 px-4 py-4 sm:px-5">
-            <h2 className="font-display text-2xl font-semibold">Shopping list</h2>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Shopping Checklist</p>
+            <h2 id="shopping-checklist-heading" className="mt-1 font-display text-2xl font-semibold">Shopping Checklist</h2>
             <p className="mt-1 text-sm leading-6 text-ink/60">
               Dough ingredient amounts come from the Dough Plan. Topping ingredient amounts come from the selected pizza mix.
             </p>
@@ -306,6 +311,14 @@ export default function SessionShoppingPage() {
               </div>
             </section>
           ))}
+        </section>
+
+        <section className="mt-4 rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-labelledby="before-timeline-heading">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Before Timeline</p>
+          <h2 id="before-timeline-heading" className="mt-2 font-display text-2xl font-semibold">Before Timeline</h2>
+          <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/65">
+            Make sure everything is ready before your first dough step.
+          </p>
         </section>
 
         {shoppingList && (

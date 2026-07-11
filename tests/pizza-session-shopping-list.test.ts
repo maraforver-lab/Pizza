@@ -421,9 +421,9 @@ describe("Pizza Session shopping list presets", () => {
     const timeline = source("app/session/timeline/page.tsx");
     const start = source("app/session/start/page.tsx");
 
-    expect(page).toContain("Choose pizzas and build the shopping list.");
-    expect(page).toContain("Pick the topping plan for this session, then check what you already have.");
-    expect(page).toContain("What pizzas are you making?");
+    expect(page).toContain("Shopping & Pizza Menu");
+    expect(page).toContain("Choose what you’ll make and get your ingredients ready.");
+    expect(page).toContain("Pizza Menu");
     expect(page).toContain("Dough style and dough formula stay in the Dough Plan.");
     expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi.");
     expect(page).toContain("Total selected:");
@@ -434,11 +434,11 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("hideMeta");
     expect(page).toContain("Continue to Timeline →");
     expect(page).toContain("Back");
-    expect(page).toContain("Next up");
-    expect(page).toContain("Timeline");
-    expect(page).toContain("After shopping, check when to mix, rest, proof and bake.");
-    expect(page).toContain("desktopAside={renderNextActionCard()}");
-    expect(page).toContain("<div className=\"lg:hidden\">");
+    expect(page).toContain("pizzaMenuImagePath(option.id)");
+    expect(page).toContain("Before Timeline");
+    expect(page).toContain("Make sure everything is ready before your first dough step.");
+    expect(page).not.toContain("desktopAside={renderNextActionCard()}");
+    expect(page).not.toContain("<div className=\"lg:hidden\">");
     expect(page).not.toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
     expect(page).not.toContain("SessionLocalOnlyNote");
     expect(page).not.toContain("Step 7: Choose pizzas & Shopping");
@@ -453,6 +453,7 @@ describe("Pizza Session shopping list presets", () => {
     const page = source("app/session/shopping/page.tsx");
 
     expect(page).toContain("Dough ingredients");
+    expect(page).toContain("Shopping Checklist");
     expect(page).toContain("Dough ingredient amounts come from the Dough Plan.");
     expect(page).toContain("Topping ingredient amounts come from the selected pizza mix.");
     expect(page).toContain("Fermentation: {fermentationDisplay.fullLabel}");
@@ -526,11 +527,13 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={7}");
     expect(page).toContain("level={session.experienceLevel}");
-    expect(page).toContain("const renderNextActionCard");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain('href="/session/recipe"');
     expect(page).toContain('href="/session/timeline"');
     expect(page).toContain("Continue to Timeline →");
+    expect(page.match(/Continue to Timeline →/g)).toHaveLength(1);
+    expect(page).toContain("Before Timeline");
+    expect(page).not.toContain("const renderNextActionCard");
     expect(page).toContain("updatePizzaMix");
     expect(page).toContain("generateAndSaveActiveShoppingList(undefined, undefined, new Date(), nextMix)");
     expect(page).not.toContain("formatSessionTime");
@@ -551,15 +554,29 @@ describe("Pizza Session shopping list presets", () => {
     const page = source("app/session/shopping/page.tsx");
 
     expect(page).toContain("step={7}");
-    expect(page).toContain("Next up");
-    expect(page).toContain("Timeline");
+    expect(page).toContain("Shopping & Pizza Menu");
     expect(page).toContain("BottomActionBar");
-    expect(page.indexOf("Choose toppings")).toBeLessThan(page.indexOf("Grouped shopping list"));
-    expect(page.indexOf("Grouped shopping list")).toBeLessThan(page.indexOf("<BottomActionBar"));
+    expect(page.indexOf("Pizza Menu")).toBeLessThan(page.indexOf("Shopping Checklist"));
+    expect(page.indexOf("Shopping Checklist")).toBeLessThan(page.indexOf("Before Timeline"));
+    expect(page.indexOf("Before Timeline")).toBeLessThan(page.indexOf("<BottomActionBar"));
     expect(page).toContain("Choose pizzas & Shopping");
     expect(page).toContain("hideMeta");
     expect(page).not.toContain("Checklist page</");
     expect(page).not.toMatch(/checkout|cart total|store link|price|ecommerce/i);
+  });
+
+  it("uses local pizza images for the Shopping Pizza Menu cards", () => {
+    const page = source("app/session/shopping/page.tsx");
+
+    expect(page).toContain("function pizzaMenuImagePath");
+    expect(page).toContain("import Image from \"next/image\"");
+    expect(page).toContain('return "/pizza-styles/neapolitan.webp"');
+    expect(page).toContain('return "/sauce/marinara.webp"');
+    expect(page).toContain('return "/pizza-styles/new-york.webp"');
+    expect(page).toContain('return "/toppings/balanced.webp"');
+    expect(page).toContain('return "/pizza-styles/contemporary.webp"');
+    expect(page).toContain('return "/pizza-styles/roman-thin.webp"');
+    expect(page).not.toMatch(/https?:\/\//);
   });
 
   it("keeps active session preset compatibility when generating the list", () => {
