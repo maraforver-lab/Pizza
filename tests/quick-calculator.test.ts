@@ -3,6 +3,20 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import {
+  buildQuickCalculatorShareUrl,
+  createQuickCalculatorSavedRecipe,
+  deleteQuickCalculatorSavedRecipe,
+  duplicateQuickCalculatorSavedRecipe,
+  loadQuickCalculatorSavedRecipes,
+  quickCalculatorInputFromSearch,
+  quickCalculatorInputToShareParams,
+  QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY,
+  QUICK_CALCULATOR_SHARE_PARAM,
+  renameQuickCalculatorSavedRecipe,
+  saveQuickCalculatorRecipe,
+  storeQuickCalculatorSavedRecipes,
+} from "@/lib/quick-calculator/quick-calculator-storage";
+import {
   buildQuickRecipePlainText,
   calculateQuickDough,
   getQuickCalculatorPresentation,
@@ -12,6 +26,7 @@ import {
   quickFermentationToRecipePreset,
   quickCalculatorInputToRecipeSettings,
 } from "@/lib/quick-calculator/quick-dough-calculator";
+import { MemoryStorage } from "./helpers";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -19,6 +34,7 @@ const quickBoundaryFiles = [
   "app/calculator/quick/page.tsx",
   "components/quick-calculator/QuickDoughCalculator.tsx",
   "lib/quick-calculator/quick-dough-calculator.ts",
+  "lib/quick-calculator/quick-calculator-storage.ts",
 ];
 
 const forbiddenBoundaryPatterns = [
@@ -37,9 +53,11 @@ const forbiddenBoundaryPatterns = [
   /completeSession|Review completion/,
   /HomeCalculatorWorkspace/,
   /recipeParams|recipeUrl|settingsFromUrl/,
-  /window\.localStorage|localStorage\./,
   /fetch\(/,
   /getRecipeWorkflowHandoff/,
+  /doughtools-saved-recipes-v1/,
+  /doughtools\.pizza/,
+  /doughtools-active-plan-v1/,
 ];
 
 describe("Quick Dough Calculator isolated core UI", () => {
@@ -174,7 +192,6 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Baker’s percentages");
     expect(component).toContain("Copy recipe");
     expect(component).toContain("Reset calculator");
-    expect(component).not.toContain("Save recipe");
     expect(component).not.toContain("Start Pizza Session");
   });
 
@@ -184,6 +201,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("const resetCalculator = () =>");
     expect(component).toContain("setInput(quickCalculatorDefaults)");
     expect(component).toContain("navigator.clipboard.writeText(result.summaryText)");
+    expect(component).toContain("Save recipe");
     expect(component).not.toContain("storeSavedRecipes");
     expect(component).not.toContain("addLocalBakeResult");
   });
@@ -266,5 +284,88 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain('presentation.resultDetail !== "simple"');
     expect(component).toContain('presentation.resultDetail === "technical"');
     expect(component).toContain("Same input values produce the same ingredient output");
+  });
+
+  it("uses a dedicated versioned localStorage key for Quick Calculator recipes only", () => {
+    const storage = new MemoryStorage();
+    const recipe = createQuickCalculatorSavedRecipe(quickCalculatorDefaults, "Friday quick dough", "quick-test-id", "2026-07-11T12:00:00.000Z");
+
+    storeQuickCalculatorSavedRecipes([recipe], storage);
+
+    expect(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY).toBe("doughtools.quick-calculator.recipes.v1");
+    expect(storage.getItem(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY)).toContain("Friday quick dough");
+    expect(loadQuickCalculatorSavedRecipes(storage)).toEqual([recipe]);
+    expect(storage.getItem("doughtools-saved-recipes-v1")).toBeNull();
+  });
+
+  it("safely ignores malformed or incompatible saved Quick Calculator data", () => {
+    const storage = new MemoryStorage();
+
+    storage.setItem(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY, "not-json");
+    expect(loadQuickCalculatorSavedRecipes(storage)).toEqual([]);
+
+    storage.setItem(QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY, JSON.stringify([
+      { id: "missing-version", name: "Bad", input: quickCalculatorDefaults },
+      { id: "ok", version: 1, name: "", createdAt: "broken", updatedAt: "also-broken", input: { pizzaCount: 99, hydrationPercent: 200 } },
+    ]));
+
+    const loaded = loadQuickCalculatorSavedRecipes(storage);
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0]).toMatchObject({
+      id: "ok",
+      version: 1,
+      name: "Untitled quick recipe",
+    });
+    expect(loaded[0].input.pizzaCount).toBe(50);
+    expect(loaded[0].input.hydrationPercent).toBe(100);
+  });
+
+  it("saves, renames, duplicates and deletes local Quick Calculator recipes without session helpers", () => {
+    const saved = saveQuickCalculatorRecipe([], quickCalculatorDefaults, "Weekend quick dough");
+
+    expect(saved).toHaveLength(1);
+    expect(saved[0].name).toBe("Weekend quick dough");
+
+    const renamed = renameQuickCalculatorSavedRecipe(saved, saved[0].id, "Friday pizza");
+    expect(renamed[0].name).toBe("Friday pizza");
+
+    const duplicated = duplicateQuickCalculatorSavedRecipe(renamed, renamed[0].id);
+    expect(duplicated).toHaveLength(2);
+    expect(duplicated[0].name).toBe("Friday pizza copy");
+    expect(duplicated[0].input).toEqual(renamed[0].input);
+
+    const deleted = deleteQuickCalculatorSavedRecipe(duplicated, renamed[0].id);
+    expect(deleted).toHaveLength(1);
+    expect(deleted[0].name).toBe("Friday pizza copy");
+  });
+
+  it("creates and reads a shareable Quick Calculator URL with isolated query state", () => {
+    const params = quickCalculatorInputToShareParams(quickCalculatorDefaults);
+    const url = buildQuickCalculatorShareUrl(quickCalculatorDefaults, "https://example.com/elsewhere?calculator=2");
+    const parsed = quickCalculatorInputFromSearch(new URL(url).search);
+
+    expect(QUICK_CALCULATOR_SHARE_PARAM).toBe("quick");
+    expect(params.has("quick")).toBe(true);
+    expect(params.has("calculator")).toBe(false);
+    expect(url).toContain("/calculator/quick?");
+    expect(url).not.toContain("calculator=2");
+    expect(parsed).toEqual(quickCalculatorDefaults);
+    expect(quickCalculatorInputFromSearch("?quick=not-json")).toBeUndefined();
+  });
+
+  it("renders local recipe management and share controls without workflow actions", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("Save, reload or share this quick recipe");
+    expect(component).toContain("Saved quick recipes");
+    expect(component).toContain("Save recipe");
+    expect(component).toContain("Copy share link");
+    expect(component).toContain("Load");
+    expect(component).toContain("Duplicate");
+    expect(component).toContain("Delete");
+    expect(component).toContain("quickCalculatorInputFromSearch(window.location.search)");
+    expect(component).toContain("buildQuickCalculatorShareUrl(result.input)");
+    expect(component).not.toContain("Start Pizza Session");
+    expect(component).not.toContain("/session/");
   });
 });

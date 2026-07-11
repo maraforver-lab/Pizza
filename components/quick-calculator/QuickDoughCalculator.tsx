@@ -8,6 +8,17 @@ import {
   type ExperienceLevel,
 } from "@/lib/experience-levels";
 import {
+  buildQuickCalculatorShareUrl,
+  deleteQuickCalculatorSavedRecipe,
+  duplicateQuickCalculatorSavedRecipe,
+  loadQuickCalculatorSavedRecipes,
+  quickCalculatorInputFromSearch,
+  renameQuickCalculatorSavedRecipe,
+  saveQuickCalculatorRecipe,
+  storeQuickCalculatorSavedRecipes,
+  type QuickCalculatorSavedRecipeV1,
+} from "@/lib/quick-calculator/quick-calculator-storage";
+import {
   calculateQuickDough,
   defaultQuickFermentationTemperature,
   getQuickCalculatorPresentation,
@@ -22,6 +33,7 @@ import {
 import type { YeastType } from "@/lib/saved-recipes";
 
 type CopyState = "idle" | "copied" | "unavailable";
+type RecipeNotice = "idle" | "saved" | "loaded" | "deleted" | "duplicated" | "renamed" | "storage-error";
 
 const numberInputClassName = "h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 pr-11 text-base font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10";
 
@@ -152,10 +164,13 @@ function OptionalControlGroup({
   defaultOpen: boolean;
   children: ReactNode;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+
   return (
     <details
       id={id}
-      open={defaultOpen}
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
       className="group rounded-[2rem] border border-dashed border-ink/15 bg-white/45 p-5 shadow-sm backdrop-blur sm:p-6"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
@@ -179,7 +194,12 @@ function OptionalControlGroup({
 export default function QuickDoughCalculator() {
   const [input, setInput] = useState<QuickCalculatorInput>(quickCalculatorDefaults);
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [shareState, setShareState] = useState<CopyState>("idle");
+  const [recipeNotice, setRecipeNotice] = useState<RecipeNotice>("idle");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [recipeName, setRecipeName] = useState("My quick dough");
+  const [activeRecipeId, setActiveRecipeId] = useState<string | null>(null);
+  const [savedRecipes, setSavedRecipes] = useState<QuickCalculatorSavedRecipeV1[]>([]);
   const result = useMemo(() => calculateQuickDough(input), [input]);
   const presentation = getQuickCalculatorPresentation(experienceLevel);
 
@@ -193,11 +213,74 @@ export default function QuickDoughCalculator() {
 
   useEffect(() => {
     setExperienceLevel(readExperienceLevelPreference());
+    setSavedRecipes(loadQuickCalculatorSavedRecipes());
+    const sharedInput = typeof window !== "undefined"
+      ? quickCalculatorInputFromSearch(window.location.search)
+      : undefined;
+    if (sharedInput) {
+      setInput(sharedInput);
+      setRecipeName("Shared quick recipe");
+      setActiveRecipeId(null);
+      setRecipeNotice("loaded");
+    }
   }, []);
 
   const resetCalculator = () => {
     setInput(quickCalculatorDefaults);
     setCopyState("idle");
+    setShareState("idle");
+    setRecipeNotice("idle");
+    setRecipeName("My quick dough");
+    setActiveRecipeId(null);
+  };
+
+  const persistRecipes = (next: QuickCalculatorSavedRecipeV1[], notice: RecipeNotice) => {
+    try {
+      storeQuickCalculatorSavedRecipes(next);
+      setSavedRecipes(next);
+      setRecipeNotice(notice);
+    } catch {
+      setRecipeNotice("storage-error");
+    }
+  };
+
+  const saveCurrentRecipe = () => {
+    const next = saveQuickCalculatorRecipe(savedRecipes, result.input, recipeName, activeRecipeId);
+    const saved = activeRecipeId
+      ? next.find((recipe) => recipe.id === activeRecipeId)
+      : next[0];
+    persistRecipes(next, "saved");
+    if (saved) {
+      setActiveRecipeId(saved.id);
+      setRecipeName(saved.name);
+    }
+  };
+
+  const loadSavedRecipe = (recipe: QuickCalculatorSavedRecipeV1) => {
+    setInput(recipe.input);
+    setRecipeName(recipe.name);
+    setActiveRecipeId(recipe.id);
+    setCopyState("idle");
+    setShareState("idle");
+    setRecipeNotice("loaded");
+  };
+
+  const renameSavedRecipe = (id: string, name: string) => {
+    const next = renameQuickCalculatorSavedRecipe(savedRecipes, id, name);
+    persistRecipes(next, "renamed");
+    if (activeRecipeId === id) setRecipeName(next.find((recipe) => recipe.id === id)?.name ?? name);
+  };
+
+  const duplicateSavedRecipe = (id: string) => {
+    persistRecipes(duplicateQuickCalculatorSavedRecipe(savedRecipes, id), "duplicated");
+  };
+
+  const deleteSavedRecipe = (id: string) => {
+    persistRecipes(deleteQuickCalculatorSavedRecipe(savedRecipes, id), "deleted");
+    if (activeRecipeId === id) {
+      setActiveRecipeId(null);
+      setRecipeName("My quick dough");
+    }
   };
 
   const copyRecipe = async () => {
@@ -207,6 +290,16 @@ export default function QuickDoughCalculator() {
       setCopyState("copied");
     } catch {
       setCopyState("unavailable");
+    }
+  };
+
+  const copyShareUrl = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(buildQuickCalculatorShareUrl(result.input));
+      setShareState("copied");
+    } catch {
+      setShareState("unavailable");
     }
   };
 
@@ -312,6 +405,87 @@ export default function QuickDoughCalculator() {
           intro="Choose how much of the same calculator model you want visible while you work."
           className="mt-5"
         />
+
+        <section className="mt-5 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="quick-recipe-management-heading">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(18rem,0.55fr)] lg:items-start">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Local recipes</p>
+              <h2 id="quick-recipe-management-heading" className="mt-2 font-display text-3xl font-semibold">Save, reload or share this quick recipe</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">
+                Saved quick recipes stay only in this browser. Shared links restore these calculator inputs without creating a Pizza Session.
+              </p>
+              {recipeNotice !== "idle" && (
+                <p className="mt-3 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs font-extrabold text-leaf" role="status">
+                  {recipeNotice === "saved" && "Quick recipe saved locally."}
+                  {recipeNotice === "loaded" && "Quick recipe loaded into the calculator."}
+                  {recipeNotice === "deleted" && "Quick recipe deleted."}
+                  {recipeNotice === "duplicated" && "Quick recipe duplicated."}
+                  {recipeNotice === "renamed" && "Quick recipe renamed."}
+                  {recipeNotice === "storage-error" && "This browser could not update local quick recipes."}
+                </p>
+              )}
+            </div>
+            <div className="rounded-[1.5rem] border border-ink/10 bg-white p-4">
+              <label htmlFor="quick-recipe-name" className="text-sm font-extrabold text-ink/72">Recipe name</label>
+              <input
+                id="quick-recipe-name"
+                value={recipeName}
+                onChange={(event) => setRecipeName(event.target.value)}
+                className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                placeholder="Friday quick dough"
+              />
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={saveCurrentRecipe}
+                  className="rounded-2xl bg-ink px-4 py-3 text-sm font-extrabold text-white transition hover:bg-ink/90 active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  Save recipe
+                </button>
+                <button
+                  type="button"
+                  onClick={copyShareUrl}
+                  className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-extrabold text-ink/65 transition hover:border-tomato/25 hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  {shareState === "copied" ? "Link copied" : shareState === "unavailable" ? "Copy unavailable" : "Copy share link"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <h3 className="text-sm font-extrabold text-ink">Saved quick recipes</h3>
+            {savedRecipes.length === 0 ? (
+              <p className="mt-3 rounded-2xl border border-dashed border-ink/15 bg-cream/45 px-4 py-6 text-sm leading-6 text-ink/48">
+                No saved quick recipes yet. Name the current calculator setup and save it here.
+              </p>
+            ) : (
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                {savedRecipes.map((recipe) => (
+                  <article key={recipe.id} className="rounded-2xl border border-ink/10 bg-white p-4">
+                    <label className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/38" htmlFor={`quick-saved-recipe-${recipe.id}`}>
+                      Saved recipe
+                    </label>
+                    <input
+                      id={`quick-saved-recipe-${recipe.id}`}
+                      value={recipe.name}
+                      onChange={(event) => renameSavedRecipe(recipe.id, event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-ink/10 px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                    />
+                    <p className="mt-2 text-xs leading-5 text-ink/45">
+                      {recipe.input.pizzaCount} × {recipe.input.doughBallWeightGrams} g · {recipe.input.hydrationPercent}% hydration · {recipe.input.fermentationDuration}
+                    </p>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <button type="button" onClick={() => loadSavedRecipe(recipe)} className="rounded-xl bg-tomato px-3 py-2.5 text-xs font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Load</button>
+                      <button type="button" onClick={() => duplicateSavedRecipe(recipe.id)} className="rounded-xl border border-ink/10 px-3 py-2.5 text-xs font-extrabold text-ink/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Duplicate</button>
+                      <button type="button" onClick={() => deleteSavedRecipe(recipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-extrabold text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Delete</button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)] lg:items-start">
           <section className="grid gap-5" aria-label="Quick calculator inputs">
