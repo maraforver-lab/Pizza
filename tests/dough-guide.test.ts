@@ -223,8 +223,8 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("Previous step");
     expect(page).toContain("Continue to {nextStep.actionName}");
     expect(page).toContain("Dough is ready to stretch");
-    expect(page).toContain("href={`/guides/dough?step=${nextStep.id}`}");
-    expect(page).toContain("href={`/guides/dough?step=${previousStep.id}`}");
+    expect(page).toContain("buildDoughGuideHref(nextStep.id, sessionReturnPath ?? undefined)");
+    expect(page).toContain("buildDoughGuideHref(previousStep.id, sessionReturnPath ?? undefined)");
   });
 
   it("provides Beginner, Enthusiast and Pizza Nerd content without a guide-only level state", () => {
@@ -414,7 +414,7 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("getDoughGuideTroubleshootingLabel(link, experienceLevel)");
     expect(page).toContain("/guide/pizza-troubleshooting?topic=${topicId}&from=");
     expect(page).toContain("#topic-${topicId}");
-    expect(page).toContain("encodeURIComponent(`/guides/dough?step=${stepId}`)");
+    expect(page).toContain("encodeURIComponent(buildDoughGuideHref(stepId, sessionReturnPath ?? undefined))");
     expect(page).toContain("aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Pizza Troubleshooting Guide`}");
     expect(page).not.toMatch(/updatePizzaSession|setActivePizzaSession|localStorage\.setItem|mark.*done|complete/i);
     expect(page.match(/Continue to \{nextStep\.actionName\}/g)).toHaveLength(1);
@@ -712,5 +712,10 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("Back to Timeline");
     expect(page).toContain("Back to Kitchen Mode");
     expect(page).toContain('href={sessionReturnPath}');
+    expect(page).toContain("<StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />");
+    expect(page).toContain("sessionReturnPath={sessionReturnPath}");
+    expect(page).toContain("buildDoughGuideHref(step.id, sessionReturnPath ?? undefined)");
+    expect(page).toContain("buildDoughGuideHref(nextStep.id, sessionReturnPath ?? undefined)");
+    expect(page).toContain("buildDoughGuideHref(previousStep.id, sessionReturnPath ?? undefined)");
   });
 });

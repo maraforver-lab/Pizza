@@ -16,6 +16,14 @@ describe("Dough Guide session links", () => {
     );
   });
 
+  it("keeps return context reusable when a Guide link is nested inside a troubleshooting return URL", () => {
+    const guideHref = buildDoughGuideHref("mix-dough", "/session/timeline");
+    const encodedReturn = encodeURIComponent(guideHref);
+
+    expect(encodedReturn).toBe("%2Fguides%2Fdough%3Fstep%3Dmix-dough%26from%3D%252Fsession%252Ftimeline");
+    expect(decodeURIComponent(encodedReturn)).toBe("/guides/dough?step=mix-dough&from=%2Fsession%2Ftimeline");
+  });
+
   it("maps dough-making session steps to the matching Guide step", () => {
     expect(getDoughGuideLinkForSessionStep({ id: "mix-dough", kind: "active" })?.stepId).toBe("mix-dough");
     expect(getDoughGuideLinkForSessionStep({ id: "rest-dough", kind: "passive" })?.stepId).toBe("rest-dough");

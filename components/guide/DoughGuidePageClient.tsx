@@ -14,6 +14,7 @@ import {
   getDoughGuideTroubleshootingLabel,
   type DoughGuideImage,
   type DoughGuideStep,
+  type DoughGuideStepId,
   type DoughGuideTroubleshootingReference,
   type DoughGuideVisualComparison,
   type DoughGuideVisualSequence,
@@ -27,7 +28,11 @@ import {
   type DoughGuideFlourGuidance,
   type DoughGuideSessionContext,
 } from "@/lib/dough-guide-session-context";
-import { getSafeDoughGuideSessionReturnPath } from "@/lib/dough-guide-links";
+import {
+  buildDoughGuideHref,
+  getSafeDoughGuideSessionReturnPath,
+  type DoughGuideReturnPath,
+} from "@/lib/dough-guide-links";
 import {
   getExperienceLevelConfig,
   readExperienceLevelPreference,
@@ -318,18 +323,20 @@ function VisualComparisonCard({
   );
 }
 
-function troubleshootingHref(topicId: string, stepId: string) {
-  return `/guide/pizza-troubleshooting?topic=${topicId}&from=${encodeURIComponent(`/guides/dough?step=${stepId}`)}#topic-${topicId}`;
+function troubleshootingHref(topicId: string, stepId: DoughGuideStepId, sessionReturnPath?: DoughGuideReturnPath | null) {
+  return `/guide/pizza-troubleshooting?topic=${topicId}&from=${encodeURIComponent(buildDoughGuideHref(stepId, sessionReturnPath ?? undefined))}#topic-${topicId}`;
 }
 
 function TroubleshootingLinksCard({
   links,
   experienceLevel,
   stepId,
+  sessionReturnPath,
 }: {
   links: readonly DoughGuideTroubleshootingReference[] | undefined;
   experienceLevel: ExperienceLevel;
-  stepId: string;
+  stepId: DoughGuideStepId;
+  sessionReturnPath?: DoughGuideReturnPath | null;
 }) {
   if (!links?.length) return null;
   return (
@@ -344,7 +351,7 @@ function TroubleshootingLinksCard({
         {links.map((link) => (
           <Link
             key={`${stepId}-${link.topicId}`}
-            href={troubleshootingHref(link.topicId, stepId)}
+            href={troubleshootingHref(link.topicId, stepId, sessionReturnPath)}
             className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
             aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Pizza Troubleshooting Guide`}
           >
@@ -356,7 +363,13 @@ function TroubleshootingLinksCard({
   );
 }
 
-function StepNavigation({ activeIndex }: { activeIndex: number }) {
+function StepNavigation({
+  activeIndex,
+  sessionReturnPath,
+}: {
+  activeIndex: number;
+  sessionReturnPath?: DoughGuideReturnPath | null;
+}) {
   return (
     <nav className="rounded-[1.5rem] border border-white/80 bg-white/80 p-2 shadow-card backdrop-blur" aria-label="Dough Guide steps">
       <ol className="space-y-1">
@@ -365,7 +378,7 @@ function StepNavigation({ activeIndex }: { activeIndex: number }) {
           return (
             <li key={step.id}>
               <Link
-                href={`/guides/dough?step=${step.id}`}
+                href={buildDoughGuideHref(step.id, sessionReturnPath ?? undefined)}
                 aria-current={active ? "step" : undefined}
                 className={`grid grid-cols-[2rem_1fr] gap-2 rounded-2xl px-3 py-3 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
                   active
@@ -489,7 +502,7 @@ export default function DoughGuidePageClient() {
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
           <aside className="lg:sticky lg:top-24">
-            <StepNavigation activeIndex={activeIndex} />
+            <StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />
           </aside>
 
           <article className="rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6" aria-labelledby="active-dough-guide-step">
@@ -552,6 +565,7 @@ export default function DoughGuidePageClient() {
                 links={activeStep.troubleshooting}
                 experienceLevel={experienceLevel}
                 stepId={activeStep.id}
+                sessionReturnPath={sessionReturnPath}
               />
             </div>
 
@@ -567,7 +581,7 @@ export default function DoughGuidePageClient() {
             <div className="mt-6 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
               {previousStep ? (
                 <Link
-                  href={`/guides/dough?step=${previousStep.id}`}
+                  href={buildDoughGuideHref(previousStep.id, sessionReturnPath ?? undefined)}
                   className="order-2 inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:order-1"
                 >
                   Previous step
@@ -577,7 +591,7 @@ export default function DoughGuidePageClient() {
               )}
               {nextStep ? (
                 <Link
-                  href={`/guides/dough?step=${nextStep.id}`}
+                  href={buildDoughGuideHref(nextStep.id, sessionReturnPath ?? undefined)}
                   className="order-1 inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:order-2 sm:justify-self-end"
                 >
                   Continue to {nextStep.actionName}
