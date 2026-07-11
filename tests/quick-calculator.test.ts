@@ -3,9 +3,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import {
+  buildQuickRecipePlainText,
   calculateQuickDough,
   normalizeQuickCalculatorInput,
   quickCalculatorDefaults,
+  quickFermentationToRecipePreset,
   quickCalculatorInputToRecipeSettings,
 } from "@/lib/quick-calculator/quick-dough-calculator";
 
@@ -35,9 +37,10 @@ const forbiddenBoundaryPatterns = [
   /recipeParams|recipeUrl|settingsFromUrl/,
   /window\.localStorage|localStorage\./,
   /fetch\(/,
+  /getRecipeWorkflowHandoff/,
 ];
 
-describe("Quick Dough Calculator isolation foundation", () => {
+describe("Quick Dough Calculator isolated core UI", () => {
   it("adds a dedicated public quick calculator route", () => {
     const page = source("app/calculator/quick/page.tsx");
 
@@ -70,6 +73,15 @@ describe("Quick Dough Calculator isolation foundation", () => {
     expect(quickResult.ingredients).toEqual(canonicalResult);
   });
 
+  it("maps Quick Calculator fermentation choices only to existing supported recipe presets", () => {
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "6h", fermentationEnvironment: "room" })).toBe("6h-room");
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "12h", fermentationEnvironment: "room" })).toBe("12h-room");
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "24h", fermentationEnvironment: "room" })).toBe("24h-room");
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "24h", fermentationEnvironment: "cold" })).toBe("24h-cold");
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "48h", fermentationEnvironment: "cold" })).toBe("48h-cold");
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "48h", fermentationEnvironment: "room" })).toBe("24h-room");
+  });
+
   it("keeps Quick Calculator state and calculation input local to the quick module", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
     const quickModule = source("lib/quick-calculator/quick-dough-calculator.ts");
@@ -87,7 +99,8 @@ describe("Quick Dough Calculator isolation foundation", () => {
       hydrationPercent: 120,
       saltPercent: -1,
       yeastType: "idy",
-      fermentation: "24h-cold",
+      fermentationDuration: "24h",
+      fermentationEnvironment: "cold",
       fermentationTemperatureCelsius: 99,
       wastePercent: 200,
     });
@@ -100,6 +113,24 @@ describe("Quick Dough Calculator isolation foundation", () => {
       fermentationTemperatureCelsius: 30,
       wastePercent: 25,
     });
+  });
+
+  it("derives baker percentages and plain-text copy without changing central calculation output", () => {
+    const result = calculateQuickDough(quickCalculatorDefaults);
+    const text = buildQuickRecipePlainText(result);
+
+    expect(result.bakerPercentages).toMatchObject({
+      flour: 100,
+      water: quickCalculatorDefaults.hydrationPercent,
+      salt: quickCalculatorDefaults.saltPercent,
+    });
+    expect(result.bakerPercentages.yeast).toBeCloseTo(result.ingredients.leavener / result.ingredients.flour * 100, 6);
+    expect(text).toContain("Quick Dough Calculator");
+    expect(text).toContain("Baker's percentages");
+    expect(text).toContain("Flour:");
+    expect(text).toContain("Water:");
+    expect(text).toContain("Salt:");
+    expect(text).toContain("Instant dry yeast:");
   });
 
   it("keeps the Quick Calculator isolated from session, cloud, planning and Calculator v2 dependencies", () => {
@@ -120,20 +151,50 @@ describe("Quick Dough Calculator isolation foundation", () => {
     expect(component).not.toContain("Review");
     expect(component).not.toContain("Shopping");
     expect(component).not.toContain("Account");
+    expect(component).not.toContain("Save to");
+    expect(component).not.toContain("Continue to");
   });
 
-  it("keeps the foundation UI scoped to entering values and viewing ingredient results", () => {
+  it("builds the core PizzApp-style UI for entering values and viewing ingredient results", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
     expect(component).toContain("Quick Dough Calculator");
-    expect(component).toContain("Dough balls / pizzas");
-    expect(component).toContain("Dough ball weight");
+    expect(component).toContain("Number of pizzas");
+    expect(component).toContain("Dough-ball weight");
     expect(component).toContain("Hydration");
     expect(component).toContain("Salt");
-    expect(component).toContain("Leavening type");
+    expect(component).toContain("Extra dough");
+    expect(component).toContain("Yeast type");
+    expect(component).toContain("Fermentation time");
     expect(component).toContain("Fermentation");
+    expect(component).toContain("Fermentation temperature");
     expect(component).toContain("Ingredient amounts");
+    expect(component).toContain("Baker’s percentages");
+    expect(component).toContain("Copy recipe");
+    expect(component).toContain("Reset calculator");
     expect(component).not.toContain("Save recipe");
     expect(component).not.toContain("Start Pizza Session");
+  });
+
+  it("keeps reset and copy actions local to the Quick Calculator component", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("const resetCalculator = () =>");
+    expect(component).toContain("setInput(quickCalculatorDefaults)");
+    expect(component).toContain("navigator.clipboard.writeText(result.summaryText)");
+    expect(component).not.toContain("storeSavedRecipes");
+    expect(component).not.toContain("addLocalBakeResult");
+  });
+
+  it("uses accessible controls and live result semantics without introducing a new dependency", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+    const packageJson = source("package.json");
+
+    expect(component).toContain("aria-pressed={selected}");
+    expect(component).toContain("aria-live=\"polite\"");
+    expect(component).toContain("aria-label={`Decrease ${label.toLowerCase()}`}");
+    expect(component).toContain("aria-label={`Increase ${label.toLowerCase()}`}");
+    expect(component).toContain("focus-visible:ring");
+    expect(packageJson).not.toMatch(/radix|headlessui|react-hook-form|zod/i);
   });
 });
