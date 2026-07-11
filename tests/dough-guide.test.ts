@@ -31,6 +31,13 @@ function allGuideVisuals() {
   ]);
 }
 
+function secondaryGuideVisuals() {
+  return doughGuideSteps.flatMap((step) => [
+    ...(step.visualSequence?.items ?? []),
+    ...(step.visualComparison?.items ?? []),
+  ]);
+}
+
 function coldSession() {
   return createPizzaSession({
     id: "dough-guide-cold-session",
@@ -361,6 +368,37 @@ describe("Pizza Dough Guide foundation", () => {
         expect(visual.width).toBeGreaterThan(0);
         expect(visual.height).toBeGreaterThan(0);
       }
+    }
+  });
+
+  it("uses realistic local WebP teaching photos for every secondary visual", () => {
+    const secondaryVisuals = secondaryGuideVisuals();
+
+    expect(secondaryVisuals).toHaveLength(18);
+    for (const visual of secondaryVisuals) {
+      expect(visual.kind).toBe("photo");
+      expect(visual.src).toMatch(/^\/dough-guide\/teaching-step-.*\.webp$/);
+      expect(visual.src).not.toMatch(/\.svg$/);
+      expect(visual.width).toBe(1200);
+      expect(visual.height).toBe(900);
+      expect(existsSync(join(process.cwd(), "public", visual.src.slice(1)))).toBe(true);
+    }
+  });
+
+  it("keeps primary Guide images separate from secondary teaching images", () => {
+    const primaryImages = doughGuideSteps.map((step) => step.image?.src);
+    const secondaryImages = secondaryGuideVisuals().map((visual) => visual.src);
+
+    expect(primaryImages.every((src) => src?.startsWith("/dough-guide/guide-step-"))).toBe(true);
+    expect(secondaryImages.every((src) => src.startsWith("/dough-guide/teaching-step-"))).toBe(true);
+    expect(secondaryImages.some((src) => primaryImages.includes(src))).toBe(false);
+  });
+
+  it("keeps a meaningful secondary visual for each Dough Guide step", () => {
+    for (const step of doughGuideSteps) {
+      const secondaryCount = (step.visualSequence?.items.length ?? 0) + (step.visualComparison?.items.length ?? 0);
+
+      expect(secondaryCount, `${step.id} secondary visual count`).toBeGreaterThan(0);
     }
   });
 
