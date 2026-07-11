@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
@@ -113,74 +114,36 @@ function timelineStepIconTone(step?: PizzaSessionTimelineStep) {
 }
 
 function TimelineStepMediaPanel({ step }: { step: PizzaSessionTimelineStep }) {
-  const isCold = step.id === "cold-ferment";
-  const isRoom = step.id === "room-ferment" || step.id === "ferment-dough" || step.id === "room-temperature-rest";
-  const isBake = step.id === "preheat-oven" || step.id === "bake-pizza";
-  const panelTone = isBake
-    ? "from-tomato/20 via-tomato/[.08] to-white"
-    : isCold || isRoom
-      ? "from-leaf/20 via-leaf/[.08] to-white"
-      : "from-cream via-white to-leaf/[.06]";
+  const imagePath = timelineStepImagePath(step);
 
   return (
-    <div className={`relative h-full min-h-24 w-[5.5rem] shrink-0 overflow-hidden rounded-[1.35rem] bg-gradient-to-br ${panelTone} shadow-inner ring-1 ring-white/80 sm:min-h-32 sm:w-32`} aria-hidden="true" data-testid="timeline-step-media-panel">
-      <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/55 blur-xl" />
-      {(step.id === "mix-dough" || step.id === "rest-dough") && (
-        <>
-          <div className="absolute bottom-5 left-1/2 h-9 w-16 -translate-x-1/2 rounded-b-[2rem] rounded-t-lg bg-ink/10 shadow-sm sm:h-11 sm:w-20" />
-          <div className="absolute bottom-8 left-1/2 h-5 w-14 -translate-x-1/2 rounded-[999px] bg-[#d8b46f] shadow-sm sm:h-6 sm:w-16" />
-          <div className="absolute bottom-12 left-8 h-1.5 w-12 rotate-[-24deg] rounded-full bg-ink/25 sm:left-11 sm:w-16" />
-          {step.id === "rest-dough" && <div className="absolute bottom-14 left-1/2 h-5 w-16 -translate-x-1/2 rounded-t-[2rem] border-t-4 border-white/80 bg-white/45 sm:w-20" />}
-        </>
-      )}
-      {isCold && (
-        <>
-          <div className="absolute bottom-5 left-1/2 h-16 w-12 -translate-x-1/2 rounded-2xl bg-white/80 shadow-sm ring-1 ring-leaf/15 sm:h-20 sm:w-16" />
-          <div className="absolute bottom-12 left-1/2 h-px w-10 -translate-x-1/2 bg-leaf/20 sm:bottom-16 sm:w-14" />
-          <div className="absolute bottom-8 left-1/2 h-4 w-8 -translate-x-1/2 rounded-full bg-[#d8b46f]/90 sm:h-5 sm:w-10" />
-          <div className="absolute right-4 top-4 text-2xl text-leaf/70 sm:right-5 sm:top-5 sm:text-3xl">❄️</div>
-        </>
-      )}
-      {isRoom && (
-        <>
-          <div className="absolute bottom-7 left-5 h-8 w-8 rounded-full bg-[#d8b46f] shadow-sm sm:left-8 sm:h-10 sm:w-10" />
-          <div className="absolute bottom-7 right-5 h-7 w-7 rounded-full bg-[#d8b46f]/90 shadow-sm sm:right-8 sm:h-9 sm:w-9" />
-          <div className="absolute right-4 top-5 h-12 w-3 rounded-full bg-white/80 ring-1 ring-leaf/20 sm:right-6 sm:h-16">
-            <div className="absolute bottom-1 left-1/2 h-7 w-1 -translate-x-1/2 rounded-full bg-leaf/55 sm:h-10" />
-          </div>
-        </>
-      )}
-      {step.id === "ball-dough" && (
-        <>
-          {[0, 1, 2, 3].map((ball) => (
-            <div key={ball} className={`absolute h-8 w-8 rounded-full bg-[#d8b46f] shadow-sm sm:h-10 sm:w-10 ${ball === 0 ? "bottom-8 left-5 sm:left-8" : ball === 1 ? "bottom-8 right-5 sm:right-8" : ball === 2 ? "bottom-4 left-8 sm:left-12" : "bottom-14 left-1/2 -translate-x-1/2"}`} />
-          ))}
-        </>
-      )}
-      {isBake && (
-        <>
-          <div className="absolute bottom-5 left-1/2 h-14 w-16 -translate-x-1/2 rounded-2xl bg-ink/75 shadow-sm sm:h-20 sm:w-24" />
-          <div className="absolute bottom-8 left-1/2 h-8 w-12 -translate-x-1/2 rounded-xl bg-tomato/35 shadow-[0_0_22px_rgba(214,82,54,0.35)] sm:bottom-10 sm:h-12 sm:w-16" />
-          {step.id === "bake-pizza" && <div className="absolute bottom-9 left-1/2 h-9 w-9 -translate-x-1/2 rounded-full bg-[#d8b46f] ring-4 ring-tomato/35 sm:bottom-12 sm:h-12 sm:w-12" />}
-        </>
-      )}
-      {step.id === "prepare-sauce-toppings" && (
-        <>
-          <div className="absolute bottom-6 left-1/2 h-14 w-16 -translate-x-1/2 rotate-[-4deg] rounded-2xl bg-[#d8b46f]/80 shadow-sm sm:h-20 sm:w-24" />
-          <div className="absolute bottom-11 left-7 h-5 w-5 rounded-full bg-tomato sm:bottom-16 sm:left-10" />
-          <div className="absolute bottom-9 right-7 h-4 w-8 rounded-full bg-leaf/70 sm:bottom-14 sm:right-10" />
-        </>
-      )}
-      {step.id === "review-result" && (
-        <>
-          <div className="absolute bottom-5 left-1/2 h-16 w-12 -translate-x-1/2 rotate-[-5deg] rounded-xl bg-white/85 shadow-sm ring-1 ring-ink/10 sm:h-20 sm:w-16" />
-          <div className="absolute bottom-14 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full bg-leaf/35 sm:bottom-16 sm:w-10" />
-          <div className="absolute bottom-10 left-1/2 h-1 w-7 -translate-x-1/2 rounded-full bg-ink/15 sm:bottom-14 sm:w-9" />
-          <div className="absolute right-5 top-5 text-2xl text-leaf/70">✓</div>
-        </>
-      )}
+    <div className="relative h-full min-h-24 w-[5.5rem] shrink-0 overflow-hidden rounded-[1.35rem] bg-cream shadow-inner ring-1 ring-white/80 sm:min-h-36 sm:w-36" aria-hidden="true" data-testid="timeline-step-media-panel">
+      <Image
+        src={imagePath}
+        alt=""
+        fill
+        sizes="(min-width: 640px) 144px, 88px"
+        className="object-cover"
+        loading="lazy"
+        data-testid="timeline-step-media-image"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-ink/15" />
     </div>
   );
+}
+
+function timelineStepImagePath(step: PizzaSessionTimelineStep) {
+  if (step.id === "mix-dough") return "/dough-guide/02-mix.webp";
+  if (step.id === "rest-dough") return "/dough-guide/03-rest-v2.webp";
+  if (step.id === "cold-ferment") return "/dough-guide/07-cold.webp";
+  if (step.id === "room-ferment" || step.id === "ferment-dough") return "/dough-guide/05-bulk-v2.webp";
+  if (step.id === "ball-dough") return "/dough-guide/06-ball-new.webp";
+  if (step.id === "room-temperature-rest") return "/dough-guide/08-ready-new.webp";
+  if (step.id === "preheat-oven") return "/dough-guide/09-open.webp";
+  if (step.id === "prepare-sauce-toppings") return "/dough-guide/09-open.webp";
+  if (step.id === "bake-pizza") return "/dough-guide/09-open.webp";
+  if (step.id === "review-result") return "/dough-guide/08-ready-new.webp";
+  return "/dough-guide/02-mix.webp";
 }
 
 function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {

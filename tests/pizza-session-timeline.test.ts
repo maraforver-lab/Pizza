@@ -1070,8 +1070,16 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("flex min-w-0 items-stretch gap-3");
     expect(page).toContain("w-[5.5rem]");
     expect(page).toContain("<TimelineStepMediaPanel step={step} />");
-    expect(page).toContain("step.id === \"mix-dough\" || step.id === \"rest-dough\"");
-    expect(page).toContain("step.id === \"prepare-sauce-toppings\"");
+    expect(page).toContain("function timelineStepImagePath");
+    expect(page).toContain('data-testid="timeline-step-media-image"');
+    expect(page).toContain('src={imagePath}');
+    expect(page).toContain('alt=""');
+    expect(page).toContain('return "/dough-guide/02-mix.webp"');
+    expect(page).toContain('return "/dough-guide/03-rest-v2.webp"');
+    expect(page).toContain('return "/dough-guide/07-cold.webp"');
+    expect(page).toContain('return "/dough-guide/09-open.webp"');
+    expect(page).not.toMatch(/https?:\/\//);
+    expect(page).not.toContain("bottom-5 left-1/2 h-9 w-16");
     expect(page).not.toContain("rounded-2xl text-xl ring-1 sm:h-12 sm:w-12 sm:text-2xl");
     expect(page).not.toContain('data-testid="timeline-step-watermark"');
     expect(page).not.toContain("onClick={() => markDone(step.id)}");
