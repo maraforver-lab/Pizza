@@ -20,6 +20,31 @@ export type DoughGuideStepId = (typeof DOUGH_GUIDE_STEP_IDS)[number];
 export type DoughGuideImage = {
   src: string;
   alt: string;
+  caption?: string;
+  kind?: "photo" | "diagram" | "comparison" | "sequence";
+  width?: number;
+  height?: number;
+  levelNotes?: Partial<Record<ExperienceLevel, string[]>>;
+};
+
+export type DoughGuideVisualSequence = {
+  title: string;
+  summary?: string;
+  items: DoughGuideImage[];
+  note?: string;
+};
+
+export type DoughGuideVisualComparisonItem = DoughGuideImage & {
+  label: string;
+  teachingPoints: string[];
+  tone: "want" | "avoid" | "neutral";
+};
+
+export type DoughGuideVisualComparison = {
+  title: string;
+  summary?: string;
+  items: DoughGuideVisualComparisonItem[];
+  note?: string;
 };
 
 export type DoughReadinessState = {
@@ -42,12 +67,55 @@ export type DoughGuideStep = {
   nerdGuidance: string[];
   readinessStates?: DoughReadinessState[];
   image?: DoughGuideImage;
+  visualSequence?: DoughGuideVisualSequence;
+  visualComparison?: DoughGuideVisualComparison;
 };
 
 export const DOUGH_GUIDE_LEVEL_LABELS: Record<ExperienceLevel, string> = {
   beginner: "Beginner guidance",
   enthusiast: "Enthusiast guidance",
   pizza_nerd: "Pizza Nerd guidance",
+};
+
+const diagramSize = { width: 800, height: 560 } as const;
+const ballingSize = { width: 520, height: 390 } as const;
+
+const readinessComparison: DoughGuideVisualComparison = {
+  title: "Readiness comparison",
+  summary: "Compare several signs together before stretching. No single test decides readiness by itself.",
+  note: "Use several signs together. Dough temperature, flour, hydration and fermentation method all affect how readiness looks and feels.",
+  items: [
+    {
+      label: "Underproofed",
+      src: "/dough-guide/visual-readiness-underproofed.svg",
+      alt: "A tight dough ball that is smaller, rounded and holding a firm shape.",
+      caption: "Tight, small and springy. It usually resists stretching and has limited gas development.",
+      kind: "comparison",
+      tone: "neutral",
+      teachingPoints: ["tight", "resists stretching", "springs back quickly", "limited gas development"],
+      ...ballingSize,
+    },
+    {
+      label: "Ready",
+      src: "/dough-guide/visual-readiness-ready.svg",
+      alt: "A relaxed dough ball with visible gas that still holds a cohesive shape.",
+      caption: "Soft and relaxed, with visible gas. It still holds shape and stretches without immediate tearing.",
+      kind: "comparison",
+      tone: "want",
+      teachingPoints: ["soft and relaxed", "holds shape", "stretches without immediate tearing", "visible gas development"],
+      ...ballingSize,
+    },
+    {
+      label: "Overproofed",
+      src: "/dough-guide/visual-readiness-overproofed.svg",
+      alt: "A dough ball that has spread, lost height and shows a fragile surface.",
+      caption: "Spreading, sticky and fragile. It may collapse or tear during handling.",
+      kind: "comparison",
+      tone: "avoid",
+      teachingPoints: ["spreads rapidly", "fragile and sticky", "weak surface", "may collapse during handling"],
+      ...ballingSize,
+    },
+  ],
 };
 
 export const doughGuideSteps = [
@@ -81,7 +149,20 @@ export const doughGuideSteps = [
       "Clean setup reduces uncontrolled variables: bench flour, evaporation, temperature drift and handling time.",
       "Keep salt and yeast organized so concentrated contact only happens according to the recipe method.",
     ],
-    image: { src: "/dough-guide/01-weigh.webp", alt: "Measured dough ingredients prepared on a work surface." },
+    image: { src: "/dough-guide/01-weigh.webp", alt: "Measured dough ingredients prepared on a work surface.", caption: "Keep the tools ready before the dough gets sticky.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Setup checklist",
+      summary: "A calm bench reduces rushed decisions once flour and water are mixed.",
+      items: [
+        {
+          src: "/dough-guide/visual-prep-setup.svg",
+          alt: "Organized dough setup with a mixing bowl, scale, scraper and covered containers.",
+          caption: "Bowl, scale, scraper and covered storage should be within reach before mixing.",
+          kind: "diagram",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "measure",
@@ -113,7 +194,20 @@ export const doughGuideSteps = [
       "Measurement accuracy protects baker’s percentages and keeps hydration, salt and leavening in the intended relationship.",
       "Treat the recipe as the controlled setup before technique variables enter.",
     ],
-    image: { src: "/dough-guide/01-weigh.webp", alt: "Ingredients being weighed for pizza dough." },
+    image: { src: "/dough-guide/01-weigh.webp", alt: "Ingredients being weighed for pizza dough.", caption: "Weigh ingredients separately so the recipe stays controlled.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Measure before mixing",
+      summary: "The visual goal is separate, checked ingredients — especially the small yeast amount.",
+      items: [
+        {
+          src: "/dough-guide/visual-prep-setup.svg",
+          alt: "Scale and separate dough ingredients arranged before mixing.",
+          caption: "Tare the scale and keep ingredients separate until the recipe tells you to combine them.",
+          kind: "diagram",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "mix-dough",
@@ -146,7 +240,25 @@ export const doughGuideSteps = [
       "Early mixing starts gluten formation, but hydration and rest can build structure with less mechanical work.",
       "Excessive mixing can warm the dough and change the fermentation path before the plan really begins.",
     ],
-    image: { src: "/dough-guide/02-mix.webp", alt: "Hands mixing pizza dough in a bowl." },
+    image: { src: "/dough-guide/02-mix.webp", alt: "Hands mixing pizza dough in a bowl.", caption: "The first mix can look rough before the rest improves texture.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Rough is normal at first",
+      summary: "Mix only until dry flour disappears; smoothness can improve after resting.",
+      items: [
+        {
+          src: "/dough-guide/visual-mix-rough-combined.svg",
+          alt: "Two dough states showing a rough mixture becoming a combined dough with no dry flour.",
+          caption: "Left: rough but normal. Right: combined enough to rest, with no visible dry flour.",
+          kind: "diagram",
+          ...diagramSize,
+          levelNotes: {
+            beginner: ["Do not add extra flour just because the dough feels sticky."],
+            enthusiast: ["Look for hydration and unity, not a perfectly smooth dough yet."],
+            pizza_nerd: ["Early rest can improve hydration and structure without extra mechanical work."],
+          },
+        },
+      ],
+    },
   },
   {
     id: "rest-dough",
@@ -178,7 +290,20 @@ export const doughGuideSteps = [
       "Rest shifts the dough toward extensibility by allowing hydration and reducing immediate elastic resistance.",
       "The goal is not inactivity; structure is changing while the dough sits covered.",
     ],
-    image: { src: "/dough-guide/03-rest-v2.webp", alt: "Covered dough resting on a warm kitchen surface." },
+    image: { src: "/dough-guide/03-rest-v2.webp", alt: "Covered dough resting on a warm kitchen surface.", caption: "Covered rest protects the surface while the dough becomes more cohesive.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Before and after rest",
+      summary: "Resting is active: flour hydrates and the dough often becomes calmer without force.",
+      items: [
+        {
+          src: "/dough-guide/visual-rest-before-after.svg",
+          alt: "Before and after dough rest showing a rough covered dough becoming smoother and more cohesive.",
+          caption: "Cover the dough. After rest, reassess texture before changing the recipe.",
+          kind: "comparison",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "develop-dough",
@@ -210,7 +335,20 @@ export const doughGuideSteps = [
       "Gluten development changes elasticity and extensibility. Excessive mechanical work can tighten the network and warm the dough.",
       "Controlled folds can strengthen high-hydration dough while limiting oxidation and heat gain.",
     ],
-    image: { src: "/dough-guide/04-fold-v2.webp", alt: "Hands folding pizza dough to develop structure." },
+    image: { src: "/dough-guide/04-fold-v2.webp", alt: "Hands folding pizza dough to develop structure.", caption: "Develop structure with controlled handling, not brute force.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Controlled structure",
+      summary: "Use folds or gentle strengthening until the dough holds together and stretches more smoothly.",
+      items: [
+        {
+          src: "/dough-guide/visual-fold-structure.svg",
+          alt: "Dough being folded gently with an arrow showing controlled stretch direction.",
+          caption: "Stretch or fold with control. Stop before the surface tears or the dough becomes overly tight.",
+          kind: "diagram",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "bulk-ferment",
@@ -242,7 +380,20 @@ export const doughGuideSteps = [
       "Bulk and ball fermentation affect gas distribution, strength and later extensibility differently.",
       "Cold fermentation can preserve strength while allowing flavor development; room fermentation progresses faster and needs closer observation.",
     ],
-    image: { src: "/dough-guide/05-bulk-v2.webp", alt: "Pizza dough bulk fermenting in a covered container." },
+    image: { src: "/dough-guide/05-bulk-v2.webp", alt: "Pizza dough bulk fermenting in a covered container.", caption: "Look for gas and dough maturity, not one universal doubling target.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Fermentation development",
+      summary: "A mature dough shows gas and relaxation while still keeping enough strength to handle.",
+      items: [
+        {
+          src: "/dough-guide/visual-bulk-start-end.svg",
+          alt: "Start and later bulk fermentation states showing more volume and visible gas without requiring exact doubling.",
+          caption: "Compare start and later condition. Visible gas matters, but not every dough must exactly double.",
+          kind: "comparison",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "divide-dough",
@@ -275,7 +426,20 @@ export const doughGuideSteps = [
       "Clean cuts preserve strand structure better than pulling and tearing.",
       "Minimizing degassing keeps fermentation gas available for the final bake structure.",
     ],
-    image: { src: "/dough-guide/06-ball-new.webp", alt: "Dough pieces being divided before balling." },
+    image: { src: "/dough-guide/06-ball-new.webp", alt: "Dough pieces being divided before balling.", caption: "Cut and correct weights before final balling.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Cut, weigh, correct",
+      summary: "Clean cuts and small weight corrections protect dough structure before final shaping.",
+      items: [
+        {
+          src: "/dough-guide/visual-divide-weigh.svg",
+          alt: "Dough being cut with a scraper and weighed before balling.",
+          caption: "Cut cleanly, weigh the piece, then move small corrections before shaping.",
+          kind: "diagram",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "ball-dough",
@@ -308,7 +472,49 @@ export const doughGuideSteps = [
       "Balling redistributes tension and sets the final proof geometry. Excess tension can reduce extensibility and encourage tearing.",
       "A damaged surface can leak gas and dry faster during proofing.",
     ],
-    image: { src: "/dough-guide/06-ball-new.webp", alt: "Smooth pizza dough balls on a floured surface." },
+    image: { src: "/dough-guide/06-ball-new.webp", alt: "Smooth pizza dough balls on a floured surface.", caption: "The goal is a smooth ball with the seam underneath and no torn skin.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Ball dough sequence",
+      summary: "Use this as a safe general method. It shows direction and stopping point, not one mandatory professional technique.",
+      note: "Stop before the skin tears. A slightly imperfect ball is better than an over-tightened one.",
+      items: [
+        {
+          src: "/dough-guide/visual-balling-gather.svg",
+          alt: "Step 1 of dough balling: edges gathered toward the center.",
+          caption: "1. Gather the edges toward the center.",
+          kind: "sequence",
+          ...ballingSize,
+        },
+        {
+          src: "/dough-guide/visual-balling-seam.svg",
+          alt: "Step 2 of dough balling: seam placed underneath the dough.",
+          caption: "2. Place the seam underneath.",
+          kind: "sequence",
+          ...ballingSize,
+        },
+        {
+          src: "/dough-guide/visual-balling-rotate.svg",
+          alt: "Step 3 of dough balling: dough is pulled and rotated gently.",
+          caption: "3. Pull and rotate gently to organize the surface.",
+          kind: "sequence",
+          ...ballingSize,
+        },
+        {
+          src: "/dough-guide/visual-balling-smooth.svg",
+          alt: "Step 4 of dough balling: a smooth outer surface begins to form.",
+          caption: "4. Build a smooth surface with controlled tension.",
+          kind: "sequence",
+          ...ballingSize,
+        },
+        {
+          src: "/dough-guide/visual-balling-stop.svg",
+          alt: "Step 5 of dough balling: comparison between a smooth ball and a torn over-tightened surface.",
+          caption: "5. Stop before the skin tears.",
+          kind: "sequence",
+          ...ballingSize,
+        },
+      ],
+    },
   },
   {
     id: "proof-dough-balls",
@@ -340,7 +546,20 @@ export const doughGuideSteps = [
       "Ball fermentation affects gas retention, surface integrity and extensibility at opening.",
       "Overproofed balls spread and weaken; underproofed balls resist opening and bake denser.",
     ],
-    image: { src: "/dough-guide/08-ready-v3.webp", alt: "Proofed pizza dough balls resting in a tray." },
+    image: { src: "/dough-guide/08-ready-v3.webp", alt: "Proofed pizza dough balls resting in a tray.", caption: "Proofed balls should relax and expand while staying covered and intact.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Proofing states",
+      summary: "Compare shape, surface and spread rather than relying on a single time target.",
+      items: [
+        {
+          src: "/dough-guide/visual-proof-states.svg",
+          alt: "Three dough-ball proof states showing a tight ball, a ready relaxed ball and an over-spread ball.",
+          caption: "Look for relaxed structure, visible gas and a moist surface. Avoid dried skin or excessive spreading.",
+          kind: "comparison",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "warm-dough",
@@ -372,7 +591,20 @@ export const doughGuideSteps = [
       "Dough temperature changes gluten relaxation and fermentation rate. Working temperature is a handling state, not just a clock target.",
       "Excessive warming can accelerate fermentation and reduce strength before opening.",
     ],
-    image: { src: "/dough-guide/08-ready-new.webp", alt: "Dough balls coming to working temperature before stretching." },
+    image: { src: "/dough-guide/08-ready-new.webp", alt: "Dough balls coming to working temperature before stretching.", caption: "Cold dough should relax before evaluation; there is no universal warm-up duration.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "From tight to workable",
+      summary: "Use the dough condition and your plan; do not force a cold, tight ball open.",
+      items: [
+        {
+          src: "/dough-guide/visual-warm-tight-relaxed.svg",
+          alt: "A tight cold dough ball becoming a more relaxed dough ball for evaluation.",
+          caption: "Cold and tight needs time. Relaxed and covered is ready to evaluate, not automatically ready by clock alone.",
+          kind: "comparison",
+          ...diagramSize,
+        },
+      ],
+    },
   },
   {
     id: "check-readiness",
@@ -418,7 +650,8 @@ export const doughGuideSteps = [
         signs: ["very loose structure", "rapid spreading", "fragile or tearing surface", "excessive stickiness", "indentation does not recover", "collapse during handling"],
       },
     ],
-    image: { src: "/dough-guide/08-ready-v3.webp", alt: "A proofed dough ball ready to be checked before opening." },
+    image: { src: "/dough-guide/08-ready-v3.webp", alt: "A proofed dough ball ready to be checked before opening.", caption: "Check gas, shape, surface strength and relaxation together.", kind: "photo", width: 1200, height: 900 },
+    visualComparison: readinessComparison,
   },
   {
     id: "release-dough-ball",
@@ -451,7 +684,20 @@ export const doughGuideSteps = [
       "The goal is to preserve gas cells and surface integrity before opening. Rough release can erase fermentation gains in seconds.",
       "Excess bench flour can dry the surface and interfere with the final base texture.",
     ],
-    image: { src: "/dough-guide/09-open.webp", alt: "A dough ball released onto a floured surface before stretching." },
+    image: { src: "/dough-guide/09-open.webp", alt: "A dough ball released onto a floured surface before stretching.", caption: "Release the dough intact, then stop before stretching.", kind: "photo", width: 1200, height: 900 },
+    visualSequence: {
+      title: "Release without tearing",
+      summary: "Use controlled bench flour and a scraper to preserve gas and surface integrity.",
+      items: [
+        {
+          src: "/dough-guide/visual-release-scraper.svg",
+          alt: "A scraper releasing a dough ball with controlled bench flour and support from underneath.",
+          caption: "Release around the edges first, support the ball, and place it on the work surface ready to stretch.",
+          kind: "diagram",
+          ...diagramSize,
+        },
+      ],
+    },
   },
 ] as const satisfies readonly DoughGuideStep[];
 

@@ -11,7 +11,10 @@ import {
   getDoughGuideLevelDetails,
   getDoughGuideStepById,
   getDoughGuideStepIndex,
+  type DoughGuideImage,
   type DoughGuideStep,
+  type DoughGuideVisualComparison,
+  type DoughGuideVisualSequence,
 } from "@/lib/dough-guide";
 import {
   getDoughGuideSessionContext,
@@ -187,11 +190,128 @@ function StepVisual({ step }: { step: DoughGuideStep }) {
           src={step.image.src}
           alt={step.image.alt}
           fill
+          priority
           sizes="(min-width: 1024px) 34vw, 100vw"
           className="object-cover"
         />
       </div>
+      {step.image.caption && (
+        <figcaption className="px-4 py-3 text-xs font-extrabold leading-5 text-ink/55">
+          {step.image.caption}
+        </figcaption>
+      )}
     </figure>
+  );
+}
+
+function TeachingVisualFigure({
+  visual,
+  experienceLevel,
+  compact = false,
+}: {
+  visual: DoughGuideImage;
+  experienceLevel: ExperienceLevel;
+  compact?: boolean;
+}) {
+  const levelNotes = visual.levelNotes?.[experienceLevel] ?? [];
+  return (
+    <figure className="overflow-hidden rounded-[1.25rem] border border-white/80 bg-white shadow-sm">
+      <div className={`relative ${compact ? "aspect-[4/3]" : "aspect-[16/11]"} bg-cream`}>
+        <Image
+          src={visual.src}
+          alt={visual.alt}
+          fill
+          sizes={compact ? "(min-width: 1024px) 18vw, 86vw" : "(min-width: 1024px) 32vw, 92vw"}
+          className="object-cover"
+        />
+      </div>
+      {(visual.caption || levelNotes.length > 0) && (
+        <figcaption className="space-y-2 px-4 py-3 text-xs font-extrabold leading-5 text-ink/60">
+          {visual.caption && <p>{visual.caption}</p>}
+          {levelNotes.length > 0 && (
+            <ul className="space-y-1">
+              {levelNotes.map((note) => (
+                <li key={note} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf" aria-hidden="true" />
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+function VisualSequenceCard({
+  sequence,
+  experienceLevel,
+}: {
+  sequence: DoughGuideVisualSequence | undefined;
+  experienceLevel: ExperienceLevel;
+}) {
+  if (!sequence) return null;
+  const isLongSequence = sequence.items.length > 3;
+  return (
+    <section className="rounded-[1.5rem] border border-orange/20 bg-[#fff7ed] p-4 sm:p-5" aria-labelledby="visual-learning">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h3 id="visual-learning" className="font-display text-2xl font-semibold">{sequence.title}</h3>
+          {sequence.summary && <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-ink/60">{sequence.summary}</p>}
+        </div>
+      </div>
+      <div className={`mt-4 grid gap-3 ${isLongSequence ? "sm:grid-cols-2 xl:grid-cols-5" : "md:grid-cols-2"}`}>
+        {sequence.items.map((visual) => (
+          <TeachingVisualFigure
+            key={`${visual.src}-${visual.caption ?? visual.alt}`}
+            visual={visual}
+            experienceLevel={experienceLevel}
+            compact={isLongSequence}
+          />
+        ))}
+      </div>
+      {sequence.note && (
+        <p className="mt-4 rounded-2xl bg-white/75 p-3 text-sm font-extrabold leading-6 text-ink/65">
+          {sequence.note}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function VisualComparisonCard({
+  comparison,
+  experienceLevel,
+}: {
+  comparison: DoughGuideVisualComparison | undefined;
+  experienceLevel: ExperienceLevel;
+}) {
+  if (!comparison) return null;
+  const toneClass = {
+    want: "border-leaf/25 bg-leaf/[.07]",
+    avoid: "border-tomato/25 bg-tomato/[.06]",
+    neutral: "border-ink/10 bg-cream/75",
+  } as const;
+  return (
+    <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="dough-readiness-visual-comparison">
+      <h3 id="dough-readiness-visual-comparison" className="font-display text-2xl font-semibold">{comparison.title}</h3>
+      {comparison.summary && <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-ink/60">{comparison.summary}</p>}
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {comparison.items.map((item) => (
+          <article key={item.label} className={`rounded-[1.25rem] border p-3 ${toneClass[item.tone]}`}>
+            <TeachingVisualFigure visual={item} experienceLevel={experienceLevel} compact />
+            <h4 className="mt-3 text-sm font-extrabold text-ink">{item.label}</h4>
+            <BulletList items={item.teachingPoints} />
+          </article>
+        ))}
+      </div>
+      {comparison.note && (
+        <p className="mt-4 rounded-2xl bg-white/75 p-3 text-sm font-extrabold leading-6 text-ink/65">
+          {comparison.note}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -333,6 +453,11 @@ export default function DoughGuidePageClient() {
                 <h3 id="you-are-ready-when" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">You are ready when</h3>
                 <BulletList items={activeStep.readyWhen} />
               </section>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <VisualSequenceCard sequence={activeStep.visualSequence} experienceLevel={experienceLevel} />
+              <VisualComparisonCard comparison={activeStep.visualComparison} experienceLevel={experienceLevel} />
             </div>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">

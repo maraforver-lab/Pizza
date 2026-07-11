@@ -21,6 +21,14 @@ import { buildSessionRecipe } from "@/lib/session-recipe";
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 const now = new Date("2026-07-11T10:00:00.000Z");
 
+function allGuideVisuals() {
+  return doughGuideSteps.flatMap((step) => [
+    ...(step.image ? [step.image] : []),
+    ...(step.visualSequence?.items ?? []),
+    ...(step.visualComparison?.items ?? []),
+  ]);
+}
+
 function coldSession() {
   return createPizzaSession({
     id: "dough-guide-cold-session",
@@ -246,6 +254,88 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("<Image");
     expect(imageSources.every((src) => src?.startsWith("/dough-guide/"))).toBe(true);
     expect(page).not.toMatch(/https?:\/\//);
+  });
+
+  it("defines local typed visual learning assets with alt text and dimensions", () => {
+    const visuals = allGuideVisuals();
+
+    expect(visuals.length).toBeGreaterThan(24);
+    for (const visual of visuals) {
+      expect(visual.src).toMatch(/^\/dough-guide\//);
+      expect(visual.src).not.toMatch(/^https?:\/\//);
+      expect(existsSync(join(process.cwd(), "public", visual.src.slice(1)))).toBe(true);
+      expect(visual.alt.length).toBeGreaterThan(20);
+      if (visual.kind !== "photo") {
+        expect(visual.width).toBeGreaterThan(0);
+        expect(visual.height).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("adds step-specific visual learning for mixing, rest, development, bulk, divide, proof, warm and release", () => {
+    expect(getDoughGuideStepById("mix-dough").visualSequence?.title).toBe("Rough is normal at first");
+    expect(getDoughGuideStepById("mix-dough").visualSequence?.items[0].caption).toContain("rough but normal");
+    expect(getDoughGuideStepById("rest-dough").visualSequence?.summary).toContain("flour hydrates");
+    expect(getDoughGuideStepById("develop-dough").visualSequence?.items[0].caption).toContain("Stop before the surface tears");
+    expect(getDoughGuideStepById("bulk-ferment").visualSequence?.items[0].caption).toContain("not every dough must exactly double");
+    expect(getDoughGuideStepById("divide-dough").visualSequence?.items[0].caption).toContain("weigh the piece");
+    expect(getDoughGuideStepById("proof-dough-balls").visualSequence?.items[0].caption).toContain("Avoid dried skin");
+    expect(getDoughGuideStepById("warm-dough").visualSequence?.items[0].caption).not.toMatch(/2 h|two-hour|universal warm-up duration/i);
+    expect(getDoughGuideStepById("release-dough-ball").visualSequence?.items[0].caption).toContain("ready to stretch");
+    expect(getDoughGuideStepById("release-dough-ball").visualSequence?.items[0].caption).not.toMatch(/top|sauce|bake/i);
+  });
+
+  it("renders a five-stage Ball dough visual sequence with ordered movement labels", () => {
+    const sequence = getDoughGuideStepById("ball-dough").visualSequence;
+
+    expect(sequence?.title).toBe("Ball dough sequence");
+    expect(sequence?.items).toHaveLength(5);
+    expect(sequence?.items.map((item) => item.caption)).toEqual([
+      "1. Gather the edges toward the center.",
+      "2. Place the seam underneath.",
+      "3. Pull and rotate gently to organize the surface.",
+      "4. Build a smooth surface with controlled tension.",
+      "5. Stop before the skin tears.",
+    ]);
+    expect(sequence?.note).toContain("Stop before the skin tears");
+  });
+
+  it("adds an accessible Underproofed / Ready / Overproofed visual comparison", () => {
+    const comparison = getDoughGuideStepById("check-readiness").visualComparison;
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(comparison?.title).toBe("Readiness comparison");
+    expect(comparison?.items.map((item) => item.label)).toEqual(["Underproofed", "Ready", "Overproofed"]);
+    expect(comparison?.items[0].teachingPoints).toContain("springs back quickly");
+    expect(comparison?.items[1].teachingPoints).toContain("visible gas development");
+    expect(comparison?.items[2].teachingPoints).toContain("fragile and sticky");
+    expect(comparison?.note).toContain("Use several signs together");
+    expect(page).toContain("VisualComparisonCard");
+    expect(page).toContain("md:grid-cols-3");
+    expect(page).not.toContain("<table");
+  });
+
+  it("keeps visual depth tied to the existing experience level source", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+    const mixVisual = getDoughGuideStepById("mix-dough").visualSequence?.items[0];
+
+    expect(mixVisual?.levelNotes?.beginner?.join(" ")).toContain("Do not add extra flour");
+    expect(mixVisual?.levelNotes?.enthusiast?.join(" ")).toContain("hydration and unity");
+    expect(mixVisual?.levelNotes?.pizza_nerd?.join(" ")).toContain("mechanical work");
+    expect(page).toContain("visual.levelNotes?.[experienceLevel]");
+    expect(page).not.toContain("doughGuideVisualLevel");
+    expect(page).not.toContain("setVisualLevel");
+  });
+
+  it("renders only active-step visual learning and avoids gallery dependencies", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+    const packageJson = source("package.json");
+
+    expect(page).toContain("activeStep.visualSequence");
+    expect(page).toContain("activeStep.visualComparison");
+    expect(page).toContain("priority");
+    expect(page).not.toMatch(/carousel|swiper|slick|keen-slider/i);
+    expect(packageJson).not.toMatch(/swiper|slick-carousel|keen-slider|embla-carousel/i);
   });
 
   it("does not read or render active Pizza Session quantities or timeline times", () => {
