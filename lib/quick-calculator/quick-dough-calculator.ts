@@ -8,6 +8,13 @@ import {
   type QuickPizzaSizingResult,
   type QuickPizzaStyleId,
 } from "@/lib/quick-calculator/pizza-sizing";
+import {
+  calculateQuickPreferment,
+  normalizeQuickPrefermentInput,
+  type QuickPrefermentInput,
+  type QuickPrefermentMethod,
+  type QuickPrefermentResult,
+} from "@/lib/quick-calculator/quick-preferments";
 import type { Fermentation, RecipeIngredients, RecipeSettings, YeastType } from "@/lib/saved-recipes";
 
 export type QuickFermentationDuration = "6h" | "12h" | "24h" | "48h";
@@ -24,6 +31,10 @@ export type QuickCalculatorInput = {
   thicknessFactor: number;
   doughLoadingGramsPerSquareCm: number;
   customDoughWeightGrams: number;
+  prefermentMethod: QuickPrefermentMethod;
+  prefermentedFlourPercent: number;
+  prefermentHydrationPercent: number;
+  prefermentInoculationPercent: number;
   hydrationPercent: number;
   saltPercent: number;
   yeastType: YeastType;
@@ -38,6 +49,7 @@ export type QuickCalculatorResult = {
   settings: RecipeSettings;
   ingredients: RecipeIngredients;
   sizing: QuickPizzaSizingResult;
+  preferment: QuickPrefermentResult;
   bakerPercentages: QuickCalculatorBakerPercentages;
   summaryText: string;
 };
@@ -74,6 +86,10 @@ export const quickCalculatorDefaults: QuickCalculatorInput = {
   thicknessFactor: 0.32,
   doughLoadingGramsPerSquareCm: 0.65,
   customDoughWeightGrams: 260,
+  prefermentMethod: "direct",
+  prefermentedFlourPercent: 0,
+  prefermentHydrationPercent: 0,
+  prefermentInoculationPercent: 0,
   hydrationPercent: 64,
   saltPercent: 2.8,
   yeastType: "idy",
@@ -170,6 +186,12 @@ export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): Quic
     ?? quickCalculatorEnvironmentOptions.find((option) => option.value === quickCalculatorDefaults.fermentationEnvironment)!;
   const yeastOption = quickCalculatorYeastOptions.find((option) => option.value === input.yeastType)
     ?? quickCalculatorYeastOptions.find((option) => option.value === quickCalculatorDefaults.yeastType)!;
+  const preferment = normalizeQuickPrefermentInput({
+    method: input.prefermentMethod,
+    prefermentedFlourPercent: input.prefermentedFlourPercent,
+    prefermentHydrationPercent: input.prefermentHydrationPercent,
+    prefermentInoculationPercent: input.prefermentInoculationPercent,
+  } satisfies QuickPrefermentInput);
   const sizing = normalizeQuickPizzaSizingInput({
     sizingMode: input.sizingMode,
     pizzaStyle: input.pizzaStyle,
@@ -194,6 +216,10 @@ export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): Quic
     thicknessFactor: sizing.thicknessFactor,
     doughLoadingGramsPerSquareCm: sizing.doughLoadingGramsPerSquareCm,
     customDoughWeightGrams: sizing.customDoughWeightGrams,
+    prefermentMethod: preferment.method,
+    prefermentedFlourPercent: preferment.prefermentedFlourPercent,
+    prefermentHydrationPercent: preferment.prefermentHydrationPercent,
+    prefermentInoculationPercent: preferment.prefermentInoculationPercent,
     hydrationPercent: clampNumber(input.hydrationPercent, 40, 100),
     saltPercent: clampNumber(input.saltPercent, 0, 10),
     yeastType: yeastOption.value,
@@ -244,13 +270,14 @@ export function buildQuickCalculatorBakerPercentages(input: QuickCalculatorInput
   };
 }
 
-export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "input" | "ingredients" | "sizing" | "bakerPercentages">) {
+export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "input" | "ingredients" | "sizing" | "preferment" | "bakerPercentages">) {
   const yeastLabel = quickCalculatorYeastOptions.find((option) => option.value === result.input.yeastType)?.label ?? "Yeast";
   const environmentLabel = quickCalculatorEnvironmentOptions.find((option) => option.value === result.input.fermentationEnvironment)?.label ?? "Fermentation";
   const lines = [
     "Quick Dough Calculator",
     `${result.input.pizzaCount} ${result.input.sizingMode === "pan" ? "pans" : "pizzas"} × ${Math.round(result.sizing.doughWeightPerPieceGrams)} g dough`,
     `${result.sizing.style.label} · ${result.input.sizingMode}`,
+    `${result.preferment.label}`,
     `${result.input.hydrationPercent}% hydration · ${result.input.saltPercent}% salt · ${result.input.wastePercent}% extra dough`,
     `${result.input.fermentationDuration} · ${environmentLabel} · ${result.input.fermentationTemperatureCelsius} °C`,
     "",
@@ -259,6 +286,16 @@ export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "i
     `Water: ${Math.round(result.ingredients.water)} g`,
     `Salt: ${Math.round(result.ingredients.salt)} g`,
     `${yeastLabel}: ${result.ingredients.leavener.toFixed(2)} g`,
+    "",
+    "Preferment",
+    `Method: ${result.preferment.label}`,
+    `Build flour: ${Math.round(result.preferment.build.flourGrams)} g`,
+    `Build water: ${Math.round(result.preferment.build.waterGrams)} g`,
+    result.preferment.build.starterGrams > 0
+      ? `Levain build: ${Math.round(result.preferment.build.starterGrams)} g`
+      : `Build yeast: ${result.preferment.build.commercialYeastGrams.toFixed(2)} g`,
+    `Final flour addition: ${Math.round(result.preferment.finalDough.flourGrams)} g`,
+    `Final water addition: ${Math.round(result.preferment.finalDough.waterGrams)} g`,
     "",
     "Baker's percentages",
     `Flour: ${result.bakerPercentages.flour}%`,
@@ -286,6 +323,12 @@ export function calculateQuickDough(input: QuickCalculatorInput): QuickCalculato
     doughLoadingGramsPerSquareCm: normalized.doughLoadingGramsPerSquareCm,
     customDoughWeightGrams: normalized.customDoughWeightGrams,
   });
+  const preferment = calculateQuickPreferment(ingredients, {
+    method: normalized.prefermentMethod,
+    prefermentedFlourPercent: normalized.prefermentedFlourPercent,
+    prefermentHydrationPercent: normalized.prefermentHydrationPercent,
+    prefermentInoculationPercent: normalized.prefermentInoculationPercent,
+  });
   const bakerPercentages = buildQuickCalculatorBakerPercentages(normalized, ingredients);
 
   return {
@@ -293,7 +336,8 @@ export function calculateQuickDough(input: QuickCalculatorInput): QuickCalculato
     settings,
     ingredients,
     sizing,
+    preferment,
     bakerPercentages,
-    summaryText: buildQuickRecipePlainText({ input: normalized, ingredients, sizing, bakerPercentages }),
+    summaryText: buildQuickRecipePlainText({ input: normalized, ingredients, sizing, preferment, bakerPercentages }),
   };
 }

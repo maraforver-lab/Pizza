@@ -14,6 +14,11 @@ import {
   type QuickPizzaStyleId,
 } from "@/lib/quick-calculator/pizza-sizing";
 import {
+  applyQuickPrefermentPreset,
+  quickPrefermentPresets,
+  type QuickPrefermentMethod,
+} from "@/lib/quick-calculator/quick-preferments";
+import {
   buildQuickCalculatorShareUrl,
   deleteQuickCalculatorSavedRecipe,
   duplicateQuickCalculatorSavedRecipe,
@@ -59,7 +64,7 @@ function formatPercent(value: number, digits = 1) {
 
 function savedRecipeSummary(input: QuickCalculatorInput) {
   const savedResult = calculateQuickDough(input);
-  return `${savedResult.input.pizzaCount} ${savedResult.input.sizingMode === "pan" ? "pans" : "pizzas"} × ${formatGrams(savedResult.sizing.doughWeightPerPieceGrams)} g · ${savedResult.sizing.style.label} · ${savedResult.input.hydrationPercent}% hydration`;
+  return `${savedResult.input.pizzaCount} ${savedResult.input.sizingMode === "pan" ? "pans" : "pizzas"} × ${formatGrams(savedResult.sizing.doughWeightPerPieceGrams)} g · ${savedResult.sizing.style.label} · ${savedResult.preferment.label}`;
 }
 
 function updateInput<K extends keyof QuickCalculatorInput>(
@@ -409,6 +414,25 @@ export default function QuickDoughCalculator() {
     </div>
   );
 
+  const applyPreferment = (method: QuickPrefermentMethod) => {
+    setInput((current) => {
+      const preferment = applyQuickPrefermentPreset({
+        method: current.prefermentMethod,
+        prefermentedFlourPercent: current.prefermentedFlourPercent,
+        prefermentHydrationPercent: current.prefermentHydrationPercent,
+        prefermentInoculationPercent: current.prefermentInoculationPercent,
+      }, method);
+
+      return {
+        ...current,
+        prefermentMethod: preferment.method,
+        prefermentedFlourPercent: preferment.prefermentedFlourPercent,
+        prefermentHydrationPercent: preferment.prefermentHydrationPercent,
+        prefermentInoculationPercent: preferment.prefermentInoculationPercent,
+      };
+    });
+  };
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f6ecdf_48%,#fff8f1_100%)] px-4 py-6 text-ink sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -738,6 +762,101 @@ export default function QuickDoughCalculator() {
             )}
 
             <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">02b · Dough method</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold">Preferment</h2>
+                </div>
+                <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">
+                  Same final dough target, split into preferment build and final additions.
+                </p>
+              </div>
+
+              <fieldset className="mt-5">
+                <legend className="text-sm font-extrabold text-ink/72">Dough method</legend>
+                <div className="mt-3 grid gap-2 sm:grid-cols-4">
+                  {quickPrefermentPresets.map((preset) => (
+                    <OptionButton<QuickPrefermentMethod>
+                      key={preset.id}
+                      label={preset.label}
+                      description={preset.description}
+                      selected={result.input.prefermentMethod === preset.id}
+                      onClick={() => applyPreferment(preset.id)}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+
+              {result.input.prefermentMethod !== "direct" && (
+                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                  <NumberField
+                    id="quick-prefermented-flour"
+                    label="Prefermented flour"
+                    value={result.input.prefermentedFlourPercent}
+                    min={5}
+                    max={80}
+                    step={1}
+                    suffix="%"
+                    onChange={(value) => updateInput(setInput, "prefermentedFlourPercent", value)}
+                  />
+                  <NumberField
+                    id="quick-preferment-hydration"
+                    label="Preferment hydration"
+                    value={result.input.prefermentHydrationPercent}
+                    min={40}
+                    max={125}
+                    step={1}
+                    suffix="%"
+                    onChange={(value) => updateInput(setInput, "prefermentHydrationPercent", value)}
+                  />
+                  {result.input.prefermentMethod === "levain" ? (
+                    <NumberField
+                      id="quick-preferment-inoculation"
+                      label="Levain inoculation"
+                      value={result.input.prefermentInoculationPercent}
+                      min={1}
+                      max={60}
+                      step={1}
+                      suffix="%"
+                      onChange={(value) => updateInput(setInput, "prefermentInoculationPercent", value)}
+                    />
+                  ) : (
+                    <div className="rounded-[1.35rem] border border-ink/10 bg-cream/50 p-4">
+                      <p className="text-sm font-extrabold text-ink/72">Commercial yeast split</p>
+                      <p className="mt-2 text-xs leading-5 text-ink/50">
+                        The current yeast amount is assigned to the preferment build for this method.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <div className="rounded-[1.35rem] bg-ink/[.04] p-4">
+                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Preferment build</p>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <dt className="text-ink/45">Flour</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.build.flourGrams)} g</dd>
+                    <dt className="text-ink/45">Water</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.build.waterGrams)} g</dd>
+                    <dt className="text-ink/45">{result.input.prefermentMethod === "levain" ? "Levain build" : "Yeast"}</dt>
+                    <dd className="text-right font-extrabold">
+                      {result.input.prefermentMethod === "levain"
+                        ? `${formatGrams(result.preferment.build.starterGrams)} g`
+                        : `${formatGrams(result.preferment.build.commercialYeastGrams, true)} g`}
+                    </dd>
+                  </dl>
+                </div>
+                <div className="rounded-[1.35rem] bg-white p-4 ring-1 ring-ink/10">
+                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Final dough additions</p>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <dt className="text-ink/45">Flour</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.flourGrams)} g</dd>
+                    <dt className="text-ink/45">Water</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.waterGrams)} g</dd>
+                    <dt className="text-ink/45">Salt</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.saltGrams)} g</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">03 · Fermentation</p>
               <h2 className="mt-2 font-display text-3xl font-semibold">Time, place and yeast</h2>
 
@@ -837,6 +956,17 @@ export default function QuickDoughCalculator() {
                   Same input values produce the same ingredient output in every guidance mode.
                 </p>
               )}
+            </section>
+
+            <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-preferment-result">
+              <h3 id="quick-preferment-result" className="text-sm font-extrabold text-white">Preferment split</h3>
+              <p className="mt-2 text-xs leading-5 text-white/45">{result.preferment.label}</p>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div><dt className="text-white/45">Build</dt><dd className="font-extrabold">{formatGrams(result.preferment.build.totalGrams)} g</dd></div>
+                <div><dt className="text-white/45">Final flour</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.flourGrams)} g</dd></div>
+                <div><dt className="text-white/45">Final water</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.waterGrams)} g</dd></div>
+                <div><dt className="text-white/45">Target dough</dt><dd className="font-extrabold">{formatGrams(result.preferment.totalFormula.doughGrams)} g</dd></div>
+              </dl>
             </section>
 
             <div className="mt-6 grid gap-2 sm:grid-cols-2">

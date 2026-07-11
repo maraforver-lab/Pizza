@@ -11,6 +11,12 @@ import {
   quickPizzaStylePresets,
 } from "@/lib/quick-calculator/pizza-sizing";
 import {
+  applyQuickPrefermentPreset,
+  calculateQuickPreferment,
+  quickPrefermentPresetById,
+  quickPrefermentPresets,
+} from "@/lib/quick-calculator/quick-preferments";
+import {
   buildQuickCalculatorShareUrl,
   createQuickCalculatorSavedRecipe,
   deleteQuickCalculatorSavedRecipe,
@@ -159,6 +165,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(text).toContain("Water:");
     expect(text).toContain("Salt:");
     expect(text).toContain("Instant dry yeast:");
+    expect(text).toContain("Preferment");
+    expect(text).toContain("Method: Direct dough");
   });
 
   it("keeps the Quick Calculator isolated from session, cloud, planning and Calculator v2 dependencies", () => {
@@ -473,9 +481,107 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(params.has("quick")).toBe(true);
   });
 
+  it("defines isolated Quick Calculator preferment presets", () => {
+    expect(quickPrefermentPresets.map((preset) => preset.id)).toEqual([
+      "direct",
+      "poolish",
+      "biga",
+      "levain",
+    ]);
+    expect(quickPrefermentPresetById("poolish").label).toBe("Poolish");
+    expect(quickPrefermentPresetById("biga").defaultHydrationPercent).toBe(50);
+    expect(quickPrefermentPresetById("levain").defaultInoculationPercent).toBe(20);
+  });
+
+  it("partitions target flour and water into poolish, biga and levain builds without changing the target dough", () => {
+    const target = calculateQuickDough(quickCalculatorDefaults);
+    const poolish = calculateQuickPreferment(target.ingredients, {
+      method: "poolish",
+      prefermentedFlourPercent: 30,
+      prefermentHydrationPercent: 100,
+      prefermentInoculationPercent: 0,
+    });
+    const biga = calculateQuickPreferment(target.ingredients, {
+      method: "biga",
+      prefermentedFlourPercent: 40,
+      prefermentHydrationPercent: 50,
+      prefermentInoculationPercent: 0,
+    });
+    const levain = calculateQuickPreferment(target.ingredients, {
+      method: "levain",
+      prefermentedFlourPercent: 25,
+      prefermentHydrationPercent: 100,
+      prefermentInoculationPercent: 20,
+    });
+
+    expect(poolish.build.flourGrams).toBeCloseTo(target.ingredients.flour * 0.3, 6);
+    expect(poolish.build.waterGrams).toBeCloseTo(poolish.build.flourGrams, 6);
+    expect(poolish.finalDough.flourGrams + poolish.build.flourGrams).toBeCloseTo(target.ingredients.flour, 6);
+    expect(poolish.totalFormula.doughGrams).toBe(target.ingredients.total);
+
+    expect(biga.build.waterGrams).toBeCloseTo(biga.build.flourGrams * 0.5, 6);
+    expect(biga.finalDough.flourGrams + biga.build.flourGrams).toBeCloseTo(target.ingredients.flour, 6);
+
+    expect(levain.build.starterGrams).toBeCloseTo(levain.build.flourGrams + levain.build.waterGrams, 6);
+    expect(levain.finalDough.commercialYeastGrams).toBe(0);
+    expect(levain.totalFormula.doughGrams).toBe(target.ingredients.total);
+  });
+
+  it("applies preferment presets without changing sizing, formula or fermentation fields", () => {
+    const poolish = applyQuickPrefermentPreset({
+      method: "direct",
+      prefermentedFlourPercent: 0,
+      prefermentHydrationPercent: 0,
+      prefermentInoculationPercent: 0,
+    }, "poolish");
+
+    expect(poolish).toEqual({
+      method: "poolish",
+      prefermentedFlourPercent: 30,
+      prefermentHydrationPercent: 100,
+      prefermentInoculationPercent: 0,
+    });
+  });
+
+  it("calculates Quick dough preferment details after the existing ingredient result", () => {
+    const direct = calculateQuickDough(quickCalculatorDefaults);
+    const poolish = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      prefermentMethod: "poolish",
+      prefermentedFlourPercent: 30,
+      prefermentHydrationPercent: 100,
+    });
+
+    expect(poolish.ingredients).toEqual(direct.ingredients);
+    expect(poolish.settings).toEqual(direct.settings);
+    expect(poolish.preferment.method).toBe("poolish");
+    expect(poolish.preferment.build.totalGrams).toBeGreaterThan(0);
+    expect(poolish.preferment.finalDough.flourGrams).toBeLessThan(poolish.ingredients.flour);
+  });
+
+  it("extends save/share normalization with preferment fields while keeping the isolated quick query", () => {
+    const input = {
+      ...quickCalculatorDefaults,
+      prefermentMethod: "levain" as const,
+      prefermentedFlourPercent: 25,
+      prefermentHydrationPercent: 100,
+      prefermentInoculationPercent: 20,
+    };
+    const params = quickCalculatorInputToShareParams(input);
+    const parsed = quickCalculatorInputFromSearch(`?${params.toString()}`);
+
+    expect(parsed?.prefermentMethod).toBe("levain");
+    expect(parsed?.prefermentedFlourPercent).toBe(25);
+    expect(parsed?.prefermentHydrationPercent).toBe(100);
+    expect(parsed?.prefermentInoculationPercent).toBe(20);
+    expect(params.has("calculator")).toBe(false);
+    expect(params.has("quick")).toBe(true);
+  });
+
   it("renders explicit pizza style and sizing controls without changing workflow boundaries", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
     const sizing = source("lib/quick-calculator/pizza-sizing.ts");
+    const preferments = source("lib/quick-calculator/quick-preferments.ts");
 
     expect(component).toContain("Pizza style and sizing");
     expect(component).toContain("Sizing mode");
@@ -485,6 +591,13 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Dough loading");
     expect(component).toContain("Custom dough weight");
     expect(component).toContain("Derived dough size");
+    expect(component).toContain("Preferment");
+    expect(preferments).toContain("Poolish");
+    expect(preferments).toContain("Biga");
+    expect(preferments).toContain("Sourdough / levain");
+    expect(component).toContain("Preferment build");
+    expect(component).toContain("Final dough additions");
     expect(sizing).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
+    expect(preferments).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
   });
 });
