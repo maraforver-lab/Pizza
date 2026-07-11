@@ -95,11 +95,53 @@ describe("Pizza Troubleshooting Guide", () => {
   it("uses lightweight CSS-based guide visuals without remote images", () => {
     const page = source(troubleshootingRoute);
 
+    expect(page).toContain('import Image from "next/image"');
     expect(page).toContain("function VisualPanel");
     expect(page).toContain("radial-gradient");
     expect(page).toContain("aria-hidden=\"true\"");
     expect(page).not.toContain("http://");
     expect(page).not.toContain("https://");
+  });
+
+  it("maps every current topic to a local diagnostic troubleshooting image", () => {
+    const page = source(troubleshootingRoute);
+    const data = source("lib/pizza-troubleshooting.ts");
+    const topics = troubleshootingSections.flatMap((section) => section.problems);
+
+    expect(topics).toHaveLength(10);
+    expect(page).toContain("problem.image.src");
+    expect(page).toContain("problem.image.alt");
+    expect(page).toContain("problem.image.kind === \"comparison\"");
+    expect(page).toContain("<figcaption");
+    expect(data).toContain("type PizzaTroubleshootingImage");
+
+    for (const topic of topics) {
+      expect(topic.image.src).toMatch(/^\/images\/troubleshooting\/.*\.webp$/);
+      expect(topic.image.alt).toBeTruthy();
+      expect(topic.image.width).toBe(1200);
+      expect(topic.image.height).toBe(800);
+      expect(topic.image.caption).toBeTruthy();
+      expect(["symptom", "comparison", "corrected-result"]).toContain(topic.image.kind);
+      expect(existsSync(join(process.cwd(), "public", topic.image.src))).toBe(true);
+      expect(topic.image.src).not.toContain("http://");
+      expect(topic.image.src).not.toContain("https://");
+    }
+  });
+
+  it("uses accessible HTML comparison labels instead of text embedded in images", () => {
+    const page = source(troubleshootingRoute);
+    const comparisonTopics = troubleshootingSections
+      .flatMap((section) => section.problems)
+      .filter((topic) => topic.image.kind === "comparison");
+
+    expect(comparisonTopics.length).toBeGreaterThan(0);
+    expect(page).toContain("<dl");
+    expect(page).toContain("Problem");
+    expect(page).toContain("Better result");
+    for (const topic of comparisonTopics) {
+      expect(topic.image.comparisonLabels?.problem).toBeTruthy();
+      expect(topic.image.comparisonLabels?.better).toBeTruthy();
+    }
   });
 
   it("supports stable topic deep links and invalid-topic fallback", () => {

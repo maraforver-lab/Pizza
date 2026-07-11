@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -88,6 +89,35 @@ function ProblemCard({
           Quick check: {problem.quickCheck}
         </p>
       )}
+      <figure className="mt-4 overflow-hidden rounded-[1.25rem] border border-ink/10 bg-cream/70">
+        <div className="relative aspect-[3/2]">
+          <Image
+            src={problem.image.src}
+            alt={problem.image.alt}
+            width={problem.image.width}
+            height={problem.image.height}
+            sizes="(max-width: 768px) 100vw, 640px"
+            className="h-full w-full object-cover"
+          />
+        </div>
+        {problem.image.kind === "comparison" && problem.image.comparisonLabels && (
+          <dl className="grid gap-2 border-t border-ink/10 bg-white/75 p-3 text-[11px] sm:grid-cols-2">
+            <div className="rounded-xl bg-cream px-3 py-2">
+              <dt className="font-extrabold uppercase tracking-[.12em] text-tomato">Problem</dt>
+              <dd className="mt-1 text-ink/65">{problem.image.comparisonLabels.problem}</dd>
+            </div>
+            <div className="rounded-xl bg-leaf/[.08] px-3 py-2">
+              <dt className="font-extrabold uppercase tracking-[.12em] text-leaf">Better result</dt>
+              <dd className="mt-1 text-ink/65">{problem.image.comparisonLabels.better}</dd>
+            </div>
+          </dl>
+        )}
+        {problem.image.caption && (
+          <figcaption className="border-t border-ink/10 bg-white/70 px-4 py-3 text-xs leading-5 text-ink/55">
+            {problem.image.caption}
+          </figcaption>
+        )}
+      </figure>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl bg-cream/70 p-4">
           <StepLabel>Symptom</StepLabel>
