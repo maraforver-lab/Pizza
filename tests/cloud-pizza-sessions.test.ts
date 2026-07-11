@@ -13,7 +13,12 @@ import {
 } from "@/lib/cloud-pizza-session-client";
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
 import {
+  ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
+  COMPLETED_PIZZA_SESSION_DEFAULT_TITLE,
+  COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH,
   cloudPizzaSessionCompletedLabel,
+  completedPizzaSessionCustomTitle,
+  completedPizzaSessionDisplayTitle,
   cloudPizzaSessionDetailSummary,
   cloudPizzaSessionDoughSummary,
   cloudPizzaSessionHistorySummary,
@@ -21,6 +26,7 @@ import {
   cloudPizzaSessionSummary,
   cloudPizzaSessionUpdatedLabel,
   normalizeCloudPizzaSessionHistoryRow,
+  normalizeCompletedPizzaSessionTitleInput,
   normalizeCloudPizzaSessionRow,
   sortCloudPizzaSessionHistoryRows,
 } from "@/lib/cloud-pizza-sessions";
@@ -345,6 +351,39 @@ describe("cloud pizza session foundation", () => {
       bakeLine: "Bake time: Saturday 20:00",
     });
     expect(cloudPizzaSessionCompletedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toBe("Completed 3 Jul 2026");
+  });
+
+  it("uses custom completed-session titles while preserving generic legacy titles", () => {
+    const row = normalizeCloudPizzaSessionHistoryRow({
+      id: "row-custom-title",
+      user_id: "user-1",
+      status: "completed",
+      title: "  Kesäillan   pizzat  ",
+      current_step: "review",
+      session_data: createPizzaSession({
+        id: "custom-title-session",
+        status: "completed",
+        currentStep: "review",
+        recipeSnapshot: { balls: 4, ballWeight: 260, hydration: 65, fermentation: "24h-cold" },
+      }),
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: "2026-07-04T10:00:00.000Z",
+    })!;
+
+    const activeTitleRow = { ...row, title: ACTIVE_PIZZA_SESSION_DEFAULT_TITLE };
+    const completedTitleRow = { ...row, title: COMPLETED_PIZZA_SESSION_DEFAULT_TITLE };
+    const longTitle = "Pizza ".repeat(30);
+
+    expect(completedPizzaSessionCustomTitle(row)).toBe("Kesäillan pizzat");
+    expect(completedPizzaSessionDisplayTitle(row)).toBe("Kesäillan pizzat");
+    expect(cloudPizzaSessionHistorySummary(row).title).toBe("Kesäillan pizzat");
+    expect(cloudPizzaSessionDetailSummary(row).title).toBe("Kesäillan pizzat");
+    expect(completedPizzaSessionCustomTitle(activeTitleRow)).toBeUndefined();
+    expect(completedPizzaSessionCustomTitle(completedTitleRow)).toBeUndefined();
+    expect(cloudPizzaSessionHistorySummary(activeTitleRow).title).toBe(COMPLETED_PIZZA_SESSION_DEFAULT_TITLE);
+    expect(normalizeCompletedPizzaSessionTitleInput("   ")).toBeNull();
+    expect(normalizeCompletedPizzaSessionTitleInput(longTitle)?.length).toBe(COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH);
   });
 
   it("uses the selected completed-session fermentation plan instead of stale recipe defaults", () => {
@@ -1266,9 +1305,15 @@ describe("cloud pizza session foundation", () => {
     expect(historyComponent).toContain("{!isConfirmingDelete && (");
     expect(historyComponent).toContain("fetch(`/api/pizza-sessions/history/${sessionId}`");
     expect(historyComponent).toContain("method: \"DELETE\"");
+    expect(historyComponent).toContain("method: \"PATCH\"");
+    expect(historyComponent).toContain("Edit title");
+    expect(historyComponent).toContain("Save title");
+    expect(historyComponent).toContain("Remove title");
+    expect(historyComponent).toContain("completedPizzaSessionCustomTitle");
     expect(historyComponent).toContain("current.filter((session) => session.id !== sessionId)");
     expect(historyComponent).toContain("Pizza session history");
-    expect(source("lib/cloud-pizza-sessions.ts")).toContain('title: "Completed pizza session"');
+    expect(source("lib/cloud-pizza-sessions.ts")).toContain("COMPLETED_PIZZA_SESSION_DEFAULT_TITLE");
+    expect(source("lib/cloud-pizza-sessions.ts")).toContain("completedPizzaSessionDisplayTitle(row)");
     expect(historyComponent).toContain("summary.doughLine");
     expect(historyComponent).toContain("summary.hydrationLine");
     expect(historyComponent).toContain("summary.fermentationLine");
@@ -1284,6 +1329,10 @@ describe("cloud pizza session foundation", () => {
     expect(detailRoute).toContain(".eq(\"status\", \"completed\")");
     expect(detailRoute).toContain("normalizeCloudPizzaSessionHistoryRow(await withSignedPizzaPhotoUrl(data, supabase))");
     expect(detailRoute).toContain("createSignedUrl(session.photo.path");
+    expect(detailRoute).toContain("export async function PATCH");
+    expect(detailRoute).toContain("normalizeCompletedPizzaSessionTitleInput(record.title)");
+    expect(detailRoute).toContain("title: customTitle ?? COMPLETED_PIZZA_SESSION_DEFAULT_TITLE");
+    expect(detailRoute).toContain(".eq(\"status\", \"completed\")");
     expect(detailRoute).toContain("export async function DELETE");
     expect(detailRoute).toContain("Sign in to delete this pizza session.");
     expect(detailRoute).toContain("status: \"archived\"");
@@ -1294,6 +1343,10 @@ describe("cloud pizza session foundation", () => {
     expect(detailRoute).toContain("archived: true");
     expect(detailPage).toContain("CompletedPizzaSessionDetail");
     expect(detailComponent).toContain("fetch(`/api/pizza-sessions/history/${sessionId}`");
+    expect(detailComponent).toContain("method: \"PATCH\"");
+    expect(detailComponent).toContain("Add an event name");
+    expect(detailComponent).toContain("Event name saved");
+    expect(detailComponent).toContain("Remove title");
     expect(detailComponent).toContain("cloudPizzaSessionDetailSummary(session)");
     expect(detailComponent).toContain("Pizza photo");
     expect(detailComponent).toContain("Add a photo of your finished pizza to remember this bake.");

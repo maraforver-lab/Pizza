@@ -3,6 +3,10 @@ import { migratePizzaSession, type PizzaSession } from "@/lib/pizza-session";
 
 export type CloudPizzaSessionStatus = "in_progress" | "completed" | "archived";
 
+export const ACTIVE_PIZZA_SESSION_DEFAULT_TITLE = "Active pizza session";
+export const COMPLETED_PIZZA_SESSION_DEFAULT_TITLE = "Completed pizza session";
+export const COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH = 80;
+
 export type CloudPizzaSessionRow = {
   id: string;
   user_id: string;
@@ -41,6 +45,24 @@ function finiteNumber(value: unknown): number | undefined {
 
 function meaningfulText(value: unknown) {
   return typeof value === "string" && value.trim().length > 0;
+}
+
+export function normalizeCompletedPizzaSessionTitleInput(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) return null;
+  return normalized.slice(0, COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH);
+}
+
+export function completedPizzaSessionCustomTitle(row: Pick<CloudPizzaSessionRow, "title">) {
+  const title = normalizeCompletedPizzaSessionTitleInput(row.title);
+  if (!title) return undefined;
+  if (title === ACTIVE_PIZZA_SESSION_DEFAULT_TITLE || title === COMPLETED_PIZZA_SESSION_DEFAULT_TITLE) return undefined;
+  return title;
+}
+
+export function completedPizzaSessionDisplayTitle(row: Pick<CloudPizzaSessionRow, "title">) {
+  return completedPizzaSessionCustomTitle(row) ?? COMPLETED_PIZZA_SESSION_DEFAULT_TITLE;
 }
 
 function stringField(record: Record<string, unknown>, snakeKey: string, camelKey: string) {
@@ -164,7 +186,7 @@ function normalizeCloudPizzaSessionRowForStatus(
 export function cloudPizzaSessionPayload(session: PizzaSession) {
   return {
     status: "in_progress" as const,
-    title: "Active pizza session",
+    title: ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
     current_step: session.currentStep,
     session_data: session,
   };
@@ -226,7 +248,7 @@ export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Da
   const session = migratePizzaSession(row.session_data);
   if (!session) {
     return {
-      title: row.title ?? "Active pizza session",
+      title: row.title ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
       statusLine: `In progress · ${cloudPizzaSessionUpdatedLabel(row.updated_at, now)}`,
       doughLine: "Dough plan not complete",
       bakeLine: "Bake time not set",
@@ -234,7 +256,7 @@ export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Da
     };
   }
   return {
-    title: row.title ?? "Active pizza session",
+    title: row.title ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
     statusLine: `In progress · ${cloudPizzaSessionUpdatedLabel(row.updated_at, now)}`,
     doughLine: cloudPizzaSessionDoughSummary(session),
     bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,
@@ -246,7 +268,7 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
   const session = migratePizzaSession(row.session_data);
   if (!session) {
     return {
-      title: "Completed pizza session",
+      title: completedPizzaSessionDisplayTitle(row),
       statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
       doughLine: "Dough plan not complete",
       bakeLine: "Bake time: Bake time not set",
@@ -267,7 +289,7 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
   const reviewLine = cloudPizzaSessionReviewSummary(session);
 
   return {
-    title: "Completed pizza session",
+    title: completedPizzaSessionDisplayTitle(row),
     statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
     doughLine: cloudPizzaSessionDoughSummary(session),
     bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,

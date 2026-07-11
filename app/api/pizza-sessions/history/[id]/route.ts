@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import {
   CLOUD_PIZZA_SESSION_SELECT,
+  COMPLETED_PIZZA_SESSION_DEFAULT_TITLE,
   normalizeCloudPizzaSessionHistoryRow,
+  normalizeCompletedPizzaSessionTitleInput,
 } from "@/lib/cloud-pizza-sessions";
 import { migratePizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_PHOTO_BUCKET } from "@/lib/pizza-session-photo";
@@ -86,4 +88,48 @@ export async function DELETE(
   if (!data) return NextResponse.json({ error: "Completed pizza session not found." }, { status: 404 });
 
   return NextResponse.json({ archived: true, session: data });
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  const { id } = await context.params;
+  const supabase = await getSupabaseServerClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sign in to update this pizza session." }, { status: 401 });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid pizza session title." }, { status: 400 });
+  }
+
+  const record = body && typeof body === "object" ? body as Record<string, unknown> : {};
+  const customTitle = normalizeCompletedPizzaSessionTitleInput(record.title);
+  const updatedAt = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("pizza_sessions")
+    .update({
+      title: customTitle ?? COMPLETED_PIZZA_SESSION_DEFAULT_TITLE,
+      updated_at: updatedAt,
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .eq("status", "completed")
+    .select(CLOUD_PIZZA_SESSION_SELECT)
+    .maybeSingle();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "Completed pizza session not found." }, { status: 404 });
+
+  const session = normalizeCloudPizzaSessionHistoryRow(await withSignedPizzaPhotoUrl(data, supabase));
+  if (!session) return NextResponse.json({ error: "Updated pizza session could not be verified." }, { status: 500 });
+
+  return NextResponse.json({ session });
 }

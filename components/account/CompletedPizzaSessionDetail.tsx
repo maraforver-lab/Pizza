@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  completedPizzaSessionCustomTitle,
   cloudPizzaSessionDetailSummary,
   normalizeCloudPizzaSessionHistoryRow,
   type CloudPizzaSessionRow,
@@ -33,6 +34,10 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   const [photoMessage, setPhotoMessage] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [savingTitle, setSavingTitle] = useState(false);
+  const [titleError, setTitleError] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -47,7 +52,10 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
         }
         const row = normalizeCloudPizzaSessionHistoryRow(payload.session);
         if (!row) throw new Error("Completed pizza session could not be found.");
-        if (mounted) setSession(row);
+        if (mounted) {
+          setSession(row);
+          setTitleDraft(completedPizzaSessionCustomTitle(row) ?? "");
+        }
       } catch (caught) {
         if (mounted) {
           setSession(null);
@@ -94,6 +102,30 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   const sessionData = migratePizzaSession(session.session_data);
   const photo = sessionData?.photo;
   const overlayModel = photo?.url ? buildPizzaPhotoOverlayModel(session) : null;
+  const customTitle = completedPizzaSessionCustomTitle(session);
+
+  const saveTitle = async (title: string) => {
+    setSavingTitle(true);
+    setTitleError("");
+    try {
+      const response = await fetch(`/api/pizza-sessions/history/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Could not update pizza session title.");
+      const nextSession = normalizeCloudPizzaSessionHistoryRow(payload.session);
+      if (!nextSession) throw new Error("Could not update pizza session title.");
+      setSession(nextSession);
+      setTitleDraft(completedPizzaSessionCustomTitle(nextSession) ?? "");
+      setEditingTitle(false);
+    } catch (caught) {
+      setTitleError(caught instanceof Error ? caught.message : "Could not update pizza session title.");
+    } finally {
+      setSavingTitle(false);
+    }
+  };
 
   const uploadPhoto = async (file: File | undefined) => {
     setPhotoMessage("");
@@ -154,6 +186,83 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
           ← Back to account
         </Link>
       </div>
+
+      <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 sm:p-5" aria-labelledby="completed-session-title-heading">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Session title</p>
+            <h2 id="completed-session-title-heading" className="mt-2 font-display text-2xl font-semibold">
+              {customTitle ? "Event name saved" : "Add an event name"}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              Use a short name for this completed bake in your account history.
+            </p>
+          </div>
+          {!editingTitle && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingTitle(true);
+                setTitleDraft(customTitle ?? "");
+                setTitleError("");
+              }}
+              className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+            >
+              Edit title
+            </button>
+          )}
+        </div>
+        {editingTitle && (
+          <form
+            className="mt-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              saveTitle(titleDraft);
+            }}
+          >
+            <label htmlFor="completed-session-title-input" className="sr-only">Session title</label>
+            <input
+              id="completed-session-title-input"
+              value={titleDraft}
+              onChange={(event) => setTitleDraft(event.target.value)}
+              maxLength={80}
+              placeholder="Kesäillan pizzat"
+              className="min-h-11 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-bold text-ink outline-none transition placeholder:text-ink/35 focus:border-leaf/35 focus:ring-2 focus:ring-leaf/20"
+            />
+            {titleError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{titleError}</p>}
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="submit"
+                disabled={savingTitle}
+                className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {savingTitle ? "Saving…" : "Save title"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingTitle(false);
+                  setTitleDraft(customTitle ?? "");
+                  setTitleError("");
+                }}
+                className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+              >
+                Cancel
+              </button>
+              {customTitle && (
+                <button
+                  type="button"
+                  onClick={() => saveTitle("")}
+                  disabled={savingTitle}
+                  className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Remove title
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+      </section>
 
       <section className="mt-6 grid gap-3 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:grid-cols-2">
         <p className="rounded-[1.15rem] bg-white/85 p-4 text-sm font-bold leading-6 text-ink/70">{summary.doughLine}</p>
