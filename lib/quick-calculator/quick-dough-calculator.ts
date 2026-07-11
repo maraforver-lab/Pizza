@@ -1,5 +1,13 @@
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import type { ExperienceLevel } from "@/lib/experience-levels";
+import {
+  calculateQuickPizzaSizing,
+  normalizeQuickPizzaSizingInput,
+  type QuickPizzaSizingInput,
+  type QuickPizzaSizingMode,
+  type QuickPizzaSizingResult,
+  type QuickPizzaStyleId,
+} from "@/lib/quick-calculator/pizza-sizing";
 import type { Fermentation, RecipeIngredients, RecipeSettings, YeastType } from "@/lib/saved-recipes";
 
 export type QuickFermentationDuration = "6h" | "12h" | "24h" | "48h";
@@ -8,6 +16,14 @@ export type QuickFermentationEnvironment = "room" | "cold";
 export type QuickCalculatorInput = {
   pizzaCount: number;
   doughBallWeightGrams: number;
+  sizingMode: QuickPizzaSizingMode;
+  pizzaStyle: QuickPizzaStyleId;
+  diameterCm: number;
+  panWidthCm: number;
+  panLengthCm: number;
+  thicknessFactor: number;
+  doughLoadingGramsPerSquareCm: number;
+  customDoughWeightGrams: number;
   hydrationPercent: number;
   saltPercent: number;
   yeastType: YeastType;
@@ -21,6 +37,7 @@ export type QuickCalculatorResult = {
   input: QuickCalculatorInput;
   settings: RecipeSettings;
   ingredients: RecipeIngredients;
+  sizing: QuickPizzaSizingResult;
   bakerPercentages: QuickCalculatorBakerPercentages;
   summaryText: string;
 };
@@ -49,6 +66,14 @@ export type QuickCalculatorPresentation = {
 export const quickCalculatorDefaults: QuickCalculatorInput = {
   pizzaCount: 4,
   doughBallWeightGrams: 260,
+  sizingMode: "ball-weight",
+  pizzaStyle: "neapolitan",
+  diameterCm: 32,
+  panWidthCm: 30,
+  panLengthCm: 40,
+  thicknessFactor: 0.32,
+  doughLoadingGramsPerSquareCm: 0.65,
+  customDoughWeightGrams: 260,
   hydrationPercent: 64,
   saltPercent: 2.8,
   yeastType: "idy",
@@ -145,10 +170,30 @@ export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): Quic
     ?? quickCalculatorEnvironmentOptions.find((option) => option.value === quickCalculatorDefaults.fermentationEnvironment)!;
   const yeastOption = quickCalculatorYeastOptions.find((option) => option.value === input.yeastType)
     ?? quickCalculatorYeastOptions.find((option) => option.value === quickCalculatorDefaults.yeastType)!;
+  const sizing = normalizeQuickPizzaSizingInput({
+    sizingMode: input.sizingMode,
+    pizzaStyle: input.pizzaStyle,
+    quantity: input.pizzaCount,
+    ballWeightGrams: input.doughBallWeightGrams,
+    diameterCm: input.diameterCm,
+    panWidthCm: input.panWidthCm,
+    panLengthCm: input.panLengthCm,
+    thicknessFactor: input.thicknessFactor,
+    doughLoadingGramsPerSquareCm: input.doughLoadingGramsPerSquareCm,
+    customDoughWeightGrams: input.customDoughWeightGrams,
+  } satisfies QuickPizzaSizingInput);
 
   return {
-    pizzaCount: Math.round(clampNumber(input.pizzaCount, 1, 50)),
-    doughBallWeightGrams: clampNumber(input.doughBallWeightGrams, 100, 1000),
+    pizzaCount: sizing.quantity,
+    doughBallWeightGrams: sizing.ballWeightGrams,
+    sizingMode: sizing.sizingMode,
+    pizzaStyle: sizing.pizzaStyle,
+    diameterCm: sizing.diameterCm,
+    panWidthCm: sizing.panWidthCm,
+    panLengthCm: sizing.panLengthCm,
+    thicknessFactor: sizing.thicknessFactor,
+    doughLoadingGramsPerSquareCm: sizing.doughLoadingGramsPerSquareCm,
+    customDoughWeightGrams: sizing.customDoughWeightGrams,
     hydrationPercent: clampNumber(input.hydrationPercent, 40, 100),
     saltPercent: clampNumber(input.saltPercent, 0, 10),
     yeastType: yeastOption.value,
@@ -161,10 +206,22 @@ export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): Quic
 
 export function quickCalculatorInputToRecipeSettings(input: QuickCalculatorInput): RecipeSettings {
   const normalized = normalizeQuickCalculatorInput(input);
+  const sizing = calculateQuickPizzaSizing({
+    sizingMode: normalized.sizingMode,
+    pizzaStyle: normalized.pizzaStyle,
+    quantity: normalized.pizzaCount,
+    ballWeightGrams: normalized.doughBallWeightGrams,
+    diameterCm: normalized.diameterCm,
+    panWidthCm: normalized.panWidthCm,
+    panLengthCm: normalized.panLengthCm,
+    thicknessFactor: normalized.thicknessFactor,
+    doughLoadingGramsPerSquareCm: normalized.doughLoadingGramsPerSquareCm,
+    customDoughWeightGrams: normalized.customDoughWeightGrams,
+  });
 
   return {
     pizzas: normalized.pizzaCount,
-    ballWeight: normalized.doughBallWeightGrams,
+    ballWeight: sizing.doughWeightPerPieceGrams,
     waste: normalized.wastePercent,
     hydration: normalized.hydrationPercent,
     salt: normalized.saltPercent,
@@ -187,12 +244,13 @@ export function buildQuickCalculatorBakerPercentages(input: QuickCalculatorInput
   };
 }
 
-export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "input" | "ingredients" | "bakerPercentages">) {
+export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "input" | "ingredients" | "sizing" | "bakerPercentages">) {
   const yeastLabel = quickCalculatorYeastOptions.find((option) => option.value === result.input.yeastType)?.label ?? "Yeast";
   const environmentLabel = quickCalculatorEnvironmentOptions.find((option) => option.value === result.input.fermentationEnvironment)?.label ?? "Fermentation";
   const lines = [
     "Quick Dough Calculator",
-    `${result.input.pizzaCount} pizzas × ${result.input.doughBallWeightGrams} g dough balls`,
+    `${result.input.pizzaCount} ${result.input.sizingMode === "pan" ? "pans" : "pizzas"} × ${Math.round(result.sizing.doughWeightPerPieceGrams)} g dough`,
+    `${result.sizing.style.label} · ${result.input.sizingMode}`,
     `${result.input.hydrationPercent}% hydration · ${result.input.saltPercent}% salt · ${result.input.wastePercent}% extra dough`,
     `${result.input.fermentationDuration} · ${environmentLabel} · ${result.input.fermentationTemperatureCelsius} °C`,
     "",
@@ -216,13 +274,26 @@ export function calculateQuickDough(input: QuickCalculatorInput): QuickCalculato
   const normalized = normalizeQuickCalculatorInput(input);
   const settings = quickCalculatorInputToRecipeSettings(normalized);
   const ingredients = calculateDoughIngredients(settings);
+  const sizing = calculateQuickPizzaSizing({
+    sizingMode: normalized.sizingMode,
+    pizzaStyle: normalized.pizzaStyle,
+    quantity: normalized.pizzaCount,
+    ballWeightGrams: normalized.doughBallWeightGrams,
+    diameterCm: normalized.diameterCm,
+    panWidthCm: normalized.panWidthCm,
+    panLengthCm: normalized.panLengthCm,
+    thicknessFactor: normalized.thicknessFactor,
+    doughLoadingGramsPerSquareCm: normalized.doughLoadingGramsPerSquareCm,
+    customDoughWeightGrams: normalized.customDoughWeightGrams,
+  });
   const bakerPercentages = buildQuickCalculatorBakerPercentages(normalized, ingredients);
 
   return {
     input: normalized,
     settings,
     ingredients,
+    sizing,
     bakerPercentages,
-    summaryText: buildQuickRecipePlainText({ input: normalized, ingredients, bakerPercentages }),
+    summaryText: buildQuickRecipePlainText({ input: normalized, ingredients, sizing, bakerPercentages }),
   };
 }

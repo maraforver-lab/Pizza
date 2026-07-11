@@ -3,6 +3,14 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import {
+  applyQuickPizzaStylePreset,
+  calculateQuickPizzaSizing,
+  derivePanDoughWeightGrams,
+  deriveRoundDoughWeightGrams,
+  quickPizzaStylePresetById,
+  quickPizzaStylePresets,
+} from "@/lib/quick-calculator/pizza-sizing";
+import {
   buildQuickCalculatorShareUrl,
   createQuickCalculatorSavedRecipe,
   deleteQuickCalculatorSavedRecipe,
@@ -256,6 +264,11 @@ describe("Quick Dough Calculator isolated core UI", () => {
       doughBallWeightGrams: 270,
       hydrationPercent: 66,
       saltPercent: 2.6,
+      sizingMode: "pan" as const,
+      pizzaStyle: "detroit" as const,
+      panWidthCm: 25,
+      panLengthCm: 35,
+      doughLoadingGramsPerSquareCm: 0.74,
       fermentationDuration: "48h" as const,
       fermentationEnvironment: "cold" as const,
       fermentationTemperatureCelsius: 4,
@@ -367,5 +380,111 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("buildQuickCalculatorShareUrl(result.input)");
     expect(component).not.toContain("Start Pizza Session");
     expect(component).not.toContain("/session/");
+  });
+
+  it("defines isolated Quick Calculator pizza style presets and sizing math", () => {
+    expect(quickPizzaStylePresets.map((style) => style.id)).toEqual([
+      "neapolitan",
+      "new-york",
+      "roman-round",
+      "detroit",
+      "sicilian",
+      "custom",
+    ]);
+    expect(quickPizzaStylePresetById("detroit").label).toBe("Detroit");
+    expect(deriveRoundDoughWeightGrams(32, 0.32)).toBe(257);
+    expect(derivePanDoughWeightGrams(25, 35, 0.74)).toBe(648);
+  });
+
+  it("derives effective dough weight from explicit sizing modes before calling the existing dough calculator", () => {
+    const round = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      sizingMode: "round",
+      pizzaStyle: "new-york",
+      pizzaCount: 2,
+      diameterCm: 38,
+      thicknessFactor: 0.28,
+    });
+    const pan = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      sizingMode: "pan",
+      pizzaStyle: "detroit",
+      pizzaCount: 1,
+      panWidthCm: 25,
+      panLengthCm: 35,
+      doughLoadingGramsPerSquareCm: 0.74,
+    });
+    const custom = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      sizingMode: "custom",
+      customDoughWeightGrams: 415,
+    });
+
+    expect(round.sizing.doughWeightPerPieceGrams).toBe(318);
+    expect(round.settings.ballWeight).toBe(318);
+    expect(pan.sizing.doughWeightPerPieceGrams).toBe(648);
+    expect(pan.settings.ballWeight).toBe(648);
+    expect(custom.sizing.doughWeightPerPieceGrams).toBe(415);
+    expect(custom.settings.ballWeight).toBe(415);
+  });
+
+  it("applies style presets to sizing defaults without changing fermentation or formula fields", () => {
+    const current = {
+      sizingMode: "ball-weight" as const,
+      pizzaStyle: "neapolitan" as const,
+      quantity: 4,
+      ballWeightGrams: 260,
+      diameterCm: 32,
+      panWidthCm: 30,
+      panLengthCm: 40,
+      thicknessFactor: 0.32,
+      doughLoadingGramsPerSquareCm: 0.65,
+      customDoughWeightGrams: 260,
+    };
+
+    const detroit = applyQuickPizzaStylePreset(current, "detroit");
+
+    expect(detroit).toMatchObject({
+      pizzaStyle: "detroit",
+      sizingMode: "pan",
+      ballWeightGrams: 650,
+      panWidthCm: 25,
+      panLengthCm: 35,
+      doughLoadingGramsPerSquareCm: 0.74,
+    });
+  });
+
+  it("extends save/share normalization with sizing fields while keeping the isolated quick query", () => {
+    const input = {
+      ...quickCalculatorDefaults,
+      sizingMode: "round" as const,
+      pizzaStyle: "roman-round" as const,
+      diameterCm: 32,
+      thicknessFactor: 0.27,
+    };
+    const params = quickCalculatorInputToShareParams(input);
+    const parsed = quickCalculatorInputFromSearch(`?${params.toString()}`);
+
+    expect(parsed?.sizingMode).toBe("round");
+    expect(parsed?.pizzaStyle).toBe("roman-round");
+    expect(parsed?.diameterCm).toBe(32);
+    expect(parsed?.thicknessFactor).toBe(0.27);
+    expect(params.has("calculator")).toBe(false);
+    expect(params.has("quick")).toBe(true);
+  });
+
+  it("renders explicit pizza style and sizing controls without changing workflow boundaries", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+    const sizing = source("lib/quick-calculator/pizza-sizing.ts");
+
+    expect(component).toContain("Pizza style and sizing");
+    expect(component).toContain("Sizing mode");
+    expect(component).toContain("Pizza diameter");
+    expect(component).toContain("Pan width");
+    expect(component).toContain("Pan length");
+    expect(component).toContain("Dough loading");
+    expect(component).toContain("Custom dough weight");
+    expect(component).toContain("Derived dough size");
+    expect(sizing).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
   });
 });

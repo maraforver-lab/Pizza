@@ -8,6 +8,12 @@ import {
   type ExperienceLevel,
 } from "@/lib/experience-levels";
 import {
+  applyQuickPizzaStylePreset,
+  quickPizzaStylePresets,
+  type QuickPizzaSizingMode,
+  type QuickPizzaStyleId,
+} from "@/lib/quick-calculator/pizza-sizing";
+import {
   buildQuickCalculatorShareUrl,
   deleteQuickCalculatorSavedRecipe,
   duplicateQuickCalculatorSavedRecipe,
@@ -49,6 +55,11 @@ function formatPercent(value: number, digits = 1) {
     maximumFractionDigits: digits,
     minimumFractionDigits: digits,
   }).format(value);
+}
+
+function savedRecipeSummary(input: QuickCalculatorInput) {
+  const savedResult = calculateQuickDough(input);
+  return `${savedResult.input.pizzaCount} ${savedResult.input.sizingMode === "pan" ? "pans" : "pizzas"} × ${formatGrams(savedResult.sizing.doughWeightPerPieceGrams)} g · ${savedResult.sizing.style.label} · ${savedResult.input.hydrationPercent}% hydration`;
 }
 
 function updateInput<K extends keyof QuickCalculatorInput>(
@@ -206,6 +217,7 @@ export default function QuickDoughCalculator() {
   const selectedEnvironment = quickCalculatorEnvironmentOptions.find((option) => option.value === result.input.fermentationEnvironment)
     ?? quickCalculatorEnvironmentOptions[0];
   const yeastLabel = quickCalculatorYeastOptions.find((option) => option.value === result.input.yeastType)?.label ?? "Leavening";
+  const quantityLabel = result.input.sizingMode === "pan" ? "Number of pans" : "Number of pizzas";
   const showFormulaCard = presentation.visibleGroups.includes("formula");
   const showAdvancedCard = presentation.visibleGroups.includes("advanced");
   const formulaDefaultOpen = !presentation.collapsedGroups.includes("formula");
@@ -232,6 +244,37 @@ export default function QuickDoughCalculator() {
     setRecipeNotice("idle");
     setRecipeName("My quick dough");
     setActiveRecipeId(null);
+  };
+
+  const applyStyle = (styleId: QuickPizzaStyleId) => {
+    setInput((current) => {
+      const sizing = applyQuickPizzaStylePreset({
+        sizingMode: current.sizingMode,
+        pizzaStyle: current.pizzaStyle,
+        quantity: current.pizzaCount,
+        ballWeightGrams: current.doughBallWeightGrams,
+        diameterCm: current.diameterCm,
+        panWidthCm: current.panWidthCm,
+        panLengthCm: current.panLengthCm,
+        thicknessFactor: current.thicknessFactor,
+        doughLoadingGramsPerSquareCm: current.doughLoadingGramsPerSquareCm,
+        customDoughWeightGrams: current.customDoughWeightGrams,
+      }, styleId);
+
+      return {
+        ...current,
+        pizzaCount: sizing.quantity,
+        doughBallWeightGrams: sizing.ballWeightGrams,
+        sizingMode: sizing.sizingMode,
+        pizzaStyle: sizing.pizzaStyle,
+        diameterCm: sizing.diameterCm,
+        panWidthCm: sizing.panWidthCm,
+        panLengthCm: sizing.panLengthCm,
+        thicknessFactor: sizing.thicknessFactor,
+        doughLoadingGramsPerSquareCm: sizing.doughLoadingGramsPerSquareCm,
+        customDoughWeightGrams: sizing.customDoughWeightGrams,
+      };
+    });
   };
 
   const persistRecipes = (next: QuickCalculatorSavedRecipeV1[], notice: RecipeNotice) => {
@@ -387,7 +430,7 @@ export default function QuickDoughCalculator() {
             <div className="grid grid-cols-2 gap-3 rounded-[1.5rem] bg-ink/[.04] p-3 text-center">
               <div className="rounded-2xl bg-white p-3">
                 <span className="block text-[10px] font-extrabold uppercase tracking-[.14em] text-ink/40">Batch</span>
-                <strong className="mt-1 block text-lg text-ink">{result.input.pizzaCount} × {result.input.doughBallWeightGrams} g</strong>
+                <strong className="mt-1 block text-lg text-ink">{result.input.pizzaCount} × {formatGrams(result.sizing.doughWeightPerPieceGrams)} g</strong>
               </div>
               <div className="rounded-2xl bg-white p-3">
                 <span className="block text-[10px] font-extrabold uppercase tracking-[.14em] text-ink/40">Total dough</span>
@@ -473,7 +516,7 @@ export default function QuickDoughCalculator() {
                       className="mt-2 h-11 w-full rounded-xl border border-ink/10 px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
                     />
                     <p className="mt-2 text-xs leading-5 text-ink/45">
-                      {recipe.input.pizzaCount} × {recipe.input.doughBallWeightGrams} g · {recipe.input.hydrationPercent}% hydration · {recipe.input.fermentationDuration}
+                      {savedRecipeSummary(recipe.input)}
                     </p>
                     <div className="mt-3 grid grid-cols-3 gap-2">
                       <button type="button" onClick={() => loadSavedRecipe(recipe)} className="rounded-xl bg-tomato px-3 py-2.5 text-xs font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Load</button>
@@ -498,31 +541,179 @@ export default function QuickDoughCalculator() {
             <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">00 · Style and size</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold">Pizza style and sizing</h2>
+                </div>
+                <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">
+                  Style changes sizing defaults only. Formula and fermentation stay as selected.
+                </p>
+              </div>
+
+              <fieldset className="mt-5">
+                <legend className="text-sm font-extrabold text-ink/72">Pizza style</legend>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {quickPizzaStylePresets.map((style) => (
+                    <OptionButton<QuickPizzaStyleId>
+                      key={style.id}
+                      label={style.label}
+                      description={style.shape === "round" ? "Round pizza" : "Pan pizza"}
+                      selected={result.input.pizzaStyle === style.id}
+                      onClick={() => applyStyle(style.id)}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="mt-5">
+                <legend className="text-sm font-extrabold text-ink/72">Sizing mode</legend>
+                <div className="mt-3 grid gap-2 sm:grid-cols-4">
+                  {[
+                    ["ball-weight", "Dough-ball weight", "Use grams per pizza"],
+                    ["round", "Pizza diameter", "Derive from diameter"],
+                    ["pan", "Pan size", "Derive from pan area"],
+                    ["custom", "Custom", "Set target weight"],
+                  ].map(([value, label, description]) => (
+                    <OptionButton<QuickPizzaSizingMode>
+                      key={value}
+                      label={label}
+                      description={description}
+                      selected={result.input.sizingMode === value}
+                      onClick={() => updateInput(setInput, "sizingMode", value as QuickPizzaSizingMode)}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+
+              {result.input.sizingMode === "round" && (
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <NumberField
+                    id="quick-pizza-diameter"
+                    label="Pizza diameter"
+                    value={result.input.diameterCm}
+                    min={10}
+                    max={80}
+                    step={1}
+                    suffix="cm"
+                    onChange={(value) => updateInput(setInput, "diameterCm", value)}
+                  />
+                  <NumberField
+                    id="quick-thickness-factor"
+                    label="Thickness factor"
+                    value={result.input.thicknessFactor}
+                    min={0.15}
+                    max={0.75}
+                    step={0.01}
+                    suffix="g/cm²"
+                    onChange={(value) => updateInput(setInput, "thicknessFactor", value)}
+                  />
+                </div>
+              )}
+
+              {result.input.sizingMode === "pan" && (
+                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                  <NumberField
+                    id="quick-pan-width"
+                    label="Pan width"
+                    value={result.input.panWidthCm}
+                    min={10}
+                    max={80}
+                    step={1}
+                    suffix="cm"
+                    onChange={(value) => updateInput(setInput, "panWidthCm", value)}
+                  />
+                  <NumberField
+                    id="quick-pan-length"
+                    label="Pan length"
+                    value={result.input.panLengthCm}
+                    min={10}
+                    max={120}
+                    step={1}
+                    suffix="cm"
+                    onChange={(value) => updateInput(setInput, "panLengthCm", value)}
+                  />
+                  <NumberField
+                    id="quick-dough-loading"
+                    label="Dough loading"
+                    value={result.input.doughLoadingGramsPerSquareCm}
+                    min={0.25}
+                    max={1.2}
+                    step={0.01}
+                    suffix="g/cm²"
+                    onChange={(value) => updateInput(setInput, "doughLoadingGramsPerSquareCm", value)}
+                  />
+                </div>
+              )}
+
+              {result.input.sizingMode === "custom" && (
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <NumberField
+                    id="quick-custom-dough-weight"
+                    label="Custom dough weight"
+                    value={result.input.customDoughWeightGrams}
+                    min={100}
+                    max={2000}
+                    step={5}
+                    suffix="g"
+                    onChange={(value) => updateInput(setInput, "customDoughWeightGrams", value)}
+                  />
+                  <div className="rounded-[1.35rem] border border-ink/10 bg-cream/50 p-4">
+                    <p className="text-sm font-extrabold text-ink/72">Custom mode</p>
+                    <p className="mt-2 text-xs leading-5 text-ink/50">
+                      Use this when you already know the target dough weight per pizza or pan.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-5 rounded-[1.35rem] bg-ink/[.04] p-4">
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Derived dough size</p>
+                <p className="mt-2 text-2xl font-extrabold text-ink">
+                  {formatGrams(result.sizing.doughWeightPerPieceGrams)} g <span className="text-sm font-bold text-ink/45">each</span>
+                </p>
+                {result.sizing.areaSquareCm && (
+                  <p className="mt-1 text-xs leading-5 text-ink/48">
+                    {Math.round(result.sizing.areaSquareCm)} cm² · {formatPercent(result.sizing.loadingGramsPerSquareCm ?? 0, 2)} g/cm²
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
                   <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">01 · Batch</p>
-                  <h2 className="mt-2 font-display text-3xl font-semibold">Pizza count and dough size</h2>
+                  <h2 className="mt-2 font-display text-3xl font-semibold">Batch quantity</h2>
                 </div>
                 <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">Results update immediately as values change.</p>
               </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <NumberField
                   id="quick-pizza-count"
-                  label="Number of pizzas"
+                  label={quantityLabel}
                   value={result.input.pizzaCount}
                   min={1}
                   max={50}
-                  suffix="pizzas"
+                  suffix={result.input.sizingMode === "pan" ? "pans" : "pizzas"}
                   onChange={(value) => updateInput(setInput, "pizzaCount", value)}
                 />
-                <NumberField
-                  id="quick-ball-weight"
-                  label="Dough-ball weight"
-                  value={result.input.doughBallWeightGrams}
-                  min={100}
-                  max={1000}
-                  step={5}
-                  suffix="g"
-                  onChange={(value) => updateInput(setInput, "doughBallWeightGrams", value)}
-                />
+                {result.input.sizingMode === "ball-weight" ? (
+                  <NumberField
+                    id="quick-ball-weight"
+                    label="Dough-ball weight"
+                    value={result.input.doughBallWeightGrams}
+                    min={100}
+                    max={1000}
+                    step={5}
+                    suffix="g"
+                    onChange={(value) => updateInput(setInput, "doughBallWeightGrams", value)}
+                  />
+                ) : (
+                  <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+                    <p className="text-sm font-extrabold text-ink/72">Calculated dough weight</p>
+                    <p className="mt-3 text-3xl font-extrabold text-ink">{formatGrams(result.sizing.doughWeightPerPieceGrams)} g</p>
+                    <p className="mt-1 text-xs leading-5 text-ink/45">Derived by the selected sizing mode.</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -606,7 +797,7 @@ export default function QuickDoughCalculator() {
             <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Result</p>
             <h2 id="quick-calculator-results" className="mt-2 font-display text-3xl font-semibold">Ingredient amounts</h2>
             <p className="mt-3 text-sm leading-6 text-white/60">
-              {result.input.pizzaCount} pizzas × {result.input.doughBallWeightGrams} g · {result.input.hydrationPercent}% hydration · {selectedEnvironment.label}
+              {result.input.pizzaCount} {result.input.sizingMode === "pan" ? "pans" : "pizzas"} × {formatGrams(result.sizing.doughWeightPerPieceGrams)} g · {result.input.hydrationPercent}% hydration · {selectedEnvironment.label}
             </p>
             {presentation.resultDetail !== "simple" && (
               <p className="mt-2 text-xs leading-5 text-white/42">
