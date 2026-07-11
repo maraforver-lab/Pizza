@@ -243,10 +243,11 @@ describe("Pizza Dough Guide foundation", () => {
   it("keeps the current instruction ahead of session and flour context", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("<SessionContextCard context={sessionContext} />"));
-    expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("<FlourGuidanceCard guidance={flourGuidance} />"));
-    expect(page).toContain("const hasStepPersonalization = stepPersonalization.length > 0");
-    expect(page).toContain("{hasStepPersonalization && <StepPersonalizationCard facts={stepPersonalization} />}");
+    expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />"));
+    expect(page).not.toContain("<SessionContextCard context={sessionContext} />");
+    expect(page).not.toContain("<FlourGuidanceCard guidance={flourGuidance} />");
+    expect(page).not.toContain("<StepPersonalizationCard facts={stepPersonalization} />");
+    expect(page).not.toContain("Your plan for this step");
   });
 
   it("keeps mobile step progression primary and labels the active step without relying only on color", () => {
@@ -593,8 +594,14 @@ describe("Pizza Dough Guide foundation", () => {
   it("keeps the current dough plan card visible only on the Prepare step", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page).toContain('const showCurrentPlanCard = activeStep.id === "prepare"');
-    expect(page).toContain("{showCurrentPlanCard && <SessionContextCard context={sessionContext} />}");
+    expect(page).toContain('const showPreparePlanSummary = activeStep.id === "prepare"');
+    expect(page).toContain("{showPreparePlanSummary && (");
+    expect(page).toContain("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />");
+    expect(page).toContain("Your dough plan");
+    expect(page).toContain('className="mt-4 hidden lg:block"');
+    expect(page).toContain("lg:block");
+    expect(page).not.toContain("Your current dough plan");
+    expect(page).not.toContain("For your flour");
     expect(page).not.toContain("activeStep.id !== \"prepare\"");
   });
 
@@ -810,7 +817,8 @@ describe("Pizza Dough Guide foundation", () => {
     expect(adapter).toContain("recommendationLabel");
     expect(adapter).not.toMatch(/w_180_220|w_220_260|w_260_300|w_300_340|W 220–259|W 260–319|very strong|moderate|protein-to-W|W-to-protein/i);
     expect(adapter).not.toMatch(/calculateDoughIngredients|calculateContinuousYeastRecommendation|updatePizzaSession|setActivePizzaSession|localStorage\.setItem|Timeline output|Kitchen Mode output/i);
-    expect(component).toContain("<FlourGuidanceCard guidance={flourGuidance} />");
+    expect(component).toContain("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />");
+    expect(component).not.toContain("<FlourGuidanceCard");
     expect(component.match(/Continue to \{nextStep\.actionName\}/g)).toHaveLength(1);
   });
 

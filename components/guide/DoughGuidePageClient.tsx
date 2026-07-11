@@ -22,8 +22,6 @@ import {
 import {
   getDoughGuideSessionContext,
   getDoughGuideFlourGuidance,
-  getDoughGuideStepFlourGuidance,
-  getDoughGuideStepPersonalization,
   type DoughGuideFact,
   type DoughGuideFlourGuidance,
   type DoughGuideSessionContext,
@@ -75,10 +73,34 @@ function FactList({ facts }: { facts: readonly DoughGuideFact[] }) {
   );
 }
 
-function SessionContextCard({ context }: { context: DoughGuideSessionContext }) {
+function compactPrepareFacts(
+  context: DoughGuideSessionContext,
+  flourGuidance: DoughGuideFlourGuidance | undefined,
+) {
+  const rows: DoughGuideFact[] = [];
+  const wantedLabels = new Set(["Dough balls", "Hydration", "Fermentation", "Flour", "Yeast", "Cold temperature", "Room temperature"]);
+  for (const fact of context.summaryRows) {
+    if (wantedLabels.has(fact.label) && rows.length < 6) rows.push(fact);
+  }
+
+  const flourFit = flourGuidance?.facts.find((fact) => fact.label === "Fit");
+  if (flourFit && !rows.some((fact) => fact.label === "Flour fit") && rows.length < 6) {
+    rows.push({ label: "Flour fit", value: flourFit.value });
+  }
+
+  return rows;
+}
+
+function PreparePlanSummaryCard({
+  context,
+  flourGuidance,
+}: {
+  context: DoughGuideSessionContext;
+  flourGuidance: DoughGuideFlourGuidance | undefined;
+}) {
   if (!context.hasActiveSession) {
     return (
-      <section className="rounded-[1.5rem] border border-ink/10 bg-white/75 p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-no-session">
+      <section className="rounded-[1.5rem] border border-ink/10 bg-white/75 p-4 shadow-sm" aria-labelledby="dough-guide-no-session">
         <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <h2 id="dough-guide-no-session" className="font-display text-2xl font-semibold">No active Pizza Session</h2>
@@ -97,61 +119,22 @@ function SessionContextCard({ context }: { context: DoughGuideSessionContext }) 
     );
   }
 
+  const facts = compactPrepareFacts(context, flourGuidance);
+
   return (
-    <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.08] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-current-plan">
+    <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.08] p-4 shadow-sm" aria-labelledby="dough-guide-current-plan">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Active Pizza Session</p>
-          <h2 id="dough-guide-current-plan" className="mt-1 font-display text-2xl font-semibold">Your current dough plan</h2>
-          <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/60">
-            These values come from your active Dough Plan. Missing optional values are simply left out.
-          </p>
+          <h2 id="dough-guide-current-plan" className="mt-1 font-display text-2xl font-semibold">Your dough plan</h2>
         </div>
       </div>
-      <FactList facts={context.summaryRows} />
-    </section>
-  );
-}
-
-function FlourGuidanceCard({ guidance }: { guidance: DoughGuideFlourGuidance | undefined }) {
-  if (!guidance) return null;
-  return (
-    <section className="rounded-[1.5rem] border border-orange/20 bg-[#fff7ed] p-4 shadow-sm sm:p-5" aria-labelledby="dough-guide-flour-guidance">
-      <div className="grid gap-4 lg:grid-cols-[.85fr_1.15fr] lg:items-start">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Flour fit</p>
-          <h2 id="dough-guide-flour-guidance" className="mt-1 font-display text-2xl font-semibold">{guidance.heading}</h2>
-          <p className="mt-2 text-sm font-bold leading-6 text-ink/65">{guidance.explanation}</p>
-          {guidance.caution && (
-            <p className="mt-3 rounded-2xl border border-tomato/20 bg-white/70 p-3 text-sm font-extrabold leading-6 text-tomato">
-              Pay closer attention: {guidance.caution}
-            </p>
-          )}
-        </div>
-        <div>
-          <FactList facts={guidance.facts} />
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <section className="rounded-2xl bg-white/75 p-3">
-              <h3 className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Pay attention to</h3>
-              <BulletList items={guidance.payAttentionTo} />
-            </section>
-            <section className="rounded-2xl bg-white/75 p-3">
-              <h3 className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/40">Guidance for your level</h3>
-              <BulletList items={guidance.levelDetails} />
-            </section>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StepPersonalizationCard({ facts }: { facts: readonly DoughGuideFact[] }) {
-  if (!facts.length) return null;
-  return (
-    <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="your-plan-for-this-step">
-      <h3 id="your-plan-for-this-step" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Your plan for this step</h3>
       <FactList facts={facts} />
+      {flourGuidance?.caution && (
+        <p className="mt-3 rounded-2xl border border-tomato/15 bg-white/70 p-3 text-sm font-extrabold leading-6 text-tomato">
+          Pay closer attention: {flourGuidance.caution}
+        </p>
+      )}
     </section>
   );
 }
@@ -445,12 +428,7 @@ export default function DoughGuidePageClient() {
   const [sessionContext, setSessionContext] = useState<DoughGuideSessionContext>(() => getDoughGuideSessionContext(null));
   const levelDetails = getDoughGuideLevelDetails(activeStep, experienceLevel);
   const flourGuidance = getDoughGuideFlourGuidance(sessionContext.flourContext, experienceLevel);
-  const stepPersonalization = [
-    ...getDoughGuideStepPersonalization(activeStep.id, sessionContext),
-    ...getDoughGuideStepFlourGuidance(activeStep.id, sessionContext.flourContext),
-  ];
-  const hasStepPersonalization = stepPersonalization.length > 0;
-  const showCurrentPlanCard = activeStep.id === "prepare";
+  const showPreparePlanSummary = activeStep.id === "prepare";
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -517,16 +495,11 @@ export default function DoughGuidePageClient() {
               <BulletList items={activeStep.doThisNow} ordered />
             </section>
 
-            {(hasStepPersonalization || showCurrentPlanCard) && (
-              <div className={`mt-4 grid gap-4 ${hasStepPersonalization && showCurrentPlanCard ? "lg:grid-cols-[1fr_.92fr]" : ""}`}>
-                {hasStepPersonalization && <StepPersonalizationCard facts={stepPersonalization} />}
-                {showCurrentPlanCard && <SessionContextCard context={sessionContext} />}
+            {showPreparePlanSummary && (
+              <div className="mt-4 hidden lg:block">
+                <PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />
               </div>
             )}
-
-            <div className="mt-4">
-              <FlourGuidanceCard guidance={flourGuidance} />
-            </div>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-[1.08fr_.92fr]">
               <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="you-are-ready-when">
