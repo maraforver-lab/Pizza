@@ -26,7 +26,21 @@ export type PizzaTroubleshootingTopicId =
   | "pizza-soggy-middle"
   | "crust-burns-middle-doughy"
   | "base-burns-underneath"
+  | "gummy-layer-under-toppings"
+  | "top-burns-before-bottom"
+  | "rim-does-not-rise"
+  | "pizza-bakes-unevenly"
+  | "center-raw-or-doughy"
+  | "oven-loses-heat-between-pizzas"
   | "toppings-release-water"
+  | "cheese-burns-too-early"
+  | "cheese-releases-oil"
+  | "toppings-slide-after-baking"
+  | "sauce-makes-center-watery"
+  | "mozzarella-releases-water"
+  | "pizza-overloaded-with-toppings"
+  | "toppings-cook-unevenly"
+  | "rim-scorched-by-sauce-or-cheese"
   | "home-oven-pale-soft";
 
 export type PizzaTroubleshootingCategoryId =
@@ -1089,6 +1103,8 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
         id: "pizza-soggy-middle",
         title: "Pizza is soggy in the middle",
         shortSymptom: "The center is wet, soft or doughy even when the rim looks baked.",
+        symptomDetails:
+          "This is a broad moisture and bake-balance problem. If only the layer under the toppings is gummy, compare it with the gummy-layer topic before changing the whole dough.",
         quickCheck: "Check whether the center is overloaded or the baking surface has cooled down.",
         severity: "common",
         image: {
@@ -1120,11 +1136,20 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "preheat the oven, stone or steel fully",
           "give the oven time to recover between pizzas",
         ],
+        relatedTopicIds: [
+          "gummy-layer-under-toppings",
+          "center-raw-or-doughy",
+          "sauce-makes-center-watery",
+          "mozzarella-releases-water",
+          "pizza-overloaded-with-toppings",
+        ],
       },
       {
         id: "crust-burns-middle-doughy",
         title: "Crust burns but middle is doughy",
         shortSymptom: "The rim gets dark or burns before the center and base are fully cooked.",
+        symptomDetails:
+          "This is a heat-balance issue: the outside is racing ahead while the center still needs time.",
         quickCheck: "Compare top heat with bottom heat before changing the dough.",
         severity: "advanced",
         image: {
@@ -1155,11 +1180,14 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "use fewer wet toppings",
           "avoid overloading the center",
         ],
+        relatedTopicIds: ["top-burns-before-bottom", "center-raw-or-doughy", "pizza-bakes-unevenly"],
       },
       {
         id: "base-burns-underneath",
         title: "Base burns underneath",
         shortSymptom: "The bottom burns before the top is ready, often with bitter black flour spots.",
+        symptomDetails:
+          "This is mostly bottom-heat and launch-flour management, not the same as a pale home-oven base.",
         quickCheck: "Look for loose burnt flour and a baking surface that is too hot for the dough.",
         severity: "advanced",
         image: {
@@ -1188,11 +1216,14 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "match dough style to oven temperature",
           "avoid sugar/oil-rich doughs at very high heat",
         ],
+        relatedTopicIds: ["home-oven-pale-soft", "too-much-flour-under-pizza", "top-burns-before-bottom"],
       },
       {
         id: "home-oven-pale-soft",
         title: "Home oven pizza is pale or soft",
         shortSymptom: "The pizza bakes slowly, the crust stays pale, or the base lacks crispness.",
+        symptomDetails:
+          "This covers the bottom staying pale and soft in a lower-power oven, usually from limited surface heat or too much moisture.",
         quickCheck: "Check preheat time, surface heat and whether the oven is at its hottest safe setting.",
         severity: "common",
         image: {
@@ -1222,6 +1253,229 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "reduce wet toppings",
           "stretch the base thinner",
         ],
+        relatedTopicIds: ["base-burns-underneath", "oven-loses-heat-between-pizzas", "pizza-soggy-middle"],
+      },
+      {
+        id: "gummy-layer-under-toppings",
+        title: "Gummy layer under the toppings",
+        shortSymptom: "A sticky, dense layer forms just below the sauce, cheese or toppings.",
+        symptomDetails:
+          "This is unlike a center that is raw all the way through: the gummy layer is concentrated under the toppings while other parts may look baked.",
+        quickCheck: "Lift a slice and look for a translucent sticky band directly under the toppings.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/gummy-layer-under-toppings.webp",
+          alt: "A pizza slice cross-section showing a sticky gummy layer directly beneath the toppings.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "A gummy band under the toppings usually points to moisture load or a center that cannot finish baking quickly enough.",
+        },
+        likelyCauses: [
+          "too much sauce or wet cheese",
+          "toppings are concentrated in the center",
+          "center was stretched too thick",
+          "baking surface is not hot enough",
+        ],
+        fixNow: [
+          "bake a little longer if the top can handle it",
+          "keep the next pizza lighter in the center",
+          "let the baking surface recover before launching again",
+        ],
+        preventNextTime: [
+          "use a thinner sauce layer",
+          "drain wet cheese and toppings",
+          "stretch the center evenly",
+          "preheat the stone or steel fully",
+        ],
+        relatedTopicIds: ["pizza-soggy-middle", "center-raw-or-doughy", "sauce-makes-center-watery"],
+      },
+      {
+        id: "top-burns-before-bottom",
+        title: "Top burns before the bottom is ready",
+        shortSymptom: "Cheese, toppings or the rim darken while the underside still needs more bake time.",
+        symptomDetails:
+          "This is the opposite of a base that burns first: the top heat is ahead of the bottom heat.",
+        quickCheck: "If the top already dark but the underside is still pale, rebalance top and bottom heat.",
+        severity: "advanced",
+        image: {
+          src: "/images/troubleshooting/top-burns-before-bottom.webp",
+          alt: "A pizza with a dark burned top and a pale soft underside visible near the oven.",
+          width: 1200,
+          height: 800,
+          kind: "comparison",
+          caption: "When the top races ahead, the pizza needs more bottom heat or gentler top heat.",
+          comparisonLabels: {
+            problem: "Top is dark before the base is ready",
+            better: "Top and bottom finish together",
+          },
+        },
+        likelyCauses: [
+          "too much top heat or broiler heat",
+          "baking surface was not heat-soaked",
+          "pizza is too close to flame",
+          "wet or heavy toppings slow the base",
+        ],
+        fixNow: [
+          "move away from the strongest top heat if possible",
+          "reduce flame after launch in a pizza oven",
+          "finish longer only if the top is not getting worse",
+        ],
+        preventNextTime: [
+          "preheat the stone or steel longer",
+          "use less top heat at launch",
+          "stretch thinner and top lighter",
+          "give the oven time to recover between pizzas",
+        ],
+        relatedTopicIds: ["base-burns-underneath", "crust-burns-middle-doughy", "oven-loses-heat-between-pizzas"],
+      },
+      {
+        id: "rim-does-not-rise",
+        title: "Rim does not rise",
+        shortSymptom: "The cornicione stays flat, dense or bready instead of puffing in the oven.",
+        symptomDetails:
+          "This is not the same as dough that never fermented; it can also happen when gas is pressed out of the rim during shaping.",
+        quickCheck: "Check whether the rim was compressed while opening the dough.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/rim-does-not-rise.webp",
+          alt: "A baked pizza with a flat dense rim that did not puff in the oven.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "A flat rim can come from shaping pressure, weak fermentation or a bake that does not give enough oven spring.",
+        },
+        likelyCauses: [
+          "rim was pressed flat during shaping",
+          "dough was underproofed or overproofed",
+          "gluten structure is weak",
+          "oven was not hot enough for strong oven spring",
+        ],
+        fixNow: [
+          "there is little to fix once baked",
+          "use the next dough ball with gentler rim handling",
+          "avoid pressing the outer edge while stretching",
+        ],
+        preventNextTime: [
+          "preserve gas in the rim",
+          "ferment until the dough is relaxed and lively",
+          "preheat the oven fully",
+          "handle the dough ball gently",
+        ],
+        relatedTopicIds: ["rim-flattened-during-shaping", "dough-underproofed", "weak-gluten-structure"],
+      },
+      {
+        id: "pizza-bakes-unevenly",
+        title: "Pizza bakes unevenly",
+        shortSymptom: "One side is dark or cooked while another side stays pale, soft or underbaked.",
+        symptomDetails:
+          "Uneven baking usually comes from heat zones, rotation timing or uneven pizza thickness.",
+        quickCheck: "Compare the side nearest the heat source with the side that stayed pale.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/pizza-bakes-unevenly.webp",
+          alt: "A pizza with one side dark and blistered while the opposite side remains pale.",
+          width: 1200,
+          height: 800,
+          kind: "comparison",
+          caption: "Uneven color is a strong clue that rotation, heat zones or thickness need attention.",
+          comparisonLabels: {
+            problem: "One side bakes much faster",
+            better: "Pizza browns evenly after rotation",
+          },
+        },
+        likelyCauses: [
+          "pizza was not rotated often enough",
+          "oven has a strong hot spot",
+          "pizza thickness is uneven",
+          "stone or steel has uneven heat",
+        ],
+        fixNow: [
+          "rotate toward the pale side",
+          "move the pizza to a more balanced zone if possible",
+          "finish the pale side gently without burning the dark side",
+        ],
+        preventNextTime: [
+          "rotate earlier and more predictably",
+          "learn the oven hot spots",
+          "stretch to an even thickness",
+          "preheat the baking surface fully",
+        ],
+        relatedTopicIds: ["top-burns-before-bottom", "base-burns-underneath", "toppings-cook-unevenly"],
+      },
+      {
+        id: "center-raw-or-doughy",
+        title: "Center stays raw or doughy",
+        shortSymptom: "The dough itself stays raw, dense or pasty in the center after baking.",
+        symptomDetails:
+          "Here the dough itself is underbaked, not just a wet sauce or cheese layer.",
+        quickCheck: "Cut the center and check whether the crumb is raw rather than simply wet from toppings.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/center-raw-or-doughy.webp",
+          alt: "A cut pizza center showing raw doughy crumb beneath the toppings.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "A doughy center needs a thinner center, better surface heat or a lighter topping load.",
+        },
+        likelyCauses: [
+          "center was left too thick",
+          "pizza was overloaded",
+          "bake was too short",
+          "stone or steel was not hot enough",
+        ],
+        fixNow: [
+          "return to the oven if the top is not burned",
+          "finish with gentler heat if needed",
+          "make the next pizza thinner in the center",
+        ],
+        preventNextTime: [
+          "stretch the center evenly",
+          "use fewer wet toppings",
+          "preheat the baking surface fully",
+          "allow oven recovery between pizzas",
+        ],
+        relatedTopicIds: ["pizza-soggy-middle", "gummy-layer-under-toppings", "pizza-overloaded-with-toppings"],
+      },
+      {
+        id: "oven-loses-heat-between-pizzas",
+        title: "Oven loses heat between pizzas",
+        shortSymptom: "The first pizza bakes well, but later pizzas turn pale, soft or slower.",
+        symptomDetails:
+          "This is an oven recovery problem: the baking surface and oven air have not rebuilt enough heat between launches.",
+        quickCheck: "Compare the first pizza with the second or third pizza from the same oven session.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/oven-loses-heat-between-pizzas.webp",
+          alt: "Two pizzas from the same bake session, one well browned and one paler from oven heat loss.",
+          width: 1200,
+          height: 800,
+          kind: "comparison",
+          caption: "If later pizzas get paler, give the oven or baking surface time to recover.",
+          comparisonLabels: {
+            problem: "Later pizza bakes pale after heat loss",
+            better: "Oven recovers before the next launch",
+          },
+        },
+        likelyCauses: [
+          "stone or steel lost heat after launch",
+          "door was open too long",
+          "pizzas were baked too close together",
+          "oven thermostat cycles slowly",
+        ],
+        fixNow: [
+          "pause before the next pizza",
+          "let the oven return to temperature",
+          "use a simpler topping load while heat is lower",
+        ],
+        preventNextTime: [
+          "preheat longer",
+          "wait between pizzas when needed",
+          "keep oven-door openings short",
+          "use a steel or stone that stores enough heat",
+        ],
+        relatedTopicIds: ["home-oven-pale-soft", "top-burns-before-bottom", "pizza-soggy-middle"],
       },
     ],
   },
@@ -1240,6 +1494,8 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
         title: "Toppings release too much water",
         shortSymptom:
           "The pizza looks watery, cheese slides, the center softens, or toppings pool liquid during baking.",
+        symptomDetails:
+          "This is the general wet-topping problem. Use the sauce and mozzarella topics when the moisture source is clearly one ingredient.",
         quickCheck: "Look for wet cheese, watery vegetables, thin sauce or too much topping in the center.",
         severity: "common",
         image: {
@@ -1270,6 +1526,296 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "use fewer toppings per pizza",
           "spread toppings evenly and lightly",
         ],
+        relatedTopicIds: [
+          "sauce-makes-center-watery",
+          "mozzarella-releases-water",
+          "pizza-overloaded-with-toppings",
+          "toppings-slide-after-baking",
+        ],
+      },
+      {
+        id: "cheese-burns-too-early",
+        title: "Cheese burns before the pizza is ready",
+        shortSymptom: "Cheese browns, blisters or burns before the crust and base finish baking.",
+        symptomDetails:
+          "This is a topping timing and heat-balance issue, not necessarily a problem with the dough.",
+        quickCheck: "If the cheese dark while the base is pale, the top is ahead of the bake.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/cheese-burns-too-early.webp",
+          alt: "A pizza with cheese browned and burned before the base looks fully baked.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Cheese that burns early often needs gentler top heat, less cheese or later cheese placement.",
+        },
+        likelyCauses: [
+          "top heat is too strong",
+          "cheese pieces are too small or dry",
+          "too much cheese is exposed to intense heat",
+          "base needs longer than the cheese can tolerate",
+        ],
+        fixNow: [
+          "move away from direct top heat if possible",
+          "finish the base gently",
+          "use less cheese on the next pizza",
+        ],
+        preventNextTime: [
+          "use larger cheese pieces",
+          "add delicate cheese later when appropriate",
+          "balance top and bottom heat",
+          "avoid burying the center in cheese",
+        ],
+        relatedTopicIds: ["top-burns-before-bottom", "cheese-releases-oil", "home-oven-pale-soft"],
+      },
+      {
+        id: "cheese-releases-oil",
+        title: "Cheese releases oil",
+        shortSymptom: "The cheese separates into greasy pools instead of melting cleanly.",
+        symptomDetails:
+          "Oil release is usually a cheese and heat issue rather than a sauce-water issue.",
+        quickCheck: "Look for clear orange or yellow oil pooling on top of the cheese.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/cheese-releases-oil.webp",
+          alt: "A pizza with visible oily pools separating from melted cheese.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Greasy cheese can come from high heat, too much cheese or a cheese that separates easily.",
+        },
+        likelyCauses: [
+          "cheese is too oily for the bake style",
+          "too much cheese was used",
+          "top heat is too intense",
+          "cheese was grated too finely",
+        ],
+        fixNow: [
+          "blot excess oil only if serving presentation matters",
+          "use less cheese on the next pizza",
+          "reduce direct top heat if possible",
+        ],
+        preventNextTime: [
+          "use a cheese that melts cleanly",
+          "use larger pieces instead of fine shreds",
+          "reduce cheese quantity",
+          "balance heat so the cheese does not overcook",
+        ],
+        relatedTopicIds: ["cheese-burns-too-early", "mozzarella-releases-water", "top-burns-before-bottom"],
+      },
+      {
+        id: "toppings-slide-after-baking",
+        title: "Toppings slide off after baking",
+        shortSymptom: "Toppings or cheese slide off the slice when the pizza is cut or lifted.",
+        symptomDetails:
+          "This happens after baking and serving, unlike launch-specific topping slide before the pizza reaches the oven.",
+        quickCheck: "Lift a slice and watch whether the topping layer moves as one sheet.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/toppings-slide-after-baking.webp",
+          alt: "A slice lifted from a pizza with toppings sliding off after baking.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Sliding after baking usually means too much moisture, too much topping weight or not enough cooling time.",
+        },
+        likelyCauses: [
+          "too much sauce or cheese",
+          "wet toppings created a slippery layer",
+          "pizza was cut immediately while very hot",
+          "toppings were not anchored by a balanced cheese layer",
+        ],
+        fixNow: [
+          "let the pizza rest briefly before cutting",
+          "cut with a sharp wheel or knife",
+          "serve with support under the slice",
+        ],
+        preventNextTime: [
+          "use less sauce and cheese",
+          "drain wet toppings",
+          "spread toppings evenly",
+          "let the pizza rest briefly before slicing",
+        ],
+        relatedTopicIds: ["toppings-slide-during-launch", "sauce-makes-center-watery", "mozzarella-releases-water"],
+      },
+      {
+        id: "sauce-makes-center-watery",
+        title: "Sauce makes the center watery",
+        shortSymptom: "The center turns wet or soupy where the sauce sits.",
+        symptomDetails:
+          "This points to the sauce layer itself, not the cheese or the dough formula.",
+        quickCheck: "Look for loose red sauce pooling in the center after baking.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/sauce-makes-center-watery.webp",
+          alt: "A pizza center with loose watery tomato sauce pooling under the toppings.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "A watery sauce layer can keep the center soft even when the rest of the pizza bakes well.",
+        },
+        likelyCauses: [
+          "sauce is too thin",
+          "too much sauce was used",
+          "sauce was concentrated in the center",
+          "wet toppings added more moisture on top",
+        ],
+        fixNow: [
+          "use less sauce on the next pizza",
+          "spread sauce thinner and leave the center lighter",
+          "avoid adding more wet toppings",
+        ],
+        preventNextTime: [
+          "use thicker sauce",
+          "drain watery tomatoes",
+          "apply sauce in a thin even layer",
+          "keep the center light",
+        ],
+        relatedTopicIds: ["pizza-soggy-middle", "gummy-layer-under-toppings", "toppings-release-water"],
+      },
+      {
+        id: "mozzarella-releases-water",
+        title: "Fresh mozzarella releases too much water",
+        shortSymptom: "Milky water pools around mozzarella and softens the pizza during baking.",
+        symptomDetails:
+          "This is cheese moisture specifically, not a general topping-load or sauce problem.",
+        quickCheck: "Check whether the liquid is collecting around mozzarella pieces.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/mozzarella-releases-water.webp",
+          alt: "Fresh mozzarella pieces releasing milky water onto a pizza during baking.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Fresh mozzarella needs draining, drying or a lighter hand to avoid flooding the center.",
+        },
+        likelyCauses: [
+          "fresh mozzarella was not drained",
+          "cheese pieces were too large or too many",
+          "mozzarella was added too early for the oven style",
+          "pizza was topped heavily in the center",
+        ],
+        fixNow: [
+          "remove excess water if possible before serving",
+          "use less mozzarella on the next pizza",
+          "place cheese away from the very center",
+        ],
+        preventNextTime: [
+          "drain and pat mozzarella dry",
+          "tear into moderate pieces",
+          "use less fresh mozzarella",
+          "add delicate cheese later when appropriate",
+        ],
+        relatedTopicIds: ["toppings-release-water", "sauce-makes-center-watery", "cheese-releases-oil"],
+      },
+      {
+        id: "pizza-overloaded-with-toppings",
+        title: "Pizza is overloaded with toppings",
+        shortSymptom: "The pizza feels heavy, bakes slowly, sags or stays wet in the center.",
+        symptomDetails:
+          "Overloading can cause several symptoms at once: soggy center, sliding toppings, pale base and uneven bake.",
+        quickCheck: "If the base stops moving freely or the slice collapses under the toppings, reduce the load.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/pizza-overloaded-with-toppings.webp",
+          alt: "A raw pizza overloaded with heavy toppings concentrated in the center.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "A lighter topping load helps the base bake and keeps the slice easier to handle.",
+        },
+        likelyCauses: [
+          "too many topping types",
+          "too much cheese or sauce",
+          "heavy toppings concentrated in the center",
+          "dough base is too thin for the load",
+        ],
+        fixNow: [
+          "remove excess toppings before launch if possible",
+          "bake longer only if the top can handle it",
+          "make the next pizza simpler",
+        ],
+        preventNextTime: [
+          "use fewer toppings",
+          "keep the center light",
+          "spread toppings evenly",
+          "match topping load to dough size and oven power",
+        ],
+        relatedTopicIds: ["pizza-soggy-middle", "toppings-slide-after-baking", "pizza-sticks-to-peel"],
+      },
+      {
+        id: "toppings-cook-unevenly",
+        title: "Toppings cook unevenly",
+        shortSymptom: "Some toppings burn or dry out while others stay raw, wet or firm.",
+        symptomDetails:
+          "This is a topping-size and topping-prep issue, not the same as the whole pizza baking unevenly.",
+        quickCheck: "Compare larger or denser toppings with small delicate toppings after the bake.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/toppings-cook-unevenly.webp",
+          alt: "A pizza with small toppings burned while larger vegetable pieces remain undercooked.",
+          width: 1200,
+          height: 800,
+          kind: "comparison",
+          caption: "Toppings cook best when size, moisture and placement match the bake time.",
+          comparisonLabels: {
+            problem: "Some toppings burn while others stay raw",
+            better: "Toppings are cut and placed for even cooking",
+          },
+        },
+        likelyCauses: [
+          "topping pieces are different sizes",
+          "dense vegetables were not pre-cooked",
+          "delicate toppings were added too early",
+          "toppings were piled unevenly",
+        ],
+        fixNow: [
+          "remove badly burned delicate toppings if needed",
+          "cut dense toppings smaller next time",
+          "add delicate toppings after baking when appropriate",
+        ],
+        preventNextTime: [
+          "cut toppings to similar sizes",
+          "pre-cook dense or watery vegetables",
+          "add delicate toppings later",
+          "spread toppings evenly",
+        ],
+        relatedTopicIds: ["pizza-bakes-unevenly", "toppings-release-water", "pizza-overloaded-with-toppings"],
+      },
+      {
+        id: "rim-scorched-by-sauce-or-cheese",
+        title: "Rim is scorched by sauce or cheese",
+        shortSymptom: "Dark bitter spots appear where sauce or cheese touches the rim.",
+        symptomDetails:
+          "This is a placement problem at the edge, not the same as a rim that burns evenly from too much heat.",
+        quickCheck: "Look for scorch marks exactly where sauce, cheese or toppings crossed onto the rim.",
+        severity: "common",
+        image: {
+          src: "/images/troubleshooting/rim-scorched-by-sauce-or-cheese.webp",
+          alt: "A pizza rim with localized scorch marks where sauce and cheese reached the edge.",
+          width: 1200,
+          height: 800,
+          kind: "symptom",
+          caption: "Keeping wet or fatty toppings off the rim prevents bitter localized scorching.",
+        },
+        likelyCauses: [
+          "sauce was spread onto the rim",
+          "cheese was placed over the edge",
+          "toppings touched the hottest exposed rim",
+          "pizza was rotated too late near strong flame",
+        ],
+        fixNow: [
+          "trim or avoid the scorched edge if bitter",
+          "keep the next pizza's rim cleaner",
+          "rotate before edge toppings burn",
+        ],
+        preventNextTime: [
+          "leave a clean rim border",
+          "keep cheese and sauce inside the rim",
+          "avoid toppings hanging over the edge",
+          "rotate predictably in strong heat",
+        ],
+        relatedTopicIds: ["cheese-burns-too-early", "crust-burns-middle-doughy", "rim-flattened-during-shaping"],
       },
     ],
   },

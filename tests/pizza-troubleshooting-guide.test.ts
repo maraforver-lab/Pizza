@@ -44,6 +44,32 @@ const patch305LaunchingTopicIds = [
 
 const patch305TopicIds = [...patch305ShapingTopicIds, ...patch305LaunchingTopicIds] as const;
 
+const patch306NewBakingTopicIds = [
+  "gummy-layer-under-toppings",
+  "top-burns-before-bottom",
+  "rim-does-not-rise",
+  "pizza-bakes-unevenly",
+  "center-raw-or-doughy",
+  "oven-loses-heat-between-pizzas",
+] as const;
+
+const patch306MergedBakingTopicIds = ["base-burns-underneath", "home-oven-pale-soft"] as const;
+
+const patch306BakingTopicIds = [...patch306NewBakingTopicIds, ...patch306MergedBakingTopicIds] as const;
+
+const patch306ToppingTopicIds = [
+  "cheese-burns-too-early",
+  "cheese-releases-oil",
+  "toppings-slide-after-baking",
+  "sauce-makes-center-watery",
+  "mozzarella-releases-water",
+  "pizza-overloaded-with-toppings",
+  "toppings-cook-unevenly",
+  "rim-scorched-by-sauce-or-cheese",
+] as const;
+
+const patch306NewTopicIds = [...patch306NewBakingTopicIds, ...patch306ToppingTopicIds] as const;
+
 const originalTopicIds = [
   "dough-not-rising",
   "dough-too-sticky",
@@ -89,7 +115,7 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(troubleshootingSections.every((section) => section.problems.length > 0)).toBe(true);
   });
 
-  it("keeps the existing ten problem titles and adds the Patch 304 and Patch 305 topics", () => {
+  it("keeps the existing ten problem titles and adds the Patch 304, Patch 305 and Patch 306 topics", () => {
     const topics = allTopics();
     const titles = topics.map((problem) => problem.title);
 
@@ -120,9 +146,23 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(titles).toContain("Pizza is soggy in the middle");
     expect(titles).toContain("Crust burns but middle is doughy");
     expect(titles).toContain("Base burns underneath");
+    expect(titles).toContain("Gummy layer under the toppings");
+    expect(titles).toContain("Top burns before the bottom is ready");
+    expect(titles).toContain("Rim does not rise");
+    expect(titles).toContain("Pizza bakes unevenly");
+    expect(titles).toContain("Center stays raw or doughy");
+    expect(titles).toContain("Oven loses heat between pizzas");
     expect(titles).toContain("Toppings release too much water");
+    expect(titles).toContain("Cheese burns before the pizza is ready");
+    expect(titles).toContain("Cheese releases oil");
+    expect(titles).toContain("Toppings slide off after baking");
+    expect(titles).toContain("Sauce makes the center watery");
+    expect(titles).toContain("Fresh mozzarella releases too much water");
+    expect(titles).toContain("Pizza is overloaded with toppings");
+    expect(titles).toContain("Toppings cook unevenly");
+    expect(titles).toContain("Rim is scorched by sauce or cheese");
     expect(titles).toContain("Home oven pizza is pale or soft");
-    expect(pizzaTroubleshootingTopicIds).toHaveLength(29);
+    expect(pizzaTroubleshootingTopicIds).toHaveLength(43);
     expect(new Set(pizzaTroubleshootingTopicIds).size).toBe(pizzaTroubleshootingTopicIds.length);
     for (const id of originalTopicIds) {
       expect(pizzaTroubleshootingTopicIds).toContain(id);
@@ -133,6 +173,11 @@ describe("Pizza Troubleshooting Guide", () => {
     for (const id of patch305TopicIds) {
       expect(pizzaTroubleshootingTopicIds).toContain(id);
     }
+    for (const id of patch306NewTopicIds) {
+      expect(pizzaTroubleshootingTopicIds).toContain(id);
+    }
+    expect(pizzaTroubleshootingTopicIds).not.toContain("bottom-pale-and-soft");
+    expect(pizzaTroubleshootingTopicIds).not.toContain("bottom-burns-before-top");
   });
 
   it("places Patch 304 topics only under Dough & fermentation without adding categories", () => {
@@ -176,6 +221,33 @@ describe("Pizza Troubleshooting Guide", () => {
       expect(owningSections.map((section) => section.id)).toEqual(["launching"]);
     }
     expect(pizzaTroubleshootingTopicIds.filter((id) => id === "pizza-sticks-to-peel")).toHaveLength(1);
+  });
+
+  it("places Patch 306 baking and topping topics in the existing Baking and Toppings sections", () => {
+    const bakingSection = troubleshootingSections.find((section) => section.id === "baking");
+    const toppingsSection = troubleshootingSections.find((section) => section.id === "toppings");
+    if (!bakingSection || !toppingsSection) throw new Error("Expected baking and toppings sections");
+
+    expect(troubleshootingSections.map((section) => section.id)).toEqual([
+      "dough-fermentation",
+      "shaping",
+      "launching",
+      "baking",
+      "toppings",
+    ]);
+    expect(bakingSection.problems).toHaveLength(10);
+    expect(toppingsSection.problems).toHaveLength(9);
+
+    for (const id of patch306BakingTopicIds) {
+      expect(bakingSection.problems.map((problem) => problem.id)).toContain(id);
+      const owningSections = troubleshootingSections.filter((section) => section.problems.some((problem) => problem.id === id));
+      expect(owningSections.map((section) => section.id)).toEqual(["baking"]);
+    }
+    for (const id of patch306ToppingTopicIds) {
+      expect(toppingsSection.problems.map((problem) => problem.id)).toContain(id);
+      const owningSections = troubleshootingSections.filter((section) => section.problems.some((problem) => problem.id === id));
+      expect(owningSections.map((section) => section.id)).toEqual(["toppings"]);
+    }
   });
 
   it("uses the requested problem-card fields", () => {
@@ -226,7 +298,7 @@ describe("Pizza Troubleshooting Guide", () => {
     const data = source("lib/pizza-troubleshooting.ts");
     const topics = allTopics();
 
-    expect(topics).toHaveLength(29);
+    expect(topics).toHaveLength(43);
     expect(page).toContain("problem.image.src");
     expect(page).toContain("problem.image.alt");
     expect(page).toContain("problem.image.kind === \"comparison\"");
@@ -296,6 +368,70 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(findPizzaTroubleshootingProblem("pizza-sticks-to-peel")?.problem.image.src).toBe(
       "/images/troubleshooting/pizza-sticks-to-peel.webp",
     );
+  });
+
+  it("adds complete content, local images and resolved related links for Patch 306 baking and topping topics", () => {
+    const topics = allTopics();
+    const imagePaths = new Set<string>();
+
+    for (const id of [...patch306NewTopicIds, ...patch306MergedBakingTopicIds]) {
+      const topic = topics.find((problem) => problem.id === id);
+      if (!topic) throw new Error(`Missing ${id}`);
+      expect(topic.shortSymptom).toBeTruthy();
+      expect(topic.symptomDetails).toBeTruthy();
+      expect(topic.likelyCauses.length).toBeGreaterThanOrEqual(2);
+      expect(topic.fixNow.length).toBeGreaterThanOrEqual(1);
+      expect(topic.preventNextTime.length).toBeGreaterThanOrEqual(2);
+      expect(topic.quickCheck).toBeTruthy();
+      expect(topic.image.src).toMatch(/^\/images\/troubleshooting\/.*\.webp$/);
+      expect(existsSync(join(process.cwd(), "public", topic.image.src))).toBe(true);
+      expect(topic.image.width).toBe(1200);
+      expect(topic.image.height).toBe(800);
+      expect(topic.image.alt).toBeTruthy();
+      expect(["symptom", "comparison"]).toContain(topic.image.kind);
+      imagePaths.add(topic.image.src);
+      for (const relatedId of topic.relatedTopicIds ?? []) {
+        expect(isPizzaTroubleshootingTopicId(relatedId)).toBe(true);
+        expect(findPizzaTroubleshootingProblem(relatedId)).toBeTruthy();
+      }
+    }
+    for (const id of patch306NewTopicIds) {
+      const topic = topics.find((problem) => problem.id === id);
+      if (!topic) throw new Error(`Missing ${id}`);
+      expect(imagePaths.has(topic.image.src)).toBe(true);
+    }
+  });
+
+  it("keeps Patch 306 baking and topping overlaps distinguishable", () => {
+    const gummyLayer = findPizzaTroubleshootingProblem("gummy-layer-under-toppings")?.problem;
+    const rawCenter = findPizzaTroubleshootingProblem("center-raw-or-doughy")?.problem;
+    const sauceWatery = findPizzaTroubleshootingProblem("sauce-makes-center-watery")?.problem;
+    const mozzarellaWater = findPizzaTroubleshootingProblem("mozzarella-releases-water")?.problem;
+    const baseBurn = findPizzaTroubleshootingProblem("base-burns-underneath")?.problem;
+    const homeOvenPale = findPizzaTroubleshootingProblem("home-oven-pale-soft")?.problem;
+    const flourBurn = findPizzaTroubleshootingProblem("too-much-flour-under-pizza")?.problem;
+    const topBurns = findPizzaTroubleshootingProblem("top-burns-before-bottom")?.problem;
+    const cheeseBurns = findPizzaTroubleshootingProblem("cheese-burns-too-early")?.problem;
+    const rimNoRise = findPizzaTroubleshootingProblem("rim-does-not-rise")?.problem;
+    const toppingsAfterBake = findPizzaTroubleshootingProblem("toppings-slide-after-baking")?.problem;
+    const toppingsDuringLaunch = findPizzaTroubleshootingProblem("toppings-slide-during-launch")?.problem;
+    const overloaded = findPizzaTroubleshootingProblem("pizza-overloaded-with-toppings")?.problem;
+    const toppingsUneven = findPizzaTroubleshootingProblem("toppings-cook-unevenly")?.problem;
+
+    expect(gummyLayer?.symptomDetails).toContain("unlike a center that is raw all the way through");
+    expect(rawCenter?.symptomDetails).toContain("dough itself");
+    expect(sauceWatery?.symptomDetails).toContain("sauce layer");
+    expect(mozzarellaWater?.quickCheck).toContain("mozzarella pieces");
+    expect(baseBurn?.symptomDetails).toContain("bottom-heat");
+    expect(homeOvenPale?.symptomDetails).toContain("bottom staying pale and soft");
+    expect(flourBurn?.symptomDetails).toContain("bench and peel preparation");
+    expect(topBurns?.quickCheck).toContain("top already dark");
+    expect(cheeseBurns?.quickCheck).toContain("cheese dark");
+    expect(rimNoRise?.symptomDetails).toContain("not the same as dough that never fermented");
+    expect(toppingsAfterBake?.symptomDetails).toContain("after baking and serving");
+    expect(toppingsDuringLaunch?.symptomDetails).toContain("launch-specific");
+    expect(overloaded?.quickCheck).toContain("base stops moving freely");
+    expect(toppingsUneven?.quickCheck).toContain("larger or denser toppings");
   });
 
   it("keeps shaping and launching overlaps distinguishable", () => {
