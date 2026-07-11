@@ -140,6 +140,21 @@ describe("shared navigation model", () => {
     expect(header).not.toContain("<summary");
   });
 
+  it("limits the Tools dropdown to the current Calculator v2 destination", () => {
+    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+
+    expect(header).toContain("const toolsMenuItems = [");
+    expect(header).toContain("toolsMenuItems.map");
+    expect(header).toContain("Calculator v2");
+    expect(header).toContain("Guided recommendation from bake time and ingredients.");
+    expect(header).toContain('href: "/?calculator=2"');
+    expect(header.split('href: "/?calculator=2"')).toHaveLength(2);
+    expect(header).not.toContain("Pizza dough calculator");
+    expect(header).not.toContain("Calculator v1");
+    expect(header).not.toContain("Calculate flour, water, salt and yeast.");
+    expect(header).not.toContain("Full-control planning lab for dough variables and risk.");
+  });
+
   it("uses one controlled menu state for Guide and Tools dropdowns on desktop and mobile", () => {
     const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
 

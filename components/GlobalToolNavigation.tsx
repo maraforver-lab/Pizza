@@ -9,10 +9,6 @@ const copy = {
   account: "Sign in",
   accountActive: "Your account",
   tools: "Tools",
-  calculator: "Pizza dough calculator",
-  calculatorDescription: "Calculate flour, water, salt and yeast.",
-  calculatorV1: "Calculator v1",
-  calculatorV1Description: "Full-control planning lab for dough variables and risk.",
   calculatorV2: "Calculator v2",
   calculatorV2Description: "Guided recommendation from bake time and ingredients.",
   guide: "Guide",
@@ -25,6 +21,14 @@ const copy = {
   lab: "Lab",
   about: "About",
 } as const;
+
+const toolsMenuItems = [
+  {
+    href: "/?calculator=2",
+    label: copy.calculatorV2,
+    description: copy.calculatorV2Description,
+  },
+] as const;
 
 type OpenNavigationMenu = "guide" | "tools" | null;
 
@@ -197,33 +201,18 @@ export default function GlobalToolNavigation() {
             </button>
             {toolsMenuOpen && (
               <div id="global-tools-menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Tools menu">
-                <Link
-                  href="/?calculator=1"
-                  role="menuitem"
-                  onClick={() => setOpenMenu(null)}
-                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                >
-                  <span className="block text-sm font-extrabold">{copy.calculator}</span>
-                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorDescription}</span>
-                </Link>
-                <Link
-                  href="/?calculator=1"
-                  role="menuitem"
-                  onClick={() => setOpenMenu(null)}
-                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                >
-                  <span className="block text-sm font-extrabold">{copy.calculatorV1}</span>
-                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorV1Description}</span>
-                </Link>
-                <Link
-                  href="/?calculator=2"
-                  role="menuitem"
-                  onClick={() => setOpenMenu(null)}
-                  className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                >
-                  <span className="block text-sm font-extrabold">{copy.calculatorV2}</span>
-                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.calculatorV2Description}</span>
-                </Link>
+                {toolsMenuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    role="menuitem"
+                    onClick={() => setOpenMenu(null)}
+                    className="block rounded-xl px-3 py-3 transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  >
+                    <span className="block text-sm font-extrabold">{item.label}</span>
+                    <span className="mt-1 block text-xs leading-5 text-ink/55">{item.description}</span>
+                  </Link>
+                ))}
               </div>
             )}
           </div>

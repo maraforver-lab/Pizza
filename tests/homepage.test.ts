@@ -191,14 +191,13 @@ describe("homepage content model", () => {
     expect(header).toContain("About");
     expect(header).not.toContain("Start Pizza Session");
     expect(header).not.toContain('href="/session/start"');
-    expect(header).toContain("Pizza dough calculator");
-    expect(header).toContain("Calculate flour, water, salt and yeast.");
-    expect(header).toContain("Calculator v1");
-    expect(header).toContain("Full-control planning lab for dough variables and risk.");
-    expect(header).toContain('href="/?calculator=1"');
     expect(header).toContain("Calculator v2");
     expect(header).toContain("Guided recommendation from bake time and ingredients.");
-    expect(header).toContain('href="/?calculator=2"');
+    expect(header).toContain('href: "/?calculator=2"');
+    expect(header).not.toContain("Pizza dough calculator");
+    expect(header).not.toContain("Calculate flour, water, salt and yeast.");
+    expect(header).not.toContain("Calculator v1");
+    expect(header).not.toContain("Full-control planning lab for dough variables and risk.");
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
     expect(updateNotice).toContain('pathname === "/"');
     expect(nextStep).not.toContain('"/":');
@@ -283,7 +282,7 @@ describe("homepage content model", () => {
     expect(homepage).not.toContain("Learn how it works");
   });
 
-  it("restores a compact Tools menu that opens the existing calculator route", () => {
+  it("keeps the compact Tools menu focused on the current Calculator v2 route", () => {
     const header = source("components/GlobalToolNavigation.tsx");
     const homepage = source("app/page.tsx");
 
@@ -294,14 +293,15 @@ describe("homepage content model", () => {
     expect(header).not.toContain("<details");
     expect(header).not.toContain("<summary");
     expect(header).toContain("Tools");
-    expect(header).toContain("Pizza dough calculator");
-    expect(header).toContain("Calculate flour, water, salt and yeast.");
-    expect(header).toContain("Calculator v1");
-    expect(header).toContain("Full-control planning lab for dough variables and risk.");
-    expect(header).toContain('href="/?calculator=1"');
     expect(header).toContain("Calculator v2");
     expect(header).toContain("Guided recommendation from bake time and ingredients.");
-    expect(header).toContain('href="/?calculator=2"');
+    expect(header).toContain("const toolsMenuItems = [");
+    expect(header).toContain('href: "/?calculator=2"');
+    expect(header).toContain("toolsMenuItems.map");
+    expect(header).not.toContain("Pizza dough calculator");
+    expect(header).not.toContain("Calculate flour, water, salt and yeast.");
+    expect(header).not.toContain("Calculator v1");
+    expect(header).not.toContain("Full-control planning lab for dough variables and risk.");
     expect(homepage).toContain("calculatorViewFor");
     expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
@@ -359,7 +359,7 @@ describe("homepage content model", () => {
 
     expect(header).toContain("Calculator v2");
     expect(header).toContain("Guided recommendation from bake time and ingredients.");
-    expect(header).toContain('href="/?calculator=2"');
+    expect(header).toContain('href: "/?calculator=2"');
     expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(calculatorWorkspace).toContain('variant?: "full" | "entry" | "guided"');
     expect(calculatorWorkspace).toContain("GuidedCalculatorV2");
