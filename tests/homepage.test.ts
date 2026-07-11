@@ -187,8 +187,8 @@ describe("homepage content model", () => {
     expect(header).toContain("aria-label=\"Guide menu\"");
     expect(header).toContain('type OpenNavigationMenu = "guide" | "tools" | null');
     expect(header).toContain("setOpenMenu(null)");
-    expect(header).toContain("Lab");
     expect(header).toContain("About");
+    expect(header).not.toContain("Lab");
     expect(header).not.toContain("Start Pizza Session");
     expect(header).not.toContain('href="/session/start"');
     expect(header).toContain("Calculator v2");

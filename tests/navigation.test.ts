@@ -122,6 +122,21 @@ describe("shared navigation model", () => {
     expect(header).not.toMatch(/Dough Calculator|Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
   });
 
+  it("removes Lab from the global header without deleting the legacy calculator route", () => {
+    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+    const homepage = readFileSync(join(process.cwd(), "app", "page.tsx"), "utf8");
+
+    expect(header).not.toContain("Lab");
+    expect(header).not.toContain("copy.lab");
+    expect(header).not.toContain('href="/?calculator=1"');
+    expect(header).toContain("About");
+    expect(header).toContain("Guide");
+    expect(header).toContain("Tools");
+    expect(header).toContain('href="/account"');
+    expect(homepage).toContain("calculatorViewFor");
+    expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
+  });
+
   it("closes the Tools dropdown on navigation, item click, outside click and Escape", () => {
     const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
 

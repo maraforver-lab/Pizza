@@ -18,7 +18,6 @@ const copy = {
   guideGlossaryDescription: "Learn terminology, flour strength and dough principles.",
   troubleshootingGuide: "Pizza Troubleshooting Guide",
   troubleshootingGuideDescription: "Fix common dough, topping and baking problems.",
-  lab: "Lab",
   about: "About",
 } as const;
 
@@ -123,12 +122,6 @@ export default function GlobalToolNavigation() {
 
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-            <Link
-              href="/?calculator=1"
-              className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-            >
-              {copy.lab}
-            </Link>
             <Link
               href="/about"
               className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
