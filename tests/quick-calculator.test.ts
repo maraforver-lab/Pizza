@@ -3,6 +3,13 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import {
+  calculateQuickAdvancedDoughTools,
+  calculateQuickReverseFermentation,
+  calculateWaterTemperature,
+  convertQuickYeast,
+  quickAdvancedDoughToolsDefaults,
+} from "@/lib/quick-calculator/advanced-dough-tools";
+import {
   applyQuickPizzaStylePreset,
   calculateQuickPizzaSizing,
   derivePanDoughWeightGrams,
@@ -49,6 +56,7 @@ const quickBoundaryFiles = [
   "components/quick-calculator/QuickDoughCalculator.tsx",
   "lib/quick-calculator/quick-dough-calculator.ts",
   "lib/quick-calculator/quick-calculator-storage.ts",
+  "lib/quick-calculator/advanced-dough-tools.ts",
 ];
 
 const forbiddenBoundaryPatterns = [
@@ -167,6 +175,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(text).toContain("Instant dry yeast:");
     expect(text).toContain("Preferment");
     expect(text).toContain("Method: Direct dough");
+    expect(text).toContain("Advanced dough tools");
+    expect(text).toContain("Target dough temperature");
   });
 
   it("keeps the Quick Calculator isolated from session, cloud, planning and Calculator v2 dependencies", () => {
@@ -204,6 +214,12 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Fermentation time");
     expect(component).toContain("Fermentation");
     expect(component).toContain("Fermentation temperature");
+    expect(component).toContain("Advanced dough tools");
+    expect(component).toContain("Target dough temperature");
+    expect(component).toContain("Water temperature");
+    expect(component).toContain("Yeast converter");
+    expect(component).toContain("Custom ingredients");
+    expect(component).toContain("Flour blend");
     expect(component).toContain("Ingredient amounts");
     expect(component).toContain("Baker’s percentages");
     expect(component).toContain("Copy recipe");
@@ -263,6 +279,121 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("OptionalControlGroup");
     expect(component).toContain("Formula details");
     expect(component).toContain("Yeast and temperature details");
+  });
+
+  it("normalizes advanced dough tool fields as optional Quick Calculator-only inputs", () => {
+    const normalized = normalizeQuickCalculatorInput({
+      ...quickCalculatorDefaults,
+      targetDoughTemperatureCelsius: 99,
+      flourTemperatureCelsius: -10,
+      roomTemperatureCelsius: 40,
+      prefermentTemperatureCelsius: 18,
+      mixerFrictionCelsius: 30,
+      reverseFermentationHours: 200,
+      yeastConversionFrom: "lsd",
+      yeastConversionTo: "ssd",
+      yeastConversionAmountGrams: 999,
+      customIngredientsEnabled: true,
+      oilPercent: 99,
+      sugarPercent: 99,
+      maltPercent: 99,
+      flourBlendEnabled: true,
+      flourBlendPrimaryPercent: 35,
+      flourBlendSecondaryPercent: 65,
+    });
+
+    expect(normalized).toMatchObject({
+      targetDoughTemperatureCelsius: 35,
+      flourTemperatureCelsius: 0,
+      roomTemperatureCelsius: 35,
+      mixerFrictionCelsius: 20,
+      reverseFermentationHours: 96,
+      yeastConversionFrom: "idy",
+      yeastConversionTo: "ady",
+      yeastConversionAmountGrams: 500,
+      customIngredientsEnabled: true,
+      oilPercent: 20,
+      sugarPercent: 20,
+      maltPercent: 10,
+      flourBlendEnabled: true,
+      flourBlendPrimaryPercent: 35,
+      flourBlendSecondaryPercent: 65,
+    });
+  });
+
+  it("calculates target dough temperature water temperature without changing ingredient output", () => {
+    const directWater = calculateWaterTemperature({
+      targetDoughTemperatureCelsius: 24,
+      flourTemperatureCelsius: 20,
+      roomTemperatureCelsius: 22,
+      prefermentTemperatureCelsius: 18,
+      mixerFrictionCelsius: 3,
+    }, false);
+    const prefermentedWater = calculateWaterTemperature({
+      targetDoughTemperatureCelsius: 24,
+      flourTemperatureCelsius: 20,
+      roomTemperatureCelsius: 22,
+      prefermentTemperatureCelsius: 18,
+      mixerFrictionCelsius: 3,
+    }, true);
+    const baseline = calculateQuickDough(quickCalculatorDefaults);
+    const adjusted = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      targetDoughTemperatureCelsius: 26,
+      flourTemperatureCelsius: 18,
+      roomTemperatureCelsius: 20,
+      mixerFrictionCelsius: 4,
+    });
+
+    expect(directWater.requiredWaterTemperatureCelsius).toBe(27);
+    expect(directWater.factorCount).toBe(3);
+    expect(prefermentedWater.requiredWaterTemperatureCelsius).toBe(33);
+    expect(prefermentedWater.factorCount).toBe(4);
+    expect(adjusted.ingredients).toEqual(baseline.ingredients);
+    expect(adjusted.settings).toEqual(baseline.settings);
+  });
+
+  it("converts commercial yeast types in the isolated Quick Calculator module", () => {
+    const converted = convertQuickYeast("idy", "ady", 1);
+
+    expect(converted.from).toBe("idy");
+    expect(converted.to).toBe("ady");
+    expect(converted.convertedGrams).toBeCloseTo(1 / 0.414 * 0.52, 6);
+    expect(convertQuickYeast("lsd", "ssd", 2)).toMatchObject({
+      from: "idy",
+      to: "ady",
+      inputGrams: 2,
+    });
+  });
+
+  it("estimates reverse fermentation yeast without calling the planning engine", () => {
+    const target = calculateQuickDough(quickCalculatorDefaults);
+    const reverse = calculateQuickReverseFermentation(target.ingredients, "idy", 4, 24);
+
+    expect(reverse.targetHours).toBe(24);
+    expect(reverse.yeastGramsForTargetHours).toBeCloseTo(target.ingredients.leavener, 6);
+    expect(reverse.estimatedHoursFromCurrentYeast).toBeCloseTo(24, 6);
+  });
+
+  it("calculates optional custom ingredients and flour blends without changing the target formula", () => {
+    const target = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      customIngredientsEnabled: true,
+      oilPercent: 3,
+      sugarPercent: 1,
+      maltPercent: 0.5,
+      flourBlendEnabled: true,
+      flourBlendPrimaryPercent: 70,
+    });
+    const direct = calculateQuickDough(quickCalculatorDefaults);
+
+    expect(target.ingredients).toEqual(direct.ingredients);
+    expect(target.advancedTools.customIngredients.enabled).toBe(true);
+    expect(target.advancedTools.customIngredients.oilGrams).toBeCloseTo(target.ingredients.flour * 0.03, 6);
+    expect(target.advancedTools.customIngredients.sugarGrams).toBeCloseTo(target.ingredients.flour * 0.01, 6);
+    expect(target.advancedTools.customIngredients.maltGrams).toBeCloseTo(target.ingredients.flour * 0.005, 6);
+    expect(target.advancedTools.flourBlend.primaryFlourGrams).toBeCloseTo(target.ingredients.flour * 0.7, 6);
+    expect(target.advancedTools.flourBlend.secondaryFlourGrams).toBeCloseTo(target.ingredients.flour * 0.3, 6);
   });
 
   it("does not let guidance mode change ingredient calculations for the same input", () => {
@@ -578,6 +709,49 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(params.has("quick")).toBe(true);
   });
 
+  it("extends save/share normalization with advanced dough tool fields while keeping the isolated quick query", () => {
+    const input = {
+      ...quickCalculatorDefaults,
+      targetDoughTemperatureCelsius: 25,
+      flourTemperatureCelsius: 19,
+      roomTemperatureCelsius: 21,
+      prefermentTemperatureCelsius: 18,
+      mixerFrictionCelsius: 4,
+      reverseFermentationHours: 36,
+      yeastConversionFrom: "cy" as const,
+      yeastConversionTo: "idy" as const,
+      yeastConversionAmountGrams: 3,
+      customIngredientsEnabled: true,
+      oilPercent: 2,
+      sugarPercent: 1,
+      maltPercent: 0.3,
+      flourBlendEnabled: true,
+      flourBlendPrimaryPercent: 65,
+    };
+    const params = quickCalculatorInputToShareParams(input);
+    const parsed = quickCalculatorInputFromSearch(`?${params.toString()}`);
+
+    expect(parsed).toMatchObject({
+      targetDoughTemperatureCelsius: 25,
+      flourTemperatureCelsius: 19,
+      roomTemperatureCelsius: 21,
+      mixerFrictionCelsius: 4,
+      reverseFermentationHours: 36,
+      yeastConversionFrom: "cy",
+      yeastConversionTo: "idy",
+      yeastConversionAmountGrams: 3,
+      customIngredientsEnabled: true,
+      oilPercent: 2,
+      sugarPercent: 1,
+      maltPercent: 0.3,
+      flourBlendEnabled: true,
+      flourBlendPrimaryPercent: 65,
+      flourBlendSecondaryPercent: 35,
+    });
+    expect(params.has("calculator")).toBe(false);
+    expect(params.has("quick")).toBe(true);
+  });
+
   it("renders explicit pizza style and sizing controls without changing workflow boundaries", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
     const sizing = source("lib/quick-calculator/pizza-sizing.ts");
@@ -597,7 +771,27 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(preferments).toContain("Sourdough / levain");
     expect(component).toContain("Preferment build");
     expect(component).toContain("Final dough additions");
+    expect(component).toContain("Required water");
+    expect(component).toContain("Reverse fermentation target");
+    expect(component).toContain("Primary flour");
+    expect(component).toContain("Secondary flour");
     expect(sizing).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
     expect(preferments).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
+  });
+
+  it("keeps advanced dough tools isolated from session, planning and Calculator v2 code", () => {
+    const advancedTools = source("lib/quick-calculator/advanced-dough-tools.ts");
+    const quickModule = source("lib/quick-calculator/quick-dough-calculator.ts");
+
+    expect(quickAdvancedDoughToolsDefaults.targetDoughTemperatureCelsius).toBe(24);
+    expect(calculateQuickAdvancedDoughTools(
+      calculateQuickDough(quickCalculatorDefaults).ingredients,
+      quickAdvancedDoughToolsDefaults,
+      quickCalculatorDefaults.yeastType,
+      quickCalculatorDefaults.fermentationTemperatureCelsius,
+      false,
+    ).waterTemperature.factorCount).toBe(3);
+    expect(advancedTools).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession|HomeCalculatorWorkspace/);
+    expect(quickModule).toContain("calculateQuickAdvancedDoughTools");
   });
 });

@@ -62,6 +62,13 @@ function formatPercent(value: number, digits = 1) {
   }).format(value);
 }
 
+function formatTemperature(value: number) {
+  return new Intl.NumberFormat("en-GB", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  }).format(value);
+}
+
 function savedRecipeSummary(input: QuickCalculatorInput) {
   const savedResult = calculateQuickDough(input);
   return `${savedResult.input.pizzaCount} ${savedResult.input.sizingMode === "pan" ? "pans" : "pizzas"} × ${formatGrams(savedResult.sizing.doughWeightPerPieceGrams)} g · ${savedResult.sizing.style.label} · ${savedResult.preferment.label}`;
@@ -387,30 +394,232 @@ export default function QuickDoughCalculator() {
     </div>
   );
 
+  const commercialYeastOptions = quickCalculatorYeastOptions.filter((option) => option.value === "idy" || option.value === "ady" || option.value === "cy");
+
   const advancedControls = (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <NumberField
-        id="quick-fermentation-temperature"
-        label="Fermentation temperature"
-        value={result.input.fermentationTemperatureCelsius}
-        min={0}
-        max={30}
-        suffix="°C"
-        onChange={(value) => updateInput(setInput, "fermentationTemperatureCelsius", value)}
-      />
-      <label className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
-        <span className="text-sm font-extrabold text-ink/72">Yeast type</span>
-        <select
-          value={result.input.yeastType}
-          onChange={(event) => updateInput(setInput, "yeastType", event.target.value as YeastType)}
-          className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
-          aria-label="Yeast type"
-        >
-          {quickCalculatorYeastOptions.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
+    <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <NumberField
+          id="quick-fermentation-temperature"
+          label="Fermentation temperature"
+          value={result.input.fermentationTemperatureCelsius}
+          min={0}
+          max={30}
+          suffix="°C"
+          onChange={(value) => updateInput(setInput, "fermentationTemperatureCelsius", value)}
+        />
+        <label className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+          <span className="text-sm font-extrabold text-ink/72">Yeast type</span>
+          <select
+            value={result.input.yeastType}
+            onChange={(event) => updateInput(setInput, "yeastType", event.target.value as YeastType)}
+            className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+            aria-label="Yeast type"
+          >
+            {quickCalculatorYeastOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <section className="rounded-[1.5rem] border border-ink/10 bg-white/65 p-4" aria-labelledby="quick-dough-temperature-heading">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Advanced dough tools</p>
+            <h3 id="quick-dough-temperature-heading" className="mt-1 text-xl font-extrabold text-ink">Target dough temperature and water temperature</h3>
+          </div>
+          <p className="text-xs leading-5 text-ink/45 sm:max-w-xs sm:text-right">
+            Water temperature estimate only; it does not change the ingredient formula.
+          </p>
+        </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <NumberField
+            id="quick-target-dough-temperature"
+            label="Target dough temperature"
+            value={result.input.targetDoughTemperatureCelsius}
+            min={10}
+            max={35}
+            step={0.5}
+            suffix="°C"
+            onChange={(value) => updateInput(setInput, "targetDoughTemperatureCelsius", value)}
+          />
+          <NumberField
+            id="quick-flour-temperature"
+            label="Flour temperature"
+            value={result.input.flourTemperatureCelsius}
+            min={0}
+            max={35}
+            step={0.5}
+            suffix="°C"
+            onChange={(value) => updateInput(setInput, "flourTemperatureCelsius", value)}
+          />
+          <NumberField
+            id="quick-room-temperature"
+            label="Room temperature"
+            value={result.input.roomTemperatureCelsius}
+            min={0}
+            max={35}
+            step={0.5}
+            suffix="°C"
+            onChange={(value) => updateInput(setInput, "roomTemperatureCelsius", value)}
+          />
+          <NumberField
+            id="quick-preferment-temperature"
+            label="Preferment temperature"
+            value={result.input.prefermentTemperatureCelsius}
+            min={0}
+            max={35}
+            step={0.5}
+            suffix="°C"
+            secondary={result.input.prefermentMethod === "direct"}
+            onChange={(value) => updateInput(setInput, "prefermentTemperatureCelsius", value)}
+          />
+          <NumberField
+            id="quick-mixer-friction"
+            label="Mixer friction heat"
+            value={result.input.mixerFrictionCelsius}
+            min={0}
+            max={20}
+            step={0.5}
+            suffix="°C"
+            onChange={(value) => updateInput(setInput, "mixerFrictionCelsius", value)}
+          />
+          <div className="rounded-[1.35rem] bg-ink/[.04] p-4">
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Required water</p>
+            <p className="mt-2 text-3xl font-extrabold text-ink">
+              {formatTemperature(result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius)} °C
+            </p>
+            <p className="mt-1 text-xs leading-5 text-ink/45">
+              {result.advancedTools.waterTemperature.factorCount} factors · includes preferment temperature only for prefermented dough.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[1.5rem] border border-ink/10 bg-white/65 p-4" aria-labelledby="quick-yeast-tools-heading">
+        <h3 id="quick-yeast-tools-heading" className="text-xl font-extrabold text-ink">Yeast converter and reverse fermentation</h3>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <NumberField
+                id="quick-yeast-conversion-amount"
+                label="Yeast amount"
+                value={result.input.yeastConversionAmountGrams}
+                min={0}
+                max={500}
+                step={0.1}
+                suffix="g"
+                onChange={(value) => updateInput(setInput, "yeastConversionAmountGrams", value)}
+              />
+              <label className="rounded-[1.35rem] border border-ink/10 bg-cream/40 p-4">
+                <span className="text-sm font-extrabold text-ink/72">From</span>
+                <select
+                  value={result.input.yeastConversionFrom}
+                  onChange={(event) => updateInput(setInput, "yeastConversionFrom", event.target.value as YeastType)}
+                  className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                >
+                  {commercialYeastOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="rounded-[1.35rem] border border-ink/10 bg-cream/40 p-4">
+                <span className="text-sm font-extrabold text-ink/72">To</span>
+                <select
+                  value={result.input.yeastConversionTo}
+                  onChange={(event) => updateInput(setInput, "yeastConversionTo", event.target.value as YeastType)}
+                  className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                >
+                  {commercialYeastOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="mt-3 rounded-2xl bg-ink/[.04] px-4 py-3 text-sm font-extrabold text-ink">
+              Converted yeast: {formatGrams(result.advancedTools.yeastConversion.convertedGrams, true)} g
+            </p>
+          </div>
+          <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+            <NumberField
+              id="quick-reverse-fermentation-hours"
+              label="Reverse fermentation target"
+              value={result.input.reverseFermentationHours}
+              min={1}
+              max={96}
+              step={1}
+              suffix="h"
+              onChange={(value) => updateInput(setInput, "reverseFermentationHours", value)}
+            />
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <dt className="text-ink/45">Yeast for target</dt>
+              <dd className="text-right font-extrabold">{formatGrams(result.advancedTools.reverseFermentation.yeastGramsForTargetHours, true)} g</dd>
+              <dt className="text-ink/45">Current yeast estimates</dt>
+              <dd className="text-right font-extrabold">
+                {result.advancedTools.reverseFermentation.estimatedHoursFromCurrentYeast === null
+                  ? "—"
+                  : `${formatTemperature(result.advancedTools.reverseFermentation.estimatedHoursFromCurrentYeast)} h`}
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[1.5rem] border border-ink/10 bg-white/65 p-4" aria-labelledby="quick-custom-tools-heading">
+        <h3 id="quick-custom-tools-heading" className="text-xl font-extrabold text-ink">Custom ingredients and Flour blend</h3>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+            <label className="flex items-start gap-3 text-sm font-extrabold text-ink/72">
+              <input
+                type="checkbox"
+                checked={result.input.customIngredientsEnabled}
+                onChange={(event) => updateInput(setInput, "customIngredientsEnabled", event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-ink/20 text-tomato focus:ring-tomato"
+              />
+              Add optional oil, sugar or malt amounts
+            </label>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <NumberField id="quick-oil-percent" label="Oil" value={result.input.oilPercent} min={0} max={20} step={0.5} suffix="%" onChange={(value) => updateInput(setInput, "oilPercent", value)} secondary={!result.input.customIngredientsEnabled} />
+              <NumberField id="quick-sugar-percent" label="Sugar" value={result.input.sugarPercent} min={0} max={20} step={0.5} suffix="%" onChange={(value) => updateInput(setInput, "sugarPercent", value)} secondary={!result.input.customIngredientsEnabled} />
+              <NumberField id="quick-malt-percent" label="Malt" value={result.input.maltPercent} min={0} max={10} step={0.1} suffix="%" onChange={(value) => updateInput(setInput, "maltPercent", value)} secondary={!result.input.customIngredientsEnabled} />
+            </div>
+            <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
+              <div><dt className="text-ink/42">Oil</dt><dd className="font-extrabold">{formatGrams(result.advancedTools.customIngredients.oilGrams)} g</dd></div>
+              <div><dt className="text-ink/42">Sugar</dt><dd className="font-extrabold">{formatGrams(result.advancedTools.customIngredients.sugarGrams)} g</dd></div>
+              <div><dt className="text-ink/42">Malt</dt><dd className="font-extrabold">{formatGrams(result.advancedTools.customIngredients.maltGrams)} g</dd></div>
+            </dl>
+          </div>
+          <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+            <label className="flex items-start gap-3 text-sm font-extrabold text-ink/72">
+              <input
+                type="checkbox"
+                checked={result.input.flourBlendEnabled}
+                onChange={(event) => updateInput(setInput, "flourBlendEnabled", event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-ink/20 text-tomato focus:ring-tomato"
+              />
+              Split total flour into a simple two-flour blend
+            </label>
+            <div className="mt-4">
+              <NumberField
+                id="quick-flour-blend-primary"
+                label="Primary flour"
+                value={result.input.flourBlendPrimaryPercent}
+                min={0}
+                max={100}
+                step={1}
+                suffix="%"
+                secondary={!result.input.flourBlendEnabled}
+                onChange={(value) => updateInput(setInput, "flourBlendPrimaryPercent", value)}
+              />
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <dt className="text-ink/45">Primary flour</dt><dd className="text-right font-extrabold">{formatGrams(result.advancedTools.flourBlend.primaryFlourGrams)} g</dd>
+              <dt className="text-ink/45">Secondary flour</dt><dd className="text-right font-extrabold">{formatGrams(result.advancedTools.flourBlend.secondaryFlourGrams)} g</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
     </div>
   );
 

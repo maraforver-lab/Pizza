@@ -1,6 +1,13 @@
 import { calculateDoughIngredients } from "@/lib/dough-calculator";
 import type { ExperienceLevel } from "@/lib/experience-levels";
 import {
+  calculateQuickAdvancedDoughTools,
+  normalizeQuickAdvancedDoughToolsInput,
+  quickAdvancedDoughToolsDefaults,
+  type QuickAdvancedDoughToolsInput,
+  type QuickAdvancedDoughToolsResult,
+} from "@/lib/quick-calculator/advanced-dough-tools";
+import {
   calculateQuickPizzaSizing,
   normalizeQuickPizzaSizingInput,
   type QuickPizzaSizingInput,
@@ -42,7 +49,7 @@ export type QuickCalculatorInput = {
   fermentationEnvironment: QuickFermentationEnvironment;
   fermentationTemperatureCelsius: number;
   wastePercent: number;
-};
+} & QuickAdvancedDoughToolsInput;
 
 export type QuickCalculatorResult = {
   input: QuickCalculatorInput;
@@ -50,6 +57,7 @@ export type QuickCalculatorResult = {
   ingredients: RecipeIngredients;
   sizing: QuickPizzaSizingResult;
   preferment: QuickPrefermentResult;
+  advancedTools: QuickAdvancedDoughToolsResult;
   bakerPercentages: QuickCalculatorBakerPercentages;
   summaryText: string;
 };
@@ -97,6 +105,7 @@ export const quickCalculatorDefaults: QuickCalculatorInput = {
   fermentationEnvironment: "cold",
   fermentationTemperatureCelsius: 4,
   wastePercent: 3,
+  ...quickAdvancedDoughToolsDefaults,
 };
 
 export const quickCalculatorDurationOptions: { value: QuickFermentationDuration; label: string }[] = [
@@ -204,6 +213,24 @@ export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): Quic
     doughLoadingGramsPerSquareCm: input.doughLoadingGramsPerSquareCm,
     customDoughWeightGrams: input.customDoughWeightGrams,
   } satisfies QuickPizzaSizingInput);
+  const advancedTools = normalizeQuickAdvancedDoughToolsInput({
+    targetDoughTemperatureCelsius: input.targetDoughTemperatureCelsius ?? quickAdvancedDoughToolsDefaults.targetDoughTemperatureCelsius,
+    flourTemperatureCelsius: input.flourTemperatureCelsius ?? quickAdvancedDoughToolsDefaults.flourTemperatureCelsius,
+    roomTemperatureCelsius: input.roomTemperatureCelsius ?? quickAdvancedDoughToolsDefaults.roomTemperatureCelsius,
+    prefermentTemperatureCelsius: input.prefermentTemperatureCelsius ?? quickAdvancedDoughToolsDefaults.prefermentTemperatureCelsius,
+    mixerFrictionCelsius: input.mixerFrictionCelsius ?? quickAdvancedDoughToolsDefaults.mixerFrictionCelsius,
+    reverseFermentationHours: input.reverseFermentationHours ?? quickAdvancedDoughToolsDefaults.reverseFermentationHours,
+    yeastConversionFrom: input.yeastConversionFrom ?? quickAdvancedDoughToolsDefaults.yeastConversionFrom,
+    yeastConversionTo: input.yeastConversionTo ?? quickAdvancedDoughToolsDefaults.yeastConversionTo,
+    yeastConversionAmountGrams: input.yeastConversionAmountGrams ?? quickAdvancedDoughToolsDefaults.yeastConversionAmountGrams,
+    customIngredientsEnabled: input.customIngredientsEnabled ?? quickAdvancedDoughToolsDefaults.customIngredientsEnabled,
+    oilPercent: input.oilPercent ?? quickAdvancedDoughToolsDefaults.oilPercent,
+    sugarPercent: input.sugarPercent ?? quickAdvancedDoughToolsDefaults.sugarPercent,
+    maltPercent: input.maltPercent ?? quickAdvancedDoughToolsDefaults.maltPercent,
+    flourBlendEnabled: input.flourBlendEnabled ?? quickAdvancedDoughToolsDefaults.flourBlendEnabled,
+    flourBlendPrimaryPercent: input.flourBlendPrimaryPercent ?? quickAdvancedDoughToolsDefaults.flourBlendPrimaryPercent,
+    flourBlendSecondaryPercent: input.flourBlendSecondaryPercent ?? quickAdvancedDoughToolsDefaults.flourBlendSecondaryPercent,
+  } satisfies QuickAdvancedDoughToolsInput);
 
   return {
     pizzaCount: sizing.quantity,
@@ -227,6 +254,7 @@ export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): Quic
     fermentationEnvironment: environmentOption.value,
     fermentationTemperatureCelsius: clampNumber(input.fermentationTemperatureCelsius, 0, 30),
     wastePercent: clampNumber(input.wastePercent, 0, 25),
+    ...advancedTools,
   };
 }
 
@@ -270,9 +298,11 @@ export function buildQuickCalculatorBakerPercentages(input: QuickCalculatorInput
   };
 }
 
-export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "input" | "ingredients" | "sizing" | "preferment" | "bakerPercentages">) {
+export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "input" | "ingredients" | "sizing" | "preferment" | "advancedTools" | "bakerPercentages">) {
   const yeastLabel = quickCalculatorYeastOptions.find((option) => option.value === result.input.yeastType)?.label ?? "Yeast";
   const environmentLabel = quickCalculatorEnvironmentOptions.find((option) => option.value === result.input.fermentationEnvironment)?.label ?? "Fermentation";
+  const conversionFromLabel = quickCalculatorYeastOptions.find((option) => option.value === result.advancedTools.yeastConversion.from)?.label ?? "Yeast";
+  const conversionToLabel = quickCalculatorYeastOptions.find((option) => option.value === result.advancedTools.yeastConversion.to)?.label ?? "Yeast";
   const lines = [
     "Quick Dough Calculator",
     `${result.input.pizzaCount} ${result.input.sizingMode === "pan" ? "pans" : "pizzas"} × ${Math.round(result.sizing.doughWeightPerPieceGrams)} g dough`,
@@ -296,6 +326,21 @@ export function buildQuickRecipePlainText(result: Pick<QuickCalculatorResult, "i
       : `Build yeast: ${result.preferment.build.commercialYeastGrams.toFixed(2)} g`,
     `Final flour addition: ${Math.round(result.preferment.finalDough.flourGrams)} g`,
     `Final water addition: ${Math.round(result.preferment.finalDough.waterGrams)} g`,
+    "",
+    "Advanced dough tools",
+    `Target dough temperature: ${result.input.targetDoughTemperatureCelsius} °C`,
+    `Water temperature estimate: ${Math.round(result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius)} °C`,
+    `Yeast conversion: ${result.advancedTools.yeastConversion.inputGrams.toFixed(2)} g ${conversionFromLabel} = ${result.advancedTools.yeastConversion.convertedGrams.toFixed(2)} g ${conversionToLabel}`,
+    `Yeast for ${result.advancedTools.reverseFermentation.targetHours} h: ${result.advancedTools.reverseFermentation.yeastGramsForTargetHours.toFixed(2)} g`,
+    ...(result.advancedTools.customIngredients.enabled ? [
+      `Oil: ${Math.round(result.advancedTools.customIngredients.oilGrams)} g`,
+      `Sugar: ${Math.round(result.advancedTools.customIngredients.sugarGrams)} g`,
+      `Malt: ${Math.round(result.advancedTools.customIngredients.maltGrams)} g`,
+    ] : []),
+    ...(result.advancedTools.flourBlend.enabled ? [
+      `Primary flour: ${Math.round(result.advancedTools.flourBlend.primaryFlourGrams)} g`,
+      `Secondary flour: ${Math.round(result.advancedTools.flourBlend.secondaryFlourGrams)} g`,
+    ] : []),
     "",
     "Baker's percentages",
     `Flour: ${result.bakerPercentages.flour}%`,
@@ -329,6 +374,13 @@ export function calculateQuickDough(input: QuickCalculatorInput): QuickCalculato
     prefermentHydrationPercent: normalized.prefermentHydrationPercent,
     prefermentInoculationPercent: normalized.prefermentInoculationPercent,
   });
+  const advancedTools = calculateQuickAdvancedDoughTools(
+    ingredients,
+    normalized,
+    normalized.yeastType,
+    normalized.fermentationTemperatureCelsius,
+    normalized.prefermentMethod !== "direct",
+  );
   const bakerPercentages = buildQuickCalculatorBakerPercentages(normalized, ingredients);
 
   return {
@@ -337,7 +389,8 @@ export function calculateQuickDough(input: QuickCalculatorInput): QuickCalculato
     ingredients,
     sizing,
     preferment,
+    advancedTools,
     bakerPercentages,
-    summaryText: buildQuickRecipePlainText({ input: normalized, ingredients, sizing, preferment, bakerPercentages }),
+    summaryText: buildQuickRecipePlainText({ input: normalized, ingredients, sizing, preferment, advancedTools, bakerPercentages }),
   };
 }
