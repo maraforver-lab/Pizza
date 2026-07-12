@@ -929,6 +929,18 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(preferments).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
   });
 
+  it("keeps the Quick Calculator mobile layout shrinkable at narrow widths", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("mt-6 grid min-w-0 gap-6");
+    expect(component).toContain('section className="grid min-w-0 gap-5" aria-label="Quick calculator inputs"');
+    expect(component).toContain('className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70');
+    expect(component).toContain("min-w-0 rounded-[1.35rem] border p-4");
+    expect(component).toContain("grid-cols-[2.5rem_minmax(3.5rem,1fr)_auto_2.5rem]");
+    expect(component).toContain("sm:grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem]");
+    expect(component).toContain("h-5 w-5 rounded");
+  });
+
   it("keeps advanced dough tools isolated from session, planning and Calculator v2 code", () => {
     const advancedTools = source("lib/quick-calculator/advanced-dough-tools.ts");
     const quickModule = source("lib/quick-calculator/quick-dough-calculator.ts");

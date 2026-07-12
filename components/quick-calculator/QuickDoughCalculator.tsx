@@ -107,18 +107,18 @@ function NumberField({
   const increase = () => onChange(Math.min(max, Number((value + step).toFixed(2))));
 
   return (
-    <div className={`rounded-[1.35rem] border p-4 ${secondary ? "border-ink/10 bg-ink/[.025]" : "border-white/80 bg-white/70 shadow-sm"}`}>
+    <div className={`min-w-0 rounded-[1.35rem] border p-4 ${secondary ? "border-ink/10 bg-ink/[.025]" : "border-white/80 bg-white/70 shadow-sm"}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label htmlFor={id} className="min-w-0 text-sm font-extrabold leading-5 text-ink/72">{label}</label>
         <span className="shrink-0 whitespace-nowrap rounded-full bg-ink/[.055] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[.12em] text-ink/45">{suffix}</span>
       </div>
-      <div className="mt-3 grid grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem] items-stretch overflow-hidden rounded-2xl border border-ink/10 bg-white" data-quick-number-control>
+      <div className="mt-3 grid grid-cols-[2.5rem_minmax(3.5rem,1fr)_auto_2.5rem] items-stretch overflow-hidden rounded-2xl border border-ink/10 bg-white sm:grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem]" data-quick-number-control>
         <button
           type="button"
           onClick={decrease}
           disabled={value <= min}
           aria-label={`Decrease ${label.toLowerCase()}`}
-          className="grid h-12 place-items-center border-r border-ink/10 text-2xl font-black text-ink/65 transition hover:bg-cream disabled:cursor-not-allowed disabled:opacity-35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          className="grid h-11 place-items-center border-r border-ink/10 text-xl font-black text-ink/65 transition hover:bg-cream disabled:cursor-not-allowed disabled:opacity-35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:text-2xl"
         >
           −
         </button>
@@ -133,13 +133,13 @@ function NumberField({
             onValueChange={onChange}
           />
         </div>
-        <span className="flex h-12 shrink-0 items-center justify-center whitespace-nowrap border-l border-ink/10 bg-cream/45 px-2.5 text-xs font-extrabold text-ink/42" aria-hidden="true" data-quick-number-unit>{suffix}</span>
+        <span className="flex h-11 shrink-0 items-center justify-center whitespace-nowrap border-l border-ink/10 bg-cream/45 px-2 text-[11px] font-extrabold text-ink/42 sm:h-12 sm:px-2.5 sm:text-xs" aria-hidden="true" data-quick-number-unit>{suffix}</span>
         <button
           type="button"
           onClick={increase}
           disabled={value >= max}
           aria-label={`Increase ${label.toLowerCase()}`}
-          className="grid h-12 place-items-center border-l border-ink/10 text-2xl font-black text-ink/65 transition hover:bg-cream disabled:cursor-not-allowed disabled:opacity-35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          className="grid h-11 place-items-center border-l border-ink/10 text-xl font-black text-ink/65 transition hover:bg-cream disabled:cursor-not-allowed disabled:opacity-35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:text-2xl"
         >
           +
         </button>
@@ -194,7 +194,7 @@ function OptionalControlGroup({
       id={id}
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="group rounded-[2rem] border border-dashed border-ink/15 bg-white/45 p-5 shadow-sm backdrop-blur sm:p-6"
+      className="group min-w-0 rounded-[2rem] border border-dashed border-ink/15 bg-white/45 p-5 shadow-sm backdrop-blur sm:p-6"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
         <span>
@@ -575,7 +575,7 @@ export default function QuickDoughCalculator() {
                 type="checkbox"
                 checked={result.input.customIngredientsEnabled}
                 onChange={(event) => updateInput(setInput, "customIngredientsEnabled", event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-ink/20 text-tomato focus:ring-tomato"
+                className="mt-0.5 h-5 w-5 rounded border-ink/20 text-tomato focus:ring-tomato"
               />
               Add optional oil, sugar or malt amounts
             </label>
@@ -606,7 +606,7 @@ export default function QuickDoughCalculator() {
                 type="checkbox"
                 checked={result.input.flourBlendEnabled}
                 onChange={(event) => updateInput(setInput, "flourBlendEnabled", event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-ink/20 text-tomato focus:ring-tomato"
+                className="mt-0.5 h-5 w-5 rounded border-ink/20 text-tomato focus:ring-tomato"
               />
               Split total flour into a simple two-flour blend
             </label>
@@ -692,7 +692,7 @@ export default function QuickDoughCalculator() {
           className="mt-5"
         />
 
-        <section className="mt-5 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="quick-recipe-management-heading">
+        <section className="mt-5 min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="quick-recipe-management-heading">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(18rem,0.55fr)] lg:items-start">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Local recipes</p>
@@ -773,15 +773,15 @@ export default function QuickDoughCalculator() {
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)] lg:items-start">
-          <section className="grid gap-5" aria-label="Quick calculator inputs">
-            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+        <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)] lg:items-start">
+          <section className="grid min-w-0 gap-5" aria-label="Quick calculator inputs">
+            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{presentation.badge} view</p>
               <h2 className="mt-2 font-display text-3xl font-semibold">{presentation.heading}</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">{presentation.description}</p>
             </div>
 
-            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">00 · Style and size</p>
@@ -921,7 +921,7 @@ export default function QuickDoughCalculator() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">01 · Batch</p>
@@ -961,7 +961,7 @@ export default function QuickDoughCalculator() {
             </div>
 
             {showFormulaCard ? (
-              <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+              <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">02 · Formula</p>
                 <h2 className="mt-2 font-display text-3xl font-semibold">Baker’s percentages</h2>
                 <p className="mt-2 text-sm leading-6 text-ink/55">
@@ -980,7 +980,7 @@ export default function QuickDoughCalculator() {
               </OptionalControlGroup>
             )}
 
-            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">02b · Dough method</p>
@@ -1075,7 +1075,7 @@ export default function QuickDoughCalculator() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">03 · Fermentation</p>
               <h2 className="mt-2 font-display text-3xl font-semibold">Time, place and yeast</h2>
 
@@ -1131,7 +1131,7 @@ export default function QuickDoughCalculator() {
             </div>
           </section>
 
-          <aside className="rounded-[2rem] bg-ink p-5 text-white shadow-card sm:p-7 lg:sticky lg:top-6" aria-labelledby="quick-calculator-results" aria-live="polite">
+          <aside className="min-w-0 rounded-[2rem] bg-ink p-5 text-white shadow-card sm:p-7 lg:sticky lg:top-6" aria-labelledby="quick-calculator-results" aria-live="polite">
             <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Result</p>
             <h2 id="quick-calculator-results" className="mt-2 font-display text-3xl font-semibold">Ingredient amounts</h2>
             <p className="mt-3 text-sm leading-6 text-white/60">
