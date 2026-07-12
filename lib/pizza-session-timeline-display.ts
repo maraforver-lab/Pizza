@@ -1,4 +1,5 @@
 import type { PizzaSession, PizzaSessionTimelineStep } from "@/lib/pizza-session";
+import { getPizzaSessionBakeProfileForSession } from "@/lib/pizza-session-bake-profile";
 import type { PlanningResult } from "@/lib/planning-result";
 
 type TimelineDisplayInput = {
@@ -189,16 +190,22 @@ export function resolveSessionDoughStartTime({
   };
 }
 
-function sameDayScheduleIso(step: PizzaSessionTimelineStep, current: Date, target: Date) {
+function sameDayScheduleIso(
+  step: PizzaSessionTimelineStep,
+  current: Date,
+  target: Date,
+  session?: TimelineDisplayInput["session"],
+) {
   const availableMinutes = minutesBetween(current, target);
   const safeBeforeTarget = (minutes: number) => addMinutes(target, -Math.min(minutes, Math.max(0, availableMinutes - 15))).toISOString();
+  const bakeProfile = getPizzaSessionBakeProfileForSession(session);
 
   if (step.id === "mix-dough") return current.toISOString();
   if (step.id === "rest-dough") return addMinutes(current, Math.min(30, Math.max(0, availableMinutes - 180))).toISOString();
   if (step.id === "room-ferment" || step.id === "ferment-dough") return addMinutes(current, 60).toISOString();
   if (step.id === "ball-dough") return safeBeforeTarget(180);
   if (step.id === "room-temperature-rest") return safeBeforeTarget(150);
-  if (step.id === "preheat-oven") return safeBeforeTarget(60);
+  if (step.id === "preheat-oven") return safeBeforeTarget(bakeProfile.preheatDurationMinutes);
   if (step.id === "prepare-sauce-toppings") return safeBeforeTarget(45);
   if (step.id === "bake-pizza") return target.toISOString();
   if (step.id === "review-result") return addMinutes(target, 20).toISOString();
@@ -345,7 +352,7 @@ export function timelineStepsForPlanningSummaryDisplay({
 
     if (shouldUseSameDayFromResolvedStart(explicitStart, target)) {
       return normalizedSteps.map((step) => {
-        const scheduledAt = sameDayScheduleIso(step, explicitStart, target);
+        const scheduledAt = sameDayScheduleIso(step, explicitStart, target, session);
         const sameDayCopy = resolvedFermentationMode === "room"
           ? displayCopyForFermentationMode(step, resolvedFermentationMode)
           : step.id === "rest-dough"
@@ -411,7 +418,7 @@ export function timelineStepsForPlanningSummaryDisplay({
   }
 
   return normalizedSteps.map((step) => {
-    const scheduledAt = sameDayScheduleIso(step, current, target);
+    const scheduledAt = sameDayScheduleIso(step, current, target, session);
     const sameDayCopy = step.id === "rest-dough"
       ? {
         label: "Room fermentation",

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { normalizeCloudPizzaSessionHistoryRow } from "@/lib/cloud-pizza-sessions";
 import { buildPizzaPhotoOverlayModel } from "@/lib/pizza-photo-overlay";
+import { getPizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 import { createPizzaSession, migratePizzaSession, serializePizzaSession } from "@/lib/pizza-session";
 import { createAndSavePizzaSession, getActivePizzaSession, setActivePizzaSession } from "@/lib/pizza-session-storage";
 import { generatePizzaSessionTimeline } from "@/lib/pizza-session-timeline";
@@ -65,7 +66,7 @@ describe("Patch 309 Home oven behavior audit anchors", () => {
     expect(gasRecipe.recipeSnapshot.oven).toBe("gas");
   });
 
-  it("keeps Timeline preheat and bake offsets generic for Home and Pizza oven sessions", () => {
+  it("uses a shared bake profile while keeping Pizza oven timing functionally unchanged", () => {
     const now = new Date("2026-07-15T09:00:00.000Z");
     const homeTimeline = generatePizzaSessionTimeline(createPizzaSession(baseSessionInput("home", "home-oven")), now);
     const gasTimeline = generatePizzaSessionTimeline(createPizzaSession(baseSessionInput("gas", "pizza-oven")), now);
@@ -74,20 +75,34 @@ describe("Patch 309 Home oven behavior audit anchors", () => {
     expect(gasTimeline.ok).toBe(true);
     if (!homeTimeline.ok || !gasTimeline.ok) return;
 
-    for (const timeline of [homeTimeline.timeline, gasTimeline.timeline]) {
-      const target = timeline.targetEatTime!;
-      expect(minutesBetween(timeline.steps.find((step) => step.id === "preheat-oven")!.scheduledAt, target)).toBe(-60);
-      expect(minutesBetween(timeline.steps.find((step) => step.id === "bake-pizza")!.scheduledAt, target)).toBe(-15);
-    }
+    const homeTarget = homeTimeline.timeline.targetEatTime!;
+    const gasTarget = gasTimeline.timeline.targetEatTime!;
+    expect(minutesBetween(homeTimeline.timeline.steps.find((step) => step.id === "preheat-oven")!.scheduledAt, homeTarget)).toBe(-75);
+    expect(minutesBetween(homeTimeline.timeline.steps.find((step) => step.id === "bake-pizza")!.scheduledAt, homeTarget)).toBe(-15);
+    expect(minutesBetween(gasTimeline.timeline.steps.find((step) => step.id === "preheat-oven")!.scheduledAt, gasTarget)).toBe(-60);
+    expect(minutesBetween(gasTimeline.timeline.steps.find((step) => step.id === "bake-pizza")!.scheduledAt, gasTarget)).toBe(-15);
   });
 
-  it("documents that Kitchen Mode oven service copy is generic rather than oven-type specific", () => {
-    const kitchen = source("lib/pizza-session-kitchen.ts");
+  it("provides separate shared bake profiles for Home oven and Pizza oven", () => {
+    const home = getPizzaSessionBakeProfile("home");
+    const pizza = getPizzaSessionBakeProfile("gas");
 
-    expect(kitchen).toContain("Preheat the oven, stone, steel or pizza oven before opening the dough.");
-    expect(kitchen).toContain("Open, top and bake one pizza at a time. Watch color and rotate if needed.");
-    expect(kitchen).not.toContain("session.ovenType === \"home\"");
-    expect(kitchen).not.toContain("session.ovenType === \"gas\"");
+    expect(home).toMatchObject({
+      ovenType: "home",
+      preheatDurationMinutes: 75,
+      bakeDurationSeconds: 300,
+      overlayBakeTime: "5 MIN",
+    });
+    expect(home.preheatInstruction).toContain("home oven");
+    expect(home.rotationGuidance).toContain("Rotate");
+
+    expect(pizza).toMatchObject({
+      ovenType: "pizza",
+      preheatDurationMinutes: 60,
+      bakeDurationSeconds: 90,
+      overlayBakeTime: "90 SEC",
+    });
+    expect(pizza.bakeInstruction).toBe("Open, top and bake one pizza at a time. Watch color and rotate if needed.");
   });
 
   it("documents current overlay bake-time values as a separate hard-coded source", () => {
@@ -119,7 +134,7 @@ describe("Patch 309 Home oven behavior audit anchors", () => {
     expect(fields.find((field) => field.label === "BAKE")?.value).toBe("5 MIN");
 
     const overlaySource = source("lib/pizza-photo-overlay.ts");
-    expect(overlaySource).toContain("return \"5 MIN\"");
-    expect(overlaySource).toContain("return \"90 SEC\"");
+    expect(overlaySource).toContain("resolvePizzaSessionBakeProfile(session.ovenType ?? session.recipeSnapshot?.oven)?.overlayBakeTime");
+    expect(overlaySource).not.toContain("function bakeTimeValue");
   });
 });

@@ -1,5 +1,6 @@
 import { getExperienceLevelConfig, type ExperienceLevel } from "@/lib/experience-levels";
 import { type PizzaSession, type PizzaSessionTimeline, type PizzaSessionTimelineStep } from "@/lib/pizza-session";
+import { getPizzaSessionBakeProfileForSession } from "@/lib/pizza-session-bake-profile";
 import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
 import { buildSessionRecipe } from "@/lib/session-recipe";
@@ -204,8 +205,12 @@ function previousQuietHoursBoundary(date: Date) {
   return adjusted;
 }
 
-function scheduleTemplateStep(target: Date, step: TimelineTemplateStep) {
-  const rounded = roundToTimelineIncrement(scheduledAt(target, step.offsetMinutesFromTarget));
+function scheduleTemplateStep(target: Date, step: TimelineTemplateStep, session?: PizzaSession) {
+  const bakeProfile = getPizzaSessionBakeProfileForSession(session);
+  const offsetMinutesFromTarget = step.id === "preheat-oven"
+    ? -bakeProfile.preheatDurationMinutes
+    : step.offsetMinutesFromTarget;
+  const rounded = roundToTimelineIncrement(scheduledAt(target, offsetMinutesFromTarget));
   if (step.kind === "passive" || !isQuietHours(rounded)) {
     return { scheduledAt: rounded.toISOString(), quietHoursWarning: undefined };
   }
@@ -272,6 +277,35 @@ function selectedFermentationStartForSession(session: PizzaSession, target: Date
   return selectedStart.getTime() < planningNow.getTime() ? planningNow : selectedStart;
 }
 
+function ovenTimelineStepCopy(
+  step: TimelineTemplateStep,
+  bakeProfile: ReturnType<typeof getPizzaSessionBakeProfileForSession>,
+) {
+  if (bakeProfile.ovenType === "pizza") return {};
+
+  if (step.id === "preheat-oven") {
+    return {
+      description: "Heat the home oven, stone, steel or tray before baking.",
+      helperCopy: `${bakeProfile.surfaceGuidance} Start early so the surface is fully hot.`,
+      beginnerNote: "Start heating the home oven before you open the pizza.",
+      enthusiastNote: "Give the stone, steel or tray enough time to soak up heat.",
+      pizzaNerdNote: "Home ovens need a longer heat-soak window because surface heat and recovery are limited.",
+    };
+  }
+
+  if (step.id === "bake-pizza") {
+    return {
+      description: "Open, top and bake the pizza in the home oven.",
+      helperCopy: `Plan for ${bakeProfile.bakeTimeLabel}; keep toppings restrained and eat the pizza fresh.`,
+      beginnerNote: "Bake one pizza at a time and watch the rim, bottom and cheese.",
+      enthusiastNote: bakeProfile.rotationGuidance,
+      pizzaNerdNote: "Balance top heat, bottom heat and moisture load during the longer home-oven bake.",
+    };
+  }
+
+  return {};
+}
+
 function scheduleStepsFromDoughStart(
   steps: PizzaSessionTimelineStep[],
   doughStart: Date | undefined,
@@ -318,22 +352,24 @@ export function generatePizzaSessionTimeline(
   const planningNow = parseTargetTime(anchorTime) ?? now;
   const effectiveFermentation = effectiveFermentationHoursForTimeline(session, target, planningNow);
   const selectedYeastLabel = yeastTypeLabel(session.recipeSnapshot?.yeastType ?? session.yeastType).toLowerCase();
+  const bakeProfile = getPizzaSessionBakeProfileForSession(session);
   const templateSteps = timelineTemplate.map((step) => {
-    const schedule = scheduleTemplateStep(target, step);
+    const schedule = scheduleTemplateStep(target, step, session);
+    const ovenStepCopy = ovenTimelineStepCopy(step, bakeProfile);
     return {
       id: step.id,
       label: step.label,
       description: step.id === "mix-dough"
         ? `Combine flour, water, salt and ${selectedYeastLabel} from your recipe setup.`
-        : step.description,
+        : ovenStepCopy.description ?? step.description,
       scheduledAt: schedule.scheduledAt,
       status: existingStatuses.get(step.id) ?? "todo",
       kind: step.kind,
       quietHoursWarning: schedule.quietHoursWarning,
-      helperCopy: step.helperCopy,
-      beginnerNote: step.beginnerNote,
-      enthusiastNote: step.enthusiastNote,
-      pizzaNerdNote: step.pizzaNerdNote,
+      helperCopy: ovenStepCopy.helperCopy ?? step.helperCopy,
+      beginnerNote: ovenStepCopy.beginnerNote ?? step.beginnerNote,
+      enthusiastNote: ovenStepCopy.enthusiastNote ?? step.enthusiastNote,
+      pizzaNerdNote: ovenStepCopy.pizzaNerdNote ?? step.pizzaNerdNote,
     };
   });
   const steps = timelineStepsForPlanningSummaryDisplay({

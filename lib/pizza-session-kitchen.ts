@@ -5,6 +5,7 @@ import {
   type PizzaSessionTimeline,
   type PizzaSessionTimelineStep,
 } from "@/lib/pizza-session";
+import { getPizzaSessionBakeProfileForSession } from "@/lib/pizza-session-bake-profile";
 import { normalizeExperienceLevel, type ExperienceLevel } from "@/lib/experience-levels";
 import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
@@ -415,7 +416,7 @@ export function getKitchenFermentationStepCopy(
 
 export function getKitchenTaskPresentation(
   step?: PizzaSessionTimelineStep,
-  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "pizzaCount" | "doughBallWeight"> | null,
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "pizzaCount" | "doughBallWeight" | "ovenType"> | null,
 ): KitchenTaskPresentation {
   const instruction = getKitchenTaskInstruction(step);
 
@@ -429,12 +430,39 @@ export function getKitchenTaskPresentation(
   const ballInstruction = balls && ballWeight
     ? `Shape ${balls} dough balls, ${ballWeight} g each.`
     : "Divide the dough into the planned portions and shape each one into a smooth dough ball.";
+  const ovenPresentation = getKitchenOvenTaskPresentation(step, session);
+  if (ovenPresentation) return ovenPresentation;
 
   return {
     title: step?.label ?? "Kitchen Mode",
     shortInstruction: isBallDough ? ballInstruction : instruction.shortInstruction,
     doneCondition: step ? kitchenDoneConditions[step.id] ?? "The step is complete and you are ready for the next task." : "You are ready for the next task.",
     helperCopy: step?.helperCopy,
+  };
+}
+
+function getKitchenOvenTaskPresentation(
+  step?: PizzaSessionTimelineStep,
+  session?: Pick<PizzaSession, "recipeSnapshot" | "ovenType"> | null,
+): KitchenTaskPresentation | undefined {
+  if (step?.id !== "preheat-oven" && step?.id !== "bake-pizza") return undefined;
+  const bakeProfile = getPizzaSessionBakeProfileForSession(session);
+  if (step.id === "preheat-oven") {
+    return {
+      title: step.label,
+      shortInstruction: bakeProfile.preheatInstruction,
+      doneCondition: bakeProfile.ovenType === "home"
+        ? "The home oven and baking surface are fully hot before opening the pizza."
+        : "The oven and baking surface are fully hot before opening the pizza.",
+      helperCopy: bakeProfile.surfaceGuidance ?? step.helperCopy,
+    };
+  }
+
+  return {
+    title: step.label,
+    shortInstruction: bakeProfile.bakeInstruction,
+    doneCondition: "The rim is browned, the bottom is baked, and the cheese is melted.",
+    helperCopy: [bakeProfile.bakeTimeLabel, bakeProfile.rotationGuidance].filter(Boolean).join(" · ") || step.helperCopy,
   };
 }
 

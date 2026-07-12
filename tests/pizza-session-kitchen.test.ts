@@ -643,6 +643,23 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(copy.shortInstruction).toBe("Divide the dough into the planned portions and shape each one into a smooth dough ball.");
   });
 
+  it("uses oven-specific Kitchen Mode preheat and bake presentation from the shared bake profile", () => {
+    const preheatStep = { id: "preheat-oven", label: "Preheat oven", status: "todo" as const };
+    const bakeStep = { id: "bake-pizza", label: "Bake pizza", status: "todo" as const };
+    const home = createPizzaSession({ id: "kitchen-home-oven-copy", ovenType: "home" });
+    const pizza = createPizzaSession({ id: "kitchen-pizza-oven-copy", ovenType: "gas" });
+
+    expect(getKitchenTaskPresentation(preheatStep, home).shortInstruction).toContain("home oven");
+    expect(getKitchenTaskPresentation(preheatStep, home).helperCopy).toContain("stone, steel or tray");
+    expect(getKitchenTaskPresentation(bakeStep, home).helperCopy).toContain("about 5 min");
+    expect(getKitchenTaskPresentation(bakeStep, home).helperCopy).toContain("Rotate");
+
+    expect(getKitchenTaskPresentation(preheatStep, pizza).shortInstruction)
+      .toBe("Preheat the oven, stone, steel or pizza oven before opening the dough.");
+    expect(getKitchenTaskPresentation(bakeStep, pizza).shortInstruction)
+      .toBe("Open, top and bake one pizza at a time. Watch color and rotate if needed.");
+  });
+
   it("renders room-temperature fermentation copy in Kitchen Mode when the selected plan is room fermentation", () => {
     const page = source("app/session/kitchen/page.tsx");
     const session = createPizzaSession({

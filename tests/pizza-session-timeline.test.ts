@@ -246,7 +246,7 @@ describe("Pizza Session timeline", () => {
     expect(displayed.find((step) => step.id === "bake-pizza")?.scheduledAt)
       .toBe(new Date("2026-07-02T16:00").toISOString());
     expect(displayed.find((step) => step.id === "preheat-oven")?.scheduledAt)
-      .toBe(new Date("2026-07-02T15:00").toISOString());
+      .toBe(new Date("2026-07-02T14:45").toISOString());
     expect(displayed.every((step) => step.status === "todo")).toBe(true);
   });
 

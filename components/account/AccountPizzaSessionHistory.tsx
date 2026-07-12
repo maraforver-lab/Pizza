@@ -210,6 +210,7 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
                       {summary.fermentationLine && <p>{summary.fermentationLine}</p>}
                       {summary.reviewLine && <p>{summary.reviewLine}</p>}
                       <p>{summary.bakeLine}</p>
+                      {summary.bakeProfileLine && <p>{summary.bakeProfileLine}</p>}
                     </div>
                   </div>
                   {photo && (

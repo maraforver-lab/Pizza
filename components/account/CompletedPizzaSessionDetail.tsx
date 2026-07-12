@@ -267,6 +267,9 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
       <section className="mt-6 grid gap-3 rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:grid-cols-2">
         <p className="rounded-[1.15rem] bg-white/85 p-4 text-sm font-bold leading-6 text-ink/70">{summary.doughLine}</p>
         <p className="rounded-[1.15rem] bg-white/85 p-4 text-sm font-bold leading-6 text-ink/70">{summary.bakeLine}</p>
+        {summary.bakeProfileLine && (
+          <p className="rounded-[1.15rem] bg-white/85 p-4 text-sm font-bold leading-6 text-ink/70">{summary.bakeProfileLine}</p>
+        )}
         {summary.hydrationLine && (
           <p className="rounded-[1.15rem] bg-white/85 p-4 text-sm font-bold leading-6 text-ink/70">{summary.hydrationLine}</p>
         )}

@@ -1,5 +1,6 @@
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { migratePizzaSession, type PizzaSession } from "@/lib/pizza-session";
+import { resolvePizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 
 export type CloudPizzaSessionStatus = "in_progress" | "completed" | "archived";
 
@@ -272,6 +273,7 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
       statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
       doughLine: "Dough plan not complete",
       bakeLine: "Bake time: Bake time not set",
+      bakeProfileLine: undefined,
       hydrationLine: undefined,
       fermentationLine: undefined,
       reviewLine: undefined,
@@ -287,12 +289,14 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
     ? `Fermentation: ${fermentation.fullLabel}`
     : undefined;
   const reviewLine = cloudPizzaSessionReviewSummary(session);
+  const bakeProfile = resolvePizzaSessionBakeProfile(session.recipeSnapshot?.oven ?? session.ovenType);
 
   return {
     title: completedPizzaSessionDisplayTitle(row),
     statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
     doughLine: cloudPizzaSessionDoughSummary(session),
     bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,
+    bakeProfileLine: bakeProfile ? `Oven: ${bakeProfile.label} · ${bakeProfile.bakeTimeLabel}` : undefined,
     hydrationLine: typeof hydration === "number" && Number.isFinite(hydration)
       ? `Hydration: ${Math.round(hydration * 10) / 10}%`
       : undefined,

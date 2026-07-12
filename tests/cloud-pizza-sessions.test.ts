@@ -313,6 +313,7 @@ describe("cloud pizza session foundation", () => {
         status: "completed",
         pizzaCount: 6,
         doughBallWeight: 260,
+        ovenType: "gas",
         targetEatTime: "2026-07-04T17:00:00.000Z",
         plannedFermentationHours: 24,
         fermentationTemperatureCOverride: 4,
@@ -324,7 +325,7 @@ describe("cloud pizza session foundation", () => {
           nextTimeTry: "Bake one pizza hotter.",
           savedAt: "2026-07-04T09:45:00.000Z",
         },
-        recipeSnapshot: { balls: 6, ballWeight: 260, hydration: 65, fermentation: "24h-cold" },
+        recipeSnapshot: { balls: 6, ballWeight: 260, hydration: 65, fermentation: "24h-cold", oven: "gas" },
       }),
       created_at: "2026-07-04T09:00:00.000Z",
       updated_at: "2026-07-04T10:00:00.000Z",
@@ -349,6 +350,7 @@ describe("cloud pizza session foundation", () => {
       fermentationLine: "Fermentation: 24h cold fermentation · fridge 4 °C",
       reviewLine: "Review: 5/5 · Notes saved",
       bakeLine: "Bake time: Saturday 20:00",
+      bakeProfileLine: "Oven: Pizza oven · 60–90 sec",
     });
     expect(cloudPizzaSessionCompletedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toBe("Completed 3 Jul 2026");
   });
@@ -1319,6 +1321,7 @@ describe("cloud pizza session foundation", () => {
     expect(historyComponent).toContain("summary.fermentationLine");
     expect(historyComponent).toContain("summary.reviewLine");
     expect(historyComponent).toContain("summary.bakeLine");
+    expect(historyComponent).toContain("summary.bakeProfileLine");
     expect(historyComponent).toContain("View session");
     expect(historyComponent).toContain("href={`/account/pizza-sessions/${session.id}`}");
     expect(historyComponent).toContain("No completed pizza sessions yet");
@@ -1348,6 +1351,7 @@ describe("cloud pizza session foundation", () => {
     expect(detailComponent).toContain("Event name saved");
     expect(detailComponent).toContain("Remove title");
     expect(detailComponent).toContain("cloudPizzaSessionDetailSummary(session)");
+    expect(detailComponent).toContain("summary.bakeProfileLine");
     expect(detailComponent).toContain("Pizza photo");
     expect(detailComponent).toContain("Add a photo of your finished pizza to remember this bake.");
     expect(detailComponent).toContain("Upload pizza photo");
@@ -1491,8 +1495,8 @@ describe("cloud pizza session foundation", () => {
     expect(overlayHelper).toContain("FLOUR");
     expect(overlayHelper).toContain("`W ${flourW}`");
     expect(overlayHelper).toContain("BAKE");
-    expect(overlayHelper).toContain("\"90 SEC\"");
-    expect(overlayHelper).toContain("\"5 MIN\"");
+    expect(overlayHelper).toContain("resolvePizzaSessionBakeProfile(session.ovenType ?? session.recipeSnapshot?.oven)?.overlayBakeTime");
+    expect(overlayHelper).not.toContain("function bakeTimeValue");
     expect(overlayHelper).not.toContain("RATING");
     expect(overlayHelper).not.toContain("Dough balls");
     expect(overlayComponent).toContain("document.createElement(\"canvas\")");

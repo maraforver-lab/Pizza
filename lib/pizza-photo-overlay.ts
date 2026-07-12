@@ -4,6 +4,7 @@ import {
 } from "@/lib/cloud-pizza-sessions";
 import { buildSessionFlourWGuidance } from "@/lib/session-flour-w-guidance";
 import { migratePizzaSession, type PizzaSessionFlourWRange } from "@/lib/pizza-session";
+import { resolvePizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 
 export const PIZZA_PHOTO_OVERLAY_WIDTH = 1080;
 export const PIZZA_PHOTO_OVERLAY_HEIGHT = 1350;
@@ -130,14 +131,6 @@ function resolvedFlourWValue({
   return undefined;
 }
 
-function bakeTimeValue(ovenType: string | undefined) {
-  const normalized = ovenType?.trim().toLowerCase().replace(/[\s-]+/g, "_");
-  if (!normalized) return undefined;
-  if (normalized === "gas" || normalized === "pizza_oven") return "90 SEC";
-  if (normalized === "home" || normalized === "home_oven") return "5 MIN";
-  return undefined;
-}
-
 export function buildPizzaPhotoOverlayModel(row: CloudPizzaSessionRow): PizzaPhotoOverlayModel | null {
   const session = migratePizzaSession(row.session_data);
   if (!session?.photo?.url) return null;
@@ -145,7 +138,7 @@ export function buildPizzaPhotoOverlayModel(row: CloudPizzaSessionRow): PizzaPho
   const hydration = removePrefix(summary.hydrationLine, "Hydration:");
   const fermentation = splitFermentation(summary.fermentationLine);
   const flourW = resolvedFlourWValue({ row, session, fermentation });
-  const bakeTime = bakeTimeValue(session.ovenType ?? session.recipeSnapshot?.oven);
+  const bakeTime = resolvePizzaSessionBakeProfile(session.ovenType ?? session.recipeSnapshot?.oven)?.overlayBakeTime;
 
   const fields: PizzaPhotoOverlayField[] = [
     hydration ? { label: "HYDRATION", value: hydration } : null,
