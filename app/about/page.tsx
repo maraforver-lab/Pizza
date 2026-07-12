@@ -7,141 +7,106 @@ import { metadataForRoute } from "@/lib/seo-config";
 
 export const metadata: Metadata = metadataForRoute("/about");
 
-const originalQuestions = [
-  "How much yeast makes sense for the time I actually have?",
-  "Should this dough ferment at room temperature or in the refrigerator?",
-  "Will this flour still feel good after a longer fermentation?",
-  "When should I mix, ball, preheat and bake so the pizza is ready on time?",
-] as const;
-
-const trustSignals = [
+const experienceLevels = [
   {
-    title: "The formula should be inspectable",
-    body: "DoughTools uses baker’s percentages, visible ingredient amounts and practical fermentation assumptions instead of hiding the thinking behind the result.",
+    title: "Beginner",
+    body: "When everything is new, the next step should be calm and direct.",
   },
   {
-    title: "The plan should stay connected",
-    body: "A Pizza Session keeps dough planning, shopping, Timeline, Kitchen Mode and Review in one flow so the user is not rebuilding the same plan on every page.",
+    title: "Enthusiast",
+    body: "When curiosity grows, the explanation should show what changed and why it matters.",
   },
   {
-    title: "The dough still matters",
-    body: "The app can calculate and schedule, but it keeps reminding the maker to observe dough feel, readiness, temperature and the actual bake.",
+    title: "Pizza Nerd",
+    body: "When the details matter, the variables should stay visible enough to question.",
   },
 ] as const;
 
-const experiencePromises = [
-  {
-    title: "For a first pizza maker",
-    body: "DoughTools tries to reduce the number of decisions that feel mysterious: how much dough to make, when to start, what to buy and what to do next.",
-  },
-  {
-    title: "For the curious enthusiast",
-    body: "It adds more context around flour, fermentation, yeast, timing and oven behavior so repeat bakes become easier to understand.",
-  },
-  {
-    title: "For the Pizza Nerd",
-    body: "It keeps the variables visible enough to question, compare and improve without turning every bake into a disconnected spreadsheet.",
-  },
+const partyOrderSteps = [
+  "Share one link",
+  "Collect choices",
+  "Review totals",
+  "Create Pizza Session",
 ] as const;
 
-const partyOrderWorkflow = [
-  {
-    title: "Create the party",
-    body: "Set the pizza time and the pizzas guests can choose from.",
-  },
-  {
-    title: "Share one link",
-    body: "Send the public guest link instead of collecting choices from scattered messages.",
-  },
-  {
-    title: "Collect pizza choices",
-    body: "Guests add their name, quantities and notes while orders are open.",
-  },
-  {
-    title: "Review the totals",
-    body: "See the pizza mix, total count and guest comments in one owner view.",
-  },
-  {
-    title: "Create the Pizza Session",
-    body: "Turn the order into a normal Pizza Session with pizza time, quantity and mix carried over.",
-  },
-  {
-    title: "Continue the preparation",
-    body: "Move into dough planning, shopping, Timeline and Kitchen Mode from the same workflow.",
-  },
+const beliefs = [
+  "Software should support the craft. Not replace it.",
+  "Calculations should be understandable. Not mysterious.",
+  "Pizza making should become less confusing. Not more automatic.",
+  "A good plan helps, but the dough still deserves attention.",
 ] as const;
 
-const buildingPrinciples = [
-  "Start from real kitchen moments, not abstract feature ideas.",
-  "Make calculations visible enough to trust and simple enough to use.",
-  "Keep observation and judgment part of the process.",
-  "Help the host prepare without pretending the host has no decisions left.",
-  "Remove unnecessary confusion without removing the craft.",
+const legalLinks = [
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/methodology", label: "Methodology" },
 ] as const;
 
-const notPromises = [
-  "that every dough behaves identically",
-  "that the clock alone determines readiness",
-  "that one flour is always best",
-  "that software replaces observation and practice",
-  "that every pizza night can run without host judgment",
-] as const;
-
-function StorySection({
+function StoryChapter({
   eyebrow,
   title,
   children,
-  tone = "white",
-  className = "",
+  image,
+  reverse = false,
 }: {
-  eyebrow?: string;
+  eyebrow: string;
   title: string;
   children: ReactNode;
-  tone?: "white" | "cream" | "leaf" | "ink" | "tomato";
-  className?: string;
+  image?: {
+    src: string;
+    alt: string;
+    caption: string;
+  };
+  reverse?: boolean;
 }) {
-  const toneClass = {
-    white: "border-white/80 bg-white/78",
-    cream: "border-orange/20 bg-[#fff7ed]",
-    leaf: "border-leaf/20 bg-leaf/[.08]",
-    ink: "border-ink/10 bg-ink text-white",
-    tomato: "border-tomato/20 bg-tomato/[.07]",
-  }[tone];
-
   return (
-    <section className={`rounded-[2rem] border p-5 shadow-card sm:p-7 ${toneClass} ${className}`}>
-      {eyebrow && (
-        <p className={`text-xs font-extrabold uppercase tracking-[.2em] ${tone === "ink" ? "text-orange" : "text-tomato"}`}>
-          {eyebrow}
-        </p>
+    <section className="grid gap-7 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,30rem)] lg:items-center lg:gap-12">
+      <div className={reverse ? "lg:order-2" : undefined}>
+        <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">{eyebrow}</p>
+        <h2 className="mt-3 max-w-3xl font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+          {title}
+        </h2>
+        <div className="mt-5 space-y-4 text-base leading-8 text-ink/68">{children}</div>
+      </div>
+      {image && (
+        <figure className={`overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-card ${reverse ? "lg:order-1" : ""}`}>
+          <Image
+            src={image.src}
+            alt={image.alt}
+            width={1200}
+            height={900}
+            sizes="(min-width: 1024px) 30rem, 100vw"
+            className="aspect-[4/3] h-auto w-full object-cover"
+          />
+          <figcaption className="px-4 py-3 text-xs font-bold leading-5 text-ink/55">{image.caption}</figcaption>
+        </figure>
       )}
-      <h2 className="mt-2 font-display text-3xl font-semibold leading-tight sm:text-4xl">{title}</h2>
-      {children}
     </section>
   );
 }
 
-function Paragraph({ children, light = false }: { children: ReactNode; light?: boolean }) {
+function PullQuote({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
   return (
-    <p className={`mt-4 text-sm leading-7 sm:text-base ${light ? "text-white/72" : "text-ink/65"}`}>
+    <blockquote
+      className={`my-7 rounded-[2rem] border p-6 font-display text-3xl font-semibold leading-tight tracking-tight sm:p-8 sm:text-5xl ${
+        dark
+          ? "border-white/10 bg-white/[.08] text-white"
+          : "border-tomato/20 bg-tomato/[.08] text-ink"
+      }`}
+    >
       {children}
-    </p>
+    </blockquote>
   );
 }
 
-function NumberedCard({ index, title, body }: { index: number; title: string; body: string }) {
+function SecondaryLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <article className="rounded-[1.5rem] border border-white/80 bg-white/82 p-4">
-      <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-tomato text-sm font-black text-white">
-          {index + 1}
-        </span>
-        <div>
-          <h3 className="text-sm font-extrabold leading-6 text-ink">{title}</h3>
-          <p className="mt-1 text-sm leading-6 text-ink/60">{body}</p>
-        </div>
-      </div>
-    </article>
+    <Link
+      href={href}
+      className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+    >
+      {children}
+    </Link>
   );
 }
 
@@ -150,7 +115,10 @@ export default function AboutPage() {
     <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.12),transparent_30rem),linear-gradient(135deg,#f7f0e4,#fffaf2_48%,#f1e4d3)] px-4 py-6 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-extrabold text-ink/60 transition hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-extrabold text-ink/60 transition hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
             <span aria-hidden="true">←</span>
             Back to DoughTools
           </Link>
@@ -162,257 +130,270 @@ export default function AboutPage() {
           </Link>
         </header>
 
-        <section className="relative overflow-hidden rounded-[2.5rem] border border-white/80 bg-white/78 p-6 shadow-card backdrop-blur sm:p-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(20rem,29rem)] lg:items-center lg:gap-10">
-          <div className="absolute -right-24 -top-24 h-56 w-56 rounded-full bg-tomato/10 blur-3xl" aria-hidden="true" />
-          <div className="relative">
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">About DoughTools</p>
-            <h1 className="mt-4 max-w-4xl font-display text-4xl font-semibold leading-[.95] tracking-tight sm:text-6xl">
-              Built from real pizza nights.
+        <section className="relative isolate overflow-hidden rounded-[2.75rem] bg-ink text-white shadow-card">
+          <Image
+            src="/about/marcin-arcisz-founder.webp"
+            alt="Marcin, creator of DoughTools, photographed outdoors by the sea."
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[42%_center]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/78 to-ink/20" aria-hidden="true" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" aria-hidden="true" />
+          <div className="relative max-w-3xl px-6 py-16 sm:px-10 sm:py-24 lg:px-14 lg:py-32">
+            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-orange">About DoughTools</p>
+            <h1 className="mt-5 font-display text-5xl font-semibold leading-[.92] tracking-tight sm:text-7xl">
+              {"It didn't start with software."}
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-bold leading-8 text-ink/68 sm:text-lg">
-              DoughTools is not a generic recipe site. It grew from the practical questions that appear when someone actually has dough on the counter, guests on the way and a pizza time that cannot move forever.
+            <p className="mt-6 max-w-2xl text-lg font-bold leading-8 text-white/82 sm:text-xl">
+              It started with one simple question: how can I make better pizza without spending half the evening calculating everything?
             </p>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-ink/62 sm:text-base">
-              I am Marcin Arcisz, a home pizza maker in Finland. Pizza Napoletana first pulled me seriously into fermentation, flour, dough temperature and the small timing decisions that separate a calm bake from a stressful one.
+            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+              I am Marcin Arcisz, a home pizza maker in Finland. DoughTools grew from the evenings where I wanted the pizza to be better, the planning to be calmer and the people around the table to matter more than the spreadsheet.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/session/start"
-                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-              >
-                Start a Pizza Session
-              </Link>
-              <Link
-                href="/account/party-orders/new"
-                className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-              >
-                Plan a pizza party
-              </Link>
+          </div>
+        </section>
+
+        <article className="mx-auto max-w-6xl">
+          <StoryChapter
+            eyebrow="Chapter 1"
+            title="It wasn't the dough. It was the planning."
+            image={{
+              src: "/dough-guide/guide-step-02-measure.webp",
+              alt: "Pizza dough ingredients measured on a warm kitchen counter.",
+              caption: "The first problem was not passion. It was trust in the plan.",
+            }}
+          >
+            <p>
+              I had flour, water, salt and yeast. What I did not have was one answer I could trust. Different calculators produced different numbers. Spreadsheets became more confusing every time I tried to improve them. Scaling recipes did not always feel sensible. Yeast behaviour was hard to understand because most tools gave me a number without explaining why.
+            </p>
+            <p>
+              I did not want another calculator. I wanted answers I could actually trust.
+            </p>
+            <p>
+              That became the first reason DoughTools exists: make the calculation visible enough to understand, practical enough to use and honest enough to remind me that the dough still needs observation.
+            </p>
+          </StoryChapter>
+
+          <StoryChapter
+            eyebrow="Chapter 2"
+            title="The time I actually had."
+            reverse
+            image={{
+              src: "/dough-guide/guide-step-06-bulk.webp",
+              alt: "Covered pizza dough fermenting in a container.",
+              caption: "Real life gives awkward windows. The plan should adapt.",
+            }}
+          >
+            <p>
+              Most calculators ask a neat question: how long do you want to ferment? 6 h, 12 h, 24 h, 48 h.
+            </p>
+            <p>
+              Real life does not work that way. Sometimes dinner is tomorrow evening. Sometimes guests arrive after work. Sometimes the only honest answer is 20 hours, 16 hours or 33 hours.
+            </p>
+            <PullQuote>
+              <span className="block">{"I didn't have 12 hours."}</span>
+              <span className="block">{"I didn't have 24 hours."}</span>
+              <span className="block text-tomato">I had twenty.</span>
+            </PullQuote>
+            <p>
+              That changed the way I thought about the product. Real life should not adapt to the calculator. The software should adapt to real life.
+            </p>
+          </StoryChapter>
+
+          <StoryChapter
+            eyebrow="Chapter 3"
+            title="From calculator to workflow"
+            image={{
+              src: "/dough-guide/guide-step-08-ball.webp",
+              alt: "Pizza dough balls prepared in a tray.",
+              caption: "Once timing mattered, the calculator became a preparation flow.",
+            }}
+          >
+            <p>
+              Every solved problem created another one. If the dough needs twenty hours, when do I mix? When do I ball? Should it rest at room temperature or go into the fridge? When do I preheat? When should I actually bake?
+            </p>
+            <PullQuote>
+              <span className="block">I stopped building a calculator.</span>
+              <span className="block text-tomato">I started building a workflow.</span>
+            </PullQuote>
+            <p>
+              That workflow became Pizza Session: not a different logic, but the natural continuation of a real bake. A pizza night is not only a formula. It is dough, shopping, timing, oven work, serving and learning from what happened.
+            </p>
+            <div className="pt-2">
+              <SecondaryLink href="/session/start">Explore Pizza Sessions</SecondaryLink>
             </div>
+          </StoryChapter>
+
+          <StoryChapter eyebrow="Chapter 4" title="Everyone starts somewhere." reverse>
+            <p>
+              People do not arrive at pizza making with the same confidence. One person needs a calm first step. Another wants to understand what changed. Someone else wants the variable, the assumption and the reason.
+            </p>
+            <PullQuote>
+              <span className="block">The calculations stay the same.</span>
+              <span className="block text-tomato">The explanation changes.</span>
+            </PullQuote>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {experienceLevels.map((level) => (
+                <section key={level.title} className="rounded-[1.5rem] border border-white/80 bg-white/82 p-4 shadow-sm">
+                  <h3 className="text-base font-extrabold text-ink">{level.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-ink/62">{level.body}</p>
+                </section>
+              ))}
+            </div>
+            <p>
+              That matters because a beginner should not be buried under technical language, and a Pizza Nerd should not be forced to trust a mystery box.
+            </p>
+          </StoryChapter>
+
+          <StoryChapter
+            eyebrow="Chapter 5"
+            title="My first unforgettable pizza."
+            image={{
+              src: "/images/shopping/pizza-margherita.webp",
+              alt: "Freshly baked Margherita pizza with tomato, mozzarella and basil.",
+              caption: "Pizza Napoletana became the first style I truly fell in love with.",
+            }}
+          >
+            <p>
+              I still remember the first pizza in Italy that stayed with me. Not because I can turn the moment into a technical case study. I remember the feeling: the soft rim, the heat, the tomato, the smell and the way something so simple could feel complete.
+            </p>
+            <p>
+              Pizza Napoletana became my first pizza love. It gave me a reason to care about dough, fermentation and timing in a way that felt emotional before it felt technical.
+            </p>
+            <p>
+              Other styles will come later because I want to fall in love with those as well. DoughTools starts with the pizza that pulled me in first.
+            </p>
+          </StoryChapter>
+
+          <StoryChapter
+            eyebrow="Chapter 6"
+            title="The evening that changed everything."
+            reverse
+            image={{
+              src: "/images/timeline/bake-pizza.webp",
+              alt: "Pizza baking in a hot oven.",
+              caption: "One oven, many pizzas and a plan that finally disappeared into the evening.",
+            }}
+          >
+            <p>
+              The clearest proof came during a pizza night for twenty people. One pizza oven. Many pizzas. Everything prepared before the pressure started.
+            </p>
+            <p>
+              The dough was ready. The toppings were ready. The order of the evening made sense. Everything was prepared. Everything worked.
+            </p>
+            <p>
+              That was the first time the planning disappeared and the pizza became enjoyable. I was not fighting the schedule. I was making pizza.
+            </p>
+            <p className="text-xl font-extrabold leading-8 text-ink">
+              Good planning gives you more time to enjoy the people around the table.
+            </p>
+          </StoryChapter>
+
+          <StoryChapter
+            eyebrow="Chapter 7"
+            title="Then another problem appeared."
+            image={{
+              src: "/images/shopping/pizza-prosciutto.webp",
+              alt: "Freshly baked pizza prepared for serving.",
+              caption: "The harder the guest list became, the more the plan needed one source of truth.",
+            }}
+          >
+            <p>
+              When more friends came, the pizza itself was no longer the only challenge. Everyone wanted something different. One person changed their mind. Someone brought another guest. Choices were scattered across messages.
+            </p>
+            <PullQuote>
+              <span className="block">{"I realised I wasn't planning pizza anymore."}</span>
+              <span className="block text-tomato">I was organising messages.</span>
+            </PullQuote>
+            <p>
+              Party Orders came from that exact friction. Share one link. Collect choices. Review totals. Create Pizza Session. The workflow keeps the human part intact while removing the message chaos around it.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-4">
+              {partyOrderSteps.map((step, index) => (
+                <article key={step} className="rounded-[1.35rem] border border-white/80 bg-white/82 p-4 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-[.18em] text-tomato">Step {index + 1}</p>
+                  <h3 className="mt-2 text-base font-extrabold text-ink">{step}</h3>
+                </article>
+              ))}
+            </div>
+            <div className="pt-2">
+              <SecondaryLink href="/account/party-orders/new">Plan a Pizza Party</SecondaryLink>
+            </div>
+          </StoryChapter>
+        </article>
+
+        <section className="relative mt-8 overflow-hidden rounded-[2.5rem] bg-ink px-6 py-10 text-white shadow-card sm:px-10 sm:py-14">
+          <div className="absolute -right-28 -top-28 h-64 w-64 rounded-full bg-tomato/20 blur-3xl" aria-hidden="true" />
+          <div className="relative mx-auto max-w-4xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-orange">Chapter 8</p>
+            <h2 className="mt-3 font-display text-4xl font-semibold leading-tight sm:text-6xl">What I believe.</h2>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              {beliefs.map((belief) => (
+                <p key={belief} className="rounded-[1.5rem] border border-white/10 bg-white/[.07] p-5 text-base font-bold leading-7 text-white/78">
+                  {belief}
+                </p>
+              ))}
+            </div>
+            <PullQuote dark>
+              <span className="block">Transparent tools, not magic.</span>
+            </PullQuote>
+            <p className="max-w-3xl text-base leading-8 text-white/70">
+              That is why the methodology stays visible, why the product avoids unsupported promises and why it keeps reminding the maker that the dough, oven and real evening still matter.
+            </p>
           </div>
-          <figure className="relative mt-8 overflow-hidden rounded-[2rem] border border-white/80 bg-cream shadow-card lg:mt-0">
-            <Image
-              src="/about/marcin-arcisz-founder.webp"
-              alt="Marcin, creator of DoughTools, photographed outdoors by the sea."
-              width={960}
-              height={1200}
-              priority
-              sizes="(min-width: 1024px) 29rem, 100vw"
-              className="aspect-[4/5] h-auto w-full object-cover"
-            />
-            <figcaption className="bg-white/85 px-4 py-3 text-xs font-extrabold leading-5 text-ink/55">
-              Marcin — home pizza maker and creator of DoughTools.
-            </figcaption>
-          </figure>
         </section>
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-3">
-          {[
-            ["Why it exists", "To make dough planning, timing, shopping and hosting feel connected."],
-            ["What it values", "Transparent calculations, practical guidance and room for real observation."],
-            ["Who it serves", "First-time pizza makers, improving enthusiasts and detail-driven Pizza Nerds."],
-          ].map(([title, body]) => (
-            <article key={title} className="rounded-[1.5rem] border border-white/80 bg-white/72 p-5 shadow-sm">
-              <h2 className="text-sm font-extrabold text-ink">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-ink/60">{body}</p>
-            </article>
-          ))}
+        <section className="mx-auto max-w-5xl py-12 sm:py-16">
+          <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Chapter 9</p>
+          <h2 className="mt-3 font-display text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-6xl">
+            Still building.
+          </h2>
+          <div className="mt-6 space-y-4 text-base leading-8 text-ink/68">
+            <p>
+              I still make pizza. I still experiment. I still notice problems while preparing for friends, changing a schedule or trying to understand why one dough felt better than another.
+            </p>
+            <p>
+              Then I build. Then I test. Then I learn again.
+            </p>
+          </div>
+          <PullQuote>
+            <span className="block">If DoughTools helps you make your first great pizza...</span>
+            <span className="block">or confidently host twenty friends...</span>
+            <span className="block text-tomato">then every evening spent building it has been worth it.</span>
+          </PullQuote>
+          <p className="text-lg font-extrabold leading-8 text-ink">{"I'd love to hear your ideas."}</p>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/contact"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-6 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              Share an idea
+            </Link>
+            <SecondaryLink href="/session/start">Explore Pizza Sessions</SecondaryLink>
+          </div>
         </section>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start">
-          <div className="grid gap-5">
-            <StorySection title="It started with making pizza seriously" eyebrow="Founder story">
-              <Paragraph>
-                At first, pizza looked like a simple formula: flour, water, salt and yeast. Then I started noticing how much was happening between those words. A warmer room changed the dough. A longer cold ferment asked more from the flour. A tiny yeast amount could be enough for one schedule and too much for another.
-              </Paragraph>
-              <Paragraph>
-                The more I made Pizza Napoletana at home, the more I wanted a tool that respected those relationships without making the process feel academic. I wanted help with the calculation, but I also wanted the plan to stay close to the kitchen.
-              </Paragraph>
-              <Paragraph>
-                That is the original need behind DoughTools: one place to calculate, plan, remember and follow the process without turning pizza making into guesswork.
-              </Paragraph>
-            </StorySection>
-
-            <StorySection title="The first problem was dough planning" eyebrow="The original need" tone="cream">
-              <Paragraph>
-                The questions were never isolated. They arrived together, usually when I was trying to decide whether I could trust the plan.
-              </Paragraph>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {originalQuestions.map((question, index) => (
-                  <article key={question} className="rounded-[1.5rem] border border-white/80 bg-white/82 p-4">
-                    <div className="flex items-start gap-3">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-tomato text-sm font-black text-white">
-                        {index + 1}
-                      </span>
-                      <p className="text-sm font-extrabold leading-6 text-ink">{question}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              <Paragraph>
-                DoughTools still follows that philosophy: the calculation should be transparent, the plan should be practical, and the dough should still be observed.
-              </Paragraph>
-            </StorySection>
-
-            <StorySection title="Why the calculations are worth trusting" eyebrow="Trust through transparency" tone="tomato">
-              <Paragraph>
-                I do not want DoughTools to feel like a black box. The numbers are there to help the user understand the bake, not to create false certainty.
-              </Paragraph>
-              <div className="mt-5 grid gap-3 lg:grid-cols-3">
-                {trustSignals.map((item) => (
-                  <article key={item.title} className="rounded-[1.35rem] border border-white/80 bg-white/82 p-4">
-                    <h3 className="text-base font-extrabold text-ink">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-ink/62">{item.body}</p>
-                  </article>
-                ))}
-              </div>
-            </StorySection>
-
-            <StorySection title="Useful at different levels" eyebrow="Beginner to Pizza Nerd">
-              <Paragraph>
-                DoughTools should not punish someone for being new, and it should not hide everything from someone who wants detail. The same product needs to guide, explain and expose variables at the right moment.
-              </Paragraph>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                {experiencePromises.map((item) => (
-                  <article key={item.title} className="rounded-[1.35rem] border border-ink/10 bg-cream/70 p-4">
-                    <h3 className="text-base font-extrabold text-ink">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-ink/62">{item.body}</p>
-                  </article>
-                ))}
-              </div>
-            </StorySection>
-
-            <StorySection title="Then pizza nights created another problem" eyebrow="Hosting people">
-              <Paragraph>
-                A pizza night sounds simple until ten friends are coming.
-              </Paragraph>
-              <Paragraph>
-                Before I mix the dough, I need to know who is actually coming, what everyone wants to eat and how many pizzas I should prepare. One person wants Margherita. Another wants no mushrooms. Someone changes their mind. The choices are spread across messages, and I am trying to turn all of that into dough quantities, shopping and a realistic schedule.
-              </Paragraph>
-              <Paragraph>
-                I did not want another spreadsheet or a message thread I had to decode. I wanted one link I could send to everyone, one place where their choices would collect, and one clear route from those choices into the actual pizza session.
-              </Paragraph>
-            </StorySection>
-
-            <StorySection title="From one link to one complete session" eyebrow="Party Orders" tone="leaf">
-              <Paragraph>
-                That is why Party Orders exists. It connects guest choices to the preparation work that follows, without pretending the host has no decisions left to make.
-              </Paragraph>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {partyOrderWorkflow.map((step, index) => (
-                  <NumberedCard key={step.title} index={index} title={step.title} body={step.body} />
-                ))}
-              </div>
-            </StorySection>
-
-            <StorySection title="How I want to build DoughTools" eyebrow="The product philosophy">
-              <Paragraph>
-                Party Orders is a good example of how I want to build DoughTools. It begins with a real moment in the kitchen, a problem that interrupts the experience, and a question: could this be clearer?
-              </Paragraph>
-              <Paragraph>
-                The goal is not to remove the craft from pizza. The goal is to remove the unnecessary confusion around it, so there is more time for the parts that matter — making the dough, learning from the bake and enjoying the evening with other people.
-              </Paragraph>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {buildingPrinciples.map((principle) => (
-                  <div key={principle} className="flex gap-3 rounded-[1.25rem] border border-ink/10 bg-white/80 p-4 text-sm font-bold leading-6 text-ink/65">
-                    <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-leaf text-[10px] font-extrabold text-white">✓</span>
-                    <span>{principle}</span>
-                  </div>
-                ))}
-              </div>
-            </StorySection>
-
-            <StorySection title="The long-term vision" eyebrow="Where this is going" tone="cream">
-              <Paragraph>
-                I want DoughTools to become the practical companion for a whole pizza life: planning the dough, choosing a sensible path, preparing for guests, learning from the result and coming back with a better next bake.
-              </Paragraph>
-              <Paragraph>
-                That does not mean adding complexity for its own sake. It means connecting the pieces that already affect each other: formula, flour, fermentation, oven, toppings, timing, shopping, serving and review.
-              </Paragraph>
-              <Paragraph>
-                The best version of DoughTools should feel calm on a phone in the kitchen, useful on a laptop before shopping, and honest enough that a serious pizza maker can see what assumptions are being made.
-              </Paragraph>
-            </StorySection>
-
-            <StorySection title="Still building, still curious" eyebrow="A personal closing" tone="ink">
-              <Paragraph light>
-                I am genuinely excited about what DoughTools can become. I use it, notice what feels unclear and keep improving it.
-              </Paragraph>
-              <Paragraph light>
-                I hope it helps other home pizza makers feel more confident, prepare better and enjoy hosting without turning the evening into administration.
-              </Paragraph>
-              <Paragraph light>
-                If you have an idea, a recurring problem or something you wish the product could do, I would love to hear about it.
-              </Paragraph>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/contact"
-                  className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5 text-sm font-extrabold text-ink transition hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange"
-                >
-                  Share an idea
-                </Link>
-                <Link
-                  href="/session/start"
-                  className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/15 bg-white/[.08] px-5 text-sm font-extrabold text-white transition hover:bg-white/[.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange"
-                >
-                  Try a Pizza Session
-                </Link>
-              </div>
-            </StorySection>
+        <section className="grid gap-4 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-sm sm:grid-cols-3 sm:p-6">
+          <div>
+            <h2 className="text-base font-extrabold text-ink">Trust and methodology</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/62">
+              DoughTools gives planning guidance, not guarantees. The calculation method and limits stay visible.
+            </p>
           </div>
-
-          <aside className="grid gap-5 lg:sticky lg:top-24">
-            <StorySection title="Built by Marcin" eyebrow="Founder">
-              <p className="mt-4 text-sm font-bold leading-7 text-ink/65">
-                Home pizza maker and Pizza Napoletana enthusiast, Finland.
-              </p>
-              <p className="mt-4 text-sm leading-7 text-ink/60">
-                DoughTools is personal software: made from real bakes, real hosting and the practical wish to make the next pizza night easier to run.
-              </p>
-            </StorySection>
-
-            <StorySection title="What DoughTools does not promise" eyebrow="Trust" tone="cream">
-              <p className="mt-4 text-sm leading-7 text-ink/65">
-                DoughTools is guidance for planning and learning. It does not promise:
-              </p>
-              <ul className="mt-4 grid gap-2">
-                {notPromises.map((promise) => (
-                  <li key={promise} className="flex gap-3 text-sm font-bold leading-6 text-ink/65">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" />
-                    <span>{promise}</span>
-                  </li>
-                ))}
-              </ul>
-            </StorySection>
-
-            <StorySection title="Transparent tools, not magic" eyebrow="Method">
-              <p className="mt-4 text-sm leading-7 text-ink/65">
-                DoughTools tries to make the important variables visible: time, yeast, temperature, flour, dough-ball size, schedule and what happened after the bake.
-              </p>
-              <p className="mt-4 text-sm leading-7 text-ink/65">
-                A good plan helps, but the dough still deserves attention.
-              </p>
+          <div className="sm:col-span-2 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            {legalLinks.map((link) => (
               <Link
-                href="/methodology"
-                className="mt-5 inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                key={link.href}
+                href={link.href}
+                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/62 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
               >
-                Read the calculation methodology
+                {link.label}
               </Link>
-            </StorySection>
-
-            <StorySection title="Follow the work" eyebrow="Development" tone="leaf">
-              <p className="mt-4 text-sm leading-7 text-ink/65">
-                DoughTools is still evolving. The most useful ideas come from real bakes, real friction and the moments where a pizza maker needs the next step to be clearer.
-              </p>
-              <Link
-                href="/updates"
-                className="mt-5 inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-              >
-                Read product updates
-              </Link>
-            </StorySection>
-          </aside>
-        </div>
+            ))}
+          </div>
+        </section>
 
         <footer className="mt-8 border-t border-ink/10 py-6">
           <AppSignature />
