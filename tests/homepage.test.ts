@@ -73,11 +73,11 @@ describe("homepage content model", () => {
 
   it("positions DoughTools as a clean session-first pizza-making homepage", () => {
     expect(homepageContent.hero.eyebrow).toBe("Your pizza, planned properly.");
-    expect(homepageContent.hero.intro).toContain("entire pizza journey");
+    expect(homepageContent.hero.intro).toContain("pizza night");
     expect(homepageContent.hero.intro).toContain("recipe");
     expect(homepageContent.hero.intro).toContain("shopping list");
     expect(homepageContent.hero.intro).toContain("timeline");
-    expect(homepageContent.hero.intro).toContain("live kitchen guidance");
+    expect(homepageContent.hero.intro).toContain("kitchen guidance");
     expect(homepageContent.hero.intro).toContain("review");
     expect(homepageContent.trust).toEqual([
       "Saved locally",
@@ -129,8 +129,8 @@ describe("homepage content model", () => {
     expect(content).toContain("Plan my next pizza");
     expect(content).toContain("Your pizza, planned properly.");
     expect(content).toContain("Better pizza starts before the oven.");
-    expect(content).toContain("Plan your entire pizza journey");
-    expect(content).toContain("live kitchen guidance");
+    expect(content).toContain("Choose the pizza night you want");
+    expect(content).toContain("kitchen guidance");
     expect(homepage).toContain("ContinuePizzaSessionCard");
     expect(homepage).toContain('variant="hero"');
     expect(homepage).toContain("HomepageGuidanceLevelSection");
@@ -140,10 +140,10 @@ describe("homepage content model", () => {
     expect(homepage).toContain('return "full"');
     expect(homepage).toContain("DoughToolsIcon");
     expect(homepage).toContain("/images/homepage/doughtools-hero-desktop.webp");
-    expect(homepage).toContain("Your first plan can include");
-    expect(homepage).toContain("Everything before the first slice.");
-    expect(homepage).toContain("6 × 260 g");
-    expect(homepage).toContain("Review");
+    expect(homepage).toContain("What changes");
+    expect(homepage).toContain("Pizza night feels planned before it feels busy.");
+    expect(homepage).toContain("You know when to start");
+    expect(homepage).toContain("You remember what made the pizza worth repeating.");
     expect(homepage).toContain("Know when to start");
     expect(homepage).toContain("Know what to buy");
     expect(homepage).toContain("Know what to do next");
@@ -156,15 +156,15 @@ describe("homepage content model", () => {
     expect(homepage).toContain("Prepare");
     expect(homepage).toContain("Bake");
     expect(homepage).toContain("Improve");
-    expect(homepage).toContain("A real working flow, not a decorative mockup.");
+    expect(homepage).toContain("You always know what happens next.");
     expect(homepage).toContain("Same engine. Different guidance.");
     expect(homepage).toContain("More than a dough calculator");
     expect(homepage).toContain("Normal calculator");
     expect(homepage).toContain("Calculates ingredients.");
-    expect(homepage).toContain("Calculates, plans, schedules, guides and helps you improve.");
-    expect(homepage).toContain("Built because pizza planning kept getting in the way of pizza night.");
-    expect(homepage).toContain("Ready to plan your next pizza?");
-    expect(homepage).toContain("It only takes a few minutes to create your first plan.");
+    expect(homepage).toContain("Turns the recipe into a pizza night you can follow.");
+    expect(homepage).toContain("Built by someone who got tired of guessing through pizza night.");
+    expect(homepage).toContain("Let’s make the next pizza night feel easier.");
+    expect(homepage).toContain("A few minutes of planning now means more confidence when the oven is hot.");
     expect(homepage).toContain("Read the founder story");
     expect(homepage).toContain("/about/marcin-arcisz-founder.webp");
     expect(homepage).not.toContain("/images/homepage-hero-desktop.png");
@@ -174,7 +174,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("<picture>");
     expect(homepage).toContain('media="(min-width: 1024px)"');
     expect(homepage).toContain("object-[66%_center]");
-    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.78fr)_minmax(22rem,0.72fr)]");
+    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.82fr)_minmax(21rem,0.62fr)]");
     expect(homepage).toContain("/images/homepage/doughtools-hero-mobile.webp");
     expect(homepage).not.toContain("/images/homepage/hero-desktop-bg.png");
     expect(homepage).not.toContain("/images/homepage/hero-mobile-bg.png");
@@ -601,7 +601,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("<picture>");
     expect(homepage).toContain('media="(min-width: 1024px)"');
     expect(homepage).toContain("object-[66%_center]");
-    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.78fr)_minmax(22rem,0.72fr)]");
+    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.82fr)_minmax(21rem,0.62fr)]");
     expect(homepage).toContain("text-[clamp(3.2rem,12vw,6.2rem)]");
     expect(homepage).toContain("sm:w-auto");
     expect(homepage).toContain("HomepageGuidanceLevelSection");

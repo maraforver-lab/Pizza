@@ -11,7 +11,7 @@ export const homepageContent = {
     eyebrow: "Your pizza, planned properly.",
     h1: "Better pizza starts before the oven.",
     intro:
-      "Plan your entire pizza journey — from recipe and shopping list to timeline, live kitchen guidance, and review — all in one place.",
+      "Choose the pizza night you want, then let DoughTools turn it into a recipe, shopping list, timeline, kitchen guidance and review — so you can enjoy making the pizza instead of guessing your way through it.",
     primaryCta: { label: "Plan my next pizza", href: "/session/start" },
     secondaryCta: { label: "See how it works", href: "#how-it-works" },
     learnCta: { label: "Learn how it works", href: "/guide" },

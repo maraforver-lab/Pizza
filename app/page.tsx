@@ -39,12 +39,10 @@ function calculatorViewFor(params: Record<string, string | string[] | undefined>
 
 const heroValueStatements = ["Know when to start", "Know what to buy", "Know what to do next"];
 
-const heroSessionRows = [
-  { label: "Recipe", value: "6 × 260 g dough balls" },
-  { label: "Shopping", value: "Flour, tomatoes, mozzarella, basil" },
-  { label: "Timeline", value: "Mix Friday · bake Saturday" },
-  { label: "Kitchen Mode", value: "One clear action at a time" },
-  { label: "Review", value: "Remember what worked" },
+const heroPromiseRows = [
+  { label: "Before", value: "You know when to start, not just what to mix." },
+  { label: "During", value: "You follow one calm kitchen action at a time." },
+  { label: "After", value: "You remember what made the pizza worth repeating." },
 ];
 
 const guessworkQuestions = [
@@ -58,35 +56,35 @@ const guessworkQuestions = [
 const journeyStages: JourneyStage[] = [
   {
     title: "Plan",
-    text: "Start with the pizza night you want, then get a recipe that fits it.",
+    text: "Start with the pizza night you want, then get a plan that fits real life.",
     icon: "calendar",
     image: "/dough-guide/guide-step-02-measure.webp",
     alt: "Measured ingredients for planning pizza dough",
   },
   {
     title: "Shop",
-    text: "Turn the plan into a practical list before you buy ingredients.",
+    text: "Buy with confidence instead of rebuilding the recipe in the store.",
     icon: "shopping-basket",
     image: "/images/shopping/pizza-margherita.webp",
     alt: "Fresh Margherita pizza representing the pizza menu and shopping plan",
   },
   {
     title: "Prepare",
-    text: "Know when to mix, rest, ball and preheat without juggling notes.",
+    text: "Know when the dough needs attention and when it simply needs time.",
     icon: "timeline",
     image: "/dough-guide/guide-step-08-ball.webp",
     alt: "Dough balls prepared for the next stage of pizza making",
   },
   {
     title: "Bake",
-    text: "Follow the current kitchen action when the oven is hot.",
+    text: "Keep the hot, messy part calm with the next action already clear.",
     icon: "kitchen-mode",
     image: "/images/timeline/bake-pizza.webp",
     alt: "Pizza baking in a hot oven",
   },
   {
     title: "Improve",
-    text: "Capture what happened so the next pizza night is easier.",
+    text: "Turn one good evening into the starting point for the next one.",
     icon: "history",
     image: "/images/timeline/review-result.webp",
     alt: "Finished pizza ready for review after baking",
@@ -97,7 +95,7 @@ const productMoments: ProductMoment[] = [
   {
     title: "Dough Plan",
     label: "Recipe",
-    text: "Ingredient amounts, dough-ball size, yeast and fermentation guidance stay in one readable plan.",
+    text: "The dough numbers become something you can trust before the first bowl comes out.",
     image: "/dough-guide/guide-step-02-measure.webp",
     alt: "Measured pizza dough ingredients prepared for a dough plan",
     stats: ["Flour 950 g", "6 balls", "24 h cold"],
@@ -105,7 +103,7 @@ const productMoments: ProductMoment[] = [
   {
     title: "Shopping",
     label: "Menu",
-    text: "Pizza choices become a shopping checklist, not a separate calculation you have to rebuild.",
+    text: "The pizzas you want become a clear shopping list, so the fridge is ready too.",
     image: "/images/shopping/pizza-margherita.webp",
     alt: "Fresh Margherita pizza representing the shopping and pizza menu flow",
     stats: ["Dough", "Sauce", "Toppings"],
@@ -113,7 +111,7 @@ const productMoments: ProductMoment[] = [
   {
     title: "Timeline",
     label: "Timing",
-    text: "The plan becomes clock-time steps for mixing, fermenting, preheating and baking.",
+    text: "The evening gets a rhythm: mix, wait, ball, preheat and bake at the right moment.",
     image: "/images/timeline/preheat-oven.webp",
     alt: "A warm pizza oven preheating for the timeline step",
     stats: ["Mix", "Ball", "Preheat"],
@@ -121,7 +119,7 @@ const productMoments: ProductMoment[] = [
   {
     title: "Kitchen Mode",
     label: "Now",
-    text: "During the bake, the interface narrows down to the current action and what comes next.",
+    text: "When the oven is hot, DoughTools narrows the noise down to what matters now.",
     image: "/images/timeline/bake-pizza.webp",
     alt: "Pizza baking in a hot oven for Kitchen Mode guidance",
     stats: ["Current step", "Done when", "Next action"],
@@ -171,7 +169,7 @@ export default async function Home({ searchParams }: HomePageProps) {
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,41,31,0.92)_0%,rgba(9,41,31,0.78)_38%,rgba(9,41,31,0.22)_100%)]" aria-hidden="true" />
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(9,41,31,0)_0%,rgba(9,41,31,0.82)_100%)]" aria-hidden="true" />
 
-            <div className="relative z-10 grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(22rem,0.72fr)] lg:items-end lg:p-10 lg:pb-12">
+            <div className="relative z-10 grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(21rem,0.62fr)] lg:items-end lg:p-10 lg:pb-12">
               <div className="max-w-3xl py-6 lg:py-16">
                 <p className="text-xs font-extrabold uppercase tracking-[.34em] text-oven-gold">
                   {homepageContent.hero.eyebrow}
@@ -179,7 +177,7 @@ export default async function Home({ searchParams }: HomePageProps) {
                 <h1 id="homepage-hero-heading" className="mt-5 font-display text-[clamp(3.2rem,12vw,6.2rem)] font-semibold leading-[.88] tracking-[-.05em] text-white sm:text-7xl lg:text-[6.35rem]">
                   {homepageContent.hero.h1}
                 </h1>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-xl sm:leading-8">
+                <p className="mt-6 max-w-2xl rounded-[1.5rem] bg-forest-dark/42 p-4 text-base leading-7 text-white/86 backdrop-blur-sm sm:text-xl sm:leading-8 lg:bg-transparent lg:p-0 lg:backdrop-blur-0">
                   {homepageContent.hero.intro}
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -211,13 +209,13 @@ export default async function Home({ searchParams }: HomePageProps) {
                   className="w-full rounded-[1.75rem] border border-white/20 bg-white/88 p-4 shadow-card backdrop-blur-md sm:p-5 lg:ml-auto lg:max-w-[24rem]"
                   aria-labelledby="homepage-session-preview"
                 >
-                  <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">Your first plan can include</p>
+                  <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">What changes</p>
                   <h2 id="homepage-session-preview" className="mt-2 font-display text-2xl font-semibold leading-none">
-                    Everything before the first slice.
+                    Pizza night feels planned before it feels busy.
                   </h2>
                   <dl className="mt-4 grid gap-2">
-                    {heroSessionRows.map((row) => (
-                      <div key={row.label} className="grid grid-cols-[5.9rem_1fr] gap-3 rounded-2xl bg-cream/80 px-3 py-2.5 text-sm">
+                    {heroPromiseRows.map((row) => (
+                      <div key={row.label} className="grid grid-cols-[4.8rem_1fr] gap-3 rounded-2xl bg-cream/80 px-3 py-2.5 text-sm">
                         <dt className="font-extrabold text-ink/45">{row.label}</dt>
                         <dd className="min-w-0 font-extrabold leading-5 text-ink">{row.value}</dd>
                       </div>
@@ -235,16 +233,24 @@ export default async function Home({ searchParams }: HomePageProps) {
       </section>
 
       <section id="how-it-works" className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-why-heading">
-        <div className="mx-auto grid max-w-7xl gap-7 rounded-[2rem] border border-white/80 bg-white/78 p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.82fr_1fr] lg:items-center">
+        <div className="mx-auto grid max-w-7xl gap-7 overflow-hidden rounded-[2rem] border border-white/80 bg-white/78 p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.78fr_0.56fr_0.9fr] lg:items-center">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Why DoughTools exists</p>
             <h2 id="homepage-why-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
               Great pizza shouldn’t depend on guesswork.
             </h2>
             <p className="mt-4 max-w-xl text-base leading-7 text-ink/70">
-              Pizza planning is full of tiny questions. DoughTools turns them into one calm plan, so you can focus on making the pizza instead of rebuilding the evening in your head.
+              The best pizza nights feel relaxed because the decisions are already made. DoughTools turns the little uncertainties into one calm plan, so your attention can stay on the dough, the oven and the people waiting for the first slice.
             </p>
           </div>
+          <Image
+            src="/images/shopping/pizza-margherita.webp"
+            alt="Finished Margherita pizza with a blistered crust and melted mozzarella"
+            width={900}
+            height={675}
+            sizes="(max-width: 1024px) 100vw, 24vw"
+            className="h-56 w-full rounded-[1.75rem] object-cover shadow-card lg:h-80"
+          />
           <div className="grid gap-3 sm:grid-cols-2">
             {guessworkQuestions.map((question) => (
               <div key={question} className="rounded-[1.35rem] border border-flour bg-cream/70 p-4 text-sm font-extrabold leading-6 text-ink/72">
@@ -265,7 +271,7 @@ export default async function Home({ searchParams }: HomePageProps) {
               </h2>
             </div>
             <p className="text-base leading-7 text-ink/70">
-              Great pizza starts long before the oven. DoughTools keeps the whole path visible, from the first idea to what you learn after the bake.
+              The result is the slice on the table. The way there is a sequence of small decisions made at the right time.
             </p>
           </div>
           <div className="mt-8 grid gap-3 lg:grid-cols-5">
@@ -297,28 +303,38 @@ export default async function Home({ searchParams }: HomePageProps) {
       </section>
 
       <section className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-more-than-calculator-heading">
-        <div className="mx-auto grid max-w-7xl gap-7 rounded-[2rem] bg-forest-dark p-5 text-white shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.75fr_1fr] lg:items-center">
+        <div className="mx-auto grid max-w-7xl gap-7 overflow-hidden rounded-[2rem] bg-forest-dark p-5 text-white shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.72fr_1fr] lg:items-center">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-oven-gold">Why it feels different</p>
             <h2 id="homepage-more-than-calculator-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
               More than a dough calculator.
             </h2>
             <p className="mt-4 max-w-xl text-base leading-7 text-white/72">
-              A calculator can tell you what goes into the bowl. DoughTools helps you understand the evening around the dough: what to buy, when to start, what to do next, and what to remember for next time.
+              The numbers matter because they make the evening easier. DoughTools still calculates the dough — but the real value is knowing how that dough becomes pizza without last-minute guessing.
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <article className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
-              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Normal calculator</p>
-              <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Calculates ingredients.</h3>
-              <p className="mt-3 text-sm leading-6 text-white/62">Useful numbers, but the real-life planning is still left for you to connect.</p>
-            </article>
-            <article className="rounded-[1.5rem] border border-oven-gold/35 bg-oven-gold/12 p-5">
-              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold">DoughTools</p>
-              <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Calculates, plans, schedules, guides and helps you improve.</h3>
-              <p className="mt-3 text-sm leading-6 text-white/72">A connected workflow that turns pizza night into something you can actually follow.</p>
-            </article>
+          <div className="grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+            <Image
+              src="/images/timeline/bake-pizza.webp"
+              alt="Pizza baking in a hot oven with a glowing flame"
+              width={900}
+              height={675}
+              sizes="(max-width: 1024px) 100vw, 30vw"
+              className="h-72 w-full rounded-[1.75rem] object-cover shadow-overlay lg:h-full"
+            />
+            <div className="grid gap-3">
+              <article className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
+                <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Normal calculator</p>
+                <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Calculates ingredients.</h3>
+                <p className="mt-3 text-sm leading-6 text-white/62">Useful numbers, but the real-life planning is still left for you to connect.</p>
+              </article>
+              <article className="rounded-[1.5rem] border border-oven-gold/35 bg-oven-gold/12 p-5">
+                <p className="text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold">DoughTools</p>
+                <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Turns the recipe into a pizza night you can follow.</h3>
+                <p className="mt-3 text-sm leading-6 text-white/72">Calculate, plan, shop, prepare, bake and improve without losing the thread.</p>
+              </article>
+            </div>
           </div>
         </div>
       </section>
@@ -328,10 +344,10 @@ export default async function Home({ searchParams }: HomePageProps) {
           <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-leaf">See DoughTools in action</p>
             <h2 id="homepage-product-action-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
-              A real working flow, not a decorative mockup.
+              You always know what happens next.
             </h2>
             <p className="mt-4 text-base leading-7 text-ink/70">
-              Each part of the session is designed to answer the practical question that comes next.
+              Product screens create trust only when they make the next step obvious. These moments show how the plan turns into action.
             </p>
           </div>
 
@@ -395,15 +411,15 @@ export default async function Home({ searchParams }: HomePageProps) {
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Founder story</p>
             <h2 id="homepage-founder-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
-              Built because pizza planning kept getting in the way of pizza night.
+              Built by someone who got tired of guessing through pizza night.
             </h2>
           </div>
           <div className="space-y-4 text-base leading-7 text-ink/70">
             <p>
-              DoughTools grew from a simple frustration: the dough numbers were only part of the problem. The harder part was knowing when to start, how to prepare, and how to stay calm once people were waiting for pizza.
+              DoughTools grew from a simple frustration: the dough numbers were only part of the problem. The harder part was knowing when to start, how to prepare, and how to stay calm when hungry people were already asking when the next pizza would be ready.
             </p>
             <p>
-              It is built by Marcin as a practical companion for better pizza nights — transparent enough to trust, focused enough to use, and still respectful of the craft.
+              Marcin built it as a practical companion for better pizza nights — transparent enough to trust, focused enough to use, and still respectful of the craft.
             </p>
             <Link
               href="/about"
@@ -419,10 +435,10 @@ export default async function Home({ searchParams }: HomePageProps) {
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/80 bg-ink p-6 text-center text-white shadow-card sm:rounded-[2.5rem] sm:p-10">
           <p className="text-xs font-extrabold uppercase tracking-[.28em] text-oven-gold">Ready when you are</p>
           <h2 id="homepage-final-cta-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">
-            Ready to plan your next pizza?
+            Let’s make the next pizza night feel easier.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base sm:leading-7">
-            It only takes a few minutes to create your first plan.
+            A few minutes of planning now means more confidence when the oven is hot.
           </p>
           <Link
             href={homepageContent.hero.primaryCta.href}
