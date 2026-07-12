@@ -43,15 +43,15 @@ const existingRoutes = new Set([
 
 describe("homepage content model", () => {
   it("has one intended primary H1", () => {
-    expect(homepageContent.hero.h1).toBe("Pizza night, planned from dough to oven.");
+    expect(homepageContent.hero.h1).toBe("Better pizza starts before the oven.");
   });
 
   it("makes Start Pizza Session the primary homepage CTA", () => {
     expect(homepageContent.hero.primaryCta).toEqual({ label: "Start Pizza Session", href: "/session/start" });
   });
 
-  it("keeps the full calculator available as a secondary action", () => {
-    expect(homepageContent.hero.secondaryCta).toEqual({ label: "Open calculator", href: "/?calculator=1" });
+  it("uses the hero secondary action to explain the workflow", () => {
+    expect(homepageContent.hero.secondaryCta).toEqual({ label: "See how it works", href: "#how-it-works" });
   });
 
   it("keeps learning available without making it the primary action", () => {
@@ -72,12 +72,12 @@ describe("homepage content model", () => {
   });
 
   it("positions DoughTools as a clean session-first pizza-making homepage", () => {
-    expect(homepageContent.hero.eyebrow).toBe("Pizza-making made simple");
-    expect(homepageContent.hero.intro).toContain("Tell DoughTools when you want to bake");
-    expect(homepageContent.hero.intro).toContain("dough plan");
+    expect(homepageContent.hero.eyebrow).toBe("Your pizza, planned properly.");
+    expect(homepageContent.hero.intro).toContain("pizza idea");
+    expect(homepageContent.hero.intro).toContain("complete recipe");
     expect(homepageContent.hero.intro).toContain("shopping list");
     expect(homepageContent.hero.intro).toContain("timeline");
-    expect(homepageContent.hero.intro).toContain("kitchen steps");
+    expect(homepageContent.hero.intro).toContain("step-by-step kitchen plan");
     expect(homepageContent.trust).toEqual([
       "Saved locally",
       "Private",
@@ -126,9 +126,9 @@ describe("homepage content model", () => {
     const nextStep = source("components/WorkflowNextStep.tsx");
 
     expect(content).toContain("Start Pizza Session");
-    expect(content).toContain("Pizza-making made simple");
-    expect(content).toContain("Pizza night, planned from dough to oven.");
-    expect(content).toContain("Tell DoughTools when you want to bake");
+    expect(content).toContain("Your pizza, planned properly.");
+    expect(content).toContain("Better pizza starts before the oven.");
+    expect(content).toContain("DoughTools turns your pizza idea into a complete recipe");
     expect(homepage).toContain("ContinuePizzaSessionCard");
     expect(homepage).toContain('variant="hero"');
     expect(homepage).toContain("HomepageGuidanceLevelSection");
@@ -136,30 +136,34 @@ describe("homepage content model", () => {
     expect(homepage).toContain("calculatorViewFor");
     expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).toContain('return "full"');
+    expect(homepage).toContain("DoughToolsIcon");
     expect(homepage).toContain("/images/homepage/hero-desktop-bg.png");
-    expect(homepage).toContain("Example session");
-    expect(homepage).toContain("Saturday 20:00");
+    expect(homepage).toContain("Pizza Session preview");
+    expect(homepage).toContain("One plan from idea to bake.");
     expect(homepage).toContain("6 × 260 g");
     expect(homepage).toContain("24h cold");
-    expect(homepage).toContain("Flour, tomatoes, mozzarella, basil, yeast, olive oil");
-    expect(homepage).toContain("Everything you need for a better pizza session");
-    expect(homepage).toContain("Get the dough right");
-    expect(homepage).toContain("Know when to start");
-    expect(homepage).toContain("Stay focused while baking");
-    expect(homepage).toContain("Guidance that fits your skill level");
+    expect(homepage).toContain("One plan. Every step.");
+    expect(homepage).toContain("Plan");
+    expect(homepage).toContain("Shop");
+    expect(homepage).toContain("Prepare");
+    expect(homepage).toContain("Bake");
+    expect(homepage).toContain("Improve");
+    expect(homepage).toContain("It does not stop after calculating ingredients.");
+    expect(homepage).toContain("One planning engine. Guidance matched to your experience.");
     expect(homepage).toContain("More than a dough calculator");
-    expect(homepage).toContain("Normal calculator");
-    expect(homepage).toContain("Plans the whole pizza session");
+    expect(homepage).toContain("A normal calculator gives ingredient quantities.");
+    expect(homepage).toContain("A complete session");
+    expect(homepage).toContain("Built for practical pizza nights.");
     expect(homepage).toContain("Ready to plan your next pizza night?");
-    expect(homepage).toContain("No account needed. Your session is saved locally on this device.");
     expect(homepage).not.toContain("/images/homepage-hero-desktop.png");
     expect(homepage).not.toContain("/images/homepage-hero-mobile.png");
-    expect(homepage).toContain("lg:min-h-[42rem]");
-    expect(homepage).toContain("hidden w-[64%] lg:block");
+    expect(homepage).toContain("lg:min-h-[43rem]");
+    expect(homepage).toContain("hidden w-[62%] lg:block");
     expect(homepage).toContain("object-[68%_center]");
-    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,0.82fr)]");
+    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,0.86fr)]");
     expect(homepage).toContain("/images/homepage/hero-mobile-bg.png");
-    expect(homepage).toContain("sm:hidden");
+    expect(homepage).toContain('href={homepageContent.hero.secondaryCta.href}');
+    expect(homepage).toContain('id="how-it-works"');
     expect(homepage).toContain("overflow-x-clip");
     expect(homepage).not.toContain("mt-[35vh]");
     expect(guidance).toContain("Experience level");
@@ -204,7 +208,6 @@ describe("homepage content model", () => {
     expect(header).not.toContain('label: "Dough Calculator"');
     expect(updateNotice).toContain('pathname === "/"');
     expect(nextStep).not.toContain('"/":');
-    expect(homepage).not.toContain("homepageContent.hero.secondaryCta.href");
     expect(homepage).not.toContain("homepageContent.hero.learnCta.href");
     expect(homepage).not.toContain("Your pizza session in 8 steps");
     expect(homepage).not.toContain("All tools at your fingertips");
@@ -220,6 +223,7 @@ describe("homepage content model", () => {
     expect(homepage).not.toContain("My recipes");
     expect(homepage).not.toContain("Core pizza workflow tools");
     expect(homepage).not.toContain("Explore the rest of the workshop");
+    expect(homepage).not.toMatch(/trusted by thousands|star rating|award-winning|revolutionize|ultimate pizza platform/i);
   });
 
   it("hides Continue Pizza Session after the active session pointer is cleared", () => {
@@ -247,7 +251,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("calculatorViewFor(params)");
     expect(homepage).toContain('return "full"');
     expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
-    expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
+    expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(calculatorWorkspace).toContain("Build the dough recipe.");
     expect(calculatorWorkspace).toContain("Ready to mix");
     expect(calculatorWorkspace).toContain("Save recipe");
@@ -277,12 +281,13 @@ describe("homepage content model", () => {
 
   it("keeps the homepage primary and secondary CTAs pointed at the approved targets", () => {
     const homepage = source("app/page.tsx");
+    const content = source("lib/homepage.ts");
 
     expect(homepageContent.hero.primaryCta.href).toBe("/session/start");
-    expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
+    expect(homepageContent.hero.secondaryCta.href).toBe("#how-it-works");
     expect(homepage).toContain("href={homepageContent.hero.primaryCta.href}");
-    expect(homepage).not.toContain("href={homepageContent.hero.secondaryCta.href}");
-    expect(homepage).not.toContain("Learn how it works");
+    expect(homepage).toContain("href={homepageContent.hero.secondaryCta.href}");
+    expect(content).toContain("See how it works");
   });
 
   it("keeps the compact Tools menu focused on the standalone Quick Dough Calculator route", () => {
@@ -313,7 +318,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("calculatorViewFor");
     expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).toContain("return <HomeCalculatorWorkspace variant={calculatorView} />");
-    expect(homepageContent.hero.secondaryCta.href).toBe("/?calculator=1");
+    expect(homepageContent.hero.secondaryCta.href).toBe("#how-it-works");
   });
 
   it("opens the Tools calculator link into a focused existing calculator entry view", () => {
@@ -575,19 +580,21 @@ describe("homepage content model", () => {
     const homepage = source("app/page.tsx");
 
     expect(homepage).toContain("overflow-x-clip");
-    expect(homepage).toContain("lg:min-h-[42rem]");
-    expect(homepage).toContain("hidden w-[64%] lg:block");
+    expect(homepage).toContain("lg:min-h-[43rem]");
+    expect(homepage).toContain("hidden w-[62%] lg:block");
     expect(homepage).toContain("object-[68%_center]");
-    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.92fr)_minmax(24rem,0.82fr)]");
-    expect(homepage).toContain("text-[clamp(3.25rem,13vw,5rem)]");
+    expect(homepage).toContain("lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,0.86fr)]");
+    expect(homepage).toContain("text-[clamp(3.2rem,12vw,5rem)]");
     expect(homepage).toContain("sm:w-auto");
     expect(homepage).toContain("HomepageGuidanceLevelSection");
-    expect(homepage).toContain("lg:grid-cols-[0.75fr_1fr]");
+    expect(homepage).toContain("lg:grid-cols-[0.76fr_1fr]");
     expect(homepage).toContain("sm:grid-cols-3 lg:grid-cols-1");
     expect(homepage).toContain("ContinuePizzaSessionCard");
     expect(homepage).toContain("lg:absolute lg:left-0 lg:top-8");
-    expect(homepage).toContain("sm:hidden");
-    expect(homepage).toContain("sm:grid");
+    expect(homepage).toContain("width={1400}");
+    expect(homepage).toContain("height={1050}");
+    expect(homepage).toContain("width={900}");
+    expect(homepage).toContain("height={675}");
   });
 
   it("adds more technical result guidance for Pizza Nerd users without changing tools", () => {

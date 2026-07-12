@@ -8,12 +8,12 @@ export type HomepageTool = {
 
 export const homepageContent = {
   hero: {
-    eyebrow: "Pizza-making made simple",
-    h1: "Pizza night, planned from dough to oven.",
+    eyebrow: "Your pizza, planned properly.",
+    h1: "Better pizza starts before the oven.",
     intro:
-      "Tell DoughTools when you want to bake. It gives you the dough plan, shopping list, timeline and kitchen steps — so you know what to do, when to do it and why it works.",
+      "DoughTools turns your pizza idea into a complete recipe, shopping list, timeline, and step-by-step kitchen plan.",
     primaryCta: { label: "Start Pizza Session", href: "/session/start" },
-    secondaryCta: { label: "Open calculator", href: "/?calculator=1" },
+    secondaryCta: { label: "See how it works", href: "#how-it-works" },
     learnCta: { label: "Learn how it works", href: "/guide" },
   },
   workflow: [

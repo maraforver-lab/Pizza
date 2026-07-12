@@ -24,9 +24,9 @@ const unsupportedMarketingClaims = /\b(perfect pizza|guaranteed|ultimate|revolut
 export const publicSeoRoutes = [
   {
     path: "/",
-    title: "Pizza Dough Calculator and Pizza Planning | DoughTools",
+    title: "Pizza Planning Workflow | DoughTools",
     description:
-      "Calculate pizza dough, plan fermentation, prepare sauce and toppings, and improve each bake with practical pizza-making tools.",
+      "Plan a complete pizza session with a dough recipe, shopping guidance, timeline, Kitchen Mode and review path.",
     changeFrequency: "weekly",
     priority: 1,
   },
