@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import {
   findPizzaTroubleshootingProblem,
   getPizzaTroubleshootingLevelPresentation,
@@ -204,10 +205,7 @@ export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath }: P
     <main className="guide-page min-h-screen overflow-x-clip px-4 py-5 text-ink sm:px-6 sm:py-10">
       <div className="relative z-10 mx-auto max-w-6xl">
         <header className="mb-6 flex items-center justify-between gap-4">
-          <Link href="/guide" className="flex items-center gap-2 text-sm font-bold text-ink/65 transition hover:text-ink">
-            <span aria-hidden="true">←</span>
-            Back to Guide
-          </Link>
+          <LearningBreadcrumbs current="Pizza Troubleshooting Guide" />
           {returnPath && (
             <Link href={returnPath} className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
               Back to Dough Guide
@@ -317,7 +315,13 @@ export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath }: P
                 Dough Guide
               </Link>
               <Link href="/guide" className="rounded-2xl bg-white/80 p-4 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                Guide and glossary
+                Pizza Learning Center
+              </Link>
+              <Link href="/sauce" className="rounded-2xl bg-white/80 p-4 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Pizza Sauce
+              </Link>
+              <Link href="/ovens" className="rounded-2xl bg-white/80 p-4 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Oven Guide
               </Link>
               <Link href="/calculator/quick" className="rounded-2xl bg-white/80 p-4 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 Quick Dough Calculator
@@ -325,6 +329,45 @@ export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath }: P
             </div>
           </aside>
         </section>
+
+        <div className="mt-6">
+          <RelatedLearning
+            title="Learn the variables behind the problem"
+            intro="Most pizza problems connect back to dough handling, sauce moisture, toppings or oven heat. These pages help you understand the cause before changing the next bake."
+            links={[
+              {
+                href: "/guides/dough",
+                title: "Dough Guide",
+                description: "Review mixing, resting, balling, proofing and release technique.",
+                icon: "wheat",
+              },
+              {
+                href: "/sauce",
+                title: "Pizza Sauce",
+                description: "Control tomato texture, moisture and sauce amount.",
+                icon: "water",
+              },
+              {
+                href: "/toppings",
+                title: "Toppings",
+                description: "Balance cheese, moisture and topping load before baking.",
+                icon: "pizza",
+              },
+              {
+                href: "/ovens",
+                title: "Oven Guide",
+                description: "Understand bake profiles, preheating and heat balance.",
+                icon: "oven",
+              },
+            ]}
+            cta={{
+              href: "/session/start",
+              title: "Plan my next pizza",
+              description: "Use what you diagnosed in a real Pizza Session.",
+              icon: "calendar",
+            }}
+          />
+        </div>
       </div>
     </main>
   );

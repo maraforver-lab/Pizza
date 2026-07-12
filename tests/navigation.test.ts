@@ -113,6 +113,9 @@ describe("shared navigation model", () => {
     expect(header).toContain('const accountActive = pathname === "/account"');
     expect(header).toContain('const doughGuideActive = pathname === "/guides/dough"');
     expect(header).toContain('const guideGlossaryActive = pathname === "/guide"');
+    expect(header).toContain('const sauceGuideActive = pathname === "/sauce"');
+    expect(header).toContain('const pizzaStylesActive = pathname === "/styles"');
+    expect(header).toContain('const ovenGuideActive = pathname === "/ovens"');
     expect(header).toContain('const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting"');
     expect(header).toContain('href="/account"');
     expect(header).toContain("Sign in");
@@ -188,17 +191,28 @@ describe("shared navigation model", () => {
     expect(header).toContain('id="global-guide-menu"');
     expect(header).toContain('role="menu" aria-label="Guide menu"');
     expect(header).toContain('href="/guides/dough"');
+    expect(header).toContain('href="/sauce"');
     expect(header).toContain('href="/guide/pizza-troubleshooting"');
+    expect(header).toContain('href="/styles"');
+    expect(header).toContain('href="/ovens"');
     expect(header).toContain('aria-current={doughGuideActive ? "page" : undefined}');
     expect(header).toContain('aria-current={guideGlossaryActive ? "page" : undefined}');
+    expect(header).toContain('aria-current={sauceGuideActive ? "page" : undefined}');
+    expect(header).toContain('aria-current={pizzaStylesActive ? "page" : undefined}');
+    expect(header).toContain('aria-current={ovenGuideActive ? "page" : undefined}');
     expect(header).toContain('aria-current={troubleshootingGuideActive ? "page" : undefined}');
     expect(header).toContain('aria-current={aboutActive ? "page" : undefined}');
     expect(header).toContain("guideMenuItemClass(doughGuideActive)");
     expect(header).toContain("guideMenuItemClass(guideGlossaryActive)");
+    expect(header).toContain("guideMenuItemClass(sauceGuideActive)");
+    expect(header).toContain("guideMenuItemClass(pizzaStylesActive)");
+    expect(header).toContain("guideMenuItemClass(ovenGuideActive)");
     expect(header).toContain("guideMenuItemClass(troubleshootingGuideActive)");
     expect(header).toContain("guideMenuItemClass(aboutActive)");
     expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
-    expect(header).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
+    expect(header).toContain("w-[min(21rem,calc(100vw-1.5rem))]");
+    expect(header).toContain("max-sm:max-h-[calc(100vh-4.5rem)]");
+    expect(header).toContain("max-sm:overflow-y-auto");
   });
 
   it("makes About available in compact mobile navigation without duplicating the header control", () => {
@@ -227,7 +241,9 @@ describe("shared navigation model", () => {
     expect(header).toContain('aria-label={signedIn ? copy.accountActive : copy.account}');
     expect(header).toContain("h-10");
     expect(header).toContain("min-w-0");
-    expect(header).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
+    expect(header).toContain("w-[min(21rem,calc(100vw-1.5rem))]");
+    expect(header).toContain("max-sm:max-h-[calc(100vh-4.5rem)]");
+    expect(header).toContain("max-sm:overflow-y-auto");
     expect(header).toContain("w-64");
     expect(header).toContain("max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto");
     expect(header).not.toContain("overflow-x-hidden");

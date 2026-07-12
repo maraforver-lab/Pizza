@@ -126,6 +126,38 @@ const productMoments: ProductMoment[] = [
   },
 ];
 
+const footerGroups = [
+  {
+    title: "Learn",
+    links: [
+      { label: "Learning Center", href: "/guide" },
+      { label: "Pizza Sauce", href: "/sauce" },
+      { label: "Dough Guide", href: "/guides/dough" },
+      { label: "Troubleshooting", href: "/guide/pizza-troubleshooting" },
+      { label: "Pizza Styles", href: "/styles" },
+      { label: "Ovens", href: "/ovens" },
+    ],
+  },
+  {
+    title: "Product",
+    links: [
+      { label: "Plan my next pizza", href: "/session/start" },
+      { label: "Quick Dough Calculator", href: "/calculator/quick" },
+      { label: "Party Orders", href: "/account/party-orders" },
+      { label: "Costs", href: "/costs" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Updates", href: "/updates" },
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
+    ],
+  },
+] as const;
+
 export default async function Home({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const calculatorView = calculatorViewFor(params);
@@ -450,13 +482,28 @@ export default async function Home({ searchParams }: HomePageProps) {
       </section>
 
       <footer className="px-4 pb-10 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-ink/10 pt-6 text-xs font-bold text-ink/45 sm:flex-row sm:items-center sm:justify-between">
-          <p>Made for better pizza nights.</p>
-          <nav className="flex flex-wrap gap-4" aria-label="Footer">
-            <Link href="/guide" className="hover:text-ink">Guide</Link>
-            <Link href="/about" className="hover:text-ink">About</Link>
-            <Link href="/privacy" className="hover:text-ink">Privacy</Link>
-            <Link href="/terms" className="hover:text-ink">Terms</Link>
+        <div className="mx-auto grid max-w-7xl gap-7 border-t border-ink/10 pt-8 text-sm text-ink/55 lg:grid-cols-[1.1fr_2fr]">
+          <div>
+            <p className="font-display text-2xl font-semibold text-ink">Made for better pizza nights.</p>
+            <p className="mt-2 max-w-sm text-xs leading-5 text-ink/45">
+              Learn the craft, plan the evening, and keep the next useful page within reach.
+            </p>
+          </div>
+          <nav className="grid gap-6 sm:grid-cols-3" aria-label="Footer">
+            {footerGroups.map((group) => (
+              <div key={group.title}>
+                <h2 className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">{group.title}</h2>
+                <ul className="mt-3 space-y-2">
+                  {group.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="font-bold underline-offset-2 transition hover:text-tomato hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </nav>
         </div>
       </footer>

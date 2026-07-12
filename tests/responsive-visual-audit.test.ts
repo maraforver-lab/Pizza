@@ -45,8 +45,10 @@ describe("Patch 311 responsive visual audit protections", () => {
     expect(kitchen).toContain("overflow-y-auto");
     expect(shopping).toContain("[overflow-wrap:anywhere]");
     expect(troubleshooting).toContain("[overflow-wrap:anywhere]");
-    expect(navigation).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
+    expect(navigation).toContain("w-[min(21rem,calc(100vw-1.5rem))]");
     expect(navigation).toContain("max-sm:fixed");
+    expect(navigation).toContain("max-sm:max-h-[calc(100vh-4.5rem)]");
+    expect(navigation).toContain("max-sm:overflow-y-auto");
     expect(globals).not.toContain("overflow-x: hidden");
   });
 

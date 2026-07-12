@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
+import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import ScrollNumberPicker from "@/components/ScrollNumberPicker";
 import { pizzaStyleById } from "@/lib/pizza-styles";
 import { settingsFromUrl } from "@/lib/recipe-url";
@@ -171,7 +172,7 @@ export default function ToppingsPage() {
   const numberField = (value: number, onChange: (value: number) => void, suffix = "cm") => <ScrollNumberPicker value={value} onValueChange={onChange} min={0} max={suffix === "g" ? 300 : 100} suffix={suffix} label={pickerCopy.en.label} hint={pickerCopy.en.hint} done={pickerCopy.en.done}/>;
 
   return <main className="min-h-screen bg-cream px-4 py-8 pb-28 text-ink sm:px-6"><div className="mx-auto max-w-6xl">
-    <section className="grid items-end gap-5 py-8 lg:grid-cols-[1fr_auto]"><div><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-3xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></div><div className="rounded-2xl bg-white/80 p-4 text-xs shadow-card"><strong className="block text-leaf">{t.current}</strong><span className="mt-1 block text-ink/55">{style.nameEn} · {settings.pizzas} {settings.goal === "pan" ? t.pan : t.pizzas} · {settings.ovenType === "gas" ? t.gas : t.home}</span></div></section>
+    <section className="grid items-end gap-5 py-8 lg:grid-cols-[1fr_auto]"><div><LearningBreadcrumbs current="Toppings" /><p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-3xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></div><div className="rounded-2xl bg-white/80 p-4 text-xs shadow-card"><strong className="block text-leaf">{t.current}</strong><span className="mt-1 block text-ink/55">{style.nameEn} · {settings.pizzas} {settings.goal === "pan" ? t.pan : t.pizzas} · {settings.ovenType === "gas" ? t.gas : t.home}</span></div></section>
     <div className="grid items-start gap-5 lg:grid-cols-[1fr_22rem]"><div className="space-y-5">
       <section className="rounded-[1.75rem] bg-white/80 p-5 shadow-card sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.pizza}</h2><div className="mt-4 inline-flex rounded-xl bg-ink/[.05] p-1">{(["round", "rectangle"] as const).map(shape => <button key={shape} type="button" onClick={() => chooseShape(shape)} className={`rounded-lg px-4 py-2 text-xs font-bold ${geometry.shape === shape ? "bg-ink text-white" : "text-ink/45"}`}>{shape === "round" ? t.round : t.rectangle}</button>)}</div><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{geometry.shape === "round" ? <label className="text-xs font-bold text-ink/55">{t.diameter}{numberField(geometry.diameter, value => setGeometry({ ...geometry, diameter: value }))}</label> : <><label className="text-xs font-bold text-ink/55">{t.width}{numberField(geometry.width, value => setGeometry({ ...geometry, width: value }))}</label><label className="text-xs font-bold text-ink/55">{t.length}{numberField(geometry.length, value => setGeometry({ ...geometry, length: value }))}</label></>}<label className="text-xs font-bold text-ink/55">{t.rim}{numberField(geometry.rim, value => setGeometry({ ...geometry, rim: value }))}</label></div><p className="mt-4 text-xs text-ink/40">{t.areaNote}</p></section>
       <section className="rounded-[1.75rem] bg-white/80 p-5 shadow-card sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.cheese}</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{cheeseTypes.map(type => { const labels = t.cheeses[type]; return <button key={type} type="button" onClick={() => setCheeseType(type)} className={`min-h-20 rounded-2xl border p-4 text-left ${cheeseType === type ? "border-tomato bg-tomato text-white shadow-lg" : "border-ink/10 bg-white"}`}><strong className="block">{labels[0]}</strong><span className={`mt-1 block text-xs ${cheeseType === type ? "text-white/70" : "text-ink/45"}`}>{labels[1]}</span></button>; })}</div>
@@ -188,6 +189,44 @@ export default function ToppingsPage() {
       {result.warnings.length > 0 && <section className="rounded-[1.75rem] border border-tomato/20 bg-tomato/[.07] p-5"><h2 className="font-display text-2xl font-semibold">{t.warnings}</h2><ul className="mt-3 space-y-2 text-xs leading-5 text-ink/60">{result.warnings.map(warning => <li key={warning}>• {t.warningText[warning as keyof typeof t.warningText]}</li>)}</ul></section>}
       <Link href={`/costs?${costParams.toString()}`} className="flex min-h-14 items-center justify-between rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg"><span>{t.cost}</span><span>→</span></Link>
     </aside></div>
+    <div className="mt-8">
+      <RelatedLearning
+        title="Connect toppings to the whole bake"
+        intro="Topping load only works when sauce moisture, oven heat and pizza style are pulling in the same direction."
+        links={[
+          {
+            href: "/sauce",
+            title: "Pizza Sauce",
+            description: "Balance tomato texture, moisture and amount before toppings go on.",
+            icon: "water",
+          },
+          {
+            href: "/ovens",
+            title: "Oven Guide",
+            description: "Match topping load to home-oven or pizza-oven heat.",
+            icon: "oven",
+          },
+          {
+            href: "/guide/pizza-troubleshooting#toppings",
+            title: "Topping troubleshooting",
+            description: "Fix watery toppings, sliding cheese and overloaded centers.",
+            icon: "warning",
+          },
+          {
+            href: "/styles",
+            title: "Pizza Styles",
+            description: "Choose a style so toppings match the dough, sauce and bake.",
+            icon: "pizza",
+          },
+        ]}
+        cta={{
+          href: "/session/start",
+          title: "Plan my next pizza",
+          description: "Turn the topping plan into a complete pizza workflow.",
+          icon: "calendar",
+        }}
+      />
+    </div>
     <section className="mt-8 rounded-[1.75rem] border border-ink/10 bg-white/60 p-5 sm:p-7"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><p className="mt-3 max-w-4xl text-xs leading-5 text-ink/50">{t.sourceLead}</p><div className="mt-4 flex flex-wrap gap-2 text-[10px] font-bold"><a className="rounded-full bg-white px-3 py-2" href="https://www.pizzanapoletana.org/en/ricetta_pizza_napoletana" target="_blank" rel="noreferrer">AVPN ↗</a><a className="rounded-full bg-white px-3 py-2" href="https://www.kingarthurbaking.com/blog/2024/06/07/add-pizza-toppings" target="_blank" rel="noreferrer">King Arthur Baking ↗</a><a className="rounded-full bg-white px-3 py-2" href="https://www.seriouseats.com/the-pizza-lab-the-best-low-moisture-mozzarella-for-pizzas" target="_blank" rel="noreferrer">Serious Eats ↗</a><a className="rounded-full bg-white px-3 py-2" href="https://www.pizzamaking.com/forum/index.php/topic,70662.0.html" target="_blank" rel="noreferrer">PizzaMaking ↗</a></div></section>
     <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
   </div></main>;

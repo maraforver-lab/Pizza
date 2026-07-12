@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useId, useState } from "react";
+import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import {
   DOUGH_GUIDE_LEVEL_LABELS,
   doughGuideSteps,
@@ -440,10 +441,7 @@ export default function DoughGuidePageClient() {
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/guide" className="inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-extrabold text-ink/60 transition hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            <span aria-hidden="true">←</span>
-            Back to Guide
-          </Link>
+          <LearningBreadcrumbs current="Pizza Dough Guide" />
           {sessionReturnPath && sessionReturnLabel && (
             <Link
               href={sessionReturnPath}
@@ -567,6 +565,39 @@ export default function DoughGuidePageClient() {
                   Dough is ready to stretch
                 </p>
               )}
+            </div>
+
+            <div className="mt-6">
+              <RelatedLearning
+                title="Connect dough technique to the rest of the pizza"
+                intro="The dough steps make more sense when you connect them to sauce moisture, oven heat and troubleshooting signs."
+                links={[
+                  {
+                    href: "/guide",
+                    title: "Pizza Learning Center",
+                    description: "Understand hydration, fermentation, flour strength and oven heat.",
+                    icon: "information",
+                  },
+                  {
+                    href: "/sauce",
+                    title: "Pizza Sauce",
+                    description: "Balance tomato texture and moisture with your dough and oven.",
+                    icon: "water",
+                  },
+                  {
+                    href: "/ovens",
+                    title: "Oven Guide",
+                    description: "Match dough, toppings and bake profile to your oven.",
+                    icon: "oven",
+                  },
+                  {
+                    href: "/guide/pizza-troubleshooting",
+                    title: "Troubleshooting",
+                    description: "Diagnose sticky dough, tearing, dense crusts and baking problems.",
+                    icon: "warning",
+                  },
+                ]}
+              />
             </div>
           </article>
         </div>

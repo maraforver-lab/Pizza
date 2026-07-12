@@ -17,6 +17,12 @@ const copy = {
   doughGuideDescription: "Step-by-step dough preparation from mixing to a ball ready to stretch.",
   guideGlossary: "Guide and glossary",
   guideGlossaryDescription: "Learn terminology, flour strength and dough principles.",
+  sauceGuide: "Pizza Sauce Guide",
+  sauceGuideDescription: "Learn sauce methods, tomato choices and sauce quantities.",
+  pizzaStyles: "Pizza Styles",
+  pizzaStylesDescription: "Compare styles and choose the pizza you want to make.",
+  ovenGuide: "Oven Guide",
+  ovenGuideDescription: "Understand home ovens, pizza ovens and bake trade-offs.",
   troubleshootingGuide: "Pizza Troubleshooting Guide",
   troubleshootingGuideDescription: "Fix common dough, topping and baking problems.",
   about: "About",
@@ -52,6 +58,9 @@ export default function GlobalToolNavigation() {
   const accountActive = pathname === "/account";
   const doughGuideActive = pathname === "/guides/dough";
   const guideGlossaryActive = pathname === "/guide";
+  const sauceGuideActive = pathname === "/sauce";
+  const pizzaStylesActive = pathname === "/styles";
+  const ovenGuideActive = pathname === "/ovens";
   const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting";
   const quickCalculatorActive = pathname === "/calculator/quick";
   const aboutActive = pathname === "/about";
@@ -152,17 +161,7 @@ export default function GlobalToolNavigation() {
               <DoughToolsIcon name="chevron-down" size={16} />
             </button>
             {guideMenuOpen && (
-              <div id="global-guide-menu" className="absolute right-0 top-12 z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Guide menu">
-                <Link
-                  href="/guides/dough"
-                  role="menuitem"
-                  aria-current={doughGuideActive ? "page" : undefined}
-                  onClick={() => setOpenMenu(null)}
-                  className={guideMenuItemClass(doughGuideActive)}
-                >
-                  <span className="block text-sm font-extrabold">{copy.doughGuide}</span>
-                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.doughGuideDescription}</span>
-                </Link>
+              <div id="global-guide-menu" className="absolute right-0 top-12 z-50 w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:max-h-[calc(100vh-4.5rem)] max-sm:w-auto max-sm:overflow-y-auto" role="menu" aria-label="Guide menu">
                 <Link
                   href="/guide"
                   role="menuitem"
@@ -174,6 +173,26 @@ export default function GlobalToolNavigation() {
                   <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.guideGlossaryDescription}</span>
                 </Link>
                 <Link
+                  href="/sauce"
+                  role="menuitem"
+                  aria-current={sauceGuideActive ? "page" : undefined}
+                  onClick={() => setOpenMenu(null)}
+                  className={guideMenuItemClass(sauceGuideActive)}
+                >
+                  <span className="block text-sm font-extrabold">{copy.sauceGuide}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.sauceGuideDescription}</span>
+                </Link>
+                <Link
+                  href="/guides/dough"
+                  role="menuitem"
+                  aria-current={doughGuideActive ? "page" : undefined}
+                  onClick={() => setOpenMenu(null)}
+                  className={guideMenuItemClass(doughGuideActive)}
+                >
+                  <span className="block text-sm font-extrabold">{copy.doughGuide}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.doughGuideDescription}</span>
+                </Link>
+                <Link
                   href="/guide/pizza-troubleshooting"
                   role="menuitem"
                   aria-current={troubleshootingGuideActive ? "page" : undefined}
@@ -182,6 +201,26 @@ export default function GlobalToolNavigation() {
                 >
                   <span className="block text-sm font-extrabold">{copy.troubleshootingGuide}</span>
                   <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.troubleshootingGuideDescription}</span>
+                </Link>
+                <Link
+                  href="/styles"
+                  role="menuitem"
+                  aria-current={pizzaStylesActive ? "page" : undefined}
+                  onClick={() => setOpenMenu(null)}
+                  className={guideMenuItemClass(pizzaStylesActive)}
+                >
+                  <span className="block text-sm font-extrabold">{copy.pizzaStyles}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.pizzaStylesDescription}</span>
+                </Link>
+                <Link
+                  href="/ovens"
+                  role="menuitem"
+                  aria-current={ovenGuideActive ? "page" : undefined}
+                  onClick={() => setOpenMenu(null)}
+                  className={guideMenuItemClass(ovenGuideActive)}
+                >
+                  <span className="block text-sm font-extrabold">{copy.ovenGuide}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.ovenGuideDescription}</span>
                 </Link>
                 <Link
                   href="/about"

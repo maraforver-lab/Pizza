@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AppSignature from "@/components/AppSignature";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import SauceCalculator from "@/components/sauce/SauceCalculator";
 
 export const metadata: Metadata = {
@@ -225,6 +226,9 @@ export default function SaucePage() {
         </div>
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <div className="max-w-3xl">
+            <div className="[&_a]:text-oven-gold [&_span]:text-white/60">
+              <LearningBreadcrumbs current="Pizza Sauce" />
+            </div>
             <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza Sauce Guide</p>
             <h1 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               Better pizza sauce starts with better decisions.

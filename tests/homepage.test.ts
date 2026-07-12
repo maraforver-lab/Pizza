@@ -201,9 +201,15 @@ describe("homepage content model", () => {
     expect(header).toContain("Guide");
     expect(header).toContain("Guide and glossary");
     expect(header).toContain("Learn terminology, flour strength and dough principles.");
+    expect(header).toContain("Pizza Sauce Guide");
+    expect(header).toContain('href="/sauce"');
     expect(header).toContain("Pizza Troubleshooting Guide");
     expect(header).toContain("Fix common dough, topping and baking problems.");
     expect(header).toContain('href="/guide/pizza-troubleshooting"');
+    expect(header).toContain("Pizza Styles");
+    expect(header).toContain('href="/styles"');
+    expect(header).toContain("Oven Guide");
+    expect(header).toContain('href="/ovens"');
     expect(header).toContain("aria-label=\"Guide menu\"");
     expect(header).toContain('type OpenNavigationMenu = "guide" | "tools" | null');
     expect(header).toContain("setOpenMenu(null)");

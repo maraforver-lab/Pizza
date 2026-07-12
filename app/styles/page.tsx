@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppSignature from "@/components/AppSignature";
+import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import { flourById } from "@/lib/flours";
 import { pizzaStyles, type PizzaStyleId } from "@/lib/pizza-styles";
 import { recipeParams } from "@/lib/recipe-url";
@@ -45,10 +46,23 @@ export default function StylesPage() {
         <header className="flex items-center justify-between gap-4"><Link href="/" className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-lg shadow-tomato/20"><svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 15.5C7.8 7.9 17.6 5 20 7c-.3 6.4-4.9 12.1-12 12.5-3.4.2-5.3-1.4-4-4Z"/><circle cx="10" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></svg></span><span className="text-lg font-extrabold tracking-tight">Dough<span className="text-tomato">Tools</span></span></Link><nav className="hidden items-center gap-1 rounded-full border border-ink/10 bg-white/70 p-1 lg:flex"><Link href="/" className="rounded-full px-4 py-2 text-xs font-bold text-ink/55">{t.calculator}</Link><Link href="/plan" className="rounded-full px-4 py-2 text-xs font-bold text-ink/55">{t.planner}</Link><Link href="/doctor" className="rounded-full px-4 py-2 text-xs font-bold text-ink/55">{t.doctor}</Link><span className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.styles}</span></nav><Link href="/guide" className="rounded-full border border-ink/10 bg-white/70 px-3 py-2 text-xs font-bold text-ink/65">{t.guide}</Link></header>
         <nav className="legacy-tool-nav mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden"><Link href="/" className="shrink-0 rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold">{t.calculator}</Link><Link href="/plan" className="shrink-0 rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold">{t.planner}</Link><Link href="/doctor" className="shrink-0 rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold">{t.doctor}</Link><span className="shrink-0 rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.styles}</span></nav>
 
-        <section className="py-9 sm:py-12"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></section>
+        <section className="py-9 sm:py-12"><LearningBreadcrumbs current="Pizza Styles" /><p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-4 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></section>
 
         <section className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{pizzaStyles.map((style) => { const flour = flourById(style.settings.flourId); const countLabel = style.id === "detroit" || style.id === "sicilian" ? `1 ${t.pan}` : `${style.settings.pizzas} ${t.balls}`; const styleName = style.nameEn; return <article key={style.id} className="overflow-hidden rounded-[1.5rem] border border-white bg-white/80 shadow-card"><div className="relative aspect-square overflow-hidden bg-ink/5"><Image src={style.image} alt={styleName} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition duration-300 hover:scale-[1.02]"/><span className="absolute left-3 top-3 rounded-full bg-ink/85 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide text-white">{style.diameter}</span></div><div className="p-5"><h2 className="font-display text-2xl font-semibold">{styleName}</h2><p className="mt-2 min-h-16 text-sm leading-6 text-ink/55">{t.descriptions[style.id as PizzaStyleId]}</p><dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-y border-ink/10 py-4 text-xs"><dt className="text-ink/40">{countLabel}</dt><dd className="text-right font-bold">{style.settings.ballWeight} g</dd><dt className="text-ink/40">{t.hydration}</dt><dd className="text-right font-bold">{style.settings.hydration} %</dd><dt className="text-ink/40">{t.flour}</dt><dd className="truncate text-right font-bold">{flour.brand} {flour.name}</dd><dt className="text-ink/40">{t.fermentation}</dt><dd className="text-right font-bold">{style.settings.fermentation.replaceAll("-", " ")}</dd><dt className="text-ink/40">{t.bake}</dt><dd className="text-right font-bold">{style.bake}</dd></dl><Link href={`/?${recipeParams({ ...style.settings, pizzaStyleId: style.id }).toString()}`} className="mt-4 block rounded-xl bg-tomato px-4 py-3 text-center text-sm font-extrabold text-white transition active:scale-[.98]">{t.use} →</Link></div></article>; })}</section>
         <p className="mt-6 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs leading-5 text-ink/50">{t.note}</p>
+        <div className="mt-6">
+          <RelatedLearning
+            title="Choose the style, then learn what it changes"
+            intro="Pizza style affects dough weight, hydration, flour, sauce, toppings and oven behavior."
+            links={[
+              { href: "/guide#hydration", title: "Hydration", description: "Understand how water changes handling and structure.", icon: "water" },
+              { href: "/guide#flour-strength", title: "Flour strength", description: "Match flour to fermentation time and pizza style.", icon: "wheat" },
+              { href: "/sauce", title: "Pizza Sauce", description: "Choose sauce method and amount for the style.", icon: "water" },
+              { href: "/ovens", title: "Oven Guide", description: "Match style expectations to your real oven.", icon: "oven" },
+            ]}
+            cta={{ href: "/session/start", title: "Plan my next pizza", description: "Use the chosen style in a Pizza Session.", icon: "calendar" }}
+          />
+        </div>
         <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
       </div>
     </main>
