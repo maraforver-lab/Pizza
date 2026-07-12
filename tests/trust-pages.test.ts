@@ -103,14 +103,20 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("Then pizza nights created another problem");
     expect(aboutPage).toContain("From one link to one complete session");
     expect(aboutPage).toContain("How I want to build DoughTools");
+    expect(aboutPage).toContain("Why the calculations are worth trusting");
+    expect(aboutPage).toContain("Useful at different levels");
+    expect(aboutPage).toContain("The long-term vision");
     expect(aboutPage).toContain("Still building, still curious");
     expect(aboutPage).toContain("What DoughTools does not promise");
-    expect(aboutPage).toContain("Built by Marcin Arcisz");
+    expect(aboutPage).toContain("Built by Marcin");
     expect(aboutPage).toContain("Home pizza maker and Pizza Napoletana enthusiast, Finland.");
     expect(aboutPage).toContain('src="/about/marcin-arcisz-founder.webp"');
-    expect(aboutPage).toContain("Marcin Arcisz, creator of DoughTools, photographed outdoors by the sea.");
-    expect(aboutPage).toContain("Pizza Napoletana is what first pulled me seriously into dough");
+    expect(aboutPage).toContain('width={960}');
+    expect(aboutPage).toContain('height={1200}');
+    expect(aboutPage).toContain("Marcin, creator of DoughTools, photographed outdoors by the sea.");
+    expect(aboutPage).toContain("Pizza Napoletana first pulled me seriously into fermentation");
     expect(aboutPage).toContain("one place to calculate, plan, remember and follow the process");
+    expect(aboutPage.match(/Marcin Arcisz/g) ?? []).toHaveLength(1);
   });
 
   it("keeps the founder story grounded and avoids unsupported credentials or marketing claims", () => {
@@ -119,6 +125,8 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("the dough should still be observed");
     expect(aboutPage).toContain("A good plan helps, but the dough still deserves attention.");
     expect(aboutPage).toContain("that software replaces observation and practice");
+    expect(aboutPage).toContain("DoughTools uses baker’s percentages");
+    expect(aboutPage).toContain("The app can calculate and schedule, but it keeps reminding the maker to observe dough feel");
     expect(aboutPage).not.toMatch(/master pizzaiolo|chef|fermentation scientist|revolutionizing|guaranteed perfect|scientifically perfect/i);
     expect(aboutPage).not.toMatch(/trusted by \d+|rated|testimonial|award-winning/i);
   });
@@ -141,6 +149,9 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("I hope it helps other home pizza makers");
     expect(aboutPage).toContain('href="/account/party-orders/new"');
     expect(aboutPage).toContain("Plan a pizza party");
+    expect(aboutPage).toContain('href="/session/start"');
+    expect(aboutPage).toContain("Start a Pizza Session");
+    expect(aboutPage).toContain("Try a Pizza Session");
     expect(aboutPage).toContain('href="/contact"');
     expect(aboutPage).toContain("Share an idea");
     expect(aboutPage).not.toMatch(/RSVP|email invitation|allerg(?:y|ies)|payment|fully automatic|zero host decisions/i);
