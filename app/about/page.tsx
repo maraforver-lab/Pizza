@@ -42,6 +42,15 @@ const legalLinks = [
   { href: "/methodology", label: "Methodology" },
 ] as const;
 
+type ChapterImage = {
+  src: string;
+  alt: string;
+  caption: string;
+  width: number;
+  height: number;
+  objectPosition?: string;
+};
+
 function StoryChapter({
   eyebrow,
   title,
@@ -52,31 +61,27 @@ function StoryChapter({
   eyebrow: string;
   title: string;
   children: ReactNode;
-  image?: {
-    src: string;
-    alt: string;
-    caption: string;
-  };
+  image?: ChapterImage;
   reverse?: boolean;
 }) {
   return (
-    <section className="grid gap-7 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,30rem)] lg:items-center lg:gap-12">
-      <div className={reverse ? "lg:order-2" : undefined}>
+    <section className="grid gap-8 py-12 sm:py-16 lg:grid-cols-[minmax(0,34rem)_minmax(20rem,31rem)] lg:items-center lg:justify-between lg:gap-14">
+      <div className={reverse ? "lg:order-2 lg:justify-self-end" : ""}>
         <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">{eyebrow}</p>
-        <h2 className="mt-3 max-w-3xl font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+        <h2 className="mt-3 max-w-3xl font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl lg:max-w-[11ch]">
           {title}
         </h2>
         <div className="mt-5 space-y-4 text-base leading-8 text-ink/68">{children}</div>
       </div>
       {image && (
-        <figure className={`overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-card ${reverse ? "lg:order-1" : ""}`}>
+        <figure className={`overflow-hidden rounded-[2.25rem] border border-white/80 bg-white shadow-card ${reverse ? "lg:order-1" : ""}`}>
           <Image
             src={image.src}
             alt={image.alt}
-            width={1200}
-            height={900}
-            sizes="(min-width: 1024px) 30rem, 100vw"
-            className="aspect-[4/3] h-auto w-full object-cover"
+            width={image.width}
+            height={image.height}
+            sizes="(min-width: 1024px) 31rem, 100vw"
+            className={`aspect-[4/3] h-auto w-full object-cover ${image.objectPosition ?? ""}`}
           />
           <figcaption className="px-4 py-3 text-xs font-bold leading-5 text-ink/55">{image.caption}</figcaption>
         </figure>
@@ -99,6 +104,14 @@ function PullQuote({ children, dark = false }: { children: ReactNode; dark?: boo
   );
 }
 
+function SignatureQuote({ children }: { children: ReactNode }) {
+  return (
+    <blockquote className="mx-auto my-12 max-w-5xl border-y border-ink/10 px-2 py-10 text-center font-display text-4xl font-semibold leading-tight tracking-tight text-ink sm:my-16 sm:px-8 sm:py-14 sm:text-6xl">
+      {children}
+    </blockquote>
+  );
+}
+
 function SecondaryLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link
@@ -112,7 +125,7 @@ function SecondaryLink({ href, children }: { href: string; children: ReactNode }
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.12),transparent_30rem),linear-gradient(135deg,#f7f0e4,#fffaf2_48%,#f1e4d3)] px-4 py-6 text-ink sm:px-6 sm:py-10">
+    <main className="min-h-screen overflow-x-clip bg-[linear-gradient(135deg,#f7f0e4,#fffaf2_48%,#f1e4d3)] px-4 py-6 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
@@ -130,29 +143,33 @@ export default function AboutPage() {
           </Link>
         </header>
 
-        <section className="relative isolate overflow-hidden rounded-[2.75rem] bg-ink text-white shadow-card">
-          <Image
-            src="/about/marcin-arcisz-founder.webp"
-            alt="Marcin, creator of DoughTools, photographed outdoors by the sea."
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[42%_center]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/78 to-ink/20" aria-hidden="true" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" aria-hidden="true" />
-          <div className="relative max-w-3xl px-6 py-16 sm:px-10 sm:py-24 lg:px-14 lg:py-32">
-            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-orange">About DoughTools</p>
-            <h1 className="mt-5 font-display text-5xl font-semibold leading-[.92] tracking-tight sm:text-7xl">
-              {"It didn't start with software."}
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg font-bold leading-8 text-white/82 sm:text-xl">
-              It started with one simple question: how can I make better pizza without spending half the evening calculating everything?
-            </p>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
-              I am Marcin Arcisz, a home pizza maker in Finland. DoughTools grew from the evenings where I wanted the pizza to be better, the planning to be calmer and the people around the table to matter more than the spreadsheet.
-            </p>
+        <section className="relative isolate overflow-hidden rounded-[2.75rem] bg-ink text-white shadow-card lg:grid lg:min-h-[42rem] lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,0.72fr)]">
+          <div className="relative z-10 px-6 py-14 sm:px-10 sm:py-20 lg:flex lg:flex-col lg:justify-end lg:px-14 lg:py-16">
+            <div className="max-w-3xl">
+              <p className="text-xs font-extrabold uppercase tracking-[.24em] text-orange">About DoughTools</p>
+              <h1 className="mt-5 font-display text-5xl font-semibold leading-[.92] tracking-tight sm:text-7xl">
+                {"It didn't start with software."}
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg font-bold leading-8 text-white/82 sm:text-xl">
+                It started with one simple question: how can I make better pizza without spending half the evening calculating everything?
+              </p>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+                I am Marcin Arcisz, a home pizza maker in Finland. DoughTools grew from the evenings where I wanted the pizza to be better, the planning to be calmer and the people around the table to matter more than the spreadsheet.
+              </p>
+            </div>
           </div>
+          <figure className="relative min-h-[22rem] overflow-hidden sm:min-h-[30rem] lg:min-h-0">
+            <Image
+              src="/about/marcin-arcisz-founder.webp"
+              alt="Marcin, creator of DoughTools, photographed outdoors by the sea."
+              width={960}
+              height={1200}
+              priority
+              sizes="(min-width: 1024px) 42vw, 100vw"
+              className="h-full w-full object-cover object-[46%_center] lg:object-[48%_center]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink/45 via-transparent to-transparent lg:bg-gradient-to-r lg:from-ink/70 lg:via-ink/10 lg:to-transparent" aria-hidden="true" />
+          </figure>
         </section>
 
         <article className="mx-auto max-w-6xl">
@@ -163,6 +180,8 @@ export default function AboutPage() {
               src: "/dough-guide/guide-step-02-measure.webp",
               alt: "Pizza dough ingredients measured on a warm kitchen counter.",
               caption: "The first problem was not passion. It was trust in the plan.",
+              width: 1200,
+              height: 800,
             }}
           >
             <p>
@@ -184,6 +203,8 @@ export default function AboutPage() {
               src: "/dough-guide/guide-step-06-bulk.webp",
               alt: "Covered pizza dough fermenting in a container.",
               caption: "Real life gives awkward windows. The plan should adapt.",
+              width: 1200,
+              height: 800,
             }}
           >
             <p>
@@ -209,6 +230,8 @@ export default function AboutPage() {
               src: "/dough-guide/guide-step-08-ball.webp",
               alt: "Pizza dough balls prepared in a tray.",
               caption: "Once timing mattered, the calculator became a preparation flow.",
+              width: 1200,
+              height: 800,
             }}
           >
             <p>
@@ -226,26 +249,34 @@ export default function AboutPage() {
             </div>
           </StoryChapter>
 
-          <StoryChapter eyebrow="Chapter 4" title="Everyone starts somewhere." reverse>
-            <p>
-              People do not arrive at pizza making with the same confidence. One person needs a calm first step. Another wants to understand what changed. Someone else wants the variable, the assumption and the reason.
-            </p>
-            <PullQuote>
-              <span className="block">The calculations stay the same.</span>
-              <span className="block text-tomato">The explanation changes.</span>
-            </PullQuote>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {experienceLevels.map((level) => (
-                <section key={level.title} className="rounded-[1.5rem] border border-white/80 bg-white/82 p-4 shadow-sm">
-                  <h3 className="text-base font-extrabold text-ink">{level.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-ink/62">{level.body}</p>
-                </section>
-              ))}
+          <section className="py-12 sm:py-16">
+            <div className="mx-auto max-w-4xl">
+              <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Chapter 4</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+                Everyone starts somewhere.
+              </h2>
+              <div className="mt-5 space-y-4 text-base leading-8 text-ink/68">
+                <p>
+                  People do not arrive at pizza making with the same confidence. One person needs a calm first step. Another wants to understand what changed. Someone else wants the variable, the assumption and the reason.
+                </p>
+              </div>
+              <PullQuote>
+                <span className="block">The calculations stay the same.</span>
+                <span className="block text-tomato">The explanation changes.</span>
+              </PullQuote>
+              <div className="mt-8 divide-y divide-ink/10 rounded-[2rem] border border-white/80 bg-white/72 px-5 shadow-sm sm:px-7">
+                {experienceLevels.map((level) => (
+                  <section key={level.title} className="grid gap-2 py-5 sm:grid-cols-[9rem_1fr] sm:gap-6">
+                    <h3 className="text-base font-extrabold text-ink">{level.title}</h3>
+                    <p className="text-sm leading-6 text-ink/62">{level.body}</p>
+                  </section>
+                ))}
+              </div>
+              <p className="mt-5 max-w-3xl text-base leading-8 text-ink/68">
+                That matters because a beginner should not be buried under technical language, and a Pizza Nerd should not be forced to trust a mystery box.
+              </p>
             </div>
-            <p>
-              That matters because a beginner should not be buried under technical language, and a Pizza Nerd should not be forced to trust a mystery box.
-            </p>
-          </StoryChapter>
+          </section>
 
           <StoryChapter
             eyebrow="Chapter 5"
@@ -254,6 +285,8 @@ export default function AboutPage() {
               src: "/images/shopping/pizza-margherita.webp",
               alt: "Freshly baked Margherita pizza with tomato, mozzarella and basil.",
               caption: "Pizza Napoletana became the first style I truly fell in love with.",
+              width: 1200,
+              height: 900,
             }}
           >
             <p>
@@ -267,6 +300,11 @@ export default function AboutPage() {
             </p>
           </StoryChapter>
 
+          <SignatureQuote>
+            <span className="block">DoughTools is not here to make pizza for you.</span>
+            <span className="block text-tomato">It is here to help you understand your next pizza.</span>
+          </SignatureQuote>
+
           <StoryChapter
             eyebrow="Chapter 6"
             title="The evening that changed everything."
@@ -275,6 +313,8 @@ export default function AboutPage() {
               src: "/images/timeline/bake-pizza.webp",
               alt: "Pizza baking in a hot oven.",
               caption: "One oven, many pizzas and a plan that finally disappeared into the evening.",
+              width: 1254,
+              height: 1254,
             }}
           >
             <p>
@@ -298,6 +338,8 @@ export default function AboutPage() {
               src: "/images/shopping/pizza-prosciutto.webp",
               alt: "Freshly baked pizza prepared for serving.",
               caption: "The harder the guest list became, the more the plan needed one source of truth.",
+              width: 1200,
+              height: 900,
             }}
           >
             <p>
@@ -319,7 +361,7 @@ export default function AboutPage() {
               ))}
             </div>
             <div className="pt-2">
-              <SecondaryLink href="/account/party-orders/new">Plan a Pizza Party</SecondaryLink>
+              <SecondaryLink href="/account/party-orders/new">Plan a pizza party</SecondaryLink>
             </div>
           </StoryChapter>
         </article>
@@ -336,10 +378,7 @@ export default function AboutPage() {
                 </p>
               ))}
             </div>
-            <PullQuote dark>
-              <span className="block">Transparent tools, not magic.</span>
-            </PullQuote>
-            <p className="max-w-3xl text-base leading-8 text-white/70">
+            <p className="mt-7 max-w-3xl text-base leading-8 text-white/70">
               That is why the methodology stays visible, why the product avoids unsupported promises and why it keeps reminding the maker that the dough, oven and real evening still matter.
             </p>
           </div>
@@ -371,7 +410,6 @@ export default function AboutPage() {
             >
               Share an idea
             </Link>
-            <SecondaryLink href="/session/start">Explore Pizza Sessions</SecondaryLink>
           </div>
         </section>
 
@@ -382,7 +420,7 @@ export default function AboutPage() {
               DoughTools gives planning guidance, not guarantees. The calculation method and limits stay visible.
             </p>
           </div>
-          <div className="sm:col-span-2 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:justify-end">
             {legalLinks.map((link) => (
               <Link
                 key={link.href}

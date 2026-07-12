@@ -114,7 +114,8 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("Real life should not adapt to the calculator. The software should adapt to real life.");
     expect(aboutPage).toContain("Pizza Napoletana became my first pizza love.");
     expect(aboutPage).toContain("Other styles will come later because I want to fall in love with those as well.");
-    expect(aboutPage).toContain("Transparent tools, not magic.");
+    expect(aboutPage).toContain("DoughTools is not here to make pizza for you.");
+    expect(aboutPage).toContain("It is here to help you understand your next pizza.");
     expect(aboutPage.match(/Marcin Arcisz/g) ?? []).toHaveLength(1);
   });
 
@@ -127,6 +128,8 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("The calculation method and limits stay visible.");
     expect(aboutPage).toContain("The calculations stay the same.");
     expect(aboutPage).toContain("The explanation changes.");
+    expect(aboutPage).toContain("Software should support the craft. Not replace it.");
+    expect(aboutPage).toContain("Pizza making should become less confusing. Not more automatic.");
     expect(aboutPage).not.toMatch(/master pizzaiolo|chef|fermentation scientist|revolutionizing|guaranteed perfect|scientifically perfect/i);
     expect(aboutPage).not.toMatch(/trusted by \d+|rated|testimonial|award-winning/i);
   });
@@ -152,12 +155,64 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("or confidently host twenty friends");
     expect(aboutPage).toContain("then every evening spent building it has been worth it.");
     expect(aboutPage).toContain('href="/account/party-orders/new"');
-    expect(aboutPage).toContain("Plan a Pizza Party");
+    expect(aboutPage).toContain("Plan a pizza party");
     expect(aboutPage).toContain('href="/session/start"');
     expect(aboutPage).toContain("Explore Pizza Sessions");
     expect(aboutPage).toContain('href="/contact"');
     expect(aboutPage).toContain("Share an idea");
     expect(aboutPage).not.toMatch(/RSVP|email invitation|allerg(?:y|ies)|payment|fully automatic|zero host decisions/i);
+  });
+
+  it("uses local editorial images with explicit dimensions and meaningful alt text", () => {
+    const aboutPage = source("app/about/page.tsx");
+
+    for (const imagePath of [
+      "/about/marcin-arcisz-founder.webp",
+      "/dough-guide/guide-step-02-measure.webp",
+      "/dough-guide/guide-step-06-bulk.webp",
+      "/dough-guide/guide-step-08-ball.webp",
+      "/images/shopping/pizza-margherita.webp",
+      "/images/timeline/bake-pizza.webp",
+      "/images/shopping/pizza-prosciutto.webp",
+    ]) {
+      expect(aboutPage).toContain(imagePath);
+      expect(existsSync(join(process.cwd(), "public", imagePath))).toBe(true);
+    }
+
+    expect(aboutPage).toContain('alt="Marcin, creator of DoughTools, photographed outdoors by the sea."');
+    expect(aboutPage).toContain('alt: "Pizza dough ingredients measured on a warm kitchen counter."');
+    expect(aboutPage).toContain('alt: "Covered pizza dough fermenting in a container."');
+    expect(aboutPage).toContain('alt: "Pizza dough balls prepared in a tray."');
+    expect(aboutPage).toContain('alt: "Freshly baked Margherita pizza with tomato, mozzarella and basil."');
+    expect(aboutPage).toContain('alt: "Pizza baking in a hot oven."');
+    expect(aboutPage).toContain('alt: "Freshly baked pizza prepared for serving."');
+    expect(aboutPage).toContain("width={960}");
+    expect(aboutPage).toContain("height={1200}");
+    expect(aboutPage).toContain("width: 1200");
+    expect(aboutPage).toContain("height: 800");
+    expect(aboutPage).toContain("width: 1254");
+    expect(aboutPage).toContain("height: 1254");
+    expect(aboutPage).not.toMatch(/https?:\/\//);
+    expect(aboutPage).not.toMatch(/synthetic founder|generated founder|ai founder/i);
+  });
+
+  it("keeps product CTAs contextual, unique and below the originating story sections", () => {
+    const aboutPage = source("app/about/page.tsx");
+    const pizzaSessionIndex = aboutPage.indexOf("Explore Pizza Sessions");
+    const workflowIndex = aboutPage.indexOf("From calculator to workflow");
+    const partyIndex = aboutPage.indexOf("Plan a pizza party");
+    const partyStoryIndex = aboutPage.indexOf("Then another problem appeared.");
+    const shareIndex = aboutPage.indexOf("Share an idea");
+    const closingIndex = aboutPage.indexOf("Still building.");
+
+    expect(workflowIndex).toBeGreaterThan(-1);
+    expect(pizzaSessionIndex).toBeGreaterThan(workflowIndex);
+    expect(partyStoryIndex).toBeGreaterThan(-1);
+    expect(partyIndex).toBeGreaterThan(partyStoryIndex);
+    expect(shareIndex).toBeGreaterThan(closingIndex);
+    expect(aboutPage.match(/Explore Pizza Sessions/g) ?? []).toHaveLength(1);
+    expect(aboutPage.match(/Plan a pizza party/g) ?? []).toHaveLength(1);
+    expect(aboutPage.match(/Share an idea/g) ?? []).toHaveLength(1);
   });
 
   it("keeps About page structure accessible and responsive without changing Party Orders or sessions", () => {
@@ -168,6 +223,9 @@ describe("trust and legal pages", () => {
     expect((aboutPage.match(/<h1\b/g) ?? [])).toHaveLength(1);
     expect(aboutPage).toContain("lg:grid-cols");
     expect(aboutPage).toContain("sm:grid-cols-2");
+    expect(aboutPage).toContain("sm:grid-cols-[9rem_1fr]");
+    expect(aboutPage).toContain("lg:order-2");
+    expect(aboutPage).toContain("lg:order-1");
     expect(aboutPage).toContain("min-h-12");
     expect(partyOrderCreate).toContain("fetch(\"/api/party-orders\"");
     expect(partyOrderHandoff).toContain("Create Pizza Session from this order");
@@ -175,6 +233,8 @@ describe("trust and legal pages", () => {
     expect(partyOrderHandoff).toContain("pizzaCount: handoff.pizzaCount");
     expect(aboutPage).not.toContain("fetch(\"/api/party-orders\"");
     expect(aboutPage).not.toContain("createAndSavePizzaSession");
+    expect(aboutPage).not.toContain("app/api");
+    expect(aboutPage).not.toContain("supabase/migrations");
   });
 
   it("explains local browser storage, localStorage, IndexedDB and Supabase accurately", () => {
