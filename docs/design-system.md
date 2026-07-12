@@ -5,6 +5,7 @@ Purpose: implementation guidance for reusable DoughTools layout, visual and inte
 
 Use with:
 
+- [Experience principles](./experience-principles.md)
 - [Global responsive UX rules](./global-responsive-ux-rules.md)
 - [Visual style guide](./visual-style-guide.md)
 - [Shared layout visual reference](./design-reference/doughtools-shared-layout-reference.png)
@@ -14,6 +15,8 @@ The visual reference is directional. It defines the desired DoughTools feeling a
 ## A. Purpose
 
 The design system is the implementation layer for DoughTools UX and visual rules. It explains how future pages should translate the product principles into reusable layout components, cards, buttons, action rows and tokens.
+
+This system translates the product philosophy in [Experience principles](./experience-principles.md) into reusable layout, visual and interaction decisions.
 
 This system exists so new pages do not invent one-off layouts. It should keep DoughTools warm, practical, premium and easy to use while preserving the product rule:
 

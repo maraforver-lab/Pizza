@@ -2,12 +2,14 @@
 
 Always follow:
 
+- `docs/experience-principles.md`
 - `docs/global-responsive-ux-rules.md`
 - `docs/visual-style-guide.md`
 - `docs/design-system.md`
 
 Core product rules:
 
+- Future product, UX, design, learning, and marketing patches must respect the Experience Principles unless the user explicitly approves an exception.
 - Desktop = guided workspace.
 - Mobile = focused app experience.
 - Same logic, different layout.

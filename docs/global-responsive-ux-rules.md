@@ -3,9 +3,11 @@
 Version: 1.0  
 Purpose: Global product and responsive UX rules for all current and future DoughTools pages.
 
+Use together with: `docs/experience-principles.md`, `docs/design-system.md` and `docs/visual-style-guide.md`.
+
 ## 1. Core principle
 
-DoughTools uses one shared product logic, but responsive presentation changes by device.
+DoughTools uses one shared product logic, but responsive presentation changes by device. Responsive decisions should support the product North Star in `docs/experience-principles.md`: people come to DoughTools for confidence, not calculations.
 
 **Desktop = guided workspace.**  
 **Mobile = focused app experience.**  

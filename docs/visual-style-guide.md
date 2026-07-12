@@ -2,9 +2,9 @@
 
 Version: 1.1  
 Purpose: Global visual design rules for all current and future DoughTools pages.  
-Use together with: `docs/global-responsive-ux-rules.md`
+Use together with: `docs/experience-principles.md` and `docs/global-responsive-ux-rules.md`
 
-This guide defines how DoughTools should look and feel across the product. It is based on the current DoughTools direction and the visual reference images reviewed during the UX work.
+This guide defines how DoughTools should look and feel across the product. It is based on the current DoughTools direction, the product North Star in [Experience principles](./experience-principles.md), and the visual reference images reviewed during the UX work.
 
 ---
 
@@ -38,6 +38,8 @@ Short rule:
 ## 2. Relationship to responsive UX rules
 
 Use this guide together with:
+
+`docs/experience-principles.md`
 
 `docs/global-responsive-ux-rules.md`
 
