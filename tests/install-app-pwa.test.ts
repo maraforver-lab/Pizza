@@ -17,8 +17,8 @@ describe("install app / add to home screen foundation", () => {
     expect(data.start_url).toBe("/");
     expect(data.scope).toBe("/");
     expect(data.display).toBe("standalone");
-    expect(data.background_color).toBe("#f6f3ea");
-    expect(data.theme_color).toBe("#f6f3ea");
+    expect(data.background_color).toBe("#FFF8F1");
+    expect(data.theme_color).toBe("#FFF8F1");
     expect(data.icons).toEqual([
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
     ]);

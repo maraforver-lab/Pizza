@@ -35,24 +35,119 @@ This system exists so new pages do not invent one-off layouts. It should keep Do
 - Avoid unrelated custom layouts unless explicitly approved.
 - Avoid overused Italian clichés; DoughTools should feel authentic, not theme-park Italian.
 
-## C. Visual tokens
+## C. Official visual foundation
 
-Preferred shared token direction:
+This is the authoritative DoughTools visual foundation. Tailwind colors and CSS variables must resolve to these values. Do not introduce near-duplicate brand colors for new work.
 
-| Role | Token | Value |
-| --- | --- | --- |
-| Primary | `--dt-primary` | `#0F3D2E` |
-| Primary dark | `--dt-primary-dark` | `#09291F` |
-| Warm background | `--dt-background-warm` | `#FFF8F1` |
-| Flour | `--dt-flour` | `#F1E6D8` |
-| Card | `--dt-card` | `#FFFFFF` |
-| Tomato | `--dt-tomato` | `#E94B2E` |
-| Orange | `--dt-orange` | `#F2A541` |
-| Basil | `--dt-basil` | `#3BA66B` |
-| Main text | `--dt-text-main` | `#1F1F1F` |
-| Muted text | `--dt-text-muted` | `#6B645D` |
+### Official palette
 
-Use existing project tokens where already defined. Do not introduce conflicting color systems. These tokens are the preferred shared direction for future implementation and can be mapped into Tailwind only when that becomes useful.
+| Name | CSS variable | Tailwind token | Value |
+| --- | --- | --- | --- |
+| Forest | `--dt-forest` | `forest` | `#0F3D2E` |
+| Forest Dark | `--dt-forest-dark` | `forest-dark` | `#09291F` |
+| Warm Background | `--dt-warm-background` | `warm-background` | `#FFF8F1` |
+| Flour | `--dt-flour` | `flour` | `#F1E6D8` |
+| Card | `--dt-card` | `card` | `#FFFFFF` |
+| Tomato | `--dt-tomato` | `tomato` | `#E94B2E` |
+| Oven Gold | `--dt-oven-gold` | `oven-gold` | `#E8C98A` |
+| Basil | `--dt-basil` | `basil` | `#3BA66B` |
+| Ink | `--dt-ink` | `ink` | `#1F1F1F` |
+| Muted | `--dt-muted` | `muted` | `#6B645D` |
+
+`Oven Gold` is the official replacement for repeated one-off `#E8C98A` usage.
+
+### Semantic color aliases
+
+New work should prefer semantic aliases when the role matters more than the raw palette name.
+
+| Semantic role | Resolves to |
+| --- | --- |
+| `brand-primary` | Forest |
+| `brand-primary-hover` | Forest Dark |
+| `brand-primary-dark` | Forest Dark |
+| `background-page` | Warm Background |
+| `background-subtle` | Flour |
+| `background-card` | Card |
+| `background-dark` | Ink |
+| `background-marketing-dark` | Forest Dark |
+| `text-primary` | Ink |
+| `text-secondary` | Muted |
+| `text-on-dark` | Card |
+| `text-brand` | Forest |
+| `border-default` | Flour |
+| `border-subtle` | Warm Background |
+| `border-strong` | Muted |
+| `action-primary` | Tomato |
+| `action-primary-hover` | Forest |
+| `action-secondary` | Forest |
+| `action-danger` | Tomato |
+| `accent-tomato` | Tomato |
+| `accent-gold` | Oven Gold |
+| `accent-basil` | Basil |
+| `status-success` | Basil |
+| `status-warning` | Oven Gold |
+| `status-danger` | Tomato |
+| `status-info` | Forest |
+| `focus-ring` | Tomato |
+
+### Legacy compatibility aliases
+
+These names may remain temporarily so existing pages keep working:
+
+- Tailwind `cream` resolves to Warm Background.
+- Tailwind `leaf` resolves to Basil.
+- Tailwind `ink` and `tomato` now resolve to the official Ink and Tomato values.
+- CSS variables `--dt-primary`, `--dt-primary-dark`, `--dt-background-warm`, `--dt-orange`, `--dt-text-main`, and `--dt-text-muted` are compatibility aliases.
+
+Do not use legacy names for new patterns unless touching old code locally and a narrow patch would otherwise become risky.
+
+### Marketing and workspace surfaces
+
+Marketing surfaces are used on the homepage, About, Guides, Pizza Styles, and selected editorial sections. They may use stronger photography, larger Newsreader headings, purposeful dark Forest or oven-atmosphere sections, warm food imagery, and limited gradients.
+
+Workspace surfaces are used in calculators, Pizza Session, Shopping, Timeline, Kitchen Mode, Account, Party Orders, forms, and controls. They stay predominantly light, highly legible, calm, predictable, mobile-usable, and state-driven. Do not turn the application workspace into a dark interface.
+
+The two modes must feel like the same DoughTools product.
+
+### Typography roles
+
+Use `Inter` for application UI, forms, navigation, buttons, data, timings, calculators, body text, and instructional copy.
+
+Use `Newsreader` for major marketing headings, editorial section titles, selected About and Guide storytelling headings, and high-emphasis brand statements.
+
+Do not use `Newsreader` for numeric controls, dense forms, small labels, Kitchen Mode timing data, tables, or operational status text. Typography should remain readable and functional rather than decorative.
+
+### Radius, border, and shadow roles
+
+Canonical radius roles:
+
+| Role | Value |
+| --- | --- |
+| `radius-control` | `.75rem` |
+| `radius-card` | `1.5rem` |
+| `radius-panel` | `1.75rem` |
+| `radius-hero` | `2rem` |
+| `radius-pill` | `9999px` |
+
+Canonical shadow roles:
+
+| Role | Value |
+| --- | --- |
+| `shadow-card` | `0 18px 60px rgba(42, 48, 39, 0.08)` |
+| `shadow-raised` | `0 24px 80px rgba(31, 31, 31, 0.12)` |
+| `shadow-overlay` | `0 30px 100px rgba(31, 31, 31, 0.24)` |
+
+Small controls should not use oversized hero radii. Cards should share a coherent radius family. Shadows should remain soft and restrained. Use borders for structure before increasing shadow strength. Workspace cards should be calmer than promotional cards.
+
+### Iconography standard
+
+DoughTools will use one consistent icon system for future migration. The preferred foundation is a centralized local DoughTools SVG icon component system using one line-icon style, rounded line endings, consistent visual weight, simple geometric construction, inherited `currentColor`, and accessible labels when meaning is not accompanied by text.
+
+This patch does not migrate icons. Future icon work must not mix several unrelated icon families.
+
+Required future icon vocabulary: Pizza, Flame, Oven, Clock, Timer, Calendar, Thermometer, Refrigerator, Mixing Bowl, Wheat, Water Drop, Salt, Yeast, Scale, Shopping Basket, Checklist, Timeline, Kitchen Mode, Chef Hat, Camera, History, Party, Account, Experience Level, Warning, Information, Success, Error, Back, Forward, Close, Add, Remove, Edit, Delete, Archive, Restore, Share, Download.
+
+Emoji must not be used as primary functional interface icons. Unicode geometric symbols must not be used as permanent substitutes for recognizable icons. Existing emoji and Unicode icons may remain temporarily until the dedicated migration patch.
 
 ## D. Shared layout components
 

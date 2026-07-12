@@ -42,8 +42,8 @@ Important manifest fields:
 - `start_url`: `/`
 - `scope`: `/`
 - `display`: `standalone`
-- `background_color`: `#f6f3ea`
-- `theme_color`: `#f6f3ea`
+- `background_color`: `#FFF8F1`
+- `theme_color`: `#FFF8F1`
 
 ## Icon status
 

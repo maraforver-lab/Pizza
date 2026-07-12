@@ -35,12 +35,79 @@ describe("DoughTools design foundation", () => {
   it("adds shared visual tokens through the existing global CSS approach", () => {
     const globals = source("app/globals.css");
 
-    expect(globals).toContain("--dt-primary: #0F3D2E;");
-    expect(globals).toContain("--dt-primary-dark: #09291F;");
-    expect(globals).toContain("--dt-background-warm: #FFF8F1;");
+    expect(globals).toContain("--dt-forest: #0F3D2E;");
+    expect(globals).toContain("--dt-forest-dark: #09291F;");
+    expect(globals).toContain("--dt-warm-background: #FFF8F1;");
     expect(globals).toContain("--dt-card: #FFFFFF;");
     expect(globals).toContain("--dt-tomato: #E94B2E;");
-    expect(globals).toContain("--dt-text-muted: #6B645D;");
+    expect(globals).toContain("--dt-oven-gold: #E8C98A;");
+    expect(globals).toContain("--dt-muted: #6B645D;");
+    expect(globals).toContain("--dt-brand-primary: var(--dt-forest);");
+    expect(globals).toContain("--dt-action-primary: var(--dt-tomato);");
+    expect(globals).toContain("--dt-focus-ring: var(--dt-tomato);");
+    expect(globals).toContain("--dt-primary: var(--dt-forest);");
+    expect(globals).toContain("--dt-background-warm: var(--dt-warm-background);");
+  });
+
+  it("keeps Tailwind and CSS variables aligned to the official palette", () => {
+    const globals = source("app/globals.css");
+    const tailwind = source("tailwind.config.ts");
+    const designSystem = source("docs/design-system.md");
+
+    for (const [name, value] of [
+      ["Forest", "#0F3D2E"],
+      ["Forest Dark", "#09291F"],
+      ["Warm Background", "#FFF8F1"],
+      ["Flour", "#F1E6D8"],
+      ["Card", "#FFFFFF"],
+      ["Tomato", "#E94B2E"],
+      ["Oven Gold", "#E8C98A"],
+      ["Basil", "#3BA66B"],
+      ["Ink", "#1F1F1F"],
+      ["Muted", "#6B645D"],
+    ] as const) {
+      expect(designSystem).toContain(name);
+      expect(designSystem).toContain(value);
+      expect(globals).toContain(value);
+      expect(tailwind).toContain(value);
+    }
+
+    expect(tailwind).toContain('"brand-primary": doughToolsPalette.forest');
+    expect(tailwind).toContain('"background-page": doughToolsPalette.warmBackground');
+    expect(tailwind).toContain('"action-primary": doughToolsPalette.tomato');
+    expect(tailwind).toContain('"status-warning": doughToolsPalette.ovenGold');
+    expect(tailwind).toContain('"focus-ring": doughToolsPalette.tomato');
+    expect(tailwind).toContain("cream: doughToolsPalette.warmBackground");
+    expect(tailwind).toContain("leaf: doughToolsPalette.basil");
+    expect(designSystem).toContain("Legacy compatibility aliases");
+  });
+
+  it("documents visual governance for surfaces, images, people, icons and typography", () => {
+    const agents = source("AGENTS.md");
+    const designSystem = source("docs/design-system.md");
+    const visualGuide = source("docs/visual-style-guide.md");
+    const responsiveRules = source("docs/global-responsive-ux-rules.md");
+    const packageJson = source("package.json");
+
+    expect(designSystem).toContain("Marketing and workspace surfaces");
+    expect(designSystem).toContain("Do not turn the application workspace into a dark interface.");
+    expect(designSystem).toContain("Use `Inter` for application UI");
+    expect(designSystem).toContain("Use `Newsreader` for major marketing headings");
+    expect(designSystem).toContain("Do not use `Newsreader` for numeric controls");
+    expect(designSystem).toContain("Canonical radius roles");
+    expect(designSystem).toContain("centralized local DoughTools SVG icon component system");
+    expect(designSystem).toContain("Emoji must not be used as primary functional interface icons.");
+
+    expect(visualGuide).toContain("DoughTools Photography and AI Image Direction");
+    expect(visualGuide).toContain("Do not create or commission any AI-generated image containing a person without first asking Marcin for explicit approval.");
+    expect(visualGuide).toContain("This includes faces, full bodies, partial bodies, visible hands, silhouettes, reflections and background people.");
+    expect(visualGuide).toContain("Do not create a synthetic founder replacement.");
+    expect(visualGuide).toContain("Future homepage hero direction");
+
+    expect(responsiveRules).toContain("Marketing surfaces and workspace surfaces may have different visual emphasis");
+    expect(agents).toContain("Legacy color names are compatibility aliases only.");
+    expect(agents).toContain("emoji are not primary functional UI icons");
+    expect(packageJson).not.toMatch(/lucide|heroicons|react-icons/i);
   });
 
   it("exports lightweight shared layout and UI components", () => {

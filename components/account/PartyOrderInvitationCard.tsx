@@ -157,7 +157,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
       margin: 4,
       width: 640,
       color: {
-        dark: "#20251f",
+        dark: "#1F1F1F",
         light: "#ffffff",
       },
     })

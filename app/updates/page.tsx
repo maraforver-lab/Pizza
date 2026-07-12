@@ -41,7 +41,7 @@ export default function UpdatesPage() {
         {latest && (
           <section className="grid overflow-hidden rounded-[2rem] bg-ink text-white shadow-2xl md:grid-cols-[1fr_auto]">
             <div className="p-6 sm:p-9">
-              <span className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">
+              <span className="text-[10px] font-extrabold uppercase tracking-[.18em] text-oven-gold">
                 Latest update · {latest.category} · {formatDate(latest.date)}
               </span>
               <h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold sm:text-5xl">{latest.title}</h2>
@@ -50,7 +50,7 @@ export default function UpdatesPage() {
               <ul className="mt-5 grid gap-2 text-sm text-white/70 sm:grid-cols-2">
                 {latest.highlights.map((highlight) => (
                   <li key={highlight} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#e8c98a]" aria-hidden="true" />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-oven-gold" aria-hidden="true" />
                     <span>{highlight}</span>
                   </li>
                 ))}

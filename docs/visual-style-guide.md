@@ -145,10 +145,9 @@ The interface should feel like a helpful pizza coach, not a spreadsheet and not 
 
 ## 6. Color direction
 
-Use the existing project color scale where possible.
+Use the official DoughTools visual palette from `docs/design-system.md`.
 
-If tokens already exist in Tailwind/config/CSS, prefer those.  
-Do not invent new color families unless explicitly approved.
+Tailwind tokens and CSS variables must resolve to the same official source values. Legacy names such as `cream`, `leaf`, `--dt-primary` and `--dt-background-warm` are compatibility aliases only. Do not add new arbitrary brand colors or near-duplicate cream, tomato, ink, forest or basil values.
 
 Recommended color roles:
 
@@ -636,13 +635,11 @@ Icon style:
 - not overly playful
 - not mixed randomly
 
-Do not add heavy icon dependencies unless explicitly approved.
+DoughTools will migrate toward one centralized local SVG icon component system, documented in `docs/design-system.md`.
 
-If no icon system exists, use:
+Future interface icons should use one consistent line-icon family with rounded line endings, inherited `currentColor`, consistent visual weight and accessible labels when the icon is not accompanied by text.
 
-- existing icons/assets
-- lightweight inline SVGs
-- very limited emoji-like markers only if already consistent with the product
+Emoji must not be used as primary functional interface icons. Unicode geometric symbols must not be used as permanent substitutes for recognizable icons. Existing emoji and Unicode icons may remain temporarily until a dedicated migration patch.
 
 Illustrations:
 
@@ -657,6 +654,104 @@ Food/pizza hero imagery:
 - should look appetizing and calm
 - should not make the UI noisy
 - should not override the content hierarchy
+
+### DoughTools Photography and AI Image Direction
+
+This section is authoritative for photography, generated imagery and future visual assets.
+
+Overall image character:
+
+- warm
+- realistic
+- artisan
+- practical
+- tactile
+- kitchen-based
+- appetizing without appearing artificial
+- premium but not luxury-staged
+- imperfect in a believable way
+
+Avoid:
+
+- cold corporate stock photography
+- plastic-looking food
+- exaggerated HDR
+- oversaturated orange tones
+- generic SaaS imagery
+- cartoon food when realistic photography is expected
+- fake restaurant branding
+- visible third-party logos
+- text embedded inside generated images
+- unrealistic utensils, fingers, oven structures or ingredients
+
+Lighting should prefer warm natural side light, window light, believable oven light, soft directional shadows, controlled contrast, warm highlights and realistic darker areas.
+
+Avoid flat front lighting, blue studio lighting, excessive cinematic darkness, blown highlights, unrealistic glowing food and heavy HDR texture.
+
+Preferred materials and environments:
+
+- flour-dusted stone
+- wood
+- linen
+- warm ceramic
+- practical stainless steel
+- oven brick
+- dark oven interiors
+- dough boxes
+- real kitchen work surfaces
+
+The environment should feel usable, not staged like an expensive restaurant advertisement.
+
+Preferred camera perspectives:
+
+- 30–45 degree food photography
+- upper diagonal process views
+- close details of dough texture
+- believable workspace views
+- hands performing a useful action only when people have been explicitly approved
+- full composition with safe areas for responsive text overlays
+
+Avoid using top-down views for every image, extreme wide-angle distortion, awkward cropped ingredients and hero subjects placed where mobile cropping will remove them.
+
+Pizza appearance must show believable bake characteristics, natural crust variation, realistic topping distribution, correct style-specific geometry, slightly imperfect artisan results, and authentic flour and char texture.
+
+Do not make every pizza look like the same Neapolitan pizza. Images representing New York, Detroit, Roman, Sicilian or contemporary styles must visually match the specific style.
+
+People policy:
+
+- Do not create or commission any AI-generated image containing a person without first asking Marcin for explicit approval.
+- This includes faces, full bodies, partial bodies, visible hands, silhouettes, reflections and background people.
+- Do not assume that hands are automatically allowed.
+- If people are approved, they must be photorealistic and anatomically credible.
+- Avoid generic smiling AI chefs or staged lifestyle models.
+- The existing approved authentic founder photograph under `/public/about/` remains the primary founder image.
+- Do not alter the founder’s identity, facial structure, body, age or recognizable appearance through AI generation.
+- Do not create a synthetic founder replacement.
+
+Responsive asset requirements:
+
+- create separate desktop and mobile compositions when one crop cannot serve both
+- define visual safe areas for text
+- preserve the primary subject across crops
+- avoid essential content near image edges
+- store approved assets locally
+- use optimized WebP, PNG or JPG
+- define explicit dimensions
+- use meaningful alt text when informative
+- use empty alt text for purely decorative images
+
+Future homepage hero direction:
+
+- show pizza as a strong atmospheric presence, not a small isolated product thumbnail
+- communicate both process and result
+- support large readable copy
+- feel visually rich but not cluttered
+- use realistic photography
+- avoid generated people unless separately approved
+- work in both desktop and mobile compositions
+- remain consistent with the light DoughTools application interface
+
+Do not create final homepage assets until a dedicated homepage visual patch asks for them.
 
 ### Decorative imagery guardrails
 

@@ -163,7 +163,7 @@ export default function Guide() {
 
         <section className="guide-hero relative mb-5 overflow-hidden rounded-[2rem] px-6 py-10 text-white shadow-card sm:px-10 sm:py-14">
           <div className="relative z-10 max-w-xl">
-            <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-[#e8c98a]">{t.eyebrow}</p>
+            <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">{t.eyebrow}</p>
             <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">{t.title}</h1>
             <p className="mt-4 max-w-lg text-sm leading-7 text-white/65 sm:text-base">{levelCopy.intro}</p>
             <ExperienceLevelSelector value={experienceLevel} onChange={setExperienceLevel} compact title="Learning guidance mode" intro="Choose whether you want simple steps, practical explanations or full Pizza Nerd technical detail." className="mt-6 text-ink" />
@@ -244,7 +244,7 @@ export default function Guide() {
           </div>
           <h2 className="mt-8 font-display text-3xl font-semibold">{t.strengthTitle}</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {t.strengths.map(([range, description], index) => <article key={range} className="rounded-3xl border border-leaf/15 bg-[#edf0e8]/90 p-5"><div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ["#b8a66b", "#7e9a72", "#54745a", "#334a38"][index] }} /><strong className="text-sm text-leaf">{range}</strong></div><p className="mt-2 text-sm leading-6 text-ink/60">{description}</p></article>)}
+            {t.strengths.map(([range, description], index) => <article key={range} className="rounded-3xl border border-leaf/15 bg-[#edf0e8]/90 p-5"><div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ["#b8a66b", "#7e9a72", "#3BA66B", "#334a38"][index] }} /><strong className="text-sm text-leaf">{range}</strong></div><p className="mt-2 text-sm leading-6 text-ink/60">{description}</p></article>)}
           </div>
         </section>
 

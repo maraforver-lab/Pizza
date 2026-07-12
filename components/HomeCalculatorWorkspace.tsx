@@ -353,7 +353,7 @@ const shareCardFile = async (title: string, subtitle: string, details: string[],
   const context = canvas.getContext("2d");
   if (!context) return null;
 
-  context.fillStyle = "#f6f3ea";
+  context.fillStyle = "#FFF8F1";
   context.fillRect(0, 0, 1080, 1080);
   const pizzaImage = await loadCardImage(imageSource);
   drawCoverImage(context, pizzaImage, 0, 0, 470, 975);
@@ -886,7 +886,7 @@ function AdvancedCalculatorStandaloneControls({
       <section className="rounded-[1.75rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Bake target</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-oven-gold">Bake target</p>
             <h1 id="advanced-calculator-title" className="mt-2 font-display text-4xl font-semibold leading-tight">Calculator v1</h1>
           </div>
           <span className="w-fit rounded-full bg-white/[.08] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-white/60">Full-control lab</span>
@@ -1166,7 +1166,7 @@ function AdvancedCalculatorPlanningShell({
   return (
     <section className="grid gap-4" aria-labelledby="advanced-calculator-planning">
       <div className="rounded-[1.75rem] border border-ink/10 bg-ink p-5 text-white shadow-card sm:p-6">
-        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#e8c98a]">Planning Engine v1</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-oven-gold">Planning Engine v1</p>
         <h2 id="advanced-calculator-planning" className="mt-2 font-display text-3xl font-semibold">Results and recommendations</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
           Ingredient amounts, the main risk and the next adjustment stay upfront. Secondary guidance is available below without turning this into a full workflow.
@@ -2273,7 +2273,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
               </div>
 
               <div className="divide-y divide-white/10">
-                {[{ name: t.flour, value: recipe.flour, color: "bg-[#e8c98a]", precise: false }, { name: t.water, value: recipe.water, color: "bg-[#80b4c3]", precise: false }, { name: t.salt, value: recipe.salt, color: "bg-white", precise: false }, { name: t.yeasts[yeastType][1], value: recipe.leavener, color: "bg-[#d67e65]", precise: true }].map((ingredient) => (
+                {[{ name: t.flour, value: recipe.flour, color: "bg-oven-gold", precise: false }, { name: t.water, value: recipe.water, color: "bg-[#80b4c3]", precise: false }, { name: t.salt, value: recipe.salt, color: "bg-white", precise: false }, { name: t.yeasts[yeastType][1], value: recipe.leavener, color: "bg-[#d67e65]", precise: true }].map((ingredient) => (
                   <div key={ingredient.name} className="flex items-center justify-between py-4 first:pt-1 last:pb-1">
                     <span className="flex items-center gap-3 text-sm font-semibold text-white/65"><span className={`h-2 w-2 rounded-full ${ingredient.color}`} />{ingredient.name}</span>
                     <span className="text-2xl font-extrabold tabular-nums">{grams(ingredient.value, locale, ingredient.precise)} <small className="text-sm font-semibold text-white/35">g</small></span>
@@ -2296,14 +2296,14 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
                   <ul className="mt-2 grid gap-1.5 text-xs leading-5 text-white/55">
                     {disclosure.causeAndEffect.map((item) => (
                       <li key={item} className="flex gap-2">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#e8c98a]" aria-hidden="true" />
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-oven-gold" aria-hidden="true" />
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
                 <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="recipe-workflow-heading">
-                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#e8c98a]">Workflow handoff</p>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-oven-gold">Workflow handoff</p>
                   <h3 id="recipe-workflow-heading" className="mt-2 text-base font-extrabold text-white">{recipeWorkflow.heading}</h3>
                   <p className="mt-2 text-xs leading-5 text-white/65">{recipeWorkflow.intro}</p>
                   <p className="mt-2 text-[11px] leading-5 text-white/45">{recipeWorkflow.detail}</p>
@@ -2311,8 +2311,8 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
                     {recipeWorkflow.actions.map((action) => {
                       const isPrimary = action.id === recipeWorkflow.primaryActionId;
                       const className = isPrimary
-                        ? "rounded-xl bg-white px-3 py-3 text-left text-xs font-extrabold text-ink transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]"
-                        : "rounded-xl border border-white/15 px-3 py-3 text-left text-xs font-bold text-white/75 transition hover:border-white/30 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e8c98a]";
+                        ? "rounded-xl bg-white px-3 py-3 text-left text-xs font-extrabold text-ink transition focus:outline-none focus-visible:ring-2 focus-visible:ring-oven-gold"
+                        : "rounded-xl border border-white/15 px-3 py-3 text-left text-xs font-bold text-white/75 transition hover:border-white/30 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-oven-gold";
                       const content = (
                         <>
                           <span className="block">{action.label}{action.href ? " →" : ""}</span>
@@ -2358,7 +2358,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
                 <div className="mb-3 rounded-2xl border border-white/10 bg-white/[.04] p-3">
                   <h3 className="text-sm font-extrabold text-white">{t.saveRecipeValueTitle}</h3>
                   <p className="mt-1 text-[11px] leading-5 text-white/55">{t.saveRecipeValueIntro}</p>
-                  <p className="mt-2 text-[11px] leading-5 text-[#e8c98a]">{saveRecipeValueByLevel[experienceLevel]}</p>
+                  <p className="mt-2 text-[11px] leading-5 text-oven-gold">{saveRecipeValueByLevel[experienceLevel]}</p>
                 </div>
                 {showSaveForm ? (
                   <div>

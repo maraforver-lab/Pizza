@@ -64,6 +64,8 @@ The user should always understand:
 4. Where Back goes
 5. Where the primary action goes
 
+Visual implementation must use the official palette, semantic aliases, typography roles, icon policy and image rules in `docs/design-system.md` and `docs/visual-style-guide.md`. Marketing surfaces and workspace surfaces may have different visual emphasis, but they must share the same visual foundation.
+
 ## 4. Desktop rule: guided workspace
 
 Desktop may show more context.
