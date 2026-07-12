@@ -180,15 +180,8 @@ export default function SessionShoppingPage() {
           hideMeta
         />
 
-        <section className="mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-labelledby="choose-pizzas-heading">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza Menu</p>
-              <h2 id="choose-pizzas-heading" className="mt-1 font-display text-3xl font-semibold">Pizza Menu</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                Allocate your {pizzaCount || "selected"} pizzas across the topping plans. Dough style and dough formula stay in the Dough Plan.
-              </p>
-            </div>
+        <section className="mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-label="Pizza menu allocation">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-end">
             <span className="w-fit rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/55">
               Total selected: {allocatedPizzaCount}/{pizzaCount || "—"}
             </span>

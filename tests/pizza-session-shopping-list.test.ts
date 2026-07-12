@@ -423,8 +423,10 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(page).toContain("Shopping & Pizza Menu");
     expect(page).toContain("Choose what you’ll make and get your ingredients ready.");
-    expect(page).toContain("Pizza Menu");
-    expect(page).toContain("Dough style and dough formula stay in the Dough Plan.");
+    expect(page.match(/Shopping & Pizza Menu/g)).toHaveLength(1);
+    expect(page).not.toContain("choose-pizzas-heading");
+    expect(page).not.toContain("Dough style and dough formula stay in the Dough Plan.");
+    expect(page).toContain('aria-label="Pizza menu allocation"');
     expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi.");
     expect(page).toContain("Total selected:");
     expect(page).toContain("Decrease");
@@ -556,11 +558,14 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("step={7}");
     expect(page).toContain("Shopping & Pizza Menu");
     expect(page).toContain("BottomActionBar");
-    expect(page.indexOf("Pizza Menu")).toBeLessThan(page.indexOf("Shopping Checklist"));
+    expect(page.indexOf("Total selected:")).toBeLessThan(page.indexOf("PIZZA_MIX_OPTIONS.map"));
+    expect(page.indexOf("PIZZA_MIX_OPTIONS.map")).toBeLessThan(page.indexOf("Shopping Checklist"));
     expect(page.indexOf("Shopping Checklist")).toBeLessThan(page.indexOf("Before Timeline"));
     expect(page.indexOf("Before Timeline")).toBeLessThan(page.indexOf("<BottomActionBar"));
     expect(page).toContain("Choose pizzas & Shopping");
     expect(page).toContain("hideMeta");
+    expect(page).not.toContain("id=\"choose-pizzas-heading\"");
+    expect(page).not.toContain("uppercase tracking-[.18em] text-tomato\">Pizza Menu");
     expect(page).not.toContain("Checklist page</");
     expect(page).not.toMatch(/checkout|cart total|store link|price|ecommerce/i);
   });

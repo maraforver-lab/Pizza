@@ -74,12 +74,12 @@ describe("Pizza Session flow navigation integrity", () => {
 
     expect(shopping).toContain("Shopping & Pizza Menu");
     expect(shopping).toContain("Choose what you’ll make and get your ingredients ready.");
-    expect(shopping).toContain("Pizza Menu");
     expect(shopping).toContain("Shopping Checklist");
     expect(shopping).toContain("Before Timeline");
-    expect(shopping.indexOf("Pizza Menu")).toBeLessThan(shopping.indexOf("Shopping Checklist"));
+    expect(shopping.indexOf("Total selected:")).toBeLessThan(shopping.indexOf("PIZZA_MIX_OPTIONS.map"));
+    expect(shopping.indexOf("PIZZA_MIX_OPTIONS.map")).toBeLessThan(shopping.indexOf("Shopping Checklist"));
     expect(shopping.indexOf("Shopping Checklist")).toBeLessThan(shopping.indexOf("Before Timeline"));
-    expect(shopping).toContain("Dough style and dough formula stay in the Dough Plan.");
+    expect(shopping).not.toContain("Dough style and dough formula stay in the Dough Plan.");
     expect(shopping).toContain("Total selected:");
     expect(shopping).toContain("Dough ingredients");
     expect(shopping).toContain("Sauce");
