@@ -762,8 +762,8 @@ describe("Start Pizza Session wizard", () => {
     const startPage = source("app/start/page.tsx");
     const homepage = source("lib/homepage.ts");
 
-    expect(homepageContent.hero.primaryCta).toEqual({ label: "Start Pizza Session", href: "/session/start" });
-    expect(homepage).toContain("Start Pizza Session");
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my next pizza", href: "/session/start" });
+    expect(homepage).toContain("Plan my next pizza");
     expect(homepage).toContain("/session/start");
     expect(startPage).toContain("Start Pizza Session");
     expect(startPage).toContain("href=\"/session/start\"");

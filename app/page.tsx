@@ -14,6 +14,8 @@ type JourneyStage = {
   title: string;
   text: string;
   icon: DoughToolsIconName;
+  image: string;
+  alt: string;
 };
 
 type ProductMoment = {
@@ -45,31 +47,49 @@ const heroSessionRows = [
   { label: "Review", value: "Remember what worked" },
 ];
 
+const guessworkQuestions = [
+  "When should I start?",
+  "How much dough do I need?",
+  "When should I take it out of the fridge?",
+  "What do I need to buy?",
+  "What do I do next?",
+];
+
 const journeyStages: JourneyStage[] = [
   {
     title: "Plan",
     text: "Start with the pizza night you want, then get a recipe that fits it.",
     icon: "calendar",
+    image: "/dough-guide/guide-step-02-measure.webp",
+    alt: "Measured ingredients for planning pizza dough",
   },
   {
     title: "Shop",
     text: "Turn the plan into a practical list before you buy ingredients.",
     icon: "shopping-basket",
+    image: "/images/shopping/pizza-margherita.webp",
+    alt: "Fresh Margherita pizza representing the pizza menu and shopping plan",
   },
   {
     title: "Prepare",
     text: "Know when to mix, rest, ball and preheat without juggling notes.",
     icon: "timeline",
+    image: "/dough-guide/guide-step-08-ball.webp",
+    alt: "Dough balls prepared for the next stage of pizza making",
   },
   {
     title: "Bake",
     text: "Follow the current kitchen action when the oven is hot.",
     icon: "kitchen-mode",
+    image: "/images/timeline/bake-pizza.webp",
+    alt: "Pizza baking in a hot oven",
   },
   {
     title: "Improve",
     text: "Capture what happened so the next pizza night is easier.",
     icon: "history",
+    image: "/images/timeline/review-result.webp",
+    alt: "Finished pizza ready for review after baking",
   },
 ];
 
@@ -139,63 +159,61 @@ export default async function Home({ searchParams }: HomePageProps) {
     <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f1e6d8_42%,#fff8f1_100%)] text-ink">
       <section className="px-4 pb-10 pt-7 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8" aria-labelledby="homepage-hero-heading">
         <div className="mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/70 shadow-card backdrop-blur sm:rounded-[2.75rem] lg:min-h-[45rem]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(232,201,138,0.26),transparent_26rem)]" aria-hidden="true" />
-            <div className="relative z-10 grid gap-7 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(24rem,0.9fr)] lg:items-center lg:p-10 lg:pb-14">
-              <div className="max-w-3xl">
-                <p className="text-xs font-extrabold uppercase tracking-[.34em] text-tomato">
+          <div className="relative overflow-hidden rounded-[2rem] bg-forest-dark shadow-overlay sm:rounded-[2.75rem] lg:min-h-[46rem]">
+            <picture>
+              <source media="(min-width: 1024px)" srcSet={desktopHeroSrcSet} sizes={desktopHeroSizes} />
+              <img
+                {...mobileHeroImageProps}
+                alt="Finished pizza with prepared dough in a warm pizza-making workspace"
+                className="absolute inset-0 h-full w-full object-cover object-[50%_62%] lg:object-[66%_center]"
+              />
+            </picture>
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,41,31,0.92)_0%,rgba(9,41,31,0.78)_38%,rgba(9,41,31,0.22)_100%)]" aria-hidden="true" />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(9,41,31,0)_0%,rgba(9,41,31,0.82)_100%)]" aria-hidden="true" />
+
+            <div className="relative z-10 grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(22rem,0.72fr)] lg:items-end lg:p-10 lg:pb-12">
+              <div className="max-w-3xl py-6 lg:py-16">
+                <p className="text-xs font-extrabold uppercase tracking-[.34em] text-oven-gold">
                   {homepageContent.hero.eyebrow}
                 </p>
-                <h1 id="homepage-hero-heading" className="mt-5 font-display text-[clamp(3.05rem,11vw,5rem)] font-semibold leading-[.9] tracking-[-.04em] text-ink sm:text-7xl lg:text-[5.9rem]">
+                <h1 id="homepage-hero-heading" className="mt-5 font-display text-[clamp(3.2rem,12vw,6.2rem)] font-semibold leading-[.88] tracking-[-.05em] text-white sm:text-7xl lg:text-[6.35rem]">
                   {homepageContent.hero.h1}
                 </h1>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-ink/72 sm:text-xl sm:leading-8">
+                <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-xl sm:leading-8">
                   {homepageContent.hero.intro}
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Link
                     href={homepageContent.hero.primaryCta.href}
-                    className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition hover:bg-forest active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                    className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition hover:bg-white hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark"
                   >
                     {homepageContent.hero.primaryCta.label} →
                   </Link>
                   <a
                     href={homepageContent.hero.secondaryCta.href}
-                    className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white/75 px-6 py-3 text-sm font-extrabold text-ink transition hover:border-ink/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                    className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/12 px-6 py-3 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark"
                   >
                     {homepageContent.hero.secondaryCta.label}
                   </a>
                 </div>
-                <ul className="mt-6 grid gap-2 text-sm font-extrabold text-ink/72 sm:grid-cols-3" aria-label="DoughTools helps you">
+                <ul className="mt-6 grid gap-2 text-sm font-extrabold text-white/86 sm:grid-cols-3" aria-label="DoughTools helps you">
                   {heroValueStatements.map((statement) => (
-                    <li key={statement} className="flex items-center gap-2 rounded-2xl bg-white/65 px-3 py-2">
-                      <DoughToolsIcon name="success" size={16} className="shrink-0 text-leaf" aria-hidden="true" />
+                    <li key={statement} className="flex items-center gap-2 rounded-2xl bg-white/12 px-3 py-2 backdrop-blur">
+                      <DoughToolsIcon name="success" size={16} className="shrink-0 text-oven-gold" aria-hidden="true" />
                       <span>{statement}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="relative min-w-0 lg:min-h-[35rem]">
-                <div className="relative overflow-hidden rounded-[1.75rem] bg-flour shadow-card lg:absolute lg:inset-x-0 lg:bottom-0 lg:top-0">
-                  <picture>
-                    <source media="(min-width: 1024px)" srcSet={desktopHeroSrcSet} sizes={desktopHeroSizes} />
-                    <img
-                      {...mobileHeroImageProps}
-                      alt="Finished pizza with prepared dough in a warm pizza-making workspace"
-                      className="h-[19rem] w-full object-cover object-[50%_62%] sm:h-[25rem] lg:h-full lg:object-[66%_center]"
-                    />
-                  </picture>
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,61,46,0)_34%,rgba(15,61,46,0.48)_100%)]" />
-                </div>
-
+              <div className="min-w-0 self-end">
                 <section
-                  className="relative mt-4 w-full rounded-[1.75rem] border border-white/80 bg-white/92 p-4 shadow-card backdrop-blur-md sm:p-5 lg:absolute lg:left-0 lg:top-8 lg:mt-0 lg:max-w-[24rem]"
+                  className="w-full rounded-[1.75rem] border border-white/20 bg-white/88 p-4 shadow-card backdrop-blur-md sm:p-5 lg:ml-auto lg:max-w-[24rem]"
                   aria-labelledby="homepage-session-preview"
                 >
-                  <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">Pizza Session preview</p>
+                  <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">Your first plan can include</p>
                   <h2 id="homepage-session-preview" className="mt-2 font-display text-2xl font-semibold leading-none">
-                    One connected plan.
+                    Everything before the first slice.
                   </h2>
                   <dl className="mt-4 grid gap-2">
                     {heroSessionRows.map((row) => (
@@ -216,7 +234,28 @@ export default async function Home({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      <section id="how-it-works" className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-journey-heading">
+      <section id="how-it-works" className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-why-heading">
+        <div className="mx-auto grid max-w-7xl gap-7 rounded-[2rem] border border-white/80 bg-white/78 p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.82fr_1fr] lg:items-center">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Why DoughTools exists</p>
+            <h2 id="homepage-why-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+              Great pizza shouldn’t depend on guesswork.
+            </h2>
+            <p className="mt-4 max-w-xl text-base leading-7 text-ink/70">
+              Pizza planning is full of tiny questions. DoughTools turns them into one calm plan, so you can focus on making the pizza instead of rebuilding the evening in your head.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {guessworkQuestions.map((question) => (
+              <div key={question} className="rounded-[1.35rem] border border-flour bg-cream/70 p-4 text-sm font-extrabold leading-6 text-ink/72">
+                {question}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-journey-heading">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-5 lg:grid-cols-[0.72fr_1fr] lg:items-end">
             <div>
@@ -231,16 +270,26 @@ export default async function Home({ searchParams }: HomePageProps) {
           </div>
           <div className="mt-8 grid gap-3 lg:grid-cols-5">
             {journeyStages.map((stage, index) => (
-              <article key={stage.title} className="relative rounded-[1.5rem] border border-white/80 bg-white/82 p-5 shadow-sm">
+              <article key={stage.title} className="relative overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/82 shadow-sm">
                 {index > 0 && (
                   <span className="absolute -left-4 top-1/2 hidden h-px w-5 bg-ink/12 lg:block" aria-hidden="true" />
                 )}
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-leaf/10 text-leaf" aria-hidden="true">
-                  <DoughToolsIcon name={stage.icon} size={24} />
-                </span>
-                <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-ink/35">Step {index + 1}</p>
-                <h3 className="mt-2 font-display text-3xl font-semibold leading-none">{stage.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-ink/62">{stage.text}</p>
+                <Image
+                  src={stage.image}
+                  alt={stage.alt}
+                  width={640}
+                  height={480}
+                  sizes="(max-width: 1024px) 100vw, 20vw"
+                  className="h-28 w-full object-cover"
+                />
+                <div className="p-5">
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-leaf/10 text-leaf" aria-hidden="true">
+                    <DoughToolsIcon name={stage.icon} size={24} />
+                  </span>
+                  <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-ink/35">Step {index + 1}</p>
+                  <h3 className="mt-2 font-display text-3xl font-semibold leading-none">{stage.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-ink/62">{stage.text}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -262,12 +311,12 @@ export default async function Home({ searchParams }: HomePageProps) {
           <div className="grid gap-3 sm:grid-cols-2">
             <article className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
               <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Normal calculator</p>
-              <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Ingredients.</h3>
+              <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Calculates ingredients.</h3>
               <p className="mt-3 text-sm leading-6 text-white/62">Useful numbers, but the real-life planning is still left for you to connect.</p>
             </article>
             <article className="rounded-[1.5rem] border border-oven-gold/35 bg-oven-gold/12 p-5">
               <p className="text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold">DoughTools</p>
-              <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Recipe → shopping → timeline → kitchen → review.</h3>
+              <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Calculates, plans, schedules, guides and helps you improve.</h3>
               <p className="mt-3 text-sm leading-6 text-white/72">A connected workflow that turns pizza night into something you can actually follow.</p>
             </article>
           </div>
@@ -334,7 +383,15 @@ export default async function Home({ searchParams }: HomePageProps) {
       </section>
 
       <section className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-founder-heading">
-        <div className="mx-auto grid max-w-7xl gap-6 rounded-[2rem] bg-[linear-gradient(135deg,#fff8f1_0%,#ffffff_48%,#f1e6d8_100%)] p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.84fr_1fr] lg:items-center">
+        <div className="mx-auto grid max-w-7xl gap-6 overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#fff8f1_0%,#ffffff_48%,#f1e6d8_100%)] p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.55fr_0.75fr_1fr] lg:items-center">
+          <Image
+            src="/about/marcin-arcisz-founder.webp"
+            alt="Marcin, the founder of DoughTools"
+            width={900}
+            height={1200}
+            sizes="(max-width: 1024px) 100vw, 28vw"
+            className="h-72 w-full rounded-[1.75rem] object-cover object-[50%_35%] shadow-card lg:h-[24rem]"
+          />
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Founder story</p>
             <h2 id="homepage-founder-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
@@ -365,7 +422,7 @@ export default async function Home({ searchParams }: HomePageProps) {
             Ready to plan your next pizza?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base sm:leading-7">
-            Start your first Pizza Session and let DoughTools turn the pizza you want into a plan you can follow.
+            It only takes a few minutes to create your first plan.
           </p>
           <Link
             href={homepageContent.hero.primaryCta.href}

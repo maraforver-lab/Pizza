@@ -1,6 +1,6 @@
 # Patch 326 — Homepage flagship experience QA
 
-Patch 326 reframes the homepage as the front door to the full DoughTools Pizza Session experience rather than a calculator-first landing page.
+Patch 326 reframes the homepage as the front door to the full DoughTools pizza-planning experience rather than a calculator-first landing page.
 
 ## Scope
 
@@ -11,13 +11,14 @@ Patch 326 reframes the homepage as the front door to the full DoughTools Pizza S
 ## UX changes
 
 - Hero now leads with “Your pizza, planned properly.” and “Better pizza starts before the oven.”
-- The primary action remains `Start Pizza Session`.
+- The primary action is now outcome-first: `Plan my next pizza`.
 - The secondary action remains `See how it works`.
 - The hero now makes the value explicit with:
   - Know when to start
   - Know what to buy
   - Know what to do next
 - The page narrative now flows through:
+  - Great pizza shouldn’t depend on guesswork.
   - One plan. Every step.
   - More than a dough calculator.
   - See DoughTools in action.
@@ -41,7 +42,8 @@ Reviewed the homepage at:
 Confirmed:
 
 - No document/body horizontal overflow.
-- Hero image loads at all checked widths.
+- Hero background image loads at all checked widths.
+- Founder image loads at all checked widths.
 - Primary and secondary CTA hierarchy remains clear.
 - The section rhythm alternates between light, dark/editorial and product-focused surfaces.
 - The page no longer reads as “just a calculator.”
@@ -49,6 +51,7 @@ Confirmed:
 ## Asset and performance notes
 
 - Reused existing approved local homepage and product imagery.
+- Reused the approved local founder photo.
 - No remote images.
 - No AI-generated images.
 - No new hero assets.
