@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import ContinuePizzaSessionCard from "@/components/ContinuePizzaSessionCard";
 import HomeCalculatorWorkspace from "@/components/HomeCalculatorWorkspace";
 import HomepageGuidanceLevelSection from "@/components/HomepageGuidanceLevelSection";
@@ -103,23 +103,29 @@ export default async function Home({ searchParams }: HomePageProps) {
     return <HomeCalculatorWorkspace variant={calculatorView} />;
   }
 
+  const {
+    props: { srcSet: desktopHeroSrcSet, sizes: desktopHeroSizes },
+  } = getImageProps({
+    src: "/images/homepage/doughtools-hero-desktop.webp",
+    alt: "Finished pizza with prepared dough in a warm pizza-making workspace",
+    width: 2400,
+    height: 1500,
+    sizes: "62vw",
+  });
+  const { props: mobileHeroImageProps } = getImageProps({
+    src: "/images/homepage/doughtools-hero-mobile.webp",
+    alt: "Finished pizza with prepared dough in a warm pizza-making workspace",
+    width: 1200,
+    height: 1600,
+    sizes: "(max-width: 1023px) 100vw, 38vw",
+    priority: true,
+  });
+
   return (
     <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f1e6d8_46%,#fff8f1_100%)] text-ink">
       <section className="px-4 pb-9 pt-7 sm:px-6 sm:pb-14 sm:pt-12 lg:px-8" aria-labelledby="homepage-hero-heading">
         <div className="mx-auto max-w-7xl">
           <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/70 shadow-card backdrop-blur sm:rounded-[2.75rem] lg:min-h-[43rem]">
-            <div className="absolute inset-y-0 right-0 hidden w-[62%] lg:block" aria-hidden="true">
-              <Image
-                src="/images/homepage/hero-desktop-bg.png"
-                alt=""
-                fill
-                priority
-                sizes="62vw"
-                className="object-cover object-[68%_center]"
-              />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_14%,rgba(255,255,255,0.18),transparent_18rem),linear-gradient(90deg,rgba(255,248,241,0.99)_0%,rgba(255,248,241,0.72)_31%,rgba(255,248,241,0.06)_62%),linear-gradient(180deg,rgba(15,61,46,0)_58%,rgba(15,61,46,0.28)_100%)]" />
-            </div>
-
             <div className="relative z-10 grid gap-7 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,0.86fr)] lg:items-center lg:p-10 lg:pb-14">
               <div className="max-w-3xl">
                 <p className="text-xs font-extrabold uppercase tracking-[.34em] text-tomato">
@@ -149,15 +155,14 @@ export default async function Home({ searchParams }: HomePageProps) {
 
               <div className="relative min-w-0 lg:min-h-[34rem]">
                 <div className="relative overflow-hidden rounded-[1.75rem] bg-flour shadow-card lg:absolute lg:inset-x-0 lg:bottom-2 lg:top-2">
-                  <Image
-                    src="/images/homepage/hero-mobile-bg.png"
-                    alt="Finished pizza on a warm table beside a DoughTools planning preview"
-                    width={1400}
-                    height={1050}
-                    priority
-                    sizes="(max-width: 1023px) 100vw, 38vw"
-                    className="h-[18rem] w-full object-cover object-[54%_center] sm:h-[24rem] lg:h-full"
-                  />
+                  <picture>
+                    <source media="(min-width: 1024px)" srcSet={desktopHeroSrcSet} sizes={desktopHeroSizes} />
+                    <img
+                      {...mobileHeroImageProps}
+                      alt="Finished pizza with prepared dough in a warm pizza-making workspace"
+                      className="h-[18rem] w-full object-cover object-[50%_62%] sm:h-[24rem] lg:h-full lg:object-[68%_center]"
+                    />
+                  </picture>
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,61,46,0)_34%,rgba(15,61,46,0.42)_100%)]" />
                 </div>
 

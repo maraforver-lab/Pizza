@@ -889,7 +889,7 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("Download invitation PDF");
     expect(invitation).toContain("downloadPartyOrderInvitationImage(exportCardRef.current)");
     expect(invitation).toContain("downloadPartyOrderInvitationPdf(exportCardRef.current)");
-    expect(invitation).toContain("/images/homepage/hero-desktop-bg.png");
+    expect(invitation).toContain("/images/homepage/doughtools-hero-desktop.webp");
     expect(invitation).toContain("linear-gradient");
     expect(invitation).toContain("bg-[#fff8f1]");
     expect(invitation).toContain("data-qr-container=\"true\"");

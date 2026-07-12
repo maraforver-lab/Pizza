@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { homepageContent } from "@/lib/homepage";
 import { getDefaultExperienceLevel } from "@/lib/experience-levels";
@@ -137,7 +137,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepage).toContain('return "full"');
     expect(homepage).toContain("DoughToolsIcon");
-    expect(homepage).toContain("/images/homepage/hero-desktop-bg.png");
+    expect(homepage).toContain("/images/homepage/doughtools-hero-desktop.webp");
     expect(homepage).toContain("Pizza Session preview");
     expect(homepage).toContain("One plan from idea to bake.");
     expect(homepage).toContain("6 × 260 g");
@@ -158,10 +158,14 @@ describe("homepage content model", () => {
     expect(homepage).not.toContain("/images/homepage-hero-desktop.png");
     expect(homepage).not.toContain("/images/homepage-hero-mobile.png");
     expect(homepage).toContain("lg:min-h-[43rem]");
-    expect(homepage).toContain("hidden w-[62%] lg:block");
+    expect(homepage).toContain("getImageProps");
+    expect(homepage).toContain("<picture>");
+    expect(homepage).toContain('media="(min-width: 1024px)"');
     expect(homepage).toContain("object-[68%_center]");
     expect(homepage).toContain("lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,0.86fr)]");
-    expect(homepage).toContain("/images/homepage/hero-mobile-bg.png");
+    expect(homepage).toContain("/images/homepage/doughtools-hero-mobile.webp");
+    expect(homepage).not.toContain("/images/homepage/hero-desktop-bg.png");
+    expect(homepage).not.toContain("/images/homepage/hero-mobile-bg.png");
     expect(homepage).toContain('href={homepageContent.hero.secondaryCta.href}');
     expect(homepage).toContain('id="how-it-works"');
     expect(homepage).toContain("overflow-x-clip");
@@ -581,7 +585,9 @@ describe("homepage content model", () => {
 
     expect(homepage).toContain("overflow-x-clip");
     expect(homepage).toContain("lg:min-h-[43rem]");
-    expect(homepage).toContain("hidden w-[62%] lg:block");
+    expect(homepage).toContain("getImageProps");
+    expect(homepage).toContain("<picture>");
+    expect(homepage).toContain('media="(min-width: 1024px)"');
     expect(homepage).toContain("object-[68%_center]");
     expect(homepage).toContain("lg:grid-cols-[minmax(0,0.9fr)_minmax(24rem,0.86fr)]");
     expect(homepage).toContain("text-[clamp(3.2rem,12vw,5rem)]");
@@ -591,10 +597,42 @@ describe("homepage content model", () => {
     expect(homepage).toContain("sm:grid-cols-3 lg:grid-cols-1");
     expect(homepage).toContain("ContinuePizzaSessionCard");
     expect(homepage).toContain("lg:absolute lg:left-0 lg:top-8");
-    expect(homepage).toContain("width={1400}");
-    expect(homepage).toContain("height={1050}");
+    expect(homepage).toContain("/images/homepage/doughtools-hero-desktop.webp");
+    expect(homepage).toContain("/images/homepage/doughtools-hero-mobile.webp");
+    expect(homepage).toContain("width: 2400");
+    expect(homepage).toContain("height: 1500");
+    expect(homepage).toContain("width: 1200");
+    expect(homepage).toContain("height: 1600");
+    expect(homepage).toContain('sizes: "62vw"');
+    expect(homepage).toContain('sizes: "(max-width: 1023px) 100vw, 38vw"');
+    expect(homepage).toContain("Finished pizza with prepared dough in a warm pizza-making workspace");
+    expect(homepage).not.toContain("/images/homepage/hero-desktop-bg.png");
+    expect(homepage).not.toContain("/images/homepage/hero-mobile-bg.png");
+    expect(homepage).not.toMatch(new RegExp("https?://|data:image", "i"));
     expect(homepage).toContain("width={900}");
     expect(homepage).toContain("height={675}");
+  });
+
+  it("uses approved local realistic homepage hero assets without obsolete PNG references", () => {
+    const homepage = source("app/page.tsx");
+    const invitation = source("components/account/PartyOrderInvitationCard.tsx");
+    const review = source("docs/audits/patch-323-homepage-hero-assets.md");
+    const desktopAsset = join(process.cwd(), "public", "images", "homepage", "doughtools-hero-desktop.webp");
+    const mobileAsset = join(process.cwd(), "public", "images", "homepage", "doughtools-hero-mobile.webp");
+
+    expect(existsSync(desktopAsset)).toBe(true);
+    expect(existsSync(mobileAsset)).toBe(true);
+    expect(statSync(desktopAsset).size).toBeGreaterThan(100_000);
+    expect(statSync(mobileAsset).size).toBeGreaterThan(100_000);
+    expect(homepage).toContain('src: "/images/homepage/doughtools-hero-desktop.webp"');
+    expect(homepage).toContain('src: "/images/homepage/doughtools-hero-mobile.webp"');
+    expect(invitation).toContain("/images/homepage/doughtools-hero-desktop.webp");
+    expect([homepage, invitation].join("\n")).not.toContain("hero-desktop-bg.png");
+    expect([homepage, invitation].join("\n")).not.toContain("hero-mobile-bg.png");
+    expect(review).toContain("No people.");
+    expect(review).toContain("No hands or arms.");
+    expect(review).toContain("No embedded text.");
+    expect(review).toContain("No logos.");
   });
 
   it("adds more technical result guidance for Pizza Nerd users without changing tools", () => {

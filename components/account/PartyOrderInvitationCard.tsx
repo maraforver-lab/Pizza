@@ -71,7 +71,7 @@ function PartyOrderInvitationExportCard({
         width: 1080,
         height: 1350,
         backgroundImage:
-          "linear-gradient(180deg, rgba(32, 37, 31, .48) 0%, rgba(32, 37, 31, .72) 54%, rgba(32, 37, 31, .9) 100%), url('/images/homepage/hero-desktop-bg.png')",
+          "linear-gradient(180deg, rgba(32, 37, 31, .48) 0%, rgba(32, 37, 31, .72) 54%, rgba(32, 37, 31, .9) 100%), url('/images/homepage/doughtools-hero-desktop.webp')",
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}
@@ -217,7 +217,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
         className="mt-5 overflow-hidden rounded-[2rem] border border-white/25 bg-ink text-white shadow-card"
         style={{
           backgroundImage:
-            "linear-gradient(135deg, rgba(32, 37, 31, .94) 0%, rgba(32, 37, 31, .76) 48%, rgba(32, 37, 31, .42) 100%), url('/images/homepage/hero-desktop-bg.png')",
+            "linear-gradient(135deg, rgba(32, 37, 31, .94) 0%, rgba(32, 37, 31, .76) 48%, rgba(32, 37, 31, .42) 100%), url('/images/homepage/doughtools-hero-desktop.webp')",
           backgroundPosition: "center",
           backgroundSize: "cover",
         }}
