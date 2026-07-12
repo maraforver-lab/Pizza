@@ -1,3 +1,5 @@
+import { getExperienceLevelConfig, normalizeExperienceLevel, type ExperienceLevel } from "@/lib/experience-levels";
+
 export type PizzaTroubleshootingTopicId =
   | "dough-not-rising"
   | "dough-too-sticky"
@@ -88,6 +90,88 @@ export type PizzaTroubleshootingSection = {
   };
   problems: PizzaTroubleshootingProblem[];
 };
+
+export type PizzaTroubleshootingLevelPresentation = {
+  level: ExperienceLevel;
+  levelLabel: string;
+  modeLabel: string;
+  likelyCauses: string[];
+  fixNow: string[];
+  preventNextTime: string[];
+  quickCheck?: string;
+  diagnosticNote?: string;
+  relatedTopicIds: PizzaTroubleshootingTopicId[];
+  showMoreDetail: boolean;
+  hiddenDetailCount: number;
+};
+
+function takeBeginnerItems<T>(items: T[], count: number): T[] {
+  return items.slice(0, Math.min(count, items.length));
+}
+
+export function getPizzaTroubleshootingLevelPresentation(
+  problem: PizzaTroubleshootingProblem,
+  level: unknown,
+): PizzaTroubleshootingLevelPresentation {
+  const normalized = normalizeExperienceLevel(level);
+  const config = getExperienceLevelConfig(normalized);
+
+  if (normalized === "beginner") {
+    const likelyCauses = takeBeginnerItems(problem.likelyCauses, 3);
+    const fixNow = takeBeginnerItems(problem.fixNow, 3);
+    const preventNextTime = takeBeginnerItems(problem.preventNextTime, 3);
+    const relatedTopicIds = takeBeginnerItems(problem.relatedTopicIds ?? [], 3);
+    const hiddenDetailCount =
+      Math.max(problem.likelyCauses.length - likelyCauses.length, 0) +
+      Math.max(problem.fixNow.length - fixNow.length, 0) +
+      Math.max(problem.preventNextTime.length - preventNextTime.length, 0) +
+      (problem.symptomDetails ? 1 : 0) +
+      Math.max((problem.relatedTopicIds?.length ?? 0) - relatedTopicIds.length, 0);
+
+    return {
+      level: normalized,
+      levelLabel: config.label,
+      modeLabel: "Beginner view",
+      likelyCauses,
+      fixNow,
+      preventNextTime,
+      quickCheck: problem.quickCheck,
+      relatedTopicIds,
+      showMoreDetail: hiddenDetailCount > 0,
+      hiddenDetailCount,
+    };
+  }
+
+  if (normalized === "enthusiast") {
+    return {
+      level: normalized,
+      levelLabel: config.label,
+      modeLabel: "Enthusiast view",
+      likelyCauses: problem.likelyCauses,
+      fixNow: problem.fixNow,
+      preventNextTime: problem.preventNextTime,
+      quickCheck: problem.quickCheck,
+      diagnosticNote: problem.symptomDetails,
+      relatedTopicIds: problem.relatedTopicIds ?? [],
+      showMoreDetail: false,
+      hiddenDetailCount: 0,
+    };
+  }
+
+  return {
+    level: normalized,
+    levelLabel: config.label,
+    modeLabel: "Pizza Nerd view",
+    likelyCauses: problem.likelyCauses,
+    fixNow: problem.fixNow,
+    preventNextTime: problem.preventNextTime,
+    quickCheck: problem.quickCheck,
+    diagnosticNote: problem.symptomDetails,
+    relatedTopicIds: problem.relatedTopicIds ?? [],
+    showMoreDetail: false,
+    hiddenDetailCount: 0,
+  };
+}
 
 export const troubleshootingCategories: Array<Pick<PizzaTroubleshootingSection, "id" | "title" | "intro">> = [
   {

@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   findPizzaTroubleshootingProblem,
+  getPizzaTroubleshootingLevelPresentation,
   getSafeDoughGuideReturnPath,
   isPizzaTroubleshootingTopicId,
   pizzaTroubleshootingTopicIds,
@@ -13,6 +14,8 @@ import {
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
 const troubleshootingRoute = "app/guide/pizza-troubleshooting/page.tsx";
+const troubleshootingClient = "components/guide/PizzaTroubleshootingGuideClient.tsx";
+const troubleshootingPageSource = () => `${source(troubleshootingRoute)}\n${source(troubleshootingClient)}`;
 const patch304TopicIds = [
   "dough-dry-skin",
   "dough-balls-spread-flat",
@@ -89,7 +92,7 @@ describe("Pizza Troubleshooting Guide", () => {
   it("adds the standalone guide route with a symptom-first hero", () => {
     expect(existsSync(join(process.cwd(), troubleshootingRoute))).toBe(true);
 
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
 
     expect(page).toContain("Pizza troubleshooting");
     expect(page).toContain("What went wrong with your pizza?");
@@ -251,7 +254,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("uses the requested problem-card fields", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
     const firstProblem = troubleshootingSections[0].problems[0];
 
     expect(firstProblem.shortSymptom).toBeTruthy();
@@ -263,7 +266,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("adds a quick problem finder and concise diagnostic guidance", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
 
     expect(page).toContain("Quick problem finder");
     expect(page).toContain("Start with the symptom area");
@@ -274,7 +277,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("keeps related guide links restrained and internal", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
 
     expect(page).toContain("Related guides");
     expect(page).toContain('href="/guides/dough"');
@@ -283,7 +286,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("uses lightweight CSS-based guide visuals without remote images", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
 
     expect(page).toContain('import Image from "next/image"');
     expect(page).toContain("function VisualPanel");
@@ -294,7 +297,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("maps every current topic to a local diagnostic troubleshooting image", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
     const data = source("lib/pizza-troubleshooting.ts");
     const topics = allTopics();
 
@@ -319,7 +322,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("adds distinct content and related links for the new dough-fermentation topics", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
     const topics = allTopics();
 
     expect(page).toContain("Related troubleshooting");
@@ -490,7 +493,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("uses accessible HTML comparison labels instead of text embedded in images", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
     const comparisonTopics = troubleshootingSections
       .flatMap((section) => section.problems)
       .filter((topic) => topic.image.kind === "comparison");
@@ -506,7 +509,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("supports stable topic deep links and invalid-topic fallback", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
 
     expect(isPizzaTroubleshootingTopicId("dough-too-sticky")).toBe(true);
     expect(isPizzaTroubleshootingTopicId("not-a-topic")).toBe(false);
@@ -520,7 +523,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("accepts only safe Dough Guide return paths", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
 
     expect(getSafeDoughGuideReturnPath("/guides/dough?step=mix-dough")).toBe("/guides/dough?step=mix-dough");
     expect(getSafeDoughGuideReturnPath(encodeURIComponent("/guides/dough?step=ball-dough"))).toBe("/guides/dough?step=ball-dough");
@@ -560,7 +563,7 @@ describe("Pizza Troubleshooting Guide", () => {
   });
 
   it("does not render the removed bottom CTA or footer meta area on the troubleshooting page", () => {
-    const page = source(troubleshootingRoute);
+    const page = troubleshootingPageSource();
     const data = source("lib/pizza-troubleshooting.ts");
 
     expect(page).toContain("Pizza Troubleshooting Guide");
@@ -571,5 +574,53 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(page).not.toContain("Creator Mara Forever");
     expect(page).not.toContain("View updates");
     expect(page).not.toContain("AppSignature");
+  });
+
+  it("uses the existing experience-level preference for troubleshooting presentation", () => {
+    const page = troubleshootingPageSource();
+    const data = source("lib/pizza-troubleshooting.ts");
+
+    expect(page).toContain("readExperienceLevelPreference");
+    expect(page).toContain("useState<ExperienceLevel>(\"beginner\")");
+    expect(page).not.toContain("writeExperienceLevelPreference");
+    expect(page).not.toContain("troubleshootingExperienceLevel");
+    expect(data).toContain("normalizeExperienceLevel");
+    expect(data).toContain("getPizzaTroubleshootingLevelPresentation");
+  });
+
+  it("keeps one topic library while adapting density by experience level", () => {
+    const topic = findPizzaTroubleshootingProblem("pizza-overloaded-with-toppings")?.problem;
+    if (!topic) throw new Error("Missing pizza-overloaded-with-toppings");
+
+    const beginner = getPizzaTroubleshootingLevelPresentation(topic, "beginner");
+    const enthusiast = getPizzaTroubleshootingLevelPresentation(topic, "enthusiast");
+    const pizzaNerd = getPizzaTroubleshootingLevelPresentation(topic, "pizza_nerd");
+
+    expect(beginner.levelLabel).toBe("Beginner");
+    expect(enthusiast.levelLabel).toBe("Enthusiast");
+    expect(pizzaNerd.levelLabel).toBe("Pizza Nerd");
+    expect(beginner.likelyCauses.length).toBeLessThanOrEqual(3);
+    expect(beginner.fixNow.length).toBeLessThanOrEqual(3);
+    expect(beginner.preventNextTime.length).toBeLessThanOrEqual(3);
+    expect(beginner.showMoreDetail).toBe(true);
+    expect(enthusiast.likelyCauses).toEqual(topic.likelyCauses);
+    expect(enthusiast.fixNow).toEqual(topic.fixNow);
+    expect(enthusiast.preventNextTime).toEqual(topic.preventNextTime);
+    expect(enthusiast.diagnosticNote).toBe(topic.symptomDetails);
+    expect(pizzaNerd.likelyCauses).toEqual(topic.likelyCauses);
+    expect(pizzaNerd.relatedTopicIds).toEqual(topic.relatedTopicIds);
+  });
+
+  it("falls back invalid troubleshooting presentation levels to Beginner without changing topic data", () => {
+    const topic = findPizzaTroubleshootingProblem("center-raw-or-doughy")?.problem;
+    if (!topic) throw new Error("Missing center-raw-or-doughy");
+
+    const invalid = getPizzaTroubleshootingLevelPresentation(topic, "expert");
+
+    expect(invalid.level).toBe("beginner");
+    expect(invalid.levelLabel).toBe("Beginner");
+    expect(invalid.likelyCauses).toEqual(topic.likelyCauses.slice(0, 3));
+    expect(topic.likelyCauses.length).toBeGreaterThanOrEqual(invalid.likelyCauses.length);
+    expect(findPizzaTroubleshootingProblem(topic.id)?.problem).toBe(topic);
   });
 });
