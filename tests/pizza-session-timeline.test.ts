@@ -122,7 +122,7 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("<SessionWorkspaceLayout activeStep={8} hideLocalSaveNote>");
     expect(page).toContain("{renderNextActionCard()}");
-    expect(page).toContain("max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70");
+    expect(page).toContain('cardClass({ className: "max-w-2xl p-4 shadow-sm sm:p-5", variant: "success" })');
     expect(page).toContain("formatSessionPlannedTime(currentActionTime, currentTime)");
     expect(page).toContain("formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)");
     expect(page).not.toContain("timeline-next-step-heading");
@@ -997,6 +997,20 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("Recommended action");
     expect(page).not.toContain("aria-labelledby=\"next-up-heading\"");
     expect(page).not.toContain("recipeQuery ? `/plan?");
+  });
+
+  it("uses shared visual-system helpers for Timeline cards, status badges and actions", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("buttonClass");
+    expect(page).toContain("cardClass");
+    expect(page).toContain("statusPillClass");
+    expect(page).toContain('variant: "success"');
+    expect(page).toContain('variant: "guidance"');
+    expect(page).toContain("bg-status-success/10");
+    expect(page).toContain("bg-action-primary/10");
+    expect(page).toContain('variant: step.id === "bake-pizza" ? "danger" : "success"');
+    expect(page).toContain('tone: "forest"');
   });
 
   it("adds a shopping checkpoint before service and bake steps without changing timeline data", () => {

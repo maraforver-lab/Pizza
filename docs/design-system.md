@@ -207,6 +207,37 @@ Purpose: consistent Back / primary action placement.
 - Use on guided flow pages.
 - Do not add multiple equal-weight forward actions.
 
+### Shared interface variants
+
+Patch 324 introduced shared presentation helpers in `components/design-system.tsx` so high-use workspace pages do not keep recreating the same card, button, form and status classes.
+
+Use these helpers for new workspace UI before writing a one-off class stack:
+
+- `buttonClass()` for primary, secondary, tertiary and icon actions.
+- `cardClass()` for repeated card roles: default, guidance, information, selected, success, warning, danger, dark and archived.
+- `statusPillClass()` for compact state badges: current, next, completed, selected, success, warning, danger, info, disabled and archived.
+- `formControlClass` for normal text, number and select controls.
+- `focusRingClass` for custom controls that cannot use a shared button helper.
+
+These helpers must use semantic aliases such as `background-card`, `background-subtle`, `action-primary`, `status-success`, `status-warning`, `status-danger` and `focus-ring`. Avoid adding hard-coded palette values or new near-duplicate Tailwind color names.
+
+Legacy color aliases remain available only for compatibility. They are not the preferred source for new shared variants.
+
+Patch 324 alias status:
+
+| Alias | Status | Reason |
+| --- | --- | --- |
+| Tailwind `cream` | Retained | Broad existing page usage; resolves to the official Warm Background token. |
+| Tailwind `leaf` | Retained | Broad existing status usage; resolves to the official Basil token. |
+| Tailwind `ink` | Retained | Official palette token and compatibility alias for existing pages. |
+| Tailwind `tomato` | Retained | Official palette token and compatibility alias for existing pages. |
+| CSS `--dt-primary` | Retained | Compatibility alias for older shared and exported surfaces. |
+| CSS `--dt-primary-dark` | Retained | Compatibility alias for older hover states. |
+| CSS `--dt-background-warm` | Retained | Compatibility alias for older warm-page surfaces. |
+| CSS `--dt-orange` | Retained | Compatibility alias for older accent references. |
+| CSS `--dt-text-main` | Retained | Compatibility alias for older text references. |
+| CSS `--dt-text-muted` | Retained | Compatibility alias for older text references. |
+
 ### MobileFlowShell
 
 Purpose: future focused mobile task wrapper.

@@ -589,6 +589,20 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).not.toContain("Mark items as Have when they are ready. Unchecked items stay marked as Need.");
   });
 
+  it("uses shared visual-system helpers for Shopping workspace cards and actions", () => {
+    const page = source("app/session/shopping/page.tsx");
+
+    expect(page).toContain("buttonClass");
+    expect(page).toContain("cardClass");
+    expect(page).toContain("statusPillClass");
+    expect(page).toContain('variant: "guidance"');
+    expect(page).toContain('variant: "success"');
+    expect(page).toContain('variant: selected ? "selected" : "archived"');
+    expect(page).toContain('tone: "dark"');
+    expect(page).toContain('variant: "secondary"');
+    expect(page).not.toContain("focus-visible:ring-tomato sm:w-auto");
+  });
+
   it("aligns the shopping page with Pizza Session V2 checklist structure", () => {
     const page = source("app/session/shopping/page.tsx");
 

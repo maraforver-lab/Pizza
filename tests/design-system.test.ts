@@ -192,8 +192,52 @@ describe("DoughTools design foundation", () => {
     expect(componentSource).toContain("export function SecondaryButton");
     expect(componentSource).toContain("export function StatusPill");
     expect(componentSource).toContain("export function BottomActionBar");
-    expect(componentSource).toContain("bg-[var(--dt-primary)]");
+    expect(componentSource).toContain("export function buttonClass");
+    expect(componentSource).toContain("export function cardClass");
+    expect(componentSource).toContain("export function statusPillClass");
+    expect(componentSource).toContain("export const formControlClass");
+    expect(componentSource).toContain("export const focusRingClass");
+    expect(componentSource).toContain("bg-action-primary");
+    expect(componentSource).toContain("bg-background-card");
     expect(componentSource).toContain("order-2 sm:order-1");
     expect(componentSource).toContain("order-1 sm:order-2");
+  });
+
+  it("documents and exports shared visual variants for workspace surfaces", () => {
+    const componentSource = source("components/design-system.tsx");
+    const designSystem = source("docs/design-system.md");
+
+    for (const helper of [
+      "buttonClass()",
+      "cardClass()",
+      "statusPillClass()",
+      "formControlClass",
+      "focusRingClass",
+    ]) {
+      expect(designSystem).toContain(helper);
+    }
+
+    for (const variant of [
+      "guidance",
+      "information",
+      "selected",
+      "success",
+      "warning",
+      "danger",
+      "archived",
+    ]) {
+      expect(componentSource).toContain(`${variant}:`);
+    }
+
+    expect(componentSource).toContain("rounded-card");
+    expect(componentSource).toContain("rounded-panel");
+    expect(componentSource).toContain("rounded-control");
+    expect(componentSource).toContain("focus-visible:ring-focus-ring");
+    expect(componentSource).toContain("bg-status-success/10");
+    expect(componentSource).toContain("bg-status-warning");
+    expect(componentSource).toContain("bg-action-primary");
+    expect(designSystem).toContain("Patch 324 alias status");
+    expect(designSystem).toContain("Tailwind `cream`");
+    expect(designSystem).toContain("CSS `--dt-primary`");
   });
 });

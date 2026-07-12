@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BottomActionBar } from "@/components/design-system";
+import { BottomActionBar, buttonClass, cardClass, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
@@ -240,13 +240,13 @@ export default function SessionShoppingPage() {
           hideMeta
         />
 
-        <section className="mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-label="Pizza menu allocation">
+        <section className={cardClass({ className: "mt-4 p-4 sm:mt-6 sm:p-5", variant: "guidance" })} aria-label="Pizza menu allocation">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza Menu</p>
               <h2 className="mt-1 font-display text-2xl font-semibold">Choose your pizzas</h2>
             </div>
-            <span className="w-fit rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/55">
+            <span className={statusPillClass({ className: "bg-background-subtle text-ink/55", variant: "info" })}>
               Total selected: {allocatedPizzaCount}/{pizzaCount || "—"}
             </span>
           </div>
@@ -260,10 +260,10 @@ export default function SessionShoppingPage() {
               return (
                 <article
                   key={option.id}
-                  className={`overflow-hidden rounded-[1.6rem] border text-left transition focus-within:ring-2 focus-within:ring-tomato focus-within:ring-offset-2 ${
+                  className={`overflow-hidden rounded-card border text-left transition focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 ${
                     selected
-                      ? "border-tomato/45 bg-white shadow-card"
-                      : "border-ink/10 bg-cream/65 hover:border-tomato/25 hover:bg-white"
+                      ? "border-action-primary/45 bg-background-card shadow-card"
+                      : "border-ink/10 bg-background-subtle/65 hover:border-action-primary/25 hover:bg-background-card"
                   }`}
                 >
                   <div className="relative h-52 overflow-hidden bg-cream sm:h-48 lg:h-52">
@@ -281,7 +281,7 @@ export default function SessionShoppingPage() {
                       <div>
                         <span className="text-sm font-extrabold text-ink">{option.name}</span>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${selected ? "bg-tomato text-white" : "bg-white text-ink/45"}`}>
+                      <span className={statusPillClass({ className: "px-2.5 py-1 text-[11px]", variant: selected ? "selected" : "archived" })}>
                         {quantity} pizza{quantity === 1 ? "" : "s"}
                       </span>
                     </div>
@@ -322,7 +322,7 @@ export default function SessionShoppingPage() {
           </p>
         </section>
 
-        <section className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/85 shadow-card sm:mt-6 sm:rounded-[2rem]" aria-labelledby="shopping-checklist-heading">
+        <section className={cardClass({ className: "mt-4 overflow-hidden p-0 sm:mt-6", variant: "guidance" })} aria-labelledby="shopping-checklist-heading">
           <div className="border-b border-ink/10 px-4 py-4 sm:px-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -332,13 +332,13 @@ export default function SessionShoppingPage() {
                   Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix.
                 </p>
               </div>
-              <div className="rounded-[1.25rem] bg-leaf/[.08] px-4 py-3 ring-1 ring-leaf/15">
+              <div className={cardClass({ className: "px-4 py-3 shadow-none", variant: "success" })}>
                 <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Shopping progress</p>
                 <p className="mt-1 text-sm font-extrabold text-ink">{readyShoppingItems} / {shoppingItems.length} ingredients ready</p>
               </div>
             </div>
             {fermentationDisplay?.mode && (
-              <p className="mt-3 w-fit rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
+              <p className={statusPillClass({ className: "mt-3 px-3 py-2", variant: "success" })}>
                 Fermentation: {fermentationDisplay.fullLabel}
               </p>
             )}
@@ -380,7 +380,7 @@ export default function SessionShoppingPage() {
           ))}
         </section>
 
-        <section className="mt-4 rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 shadow-sm sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-labelledby="before-timeline-heading">
+        <section className={cardClass({ className: "mt-4 p-4 shadow-sm sm:mt-6 sm:p-5", variant: "success" })} aria-labelledby="before-timeline-heading">
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Before Timeline</p>
           <h2 id="before-timeline-heading" className="mt-2 font-display text-2xl font-semibold">Before Timeline</h2>
           <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/65">
@@ -389,7 +389,7 @@ export default function SessionShoppingPage() {
         </section>
 
         {shoppingList && (
-          <section className="mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-labelledby="shopping-image-export-heading">
+          <section className={cardClass({ className: "mt-4 p-4 sm:mt-6 sm:p-5", variant: "guidance" })} aria-labelledby="shopping-image-export-heading">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 id="shopping-image-export-heading" className="font-display text-2xl font-semibold">Save your shopping list</h2>
@@ -401,7 +401,7 @@ export default function SessionShoppingPage() {
                 type="button"
                 onClick={downloadShoppingImage}
                 disabled={exportingImage}
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 disabled:bg-ink/25 disabled:text-ink/45 sm:w-auto"
+                className={buttonClass({ className: "w-full sm:w-auto", tone: "dark" })}
               >
                 {exportingImage ? "Preparing image…" : "Download shopping image"}
               </button>
@@ -424,7 +424,7 @@ export default function SessionShoppingPage() {
           back={(
             <Link
               href="/session/recipe"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
+              className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
             >
               Back
             </Link>
@@ -432,7 +432,7 @@ export default function SessionShoppingPage() {
           primary={(
             <Link
               href="/session/timeline"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
+              className={buttonClass({ className: "w-full sm:w-auto" })}
             >
               Continue to Timeline →
             </Link>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { BottomActionBar } from "@/components/design-system";
+import { BottomActionBar, buttonClass, focusRingClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
@@ -268,8 +268,8 @@ function optionClass(active: boolean, density: "default" | "compact" = "default"
   const sizeClass = density === "compact"
     ? "min-h-[6.75rem] rounded-[1rem] p-2.5 sm:min-h-[7rem] sm:rounded-[1.1rem] sm:p-3"
     : "grid min-h-[4rem] grid-cols-[auto_1fr] items-start gap-2.5 rounded-[1.1rem] p-3 sm:block sm:min-h-[7rem] sm:rounded-[1.25rem] sm:p-4";
-  return `relative border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${sizeClass} ${
-    active ? "border-tomato bg-tomato/[.06] shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30 hover:shadow-sm"
+  return `relative border text-left transition ${focusRingClass} ${sizeClass} ${
+    active ? "border-action-primary bg-action-primary/[.06] shadow-sm" : "border-ink/10 bg-background-card hover:border-action-primary/30 hover:shadow-sm"
   }`;
 }
 
@@ -278,7 +278,7 @@ function selectedIndicator(active: boolean) {
     <span
       aria-hidden="true"
       className={`absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full border text-[0.65rem] font-black ${
-        active ? "border-tomato bg-tomato text-white" : "border-ink/15 bg-white text-transparent"
+        active ? "border-action-primary bg-action-primary text-text-on-dark" : "border-ink/15 bg-background-card text-transparent"
       }`}
     >
       {active && <DoughToolsIcon name="check" size={16} strokeWidth={2.4} />}
@@ -1234,18 +1234,18 @@ function StartPizzaSessionContent() {
 
           <BottomActionBar
             back={(
-              <button type="button" onClick={backStep} disabled={step === "path"} className="min-h-12 w-full rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/60 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
+              <button type="button" onClick={backStep} disabled={step === "path"} className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}>
                 Back
               </button>
             )}
             primary={(
               <div className="flex flex-col gap-2 sm:items-end">
               {step !== "summary" ? (
-                <button type="button" onClick={continueStep} disabled={!canContinue} className="min-h-14 w-full rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:bg-ink/20 disabled:text-ink/40 sm:w-auto">
+                <button type="button" onClick={continueStep} disabled={!canContinue} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
                   Continue →
                 </button>
               ) : (
-                <Link href="/session/recipe" className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-tomato px-8 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:w-auto">
+                <Link href="/session/recipe" className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
                   Build my Dough Plan →
                 </Link>
               )}

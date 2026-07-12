@@ -831,6 +831,10 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("focus-visible:ring");
     expect(page).toContain("Back");
     expect(page).toContain("Continue");
+    expect(page).toContain("buttonClass");
+    expect(page).toContain("focusRingClass");
+    expect(page).toContain("border-action-primary");
+    expect(page).toContain("bg-action-primary/[.06]");
   });
 
   it("adds Patch 32 to the public update history", () => {

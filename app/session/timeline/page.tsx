@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { BottomActionBar } from "@/components/design-system";
+import { BottomActionBar, buttonClass, cardClass, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
@@ -85,11 +85,11 @@ function formatTimelineTime(value?: string) {
 }
 
 function statusClass(status: "next" | "target" | "checkpoint" | PizzaSessionTimelineStep["status"]) {
-  if (status === "next" || status === "checkpoint") return "bg-leaf/10 text-leaf ring-leaf/20";
-  if (status === "target") return "bg-tomato/10 text-tomato ring-tomato/20";
-  if (status === "done") return "bg-leaf/10 text-leaf ring-leaf/20";
+  if (status === "next" || status === "checkpoint") return "bg-status-success/10 text-status-success ring-status-success/20";
+  if (status === "target") return "bg-action-primary/10 text-action-primary ring-action-primary/20";
+  if (status === "done") return "bg-status-success/10 text-status-success ring-status-success/20";
   if (status === "skipped") return "bg-ink/[.05] text-ink/45 ring-ink/10";
-  return "bg-cream text-ink/55 ring-ink/10";
+  return "bg-background-subtle text-ink/55 ring-ink/10";
 }
 
 function timelineStepIcon(step?: PizzaSessionTimelineStep): DoughToolsIconName {
@@ -319,7 +319,7 @@ function ShoppingCheckpointRow({
   return (
     <article
       id="shopping-checkpoint"
-      className="rounded-[1.25rem] border border-leaf/30 bg-leaf/[.08] p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5"
+      className={cardClass({ className: "rounded-[1.25rem] p-4 shadow-sm sm:rounded-card sm:p-5", variant: "success" })}
       aria-label="Shopping checkpoint"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -337,12 +337,12 @@ function ShoppingCheckpointRow({
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-          <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${checkpointState === "Done" ? "bg-leaf/10 text-leaf ring-leaf/20" : "bg-white text-ink/55 ring-ink/10"}`}>
+          <span className={statusPillClass({ className: "px-3 py-2", variant: checkpointState === "Done" ? "success" : "archived" })}>
             {checkpointState}
           </span>
           <Link
             href="/session/shopping"
-            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-leaf px-4 text-sm font-extrabold text-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+            className={buttonClass({ className: "px-4", tone: "forest" })}
           >
             Review shopping →
           </Link>
@@ -381,7 +381,7 @@ export default function SessionTimelinePage() {
   if (!ready) {
     return (
       <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
+        <div className={cardClass({ className: "mx-auto max-w-3xl rounded-hero p-6 text-sm font-bold text-ink/50" })}>
           Loading your local pizza timeline…
         </div>
       </main>
@@ -476,7 +476,7 @@ export default function SessionTimelinePage() {
       ? "Ready for Review"
       : "Next step not available";
   const renderNextActionCard = () => (
-    <div className="max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm sm:p-5" data-testid="timeline-current-action-card">
+    <div className={cardClass({ className: "max-w-2xl p-4 shadow-sm sm:p-5", variant: "success" })} data-testid="timeline-current-action-card">
       <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
         <div className="flex min-w-0 items-start gap-3">
           <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ring-1 ${timelineStepIconTone(currentActionStep)}`} aria-hidden="true">
@@ -497,21 +497,21 @@ export default function SessionTimelinePage() {
           </p>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
+          <span className={statusPillClass({ className: "px-3 py-2", variant:
             currentLiveTiming.kind === "overdue"
-              ? "bg-tomato/10 text-tomato"
+              ? "danger"
               : currentLiveTiming.kind === "unknown"
-                ? "bg-white text-ink/55"
-                : "bg-leaf/10 text-leaf"
-          }`}>
+                ? "archived"
+                : "success"
+          })}>
             {currentLiveTiming.label}
           </span>
           {currentLiveTiming.value && (
-            <span className="rounded-full bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">
+            <span className={statusPillClass({ className: "px-3 py-2", variant: "danger" })}>
               {currentLiveTiming.value}
             </span>
           )}
-          <span className="rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/55">
+          <span className={statusPillClass({ className: "px-3 py-2", variant: "archived" })}>
             {stepProgressLabel}
           </span>
         </div>
@@ -533,7 +533,7 @@ export default function SessionTimelinePage() {
       <button
         type="button"
         onClick={handleNextAction}
-        className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+        className={buttonClass({ className: "mt-4 w-full px-4" })}
       >
         {nextAction.cta}
       </button>
@@ -541,7 +541,7 @@ export default function SessionTimelinePage() {
         <Link
           href={currentDoughGuideLink.href}
           aria-label={currentDoughGuideLink.ariaLabel}
-          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+          className={buttonClass({ className: "mt-3 w-full px-4", variant: "secondary" })}
         >
           {currentDoughGuideLink.label}
         </Link>
@@ -566,7 +566,7 @@ export default function SessionTimelinePage() {
           {renderNextActionCard()}
         </SessionStepHero>
 
-        <section aria-labelledby="timeline-planning-summary-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
+        <section aria-labelledby="timeline-planning-summary-heading" className={cardClass({ className: "mt-5 p-4 sm:mt-6 sm:rounded-hero sm:p-6", variant: "guidance" })}>
           <div className="max-w-2xl">
             <div className="min-w-0">
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning timing notes</p>
@@ -603,7 +603,7 @@ export default function SessionTimelinePage() {
         </section>
 
         {criticalMoments.length > 0 && (
-          <section aria-labelledby="what-happens-when-heading" className="mt-5 rounded-[1.5rem] border border-white/80 bg-white/80 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6">
+          <section aria-labelledby="what-happens-when-heading" className={cardClass({ className: "mt-5 p-4 sm:mt-6 sm:rounded-hero sm:p-6", variant: "guidance" })}>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Timing highlights</p>
@@ -622,7 +622,7 @@ export default function SessionTimelinePage() {
                     <h3 className="font-display text-2xl font-semibold">{criticalMomentTitle(step)}</h3>
                     <p className="mt-1 text-sm leading-6 text-ink/60">{step.beginnerNote ?? step.description}</p>
                   </div>
-                  <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 sm:justify-self-end ${step.id === "bake-pizza" ? "bg-tomato/10 text-tomato ring-tomato/20" : "bg-leaf/10 text-leaf ring-leaf/20"}`}>
+                  <span className={statusPillClass({ className: "px-3 py-2 sm:justify-self-end", variant: step.id === "bake-pizza" ? "danger" : "success" })}>
                     {relativeFromNow(step.scheduledAt)}
                   </span>
                 </article>
@@ -682,7 +682,7 @@ export default function SessionTimelinePage() {
                         <Link
                           href={bakingTroubleshootingLink.href}
                           aria-label={bakingTroubleshootingLink.ariaLabel}
-                          className="inline-flex min-h-10 w-fit items-center justify-center rounded-2xl border border-ink/10 bg-white/75 px-3 text-xs font-extrabold text-ink/55 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                          className={buttonClass({ className: "min-h-10 w-fit px-3 text-xs", variant: "secondary" })}
                         >
                           {bakingTroubleshootingLink.label}
                         </Link>
@@ -727,7 +727,7 @@ export default function SessionTimelinePage() {
           back={(
             <Link
               href="/session/shopping"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
+              className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
             >
               Back
             </Link>
@@ -736,7 +736,7 @@ export default function SessionTimelinePage() {
             <button
               type="button"
               onClick={handleNextAction}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
+              className={buttonClass({ className: "w-full sm:w-auto" })}
             >
               {nextAction.cta}
             </button>
