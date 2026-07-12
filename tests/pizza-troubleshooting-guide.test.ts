@@ -10,6 +10,11 @@ import {
   troubleshootingCategories,
   troubleshootingSections,
 } from "@/lib/pizza-troubleshooting";
+import {
+  buildPizzaTroubleshootingCategoryHref,
+  getPizzaSessionBakingTroubleshootingLink,
+  getPizzaSessionToppingsTroubleshootingLink,
+} from "@/lib/pizza-session-troubleshooting-links";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -251,6 +256,21 @@ describe("Pizza Troubleshooting Guide", () => {
       const owningSections = troubleshootingSections.filter((section) => section.problems.some((problem) => problem.id === id));
       expect(owningSections.map((section) => section.id)).toEqual(["toppings"]);
     }
+  });
+
+  it("exposes stable baking and toppings anchors for Pizza Session contextual help", () => {
+    const page = troubleshootingPageSource();
+
+    expect(buildPizzaTroubleshootingCategoryHref("baking")).toBe("/guide/pizza-troubleshooting#baking");
+    expect(buildPizzaTroubleshootingCategoryHref("toppings")).toBe("/guide/pizza-troubleshooting#toppings");
+    expect(getPizzaSessionBakingTroubleshootingLink().href).toBe("/guide/pizza-troubleshooting#baking");
+    expect(getPizzaSessionToppingsTroubleshootingLink().href).toBe("/guide/pizza-troubleshooting#toppings");
+    expect(troubleshootingCategories.map((category) => category.id)).toContain("baking");
+    expect(troubleshootingCategories.map((category) => category.id)).toContain("toppings");
+    expect(troubleshootingSections.map((section) => section.id)).toContain("baking");
+    expect(troubleshootingSections.map((section) => section.id)).toContain("toppings");
+    expect(page).toContain("id={section.id}");
+    expect(page).toContain("scroll-mt-24");
   });
 
   it("uses the requested problem-card fields", () => {
@@ -545,20 +565,28 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(guide).toContain('href="/guide/pizza-troubleshooting"');
   });
 
-  it("keeps Pizza Session pages free of troubleshooting guide content", () => {
-    const sessionPages = [
+  it("keeps Pizza Session pages free of embedded troubleshooting guide content while allowing contextual links", () => {
+    const nonContextualSessionPages = [
       "app/session/start/page.tsx",
       "app/session/recipe/page.tsx",
       "app/session/shopping/page.tsx",
+    ];
+    const contextualSessionPages = [
       "app/session/timeline/page.tsx",
       "app/session/kitchen/page.tsx",
       "app/session/review/page.tsx",
     ];
 
-    for (const pagePath of sessionPages) {
+    for (const pagePath of nonContextualSessionPages) {
       const page = source(pagePath);
       expect(page).not.toContain("Pizza Troubleshooting Guide");
       expect(page).not.toContain("/guide/pizza-troubleshooting");
+    }
+    for (const pagePath of contextualSessionPages) {
+      const page = source(pagePath);
+      expect(page).not.toContain("Pizza Troubleshooting Guide");
+      expect(page).toContain("getPizzaSession");
+      expect(page).toContain("TroubleshootingLink");
     }
   });
 

@@ -436,6 +436,20 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
   });
 
+  it("adds secondary baking troubleshooting help for Kitchen Mode oven steps only", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("function isOvenTroubleshootingStep(step?: { id: string })");
+    expect(page).toContain('step?.id === "preheat-oven" || step?.id === "bake-pizza"');
+    expect(page).toContain("getPizzaSessionBakingTroubleshootingLink(\"Something looks wrong? Open baking troubleshooting\")");
+    expect(page).toContain("isOvenTroubleshootingStep(currentStep) ? bakingTroubleshootingLink : null");
+    expect(page).toContain("ovenTroubleshootingLink.href");
+    expect(page).toContain("ovenTroubleshootingLink.ariaLabel");
+    expect(page).toContain("{ovenTroubleshootingLink.label}");
+    expect(page).toContain("Mark step as done →");
+    expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
+  });
+
   it("reuses shared live timing language for Kitchen Mode current and next step timing", () => {
     const page = source("app/session/kitchen/page.tsx");
 

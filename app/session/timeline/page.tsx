@@ -26,6 +26,7 @@ import {
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { getDoughStepPrimaryImageForTimelineStep } from "@/lib/dough-step-images";
 import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
+import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-troubleshooting-links";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import {
@@ -306,6 +307,8 @@ function getCriticalMoments(steps: PizzaSessionTimelineStep[]) {
     return aTime - bTime;
   });
 }
+
+const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink();
 
 function ShoppingCheckpointRow({
   checkpointState,
@@ -674,6 +677,15 @@ export default function SessionTimelinePage() {
                           {relativeFromTarget(step.scheduledAt, targetTime)}
                         </span>
                       </div>
+                      {step.id === "bake-pizza" && (
+                        <Link
+                          href={bakingTroubleshootingLink.href}
+                          aria-label={bakingTroubleshootingLink.ariaLabel}
+                          className="inline-flex min-h-10 w-fit items-center justify-center rounded-2xl border border-ink/10 bg-white/75 px-3 text-xs font-extrabold text-ink/55 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                        >
+                          {bakingTroubleshootingLink.label}
+                        </Link>
+                      )}
                     </div>
                     <TimelineStepMediaPanel step={step} />
                   </div>

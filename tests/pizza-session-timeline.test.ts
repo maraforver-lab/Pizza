@@ -1484,4 +1484,18 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt)");
   });
+
+  it("adds restrained baking troubleshooting help to the Full Timeline bake step only", () => {
+    const page = source("app/session/timeline/page.tsx");
+
+    expect(page).toContain("getPizzaSessionBakingTroubleshootingLink");
+    expect(page).toContain("const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink()");
+    expect(page).toContain('step.id === "bake-pizza" &&');
+    expect(page).toContain("bakingTroubleshootingLink.href");
+    expect(page).toContain("bakingTroubleshootingLink.ariaLabel");
+    expect(page).toContain("{bakingTroubleshootingLink.label}");
+    expect(page).toContain("{nextAction.cta}");
+    expect(page).toContain("onClick={handleNextAction}");
+    expect(page).toContain("shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt)");
+  });
 });

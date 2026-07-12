@@ -21,6 +21,10 @@ import {
 import {
   completeSessionReview,
 } from "@/lib/pizza-session-review";
+import {
+  getPizzaSessionBakingTroubleshootingLink,
+  getPizzaSessionToppingsTroubleshootingLink,
+} from "@/lib/pizza-session-troubleshooting-links";
 
 const ratingOptions = [
   { value: 1, label: "1 — Poor" },
@@ -51,6 +55,9 @@ const improveOptions = [
   "More salt",
   "Thinner stretch",
 ] as const;
+
+const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink("Diagnose your pizza");
+const toppingsTroubleshootingLink = getPizzaSessionToppingsTroubleshootingLink();
 
 function selectionsFromSavedText(savedText: string | undefined, options: readonly string[]) {
   if (!savedText) return [];
@@ -209,6 +216,27 @@ export default function SessionReviewPage() {
               <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
                 If you’re signed in, you can also save a finished pizza photo as a memory after this review. DoughTools can create a share image with your bake and preparation parameters, so you can share the result with your network.
               </p>
+            </section>
+
+            <section className="mb-5 rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:mb-6" aria-labelledby="review-troubleshooting-heading">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Did something go wrong?</p>
+              <h3 id="review-troubleshooting-heading" className="mt-2 font-display text-2xl font-semibold">Diagnose your pizza</h3>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <Link
+                  href={bakingTroubleshootingLink.href}
+                  aria-label={bakingTroubleshootingLink.ariaLabel}
+                  className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  {bakingTroubleshootingLink.label}
+                </Link>
+                <Link
+                  href={toppingsTroubleshootingLink.href}
+                  aria-label={toppingsTroubleshootingLink.ariaLabel}
+                  className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                >
+                  {toppingsTroubleshootingLink.label}
+                </Link>
+              </div>
             </section>
 
             <div>

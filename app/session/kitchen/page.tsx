@@ -13,6 +13,7 @@ import {
   type PizzaSession,
 } from "@/lib/pizza-session";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
+import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-troubleshooting-links";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
   completeKitchenTimelineStep,
@@ -91,6 +92,12 @@ function levelModeLabel(label: string) {
   return `${label} mode`;
 }
 
+function isOvenTroubleshootingStep(step?: { id: string }) {
+  return step?.id === "preheat-oven" || step?.id === "bake-pizza";
+}
+
+const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink("Something looks wrong? Open baking troubleshooting");
+
 export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
@@ -160,6 +167,7 @@ export default function SessionKitchenPage() {
   const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date());
   const currentStepIsWaiting = currentStep?.kind === "passive";
   const doughGuideLink = getDoughGuideLinkForSessionStep(currentStep, "/session/kitchen");
+  const ovenTroubleshootingLink = isOvenTroubleshootingStep(currentStep) ? bakingTroubleshootingLink : null;
   const nextStepSummary = kitchenState.nextStep
     ? `${nextTaskPresentation.title} · ${formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())}`
     : "Review your pizza session";
@@ -302,6 +310,16 @@ export default function SessionKitchenPage() {
                           className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
                         >
                           {doughGuideLink.label}
+                        </Link>
+                      )}
+
+                      {ovenTroubleshootingLink && (
+                        <Link
+                          href={ovenTroubleshootingLink.href}
+                          aria-label={ovenTroubleshootingLink.ariaLabel}
+                          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+                        >
+                          {ovenTroubleshootingLink.label}
                         </Link>
                       )}
 

@@ -16,6 +16,10 @@ import {
   SESSION_REVIEW_LOCAL_ONLY_COPY,
   sessionSummaryLines,
 } from "@/lib/pizza-session-review";
+import {
+  getPizzaSessionBakingTroubleshootingLink,
+  getPizzaSessionToppingsTroubleshootingLink,
+} from "@/lib/pizza-session-troubleshooting-links";
 import { MemoryStorage } from "./helpers";
 
 function source(path: string) {
@@ -60,6 +64,12 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("Add a pizza photo and share your bake");
     expect(page).toContain("If you’re signed in, you can also save a finished pizza photo as a memory after this review.");
     expect(page).toContain("share image with your bake and preparation parameters");
+    expect(page).toContain("Did something go wrong?");
+    expect(page).toContain("Diagnose your pizza");
+    expect(page).toContain("getPizzaSessionBakingTroubleshootingLink(\"Diagnose your pizza\")");
+    expect(page).toContain("getPizzaSessionToppingsTroubleshootingLink()");
+    expect(page).toContain("bakingTroubleshootingLink.href");
+    expect(page).toContain("toppingsTroubleshootingLink.href");
     expect(page).toContain("completeSessionReview");
     expect(page).toContain("saveCloudActivePizzaSession(completed)");
     expect(page).toContain("completeCloudBackedPizzaSession(completed)");
@@ -77,6 +87,22 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).not.toContain("Photos and sharing");
     expect(page).not.toContain("<AppSignature");
     expect(page).not.toMatch(/upload photo|share result card|copy public link|cloud sync is active|Google indexing enabled/i);
+  });
+
+  it("links Review troubleshooting help to existing baking and toppings anchors without changing save behavior", () => {
+    const page = source("app/session/review/page.tsx");
+    const bakingLink = getPizzaSessionBakingTroubleshootingLink("Diagnose your pizza");
+    const toppingsLink = getPizzaSessionToppingsTroubleshootingLink();
+
+    expect(bakingLink.href).toBe("/guide/pizza-troubleshooting#baking");
+    expect(toppingsLink.href).toBe("/guide/pizza-troubleshooting#toppings");
+    expect(page).toContain("review-troubleshooting-heading");
+    expect(page).toContain("bakingTroubleshootingLink.ariaLabel");
+    expect(page).toContain("toppingsTroubleshootingLink.ariaLabel");
+    expect(page).toContain("{bakingTroubleshootingLink.label}");
+    expect(page).toContain("{toppingsTroubleshootingLink.label}");
+    expect(page).toContain("onClick={saveReview}");
+    expect(page).toContain("completeSessionReview(session, reviewInput)");
   });
 
   it("replaces large review textareas with optional multi-select feedback chips", () => {
