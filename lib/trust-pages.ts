@@ -34,31 +34,23 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     href: "/about",
     navLabel: "About",
     eyebrow: "About DoughTools",
-    title: "Built from a love of Pizza Napoletana — and a need for clearer answers.",
+    title: "Built from real pizza nights.",
     intro:
-      "DoughTools was created by Marcin Arcisz, a home pizza maker who wanted one clearer way to connect time, yeast, temperature, flour and fermentation into a usable plan.",
+      "DoughTools was created by Marcin Arcisz, a home pizza maker who wanted one clearer way to connect dough planning, guest choices, shopping, timing and the actual pizza night.",
     sections: [
       {
-        heading: "A tool first built for one kitchen",
+        heading: "A tool first built for real pizza nights",
         paragraphs: [
           "DoughTools began with practical pizza-making questions: when to start, how much yeast to use, whether to ferment at room temperature or in the refrigerator, and which flour can handle the plan.",
-          "The public About page tells the founder story in more detail while preserving the same honest product limits used across DoughTools.",
-        ],
-      },
-      {
-        heading: "Who it is for",
-        bullets: [
-          "Beginner home pizza makers who want clear actions and sensible defaults.",
-          "Enthusiasts who want to understand why dough behaves differently across time, temperature and flour.",
-          "Pizza Nerds who want more control without losing the practical workflow.",
+          "It later grew to include Party Orders because hosting friends created another real problem: collecting guest choices and turning them into dough quantities, shopping and a usable Pizza Session.",
         ],
       },
       {
         heading: "What the product values",
         bullets: [
           "Good pizza begins with a plan, but the dough must still be observed.",
-          "Flour strength, temperature and fermentation time should be considered together.",
-          "Guidance should explain trade-offs instead of hiding them.",
+          "Guest choices should connect naturally to preparation, shopping and timing.",
+          "Calculations should be visible and understandable.",
           "Pizza making should remain enjoyable.",
         ],
       },

@@ -85,7 +85,7 @@ describe("trust and legal pages", () => {
   });
 
   it("includes the required H1 text for each page", () => {
-    expect(trustPages.about.title).toBe("Built from a love of Pizza Napoletana — and a need for clearer answers.");
+    expect(trustPages.about.title).toBe("Built from real pizza nights.");
     expect(trustPages.contact.title).toBe("Questions, corrections and feedback.");
     expect(trustPages.privacy.title).toBe("How DoughTools handles data.");
     expect(trustPages.terms.title).toBe("Use DoughTools as guidance, not a promise.");
@@ -97,33 +97,70 @@ describe("trust and legal pages", () => {
     const founderImage = join(process.cwd(), "public", "about", "marcin-arcisz-founder.webp");
 
     expect(existsSync(founderImage)).toBe(true);
-    expect(aboutPage).toContain("Built from a love of Pizza Napoletana — and a need for clearer answers.");
-    expect(aboutPage).toContain("A tool I first built for myself");
-    expect(aboutPage).toContain("The questions that started DoughTools");
-    expect(aboutPage).toContain("Why another pizza tool?");
-    expect(aboutPage).toContain("What DoughTools connects");
-    expect(aboutPage).toContain("Made for real life");
-    expect(aboutPage).toContain("For three kinds of pizza makers");
-    expect(aboutPage).toContain("Why Pizza Napoletana?");
-    expect(aboutPage).toContain("What DoughTools believes");
+    expect(aboutPage).toContain("Built from real pizza nights.");
+    expect(aboutPage).toContain("It started with making pizza seriously");
+    expect(aboutPage).toContain("The first problem was dough planning");
+    expect(aboutPage).toContain("Then pizza nights created another problem");
+    expect(aboutPage).toContain("From one link to one complete session");
+    expect(aboutPage).toContain("How I want to build DoughTools");
+    expect(aboutPage).toContain("Still building, still curious");
     expect(aboutPage).toContain("What DoughTools does not promise");
-    expect(aboutPage).toContain("Still learning, one pizza at a time");
     expect(aboutPage).toContain("Built by Marcin Arcisz");
     expect(aboutPage).toContain("Home pizza maker and Pizza Napoletana enthusiast, Finland.");
     expect(aboutPage).toContain('src="/about/marcin-arcisz-founder.webp"');
     expect(aboutPage).toContain("Marcin Arcisz, creator of DoughTools, photographed outdoors by the sea.");
-    expect(aboutPage).toContain('href="/session/start"');
-    expect(aboutPage).toContain("Start planning your next pizza session");
+    expect(aboutPage).toContain("Pizza Napoletana is what first pulled me seriously into dough");
+    expect(aboutPage).toContain("one place to calculate, plan, remember and follow the process");
   });
 
   it("keeps the founder story grounded and avoids unsupported credentials or marketing claims", () => {
     const aboutPage = source("app/about/page.tsx");
 
-    expect(aboutPage).toContain("DoughTools is not only a calculator");
-    expect(aboutPage).toContain("Dough still needs observation");
+    expect(aboutPage).toContain("the dough should still be observed");
+    expect(aboutPage).toContain("A good plan helps, but the dough still deserves attention.");
     expect(aboutPage).toContain("that software replaces observation and practice");
     expect(aboutPage).not.toMatch(/master pizzaiolo|chef|fermentation scientist|revolutionizing|guaranteed perfect|scientifically perfect/i);
     expect(aboutPage).not.toMatch(/trusted by \d+|rated|testimonial|award-winning/i);
+  });
+
+  it("explains the real Party Orders need and workflow without claiming unsupported party features", () => {
+    const aboutPage = source("app/about/page.tsx");
+
+    expect(aboutPage).toContain("A pizza night sounds simple until ten friends are coming.");
+    expect(aboutPage).toContain("what everyone wants to eat and how many pizzas I should prepare");
+    expect(aboutPage).toContain("The choices are spread across messages");
+    expect(aboutPage).toContain("one link I could send to everyone");
+    expect(aboutPage).toContain("Create the party");
+    expect(aboutPage).toContain("Share one link");
+    expect(aboutPage).toContain("Collect pizza choices");
+    expect(aboutPage).toContain("Review the totals");
+    expect(aboutPage).toContain("Create the Pizza Session");
+    expect(aboutPage).toContain("Continue the preparation");
+    expect(aboutPage).toContain("pizza time, quantity and mix carried over");
+    expect(aboutPage).toContain("a real moment in the kitchen");
+    expect(aboutPage).toContain("I hope it helps other home pizza makers");
+    expect(aboutPage).toContain('href="/account/party-orders/new"');
+    expect(aboutPage).toContain("Plan a pizza party");
+    expect(aboutPage).toContain('href="/contact"');
+    expect(aboutPage).toContain("Share an idea");
+    expect(aboutPage).not.toMatch(/RSVP|email invitation|allerg(?:y|ies)|payment|fully automatic|zero host decisions/i);
+  });
+
+  it("keeps About page structure accessible and responsive without changing Party Orders or sessions", () => {
+    const aboutPage = source("app/about/page.tsx");
+    const partyOrderHandoff = source("components/account/PartyOrderSessionHandoff.tsx");
+    const partyOrderCreate = source("components/account/PartyOrderCreateForm.tsx");
+
+    expect((aboutPage.match(/<h1\b/g) ?? [])).toHaveLength(1);
+    expect(aboutPage).toContain("lg:grid lg:grid-cols");
+    expect(aboutPage).toContain("sm:grid-cols-2");
+    expect(aboutPage).toContain("min-h-12");
+    expect(partyOrderCreate).toContain("fetch(\"/api/party-orders\"");
+    expect(partyOrderHandoff).toContain("Create Pizza Session from this order");
+    expect(partyOrderHandoff).toContain("targetEatTime: handoff.pizzaTime");
+    expect(partyOrderHandoff).toContain("pizzaCount: handoff.pizzaCount");
+    expect(aboutPage).not.toContain("fetch(\"/api/party-orders\"");
+    expect(aboutPage).not.toContain("createAndSavePizzaSession");
   });
 
   it("explains local browser storage, localStorage, IndexedDB and Supabase accurately", () => {

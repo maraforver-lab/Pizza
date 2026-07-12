@@ -41,7 +41,7 @@ export const publicSeoRoutes = [
   {
     path: "/about",
     title: "About DoughTools | DoughTools",
-    description: "Read why Marcin Arcisz created DoughTools to connect pizza dough timing, yeast, flour, fermentation and hands-on preparation.",
+    description: "Read why Marcin Arcisz created DoughTools from real pizza nights, dough planning questions and the need to make hosting pizza easier.",
     changeFrequency: "monthly",
     priority: 0.5,
   },
