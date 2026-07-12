@@ -55,7 +55,9 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).toContain('aria-current={doughGuideActive ? "page" : undefined}');
     expect(navigationSource).toContain('aria-current={guideGlossaryActive ? "page" : undefined}');
     expect(navigationSource).toContain('aria-current={troubleshootingGuideActive ? "page" : undefined}');
+    expect(navigationSource).toContain('aria-current={aboutActive ? "page" : undefined}');
     expect(navigationSource).toContain("guideMenuItemClass");
+    expect(navigationSource).toContain('className={`${guideMenuItemClass(aboutActive)} lg:hidden`}');
     expect(navigationSource).toContain("ring-tomato/20");
     expect(navigationSource).toContain("focus-visible:ring");
     expect(navigationSource).toContain('const accountActive = pathname === "/account"');

@@ -53,6 +53,7 @@ export default function GlobalToolNavigation() {
   const guideGlossaryActive = pathname === "/guide";
   const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting";
   const quickCalculatorActive = pathname === "/calculator/quick";
+  const aboutActive = pathname === "/about";
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -125,7 +126,12 @@ export default function GlobalToolNavigation() {
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
             <Link
               href="/about"
-              className="rounded-full px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:bg-white/70 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              aria-current={aboutActive ? "page" : undefined}
+              className={`rounded-full px-3 py-2 text-xs font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                aboutActive
+                  ? "bg-white text-ink ring-1 ring-tomato/20"
+                  : "text-ink/55 hover:bg-white/70 hover:text-ink"
+              }`}
             >
               {copy.about}
             </Link>
@@ -175,6 +181,15 @@ export default function GlobalToolNavigation() {
                 >
                   <span className="block text-sm font-extrabold">{copy.troubleshootingGuide}</span>
                   <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.troubleshootingGuideDescription}</span>
+                </Link>
+                <Link
+                  href="/about"
+                  role="menuitem"
+                  aria-current={aboutActive ? "page" : undefined}
+                  onClick={() => setOpenMenu(null)}
+                  className={`${guideMenuItemClass(aboutActive)} lg:hidden`}
+                >
+                  <span className="block text-sm font-extrabold">{copy.about}</span>
                 </Link>
               </div>
             )}

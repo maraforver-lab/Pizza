@@ -109,6 +109,7 @@ describe("shared navigation model", () => {
     expect(header).toContain('aria-label="Tools menu"');
     expect(header).toContain("Guide");
     expect(header).toContain('aria-label="Guide menu"');
+    expect(header).toContain('const aboutActive = pathname === "/about"');
     expect(header).toContain('const accountActive = pathname === "/account"');
     expect(header).toContain('const doughGuideActive = pathname === "/guides/dough"');
     expect(header).toContain('const guideGlossaryActive = pathname === "/guide"');
@@ -131,6 +132,7 @@ describe("shared navigation model", () => {
     expect(header).not.toContain("copy.lab");
     expect(header).not.toContain('href="/?calculator=1"');
     expect(header).toContain("About");
+    expect(header).toContain('href="/about"');
     expect(header).toContain("Guide");
     expect(header).toContain("Tools");
     expect(header).toContain('href="/account"');
@@ -190,11 +192,30 @@ describe("shared navigation model", () => {
     expect(header).toContain('aria-current={doughGuideActive ? "page" : undefined}');
     expect(header).toContain('aria-current={guideGlossaryActive ? "page" : undefined}');
     expect(header).toContain('aria-current={troubleshootingGuideActive ? "page" : undefined}');
+    expect(header).toContain('aria-current={aboutActive ? "page" : undefined}');
     expect(header).toContain("guideMenuItemClass(doughGuideActive)");
     expect(header).toContain("guideMenuItemClass(guideGlossaryActive)");
     expect(header).toContain("guideMenuItemClass(troubleshootingGuideActive)");
+    expect(header).toContain("guideMenuItemClass(aboutActive)");
     expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
     expect(header).toContain("w-[min(18rem,calc(100vw-1.5rem))]");
+  });
+
+  it("makes About available in compact mobile navigation without duplicating the header control", () => {
+    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+
+    expect(header).toContain('const aboutActive = pathname === "/about"');
+    expect(header).toContain('<nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">');
+    expect(header).toContain('href="/about"');
+    expect(header.split('href="/about"')).toHaveLength(3);
+    expect(header).toContain('aria-current={aboutActive ? "page" : undefined}');
+    expect(header).toContain('className={`${guideMenuItemClass(aboutActive)} lg:hidden`}');
+    expect(header).toContain("onClick={() => setOpenMenu(null)}");
+    expect(header).toContain("max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto");
+    expect(header).toContain('aria-label="Guide menu"');
+    expect(header).toContain("Tools");
+    expect(header).toContain('href="/account"');
+    expect(header).not.toContain("overflow-x-hidden");
   });
 
   it("keeps compact header controls usable at narrow mobile widths", () => {
@@ -202,6 +223,7 @@ describe("shared navigation model", () => {
 
     expect(header).toContain('aria-label="DoughTools home"');
     expect(header).toContain("max-sm:sr-only");
+    expect(header).toContain('className={`${guideMenuItemClass(aboutActive)} lg:hidden`}');
     expect(header).toContain('aria-label={signedIn ? copy.accountActive : copy.account}');
     expect(header).toContain("h-10");
     expect(header).toContain("min-w-0");
