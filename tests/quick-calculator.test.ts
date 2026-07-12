@@ -254,6 +254,65 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(packageJson).not.toMatch(/radix|headlessui|react-hook-form|zod/i);
   });
 
+  it("uses flexible numeric controls so values, units and steppers do not crowd each other", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("data-quick-number-control");
+    expect(component).toContain("grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem]");
+    expect(component).toContain("data-quick-number-unit");
+    expect(component).toContain("whitespace-nowrap");
+    expect(component).toContain("tabular-nums");
+    expect(component).toContain("aria-hidden=\"true\"");
+    expect(component).toContain("aria-label={`Decrease ${label.toLowerCase()}`}");
+    expect(component).toContain("aria-label={`Increase ${label.toLowerCase()}`}");
+    expect(component).not.toContain("grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]");
+    expect(component).not.toContain("pr-11");
+    expect(component).not.toContain("absolute right-3");
+    expect(component).not.toMatch(/\bw-(?:12|14|16|20|24)\b/);
+  });
+
+  it("keeps tight numeric-control groups responsive instead of forcing three narrow mobile columns", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("grid gap-4 md:grid-cols-2 lg:grid-cols-3");
+    expect(component).toContain("grid gap-3 sm:grid-cols-2");
+    expect(component).not.toContain("grid gap-4 sm:grid-cols-3");
+    expect(component).not.toContain("grid gap-3 sm:grid-cols-3");
+    expect(component).not.toContain("<table");
+  });
+
+  it("keeps three-digit and decimal Quick Calculator values calculable after the responsive control update", () => {
+    const result = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      pizzaCount: 50,
+      doughBallWeightGrams: 300,
+      hydrationPercent: 100,
+      saltPercent: 2.75,
+      fermentationTemperatureCelsius: 21.5,
+      prefermentMethod: "poolish",
+      prefermentedFlourPercent: 30,
+      prefermentHydrationPercent: 100,
+      yeastConversionAmountGrams: 123.4,
+      customIngredientsEnabled: true,
+      oilPercent: 2.5,
+      sugarPercent: 1.25,
+      maltPercent: 0.3,
+      flourBlendEnabled: true,
+      flourBlendPrimaryPercent: 65,
+    });
+
+    expect(result.input.pizzaCount).toBe(50);
+    expect(result.input.doughBallWeightGrams).toBe(300);
+    expect(result.input.hydrationPercent).toBe(100);
+    expect(result.input.saltPercent).toBe(2.75);
+    expect(result.input.yeastConversionAmountGrams).toBe(123.4);
+    expect(result.ingredients.total).toBeGreaterThan(15_000);
+    expect(result.preferment.build.flourGrams).toBeGreaterThan(0);
+    expect(result.advancedTools.yeastConversion.convertedGrams).toBeGreaterThan(0);
+    expect(result.advancedTools.customIngredients.oilGrams).toBeGreaterThan(0);
+    expect(result.advancedTools.flourBlend.primaryFlourGrams).toBeGreaterThan(0);
+  });
+
   it("reuses the existing experience-level system for the three Quick Calculator presentations", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 

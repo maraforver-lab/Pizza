@@ -46,7 +46,7 @@ import type { YeastType } from "@/lib/saved-recipes";
 type CopyState = "idle" | "copied" | "unavailable";
 type RecipeNotice = "idle" | "saved" | "loaded" | "deleted" | "duplicated" | "renamed" | "storage-error";
 
-const numberInputClassName = "h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 pr-11 text-base font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10";
+const numberInputClassName = "h-12 w-full min-w-0 rounded-2xl border border-ink/10 bg-white px-3 text-base font-extrabold tabular-nums text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10";
 
 function formatGrams(value: number, precise = false) {
   return new Intl.NumberFormat("en-GB", {
@@ -108,11 +108,11 @@ function NumberField({
 
   return (
     <div className={`rounded-[1.35rem] border p-4 ${secondary ? "border-ink/10 bg-ink/[.025]" : "border-white/80 bg-white/70 shadow-sm"}`}>
-      <div className="flex items-center justify-between gap-3">
-        <label htmlFor={id} className="text-sm font-extrabold text-ink/72">{label}</label>
-        <span className="rounded-full bg-ink/[.055] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[.12em] text-ink/45">{suffix}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <label htmlFor={id} className="min-w-0 text-sm font-extrabold leading-5 text-ink/72">{label}</label>
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-ink/[.055] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[.12em] text-ink/45">{suffix}</span>
       </div>
-      <div className="mt-3 grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] overflow-hidden rounded-2xl border border-ink/10 bg-white">
+      <div className="mt-3 grid grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem] items-stretch overflow-hidden rounded-2xl border border-ink/10 bg-white" data-quick-number-control>
         <button
           type="button"
           onClick={decrease}
@@ -122,7 +122,7 @@ function NumberField({
         >
           −
         </button>
-        <div className="relative min-w-0">
+        <div className="min-w-0">
           <EditableNumberInput
             id={id}
             value={value}
@@ -132,8 +132,8 @@ function NumberField({
             aria-label={label}
             onValueChange={onChange}
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-ink/35">{suffix}</span>
         </div>
+        <span className="flex h-12 shrink-0 items-center justify-center whitespace-nowrap border-l border-ink/10 bg-cream/45 px-2.5 text-xs font-extrabold text-ink/42" aria-hidden="true" data-quick-number-unit>{suffix}</span>
         <button
           type="button"
           onClick={increase}
@@ -359,7 +359,7 @@ export default function QuickDoughCalculator() {
   };
 
   const formulaControls = (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <NumberField
         id="quick-hydration"
         label="Hydration"
@@ -501,7 +501,7 @@ export default function QuickDoughCalculator() {
         <h3 id="quick-yeast-tools-heading" className="text-xl font-extrabold text-ink">Yeast converter and reverse fermentation</h3>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <NumberField
                 id="quick-yeast-conversion-amount"
                 label="Yeast amount"
@@ -579,7 +579,7 @@ export default function QuickDoughCalculator() {
               />
               Add optional oil, sugar or malt amounts
             </label>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <NumberField id="quick-oil-percent" label="Oil" value={result.input.oilPercent} min={0} max={20} step={0.5} suffix="%" onChange={(value) => updateInput(setInput, "oilPercent", value)} secondary={!result.input.customIngredientsEnabled} />
               <NumberField id="quick-sugar-percent" label="Sugar" value={result.input.sugarPercent} min={0} max={20} step={0.5} suffix="%" onChange={(value) => updateInput(setInput, "sugarPercent", value)} secondary={!result.input.customIngredientsEnabled} />
               <NumberField id="quick-malt-percent" label="Malt" value={result.input.maltPercent} min={0} max={10} step={0.1} suffix="%" onChange={(value) => updateInput(setInput, "maltPercent", value)} secondary={!result.input.customIngredientsEnabled} />
@@ -853,7 +853,7 @@ export default function QuickDoughCalculator() {
               )}
 
               {result.input.sizingMode === "pan" && (
-                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   <NumberField
                     id="quick-pan-width"
                     label="Pan width"
@@ -1007,7 +1007,7 @@ export default function QuickDoughCalculator() {
               </fieldset>
 
               {result.input.prefermentMethod !== "direct" && (
-                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   <NumberField
                     id="quick-prefermented-flour"
                     label="Prefermented flour"
