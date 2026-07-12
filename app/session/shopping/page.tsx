@@ -46,13 +46,108 @@ function sectionLabel(group: string) {
 }
 
 function pizzaMenuImagePath(pizzaType: PizzaSessionPizzaMixType) {
-  if (pizzaType === "margherita") return "/pizza-styles/neapolitan.webp";
-  if (pizzaType === "marinara") return "/sauce/marinara.webp";
-  if (pizzaType === "diavola") return "/pizza-styles/new-york.webp";
-  if (pizzaType === "funghi") return "/toppings/balanced.webp";
-  if (pizzaType === "prosciutto") return "/pizza-styles/contemporary.webp";
-  if (pizzaType === "quattro-formaggi") return "/pizza-styles/roman-thin.webp";
-  return "/pizza-styles/neapolitan.webp";
+  if (pizzaType === "margherita") return "/images/shopping/pizza-margherita.webp";
+  if (pizzaType === "marinara") return "/images/shopping/pizza-marinara.webp";
+  if (pizzaType === "diavola") return "/images/shopping/pizza-diavola.webp";
+  if (pizzaType === "funghi") return "/images/shopping/pizza-funghi.webp";
+  if (pizzaType === "prosciutto") return "/images/shopping/pizza-prosciutto.webp";
+  if (pizzaType === "quattro-formaggi") return "/images/shopping/pizza-quattro-formaggi.webp";
+  return "/images/shopping/pizza-margherita.webp";
+}
+
+function pizzaMenuImageAlt(pizzaType: PizzaSessionPizzaMixType, name: string) {
+  if (pizzaType === "margherita") return "Freshly baked Margherita pizza with tomato, mozzarella and basil.";
+  if (pizzaType === "marinara") return "Freshly baked Marinara pizza with tomato, garlic and oregano, without cheese.";
+  if (pizzaType === "diavola") return "Freshly baked Diavola pizza with spicy salami and melted mozzarella.";
+  if (pizzaType === "funghi") return "Freshly baked Funghi pizza with roasted mushrooms and mozzarella.";
+  if (pizzaType === "prosciutto") return "Freshly baked Prosciutto pizza finished with prosciutto and arugula.";
+  if (pizzaType === "quattro-formaggi") return "Freshly baked Quattro Formaggi pizza with a rich melted cheese topping.";
+  return `Freshly baked ${name} pizza.`;
+}
+
+function pizzaChefRecommendation(pizzaType: PizzaSessionPizzaMixType) {
+  if (pizzaType === "margherita") return "Perfect if you're making classic Neapolitan pizza.";
+  if (pizzaType === "marinara") return "A traditional cheese-free classic.";
+  if (pizzaType === "diavola") return "For spicy pizza lovers.";
+  if (pizzaType === "funghi") return "Excellent with roasted mushrooms.";
+  if (pizzaType === "prosciutto") return "Best finished with fresh arugula.";
+  if (pizzaType === "quattro-formaggi") return "Rich, creamy and cheese-forward.";
+  return "A good choice for a mixed pizza night.";
+}
+
+function ingredientIconKind(item: PizzaSessionShoppingItem) {
+  const id = item.id.toLowerCase();
+  const label = item.label.toLowerCase();
+  if (id.includes("flour") || label.includes("flour")) return "flour";
+  if (id.includes("water") || label.includes("water")) return "water";
+  if (id.includes("salt") || label.includes("salt")) return "salt";
+  if (id.includes("yeast") || label.includes("yeast")) return "yeast";
+  if (id.includes("tomato") || label.includes("tomato")) return "tomato";
+  if (id.includes("mozzarella") || id.includes("gorgonzola") || id.includes("parmesan") || id.includes("fontina") || label.includes("cheese")) return "cheese";
+  if (id.includes("basil") || id.includes("arugula") || label.includes("basil") || label.includes("arugula")) return "herb";
+  if (id.includes("mushroom") || label.includes("mushroom")) return "mushroom";
+  if (id.includes("oil") || label.includes("oil")) return "oil";
+  return "topping";
+}
+
+function IngredientIcon({ item }: { item: PizzaSessionShoppingItem }) {
+  const kind = ingredientIconKind(item);
+  const common = "h-5 w-5 fill-none stroke-current";
+  return (
+    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-cream text-tomato ring-1 ring-ink/5" aria-hidden="true">
+      {kind === "water" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z" />
+        </svg>
+      ) : kind === "salt" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="M8 8h8l-1 12H9L8 8Z" />
+          <path d="M9 4h6l1 4H8l1-4Z" />
+          <path d="M10 12h.01M12 15h.01M14 12h.01" strokeLinecap="round" />
+        </svg>
+      ) : kind === "yeast" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="M6 18c5.5 0 10-4.5 10-10" />
+          <path d="M8 14c2.5 0 4-1.5 4-4" />
+          <circle cx="17" cy="7" r="2" />
+          <circle cx="8" cy="17" r="2" />
+        </svg>
+      ) : kind === "tomato" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <circle cx="12" cy="13" r="6" />
+          <path d="M12 7V4M9.5 7 8 5M14.5 7 16 5" strokeLinecap="round" />
+        </svg>
+      ) : kind === "cheese" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="m4 16 12-8 4 10H4Z" />
+          <circle cx="13" cy="14" r="1" />
+          <circle cx="17" cy="16" r="1" />
+        </svg>
+      ) : kind === "herb" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="M5 19c7-1 12-6 14-14C11 7 6 12 5 19Z" />
+          <path d="M5 19 15 9" strokeLinecap="round" />
+        </svg>
+      ) : kind === "mushroom" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="M5 11a7 7 0 0 1 14 0H5Z" />
+          <path d="M10 11v7h4v-7" />
+        </svg>
+      ) : kind === "oil" ? (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="M10 4h5l2 5v10H8V9l2-5Z" />
+          <path d="M11 4V2h3v2" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
+          <path d="M12 4a8 8 0 1 0 8 8" />
+          <path d="M12 4v8h8" />
+          <circle cx="10" cy="15" r=".5" />
+          <circle cx="15" cy="12" r=".5" />
+        </svg>
+      )}
+    </span>
+  );
 }
 
 export default function SessionShoppingPage() {
@@ -87,6 +182,8 @@ export default function SessionShoppingPage() {
       ? buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot })
       : undefined;
   const shoppingList = session?.shoppingList ?? (generationResult.ok ? generationResult.shoppingList : undefined);
+  const shoppingItems = shoppingList?.groups.flatMap((group) => group.items) ?? [];
+  const readyShoppingItems = shoppingItems.filter((item) => isItemReady(item.status)).length;
   const pizzaCount = session?.pizzaCount ?? session?.recipeSnapshot?.balls ?? 0;
   const pizzaMix = pizzaCount > 0
     ? normalizePizzaMixForCount(pizzaCount, session?.pizzaMix, session?.pizzaPreset)
@@ -181,13 +278,17 @@ export default function SessionShoppingPage() {
         />
 
         <section className="mt-4 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-5" aria-label="Pizza menu allocation">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-end">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza Menu</p>
+              <h2 className="mt-1 font-display text-2xl font-semibold">Choose your pizzas</h2>
+            </div>
             <span className="w-fit rounded-full bg-cream px-3 py-2 text-xs font-extrabold text-ink/55">
               Total selected: {allocatedPizzaCount}/{pizzaCount || "—"}
             </span>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {PIZZA_MIX_OPTIONS.map((option) => {
               const quantity = pizzaMix?.[option.id] ?? 0;
               const selected = quantity > 0;
@@ -196,16 +297,16 @@ export default function SessionShoppingPage() {
               return (
                 <article
                   key={option.id}
-                  className={`overflow-hidden rounded-[1.35rem] border text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 ${
+                  className={`overflow-hidden rounded-[1.6rem] border text-left transition focus-within:ring-2 focus-within:ring-tomato focus-within:ring-offset-2 ${
                     selected
-                      ? "border-tomato/45 bg-tomato/[.08] shadow-sm"
+                      ? "border-tomato/45 bg-white shadow-card"
                       : "border-ink/10 bg-cream/65 hover:border-tomato/25 hover:bg-white"
                   }`}
                 >
-                  <div className="relative h-28 overflow-hidden bg-cream sm:h-32" aria-hidden="true">
+                  <div className="relative h-52 overflow-hidden bg-cream sm:h-48 lg:h-52">
                     <Image
                       src={pizzaMenuImagePath(option.id)}
-                      alt=""
+                      alt={pizzaMenuImageAlt(option.id, option.name)}
                       fill
                       sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
                       className="object-cover"
@@ -214,8 +315,7 @@ export default function SessionShoppingPage() {
                   </div>
                   <div className="p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl" aria-hidden="true">{option.marker}</span>
+                      <div>
                         <span className="text-sm font-extrabold text-ink">{option.name}</span>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${selected ? "bg-tomato text-white" : "bg-white text-ink/45"}`}>
@@ -224,13 +324,16 @@ export default function SessionShoppingPage() {
                     </div>
                     <span className="mt-3 block text-sm leading-5 text-ink/60">{option.shortDescription}</span>
                     <span className="mt-2 block text-xs font-bold leading-5 text-ink/45">{option.ingredientSummary}</span>
-                    <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="mt-3 rounded-2xl bg-cream/75 px-3 py-2 text-xs font-extrabold leading-5 text-ink/60">
+                      {pizzaChefRecommendation(option.id)}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white/80 p-2 ring-1 ring-ink/5">
                       <button
                         type="button"
                         onClick={() => updatePizzaMix(option.id, -1)}
                         disabled={!canDecrement}
                         aria-label={`Decrease ${option.name} quantity`}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
                       >
                         −
                       </button>
@@ -240,7 +343,7 @@ export default function SessionShoppingPage() {
                         onClick={() => updatePizzaMix(option.id, 1)}
                         disabled={!canIncrement}
                         aria-label={`Increase ${option.name} quantity`}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg font-extrabold text-ink/70 transition hover:border-tomato/30 disabled:cursor-not-allowed disabled:opacity-35"
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
                       >
                         +
                       </button>
@@ -258,11 +361,19 @@ export default function SessionShoppingPage() {
 
         <section className="mt-4 overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/85 shadow-card sm:mt-6 sm:rounded-[2rem]" aria-labelledby="shopping-checklist-heading">
           <div className="border-b border-ink/10 px-4 py-4 sm:px-5">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Shopping Checklist</p>
-            <h2 id="shopping-checklist-heading" className="mt-1 font-display text-2xl font-semibold">Shopping Checklist</h2>
-            <p className="mt-1 text-sm leading-6 text-ink/60">
-              Dough ingredient amounts come from the Dough Plan. Topping ingredient amounts come from the selected pizza mix.
-            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Shopping Checklist</p>
+                <h2 id="shopping-checklist-heading" className="mt-1 font-display text-2xl font-semibold">Shopping Checklist</h2>
+                <p className="mt-1 text-sm leading-6 text-ink/60">
+                  Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix.
+                </p>
+              </div>
+              <div className="rounded-[1.25rem] bg-leaf/[.08] px-4 py-3 ring-1 ring-leaf/15">
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Shopping progress</p>
+                <p className="mt-1 text-sm font-extrabold text-ink">{readyShoppingItems} / {shoppingItems.length} ingredients ready</p>
+              </div>
+            </div>
             {fermentationDisplay?.mode && (
               <p className="mt-3 w-fit rounded-full bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">
                 Fermentation: {fermentationDisplay.fullLabel}
@@ -281,16 +392,16 @@ export default function SessionShoppingPage() {
                   return (
                     <label
                       key={item.id}
-                      className="grid min-h-14 cursor-pointer grid-cols-[1fr_auto] gap-3 px-4 py-3 transition hover:bg-cream/70 sm:min-h-16 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,auto)_5rem_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-4"
+                      className={`grid min-h-16 cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition hover:bg-cream/70 sm:grid-cols-[auto_minmax(0,1fr)_minmax(8rem,auto)_auto] sm:gap-4 sm:px-5 sm:py-4 ${
+                        readyItem ? "bg-leaf/[.045]" : "bg-white/40"
+                      }`}
                     >
+                      <IngredientIcon item={item} />
                       <span className="min-w-0 [overflow-wrap:anywhere]">
                         <span className="block text-sm font-extrabold text-ink">{item.label}</span>
                         {item.amount && <span className="mt-1 block text-sm leading-5 text-ink/50 sm:hidden">{item.amount}</span>}
                       </span>
                       {item.amount && <span className="hidden min-w-0 [overflow-wrap:anywhere] text-sm font-bold text-ink/55 sm:block">{item.amount}</span>}
-                      <span className={`text-sm font-extrabold ${readyItem ? "text-leaf" : "text-tomato"}`}>
-                        {readyItem ? "Have" : "Need"}
-                      </span>
                       <input
                         type="checkbox"
                         checked={readyItem}
@@ -310,7 +421,7 @@ export default function SessionShoppingPage() {
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Before Timeline</p>
           <h2 id="before-timeline-heading" className="mt-2 font-display text-2xl font-semibold">Before Timeline</h2>
           <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/65">
-            Make sure everything is ready before your first dough step.
+            Download the shopping image if you want it, then continue to the Timeline.
           </p>
         </section>
 

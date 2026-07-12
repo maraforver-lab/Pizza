@@ -428,9 +428,12 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).not.toContain("Dough style and dough formula stay in the Dough Plan.");
     expect(page).toContain('aria-label="Pizza menu allocation"');
     expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi.");
+    expect(page).toContain("Choose your pizzas");
     expect(page).toContain("Total selected:");
     expect(page).toContain("Decrease");
     expect(page).toContain("Increase");
+    expect(page).toContain("pizzaChefRecommendation(option.id)");
+    expect(page).toContain("pizzaMenuImageAlt(option.id, option.name)");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={7}");
     expect(page).toContain("hideMeta");
@@ -438,7 +441,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Back");
     expect(page).toContain("pizzaMenuImagePath(option.id)");
     expect(page).toContain("Before Timeline");
-    expect(page).toContain("Make sure everything is ready before your first dough step.");
+    expect(page).toContain("Download the shopping image if you want it, then continue to the Timeline.");
     expect(page).not.toContain("desktopAside={renderNextActionCard()}");
     expect(page).not.toContain("<div className=\"lg:hidden\">");
     expect(page).not.toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
@@ -451,27 +454,61 @@ describe("Pizza Session shopping list presets", () => {
     expect(start).not.toContain("Shopping list →");
   });
 
-  it("renders the shopping page as a simple grouped Need/Have checklist", () => {
+  it("renders the shopping page as a compact grouped checklist with icons and live progress", () => {
     const page = source("app/session/shopping/page.tsx");
 
     expect(page).toContain("Dough ingredients");
     expect(page).toContain("Shopping Checklist");
-    expect(page).toContain("Dough ingredient amounts come from the Dough Plan.");
-    expect(page).toContain("Topping ingredient amounts come from the selected pizza mix.");
+    expect(page).toContain("Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix.");
+    expect(page).toContain("Shopping progress");
+    expect(page).toContain("{readyShoppingItems} / {shoppingItems.length} ingredients ready");
+    expect(page).toContain("shoppingList?.groups.flatMap((group) => group.items) ?? []");
     expect(page).toContain("Fermentation: {fermentationDisplay.fullLabel}");
     expect(page).toContain("buildSessionFermentationDisplay");
     expect(page).toContain("buildSessionRecipe(session ?? undefined)");
     expect(page).toContain("Sauce");
     expect(page).toContain("Cheese");
     expect(page).toContain("Toppings");
+    expect(page).toContain("function IngredientIcon");
+    expect(page).toContain("ingredientIconKind(item)");
     expect(page).toContain("{item.label}");
     expect(page).toContain("{item.amount}");
-    expect(page).toContain("Need");
-    expect(page).toContain("Have");
     expect(page).toContain("type=\"checkbox\"");
     expect(page).toContain("checked={readyItem}");
     expect(page).toContain("isItemReady(item.status) ? \"need_to_buy\" : \"already_have\"");
     expect(page).toContain("status === \"already_have\" || status === \"bought\"");
+    expect(page).not.toContain("Need</");
+    expect(page).not.toContain("Have</");
+  });
+
+  it("renders richer restaurant-style pizza cards with local photo assets and chef recommendations", () => {
+    const page = source("app/session/shopping/page.tsx");
+    const pizzaAssets = [
+      "pizza-margherita.webp",
+      "pizza-marinara.webp",
+      "pizza-diavola.webp",
+      "pizza-funghi.webp",
+      "pizza-prosciutto.webp",
+      "pizza-quattro-formaggi.webp",
+    ];
+
+    expect(page).toContain("function pizzaMenuImagePath");
+    expect(page).toContain("function pizzaMenuImageAlt");
+    expect(page).toContain("function pizzaChefRecommendation");
+    expect(page).toContain("Perfect if you're making classic Neapolitan pizza.");
+    expect(page).toContain("A traditional cheese-free classic.");
+    expect(page).toContain("For spicy pizza lovers.");
+    expect(page).toContain("Excellent with roasted mushrooms.");
+    expect(page).toContain("Best finished with fresh arugula.");
+    expect(page).toContain("Rich, creamy and cheese-forward.");
+    expect(page).toContain("h-52 overflow-hidden");
+    expect(page).toContain("inline-flex h-12 w-12");
+    expect(page).not.toContain("{option.marker}");
+    for (const asset of pizzaAssets) {
+      expect(page).toContain(`/images/shopping/${asset}`);
+      expect(existsSync(join(process.cwd(), "public", "images", "shopping", asset))).toBe(true);
+    }
+    expect(page).not.toMatch(/https?:\/\//);
   });
 
   it("shows a branded shopping image download action on the Shopping page", () => {
@@ -565,7 +602,6 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Choose pizzas & Shopping");
     expect(page).toContain("hideMeta");
     expect(page).not.toContain("id=\"choose-pizzas-heading\"");
-    expect(page).not.toContain("uppercase tracking-[.18em] text-tomato\">Pizza Menu");
     expect(page).not.toContain("Checklist page</");
     expect(page).not.toMatch(/checkout|cart total|store link|price|ecommerce/i);
   });
@@ -575,12 +611,12 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(page).toContain("function pizzaMenuImagePath");
     expect(page).toContain("import Image from \"next/image\"");
-    expect(page).toContain('return "/pizza-styles/neapolitan.webp"');
-    expect(page).toContain('return "/sauce/marinara.webp"');
-    expect(page).toContain('return "/pizza-styles/new-york.webp"');
-    expect(page).toContain('return "/toppings/balanced.webp"');
-    expect(page).toContain('return "/pizza-styles/contemporary.webp"');
-    expect(page).toContain('return "/pizza-styles/roman-thin.webp"');
+    expect(page).toContain('return "/images/shopping/pizza-margherita.webp"');
+    expect(page).toContain('return "/images/shopping/pizza-marinara.webp"');
+    expect(page).toContain('return "/images/shopping/pizza-diavola.webp"');
+    expect(page).toContain('return "/images/shopping/pizza-funghi.webp"');
+    expect(page).toContain('return "/images/shopping/pizza-prosciutto.webp"');
+    expect(page).toContain('return "/images/shopping/pizza-quattro-formaggi.webp"');
     expect(page).not.toMatch(/https?:\/\//);
   });
 
