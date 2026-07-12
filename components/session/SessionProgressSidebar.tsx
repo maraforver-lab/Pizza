@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DoughToolsIcon } from "@/components/icons";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY } from "@/lib/pizza-session-storage";
 
 const sessionJourneySteps = [
@@ -52,7 +53,7 @@ export function SessionProgressSidebar({ activeStep, hideLocalSaveNote = false }
             <>
               <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
               <span className={`grid h-6 w-6 place-items-center rounded-full ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
-                {state === "complete" ? "✓" : index + 1}
+                {state === "complete" ? <DoughToolsIcon name="check" size={16} strokeWidth={2.4} /> : index + 1}
               </span>
               <span className="min-w-0">
                 <span className="block truncate">{item.label}</span>

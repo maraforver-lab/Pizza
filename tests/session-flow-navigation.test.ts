@@ -158,4 +158,29 @@ describe("Pizza Session flow navigation integrity", () => {
 
     expect(combined).not.toMatch(/\b(Avaa|Takaisin|Seuraava|Ostoslista|Aikajana|Tallenna|Arvostelu|Taikina)\b/);
   });
+
+  it("uses the shared semantic icon system for primary functional session icons", () => {
+    const targetedFiles = [
+      "components/GlobalToolNavigation.tsx",
+      "components/WorkflowNextStep.tsx",
+      "components/session/SessionProgressSidebar.tsx",
+      "app/session/start/page.tsx",
+      "app/session/recipe/page.tsx",
+      "app/session/shopping/page.tsx",
+      "app/session/timeline/page.tsx",
+      "app/session/kitchen/page.tsx",
+    ];
+    const combined = targetedFiles.map(source).join("\n");
+
+    expect(combined).toContain("DoughToolsIcon");
+    expect(combined).not.toMatch(/[🥣🌡🔥🍕🕒⏱🛒💧🍞🍅📝❄️⏳]/u);
+    expect(combined).not.toMatch(/[▣▥◒◌✺]/u);
+    expect(combined).not.toContain(">✓<");
+    expect(combined).not.toContain(">×<");
+    expect(combined).not.toContain(">−<");
+    expect(combined).not.toContain(">+<");
+    expect(combined).not.toContain(">→<");
+    expect(combined).toContain("aria-label=\"Decrease pizza count\"");
+    expect(combined).toContain("aria-label=\"Increase pizza count\"");
+  });
 });

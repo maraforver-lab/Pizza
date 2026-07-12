@@ -173,7 +173,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("doughEarliestStartTime: option.startIso");
     expect(page).toContain("aria-pressed={longHorizonOptionIsSelected(session, option)}");
     expect(page).toContain("Select this plan");
-    expect(page).toContain("Selected plan ✓");
+    expect(page).toContain("Selected plan");
+    expect(page).toContain("DoughToolsIcon");
     expect(page).toContain("Select a fermentation plan first");
     expect(page).toContain("Select one of these plans before continuing");
     expect(page).toContain("Selected flour:");

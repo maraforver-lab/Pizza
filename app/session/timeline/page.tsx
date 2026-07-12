@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
@@ -91,19 +92,19 @@ function statusClass(status: "next" | "target" | "checkpoint" | PizzaSessionTime
   return "bg-cream text-ink/55 ring-ink/10";
 }
 
-function timelineStepIcon(step?: PizzaSessionTimelineStep) {
-  if (step?.id === "mix-dough") return "🥣";
-  if (step?.id === "rest-dough") return "⏳";
-  if (step?.id === "cold-ferment") return "❄️";
-  if (step?.id === "room-ferment" || step?.id === "ferment-dough") return "🌡️";
-  if (step?.id === "ball-dough") return "🍞";
-  if (step?.id === "room-temperature-rest") return "🌡️";
-  if (step?.id === "preheat-oven") return "🔥";
-  if (step?.id === "prepare-sauce-toppings") return "🍅";
-  if (step?.id === "bake-pizza") return "🍕";
-  if (step?.id === "review-result") return "📝";
-  if (!step) return "✓";
-  return "•";
+function timelineStepIcon(step?: PizzaSessionTimelineStep): DoughToolsIconName {
+  if (step?.id === "mix-dough") return "mixing-bowl";
+  if (step?.id === "rest-dough") return "timer";
+  if (step?.id === "cold-ferment") return "refrigerator";
+  if (step?.id === "room-ferment" || step?.id === "ferment-dough") return "thermometer";
+  if (step?.id === "ball-dough") return "pizza";
+  if (step?.id === "room-temperature-rest") return "thermometer";
+  if (step?.id === "preheat-oven") return "flame";
+  if (step?.id === "prepare-sauce-toppings") return "chef-hat";
+  if (step?.id === "bake-pizza") return "pizza";
+  if (step?.id === "review-result") return "checklist";
+  if (!step) return "check";
+  return "timeline";
 }
 
 function timelineStepIconTone(step?: PizzaSessionTimelineStep) {
@@ -323,8 +324,8 @@ function ShoppingCheckpointRow({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="flex min-w-0 gap-3 sm:gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-xl shadow-sm sm:h-12 sm:w-12 sm:text-2xl" aria-hidden="true">
-            🛒
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-leaf shadow-sm sm:h-12 sm:w-12" aria-hidden="true">
+            <DoughToolsIcon name="shopping-basket" size={24} />
           </div>
           <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
@@ -478,8 +479,8 @@ export default function SessionTimelinePage() {
     <div className="max-w-2xl rounded-2xl border border-leaf/15 bg-cream/70 p-4 shadow-sm sm:p-5" data-testid="timeline-current-action-card">
       <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
         <div className="flex min-w-0 items-start gap-3">
-          <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-2xl ring-1 ${timelineStepIconTone(currentActionStep)}`} aria-hidden="true">
-            {timelineStepIcon(currentActionStep)}
+          <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ring-1 ${timelineStepIconTone(currentActionStep)}`} aria-hidden="true">
+            <DoughToolsIcon name={timelineStepIcon(currentActionStep)} size={24} strokeWidth={2.1} />
           </span>
           <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Now</p>
@@ -516,8 +517,8 @@ export default function SessionTimelinePage() {
         </div>
         <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
           {followingActionStep && (
-            <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-base ring-1 ${timelineStepIconTone(followingActionStep)}`} aria-hidden="true">
-              {timelineStepIcon(followingActionStep)}
+            <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 ${timelineStepIconTone(followingActionStep)}`} aria-hidden="true">
+              <DoughToolsIcon name={timelineStepIcon(followingActionStep)} size={16} strokeWidth={2.1} />
             </span>
           )}
           <p className="min-w-0">

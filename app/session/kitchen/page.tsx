@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
@@ -64,18 +65,18 @@ function kitchenBackHrefFromReferrer(value?: string) {
   return "/session/shopping";
 }
 
-function kitchenStepIcon(step?: { id: string }) {
-  if (step?.id === "mix-dough") return "🥣";
-  if (step?.id === "rest-dough") return "⏳";
-  if (step?.id === "cold-ferment") return "❄️";
-  if (step?.id === "room-ferment" || step?.id === "ferment-dough") return "🌡️";
-  if (step?.id === "ball-dough") return "🍞";
-  if (step?.id === "room-temperature-rest") return "🌡️";
-  if (step?.id === "preheat-oven") return "🔥";
-  if (step?.id === "prepare-sauce-toppings") return "🍅";
-  if (step?.id === "bake-pizza") return "🍕";
-  if (step?.id === "review-result") return "📝";
-  return "✓";
+function kitchenStepIcon(step?: { id: string }): DoughToolsIconName {
+  if (step?.id === "mix-dough") return "mixing-bowl";
+  if (step?.id === "rest-dough") return "timer";
+  if (step?.id === "cold-ferment") return "refrigerator";
+  if (step?.id === "room-ferment" || step?.id === "ferment-dough") return "thermometer";
+  if (step?.id === "ball-dough") return "pizza";
+  if (step?.id === "room-temperature-rest") return "thermometer";
+  if (step?.id === "preheat-oven") return "flame";
+  if (step?.id === "prepare-sauce-toppings") return "chef-hat";
+  if (step?.id === "bake-pizza") return "pizza";
+  if (step?.id === "review-result") return "checklist";
+  return "check";
 }
 
 function kitchenStepIconTone(step?: { id: string }) {
@@ -224,8 +225,8 @@ export default function SessionKitchenPage() {
                         )}
                       </div>
                       <div className="mt-5 flex min-w-0 items-start gap-3">
-                        <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
-                          {kitchenStepIcon(currentStep)}
+                        <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
+                          <DoughToolsIcon name={kitchenStepIcon(currentStep)} size={32} strokeWidth={2.1} />
                         </span>
                         <div className="min-w-0">
                           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current step</p>
@@ -261,8 +262,8 @@ export default function SessionKitchenPage() {
                     </div>
                     <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
                       {kitchenState.nextStep && (
-                        <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-base ring-1 ${kitchenStepIconTone(kitchenState.nextStep)}`} aria-hidden="true">
-                          {kitchenStepIcon(kitchenState.nextStep)}
+                        <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 ${kitchenStepIconTone(kitchenState.nextStep)}`} aria-hidden="true">
+                          <DoughToolsIcon name={kitchenStepIcon(kitchenState.nextStep)} size={16} strokeWidth={2.1} />
                         </span>
                       )}
                       <p className="min-w-0">
@@ -288,8 +289,8 @@ export default function SessionKitchenPage() {
 
                   <section className="mt-5 rounded-[1.5rem] border border-white/80 bg-cream/75 p-4 shadow-sm sm:p-5" aria-labelledby="kitchen-step-guidance-heading">
                     <div className="flex min-w-0 items-start gap-3">
-                      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
-                        {kitchenStepIcon(currentStep)}
+                      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
+                        <DoughToolsIcon name={kitchenStepIcon(currentStep)} size={24} strokeWidth={2.1} />
                       </span>
                       <div className="min-w-0">
                         <p id="kitchen-step-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Step guidance</p>

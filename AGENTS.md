@@ -23,7 +23,7 @@ Core product rules:
 - Marketing and workspace surfaces have different roles, but must share the same visual foundation.
 - Realistic image rules in `docs/visual-style-guide.md` are mandatory.
 - Do not create or commission AI-generated images containing people, including hands or silhouettes, without Marcin's explicit approval.
-- Future icon work must follow one icon system; emoji are not primary functional UI icons.
+- Future icon work must use the shared `DoughToolsIcon` semantic icon system backed by `lucide-react`; emoji are not primary functional UI icons.
 - Desktop may show more context.
 - Mobile must be compact and kitchen-use friendly.
 - On desktop, Back is secondary bottom-left and primary forward action is bottom-right.

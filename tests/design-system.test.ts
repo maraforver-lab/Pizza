@@ -95,7 +95,8 @@ describe("DoughTools design foundation", () => {
     expect(designSystem).toContain("Use `Newsreader` for major marketing headings");
     expect(designSystem).toContain("Do not use `Newsreader` for numeric controls");
     expect(designSystem).toContain("Canonical radius roles");
-    expect(designSystem).toContain("centralized local DoughTools SVG icon component system");
+    expect(designSystem).toContain("DoughTools uses `lucide-react` as the official interface icon source");
+    expect(designSystem).toContain("shared `DoughToolsIcon` wrapper");
     expect(designSystem).toContain("Emoji must not be used as primary functional interface icons.");
 
     expect(visualGuide).toContain("DoughTools Photography and AI Image Direction");
@@ -106,8 +107,75 @@ describe("DoughTools design foundation", () => {
 
     expect(responsiveRules).toContain("Marketing surfaces and workspace surfaces may have different visual emphasis");
     expect(agents).toContain("Legacy color names are compatibility aliases only.");
-    expect(agents).toContain("emoji are not primary functional UI icons");
-    expect(packageJson).not.toMatch(/lucide|heroicons|react-icons/i);
+    expect(agents).toContain("shared `DoughToolsIcon` semantic icon system backed by `lucide-react`");
+    expect(packageJson).toMatch(/lucide-react/i);
+  });
+
+  it("defines one official semantic icon system for functional interface icons", () => {
+    const iconMap = source("components/icons/icon-map.ts");
+    const iconWrapper = source("components/icons/DoughToolsIcon.tsx");
+    const designSystem = source("docs/design-system.md");
+    const visualGuide = source("docs/visual-style-guide.md");
+
+    expect(iconMap).toContain("from \"lucide-react\"");
+    expect(iconMap).toContain("doughToolsIconMap");
+    expect(iconMap).toContain("satisfies Record<string, LucideIcon>");
+    expect(iconWrapper).toContain("export type DoughToolsIconSize = 16 | 20 | 24 | 32");
+    expect(iconWrapper).toContain("aria-hidden");
+    expect(iconWrapper).toContain("aria-label");
+    expect(iconWrapper).toContain("color=\"currentColor\"");
+
+    for (const semanticName of [
+      "pizza",
+      "flame",
+      "oven",
+      "clock",
+      "timer",
+      "calendar",
+      "thermometer",
+      "refrigerator",
+      "mixing-bowl",
+      "wheat",
+      "water",
+      "salt",
+      "yeast",
+      "scale",
+      "shopping-basket",
+      "checklist",
+      "timeline",
+      "kitchen-mode",
+      "chef-hat",
+      "camera",
+      "history",
+      "party",
+      "account",
+      "experience-level",
+      "warning",
+      "information",
+      "success",
+      "error",
+      "back",
+      "forward",
+      "close",
+      "add",
+      "remove",
+      "edit",
+      "delete",
+      "archive",
+      "restore",
+      "share",
+      "download",
+      "external-link",
+      "menu",
+      "chevron-down",
+      "chevron-up",
+      "check",
+    ]) {
+      expect(iconMap).toMatch(new RegExp(`["']?${semanticName}["']?:`));
+    }
+
+    expect(designSystem).toContain("Canonical icon sizes");
+    expect(visualGuide).toContain("The official source is `lucide-react`");
   });
 
   it("exports lightweight shared layout and UI components", () => {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { DoughToolsIcon } from "@/components/icons";
 
 const nextSteps: Record<string, { route: string; label: string }> = {
   "/styles": { route: "/", label: "Fine-tune the selected recipe" },
@@ -41,7 +42,9 @@ export default function WorkflowNextStep() {
   return <aside className="border-t border-ink/10 bg-ink/[.035] px-4 py-7 text-ink sm:px-6" aria-label={nextLabel}>
     <Link href={`${step.route}${query}`} className="mx-auto flex max-w-3xl items-center justify-between gap-5 rounded-2xl bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-lg">
       <span><small className="block text-[10px] font-extrabold uppercase tracking-[.16em] text-tomato">{nextLabel}</small><strong className="mt-1 block font-display text-xl sm:text-2xl">{step.label}</strong></span>
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ink text-xl text-white" aria-hidden="true">→</span>
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ink text-white" aria-hidden="true">
+        <DoughToolsIcon name="forward" size={20} strokeWidth={2.3} />
+      </span>
     </Link>
   </aside>;
 }

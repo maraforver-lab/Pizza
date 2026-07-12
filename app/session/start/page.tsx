@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
   clearCloudBackedActivePizzaSessionPointer,
@@ -65,14 +66,14 @@ const styleOptions = [
   {
     id: "pizza-oven",
     label: "Pizza oven",
-    icon: "◠",
+    icon: "oven",
     description: "Use a high-heat pizza oven like Ooni, Gozney or similar.",
     badge: "Most popular",
   },
   {
     id: "home-oven",
     label: "Home oven",
-    icon: "▤",
+    icon: "oven",
     description: "Use a normal home oven with a tray, stone or steel.",
     badge: undefined,
   },
@@ -89,23 +90,23 @@ const DEFAULT_SESSION_FORMULA_FLOUR = "tipo-00";
 const flourSituationOptions: Array<{
   id: PizzaSessionFlourSituation;
   label: string;
-  icon: string;
+  icon: DoughToolsIconName;
   description: string;
 }> = [
-  { id: "recommend", label: "No, recommend what to buy", icon: "🛒", description: "DoughTools can suggest a flour strength later." },
+  { id: "recommend", label: "No, recommend what to buy", icon: "shopping-basket", description: "DoughTools can suggest a flour strength later." },
 ];
 
 const flourWRangeOptions: Array<{
   id: PizzaSessionFlourWRange;
   label: string;
-  icon: string;
+  icon: DoughToolsIconName;
   description: string;
 }> = [
-  { id: "w_180_220", label: "W 180–220", icon: "▣", description: "Short same-day doughs." },
-  { id: "w_220_260", label: "W 220–260", icon: "▣", description: "Short to 24h fermentation." },
-  { id: "w_260_300", label: "W 260–300", icon: "▥", description: "Good for 24–48h cold fermentation." },
-  { id: "w_300_340", label: "W 300–340", icon: "▥", description: "Good for 48–72h cold fermentation." },
-  { id: "w_340_plus", label: "W 340+", icon: "◒", description: "Very strong flour, use with caution." },
+  { id: "w_180_220", label: "W 180–220", icon: "wheat", description: "Short same-day doughs." },
+  { id: "w_220_260", label: "W 220–260", icon: "wheat", description: "Short to 24h fermentation." },
+  { id: "w_260_300", label: "W 260–300", icon: "wheat", description: "Good for 24–48h cold fermentation." },
+  { id: "w_300_340", label: "W 300–340", icon: "wheat", description: "Good for 48–72h cold fermentation." },
+  { id: "w_340_plus", label: "W 340+", icon: "warning", description: "Very strong flour, use with caution." },
 ] as const;
 
 const doughStartOptions: Array<{
@@ -127,37 +128,37 @@ const doughBallWeightGuidance: Record<typeof DOUGH_BALL_WEIGHT_OPTIONS[number], 
   pizzaSize: string;
   bestFor: string;
   reason: string;
-  visual: string;
+  visual: DoughToolsIconName;
 }> = {
   220: {
     pizzaSize: "Smaller pizza",
     bestFor: "lighter appetite or smaller home setups",
     reason: "Easier to handle and stretch.",
-    visual: "◔",
+    visual: "pizza",
   },
   240: {
     pizzaSize: "Balanced small",
     bestFor: "making several pizzas",
     reason: "Still light, with enough rim to feel satisfying.",
-    visual: "◑",
+    visual: "pizza",
   },
   260: {
     pizzaSize: "About 30–32 cm",
     bestFor: "classic Neapolitan-style balance",
     reason: "A strong default for most sessions.",
-    visual: "◕",
+    visual: "pizza",
   },
   280: {
     pizzaSize: "Larger pizza",
     bestFor: "bigger appetite or larger oven space",
     reason: "More generous crust and center.",
-    visual: "●",
+    visual: "pizza",
   },
   300: {
     pizzaSize: "Large pizza",
     bestFor: "very filling pizzas",
     reason: "Needs more stretching room and oven capacity.",
-    visual: "⬤",
+    visual: "pizza",
   },
 };
 
@@ -165,7 +166,7 @@ const doughStyleOptions = [
   {
     id: "neapolitan-style",
     label: "Neapolitan-style",
-    icon: "◠",
+    icon: "pizza",
     description: "Thin pizza with an airy rim. V1 plans this style for home ovens and pizza ovens.",
   },
 ] as const;
@@ -280,15 +281,15 @@ function selectedIndicator(active: boolean) {
         active ? "border-tomato bg-tomato text-white" : "border-ink/15 bg-white text-transparent"
       }`}
     >
-      ✓
+      {active && <DoughToolsIcon name="check" size={16} strokeWidth={2.4} />}
     </span>
   );
 }
 
-function iconBadge(icon: string, density: "default" | "compact" = "default") {
+function iconBadge(icon: DoughToolsIconName, density: "default" | "compact" = "default") {
   return (
-    <span aria-hidden="true" className={density === "compact" ? "mb-2 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-lg shadow-sm sm:h-9 sm:w-9 sm:text-xl" : "grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-lg shadow-sm sm:mb-3 sm:h-11 sm:w-11 sm:text-2xl"}>
-      {icon}
+    <span aria-hidden="true" className={density === "compact" ? "mb-2 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-ink/65 shadow-sm sm:h-9 sm:w-9" : "grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-ink/65 shadow-sm sm:mb-3 sm:h-11 sm:w-11"}>
+      <DoughToolsIcon name={icon} size={density === "compact" ? 16 : 24} />
     </span>
   );
 }
@@ -737,20 +738,22 @@ function StartPizzaSessionContent() {
   const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel);
   const showPizzaNerdDoughControls = shouldShowPizzaNerdDoughControls(experienceLevel);
   const setupSummaryCards = [
-    { label: "Oven", value: selectedOvenLabel ?? "Not selected yet", icon: "🔥" },
-    { label: "Style", value: hasSelectedDoughStyle ? "Neapolitan-style" : "Not selected yet", icon: "🍕" },
-    { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "🕒" },
-    { label: "Dough start", value: formatDoughStartPreference(session), icon: "⏱" },
-    { label: "Quantity", value: `${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`, icon: "◌" },
-    { label: "Flour situation", value: flourSummary, icon: "▣" },
-  ];
+    { label: "Oven", value: selectedOvenLabel ?? "Not selected yet", icon: "oven" },
+    { label: "Style", value: hasSelectedDoughStyle ? "Neapolitan-style" : "Not selected yet", icon: "pizza" },
+    { label: "When", value: formatSetupSummaryTime(session.targetEatTime), icon: "clock" },
+    { label: "Dough start", value: formatDoughStartPreference(session), icon: "timer" },
+    { label: "Quantity", value: `${session.pizzaCount ?? 4} pizzas · ${selectedDoughBallWeight} g each`, icon: "scale" },
+    { label: "Flour situation", value: flourSummary, icon: "wheat" },
+  ] satisfies Array<{ label: string; value: string; icon: DoughToolsIconName }>;
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-4 pb-16 text-ink sm:px-6 sm:py-6">
       <SessionViewportReset watchKey={step} />
       <header className="mx-auto mb-4 flex max-w-6xl items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-3 text-sm font-extrabold" aria-label="DoughTools home">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-sm">○</span>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-sm" aria-hidden="true">
+            <DoughToolsIcon name="pizza" size={24} strokeWidth={2.2} />
+          </span>
           <span className="text-lg">Dough<span className="text-tomato">Tools</span></span>
         </Link>
         <Link href="/account" className="rounded-full border border-ink/10 bg-white/80 px-4 py-3 text-xs font-extrabold text-ink/70 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
@@ -780,7 +783,7 @@ function StartPizzaSessionContent() {
                 <>
                   <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
                   <span className={`grid h-6 w-6 place-items-center rounded-full ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
-                    {state === "complete" ? "✓" : index + 1}
+                    {state === "complete" ? <DoughToolsIcon name="check" size={16} strokeWidth={2.4} /> : index + 1}
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate">{item.label}</span>
@@ -1007,12 +1010,16 @@ function StartPizzaSessionContent() {
                   <span className="rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-ink/45">{session.pizzaCount ?? 4} pizzas</span>
                 </div>
                 <div className="mt-4 flex items-center justify-center gap-4">
-                  <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 4) - 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Decrease pizza count">−</button>
+                  <button type="button" onClick={() => setQuantity(Math.max(1, (session.pizzaCount ?? 4) - 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Decrease pizza count">
+                    <DoughToolsIcon name="remove" size={20} strokeWidth={2.4} />
+                  </button>
                   <div className="min-w-20 text-center">
                     <div className="font-display text-5xl font-semibold leading-none text-tomato sm:text-6xl">{session.pizzaCount ?? 4}</div>
                     <div className="mt-1 text-sm font-extrabold text-ink">pizzas</div>
                   </div>
-                  <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 4) + 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-extrabold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Increase pizza count">+</button>
+                  <button type="button" onClick={() => setQuantity(Math.min(24, (session.pizzaCount ?? 4) + 1))} className="grid h-11 w-11 place-items-center rounded-2xl border border-ink/10 bg-white text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:h-12 sm:w-12" aria-label="Increase pizza count">
+                    <DoughToolsIcon name="add" size={20} strokeWidth={2.4} />
+                  </button>
                 </div>
                 <div className="mt-5">
                   <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Quick picks</p>
@@ -1076,7 +1083,7 @@ function StartPizzaSessionContent() {
                                 <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">{guidance.pizzaSize}</span>
                               </span>
                               <span aria-hidden="true" className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg ${active ? "bg-white text-tomato" : "bg-white text-ink/45"}`}>
-                                {guidance.visual}
+                                <DoughToolsIcon name={guidance.visual} size={20} />
                               </span>
                             </span>
                             {weight === 260 && (
@@ -1157,7 +1164,7 @@ function StartPizzaSessionContent() {
                                 <span className="mt-2 block text-xs font-bold leading-5 text-ink/55">{option.description}</span>
                               </span>
                               <span aria-hidden="true" className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-tomato text-white" : "bg-white text-ink/35"}`}>
-                                {active ? "✓" : ""}
+                                {active && <DoughToolsIcon name="check" size={16} strokeWidth={2.4} />}
                               </span>
                             </span>
                             {active && <span className="mt-2 block text-xs font-extrabold uppercase tracking-[.14em] text-tomato">Selected</span>}
@@ -1214,7 +1221,9 @@ function StartPizzaSessionContent() {
                   <div key={item.label} className="min-w-0 rounded-[1.25rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-4">
                     <dt className="flex items-center justify-between gap-2">
                       <span className="text-[0.65rem] font-black uppercase tracking-[.16em] text-ink/40">{item.label}</span>
-                      <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-cream text-sm">{item.icon}</span>
+                      <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-cream text-ink/60">
+                        <DoughToolsIcon name={item.icon} size={16} />
+                      </span>
                     </dt>
                     <dd className="mt-2 text-base font-extrabold leading-6 text-ink">{item.value}</dd>
                   </div>
@@ -1240,7 +1249,9 @@ function StartPizzaSessionContent() {
                   Build my Dough Plan →
                 </Link>
               )}
-              <p className="hidden text-xs font-bold text-ink/40 sm:block">Saved locally ✓</p>
+              <p className="hidden items-center gap-1 text-xs font-bold text-ink/40 sm:flex">
+                Saved locally <DoughToolsIcon name="check" size={16} />
+              </p>
             </div>
             )}
           />

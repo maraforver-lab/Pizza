@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSessionToAccount";
@@ -191,19 +192,19 @@ export default function SessionRecipePage() {
 
   const selectedYeastLabel = yeastTypeLabel(result.settings.yeastType);
   const doughIngredientRows = [
-    { label: "Flour", value: formatGram(result.ingredients.flour), icon: "▣", description: "The base of your dough." },
-    { label: "Water", value: formatGram(result.ingredients.water), icon: "💧", description: "Hydrates the flour." },
-    { label: "Salt", value: formatGram(result.ingredients.salt), icon: "◌", description: "Adds flavor and strength." },
+    { label: "Flour", value: formatGram(result.ingredients.flour), icon: "wheat", description: "The base of your dough." },
+    { label: "Water", value: formatGram(result.ingredients.water), icon: "water", description: "Hydrates the flour." },
+    { label: "Salt", value: formatGram(result.ingredients.salt), icon: "salt", description: "Adds flavor and strength." },
     {
       label: `Yeast — ${selectedYeastLabel}`,
       value: formatGram(result.ingredients.leavener),
-      icon: "✺",
+      icon: "yeast",
       description: `${selectedYeastLabel} amount for this dough plan.`,
       note: result.continuousYeast?.summary,
       caution: result.continuousYeast?.recommendation.cautions[0] ?? result.continuousYeast?.recommendation.warnings[0],
     },
-    { label: "Total dough", value: formatGram(result.ingredients.total), icon: "🥣", description: "Your full dough batch.", summary: true },
-  ];
+    { label: "Total dough", value: formatGram(result.ingredients.total), icon: "mixing-bowl", description: "Your full dough batch.", summary: true },
+  ] satisfies Array<{ label: string; value: string; icon: DoughToolsIconName; description: string; note?: string; caution?: string; summary?: boolean }>;
   const planningInfo = result.planningInfo;
   const planningResult = planningInfo.ok ? planningInfo.result : null;
   const fermentationDisplay = buildSessionFermentationDisplay({
@@ -385,7 +386,7 @@ export default function SessionRecipePage() {
                                   onClick={() => stepHydrationOverride(-1)}
                                   className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
                                 >
-                                  -
+                                  <DoughToolsIcon name="remove" size={16} strokeWidth={2.4} />
                                 </button>
                                 <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
                                   {result.settings.hydration}%
@@ -397,7 +398,7 @@ export default function SessionRecipePage() {
                                   onClick={() => stepHydrationOverride(1)}
                                   className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
                                 >
-                                  +
+                                  <DoughToolsIcon name="add" size={16} strokeWidth={2.4} />
                                 </button>
                               </span>
                             </label>
@@ -411,7 +412,7 @@ export default function SessionRecipePage() {
                                   onClick={() => stepTemperatureOverride(-1)}
                                   className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
                                 >
-                                  -
+                                  <DoughToolsIcon name="remove" size={16} strokeWidth={2.4} />
                                 </button>
                                 <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
                                   {activeFermentationTemperatureC} °C
@@ -423,7 +424,7 @@ export default function SessionRecipePage() {
                                   onClick={() => stepTemperatureOverride(1)}
                                   className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
                                 >
-                                  +
+                                  <DoughToolsIcon name="add" size={16} strokeWidth={2.4} />
                                 </button>
                               </span>
                             </label>
@@ -442,7 +443,9 @@ export default function SessionRecipePage() {
                     {doughIngredientRows.map((item) => (
                       <div key={item.label} className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border p-3.5 ${item.summary ? "border-leaf/25 bg-leaf/[.08]" : "border-white/80 bg-white"}`}>
                         <dt className="contents">
-                          <span aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-2xl bg-cream text-xl shadow-sm">{item.icon}</span>
+                          <span aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-2xl bg-cream text-ink/60 shadow-sm">
+                            <DoughToolsIcon name={item.icon} size={24} />
+                          </span>
                           <span className="min-w-0">
                             <span className="block text-sm font-extrabold text-ink">{item.label}</span>
                             <span className="mt-0.5 block text-xs leading-4 text-ink/45">{item.description}</span>
@@ -504,7 +507,11 @@ export default function SessionRecipePage() {
                           ? "bg-tomato text-white"
                           : "bg-cream text-ink/65"
                       }`}>
-                        {longHorizonOptionIsSelected(session, option) ? "Selected plan ✓" : "Select this plan"}
+                        {longHorizonOptionIsSelected(session, option) ? (
+                          <span className="inline-flex items-center justify-center gap-1">
+                            Selected plan <DoughToolsIcon name="check" size={16} strokeWidth={2.4} />
+                          </span>
+                        ) : "Select this plan"}
                       </span>
                     </button>
                   ))}

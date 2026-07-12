@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { DoughToolsIcon } from "@/components/icons";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const copy = {
@@ -118,7 +119,9 @@ export default function GlobalToolNavigation() {
           className="flex shrink-0 items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           aria-label="DoughTools home"
         >
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-lg text-white shadow-lg shadow-tomato/15" aria-hidden="true">◉</span>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-lg shadow-tomato/15" aria-hidden="true">
+            <DoughToolsIcon name="pizza" size={24} strokeWidth={2.2} />
+          </span>
           <strong className="text-lg tracking-tight max-sm:sr-only">Dough<span className="text-tomato">Tools</span></strong>
         </Link>
 
@@ -146,9 +149,7 @@ export default function GlobalToolNavigation() {
               className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               {copy.guide}
-              <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2">
-                <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <DoughToolsIcon name="chevron-down" size={16} />
             </button>
             {guideMenuOpen && (
               <div id="global-guide-menu" className="absolute right-0 top-12 z-50 w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Guide menu">
@@ -204,9 +205,7 @@ export default function GlobalToolNavigation() {
               className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               {copy.tools}
-              <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2">
-                <path d="m5 8 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <DoughToolsIcon name="chevron-down" size={16} />
             </button>
             {toolsMenuOpen && (
               <div id="global-tools-menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Tools menu">
@@ -239,10 +238,7 @@ export default function GlobalToolNavigation() {
                   : "border-ink/10 bg-white text-ink/55 hover:border-tomato/30 hover:text-tomato"
             }`}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8">
-              <circle cx="12" cy="8" r="3.5" />
-              <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" strokeLinecap="round" />
-            </svg>
+            <DoughToolsIcon name="account" size={20} strokeWidth={1.9} />
             <span className="text-[11px] font-extrabold max-sm:sr-only">{signedIn ? copy.accountActive : copy.account}</span>
             {signedIn && (
               <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-cream bg-leaf" aria-hidden="true">

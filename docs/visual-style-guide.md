@@ -635,9 +635,9 @@ Icon style:
 - not overly playful
 - not mixed randomly
 
-DoughTools will migrate toward one centralized local SVG icon component system, documented in `docs/design-system.md`.
+DoughTools uses one centralized icon system, documented in `docs/design-system.md`.
 
-Future interface icons should use one consistent line-icon family with rounded line endings, inherited `currentColor`, consistent visual weight and accessible labels when the icon is not accompanied by text.
+Future interface icons should use the shared `DoughToolsIcon` component and semantic icon map. The official source is `lucide-react`, with one consistent line-icon family, rounded line endings, inherited `currentColor`, consistent visual weight and accessible labels when the icon is not accompanied by text.
 
 Emoji must not be used as primary functional interface icons. Unicode geometric symbols must not be used as permanent substitutes for recognizable icons. Existing emoji and Unicode icons may remain temporarily until a dedicated migration patch.
 

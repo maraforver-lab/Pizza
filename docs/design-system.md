@@ -141,11 +141,22 @@ Small controls should not use oversized hero radii. Cards should share a coheren
 
 ### Iconography standard
 
-DoughTools will use one consistent icon system for future migration. The preferred foundation is a centralized local DoughTools SVG icon component system using one line-icon style, rounded line endings, consistent visual weight, simple geometric construction, inherited `currentColor`, and accessible labels when meaning is not accompanied by text.
+DoughTools uses `lucide-react` as the official interface icon source through the shared `DoughToolsIcon` wrapper and semantic icon map under `components/icons/`.
 
-This patch does not migrate icons. Future icon work must not mix several unrelated icon families.
+The decision is based on the package’s suitable ISC license, React and Next.js compatibility, individual icon exports, `sideEffects: false` tree-shaking support, `currentColor` SVG rendering, and accessible SVG behavior through the shared wrapper.
 
-Required future icon vocabulary: Pizza, Flame, Oven, Clock, Timer, Calendar, Thermometer, Refrigerator, Mixing Bowl, Wheat, Water Drop, Salt, Yeast, Scale, Shopping Basket, Checklist, Timeline, Kitchen Mode, Chef Hat, Camera, History, Party, Account, Experience Level, Warning, Information, Success, Error, Back, Forward, Close, Add, Remove, Edit, Delete, Archive, Restore, Share, Download.
+All functional interface icons should use the shared semantic names instead of importing arbitrary icons inside pages. Icons use one line-icon style, rounded line endings, consistent visual weight, inherited `currentColor`, and accessible labels when meaning is not accompanied by text.
+
+Canonical icon sizes:
+
+- `16px` — compact metadata and small controls
+- `20px` — normal controls and actions
+- `24px` — navigation and primary interface icons
+- `32px` — feature cards and empty states
+
+Do not mix several unrelated icon families.
+
+Required semantic icon vocabulary: Pizza, Flame, Oven, Clock, Timer, Calendar, Thermometer, Refrigerator, Mixing Bowl, Wheat, Water Drop, Salt, Yeast, Scale, Shopping Basket, Checklist, Timeline, Kitchen Mode, Chef Hat, Camera, History, Party, Account, Experience Level, Warning, Information, Success, Error, Back, Forward, Close, Add, Remove, Edit, Delete, Archive, Restore, Share, Download, External Link, Menu, Chevron Down, Chevron Up, Check.
 
 Emoji must not be used as primary functional interface icons. Unicode geometric symbols must not be used as permanent substitutes for recognizable icons. Existing emoji and Unicode icons may remain temporarily until the dedicated migration patch.
 

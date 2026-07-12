@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
@@ -92,60 +93,22 @@ function ingredientIconKind(item: PizzaSessionShoppingItem) {
 
 function IngredientIcon({ item }: { item: PizzaSessionShoppingItem }) {
   const kind = ingredientIconKind(item);
-  const common = "h-5 w-5 fill-none stroke-current";
+  const iconByKind: Record<string, DoughToolsIconName> = {
+    cheese: "pizza",
+    flour: "wheat",
+    herb: "wheat",
+    mushroom: "pizza",
+    oil: "water",
+    salt: "salt",
+    tomato: "pizza",
+    topping: "pizza",
+    water: "water",
+    yeast: "yeast",
+  };
+
   return (
     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-cream text-tomato ring-1 ring-ink/5" aria-hidden="true">
-      {kind === "water" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z" />
-        </svg>
-      ) : kind === "salt" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="M8 8h8l-1 12H9L8 8Z" />
-          <path d="M9 4h6l1 4H8l1-4Z" />
-          <path d="M10 12h.01M12 15h.01M14 12h.01" strokeLinecap="round" />
-        </svg>
-      ) : kind === "yeast" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="M6 18c5.5 0 10-4.5 10-10" />
-          <path d="M8 14c2.5 0 4-1.5 4-4" />
-          <circle cx="17" cy="7" r="2" />
-          <circle cx="8" cy="17" r="2" />
-        </svg>
-      ) : kind === "tomato" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <circle cx="12" cy="13" r="6" />
-          <path d="M12 7V4M9.5 7 8 5M14.5 7 16 5" strokeLinecap="round" />
-        </svg>
-      ) : kind === "cheese" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="m4 16 12-8 4 10H4Z" />
-          <circle cx="13" cy="14" r="1" />
-          <circle cx="17" cy="16" r="1" />
-        </svg>
-      ) : kind === "herb" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="M5 19c7-1 12-6 14-14C11 7 6 12 5 19Z" />
-          <path d="M5 19 15 9" strokeLinecap="round" />
-        </svg>
-      ) : kind === "mushroom" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="M5 11a7 7 0 0 1 14 0H5Z" />
-          <path d="M10 11v7h4v-7" />
-        </svg>
-      ) : kind === "oil" ? (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="M10 4h5l2 5v10H8V9l2-5Z" />
-          <path d="M11 4V2h3v2" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" className={common} strokeWidth="1.9">
-          <path d="M12 4a8 8 0 1 0 8 8" />
-          <path d="M12 4v8h8" />
-          <circle cx="10" cy="15" r=".5" />
-          <circle cx="15" cy="12" r=".5" />
-        </svg>
-      )}
+      <DoughToolsIcon name={iconByKind[kind] ?? "pizza"} size={20} strokeWidth={1.9} />
     </span>
   );
 }
@@ -335,7 +298,7 @@ export default function SessionShoppingPage() {
                         aria-label={`Decrease ${option.name} quantity`}
                         className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
                       >
-                        −
+                        <DoughToolsIcon name="remove" size={20} strokeWidth={2.4} />
                       </button>
                       <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
                       <button
@@ -345,7 +308,7 @@ export default function SessionShoppingPage() {
                         aria-label={`Increase ${option.name} quantity`}
                         className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
                       >
-                        +
+                        <DoughToolsIcon name="add" size={20} strokeWidth={2.4} />
                       </button>
                     </div>
                   </div>
