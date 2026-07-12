@@ -82,13 +82,13 @@ function ProblemCard({
         </p>
       )}
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h3 className="font-display text-2xl font-semibold text-ink">{problem.title}</h3>
+        <h3 className="min-w-0 [overflow-wrap:anywhere] font-display text-2xl font-semibold text-ink">{problem.title}</h3>
         <span className="rounded-full border border-ink/10 bg-cream/80 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[.14em] text-ink/45">
           {presentation.modeLabel}
         </span>
       </div>
       {presentation.quickCheck && (
-        <p className="mt-3 rounded-2xl border border-leaf/15 bg-leaf/[.07] p-3 text-sm font-bold leading-6 text-ink/70">
+        <p className="mt-3 rounded-2xl border border-leaf/15 bg-leaf/[.07] p-3 [overflow-wrap:anywhere] text-sm font-bold leading-6 text-ink/70">
           Quick check: {presentation.quickCheck}
         </p>
       )}
@@ -116,7 +116,7 @@ function ProblemCard({
           </dl>
         )}
         {problem.image.caption && (
-          <figcaption className="border-t border-ink/10 bg-white/70 px-4 py-3 text-xs leading-5 text-ink/55">
+          <figcaption className="border-t border-ink/10 bg-white/70 px-4 py-3 [overflow-wrap:anywhere] text-xs leading-5 text-ink/55">
             {problem.image.caption}
           </figcaption>
         )}
@@ -178,7 +178,7 @@ function ProblemCard({
                 <a
                   key={topicId}
                   href={`#topic-${topicId}`}
-                  className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/60 transition hover:border-tomato/25 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  className="min-w-0 rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/60 transition [overflow-wrap:anywhere] hover:border-tomato/25 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
                 >
                   {related.problem.title}
                 </a>

@@ -137,7 +137,7 @@ export function PublicPartyOrderEditForm({ editable, editToken, allowedPizzas, i
               return (
                 <article key={pizza.id} className="rounded-[1.35rem] border border-ink/10 bg-white p-4">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                    <div className="min-w-0 [overflow-wrap:anywhere]">
                       <p className="text-base font-extrabold text-ink">{pizza.marker} {pizza.name}</p>
                       <p className="mt-1 text-sm leading-5 text-ink/55">{pizza.ingredientSummary}</p>
                     </div>

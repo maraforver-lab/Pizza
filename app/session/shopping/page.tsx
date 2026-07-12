@@ -283,11 +283,11 @@ export default function SessionShoppingPage() {
                       key={item.id}
                       className="grid min-h-14 cursor-pointer grid-cols-[1fr_auto] gap-3 px-4 py-3 transition hover:bg-cream/70 sm:min-h-16 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,auto)_5rem_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-4"
                     >
-                      <span className="min-w-0">
+                      <span className="min-w-0 [overflow-wrap:anywhere]">
                         <span className="block text-sm font-extrabold text-ink">{item.label}</span>
                         {item.amount && <span className="mt-1 block text-sm leading-5 text-ink/50 sm:hidden">{item.amount}</span>}
                       </span>
-                      {item.amount && <span className="hidden text-sm font-bold text-ink/55 sm:block">{item.amount}</span>}
+                      {item.amount && <span className="hidden min-w-0 [overflow-wrap:anywhere] text-sm font-bold text-ink/55 sm:block">{item.amount}</span>}
                       <span className={`text-sm font-extrabold ${readyItem ? "text-leaf" : "text-tomato"}`}>
                         {readyItem ? "Have" : "Need"}
                       </span>

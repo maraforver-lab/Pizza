@@ -30,7 +30,7 @@ function PartyOrderListCard({
     }`}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+        <div className="min-w-0 [overflow-wrap:anywhere]">
           <p className={`inline-flex rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-[.16em] ${
             archived ? "bg-ink/5 text-ink/50" : "bg-leaf/10 text-leaf"
           }`}

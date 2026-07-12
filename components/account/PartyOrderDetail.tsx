@@ -156,9 +156,9 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   return (
     <article className="mt-6 rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:mt-8 sm:p-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Party Order</p>
-          <h1 className="mt-3 break-words font-display text-4xl font-semibold leading-tight sm:text-5xl">{event.title}</h1>
+          <h1 className="mt-3 break-words [overflow-wrap:anywhere] font-display text-4xl font-semibold leading-tight sm:text-5xl">{event.title}</h1>
           <p className="mt-3 text-xs font-extrabold uppercase tracking-[.16em] text-leaf">{event.status}</p>
         </div>
         <Link href="/account/party-orders" className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-cream/60 px-4 text-sm font-extrabold text-ink sm:w-auto">
@@ -169,7 +169,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       <div className="mt-5 rounded-[1.5rem] border border-ink/10 bg-cream/55 p-4">
         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Quick actions</p>
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-6 text-ink/55">
+        <p className="min-w-0 text-sm leading-6 text-ink/55">
           Edit the invitation details and allowed pizza options without changing existing guest orders.
         </p>
         <button
@@ -274,7 +274,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
       {event.guest_note && (
         <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-cream/60 p-4">
           <h2 className="text-sm font-extrabold uppercase tracking-[.16em] text-ink/45">Guest note</h2>
-          <p className="mt-2 whitespace-pre-line text-sm leading-6 text-ink/70">{event.guest_note}</p>
+          <p className="mt-2 whitespace-pre-line [overflow-wrap:anywhere] text-sm leading-6 text-ink/70">{event.guest_note}</p>
         </section>
       )}
 
@@ -318,7 +318,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
           <div className="mt-4 grid gap-2">
             {activity.pizzaMix.map((pizza) => (
               <div key={pizza.pizza_id} className="flex items-center justify-between gap-4 rounded-[1.15rem] border border-ink/10 bg-cream/65 px-4 py-3">
-                <span className="text-sm font-extrabold text-ink">{pizza.pizza_name_snapshot}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] text-sm font-extrabold text-ink">{pizza.pizza_name_snapshot}</span>
                 <span className="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-extrabold text-leaf ring-1 ring-leaf/15">
                   {pizza.quantity}
                 </span>
@@ -344,7 +344,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
             {activity.guestOrders.map((order) => (
               <article key={order.id} className="rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <h3 className="text-base font-extrabold text-ink">{order.guest_name}</h3>
+                  <h3 className="min-w-0 [overflow-wrap:anywhere] text-base font-extrabold text-ink">{order.guest_name}</h3>
                   <div className="flex flex-col gap-2 sm:items-end">
                     <p className="text-xs font-bold text-ink/45">Submitted {partyOrderDateTimeLabel(order.created_at)}</p>
                     {confirmingDeleteId !== order.id && (
@@ -364,13 +364,13 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
                 </div>
                 <div className="mt-3 grid gap-2">
                   {order.items.map((item, index) => (
-                    <p key={`${order.id}-${item.pizza_id}-${index}`} className="text-sm font-bold leading-6 text-ink/68">
+                    <p key={`${order.id}-${item.pizza_id}-${index}`} className="[overflow-wrap:anywhere] text-sm font-bold leading-6 text-ink/68">
                       {item.quantity} × {item.pizza_name_snapshot}
                     </p>
                   ))}
                 </div>
                 {order.guest_comment && (
-                  <p className="mt-3 rounded-2xl bg-white/75 p-3 text-sm leading-6 text-ink/65">
+                  <p className="mt-3 rounded-2xl bg-white/75 p-3 [overflow-wrap:anywhere] text-sm leading-6 text-ink/65">
                     <span className="font-extrabold text-ink">Comment:</span> {order.guest_comment}
                   </p>
                 )}
@@ -420,8 +420,8 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {allowedPizzas.map((pizza) => (
             <div key={pizza.id} className="rounded-[1.25rem] border border-ink/10 bg-cream/65 p-4">
-              <p className="text-sm font-extrabold text-ink">{pizza.marker} {pizza.name}</p>
-              <p className="mt-2 text-xs font-bold leading-5 text-ink/50">{pizza.ingredientSummary}</p>
+              <p className="[overflow-wrap:anywhere] text-sm font-extrabold text-ink">{pizza.marker} {pizza.name}</p>
+              <p className="mt-2 [overflow-wrap:anywhere] text-xs font-bold leading-5 text-ink/50">{pizza.ingredientSummary}</p>
             </div>
           ))}
         </div>

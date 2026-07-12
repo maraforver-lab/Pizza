@@ -144,9 +144,9 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h3 className="font-display text-2xl font-semibold text-ink">{summary.title}</h3>
-                        <p className="mt-1 text-sm font-extrabold leading-6 text-leaf">{summary.statusLine}</p>
+                      <div className="min-w-0">
+                        <h3 className="[overflow-wrap:anywhere] font-display text-2xl font-semibold text-ink">{summary.title}</h3>
+                        <p className="mt-1 [overflow-wrap:anywhere] text-sm font-extrabold leading-6 text-leaf">{summary.statusLine}</p>
                       </div>
                       <span className="w-fit rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/55 ring-1 ring-ink/10">
                         Read-only summary
@@ -204,7 +204,7 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
                         </div>
                       </form>
                     )}
-                    <div className="mt-4 grid gap-2 rounded-[1.25rem] border border-white/70 bg-white/80 p-4 text-sm leading-6 text-ink/62">
+                    <div className="mt-4 grid gap-2 [overflow-wrap:anywhere] rounded-[1.25rem] border border-white/70 bg-white/80 p-4 text-sm leading-6 text-ink/62">
                       <p>{summary.doughLine}</p>
                       {summary.hydrationLine && <p>{summary.hydrationLine}</p>}
                       {summary.fermentationLine && <p>{summary.fermentationLine}</p>}

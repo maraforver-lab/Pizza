@@ -394,13 +394,13 @@ function NumberField({ id, label, value, min, max, step = 1, suffix, stepper = f
   return (
     <div className="block">
       <label htmlFor={id} className="mb-2 block text-sm font-semibold text-ink/70">{label}</label>
-      <div className={`relative ${stepper ? "grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] gap-2" : "block"}`}>
+      <div className={`relative ${stepper ? suffix ? "grid grid-cols-[3.25rem_minmax(5.25rem,1fr)_auto_3.25rem] items-stretch gap-2" : "grid grid-cols-[3.25rem_minmax(5.25rem,1fr)_3.25rem] items-stretch gap-2" : suffix ? "grid grid-cols-[minmax(0,1fr)_auto] items-stretch" : "block"}`} data-responsive-number-control>
         {stepper && <button type="button" aria-label={decreaseLabel} disabled={value <= min} onClick={() => onChange(steppedValue(value, -1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream active:scale-95 disabled:opacity-30">−</button>}
-        <div className="relative min-w-0">
+        <div className="min-w-0">
           <EditableNumberInput id={id} min={min} max={max} value={value} onValueChange={onChange}
-            className={`h-14 min-w-0 w-full rounded-2xl border border-ink/10 bg-white px-4 text-base font-semibold outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10 ${stepper ? "text-center" : "pr-12"}`} />
-          {suffix && <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink/40">{suffix}</span>}
+            className="h-14 min-w-0 w-full rounded-2xl border border-ink/10 bg-white px-3 text-center text-base font-semibold tabular-nums outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10" />
         </div>
+        {suffix && <span className="flex h-14 shrink-0 items-center justify-center whitespace-nowrap rounded-2xl border border-ink/10 bg-white px-3 text-sm font-semibold text-ink/40" aria-hidden="true">{suffix}</span>}
         {stepper && <button type="button" aria-label={increaseLabel} disabled={value >= max} onClick={() => onChange(steppedValue(value, 1, step, min, max))} className="grid h-14 place-items-center rounded-2xl border border-ink/10 bg-white text-2xl font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream active:scale-95 disabled:opacity-30">+</button>}
       </div>
     </div>

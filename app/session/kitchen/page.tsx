@@ -391,8 +391,8 @@ export default function SessionKitchenPage() {
                 />
 
                 {confirmEarlyCompletion && waitInfo.waitLabel && (
-                  <div className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="early-kitchen-step-heading">
-                    <div className="w-full max-w-md rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card">
+                  <div className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="early-kitchen-step-heading">
+                    <div className="max-h-[calc(100vh-3rem)] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card">
                       <h2 id="early-kitchen-step-heading" className="font-display text-3xl font-semibold leading-none">This step is scheduled later</h2>
                       <p className="mt-3 text-sm font-bold leading-6 text-ink/65">
                         You should {waitInfo.waitLabel.toLowerCase()} before this step. Do you still want to continue?
