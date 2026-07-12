@@ -110,8 +110,9 @@ export const publicSeoRoutes = [
   },
   {
     path: "/sauce",
-    title: "Pizza Sauce Lab | DoughTools",
-    description: "Calculate tomato sauce amounts and compare sauce styles for different pizza and oven setups.",
+    title: "Pizza Sauce Guide and Calculator | DoughTools",
+    description:
+      "Learn how to make Neapolitan, Marinara, and home-oven pizza sauce, choose the right tomatoes, avoid common mistakes, and calculate exact quantities for your pizzas.",
     changeFrequency: "monthly",
     priority: 0.7,
   },

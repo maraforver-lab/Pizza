@@ -1,67 +1,495 @@
-"use client";
-
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
-import EditableNumberInput from "@/components/EditableNumberInput";
-import { calculateSauce, type SauceStyle } from "@/lib/pizza-sauce";
-import { settingsFromUrl } from "@/lib/recipe-url";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import SauceCalculator from "@/components/sauce/SauceCalculator";
 
-const copy = {
-  fi: { back: "Laskuri", eyebrow: "Tomaattikastike", title: "Oikea määrä kastiketta jokaiselle pizzalle.", intro: "Pizzamäärä luetaan nykyisestä taikinareseptistä. Valitse kastikkeen tyyli ja sovellus laskee tomaatit sekä mausteet koko paistokertaa varten.", pizzas: "Pizzoja", amount: "Kastiketta / pizza", waste: "Vara ja hävikki", choose: "Valitse kastike", styles: { neapolitan: ["Raaka napolilainen", "Raikas, kevyt ja erittäin nopea"], home: ["Paksumpi sähköuunikastike", "Lyhyt keitto vähentää kosteutta"], "new-york": ["New York -tyylinen", "Kypsennetty, valkosipulinen ja mausteisempi"] }, total: "Valmista kastiketta", ingredients: "Tarvitset", names: { tomatoes: "Kokonaiset kuoritut tomaatit", salt: "Suola", oil: "Oliiviöljy", garlic: "Valkosipuli", oregano: "Kuivattu oregano", basil: "Basilikanlehtiä", pizzaOil: "Extra-neitsytoliiviöljy pizzojen pinnalle" }, units: { g: "g", leaves: "lehteä", cloves: "kynttä" }, prepare: "Valmistus", steps: { neapolitan: ["Kaada tomaatit kulhoon ja poista tarvittaessa kova kanta.", "Murskaa tomaatit käsin tai perunasurvimella. Jätä rakenne eläväksi – älä tee ilmavaa vaaleanpunaista sosetta tehosekoittimella.", "Sekoita suola kevyesti. Älä keitä kastiketta.", "Levitä 60–80 g ohuelti pizzan keskustaan. Lisää basilika ja noin 4–5 g oliiviöljyä vasta pizzan päälle."], home: ["Murskaa tomaatit käsin tai lyhyesti sauvasekoittimella.", "Kuullota valkosipulia öljyssä hyvin miedosti ilman ruskistamista.", "Lisää tomaatit, suola ja oregano. Hauduta ilman kantta noin 15–25 minuuttia.", "Jäähdytä kokonaan ennen käyttöä. Kuuma kastike pehmentää taikinan."], "new-york": ["Murskaa tomaatit haluamaasi rakenteeseen.", "Lämmitä öljy ja valkosipuli varovasti, lisää oregano muutamaksi sekunniksi.", "Lisää tomaatit ja suola. Hauduta miedosti 25–40 minuuttia, kunnes kastike tarttuu lusikkaan.", "Jäähdytä. Maista ennen mahdollista sokeria – kypsä tomaatti ei yleensä tarvitse sitä."] }, tomatoTitle: "Mikä tomaatti kannattaa valita?", tomatoes: [["Kokonaiset kuoritut", "Turvallisin yleisvalinta. Voit päättää itse rakenteen ja valuttaa vain tarvittaessa."], ["San Marzano DOP", "Suojattu alkuperätuote, usein makean hapokas ja vähäsiemeninen. Hyvä, mutta ei pakollinen hyvälle kastikkeelle."], ["Laadukas eurooppalainen säilyketomaatti", "Tarkista, että ainesosissa on pääasiassa tomaattia ja tomaattimehua – ei valmista mausteseosta."], ["Passata", "Tasainen ja helppo, mutta voi olla napolilaiseen pizzaan liian sileä tai vetinen. Toimii paremmin sähköuunissa paksunnettuna."]], historyTitle: "Miten pizzakastike syntyi?", history: [["1500-luku", "Tomaatti saapui Eurooppaan Amerikasta. Sitä kasvatettiin aluksi uutuutena ja koristeena, eikä se siirtynyt heti tavalliseen ruokaan."], ["1700–1800-lukujen Napoli", "Etelä-Italian köyhissä kaupunginosissa tomaatti löysi luonnollisen parin edullisesta litteästä leivästä. Kastike ei ollut pitkään keitetty pastakastike, vaan murskattua tomaattia suoraan taikinalla."], ["Siirtolaisuus Amerikkaan", "Italialaiset leipurit sovittivat pizzan uusiin uuneihin, tomaatteihin ja asiakkaisiin. Pidempi paisto suosi usein paksumpaa, kypsennettyä ja maustetumpaa kastiketta."], ["Nykyhetki", "Yhtä oikeaa pizzakastiketta ei ole. 90 sekunnin napolilainen tarvitsee erilaisen kosteuden kuin 6–8 minuuttia sähköuunissa paistuva pizza."]], tip: "Tärkein sääntö: kastikkeen määrä ja kosteus valitaan uunin mukaan. Enemmän kastiketta ei automaattisesti tarkoita enemmän makua.", sources: "Lähteet", sourceNote: "EU:n Pizza Napoletana TSG -määritelmä käyttää Margheritassa noin 60–80 g murskattua tomaattia ja 4–5 g oliiviöljyä pizzaa kohti." },
-  en: { back: "Calculator", eyebrow: "Tomato sauce", title: "The right amount of sauce for every pizza.", intro: "Pizza count comes from the current dough recipe. Choose a sauce style and the app calculates tomatoes and seasoning for the whole bake.", pizzas: "Pizzas", amount: "Sauce / pizza", waste: "Buffer and waste", choose: "Choose sauce", styles: { neapolitan: ["Raw Neapolitan", "Fresh, light and extremely quick"], home: ["Thicker electric-oven sauce", "A short cook reduces moisture"], "new-york": ["New York style", "Cooked, garlicky and more seasoned"] }, total: "Finished sauce", ingredients: "You need", names: { tomatoes: "Whole peeled tomatoes", salt: "Salt", oil: "Olive oil", garlic: "Garlic", oregano: "Dried oregano", basil: "Basil leaves", pizzaOil: "Extra virgin olive oil for topping" }, units: { g: "g", leaves: "leaves", cloves: "cloves" }, prepare: "Preparation", steps: { neapolitan: ["Pour tomatoes into a bowl and remove any hard stem ends.", "Crush by hand or with a potato masher. Keep some texture; a blender can whip in air and turn it pink.", "Fold in the salt gently. Do not cook the sauce.", "Spread 60–80 g thinly in the centre. Add basil and roughly 4–5 g olive oil on the pizza itself."], home: ["Crush tomatoes by hand or briefly with a stick blender.", "Warm garlic very gently in oil without browning.", "Add tomato, salt and oregano. Simmer uncovered for 15–25 minutes.", "Cool completely before use. Hot sauce softens the dough."], "new-york": ["Crush tomatoes to the texture you prefer.", "Warm oil and garlic gently; bloom oregano for a few seconds.", "Add tomatoes and salt. Simmer gently for 25–40 minutes until it coats a spoon.", "Cool. Taste before adding any sugar; ripe tomatoes often need none."] }, tomatoTitle: "Which tomato should you choose?", tomatoes: [["Whole peeled", "The safest all-round choice. You control texture and drain only when needed."], ["San Marzano DOP", "A protected-origin product, often sweet-acidic and low in seeds. Excellent, but not required for good sauce."], ["Quality European canned tomatoes", "Look for mostly tomato and tomato juice in the ingredients, rather than a pre-seasoned sauce."], ["Passata", "Smooth and easy, but sometimes too thin or uniform for Neapolitan. Better reduced for an electric oven."]], historyTitle: "How did pizza sauce develop?", history: [["Sixteenth century", "Tomatoes reached Europe from the Americas. First grown as a novelty and ornament, they did not immediately become ordinary food."], ["Naples in the 1700s–1800s", "In the poorer neighbourhoods of southern Italy, tomato found a natural partner in inexpensive flatbread. The sauce was not a long-cooked pasta sauce, but crushed tomato placed directly on dough."], ["Migration to America", "Italian bakers adapted pizza to new ovens, tomatoes and customers. Longer bakes often favoured a thicker, cooked and more seasoned sauce."], ["Today", "There is no single correct pizza sauce. A 90-second Neapolitan needs different moisture from a pizza baking 6–8 minutes at home."]], tip: "The key rule: match sauce amount and moisture to the oven. More sauce does not automatically mean more flavour.", sources: "Sources", sourceNote: "The EU Pizza Napoletana TSG specification uses about 60–80 g crushed tomato and 4–5 g olive oil per Margherita pizza." },
-  sv: { back: "Kalkylator", eyebrow: "Tomatsås", title: "Rätt mängd sås till varje pizza.", intro: "Antalet pizzor hämtas från degreceptet. Välj såsstil så beräknar appen tomater och kryddor för hela bakningen.", pizzas: "Pizzor", amount: "Sås / pizza", waste: "Reserv och svinn", choose: "Välj sås", styles: { neapolitan: ["Rå napolitansk", "Frisk, lätt och mycket snabb"], home: ["Tjockare sås för elektrisk ugn", "Kort kokning minskar fukten"], "new-york": ["New York-stil", "Kokt, vitlöksrik och mer kryddad"] }, total: "Färdig sås", ingredients: "Du behöver", names: { tomatoes: "Hela skalade tomater", salt: "Salt", oil: "Olivolja", garlic: "Vitlök", oregano: "Torkad oregano", basil: "Basilikablad", pizzaOil: "Extra jungfruolivolja på pizzan" }, units: { g: "g", leaves: "blad", cloves: "klyftor" }, prepare: "Tillagning", steps: { neapolitan: ["Häll tomaterna i en skål och ta bort hårda stjälkdelar.", "Krossa för hand och bevara lite struktur. Undvik att mixa in luft.", "Blanda försiktigt i saltet. Koka inte såsen.", "Bred ut 60–80 g tunt i mitten. Lägg basilika och 4–5 g olivolja på pizzan."], home: ["Krossa tomaterna för hand eller kort med stavmixer.", "Värm vitlöken försiktigt i olja utan att bryna den.", "Tillsätt tomat, salt och oregano. Sjud utan lock 15–25 minuter.", "Låt svalna helt före användning."], "new-york": ["Krossa tomaterna till önskad struktur.", "Värm olja och vitlök försiktigt och tillsätt oregano.", "Tillsätt tomater och salt. Sjud 25–40 minuter.", "Låt svalna och smaka innan du tillsätter socker."] }, tomatoTitle: "Vilken tomat ska du välja?", tomatoes: [["Hela skalade", "Det säkraste allroundvalet. Du styr strukturen och silar bara vid behov."], ["San Marzano DOP", "Ursprungsskyddad, ofta sötsyrlig och fröfattig. Bra men inte nödvändig."], ["Europeiska kvalitetstomater", "Välj främst tomat och tomatjuice, inte färdigkryddad sås."], ["Passata", "Jämn och enkel men ibland för tunn för napolitansk pizza."]], historyTitle: "Hur utvecklades pizzasåsen?", history: [["1500-talet", "Tomaten kom till Europa från Amerika och odlades först som en nyhet."], ["Neapel på 1700–1800-talet", "Krossad tomat blev en naturlig partner till billigt plattbröd."], ["Migrationen till Amerika", "Nya ugnar och längre gräddning gynnade tjockare kokt sås."], ["I dag", "En napolitansk 90-sekunderspizza kräver annan fukt än en pizza i hemmaugn."]], tip: "Anpassa såsens mängd och fukt till ugnen. Mer sås betyder inte automatiskt mer smak.", sources: "Källor", sourceNote: "EU:s TSG-specifikation använder cirka 60–80 g tomat och 4–5 g olivolja per Margherita." },
-} as const;
+export const metadata: Metadata = {
+  title: "Pizza Sauce Guide and Calculator | DoughTools",
+  description:
+    "Learn how to make Neapolitan, Marinara, and home-oven pizza sauce, choose the right tomatoes, avoid common mistakes, and calculate exact quantities for your pizzas.",
+};
 
-const sauceExtras = {
-  fi: {
-    marinara: ["Klassinen Marinara", "Tomaatti, valkosipuli, oregano ja oliiviöljy – ei juustoa"],
-    marinaraSteps: ["Murskaa kokonaiset kuoritut tomaatit käsin ja sekoita joukkoon suola. Älä keitä kastiketta.", "Levitä tomaatti ohuelti keskeltä ulospäin ja jätä reuna paljaaksi.", "Viipaloi yksi pieni valkosipulinkynsi hyvin ohueksi jokaista pizzaa varten ja lisää oregano tasaisesti.", "Viimeistele 6–8 grammalla oliiviöljyä pizzaa kohti. Marinaraan ei kuulu juustoa eikä mereneläviä."],
-    doctorTitle: "Kastike ei onnistunut?",
-    doctorIntro: "Valitse lähin ongelma ja korjaa sekä kastikkeen että täytteiden kosteustasapaino.",
-    doctor: [["Liian vetinen", "Käytä 10–15 g vähemmän kastiketta, valuta vain selvästi ylimääräinen tomaattimehu ja valuta mozzarella. Tarkista myös paistoalustan lämpö."], ["Kitkerä maku", "Valkosipuli tai oregano on voinut palaa. Myös hienoksi rikotut siemenet tai kivelle pudonnut ylimääräinen semola voivat maistua kitkeriltä."], ["Mauton", "Tarkista suola ja tomaatin laatu. Liika juusto voi peittää tomaatin; vetinen kastike puolestaan laimentaa sen maun."], ["Liian paksu", "Lisää vähän tomaattien omaa mehua. Napolilaiseen ei tarvita tahnamaista kastiketta, koska se peittää taikinan ja tomaatin raikkauden."]],
-    historyLead: "Pizzakastike ei syntynyt yhtenä valmiina reseptinä. Se muotoutui vuosisatojen aikana, kun Amerikasta tuotu tomaatti kohtasi Napolin litteät leivät, katukeittiöt, erilaiset uunit ja lopulta italialaisen siirtolaisuuden.",
-    history: [["1500-luku · Uusi hedelmä", "Tomaatti saapui Amerikasta Eurooppaan espanjalaisten kauppareittien mukana. Sitä kasvatettiin pitkään uutuutena ja koristekasvina, ja sen syömiseen suhtauduttiin epäillen."], ["1600-luku · Tomaatti keittiöön", "Etelä-Italiassa tomaattia alettiin vähitellen käyttää ruokana. Lämmin ilmasto sopi viljelyyn, ja edullinen, voimakkaan makuinen hedelmä löysi paikkansa tavallisen kansan keittiössä."], ["1700-luku · Napolin katuleipä", "Napolin nopeasti kasvavassa kaupungissa leipurit ja katukauppiaat myivät litteitä leipiä, joiden päälle lisättiin tomaattia. Yksinkertainen, helposti kädessä syötävä ruoka sopi kaupungin työläisille."], ["1800-luku · Marinara", "Tomaatti, valkosipuli, oregano ja oliiviöljy muodostivat yhden varhaisista klassikoista. Nimestään huolimatta Marinaraan ei kuulu mereneläviä; se oli edullinen ja säilyvistä aineksista tehtävä pizza."], ["1800-luvun loppu · Margherita", "Tomaatin rinnalle vakiintuivat mozzarella ja basilika. Kuningatar Margheritaan liitetty kertomus teki punaisen, valkoisen ja vihreän yhdistelmästä kuuluisan, vaikka tomaattipizzoja oli syöty Napolissa jo paljon aiemmin."], ["1880–1920 · Atlantin yli", "Italialaiset siirtolaiset veivät pizzan Yhdysvaltoihin. Uudet tomaatit, suuremmat pizzat sekä hiili- ja myöhemmin kaasu- ja sähköuunit muuttivat kastiketta usein kypsennetyksi, paksummaksi ja maustetummaksi."], ["1900-luku · Säilyketomaatti", "Teollinen säilöntä teki kypsistä tomaateista ympärivuotisia ja kuljetettavia. Kokonaisista kuorituista tomaateista tuli pizzerioiden luotettava perusta kaukana Italian satokaudesta."], ["Nykyhetki · Uuni määrää", "Nyt raakaa napolilaista, kypsennettyä New York -kastiketta ja lukuisia paikallisia tyylejä käytetään rinnakkain. Oikea rakenne riippuu ennen kaikkea paistolämpötilasta, paistoajasta ja täytteiden kosteudesta."]],
+type MethodCard = {
+  title: string;
+  label: string;
+  image: string;
+  alt: string;
+  summary: string;
+  ingredients: string[];
+  steps: string[];
+  note: string;
+};
+
+type Mistake = {
+  title: string;
+  happens: string;
+  cause: string;
+  now: string;
+  next: string;
+};
+
+const methods: MethodCard[] = [
+  {
+    title: "Classic Neapolitan tomato base",
+    label: "AVPN-defined traditional practice",
+    image: "/sauce/neapolitan.webp",
+    alt: "Uncooked tomato base with visible tomato texture beside a finished Neapolitan-style pizza.",
+    summary: "The tomato should taste fresh because the oven cooks it on the pizza.",
+    ingredients: ["quality whole peeled tomatoes", "salt"],
+    steps: [
+      "Open and inspect the tomatoes.",
+      "Drain only when clearly necessary; do not remove all useful juice by default.",
+      "Crush by hand, pass through a food mill, or process very briefly.",
+      "Preserve a natural, slightly chunky consistency.",
+      "Add the calculated salt, taste, and keep cold until needed.",
+      "Apply a controlled amount to the pizza, leaving the cornicione clear.",
+    ],
+    note: "Avoid blending until foamy or completely uniform. Careful milling or a very brief pulse can be useful; the problem is destroying texture, not the existence of a tool.",
   },
-  en: {
-    marinara: ["Classic Marinara", "Tomato, garlic, oregano and olive oil – no cheese"],
-    marinaraSteps: ["Crush whole peeled tomatoes by hand and gently mix in the salt. Do not cook the sauce.", "Spread the tomato thinly from the centre outward, leaving the rim bare.", "Thinly slice one small garlic clove per pizza and distribute the oregano evenly.", "Finish with 6–8 grams of olive oil per pizza. Marinara contains neither cheese nor seafood."],
-    doctorTitle: "Sauce did not work?",
-    doctorIntro: "Choose the closest problem and correct the moisture balance of both sauce and toppings.",
-    doctor: [["Too watery", "Use 10–15 g less sauce, drain only clearly excessive tomato liquid and drain the mozzarella. Also check the baking-surface temperature."], ["Bitter", "Garlic or oregano may have burned. Finely crushed seeds or excess semolina burning on the stone can also taste bitter."], ["Bland", "Check salt and tomato quality. Too much cheese can mask tomato, while watery sauce dilutes its flavour."], ["Too thick", "Add a little tomato juice. Neapolitan sauce should not be paste-like, as that hides the freshness of the dough and tomato."]],
-    historyLead: "Pizza sauce did not appear as one finished recipe. It evolved over centuries as tomatoes from the Americas met Neapolitan flatbreads, street food, changing ovens and finally Italian migration.",
-    history: [["1500s · A new fruit", "Tomatoes reached Europe from the Americas through Spanish trade routes. For a long time they were grown as novelties and ornamentals, and people remained cautious about eating them."], ["1600s · Into the kitchen", "Southern Italians gradually began cooking with tomatoes. The warm climate suited cultivation, and the affordable, assertive fruit found a place in everyday cooking."], ["1700s · Naples street bread", "In rapidly growing Naples, bakers and street vendors sold flatbreads topped with tomato. The inexpensive food could be eaten by hand and suited the city’s working population."], ["1800s · Marinara", "Tomato, garlic, oregano and olive oil formed one early classic. Despite its name, Marinara contains no seafood; it was an economical pizza made from ingredients that kept well."], ["Late 1800s · Margherita", "Mozzarella and basil became established partners for tomato. The story associated with Queen Margherita made the red, white and green combination famous, although tomato pizzas had been eaten in Naples much earlier."], ["1880–1920 · Across the Atlantic", "Italian migrants carried pizza to the United States. Different tomatoes, larger pies and coal—then gas and electric—ovens often encouraged a cooked, thicker and more seasoned sauce."], ["1900s · Canned tomatoes", "Industrial canning made ripe tomatoes available year-round and easy to transport. Whole peeled tomatoes became a dependable pizzeria base far beyond the Italian harvest season."], ["Today · The oven decides", "Raw Neapolitan, cooked New York and many local styles now coexist. The right texture depends above all on baking temperature, baking time and the moisture of the other toppings."]],
+  {
+    title: "Traditional Marinara topping",
+    label: "Traditional pizza topping profile",
+    image: "/sauce/marinara.webp",
+    alt: "Pizza marinara with tomato, garlic, oregano and olive oil, without cheese.",
+    summary: "Marinara is tomato, garlic, oregano and extra-virgin olive oil — no mozzarella required.",
+    ingredients: ["tomato", "garlic", "oregano", "extra-virgin olive oil", "salt"],
+    steps: [
+      "Prepare the tomato base without cooking it.",
+      "Spread tomato thinly from the center outward.",
+      "Add thinly sliced or carefully prepared garlic as part of the topping profile.",
+      "Season with oregano and extra-virgin olive oil.",
+      "Choose mild, traditional, or stronger garlic according to taste and clove size.",
+    ],
+    note: "The name does not mean seafood. It is a classic cheese-free pizza profile, not a universal tomato sauce for every pizza.",
   },
-  sv: {
-    marinara: ["Klassisk Marinara", "Tomat, vitlök, oregano och olivolja – ingen ost"],
-    marinaraSteps: ["Krossa hela skalade tomater för hand och blanda försiktigt i salt. Koka inte såsen.", "Bred tomaten tunt från mitten utåt och lämna kanten fri.", "Skiva en liten vitlöksklyfta tunt per pizza och fördela oregano jämnt.", "Avsluta med 6–8 g olivolja per pizza. Marinara innehåller varken ost eller skaldjur."],
-    doctorTitle: "Blev såsen inte bra?", doctorIntro: "Välj närmaste problem och rätta fuktbalansen i både sås och topping.",
-    doctor: [["För vattnig", "Använd 10–15 g mindre sås, sila bara bort tydligt överskott och låt mozzarellan rinna av."], ["Bitter", "Vitlök eller oregano kan ha bränts. Överflödig semola på stenen kan också smaka bittert."], ["Smaklös", "Kontrollera salt och tomatkvalitet. För mycket ost kan dölja tomatsmaken."], ["För tjock", "Tillsätt lite tomatjuice. Napolitansk sås ska inte vara som tomatpuré."]],
-    historyLead: "Pizzasåsen uppstod inte som ett enda färdigt recept. Den utvecklades när tomaten från Amerika mötte Neapels plattbröd, gatumat, olika ugnar och italiensk migration.",
-    history: [["1500-talet · En ny frukt", "Tomaten kom till Europa via spanska handelsvägar och odlades länge som prydnad."], ["1600-talet · In i köket", "I södra Italien började tomaten gradvis användas i vardagsmaten."], ["1700-talet · Neapels gatubröd", "Bagare och gatuförsäljare sålde billiga plattbröd med tomat."], ["1800-talet · Marinara", "Tomat, vitlök, oregano och olivolja blev en tidig klassiker utan skaldjur."], ["Sent 1800-tal · Margherita", "Mozzarella och basilika blev etablerade följeslagare till tomaten."], ["1880–1920 · Över Atlanten", "Italienska migranter tog pizzan till USA, där nya ugnar förändrade såsen."], ["1900-talet · Konserverade tomater", "Konservering gjorde mogna tomater tillgängliga året runt."], ["I dag · Ugnen avgör", "Rå napolitansk och kokt New York-sås används sida vid sida. Rätt struktur beror på temperatur, tid och toppingens fukt."]],
+  {
+    title: "Home-oven cooked sauce",
+    label: "DoughTools practical adaptation",
+    image: "/sauce/home.webp",
+    alt: "Thicker tomato sauce prepared for a longer home-oven pizza bake.",
+    summary: "Lower oven heat and longer bake time can benefit from more controlled moisture.",
+    ingredients: ["whole peeled tomatoes", "salt", "extra-virgin olive oil", "optional garlic", "optional oregano"],
+    steps: [
+      "Crush or mill the tomatoes.",
+      "Cook gently, uncovered.",
+      "Add optional garlic and oregano according to the selected profile.",
+      "Reduce only enough to reach the intended consistency.",
+      "Cool fully before using.",
+      "Weigh the finished yield if you need exact coverage.",
+    ],
+    note: "This is not the classic uncooked Neapolitan method. Do not add sugar automatically; taste first and use only a very small amount when tomatoes are genuinely harsh.",
   },
-} as const;
+];
 
-const sauceStyles: SauceStyle[] = ["neapolitan", "marinara", "home", "new-york"];
+const tomatoTypes = [
+  ["Whole peeled plum tomatoes", "Best default for control over texture, manual crushing, and evaluating actual tomato quality."],
+  ["San Marzano DOP", "A protected origin designation. It can be excellent, but “San Marzano style” is not the same as DOP certification, and non-DOP tomatoes can still be excellent."],
+  ["Crushed tomatoes", "Useful when the ingredient list is clean and the texture is already right. Brand variation is large."],
+  ["Passata", "Useful for smoother or cooked styles, but often too smooth or wet for classic Neapolitan preferences."],
+  ["Fresh ripe tomatoes", "Can be beautiful in season, but ordinary pale supermarket tomatoes are not automatically better than quality canned tomatoes."],
+] as const;
 
-const sourceLinks = [["EU · Pizza Napoletana TSG", "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32010R0097"], ["AVPN · Neapolitan pizza", "https://www.pizzanapoletana.org/en/ricetta_pizza_napoletana"], ["Smithsonian · Naples pizza culture", "https://www.smithsonianmag.com/travel/inside-naples-world-famous-pizza-culture-180976896/"], ["Britannica · Pizza history", "https://www.britannica.com/topic/pizza"]] as const;
+const textureStates = [
+  {
+    title: "Too watery",
+    icon: "water",
+    appearance: "Free liquid pools around the tomato.",
+    result: "Wet center, diluted flavor, sliding toppings, and a soft home-oven base.",
+    correction: "Use less sauce, leave excess packing juice behind, drain briefly, reduce cooked sauce, manage cheese moisture, and preheat the stone or steel properly.",
+  },
+  {
+    title: "Balanced",
+    icon: "success",
+    appearance: "Spoonable texture with no large pools of free liquid.",
+    result: "Fresh tomato flavor spreads cleanly without acting like paste.",
+    correction: "Keep the texture natural and judge coverage together with cheese moisture, pizza size and oven heat.",
+  },
+  {
+    title: "Too thick",
+    icon: "warning",
+    appearance: "Paste-like sauce that resists spreading.",
+    result: "Heavy tomato layer, dry flavor, poor spreading, and sauce that dominates dough and cheese.",
+    correction: "Add reserved tomato juice, reduce less, use less tomato paste, or lower the sauce amount per pizza.",
+  },
+] as const satisfies Array<{ title: string; icon: DoughToolsIconName; appearance: string; result: string; correction: string }>;
+
+const ingredientRoles = [
+  ["Tomato", "Core flavor, acidity, sweetness, moisture and texture."],
+  ["Salt", "Balances tomato flavor. Calculate by tomato weight, then taste and remember that cheese and cured toppings add salt."],
+  ["Extra-virgin olive oil", "Aroma, richness and cooking behavior. Traditionally applied as part of the pizza topping, not automatically blended into every tomato base."],
+  ["Basil", "Fresh aromatic topping. It can go before baking or be protected beneath cheese when burning is a risk."],
+  ["Garlic", "Central to Marinara, optional in many cooked sauces, and not required in a classic Margherita tomato base."],
+  ["Oregano", "Traditional in Marinara and common in some longer-baked styles, but not required in classic Margherita tomato base."],
+  ["Sugar", "Not a default requirement. It can slightly soften harsh acidity, but it cannot turn poor tomatoes into ripe tomatoes."],
+  ["Tomato paste", "Useful in some cooked, pan, American or long-baked styles; generally unnecessary for classic uncooked Neapolitan tomato base."],
+] as const;
+
+const mistakes: Mistake[] = [
+  {
+    title: "Using too much sauce",
+    happens: "The center stays wet and toppings slide.",
+    cause: "Coverage is heavier than the dough, cheese moisture or oven heat can support.",
+    now: "Remove obvious excess before adding cheese, or bake one pizza as a test and reduce the next one.",
+    next: "Weigh the sauce for a few pizzas and adjust from the calculator’s balanced amount.",
+  },
+  {
+    title: "Using tomatoes with poor flavor",
+    happens: "The pizza tastes flat, harsh or metallic even when the dough is good.",
+    cause: "The tomato product lacks ripe flavor or balance.",
+    now: "Taste before seasoning. Add salt carefully, but do not hide bad tomatoes with sugar or garlic.",
+    next: "Compare whole peeled tomatoes, crushed tomatoes and passata by taste, not label alone.",
+  },
+  {
+    title: "Blending until completely foamy or watery",
+    happens: "The sauce becomes pale, thin or strangely uniform.",
+    cause: "Too much processing destroys natural texture and may break more seeds.",
+    now: "Let foam settle and use a lighter amount.",
+    next: "Crush by hand, use a food mill, or pulse very briefly.",
+  },
+  {
+    title: "Automatically adding garlic to Margherita sauce",
+    happens: "Garlic dominates a pizza that should taste like tomato, dairy, basil and oil.",
+    cause: "Marinara habits are applied to Margherita tomato base.",
+    now: "Use it intentionally as a nontraditional variation, not by default.",
+    next: "Keep garlic for Marinara or styles where it belongs.",
+  },
+  {
+    title: "Automatically adding sugar",
+    happens: "The sauce becomes sweet without solving weak tomato flavor.",
+    cause: "Sugar is used before tasting and understanding acidity.",
+    now: "Stop adding more; balance with salt and better tomato choice.",
+    next: "Use a tiny amount only when tomatoes are genuinely harsh.",
+  },
+  {
+    title: "Cooking a classic fast-bake sauce without a reason",
+    happens: "The tomato loses the fresh character expected from fast-baked Neapolitan pizza.",
+    cause: "A home-oven adaptation is used for a high-heat method that does not need it.",
+    now: "Use less cooked sauce or switch to the uncooked method next pizza.",
+    next: "Choose the method from the oven and pizza style, not habit.",
+  },
+  {
+    title: "Leaving a home-oven sauce excessively wet",
+    happens: "The base stays pale, soft or soggy during a longer bake.",
+    cause: "Lower oven heat gives moisture more time to soak into dough and toppings.",
+    now: "Reduce sauce amount and manage cheese moisture.",
+    next: "Cook gently to the target consistency or leave excess packing juice behind.",
+  },
+  {
+    title: "Ignoring wet mozzarella or topping moisture",
+    happens: "The sauce gets blamed, but the wet layer comes from everything on top.",
+    cause: "Fresh cheese, vegetables or heavy topping load release moisture during baking.",
+    now: "Drain or blot wet ingredients before the next pizza.",
+    next: "Treat sauce, cheese and toppings as one moisture system.",
+  },
+  {
+    title: "Measuring only by spoons",
+    happens: "Two pizzas get very different amounts of sauce.",
+    cause: "Consistency varies, so spoon volume is unreliable.",
+    now: "Weigh the next pizza’s sauce once to calibrate your eye.",
+    next: "Use grams while learning, then switch to feel when the result is consistent.",
+  },
+  {
+    title: "Making sauce too far ahead without safe storage",
+    happens: "Fresh tomato flavor fades, or the sauce becomes unsafe.",
+    cause: "The batch was warmed, cooled, contaminated or held too long.",
+    now: "Discard sauce with spoilage, fermentation, mold, off odors or unsafe handling history.",
+    next: "Refrigerate promptly in clean covered containers and freeze excess when useful.",
+  },
+];
+
+const relatedLinks = [
+  ["Pizza Learning Center", "/guide", "Understand hydration, fermentation, oven heat and other concepts."],
+  ["Pizza Dough Guide", "/guides/dough", "Follow the dough process from mixing to stretching readiness."],
+  ["Pizza Troubleshooting Guide", "/guide/pizza-troubleshooting", "Fix wet centers, pale bases, scorched rims and other problems."],
+  ["Pizza Styles", "/styles", "Match sauce choices to the style you want to bake."],
+  ["Toppings", "/toppings", "Choose cheese and toppings without overloading the pizza."],
+  ["Ovens", "/ovens", "Understand how your baking setup changes sauce and moisture decisions."],
+] as const;
 
 export default function SaucePage() {
-  const [ready, setReady] = useState(false); const [pizzas, setPizzas] = useState(6); const [style, setStyle] = useState<SauceStyle>("neapolitan"); const [grams, setGrams] = useState(75); const [waste, setWaste] = useState(5); const t = copy.en; const extra = sauceExtras.en;
-  useEffect(() => { const shared = settingsFromUrl(location.search); setPizzas(shared.pizzas ?? 6); document.documentElement.lang = "en"; setReady(true); }, []);
-  const result = useMemo(() => calculateSauce(style, pizzas, grams, waste), [style, pizzas, grams, waste]); if (!ready) return <main className="min-h-screen bg-cream"/>;
-  const chooseStyle = (next: SauceStyle) => { setStyle(next); setGrams(next === "neapolitan" ? 75 : next === "home" ? 80 : 90); };
-  const styleCopy = (key: SauceStyle) => key === "marinara" ? extra.marinara : t.styles[key];
-  const preparationSteps = style === "marinara" ? extra.marinaraSteps : t.steps[style];
-  const format = (amount: number) => new Intl.NumberFormat("en-IE", { maximumFractionDigits: amount < 10 ? 1 : 0 }).format(amount);
-  return <main className="min-h-screen bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><header className="flex items-center justify-between"><Link href="/" className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white">●</span><strong>Dough<span className="text-tomato">Tools</span></strong></Link><Link href="/" className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.back}</Link></header>
-    <section className="py-10 sm:py-14"><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></section>
-    <div className="grid items-start gap-5 lg:grid-cols-[.9fr_1.1fr]"><section className="rounded-[1.5rem] bg-white/80 p-5 shadow-card sm:p-6"><div className="grid grid-cols-3 gap-3"><label className="text-xs font-bold text-ink/55">{t.pizzas}<div className="mt-2 flex h-12 overflow-hidden rounded-xl border border-ink/10 bg-white"><button type="button" onClick={() => setPizzas(Math.max(1, pizzas - 1))} className="w-12 text-xl font-bold">−</button><span className="grid flex-1 place-items-center font-bold">{pizzas}</span><button type="button" onClick={() => setPizzas(pizzas + 1)} className="w-12 text-xl font-bold">+</button></div></label><label className="text-xs font-bold text-ink/55">{t.amount}<div className="relative mt-2"><EditableNumberInput min={20} max={200} value={grams} onValueChange={setGrams} className="h-12 w-full rounded-xl border border-ink/10 bg-white px-3 pr-8 font-bold"/><span className="absolute right-3 top-3.5 text-xs text-ink/35">g</span></div></label><label className="text-xs font-bold text-ink/55">{t.waste}<div className="relative mt-2"><EditableNumberInput min={0} max={30} value={waste} onValueChange={setWaste} className="h-12 w-full rounded-xl border border-ink/10 bg-white px-3 pr-8 font-bold"/><span className="absolute right-3 top-3.5 text-xs text-ink/35">%</span></div></label></div><h2 className="mt-7 font-display text-3xl font-semibold">{t.choose}</h2><div className="mt-4 space-y-3">{sauceStyles.map(key => { const labels = styleCopy(key); return <button type="button" key={key} onClick={() => chooseStyle(key)} className={`grid w-full grid-cols-[7rem_1fr] overflow-hidden rounded-2xl border text-left transition ${style === key ? "border-tomato bg-tomato text-white shadow-lg" : "border-ink/10 bg-white"}`}><span className="relative min-h-28 overflow-hidden bg-ink/5"><Image src={`/sauce/${key}.webp`} alt={labels[0]} fill sizes="112px" className="object-cover transition duration-500 group-hover:scale-105"/></span><span className="self-center p-4"><strong className="block text-sm">{labels[0]}</strong><span className={`mt-1.5 block text-xs leading-5 ${style === key ? "text-white/70" : "text-ink/45"}`}>{labels[1]}</span></span></button>; })}</div></section>
-      <section className="overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card"><div className="p-6 sm:p-8"><p className="text-[10px] font-extrabold uppercase tracking-wider text-oven-gold">{t.total}</p><p className="mt-2 font-display text-6xl font-semibold">{format(result.finished)} <span className="text-2xl">g</span></p><p className="mt-2 text-xs text-white/40">{pizzas} × {grams} g + {waste} %</p></div><div className="border-t border-white/10 p-6 sm:p-8"><h2 className="font-display text-3xl font-semibold">{t.ingredients}</h2><div className="mt-5 grid gap-2 sm:grid-cols-2">{result.ingredients.map(item => <div key={item.id} className="rounded-xl bg-white/[.06] p-4"><span className="text-xs text-white/45">{t.names[item.id as keyof typeof t.names]}</span><strong className="mt-1 block text-xl">{format(item.amount)} {t.units[item.unit]}</strong></div>)}</div></div><div className="border-t border-white/10 bg-white/[.03] p-6 sm:p-8"><h2 className="font-display text-3xl font-semibold">{t.prepare}</h2><ol className="mt-5 space-y-4">{preparationSteps.map((step, index) => <li key={step} className="flex gap-3 text-sm leading-6 text-white/60"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-tomato text-xs font-bold text-white">{index + 1}</span>{step}</li>)}</ol></div></section></div>
-    <section className="py-14"><h2 className="font-display text-4xl font-semibold">{t.tomatoTitle}</h2><div className="mt-6 grid gap-3 md:grid-cols-2">{t.tomatoes.map(([name, body]) => <article key={name} className="rounded-2xl border border-white bg-white/70 p-5"><h3 className="font-extrabold text-tomato">{name}</h3><p className="mt-2 text-sm leading-6 text-ink/55">{body}</p></article>)}</div></section>
-    <section className="rounded-[1.75rem] border border-tomato/15 bg-tomato/[.06] p-6 sm:p-9"><h2 className="font-display text-4xl font-semibold">{extra.doctorTitle}</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-ink/55">{extra.doctorIntro}</p><div className="mt-7 grid gap-3 md:grid-cols-2">{extra.doctor.map(([problem, solution]) => <article key={problem} className="rounded-2xl bg-white/80 p-5"><h3 className="font-extrabold text-tomato">{problem}</h3><p className="mt-2 text-sm leading-6 text-ink/55">{solution}</p></article>)}</div></section>
-    <section className="rounded-[1.75rem] bg-[#552d22] p-6 text-white sm:p-9"><h2 className="font-display text-4xl font-semibold">{t.historyTitle}</h2><p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">{extra.historyLead}</p><div className="mt-8 grid gap-4 md:grid-cols-2">{extra.history.map(([time, body], index) => <article key={time} className="rounded-2xl border border-white/10 bg-white/[.05] p-5"><div className="flex items-center gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-oven-gold text-xs font-black text-[#552d22]">{index + 1}</span><strong className="text-oven-gold">{time}</strong></div><p className="mt-3 text-sm leading-6 text-white/60">{body}</p></article>)}</div><p className="mt-8 rounded-xl bg-white/10 p-4 text-sm font-bold text-white/75">{t.tip}</p></section>
-    <section className="py-12"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><p className="mt-2 max-w-3xl text-xs leading-5 text-ink/45">{t.sourceNote}</p><div className="mt-4 flex flex-wrap gap-2">{sourceLinks.map(([label, href]) => <a key={href} href={href} target="_blank" rel="noreferrer" className="rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold text-ink/55">{label} ↗</a>)}</div><footer className="mt-8 border-t border-ink/10 pt-6"><AppSignature /></footer></section>
-  </div></main>;
+  return (
+    <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
+      <section className="relative overflow-hidden bg-forest-dark text-white">
+        <div className="absolute inset-0 opacity-72">
+          <Image
+            src="/sauce/neapolitan.webp"
+            alt="Fresh tomato sauce and finished pizza on a warm pizza-making surface"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[54%_center]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/76 to-ink/20" aria-hidden="true" />
+        </div>
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+          <div className="max-w-3xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza Sauce Guide</p>
+            <h1 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+              Better pizza sauce starts with better decisions.
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-white/78 sm:text-lg">
+              Learn which tomatoes to choose, how to season them, when not to cook the sauce, and exactly how much you
+              need for every pizza.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-6 text-sm font-extrabold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" href="#sauce-calculator">
+                Calculate my sauce
+              </a>
+              <a className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" href="#three-methods">
+                Learn the three methods
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <section className="rounded-[2rem] border border-ink/10 bg-card p-5 shadow-card sm:p-8" aria-labelledby="quick-answer-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Quick answer</p>
+          <h2 id="quick-answer-title" className="mt-3 font-display text-4xl font-semibold">
+            What goes into Neapolitan pizza sauce?
+          </h2>
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <article className="rounded-[1.5rem] bg-flour p-5">
+              <h3 className="text-lg font-extrabold">Classic Margherita tomato base</h3>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                The base is fundamentally quality peeled tomatoes and salt. Fresh basil, extra-virgin olive oil,
+                mozzarella or fior di latte, and optional grated hard cheese are pizza toppings rather than ingredients
+                that must be blended into the tomato base.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm leading-6 text-muted">
+                <li>Garlic is not standard in the classic Margherita tomato base.</li>
+                <li>Oregano is not standard in the classic Margherita tomato base.</li>
+                <li>Sugar is not automatically required.</li>
+                <li>The tomato base is generally not precooked for a fast-baked Neapolitan pizza.</li>
+              </ul>
+            </article>
+            <article className="rounded-[1.5rem] bg-flour p-5">
+              <h3 className="text-lg font-extrabold">Pizza Marinara</h3>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                Traditional Marinara includes tomato, garlic, oregano and extra-virgin olive oil. Despite the name, it
+                is not a seafood sauce. It is the classic cheese-free tomato pizza profile.
+              </p>
+            </article>
+            <article className="rounded-[1.5rem] border border-tomato/20 bg-tomato/10 p-5">
+              <h3 className="text-lg font-extrabold">Home-oven adaptation</h3>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                A longer bake at lower heat may benefit from more controlled moisture, a somewhat thicker consistency,
+                optional brief cooking or draining, and style-specific seasoning. This is an adaptation, not the AVPN
+                Margherita method.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <div className="mt-12">
+          <SauceCalculator />
+        </div>
+
+        <section id="three-methods" className="mt-16 scroll-mt-24" aria-labelledby="methods-title">
+          <div className="max-w-3xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Three sauce methods</p>
+            <h2 id="methods-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
+              Choose the method from the oven and the pizza, not habit.
+            </h2>
+          </div>
+          <div className="mt-8 grid gap-5">
+            {methods.map((method) => (
+              <article key={method.title} className="overflow-hidden rounded-[2rem] border border-ink/10 bg-card shadow-card lg:grid lg:grid-cols-[0.72fr_1.28fr]">
+                <div className="relative min-h-[18rem]">
+                  <Image src={method.image} alt={method.alt} fill sizes="(max-width: 1024px) 100vw, 40vw" className="object-cover" />
+                </div>
+                <div className="p-5 sm:p-7 lg:p-9">
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">{method.label}</p>
+                  <h3 className="mt-2 font-display text-3xl font-semibold">{method.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-muted">{method.summary}</p>
+                  <div className="mt-5 grid gap-5 lg:grid-cols-[0.55fr_1fr]">
+                    <div>
+                      <h4 className="text-sm font-extrabold">Ingredients</h4>
+                      <ul className="mt-2 space-y-1 text-sm leading-6 text-muted">
+                        {method.ingredients.map((ingredient) => <li key={ingredient}>• {ingredient}</li>)}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-extrabold">Method</h4>
+                      <ol className="mt-2 space-y-2 text-sm leading-6 text-muted">
+                        {method.steps.map((step, index) => <li key={step}><strong className="text-ink">{index + 1}. </strong>{step}</li>)}
+                      </ol>
+                    </div>
+                  </div>
+                  <p className="mt-5 rounded-2xl bg-flour p-4 text-sm leading-6 text-muted">{method.note}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]" aria-labelledby="tomato-title">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Tomato selection</p>
+            <h2 id="tomato-title" className="mt-3 font-display text-4xl font-semibold">
+              Choose tomatoes for flavor, not for the label alone.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-muted">
+              Look for ripe tomato flavor, balanced sweetness and acidity, low bitterness, enough flesh, and limited
+              unnecessary additives. The label helps, but tasting teaches more.
+            </p>
+          </div>
+          <div className="grid gap-3">
+            {tomatoTypes.map(([title, body]) => (
+              <article key={title} className="rounded-2xl border border-ink/10 bg-card p-5 shadow-soft">
+                <h3 className="text-base font-extrabold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16 rounded-[2rem] bg-forest-dark p-5 text-white shadow-card sm:p-8 lg:p-10" aria-labelledby="texture-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Texture and moisture</p>
+          <h2 id="texture-title" className="mt-3 font-display text-4xl font-semibold">
+            Sauce texture is a baking decision.
+          </h2>
+          <div className="mt-7 grid gap-4 lg:grid-cols-3">
+            {textureStates.map((state) => (
+              <article key={state.title} className="rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
+                <DoughToolsIcon name={state.icon} className="text-oven-gold" size={32} />
+                <h3 className="mt-4 text-lg font-extrabold">{state.title}</h3>
+                <dl className="mt-4 space-y-3 text-sm leading-6 text-white/68">
+                  <div><dt className="font-extrabold text-white">Appearance</dt><dd>{state.appearance}</dd></div>
+                  <div><dt className="font-extrabold text-white">Likely result</dt><dd>{state.result}</dd></div>
+                  <div><dt className="font-extrabold text-white">Correction</dt><dd>{state.correction}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16" aria-labelledby="roles-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Ingredient roles</p>
+          <h2 id="roles-title" className="mt-3 font-display text-4xl font-semibold">
+            Every ingredient should have a reason.
+          </h2>
+          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {ingredientRoles.map(([title, body]) => (
+              <article key={title} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft">
+                <h3 className="text-base font-extrabold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16 overflow-hidden rounded-[2rem] border border-ink/10 bg-card shadow-card" aria-labelledby="application-title">
+          <div className="grid lg:grid-cols-[1fr_1fr]">
+            <div className="relative min-h-[20rem]">
+              <Image src="/sauce/marinara.webp" alt="Pizza with a balanced tomato sauce layer spread inside the rim" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+            </div>
+            <div className="p-5 sm:p-8 lg:p-10">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Sauce application</p>
+              <h2 id="application-title" className="mt-3 font-display text-4xl font-semibold">
+                How much sauce should go on the pizza?
+              </h2>
+              <ul className="mt-5 space-y-3 text-sm leading-7 text-muted">
+                <li>Weigh the sauce during initial practice.</li>
+                <li>Start with the calculator’s balanced amount.</li>
+                <li>Place sauce in the center and spread outward in a controlled spiral.</li>
+                <li>Leave the cornicione clear.</li>
+                <li>Avoid large pools and judge coverage together with cheese moisture and oven type.</li>
+                <li>Remember that pizza diameter matters; use grams per pizza as a starting point and adjust by result.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-16" aria-labelledby="mistakes-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Common mistakes and corrections</p>
+          <h2 id="mistakes-title" className="mt-3 font-display text-4xl font-semibold">
+            Diagnose the sauce by what happens on the pizza.
+          </h2>
+          <div className="mt-7 grid gap-4 lg:grid-cols-2">
+            {mistakes.map((mistake) => (
+              <article key={mistake.title} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft">
+                <h3 className="text-lg font-extrabold">{mistake.title}</h3>
+                <dl className="mt-4 grid gap-3 text-sm leading-6 text-muted">
+                  <div><dt className="font-extrabold text-ink">What happens</dt><dd>{mistake.happens}</dd></div>
+                  <div><dt className="font-extrabold text-ink">Likely cause</dt><dd>{mistake.cause}</dd></div>
+                  <div><dt className="font-extrabold text-ink">What to do now</dt><dd>{mistake.now}</dd></div>
+                  <div><dt className="font-extrabold text-ink">Change next time</dt><dd>{mistake.next}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+          <Link href="/guide/pizza-troubleshooting" className="mt-5 inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-forest">
+            Open the Pizza Troubleshooting Guide
+          </Link>
+        </section>
+
+        <section className="mt-16 rounded-[2rem] border border-ink/10 bg-flour p-5 shadow-soft sm:p-8" aria-labelledby="storage-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Storage and food safety</p>
+          <h2 id="storage-title" className="mt-3 font-display text-4xl font-semibold">
+            Keep sauce clean, cold and clearly dated.
+          </h2>
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <ul className="space-y-2 text-sm leading-7 text-muted">
+              <li>Refrigerate promptly in a clean covered container.</li>
+              <li>Keep raw tomato sauce cold until use.</li>
+              <li>Avoid repeatedly warming and cooling the same batch.</li>
+              <li>Use clean utensils and divide large batches into smaller containers when useful.</li>
+            </ul>
+            <ul className="space-y-2 text-sm leading-7 text-muted">
+              <li>Label the preparation date.</li>
+              <li>Freeze excess when appropriate.</li>
+              <li>Discard sauce showing spoilage, fermentation, mold, off odors or unsafe handling history.</li>
+              <li>USDA leftover guidance uses 3–4 days refrigerated or 3–4 months frozen as a general safety reference.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-labelledby="related-title">
+          <div className="sm:col-span-2 lg:col-span-3">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Related learning</p>
+            <h2 id="related-title" className="mt-3 font-display text-4xl font-semibold">Keep the sauce connected to the whole pizza.</h2>
+          </div>
+          {relatedLinks.map(([title, href, body]) => (
+            <Link key={href} href={href} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-card">
+              <h3 className="text-base font-extrabold">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+            </Link>
+          ))}
+        </section>
+
+        <section className="mt-16 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-10 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/70">Ready to use the sauce in a real pizza plan?</p>
+            <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Plan my next pizza with the sauce in mind.</h2>
+          </div>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-0">
+            <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-extrabold text-tomato shadow-soft transition hover:-translate-y-0.5 hover:bg-flour">
+              Plan my next pizza
+            </Link>
+            <Link href="/guide" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-white/10">
+              Return to the Pizza Learning Center
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-12 rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft" aria-labelledby="sources-title">
+          <h2 id="sources-title" className="font-display text-2xl font-semibold">Sources and methodology</h2>
+          <p className="mt-3 text-sm leading-7 text-muted">
+            Traditional Neapolitan claims are based on AVPN regulations and preparation guidance. Practical adaptations
+            are labeled as DoughTools recommendations or expert-style adaptations. Food-safety timing uses USDA leftover
+            guidance. See <code className="rounded bg-flour px-1 py-0.5">docs/research/pizza-sauce-sources.md</code> for
+            concise source notes.
+          </p>
+        </section>
+
+        <footer className="mt-12 border-t border-ink/10 py-6">
+          <AppSignature />
+        </footer>
+      </div>
+    </main>
+  );
 }
