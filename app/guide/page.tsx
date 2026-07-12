@@ -1,290 +1,518 @@
-"use client";
-
-import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import AppSignature from "@/components/AppSignature";
-import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
-import { getEducationExperienceCopy } from "@/lib/education-experience-copy";
-import { readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 
-const flourProducts = [
-  { maker: "W 220–240", name: "Caputo Classica", image: "/flours/caputo-classica.png", source: "https://www.mulinocaputo.it/prodotti/classica-5kg/" },
-  { maker: "W 260–280", name: "Caputo Pizzeria", image: "/flours/caputo-pizzeria.png", source: "https://www.mulinocaputo.it/prodotti/pizzeria/" },
-  { maker: "W 270–290", name: "Caputo Nuvola", image: "/flours/caputo-nuvola.png", source: "https://www.mulinocaputo.it/prodotti/nuvola/" },
-  { maker: "W 320–340", name: "Caputo Nuvola Super", image: "/flours/caputo-nuvola-super.png", source: "https://www.mulinocaputo.it/prodotti/nuvola-super-5kg/" },
-  { maker: "W 360–380", name: "Caputo Manitoba Oro", image: "/flours/caputo-manitoba.png", source: "https://www.mulinocaputo.it/prodotti/manitoba-oro/" },
-] as const;
+type ProblemEntry = {
+  title: string;
+  description: string;
+  href: string;
+  icon: DoughToolsIconName;
+};
 
-const content = {
-  fi: {
-    back: "Takaisin laskuriin", eyebrow: "DoughTools-opas", title: "Ohjeet ja terminologia",
-    intro: "Mitä luvut tarkoittavat, miten resepti lasketaan ja missä kohtaa tarvitaan leipurin omaa harkintaa.",
-    nav: [["Perusteet", "basics"], ["Jauhot", "flours"], ["Asetukset", "settings"], ["Kohotteet", "leavening"], ["Tarkkuus", "accuracy"]],
-    basicsTitle: "1. Taikinan perusteet", flourChapter: "2. Jauhot ja vahvuus", settingsChapter: "3. Asetusten yhteispeli", leaveningChapter: "4. Hiiva ja juuri", accuracyChapter: "5. Mitä laskuri tietää?",
-    sections: [
-      {
-        title: "Leipurin prosentit",
-        body: "Jauhojen kokonaismäärä on aina 100 %. Vesi, suola ja kohote ilmoitetaan prosentteina jauhojen painosta. Esimerkiksi 65 % hydraatio tarkoittaa 650 g vettä jokaista 1 000 g jauhoa kohti.",
-      },
-      {
-        title: "Näin kokonaisresepti lasketaan",
-        body: "Tavoiteltu taikinamäärä on pizzojen määrä × pallon paino × hävikkivara. Jauhomäärä ratkaistaan niin, että jauhot, vesi, suola ja kohote muodostavat yhdessä täsmälleen tavoitellun kokonaismassan. Juuren sisältämä jauho ja vesi vähennetään erikseen lisättävistä määristä.",
-      },
-      {
-        title: "Aika ja lämpötila",
-        body: "Lämpimämpi taikina käy nopeammin ja tarvitsee vähemmän kohotetta; kylmempi taikina käy hitaammin. Huonekohotuksessa lämpötilaa voi säätää. Kylmäkohotuksen valmiit asetukset käyttävät 4°C jääkaappilämpötilaa. Tulokset ovat lähtöarvoja, sillä myös jauho, taikinan lämpötila ja jääkaapin todellinen lämpö vaikuttavat.",
-      },
-    ],
-    yeastTitle: "Kohotustavat",
-    yeasts: [
-      ["CY", "Tuore- eli puristehiiva", "Pehmeä, jääkaapissa säilytettävä leivinhiiva. Tunnetaan myös nimillä fresh yeast ja compressed yeast."],
-      ["ADY", "Aktiivikuivahiiva", "Kuivahiiva, joka tavallisesti aktivoidaan nesteessä ennen käyttöä. Englanniksi Active Dry Yeast."],
-      ["IDY", "Pikakuivahiiva", "Suoraan jauhoihin sekoitettava tehokas kuivahiiva. Englanniksi Instant Dry Yeast. Suomessa tavallinen kuivahiiva on usein tätä tyyppiä."],
-      ["SSD", "Jäykkä juuri, 50 %", "Hapanjuuri, jossa on puolet vettä jauhojen painosta. Lyhenne ei ole yleismaailmallinen; Italiassa käytetään myös nimiä lievito madre ja pasta madre."],
-      ["LSD", "Nestemäinen juuri, 100 %", "Hapanjuuri, jossa on yhtä paljon vettä ja jauhoa. Tunnetaan myös nimillä liquid starter, liquid levain ja licoli."],
-    ],
-    flourTitle: "Eurooppalaiset vehnäjauhot",
-    flourIntro: "Pussin tyyppinumero ja jauhon vahvuus eivät ole sama asia. Tyyppi kertoo yleensä jauhatusasteesta tai mineraalipitoisuudesta; W-arvo kertoo paremmin, kuinka vahvan ja kaasua pidättävän taikinan jauho muodostaa.",
-    productTitle: "Oikeita pizzajauhoja eri vahvuuksilla", productIntro: "Saman valmistajan pussit näyttävät selvästi, ettei Tipo 00 yksin kerro vahvuutta. W-arvo valitaan kohotusajan, hydraation ja tavoitellun rakenteen mukaan. Tuotteet ovat esimerkkejä, eivät sponsoreita.", productLink: "Valmistajan tiedot",
-    productNotes: ["Lyhyelle kohotukselle ja maltilliselle hydraatiolle. Sopii parhaiten saman päivän, ohuempaan tai vähemmän märkään taikinaan.", "Klassisen napolilaisen yleisvahvuus: tasapainoinen sitko, noin 60–68 % hydraatio ja lyhyt tai keskipitkä kohotus.", "Ilmavaan, hyvin hydratoituun contemporary-tyyliin. Hieman Pizzeriaa vahvempi ja suunniteltu avoimempaan reunarakenteeseen.", "Vahva jauho korkeaan hydraatioon ja pitkään kohotukseen. Sopii ilmavaan pizzaan, kun W 270–290 ei enää riitä ajalle tai vesimäärälle.", "Erittäin vahva jauho hyvin pitkään fermentaatioon tai jauhoseoksen vahvistamiseen. Yksin käytettynä tavallinen pizza voi jäädä turhan sitkeäksi."],
-    flours: [
-      ["Italia", "Tipo 00 / 0", "00 on hyvin hienoksi jauhettu ja vähätuhkainen, mutta voi olla heikko tai vahva. Pizzaan tarkista lisäksi W-arvo ja mahdollinen P/L-arvo."],
-      ["Ranska", "T45 / T55 / T65", "T-luku perustuu mineraali- eli tuhkapitoisuuteen. T55 on yleinen vaalea jauho; pussin proteiini- tai vahvuustieto ratkaisee pitkän pizzakohotuksen sopivuuden."],
-      ["Saksa ja Itävalta", "405 / 550 / 1050", "Numero kertoo mineraalipitoisuudesta. Type 550 on usein leipä- ja pizzakäyttöön sopivampi kuin 405, mutta vahvuus vaihtelee valmistajittain."],
-      ["Suomi", "Erikoisvehnä / puolikarkea", "Nimet kertovat käyttötavasta ja jauhatuksesta, eivät tarkkaa W-arvoa. Tarkista proteiinipitoisuus ja valmistajan suositus; pitkä tai hyvin märkä taikina tarvitsee yleensä vahvemman jauhon."],
-      ["Espanja ja Britannia", "Harina de fuerza / strong bread flour", "Nimi viittaa vahvaan, runsasproteiiniseen jauhoon. Se sopii tavallisesti pitkään kohotukseen ja korkeampaan hydraatioon, mutta W-arvo on proteiinilukua tarkempi mittari."],
-    ],
-    strengthTitle: "Mitä W-vahvuus muuttaa?",
-    strengths: [
-      ["Alle W 220", "Lyhyt kohotus, yleensä noin 55–63 % hydraatio. Liian pitkä tai märkä taikina voi levitä ja menettää kaasunsa."],
-      ["W 220–280", "Monipuolinen alue klassiselle pizzalle, noin 60–68 % hydraatiolle ja lyhyelle tai keskipitkälle kohotukselle."],
-      ["W 280–340", "Pitkät 24–72 tunnin kohotukset ja noin 65–75 % hydraatio. Taikina kestää enemmän vettä ja fermentaatiota."],
-      ["Yli W 340", "Erittäin vahva jauho tai sekoite hyvin pitkiin ja märkiin taikinoihin. Tavallisessa taikinassa lopputulos voi jäädä turhan sitkeäksi."],
-    ],
-    relationTitle: "Miten asetukset liittyvät toisiinsa?",
-    relations: [
-      ["Hydraatio + jauho", "Lisävesi voi tehdä reunasta avoimemman ja pehmeämmän, mutta vain jos jauho ja käsittely pitävät kaasun. Vahvempi jauho sietää yleensä enemmän vettä."],
-      ["Aika + jauho", "Mitä pidempi kohotus, sitä vahvempi jauhokehikko yleensä tarvitaan. Liian heikko jauho hajoaa; tarpeettoman vahva jauho voi olla tiukka ja sitkeä."],
-      ["Suola + taikina", "Noin 2,5–3,0 % suolaa tuo maun lisäksi rakennetta ja hidastaa käymistä. Suolaa ei kannata käyttää jauhon heikkouden varsinaisena korjauksena."],
-      ["Pallopaino + koko", "Pallopaino määrää pizzan paksuutta yhdessä halkaisijan kanssa. Tässä sovelluksessa keskikoko tarkoittaa 30–32 cm: noin 250–280 g napolilaiseen, 280–330 g New York -tyyliin, 200–230 g ohueen ja 350–500 g pannupizzaan."],
-      ["Uuni + tyyli", "400–500°C suosii nopeasti paistuvaa napolilaista ja kohtuullista hydraatiota. 250–300°C sähköuunissa pidempi paisto hyötyy usein hieman erilaisesta taikinasta; pannupizza kestää hyvin korkean hydraation."],
-    ],
-    setupTitle: "Esimerkkikokonaisuuksia keskikokoiselle pizzalle",
-    setups: [
-      ["Tasapainoinen sähköuuni", "270 g · 65 % · suola 2,8 % · W 260–300 · 24 h kylmä"],
-      ["Erittäin ilmava sähköuuni", "280 g · 72 % · suola 2,8 % · W 300–340 · 48 h kylmä"],
-      ["Klassinen kuuma pizzauuni", "260 g · 64 % · suola 2,8 % · W 250–290 · 12 h huone"],
-      ["Ohut ja rapea", "230 g · 62 % · suola 2,6 % · W 240–280 · 48 h kylmä"],
-      ["Ilmava 28 cm pannupizza", "450 g · 75 % · suola 2,8 % · W 300–350 · 48 h kylmä"],
-    ],
-    ovenTitle: "Ooni, Chef Matteo ja muut kaasupizzauunit",
-    ovenIntro: "Merkki ei yksin määrää pallopainoa: ratkaisevia ovat tavoiteltu halkaisija ja pizzatyyli. Kuuma 400–500°C uuni vaikuttaa enemmän hydraatioon ja paistoaikaan kuin pallon kokoon.",
-    ovens: [["12” / 30 cm", "250–260 g", "Hyvä keskikoko Ooni 12 -uuneihin ja kaikkiin suurempiin uuneihin."], ["14” / 35 cm", "noin 300 g", "Sopii 16-tuumaiseen Ooni- tai Chef Matteo -uuniin, kun haluat isomman pizzan."], ["16” / 40 cm", "noin 350 g", "Oonin oma lähtöpaino 16-tuumaiseen pizzaan; vaatii 16” paistopinnan kuten Chef Matteo Crosta 16."], ["Ohut 30–32 cm", "200–230 g", "Kun tavoite on matala ja rapea pizza tavallisen napolilaisen reunan sijaan."]],
-    exactTitle: "Tarkka laskenta vai arvio?",
-    exact: "Ainesmassojen ja leipurin prosenttien laskenta on tarkkaa matematiikkaa. Kohotteen määrä on käytännön arvio, joka perustuu valittuun aikaan, lämpötilaan ja kohotteen tyyppiin. Erityisesti hapanjuuren aktiivisuus vaihtelee, joten ensimmäistä paistoa kannattaa käyttää oman keittiön kalibrointiin.",
+type Concept = {
+  id: string;
+  icon: DoughToolsIconName;
+  name: string;
+  definition: string;
+  why: string;
+  effect: string;
+  commonIssue: string;
+  next: string;
+  related: Array<{ label: string; href: string }>;
+  action?: { label: string; href: string };
+};
+
+const problemEntries: ProblemEntry[] = [
+  {
+    title: "My dough is sticky",
+    description: "Understand hydration, flour absorption, temperature, and handling.",
+    href: "#hydration",
+    icon: "water",
   },
-  en: {
-    back: "Back to calculator", eyebrow: "DoughTools guide", title: "Guide and glossary",
-    intro: "What the numbers mean, how the recipe is calculated, and where a baker's judgement still matters.",
-    nav: [["Basics", "basics"], ["Flours", "flours"], ["Settings", "settings"], ["Leavening", "leavening"], ["Accuracy", "accuracy"]],
-    basicsTitle: "1. Dough basics", flourChapter: "2. Flour and strength", settingsChapter: "3. How settings interact", leaveningChapter: "4. Yeast and starter", accuracyChapter: "5. What does the calculator know?",
-    sections: [
-      { title: "Baker's percentages", body: "Total flour is always 100%. Water, salt and leavening are expressed as percentages of flour weight. For example, 65% hydration means 650 g of water for every 1,000 g of flour." },
-      { title: "How the complete recipe is calculated", body: "Target dough equals pizza count × ball weight × waste allowance. Flour is solved so flour, water, salt and leavening add up to exactly the target mass. Flour and water already present in a sourdough starter are deducted from the amounts added separately." },
-      { title: "Time and temperature", body: "Warmer dough ferments faster and needs less leavening; colder dough ferments more slowly. Room temperature can be adjusted. The cold-fermentation presets use a fixed refrigerator temperature of 4°C. Results are starting points because flour, actual dough temperature and refrigerator temperature also matter." },
-    ],
-    yeastTitle: "Leavening types",
-    yeasts: [
-      ["CY", "Compressed or fresh yeast", "Soft refrigerated baker's yeast, also known as cake yeast."],
-      ["ADY", "Active Dry Yeast", "Dry yeast that is normally activated in liquid before use."],
-      ["IDY", "Instant Dry Yeast", "Fast-acting dry yeast that can be mixed directly into flour."],
-      ["SSD", "Stiff sourdough, 50%", "A starter containing half as much water as flour. SSD is not a universal abbreviation; lievito madre and pasta madre are also used."],
-      ["LSD", "Liquid sourdough, 100%", "A starter containing equal weights of flour and water, also called liquid starter, liquid levain or licoli."],
-    ],
-    flourTitle: "European wheat flours",
-    flourIntro: "A flour type number and flour strength are not the same thing. Type usually describes refinement or mineral content; the W value is a better guide to how strongly the dough can hold fermentation gas.",
-    productTitle: "Real pizza flours at different strengths", productIntro: "Bags from one mill make it clear that Tipo 00 alone does not define strength. Choose W according to fermentation time, hydration and the intended structure. Products are examples, not sponsors.", productLink: "Manufacturer details",
-    productNotes: ["For short fermentation and moderate hydration. Best suited to same-day, thinner or less hydrated dough.", "A classic Neapolitan all-round strength: balanced gluten, roughly 60–68% hydration, and short to medium fermentation.", "For airy, well-hydrated contemporary pizza. Slightly stronger than Pizzeria and designed for a more open rim structure.", "Strong flour for high hydration and long fermentation. Useful for airy pizza when W 270–290 no longer supports the time or water level.", "Very strong flour for extremely long fermentation or strengthening a flour blend. Used alone, it may make an ordinary pizza unnecessarily chewy."],
-    flours: [
-      ["Italy", "Tipo 00 / 0", "00 is finely milled and low in ash, but it can be weak or strong. For pizza, also check the W value and, when available, P/L."],
-      ["France", "T45 / T55 / T65", "The T number is based on mineral or ash content. T55 is a common white flour; protein or strength information determines suitability for long pizza fermentation."],
-      ["Germany and Austria", "405 / 550 / 1050", "The number describes mineral content. Type 550 is often more suitable for bread and pizza than 405, but strength still varies by mill."],
-      ["Finland", "Erikoisvehnä / puolikarkea", "The names describe use and milling rather than an exact W value. Check protein and the mill's recommendation; long or wet dough normally needs stronger flour."],
-      ["Spain and Britain", "Harina de fuerza / strong bread flour", "These names indicate strong, higher-protein flour. They are often suitable for long fermentation and more water, although W is more precise than protein alone."],
-    ],
-    strengthTitle: "What does W strength change?",
-    strengths: [
-      ["Below W 220", "Short fermentation and commonly about 55–63% hydration. Too much time or water can make the dough spread and lose gas."],
-      ["W 220–280", "A versatile range for classic pizza, roughly 60–68% hydration, and short to medium fermentation."],
-      ["W 280–340", "Long 24–72 hour fermentation and roughly 65–75% hydration. The dough tolerates more water and fermentation."],
-      ["Above W 340", "Very strong flour or blends for extremely long and wet doughs. It may feel unnecessarily tight or chewy in an ordinary recipe."],
-    ],
-    relationTitle: "How do the settings work together?",
-    relations: [
-      ["Hydration + flour", "More water can create a softer, more open crust, but only when flour and handling retain the gas. Stronger flour generally tolerates more water."],
-      ["Time + flour", "Longer fermentation generally needs a stronger gluten network. Weak flour can break down; unnecessarily strong flour may remain tight and chewy."],
-      ["Salt + dough", "Around 2.5–3.0% salt adds structure and slows fermentation as well as adding flavour. Salt should not be used as the main fix for flour that is too weak."],
-      ["Ball weight + size", "Ball weight controls thickness together with diameter. In this app, medium means 30–32 cm: about 250–280 g for Neapolitan, 280–330 g for New York, 200–230 g for thin crust, and 350–500 g for pan pizza."],
-      ["Oven + style", "400–500°C suits fast-baked Neapolitan pizza with moderate hydration. A 250–300°C electric oven bakes longer and often benefits from a different setup; pan pizza handles high hydration well."],
-    ],
-    setupTitle: "Example medium-pizza setups",
-    setups: [
-      ["Balanced electric oven", "270 g · 65% · salt 2.8% · W 260–300 · 24h cold"],
-      ["Very airy electric oven", "280 g · 72% · salt 2.8% · W 300–340 · 48h cold"],
-      ["Classic hot pizza oven", "260 g · 64% · salt 2.8% · W 250–290 · 12h room"],
-      ["Thin and crispy", "230 g · 62% · salt 2.6% · W 240–280 · 48h cold"],
-      ["Airy 28 cm pan pizza", "450 g · 75% · salt 2.8% · W 300–350 · 48h cold"],
-    ],
-    ovenTitle: "Ooni, Chef Matteo and other gas pizza ovens",
-    ovenIntro: "Brand alone does not determine ball weight: target diameter and pizza style do. A hot 400–500°C oven affects hydration and baking time more than ball size.",
-    ovens: [["12” / 30 cm", "250–260 g", "A good medium size for Ooni 12 ovens and every larger oven."], ["14” / 35 cm", "about 300 g", "Fits a 16-inch Ooni or Chef Matteo oven when you want a larger pizza."], ["16” / 40 cm", "about 350 g", "Ooni's own starting weight for a 16-inch pizza; requires a 16-inch cooking surface such as Chef Matteo Crosta 16."], ["Thin 30–32 cm", "200–230 g", "For a low, crisp pizza instead of a classic Neapolitan rim."]],
-    exactTitle: "Exact calculation or estimate?",
-    exact: "Ingredient masses and baker's percentages are exact mathematics. The amount of leavening is a practical estimate based on time, temperature and leavening type. Sourdough activity varies especially widely, so use the first bake to calibrate the calculator to your kitchen.",
+  {
+    title: "My dough will not stretch",
+    description: "Learn how gluten strength, temperature, and resting affect extensibility.",
+    href: "#gluten-development",
+    icon: "wheat",
   },
-} as const;
+  {
+    title: "My crust is dense",
+    description: "Check fermentation, dough handling, flour strength, and baking heat.",
+    href: "#fermentation",
+    icon: "timer",
+  },
+  {
+    title: "My dough spreads or collapses",
+    description: "Learn how over-fermentation, weak flour, and temperature affect structure.",
+    href: "#fermentation",
+    icon: "warning",
+  },
+  {
+    title: "I do not know which flour to choose",
+    description: "Understand flour type, protein, W strength, and fermentation fit.",
+    href: "#flour-strength",
+    icon: "wheat",
+  },
+  {
+    title: "I use a home oven",
+    description: "Learn how lower heat changes dough, toppings, preheating, and bake time.",
+    href: "#oven-heat",
+    icon: "oven",
+  },
+  {
+    title: "I want a lighter, airier crust",
+    description: "Understand the combined effect of hydration, strength, fermentation, handling, and heat.",
+    href: "#hydration-comparison",
+    icon: "experience-level",
+  },
+  {
+    title: "I am confused by pizza percentages",
+    description: "Learn baker’s percentages through one concrete recipe example.",
+    href: "#bakers-percentages",
+    icon: "scale",
+  },
+];
+
+const concepts: Concept[] = [
+  {
+    id: "hydration",
+    icon: "water",
+    name: "Hydration",
+    definition: "The amount of water compared with flour.",
+    why: "It changes how soft, sticky, extensible, and open the dough can become.",
+    effect: "Higher hydration can create a lighter structure, but only when the flour, fermentation, handling, and oven support it.",
+    commonIssue: "Adding water without enough flour strength or handling skill can make dough feel messy rather than airy.",
+    next: "Change hydration together with flour, fermentation, and the way you handle the dough.",
+    related: [
+      { label: "Flour strength", href: "#flour-strength" },
+      { label: "Gluten development", href: "#gluten-development" },
+      { label: "Fermentation", href: "#fermentation" },
+      { label: "Oven heat", href: "#oven-heat" },
+    ],
+    action: { label: "Use the Quick Dough Calculator", href: "/calculator/quick" },
+  },
+  {
+    id: "fermentation",
+    icon: "timer",
+    name: "Fermentation",
+    definition: "The period when yeast and enzymes change the dough’s flavour, gas, and handling.",
+    why: "It affects rise, flavour, extensibility, strength, and timing.",
+    effect: "More time can improve flavour and openness, but too much time or warmth can weaken the dough.",
+    commonIssue: "Clock time alone can mislead you if temperature, flour strength, or dough condition is different.",
+    next: "Use time as a plan, then check the dough’s condition before stretching.",
+    related: [
+      { label: "Dough temperature", href: "#dough-temperature" },
+      { label: "Yeast", href: "#yeast" },
+      { label: "Flour strength", href: "#flour-strength" },
+    ],
+    action: { label: "Open the Dough Guide", href: "/guides/dough" },
+  },
+  {
+    id: "dough-temperature",
+    icon: "thermometer",
+    name: "Dough temperature",
+    definition: "How warm or cool the dough actually is while it ferments.",
+    why: "Temperature changes fermentation speed more than many people expect.",
+    effect: "Warmer dough moves faster; colder dough moves more slowly and may need more time.",
+    commonIssue: "A room-temperature plan can behave differently if the room is much warmer or cooler than expected.",
+    next: "Think about the dough’s real environment, not only the recipe’s written time.",
+    related: [
+      { label: "Fermentation", href: "#fermentation" },
+      { label: "Yeast", href: "#yeast" },
+      { label: "Oven heat", href: "#oven-heat" },
+    ],
+  },
+  {
+    id: "flour-strength",
+    icon: "wheat",
+    name: "Flour strength",
+    definition: "How much structure the flour can build and hold during mixing and fermentation.",
+    why: "It affects how much water, time, and handling the dough can support.",
+    effect: "Stronger flour can tolerate longer fermentation and more water, but it can also feel tighter if the plan does not need it.",
+    commonIssue: "Choosing flour by type name alone, such as 00, does not tell you the full strength story.",
+    next: "Match flour strength to fermentation time, hydration, and the pizza style you want.",
+    related: [
+      { label: "Hydration", href: "#hydration" },
+      { label: "Gluten development", href: "#gluten-development" },
+      { label: "Fermentation", href: "#fermentation" },
+    ],
+  },
+  {
+    id: "gluten-development",
+    icon: "wheat",
+    name: "Gluten development",
+    definition: "The structure that forms when flour and water are mixed, rested, folded, or kneaded.",
+    why: "It helps the dough hold gas while still stretching into a pizza base.",
+    effect: "More development can add strength; rest can make tight dough more extensible.",
+    commonIssue: "A dough that tears or resists stretching may need rest, not more force.",
+    next: "Build enough strength early, then let rest and fermentation make the dough easier to open.",
+    related: [
+      { label: "Hydration", href: "#hydration" },
+      { label: "Flour strength", href: "#flour-strength" },
+      { label: "Ball weight and pizza size", href: "#ball-weight" },
+    ],
+    action: { label: "Learn the dough steps", href: "/guides/dough?step=develop-dough" },
+  },
+  {
+    id: "yeast",
+    icon: "yeast",
+    name: "Yeast",
+    definition: "The leavening that produces gas and helps the dough rise over time.",
+    why: "The amount and type affect how quickly the dough reaches the right condition.",
+    effect: "More yeast moves faster; less yeast gives a longer runway, especially with cooler fermentation.",
+    commonIssue: "Too much yeast for the time and temperature can push the dough past its best point.",
+    next: "Adjust yeast with fermentation time and temperature rather than treating it as a fixed amount.",
+    related: [
+      { label: "Fermentation", href: "#fermentation" },
+      { label: "Dough temperature", href: "#dough-temperature" },
+      { label: "Salt", href: "#salt" },
+    ],
+  },
+  {
+    id: "salt",
+    icon: "salt",
+    name: "Salt",
+    definition: "A small ingredient that affects flavour, structure, and fermentation speed.",
+    why: "It makes pizza taste complete and helps tighten the dough structure.",
+    effect: "More salt can slow fermentation and strengthen feel; too little can taste flat and ferment quickly.",
+    commonIssue: "Salt cannot fully rescue weak flour or a plan that is too warm and long.",
+    next: "Use salt as part of the dough balance, not as the only control lever.",
+    related: [
+      { label: "Yeast", href: "#yeast" },
+      { label: "Fermentation", href: "#fermentation" },
+      { label: "Baker’s percentages", href: "#bakers-percentages" },
+    ],
+  },
+  {
+    id: "ball-weight",
+    icon: "scale",
+    name: "Ball weight and pizza size",
+    definition: "How much dough is used for each pizza.",
+    why: "It changes thickness, diameter, rim size, and how easy the pizza is to handle.",
+    effect: "A heavier ball can make a larger or thicker pizza; a lighter ball can feel thinner and more delicate.",
+    commonIssue: "Changing diameter without changing ball weight can make the pizza feel unexpectedly thin or heavy.",
+    next: "Choose ball weight together with the pizza style and the size you want to bake.",
+    related: [
+      { label: "Hydration", href: "#hydration" },
+      { label: "Oven heat", href: "#oven-heat" },
+      { label: "Baker’s percentages", href: "#bakers-percentages" },
+    ],
+    action: { label: "Calculate a quick recipe", href: "/calculator/quick" },
+  },
+  {
+    id: "oven-heat",
+    icon: "flame",
+    name: "Oven heat and bake profile",
+    definition: "The heat available from the oven, baking surface, and bake time.",
+    why: "It affects rise, browning, topping moisture, and whether the base sets before the crust dries.",
+    effect: "A hot pizza oven bakes quickly; a home oven usually needs longer preheating and a different topping balance.",
+    commonIssue: "Using pizza-oven assumptions in a home oven can leave the base pale or soft.",
+    next: "Match dough, toppings, surface, and timing to the oven you actually use.",
+    related: [
+      { label: "Hydration", href: "#hydration" },
+      { label: "Ball weight and pizza size", href: "#ball-weight" },
+      { label: "Fermentation", href: "#fermentation" },
+    ],
+    action: { label: "Troubleshoot baking problems", href: "/guide/pizza-troubleshooting" },
+  },
+  {
+    id: "bakers-percentages",
+    icon: "scale",
+    name: "Baker’s percentages",
+    definition: "A recipe language where flour is 100% and other ingredients are compared with flour weight.",
+    why: "It makes recipes easier to scale without changing their balance.",
+    effect: "The percentages describe the dough’s relationships; the gram amounts change with pizza count and ball weight.",
+    commonIssue: "A percentage is not a serving size. It only becomes a recipe after the total dough target is chosen.",
+    next: "Use percentages to understand the formula, then calculate the actual grams you need.",
+    related: [
+      { label: "Hydration", href: "#hydration" },
+      { label: "Salt", href: "#salt" },
+      { label: "Ball weight and pizza size", href: "#ball-weight" },
+    ],
+    action: { label: "Try it in the calculator", href: "/calculator/quick" },
+  },
+];
+
+const journey = [
+  { label: "Plan", text: "Choose the pizza, timing, oven, and dough direction.", icon: "calendar" },
+  { label: "Shop", text: "Turn the plan into a practical shopping list.", icon: "shopping-basket" },
+  { label: "Prepare", text: "Follow the dough work at the right time.", icon: "kitchen-mode" },
+  { label: "Bake", text: "Use the oven profile that fits your setup.", icon: "oven" },
+  { label: "Improve", text: "Review what happened and adjust the next bake.", icon: "history" },
+] as const satisfies Array<{ label: string; text: string; icon: DoughToolsIconName }>;
 
 export default function Guide() {
-  const t = content.en;
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
-  const levelCopy = getEducationExperienceCopy(experienceLevel).guide;
-
-  useEffect(() => {
-    document.documentElement.lang = "en";
-    setExperienceLevel(readExperienceLevelPreference());
-  }, []);
-
   return (
-    <main className="guide-page min-h-screen px-4 py-5 sm:px-6 sm:py-10">
-      <div className="relative z-10 mx-auto max-w-5xl">
-        <header className="mb-6 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 text-sm font-bold text-ink/65 transition hover:text-ink"><span aria-hidden="true">←</span>{t.back}</Link>
-        </header>
+    <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
+      <section className="relative overflow-hidden bg-forest-dark text-white">
+        <div className="absolute inset-0 opacity-65">
+          <Image
+            src="/images/homepage/doughtools-hero-desktop.webp"
+            alt="Finished pizza beside prepared dough on a warm kitchen work surface"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[58%_center]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/72 to-ink/20" aria-hidden="true" />
+        </div>
+        <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,0.82fr)_minmax(20rem,0.58fr)] lg:px-8 lg:py-24">
+          <div className="max-w-3xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza Learning Center</p>
+            <h1 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+              Understand your dough. Make better pizza.
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-white/78 sm:text-lg">
+              Learn what hydration, fermentation, flour strength, temperature, and baking really change — with clear
+              explanations, visual comparisons, and practical next steps.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="#essential-concepts"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-6 text-sm font-extrabold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-tomato-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Explore the essentials
+              </a>
+              <a
+                href="#problem-led-entry"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Solve a pizza problem
+              </a>
+            </div>
+          </div>
+          <div className="rounded-[2rem] border border-white/18 bg-white/10 p-5 shadow-card backdrop-blur-md lg:self-end">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Learning without guesswork</p>
+            <p className="mt-3 text-sm leading-6 text-white/76">
+              Use this page when you want the why. Use the Dough Guide when you want the step-by-step method. Use
+              Troubleshooting when something has gone wrong.
+            </p>
+          </div>
+        </div>
+      </section>
 
-        <section className="guide-hero relative mb-5 overflow-hidden rounded-[2rem] px-6 py-10 text-white shadow-card sm:px-10 sm:py-14">
-          <div className="relative z-10 max-w-xl">
-            <p className="mb-3 text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">{t.eyebrow}</p>
-            <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">{t.title}</h1>
-            <p className="mt-4 max-w-lg text-sm leading-7 text-white/65 sm:text-base">{levelCopy.intro}</p>
-            <ExperienceLevelSelector value={experienceLevel} onChange={setExperienceLevel} compact title="Learning guidance mode" intro="Choose whether you want simple steps, practical explanations or full Pizza Nerd technical detail." className="mt-6 text-ink" />
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <section id="problem-led-entry" className="scroll-mt-24" aria-labelledby="problem-led-title">
+          <div className="max-w-3xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Start with the real question</p>
+            <h2 id="problem-led-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
+              What do you want to understand?
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-ink/62 sm:text-base">
+              You do not need to know the technical term first. Start with the thing you are seeing, then learn which
+              dough variables are usually involved.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {problemEntries.map((entry) => (
+              <Link
+                key={entry.title}
+                href={entry.href}
+                className="group rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:border-tomato/30 hover:shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato"
+              >
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-tomato/10 text-tomato" aria-hidden="true">
+                  <DoughToolsIcon name={entry.icon} size={24} />
+                </span>
+                <h3 className="mt-5 text-base font-extrabold text-ink">{entry.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{entry.description}</p>
+                <span className="mt-4 inline-flex text-xs font-extrabold text-tomato transition group-hover:text-ink">
+                  Learn what affects it →
+                </span>
+              </Link>
+            ))}
           </div>
         </section>
 
-        <section className="mb-6 rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="dough-guide-card">
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+        <section className="mt-16 rounded-[2rem] bg-forest-dark p-5 text-white shadow-card sm:p-8 lg:p-10" aria-labelledby="learning-journey-title">
+          <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Step-by-step dough</p>
-              <h2 id="dough-guide-card" className="mt-2 font-display text-2xl font-semibold">Pizza Dough Guide</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">From learning to doing</p>
+              <h2 id="learning-journey-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
+                One plan. Every step.
+              </h2>
+              <p className="mt-4 text-sm leading-7 text-white/68">
+                Concepts matter because they change decisions in the kitchen: when to start, what to buy, how to handle
+                the dough, and what to adjust next time.
               </p>
             </div>
-            <Link href="/guides/dough" className="inline-flex min-h-11 items-center justify-center rounded-full bg-leaf px-4 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ink">
-              Open Dough Guide →
-            </Link>
-          </div>
-        </section>
-
-        <section className="mb-6 rounded-[1.75rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="troubleshooting-guide-card">
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Troubleshooting</p>
-              <h2 id="troubleshooting-guide-card" className="mt-2 font-display text-2xl font-semibold">Pizza Troubleshooting Guide</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.
-              </p>
-            </div>
-            <Link href="/guide/pizza-troubleshooting" className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-4 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-leaf">
-              Open guide →
-            </Link>
-          </div>
-        </section>
-
-        <nav className="sticky top-2 z-20 -mx-1 mb-10 overflow-x-auto rounded-2xl border border-white/80 bg-cream/90 p-1.5 shadow-lg shadow-ink/5 backdrop-blur" aria-label="Guide chapters">
-          <div className="flex min-w-max gap-1">
-            {t.nav.map(([label, id], index) => <a key={id} href={`#${id}`} className="rounded-xl px-3 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink"><span className="mr-1 text-tomato">{index + 1}.</span>{label}</a>)}
-          </div>
-        </nav>
-
-        <section id="basics" className="scroll-mt-20">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.basicsTitle}</p>
-          <p className="mb-4 max-w-3xl rounded-2xl bg-leaf/[.08] px-4 py-3 text-sm leading-6 text-ink/55">{levelCopy.basicsNote}</p>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {t.sections.map((section, index) => <article key={section.title} className="rounded-3xl border border-white/90 bg-white/80 p-5 shadow-card backdrop-blur"><span className="mb-4 grid h-8 w-8 place-items-center rounded-full bg-leaf/10 text-xs font-extrabold text-leaf">{index + 1}</span><h2 className="font-display text-xl font-semibold">{section.title}</h2><p className="mt-3 text-sm leading-6 text-ink/60">{section.body}</p></article>)}
-          </div>
-        </section>
-
-        <section id="flours" className="scroll-mt-20 pt-12">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.flourChapter}</p>
-          <div className="rounded-[1.75rem] border border-white/90 bg-white/85 p-5 shadow-card backdrop-blur sm:p-7">
-            <h2 className="font-display text-3xl font-semibold">{t.flourTitle}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{t.flourIntro}</p>
-            <div className="mt-5 divide-y divide-ink/10">
-              {t.flours.map(([region, types, description]) => <article key={region} className="grid gap-1 py-4 first:pt-0 last:pb-0 sm:grid-cols-[10rem_10rem_1fr] sm:gap-4"><strong className="text-sm">{region}</strong><span className="text-sm font-bold text-tomato">{types}</span><p className="text-sm leading-6 text-ink/55">{description}</p></article>)}
-            </div>
-          </div>
-          <div className="mt-8">
-            <h2 className="font-display text-3xl font-semibold">{t.productTitle}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{t.productIntro}</p>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {flourProducts.map((product, index) => (
-                <article key={product.maker} className="group overflow-hidden rounded-3xl border border-white/90 bg-white/85 shadow-card backdrop-blur">
-                  <div className="relative h-56 bg-[#eee9dd] p-4">
-                    <Image src={product.image} alt={`${product.maker} ${product.name}`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain p-4 transition duration-300 group-hover:scale-[1.03]" />
-                    <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white">{product.maker}</span>
+            <ol className="grid gap-3 sm:grid-cols-5">
+              {journey.map((step, index) => (
+                <li key={step.label} className="rounded-[1.35rem] border border-white/12 bg-white/8 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <DoughToolsIcon name={step.icon} className="text-oven-gold" size={24} />
+                    <span className="text-xs font-extrabold text-white/45">0{index + 1}</span>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-display text-xl font-semibold">{product.name}</h3>
-                    <p className="mt-2 text-xs leading-5 text-ink/55">{t.productNotes[index]}</p>
-                    <a href={product.source} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1 text-xs font-extrabold text-tomato transition hover:text-ink">{t.productLink} <span aria-hidden="true">↗</span></a>
-                  </div>
-                </article>
+                  <h3 className="mt-4 text-sm font-extrabold">{step.label}</h3>
+                  <p className="mt-2 text-xs leading-5 text-white/62">{step.text}</p>
+                </li>
               ))}
-            </div>
-          </div>
-          <h2 className="mt-8 font-display text-3xl font-semibold">{t.strengthTitle}</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {t.strengths.map(([range, description], index) => <article key={range} className="rounded-3xl border border-leaf/15 bg-[#edf0e8]/90 p-5"><div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ["#b8a66b", "#7e9a72", "#3BA66B", "#334a38"][index] }} /><strong className="text-sm text-leaf">{range}</strong></div><p className="mt-2 text-sm leading-6 text-ink/60">{description}</p></article>)}
+            </ol>
           </div>
         </section>
 
-        <section id="settings" className="scroll-mt-20 pt-12">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.settingsChapter}</p>
-          <div className="rounded-[1.75rem] bg-[#e8dfca]/95 p-5 shadow-card sm:p-7">
-            <h2 className="font-display text-3xl font-semibold">{t.relationTitle}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{levelCopy.settingsNote}</p>
-            <div className="mt-5 grid gap-x-7 gap-y-5 sm:grid-cols-2">
-              {t.relations.map(([title, description], index) => <article key={title} className="border-l-2 border-tomato/30 pl-4"><span className="text-[10px] font-extrabold text-tomato">0{index + 1}</span><h3 className="text-sm font-extrabold">{title}</h3><p className="mt-1 text-sm leading-6 text-ink/60">{description}</p></article>)}
+        <section id="essential-concepts" className="mt-16 scroll-mt-24" aria-labelledby="essential-concepts-title">
+          <div className="grid gap-8 lg:grid-cols-[0.6fr_1.4fr] lg:items-end">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Practical glossary</p>
+              <h2 id="essential-concepts-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
+                The essentials behind better pizza
+              </h2>
             </div>
+            <p className="text-sm leading-7 text-ink/62 sm:text-base">
+              Each concept is short on purpose: what it means, why it matters, what changes in real dough, and where to
+              go next when you need deeper instruction.
+            </p>
           </div>
-          <h2 className="mt-8 font-display text-3xl font-semibold">{t.setupTitle}</h2>
-          <div className="mt-4 overflow-hidden rounded-3xl border border-ink/10 bg-white/85 shadow-card">
-            {t.setups.map(([name, setup]) => <div key={name} className="grid gap-1 border-b border-ink/10 px-5 py-4 last:border-0 sm:grid-cols-[15rem_1fr]"><strong className="text-sm">{name}</strong><span className="text-sm text-ink/55">{setup}</span></div>)}
+
+          <div className="mt-8 grid gap-4 lg:grid-cols-2">
+            {concepts.map((concept) => (
+              <article
+                key={concept.id}
+                id={concept.id}
+                className="scroll-mt-24 rounded-[1.75rem] border border-ink/10 bg-card p-5 shadow-soft sm:p-6"
+              >
+                <div className="flex items-start gap-4">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-leaf/10 text-leaf" aria-hidden="true">
+                    <DoughToolsIcon name={concept.icon} size={24} />
+                  </span>
+                  <div>
+                    <h3 className="font-display text-2xl font-semibold">{concept.name}</h3>
+                    <p className="mt-2 text-sm leading-6 text-ink/66">{concept.definition}</p>
+                  </div>
+                </div>
+                <dl className="mt-5 grid gap-4 text-sm leading-6">
+                  <div>
+                    <dt className="font-extrabold text-ink">Why it matters</dt>
+                    <dd className="mt-1 text-ink/62">{concept.why}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-extrabold text-ink">Practical effect</dt>
+                    <dd className="mt-1 text-ink/62">{concept.effect}</dd>
+                  </div>
+                </dl>
+                <details className="mt-5 rounded-2xl border border-ink/10 bg-flour/70 p-4">
+                  <summary className="cursor-pointer text-sm font-extrabold text-ink marker:text-tomato">
+                    Learn more
+                  </summary>
+                  <div className="mt-4 grid gap-4 text-sm leading-6 text-ink/64">
+                    <p>
+                      <strong className="text-ink">Commonly goes wrong:</strong> {concept.commonIssue}
+                    </p>
+                    <p>
+                      <strong className="text-ink">Consider next:</strong> {concept.next}
+                    </p>
+                    <div>
+                      <strong className="text-ink">Related:</strong>{" "}
+                      {concept.related.map((item, index) => (
+                        <span key={item.href}>
+                          <a className="font-bold text-tomato underline-offset-4 hover:underline" href={item.href}>
+                            {item.label}
+                          </a>
+                          {index < concept.related.length - 1 ? " · " : ""}
+                        </span>
+                      ))}
+                    </div>
+                    {concept.action ? (
+                      <Link className="w-fit text-sm font-extrabold text-leaf underline-offset-4 hover:underline" href={concept.action.href}>
+                        {concept.action.label} →
+                      </Link>
+                    ) : null}
+                  </div>
+                </details>
+              </article>
+            ))}
           </div>
-          <div className="mt-8 rounded-[1.75rem] border border-tomato/15 bg-[#fff7ed]/90 p-5 shadow-card sm:p-7">
-            <h2 className="font-display text-3xl font-semibold">{t.ovenTitle}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">{t.ovenIntro}</p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {t.ovens.map(([size, weight, description]) => <article key={size} className="rounded-2xl bg-white/80 p-4"><div className="flex items-center justify-between gap-3"><strong className="text-sm">{size}</strong><span className="rounded-full bg-tomato/10 px-2.5 py-1 text-xs font-extrabold text-tomato">{weight}</span></div><p className="mt-2 text-xs leading-5 text-ink/55">{description}</p></article>)}
+        </section>
+
+        <section id="hydration-comparison" className="mt-16 scroll-mt-24" aria-labelledby="hydration-comparison-title">
+          <div className="overflow-hidden rounded-[2rem] border border-ink/10 bg-card shadow-card">
+            <div className="grid gap-0 lg:grid-cols-[0.78fr_1.22fr]">
+              <div className="relative min-h-[22rem]">
+                <Image
+                  src="/dough-guide/guide-step-03-mix.webp"
+                  alt="Mixed pizza dough showing a soft hydrated texture in a bowl"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-5 sm:p-8 lg:p-10">
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Visual comparison</p>
+                <h2 id="hydration-comparison-title" className="mt-3 font-display text-4xl font-semibold">
+                  Hydration changes feel before it changes results.
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-ink/64">
+                  Water affects firmness, stickiness, extensibility, and potential crumb openness. It does not guarantee
+                  an open crust by itself — flour, fermentation, handling, and heat still have to agree.
+                </p>
+                <div className="mt-6 grid gap-3">
+                  {[
+                    ["Lower hydration", "Firmer, easier to move, often less extensible.", "Best when you need control or a crisper style."],
+                    ["Balanced hydration", "Soft enough to stretch, structured enough to handle.", "Often the calmest starting point for home pizza."],
+                    ["Higher hydration", "Stickier and more delicate, with more open-crumb potential.", "Works best with suitable flour, handling, and oven heat."],
+                  ].map(([label, description, note], index) => (
+                    <article key={label} className="rounded-2xl border border-ink/10 bg-warm-background p-4">
+                      <div className="flex items-center gap-3">
+                        <span className="h-2.5 rounded-full bg-leaf" style={{ width: `${2.5 + index * 1.75}rem` }} aria-hidden="true" />
+                        <h3 className="text-sm font-extrabold">{label}</h3>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-ink/62">{description}</p>
+                      <p className="mt-1 text-xs leading-5 text-muted">{note}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="leavening" className="scroll-mt-20 pt-12">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.leaveningChapter}</p>
-          <div className="rounded-[1.75rem] bg-ink p-5 text-white shadow-card sm:p-7">
-            <h2 className="font-display text-3xl font-semibold">{t.yeastTitle}</h2>
-            <div className="mt-5 divide-y divide-white/10">
-              {t.yeasts.map(([code, name, description]) => <article key={code} className="grid gap-2 py-4 first:pt-0 last:pb-0 sm:grid-cols-[4rem_13rem_1fr] sm:items-start"><span className="w-fit rounded-lg bg-tomato px-2 py-1 text-xs font-extrabold">{code}</span><h3 className="font-bold">{name}</h3><p className="text-sm leading-6 text-white/55">{description}</p></article>)}
-            </div>
+        <section className="mt-16 grid gap-5 lg:grid-cols-3" aria-labelledby="guide-next-title">
+          <div className="lg:col-span-3">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Go deeper</p>
+            <h2 id="guide-next-title" className="mt-3 font-display text-4xl font-semibold">
+              Learn the concept, then use the right tool.
+            </h2>
           </div>
+          <Link href="/guides/dough" className="rounded-[1.75rem] border border-ink/10 bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-card">
+            <DoughToolsIcon name="kitchen-mode" className="text-leaf" size={32} />
+            <h3 className="mt-5 font-display text-2xl font-semibold">Pizza Dough Guide</h3>
+            <p className="mt-3 text-sm leading-6 text-ink/62">
+              Step-by-step dough instruction from measuring and mixing to a dough ball ready for stretching.
+            </p>
+          </Link>
+          <Link href="/guide/pizza-troubleshooting" className="rounded-[1.75rem] border border-ink/10 bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-card">
+            <DoughToolsIcon name="warning" className="text-tomato" size={32} />
+            <h3 className="mt-5 font-display text-2xl font-semibold">Pizza Troubleshooting Guide</h3>
+            <p className="mt-3 text-sm leading-6 text-ink/62">
+              Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.
+            </p>
+          </Link>
+          <Link href="/session/start" className="rounded-[1.75rem] border border-ink/10 bg-forest-dark p-6 text-white shadow-card transition hover:-translate-y-1">
+            <DoughToolsIcon name="pizza" className="text-oven-gold" size={32} />
+            <h3 className="mt-5 font-display text-2xl font-semibold">Turn it into a pizza plan</h3>
+            <p className="mt-3 text-sm leading-6 text-white/68">
+              Use DoughTools to create the recipe, shopping list, timeline, Kitchen Mode, and review for your next bake.
+            </p>
+          </Link>
         </section>
 
-        <section id="accuracy" className="scroll-mt-20 py-12">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{t.accuracyChapter}</p>
-          <div className="rounded-3xl border border-tomato/20 bg-[#fff7ed]/90 p-5 shadow-card sm:p-7"><h2 className="font-display text-2xl font-semibold">{t.exactTitle}</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-ink/65">{t.exact}</p><p className="mt-4 max-w-3xl text-sm leading-6 text-ink/60">{levelCopy.accuracyNote}</p><ul className="mt-4 grid gap-2 text-sm leading-6 text-ink/55">{levelCopy.technicalDetails.map((detail) => <li key={detail} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" /><span>{detail}</span></li>)}</ul></div>
+        <section className="mt-16 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-10 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/70">Ready to use what you learned?</p>
+            <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Plan your next pizza with less guesswork.</h2>
+          </div>
+          <Link
+            href="/session/start"
+            className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-extrabold text-tomato shadow-soft transition hover:-translate-y-0.5 hover:bg-flour focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:mt-0"
+          >
+            Start a Pizza Session
+          </Link>
         </section>
-        <footer className="mb-4 border-t border-ink/10 pt-5"><AppSignature /></footer>
+
+        <footer className="mt-12 border-t border-ink/10 py-6">
+          <AppSignature />
+        </footer>
       </div>
     </main>
   );
