@@ -205,6 +205,50 @@ describe("pizza sauce learning lab page", () => {
     expect(page).not.toContain("shoppingList");
   });
 
+  it("keeps every Sauce mistake while improving card hierarchy and order", () => {
+    const page = source("app/sauce/page.tsx");
+    const card = source("components/sauce/SauceMistakeCard.tsx");
+
+    const currentMistakes = [
+      "Using too much sauce",
+      "Using tomatoes with poor flavor",
+      "Blending until completely foamy or watery",
+      "Automatically adding garlic to Margherita sauce",
+      "Automatically adding sugar",
+      "Cooking a classic fast-bake sauce without a reason",
+      "Leaving a home-oven sauce excessively wet",
+      "Ignoring wet mozzarella or topping moisture",
+      "Measuring only by spoons",
+      "Making sauce too far ahead without safe storage",
+    ];
+
+    for (const mistake of currentMistakes) {
+      expect(page).toContain(`title: "${mistake}"`);
+    }
+
+    expect(page).toContain("SauceMistakeCard");
+    expect(page).toContain("Start with what you see. Fix the current pizza first");
+    expect(card.indexOf("What happens")).toBeLessThan(card.indexOf("Fix it now"));
+    expect(card.indexOf("Fix it now")).toBeLessThan(card.indexOf("Likely cause"));
+    expect(card.indexOf("Likely cause")).toBeLessThan(card.indexOf("Next time"));
+  });
+
+  it("uses accessible mobile disclosure for secondary Sauce mistake detail", () => {
+    const card = source("components/sauce/SauceMistakeCard.tsx");
+
+    expect(card).toContain('"use client"');
+    expect(card).toContain("aria-expanded={expanded}");
+    expect(card).toContain("aria-controls={detailsId}");
+    expect(card).toContain("Why it happened and what to change next time");
+    expect(card).toContain("lg:hidden");
+    expect(card).toContain("hidden border-t border-ink/10 pt-4 lg:grid");
+    expect(card).toContain('name="warning"');
+    expect(card).toContain('name="success"');
+    expect(card).toContain('name="information"');
+    expect(card).toContain('name="restore"');
+    expect(card).not.toMatch(/🍅|⚠️|✅|❌/);
+  });
+
   it("uses local people-free sauce assets with dimensions already present in the repository", () => {
     const page = source("app/sauce/page.tsx");
     const sauceAssets = ["neapolitan.webp", "marinara.webp", "home.webp"];
@@ -223,14 +267,18 @@ describe("pizza sauce learning lab page", () => {
   it("keeps accessibility and responsive semantics explicit", () => {
     const page = source("app/sauce/page.tsx");
     const calculator = source("components/sauce/SauceCalculator.tsx");
+    const mistakeCard = source("components/sauce/SauceMistakeCard.tsx");
 
     expect(page).toContain("<h1");
     expect(page).toContain("aria-labelledby");
     expect(page).toContain("overflow-x-clip");
+    expect(page).toContain("grid items-start gap-5 lg:grid-cols-2");
     expect(calculator).toContain("aria-live=\"polite\"");
     expect(calculator).toContain("aria-label={`Decrease ${label}`}");
     expect(calculator).toContain("aria-label={`Increase ${label}`}");
     expect(calculator).toContain("aria-pressed");
+    expect(mistakeCard).toContain("focus-visible:outline");
+    expect(mistakeCard).toContain("min-h-12");
   });
 
   it("updates Sauce SEO metadata while preserving the indexing policy", () => {

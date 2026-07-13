@@ -5,6 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import SauceCalculator from "@/components/sauce/SauceCalculator";
+import SauceMistakeCard from "@/components/sauce/SauceMistakeCard";
 
 export const metadata: Metadata = {
   title: "Pizza Sauce Guide and Calculator | DoughTools",
@@ -413,17 +414,19 @@ export default function SaucePage() {
           <h2 id="mistakes-title" className="mt-3 font-display text-4xl font-semibold">
             Diagnose the sauce by what happens on the pizza.
           </h2>
-          <div className="mt-7 grid gap-4 lg:grid-cols-2">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">
+            Start with what you see. Fix the current pizza first, then change one thing on the next bake.
+          </p>
+          <div className="mt-7 grid items-start gap-5 lg:grid-cols-2">
             {mistakes.map((mistake) => (
-              <article key={mistake.title} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft">
-                <h3 className="text-lg font-extrabold">{mistake.title}</h3>
-                <dl className="mt-4 grid gap-3 text-sm leading-6 text-muted">
-                  <div><dt className="font-extrabold text-ink">What happens</dt><dd>{mistake.happens}</dd></div>
-                  <div><dt className="font-extrabold text-ink">Likely cause</dt><dd>{mistake.cause}</dd></div>
-                  <div><dt className="font-extrabold text-ink">What to do now</dt><dd>{mistake.now}</dd></div>
-                  <div><dt className="font-extrabold text-ink">Change next time</dt><dd>{mistake.next}</dd></div>
-                </dl>
-              </article>
+              <SauceMistakeCard
+                key={mistake.title}
+                title={mistake.title}
+                symptom={mistake.happens}
+                fixNow={mistake.now}
+                cause={mistake.cause}
+                nextTime={mistake.next}
+              />
             ))}
           </div>
           <Link href="/guide/pizza-troubleshooting" className="mt-5 inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-forest">
