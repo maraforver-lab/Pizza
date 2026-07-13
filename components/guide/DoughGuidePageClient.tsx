@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useId, useState } from "react";
 import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
+import ContextualReturn from "@/components/navigation/ContextualReturn";
 import {
   DOUGH_GUIDE_LEVEL_LABELS,
   doughGuideSteps,
@@ -32,6 +33,7 @@ import {
   getSafeDoughGuideSessionReturnPath,
   type DoughGuideReturnPath,
 } from "@/lib/dough-guide-links";
+import { getSafeContextualReturnPath } from "@/lib/contextual-return";
 import {
   readExperienceLevelPreference,
   type ExperienceLevel,
@@ -416,6 +418,7 @@ export default function DoughGuidePageClient() {
   const searchParams = useSearchParams();
   const stepParam = searchParams.get("step");
   const sessionReturnPath = getSafeDoughGuideSessionReturnPath(searchParams.get("from"));
+  const contextualReturnPath = getSafeContextualReturnPath(searchParams.get("returnTo"));
   const sessionReturnLabel = sessionReturnPath === "/session/timeline"
     ? "Back to Timeline"
     : sessionReturnPath === "/session/kitchen"
@@ -441,8 +444,11 @@ export default function DoughGuidePageClient() {
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-6 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <LearningBreadcrumbs current="Pizza Dough Guide" />
-          {sessionReturnPath && sessionReturnLabel && (
+          <div className="flex flex-col items-start gap-3">
+            <ContextualReturn returnTo={searchParams.get("returnTo")} />
+            <LearningBreadcrumbs current="Pizza Dough Guide" />
+          </div>
+          {!contextualReturnPath && sessionReturnPath && sessionReturnLabel && (
             <Link
               href={sessionReturnPath}
               className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/10 bg-white/75 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"

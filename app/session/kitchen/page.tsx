@@ -9,6 +9,7 @@ import { SessionEmptyState } from "@/components/session/SessionEmptyState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import { getExperienceLevelConfig } from "@/lib/experience-levels";
+import { buildContextualReturnHref } from "@/lib/contextual-return";
 import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
 import {
   type PizzaSession,
@@ -169,6 +170,8 @@ export default function SessionKitchenPage() {
   const currentStepIsWaiting = currentStep?.kind === "passive";
   const doughGuideLink = getDoughGuideLinkForSessionStep(currentStep, "/session/kitchen");
   const ovenTroubleshootingLink = isOvenTroubleshootingStep(currentStep) ? bakingTroubleshootingLink : null;
+  const doughGuideHref = doughGuideLink ? buildContextualReturnHref(doughGuideLink.href) : null;
+  const ovenTroubleshootingHref = ovenTroubleshootingLink ? buildContextualReturnHref(ovenTroubleshootingLink.href) : null;
   const nextStepSummary = kitchenState.nextStep
     ? `${nextTaskPresentation.title} · ${formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())}`
     : "Review your pizza session";
@@ -229,13 +232,14 @@ export default function SessionKitchenPage() {
                           <DoughToolsIcon name={kitchenStepIcon(currentStep)} size={32} strokeWidth={2.1} />
                         </span>
                         <div className="min-w-0">
-                          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current step</p>
+                          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Now</p>
                           <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
                         </div>
                       </div>
                     </div>
-                    <div className={`rounded-[1.5rem] border p-4 shadow-sm ${experience.cardClassName}`}>
+                    <div className={`hidden rounded-[1.5rem] border p-4 shadow-sm lg:block ${experience.cardClassName}`}>
                       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{levelModeLabel(experience.label)}</p>
+                      <p className="mt-2 text-sm font-bold leading-6 text-ink/60">Desktop keeps the extra technique context nearby while the current action stays first.</p>
                     </div>
                   </div>
 
@@ -260,7 +264,7 @@ export default function SessionKitchenPage() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
+                    <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65" aria-label="Compact next-step preview">
                       {kitchenState.nextStep && (
                         <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 ${kitchenStepIconTone(kitchenState.nextStep)}`} aria-hidden="true">
                           <DoughToolsIcon name={kitchenStepIcon(kitchenState.nextStep)} size={16} strokeWidth={2.1} />
@@ -304,52 +308,61 @@ export default function SessionKitchenPage() {
                         <p className="mt-2 text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
                       </div>
 
-                      {doughGuideLink && (
-                        <Link
-                          href={doughGuideLink.href}
-                          aria-label={doughGuideLink.ariaLabel}
-                          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
-                        >
-                          {doughGuideLink.label}
-                        </Link>
-                      )}
-
-                      {ovenTroubleshootingLink && (
-                        <Link
-                          href={ovenTroubleshootingLink.href}
-                          aria-label={ovenTroubleshootingLink.ariaLabel}
-                          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
-                        >
-                          {ovenTroubleshootingLink.label}
-                        </Link>
-                      )}
-
                       <div className="rounded-[1.25rem] bg-white/70 p-4">
                         <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">You are done when</p>
                         <p className="mt-2 text-sm font-bold leading-6 text-ink/70 sm:text-base">{taskPresentation.doneCondition}</p>
                       </div>
 
-                      <div className={`rounded-[1.25rem] border p-4 ${experience.cardClassName}`}>
-                        <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
-                        <p className="mt-2 text-base font-extrabold leading-7 text-ink sm:text-lg">{levelGuidance.instruction}</p>
-                        {levelGuidanceDetails.length > 0 && (
-                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                            {levelGuidanceDetails.map((item) => (
-                              <div key={item.label} className="rounded-2xl bg-white/70 p-3.5">
-                                <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/40">{item.label}</p>
-                                <p className="mt-1 text-sm font-bold leading-6 text-ink/70">{item.value}</p>
+                      <details className="rounded-[1.25rem] border border-ink/10 bg-white/70 p-4">
+                        <summary className="cursor-pointer text-sm font-extrabold text-ink/65 marker:text-tomato">
+                          Need more help?
+                        </summary>
+                        <div className="mt-4 grid gap-3">
+                          <div className={`rounded-[1.25rem] border p-4 ${experience.cardClassName}`}>
+                            <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
+                            <p className="mt-2 text-base font-extrabold leading-7 text-ink sm:text-lg">{levelGuidance.instruction}</p>
+                            {levelGuidanceDetails.length > 0 && (
+                              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                {levelGuidanceDetails.map((item) => (
+                                  <div key={item.label} className="rounded-2xl bg-white/70 p-3.5">
+                                    <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/40">{item.label}</p>
+                                    <p className="mt-1 text-sm font-bold leading-6 text-ink/70">{item.value}</p>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {taskPresentation.helperCopy && (
-                        <div className="rounded-[1.25rem] border border-leaf/10 bg-white/65 p-4">
-                          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Technique note</p>
-                          <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:text-base">{taskPresentation.helperCopy}</p>
+                          {taskPresentation.helperCopy && (
+                            <div className="rounded-[1.25rem] border border-leaf/10 bg-white/65 p-4">
+                              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">What this should look like</p>
+                              <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:text-base">{taskPresentation.helperCopy}</p>
+                            </div>
+                          )}
+
+                          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                            {doughGuideLink && doughGuideHref && (
+                              <Link
+                                href={doughGuideHref}
+                                aria-label={doughGuideLink.ariaLabel}
+                                className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+                              >
+                                {doughGuideLink.label}
+                              </Link>
+                            )}
+
+                            {ovenTroubleshootingLink && ovenTroubleshootingHref && (
+                              <Link
+                                href={ovenTroubleshootingHref}
+                                aria-label={ovenTroubleshootingLink.ariaLabel}
+                                className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+                              >
+                                {ovenTroubleshootingLink.label}
+                              </Link>
+                            )}
+                          </div>
                         </div>
-                      )}
+                      </details>
                     </div>
                   </section>
                 </section>

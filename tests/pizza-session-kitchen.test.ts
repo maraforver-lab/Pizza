@@ -344,7 +344,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("nextLiveTiming");
     expect(page).toContain("formatSessionPlannedTime");
     expect(page).toContain("Planned for");
-    expect(page).toContain("Current step");
+    expect(page).toContain("Now");
     expect(page).toContain("<h1 id=\"current-kitchen-task\"");
     expect(page).toContain("levelModeLabel(experience.label)");
     expect(page).toContain("${label} mode");
@@ -356,6 +356,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("What is happening now");
     expect(page).toContain("Step guidance");
     expect(page).toContain("What to do now");
+    expect(page).toContain("Need more help?");
     expect(page).not.toContain("id=\"kitchen-do-this-heading\"");
     expect(page).not.toContain("id=\"kitchen-done-heading\"");
     expect(page).not.toContain("id=\"kitchen-technique-heading\"");
@@ -364,7 +365,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("Live timing");
     expect(page).not.toContain("When");
     expect(page).toContain("You are done when");
-    expect(page).toContain("Technique note");
+    expect(page).toContain("What this should look like");
     expect(page).toContain("{experience.label} guidance");
     expect(page).toContain("getKitchenExperienceGuidance(currentStep, session.experienceLevel, session)");
     expect(page).toContain("What to look for");
@@ -618,13 +619,14 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("rounded-[1.25rem] border border-leaf/10 bg-white/65");
     expect(page).toContain("Quiet-hours warning");
     expect(page).toContain("rounded-2xl bg-tomato/10");
-    expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned for"));
+    expect(page.indexOf("Now")).toBeLessThan(page.indexOf("Planned for"));
     expect(page.indexOf("Planned for")).toBeLessThan(page.indexOf("Next action"));
     expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("Step guidance"));
     expect(page.indexOf("Step guidance")).toBeLessThan(page.indexOf("Do this"));
     expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("You are done when"));
-    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
-    expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("Technique note"));
+    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("Need more help?"));
+    expect(page.indexOf("Need more help?")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
+    expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("What this should look like"));
   });
 
   it("uses a clearer ball-dough action and done condition when dough-ball amounts are available", () => {

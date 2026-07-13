@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
+import ContextualReturn from "@/components/navigation/ContextualReturn";
 import {
   findPizzaTroubleshootingProblem,
   getPizzaTroubleshootingLevelPresentation,
@@ -19,6 +20,7 @@ import { readExperienceLevelPreference, type ExperienceLevel } from "@/lib/exper
 type PizzaTroubleshootingGuideClientProps = {
   activeTopicId?: string;
   returnPath?: string | null;
+  contextualReturnPath?: string | string[] | null;
 };
 
 function VisualPanel({ visual, index }: { visual: PizzaTroubleshootingSection["visual"]; index: number }) {
@@ -192,7 +194,7 @@ function ProblemCard({
   );
 }
 
-export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath }: PizzaTroubleshootingGuideClientProps) {
+export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath, contextualReturnPath }: PizzaTroubleshootingGuideClientProps) {
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
 
   useEffect(() => {
@@ -204,8 +206,11 @@ export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath }: P
   return (
     <main className="guide-page min-h-screen overflow-x-clip px-4 py-5 text-ink sm:px-6 sm:py-10">
       <div className="relative z-10 mx-auto max-w-6xl">
-        <header className="mb-6 flex items-center justify-between gap-4">
-          <LearningBreadcrumbs current="Pizza Troubleshooting Guide" />
+        <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-start gap-3">
+            <ContextualReturn returnTo={contextualReturnPath} />
+            <LearningBreadcrumbs current="Pizza Troubleshooting Guide" />
+          </div>
           {returnPath && (
             <Link href={returnPath} className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
               Back to Dough Guide

@@ -118,6 +118,23 @@ Mobile must include:
 - readable numbers and times
 - no horizontal overflow
 - no large sidebars
+
+## 5.1 Active cooking workflow rule
+
+Kitchen Mode is the strongest example of the mobile focused-app rule. Mobile Kitchen Mode must prioritize:
+
+1. the current step
+2. the planned time or live timing state
+3. the action to take now
+4. the completion criterion
+5. one dominant completion action
+6. a compact preview of what comes next
+
+Longer technique notes, educational exits and advanced experience-level detail should be secondary or disclosed so they do not push the current action below the fold.
+
+Desktop Kitchen Mode may show richer context, but the current action remains dominant.
+
+Educational links that leave an active cooking workflow must provide an explicit validated return path. Browser Back alone is not enough navigation design for active workflows. Return URLs must be same-product internal paths and must not expose session data.
 - no repeated summaries
 - no unnecessary footer inside focused task flows
 - no advanced links unless behind a clear “More” or “Advanced” disclosure
