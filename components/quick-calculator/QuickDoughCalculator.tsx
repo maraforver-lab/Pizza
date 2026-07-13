@@ -214,6 +214,164 @@ function OptionalControlGroup({
   );
 }
 
+function SelectField<T extends string>({
+  id,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: T;
+  options: Array<{ value: T; label: string }>;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <label className="min-w-0 rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+      <span className="text-sm font-extrabold text-ink/72">{label}</span>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value as T)}
+        className="mt-3 h-12 w-full min-w-0 rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function RecipeResultPanel({
+  result,
+  presentation,
+  copyState,
+  onCopyRecipe,
+  onResetCalculator,
+}: {
+  result: ReturnType<typeof calculateQuickDough>;
+  presentation: ReturnType<typeof getQuickCalculatorPresentation>;
+  copyState: CopyState;
+  onCopyRecipe: () => void;
+  onResetCalculator: () => void;
+}) {
+  const selectedEnvironment = quickCalculatorEnvironmentOptions.find((option) => option.value === result.input.fermentationEnvironment)
+    ?? quickCalculatorEnvironmentOptions[0];
+  const yeastLabel = quickCalculatorYeastOptions.find((option) => option.value === result.input.yeastType)?.label ?? "Leavening";
+  const optionalIngredientRows = result.advancedTools.customIngredients.enabled
+    ? [
+        ["Oil", result.advancedTools.customIngredients.oilGrams],
+        ["Sugar", result.advancedTools.customIngredients.sugarGrams],
+        ["Malt", result.advancedTools.customIngredients.maltGrams],
+      ].filter(([, value]) => Number(value) > 0)
+    : [];
+
+  return (
+    <aside
+      className="min-w-0 rounded-[2rem] bg-ink p-5 text-white shadow-card sm:p-7 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-3 lg:row-start-1"
+      aria-labelledby="quick-calculator-results"
+      aria-live="polite"
+      data-quick-result-panel
+    >
+      <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Recipe result</p>
+      <h2 id="quick-calculator-results" className="mt-2 font-display text-3xl font-semibold">Ingredient amounts</h2>
+      <p className="mt-3 text-sm leading-6 text-white/60">
+        {result.input.pizzaCount} {result.input.sizingMode === "pan" ? "pans" : "pizzas"} × {formatGrams(result.sizing.doughWeightPerPieceGrams)} g · {result.input.hydrationPercent}% hydration · {selectedEnvironment.label}
+      </p>
+      {presentation.resultDetail !== "simple" && (
+        <p className="mt-2 text-xs leading-5 text-white/42">
+          Fermentation maps to the existing pure calculator preset: {result.settings.fermentation} at {result.settings.temperature} °C.
+        </p>
+      )}
+
+      <dl className="mt-6 divide-y divide-white/10">
+        {[
+          ["Total dough", result.ingredients.total, false],
+          ["Flour", result.ingredients.flour, false],
+          ["Water", result.ingredients.water, false],
+          ["Salt", result.ingredients.salt, false],
+          [yeastLabel, result.ingredients.leavener, true],
+          ...optionalIngredientRows.map(([label, value]) => [label, value, false] as const),
+        ].map(([label, value, precise]) => (
+          <div key={String(label)} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+            <dt className="text-sm font-semibold text-white/62">{label}</dt>
+            <dd className="text-2xl font-extrabold tabular-nums">
+              {formatGrams(Number(value), Boolean(precise))} <span className="text-sm text-white/35">g</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <details className="mt-6 rounded-2xl border border-white/10 bg-white/[.045] p-4" open={presentation.resultDetail !== "simple"}>
+        <summary className="cursor-pointer list-none text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+          Baker’s percentages
+        </summary>
+        <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div><dt className="text-white/45">Flour</dt><dd className="font-extrabold">100%</dd></div>
+          <div><dt className="text-white/45">Water</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.water)}%</dd></div>
+          <div><dt className="text-white/45">Salt</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.salt)}%</dd></div>
+          {presentation.showTechnicalResult && (
+            <div><dt className="text-white/45">{yeastLabel}</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.yeast, 3)}%</dd></div>
+          )}
+        </dl>
+        {presentation.resultDetail === "technical" && (
+          <p className="mt-3 text-xs leading-5 text-white/42">
+            Same input values produce the same ingredient output in every guidance mode.
+          </p>
+        )}
+      </details>
+
+      <details className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" open={result.input.prefermentMethod !== "direct"}>
+        <summary className="cursor-pointer list-none text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+          Preferment split
+        </summary>
+        <p className="mt-2 text-xs leading-5 text-white/45">{result.preferment.label}</p>
+        <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div><dt className="text-white/45">Build</dt><dd className="font-extrabold">{formatGrams(result.preferment.build.totalGrams)} g</dd></div>
+          <div><dt className="text-white/45">Final flour</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.flourGrams)} g</dd></div>
+          <div><dt className="text-white/45">Final water</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.waterGrams)} g</dd></div>
+          <div><dt className="text-white/45">Target dough</dt><dd className="font-extrabold">{formatGrams(result.preferment.totalFormula.doughGrams)} g</dd></div>
+        </dl>
+      </details>
+
+      <details className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4">
+        <summary className="cursor-pointer list-none text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+          Working assumptions
+        </summary>
+        <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div><dt className="text-white/45">Dough method</dt><dd className="font-extrabold">{result.preferment.label}</dd></div>
+          <div><dt className="text-white/45">Fermentation temp</dt><dd className="font-extrabold">{formatTemperature(result.input.fermentationTemperatureCelsius)} °C</dd></div>
+          <div><dt className="text-white/45">Target dough temp</dt><dd className="font-extrabold">{formatTemperature(result.input.targetDoughTemperatureCelsius)} °C</dd></div>
+          <div><dt className="text-white/45">Water estimate</dt><dd className="font-extrabold">{formatTemperature(result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius)} °C</dd></div>
+        </dl>
+      </details>
+
+      <div className="mt-6 grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={onCopyRecipe}
+          className="rounded-2xl bg-tomato px-4 py-3 text-sm font-extrabold text-white transition hover:bg-tomato/90 active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+        >
+          {copyState === "copied" ? "Recipe copied" : copyState === "unavailable" ? "Copy unavailable" : "Copy recipe"}
+        </button>
+        <button
+          type="button"
+          onClick={onResetCalculator}
+          className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-extrabold text-white/70 transition hover:bg-white/[.06] hover:text-white active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+        >
+          Reset calculator
+        </button>
+      </div>
+
+      <p className="mt-4 text-xs leading-5 text-white/42">
+        No session is created. No account or workflow data is saved.
+      </p>
+    </aside>
+  );
+}
+
 export default function QuickDoughCalculator() {
   const [input, setInput] = useState<QuickCalculatorInput>(quickCalculatorDefaults);
   const [copyState, setCopyState] = useState<CopyState>("idle");
@@ -396,37 +554,33 @@ export default function QuickDoughCalculator() {
 
   const commercialYeastOptions = quickCalculatorYeastOptions.filter((option) => option.value === "idy" || option.value === "ady" || option.value === "cy");
 
-  const advancedControls = (
-    <div className="grid gap-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <NumberField
-          id="quick-fermentation-temperature"
-          label="Fermentation temperature"
-          value={result.input.fermentationTemperatureCelsius}
-          min={0}
-          max={30}
-          suffix="°C"
-          onChange={(value) => updateInput(setInput, "fermentationTemperatureCelsius", value)}
-        />
-        <label className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
-          <span className="text-sm font-extrabold text-ink/72">Yeast type</span>
-          <select
-            value={result.input.yeastType}
-            onChange={(event) => updateInput(setInput, "yeastType", event.target.value as YeastType)}
-            className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
-            aria-label="Yeast type"
-          >
-            {quickCalculatorYeastOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+  const fermentationDetailControls = (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <NumberField
+        id="quick-fermentation-temperature"
+        label="Fermentation temperature"
+        value={result.input.fermentationTemperatureCelsius}
+        min={0}
+        max={30}
+        suffix="°C"
+        onChange={(value) => updateInput(setInput, "fermentationTemperatureCelsius", value)}
+      />
+      <SelectField<YeastType>
+        id="quick-yeast-type"
+        label="Yeast type"
+        value={result.input.yeastType}
+        options={quickCalculatorYeastOptions}
+        onChange={(value) => updateInput(setInput, "yeastType", value)}
+      />
+    </div>
+  );
 
+  const advancedControls = (
+    <div className="grid gap-4" data-quick-advanced-tools>
       <section className="rounded-[1.5rem] border border-ink/10 bg-white/65 p-4" aria-labelledby="quick-dough-temperature-heading">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Advanced dough tools</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Dough temperature</p>
             <h3 id="quick-dough-temperature-heading" className="mt-1 text-xl font-extrabold text-ink">Target dough temperature and water temperature</h3>
           </div>
           <p className="text-xs leading-5 text-ink/45 sm:max-w-xs sm:text-right">
@@ -498,10 +652,11 @@ export default function QuickDoughCalculator() {
       </section>
 
       <section className="rounded-[1.5rem] border border-ink/10 bg-white/65 p-4" aria-labelledby="quick-yeast-tools-heading">
-        <h3 id="quick-yeast-tools-heading" className="text-xl font-extrabold text-ink">Yeast converter and reverse fermentation</h3>
+        <h3 id="quick-yeast-tools-heading" className="text-xl font-extrabold text-ink">Yeast tools</h3>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <h4 className="text-sm font-extrabold text-ink/72">Yeast converter</h4>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <NumberField
                 id="quick-yeast-conversion-amount"
                 label="Yeast amount"
@@ -512,36 +667,28 @@ export default function QuickDoughCalculator() {
                 suffix="g"
                 onChange={(value) => updateInput(setInput, "yeastConversionAmountGrams", value)}
               />
-              <label className="rounded-[1.35rem] border border-ink/10 bg-cream/40 p-4">
-                <span className="text-sm font-extrabold text-ink/72">From</span>
-                <select
-                  value={result.input.yeastConversionFrom}
-                  onChange={(event) => updateInput(setInput, "yeastConversionFrom", event.target.value as YeastType)}
-                  className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
-                >
-                  {commercialYeastOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="rounded-[1.35rem] border border-ink/10 bg-cream/40 p-4">
-                <span className="text-sm font-extrabold text-ink/72">To</span>
-                <select
-                  value={result.input.yeastConversionTo}
-                  onChange={(event) => updateInput(setInput, "yeastConversionTo", event.target.value as YeastType)}
-                  className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
-                >
-                  {commercialYeastOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </label>
+              <SelectField<YeastType>
+                id="quick-yeast-conversion-from"
+                label="From"
+                value={result.input.yeastConversionFrom}
+                options={commercialYeastOptions}
+                onChange={(value) => updateInput(setInput, "yeastConversionFrom", value)}
+              />
+              <SelectField<YeastType>
+                id="quick-yeast-conversion-to"
+                label="To"
+                value={result.input.yeastConversionTo}
+                options={commercialYeastOptions}
+                onChange={(value) => updateInput(setInput, "yeastConversionTo", value)}
+              />
             </div>
             <p className="mt-3 rounded-2xl bg-ink/[.04] px-4 py-3 text-sm font-extrabold text-ink">
               Converted yeast: {formatGrams(result.advancedTools.yeastConversion.convertedGrams, true)} g
             </p>
           </div>
           <div className="rounded-[1.35rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+            <h4 className="mb-3 text-sm font-extrabold text-ink/72">Reverse fermentation</h4>
+            <p className="mb-3 text-xs leading-5 text-ink/45">Estimate the yeast amount for a target fermentation time.</p>
             <NumberField
               id="quick-reverse-fermentation-hours"
               label="Reverse fermentation target"
@@ -624,8 +771,8 @@ export default function QuickDoughCalculator() {
               />
             </div>
             <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <dt className="text-ink/45">Primary flour</dt><dd className="text-right font-extrabold">{formatGrams(result.advancedTools.flourBlend.primaryFlourGrams)} g</dd>
-              <dt className="text-ink/45">Secondary flour</dt><dd className="text-right font-extrabold">{formatGrams(result.advancedTools.flourBlend.secondaryFlourGrams)} g</dd>
+              <dt className="text-ink/45">Primary {formatPercent(result.input.flourBlendPrimaryPercent, 0)}%</dt><dd className="text-right font-extrabold">{formatGrams(result.advancedTools.flourBlend.primaryFlourGrams)} g</dd>
+              <dt className="text-ink/45">Secondary flour {formatPercent(result.input.flourBlendSecondaryPercent, 0)}%</dt><dd className="text-right font-extrabold">{formatGrams(result.advancedTools.flourBlend.secondaryFlourGrams)} g</dd>
             </dl>
           </div>
         </div>
@@ -687,105 +834,27 @@ export default function QuickDoughCalculator() {
           value={experienceLevel}
           onChange={setExperienceLevel}
           compact
-          title="Quick calculator mode"
+          title="Guidance level"
           intro="Choose how much of the same calculator model you want visible while you work."
           className="mt-5"
         />
 
-        <section className="mt-5 min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6" aria-labelledby="quick-recipe-management-heading">
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(18rem,0.55fr)] lg:items-start">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Local recipes</p>
-              <h2 id="quick-recipe-management-heading" className="mt-2 font-display text-3xl font-semibold">Save, reload or share this quick recipe</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">
-                Saved quick recipes stay only in this browser. Shared links restore these calculator inputs without creating a Pizza Session.
-              </p>
-              {recipeNotice !== "idle" && (
-                <p className="mt-3 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs font-extrabold text-leaf" role="status">
-                  {recipeNotice === "saved" && "Quick recipe saved locally."}
-                  {recipeNotice === "loaded" && "Quick recipe loaded into the calculator."}
-                  {recipeNotice === "deleted" && "Quick recipe deleted."}
-                  {recipeNotice === "duplicated" && "Quick recipe duplicated."}
-                  {recipeNotice === "renamed" && "Quick recipe renamed."}
-                  {recipeNotice === "storage-error" && "This browser could not update local quick recipes."}
-                </p>
-              )}
-            </div>
-            <div className="rounded-[1.5rem] border border-ink/10 bg-white p-4">
-              <label htmlFor="quick-recipe-name" className="text-sm font-extrabold text-ink/72">Recipe name</label>
-              <input
-                id="quick-recipe-name"
-                value={recipeName}
-                onChange={(event) => setRecipeName(event.target.value)}
-                className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
-                placeholder="Friday quick dough"
-              />
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={saveCurrentRecipe}
-                  className="rounded-2xl bg-ink px-4 py-3 text-sm font-extrabold text-white transition hover:bg-ink/90 active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                >
-                  Save recipe
-                </button>
-                <button
-                  type="button"
-                  onClick={copyShareUrl}
-                  className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-extrabold text-ink/65 transition hover:border-tomato/25 hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-                >
-                  {shareState === "copied" ? "Link copied" : shareState === "unavailable" ? "Copy unavailable" : "Copy share link"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <h3 className="text-sm font-extrabold text-ink">Saved quick recipes</h3>
-            {savedRecipes.length === 0 ? (
-              <p className="mt-3 rounded-2xl border border-dashed border-ink/15 bg-cream/45 px-4 py-6 text-sm leading-6 text-ink/48">
-                No saved quick recipes yet. Name the current calculator setup and save it here.
-              </p>
-            ) : (
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                {savedRecipes.map((recipe) => (
-                  <article key={recipe.id} className="rounded-2xl border border-ink/10 bg-white p-4">
-                    <label className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/38" htmlFor={`quick-saved-recipe-${recipe.id}`}>
-                      Saved recipe
-                    </label>
-                    <input
-                      id={`quick-saved-recipe-${recipe.id}`}
-                      value={recipe.name}
-                      onChange={(event) => renameSavedRecipe(recipe.id, event.target.value)}
-                      className="mt-2 h-11 w-full rounded-xl border border-ink/10 px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
-                    />
-                    <p className="mt-2 text-xs leading-5 text-ink/45">
-                      {savedRecipeSummary(recipe.input)}
-                    </p>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                      <button type="button" onClick={() => loadSavedRecipe(recipe)} className="rounded-xl bg-tomato px-3 py-2.5 text-xs font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Load</button>
-                      <button type="button" onClick={() => duplicateSavedRecipe(recipe.id)} className="rounded-xl border border-ink/10 px-3 py-2.5 text-xs font-extrabold text-ink/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Duplicate</button>
-                      <button type="button" onClick={() => deleteSavedRecipe(recipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-extrabold text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Delete</button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
         <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)] lg:items-start">
-          <section className="grid min-w-0 gap-5" aria-label="Quick calculator inputs">
+          <section className="grid min-w-0 gap-5 lg:col-start-1 lg:row-start-1" aria-label="Quick calculator essential inputs" data-quick-essential-controls>
             <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{presentation.badge} view</p>
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current workspace</p>
               <h2 className="mt-2 font-display text-3xl font-semibold">{presentation.heading}</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">{presentation.description}</p>
+              <p className="mt-4 rounded-2xl bg-ink/[.045] px-4 py-3 text-sm font-extrabold text-ink/68" data-quick-batch-summary>
+                {result.input.pizzaCount} {result.input.sizingMode === "pan" ? "pans" : "pizzas"} · {formatGrams(result.sizing.doughWeightPerPieceGrams)} g each · {formatGrams(result.ingredients.total)} g dough · {result.sizing.style.label}
+              </p>
             </div>
 
             <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">00 · Style and size</p>
-                  <h2 className="mt-2 font-display text-3xl font-semibold">Pizza style and sizing</h2>
+                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza and batch</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold">What are you making?</h2>
                 </div>
                 <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">
                   Style changes sizing defaults only. Formula and fermentation stay as selected.
@@ -913,22 +982,12 @@ export default function QuickDoughCalculator() {
                 <p className="mt-2 text-2xl font-extrabold text-ink">
                   {formatGrams(result.sizing.doughWeightPerPieceGrams)} g <span className="text-sm font-bold text-ink/45">each</span>
                 </p>
-                {result.sizing.areaSquareCm && (
-                  <p className="mt-1 text-xs leading-5 text-ink/48">
-                    {Math.round(result.sizing.areaSquareCm)} cm² · {formatPercent(result.sizing.loadingGramsPerSquareCm ?? 0, 2)} g/cm²
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">01 · Batch</p>
-                  <h2 className="mt-2 font-display text-3xl font-semibold">Batch quantity</h2>
+                  {result.sizing.areaSquareCm && (
+                    <p className="mt-1 text-xs leading-5 text-ink/48">
+                      {Math.round(result.sizing.areaSquareCm)} cm² · {formatPercent(result.sizing.loadingGramsPerSquareCm ?? 0, 2)} g/cm²
+                    </p>
+                  )}
                 </div>
-                <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">Results update immediately as values change.</p>
-              </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <NumberField
                   id="quick-pizza-count"
@@ -962,8 +1021,8 @@ export default function QuickDoughCalculator() {
 
             {showFormulaCard ? (
               <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
-                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">02 · Formula</p>
-                <h2 className="mt-2 font-display text-3xl font-semibold">Baker’s percentages</h2>
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Dough formula</p>
+                <h2 className="mt-2 font-display text-3xl font-semibold">How should the dough feel?</h2>
                 <p className="mt-2 text-sm leading-6 text-ink/55">
                   Adjust hydration, salt and extra dough without changing any Pizza Session workflow.
                 </p>
@@ -983,101 +1042,11 @@ export default function QuickDoughCalculator() {
             <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">02b · Dough method</p>
-                  <h2 className="mt-2 font-display text-3xl font-semibold">Preferment</h2>
+                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Fermentation</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold">How long and where?</h2>
                 </div>
-                <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">
-                  Same final dough target, split into preferment build and final additions.
-                </p>
+                <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">{result.input.fermentationDuration} · {selectedEnvironment.label} · {formatTemperature(result.input.fermentationTemperatureCelsius)} °C</p>
               </div>
-
-              <fieldset className="mt-5">
-                <legend className="text-sm font-extrabold text-ink/72">Dough method</legend>
-                <div className="mt-3 grid gap-2 sm:grid-cols-4">
-                  {quickPrefermentPresets.map((preset) => (
-                    <OptionButton<QuickPrefermentMethod>
-                      key={preset.id}
-                      label={preset.label}
-                      description={preset.description}
-                      selected={result.input.prefermentMethod === preset.id}
-                      onClick={() => applyPreferment(preset.id)}
-                    />
-                  ))}
-                </div>
-              </fieldset>
-
-              {result.input.prefermentMethod !== "direct" && (
-                <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <NumberField
-                    id="quick-prefermented-flour"
-                    label="Prefermented flour"
-                    value={result.input.prefermentedFlourPercent}
-                    min={5}
-                    max={80}
-                    step={1}
-                    suffix="%"
-                    onChange={(value) => updateInput(setInput, "prefermentedFlourPercent", value)}
-                  />
-                  <NumberField
-                    id="quick-preferment-hydration"
-                    label="Preferment hydration"
-                    value={result.input.prefermentHydrationPercent}
-                    min={40}
-                    max={125}
-                    step={1}
-                    suffix="%"
-                    onChange={(value) => updateInput(setInput, "prefermentHydrationPercent", value)}
-                  />
-                  {result.input.prefermentMethod === "levain" ? (
-                    <NumberField
-                      id="quick-preferment-inoculation"
-                      label="Levain inoculation"
-                      value={result.input.prefermentInoculationPercent}
-                      min={1}
-                      max={60}
-                      step={1}
-                      suffix="%"
-                      onChange={(value) => updateInput(setInput, "prefermentInoculationPercent", value)}
-                    />
-                  ) : (
-                    <div className="rounded-[1.35rem] border border-ink/10 bg-cream/50 p-4">
-                      <p className="text-sm font-extrabold text-ink/72">Commercial yeast split</p>
-                      <p className="mt-2 text-xs leading-5 text-ink/50">
-                        The current yeast amount is assigned to the preferment build for this method.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-5 grid gap-3 md:grid-cols-2">
-                <div className="rounded-[1.35rem] bg-ink/[.04] p-4">
-                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Preferment build</p>
-                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                    <dt className="text-ink/45">Flour</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.build.flourGrams)} g</dd>
-                    <dt className="text-ink/45">Water</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.build.waterGrams)} g</dd>
-                    <dt className="text-ink/45">{result.input.prefermentMethod === "levain" ? "Levain build" : "Yeast"}</dt>
-                    <dd className="text-right font-extrabold">
-                      {result.input.prefermentMethod === "levain"
-                        ? `${formatGrams(result.preferment.build.starterGrams)} g`
-                        : `${formatGrams(result.preferment.build.commercialYeastGrams, true)} g`}
-                    </dd>
-                  </dl>
-                </div>
-                <div className="rounded-[1.35rem] bg-white p-4 ring-1 ring-ink/10">
-                  <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Final dough additions</p>
-                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                    <dt className="text-ink/45">Flour</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.flourGrams)} g</dd>
-                    <dt className="text-ink/45">Water</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.waterGrams)} g</dd>
-                    <dt className="text-ink/45">Salt</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.saltGrams)} g</dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-
-            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">03 · Fermentation</p>
-              <h2 className="mt-2 font-display text-3xl font-semibold">Time, place and yeast</h2>
 
               <fieldset className="mt-5">
                 <legend className="text-sm font-extrabold text-ink/72">Fermentation time</legend>
@@ -1115,110 +1084,236 @@ export default function QuickDoughCalculator() {
               </fieldset>
 
               {showAdvancedCard ? (
-                <div className="mt-5">{advancedControls}</div>
+                <div className="mt-5">{fermentationDetailControls}</div>
               ) : (
                 <div className="mt-5">
                   <OptionalControlGroup
-                    id="quick-optional-advanced-controls"
-                    title="Yeast and temperature details"
+                    id="quick-optional-fermentation-controls"
+                    title="Fermentation details"
                     intro="Use these when you want to override the default yeast type or fermentation temperature."
                     defaultOpen={advancedDefaultOpen}
                   >
-                    {advancedControls}
+                    {fermentationDetailControls}
                   </OptionalControlGroup>
                 </div>
               )}
             </div>
+
+            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Dough method</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold">Preferment</h2>
+                </div>
+                <p className="text-xs font-bold leading-5 text-ink/45 sm:max-w-xs sm:text-right">
+                  Same final dough target, split into preferment build and final additions.
+                </p>
+              </div>
+
+              <fieldset className="mt-5">
+                <legend className="text-sm font-extrabold text-ink/72">Dough method</legend>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  {quickPrefermentPresets.map((preset) => (
+                    <OptionButton<QuickPrefermentMethod>
+                      key={preset.id}
+                      label={preset.label}
+                      description={preset.description}
+                      selected={result.input.prefermentMethod === preset.id}
+                      onClick={() => applyPreferment(preset.id)}
+                    />
+                  ))}
+                </div>
+              </fieldset>
+
+              {result.input.prefermentMethod === "direct" ? (
+                <div className="mt-5 rounded-[1.35rem] bg-ink/[.04] p-4">
+                  <p className="text-sm font-extrabold text-ink/72">No preferment</p>
+                  <p className="mt-1 text-xs leading-5 text-ink/48">All flour, water, salt and yeast are mixed in the final dough.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <NumberField
+                      id="quick-prefermented-flour"
+                      label="Prefermented flour"
+                      value={result.input.prefermentedFlourPercent}
+                      min={5}
+                      max={80}
+                      step={1}
+                      suffix="%"
+                      onChange={(value) => updateInput(setInput, "prefermentedFlourPercent", value)}
+                    />
+                    <NumberField
+                      id="quick-preferment-hydration"
+                      label="Preferment hydration"
+                      value={result.input.prefermentHydrationPercent}
+                      min={40}
+                      max={125}
+                      step={1}
+                      suffix="%"
+                      onChange={(value) => updateInput(setInput, "prefermentHydrationPercent", value)}
+                    />
+                    {result.input.prefermentMethod === "levain" ? (
+                      <NumberField
+                        id="quick-preferment-inoculation"
+                        label="Levain inoculation"
+                        value={result.input.prefermentInoculationPercent}
+                        min={1}
+                        max={60}
+                        step={1}
+                        suffix="%"
+                        onChange={(value) => updateInput(setInput, "prefermentInoculationPercent", value)}
+                      />
+                    ) : (
+                      <div className="rounded-[1.35rem] border border-ink/10 bg-cream/50 p-4">
+                        <p className="text-sm font-extrabold text-ink/72">Commercial yeast split</p>
+                        <p className="mt-2 text-xs leading-5 text-ink/50">
+                          The current yeast amount is assigned to the preferment build for this method.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-5 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-[1.35rem] bg-ink/[.04] p-4">
+                      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Preferment build</p>
+                      <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                        <dt className="text-ink/45">Flour</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.build.flourGrams)} g</dd>
+                        <dt className="text-ink/45">Water</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.build.waterGrams)} g</dd>
+                        <dt className="text-ink/45">{result.input.prefermentMethod === "levain" ? "Levain build" : "Yeast"}</dt>
+                        <dd className="text-right font-extrabold">
+                          {result.input.prefermentMethod === "levain"
+                            ? `${formatGrams(result.preferment.build.starterGrams)} g`
+                            : `${formatGrams(result.preferment.build.commercialYeastGrams, true)} g`}
+                        </dd>
+                      </dl>
+                    </div>
+                    <div className="rounded-[1.35rem] bg-white p-4 ring-1 ring-ink/10">
+                      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Final dough additions</p>
+                      <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                        <dt className="text-ink/45">Flour</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.flourGrams)} g</dd>
+                        <dt className="text-ink/45">Water</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.waterGrams)} g</dd>
+                        <dt className="text-ink/45">Salt</dt><dd className="text-right font-extrabold">{formatGrams(result.preferment.finalDough.saltGrams)} g</dd>
+                      </dl>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </section>
 
-          <aside className="min-w-0 rounded-[2rem] bg-ink p-5 text-white shadow-card sm:p-7 lg:sticky lg:top-6" aria-labelledby="quick-calculator-results" aria-live="polite">
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Result</p>
-            <h2 id="quick-calculator-results" className="mt-2 font-display text-3xl font-semibold">Ingredient amounts</h2>
-            <p className="mt-3 text-sm leading-6 text-white/60">
-              {result.input.pizzaCount} {result.input.sizingMode === "pan" ? "pans" : "pizzas"} × {formatGrams(result.sizing.doughWeightPerPieceGrams)} g · {result.input.hydrationPercent}% hydration · {selectedEnvironment.label}
-            </p>
-            {presentation.resultDetail !== "simple" && (
-              <p className="mt-2 text-xs leading-5 text-white/42">
-                Fermentation maps to the existing pure calculator preset: {result.settings.fermentation} at {result.settings.temperature} °C.
-              </p>
-            )}
+          <RecipeResultPanel
+            result={result}
+            presentation={presentation}
+            copyState={copyState}
+            onCopyRecipe={copyRecipe}
+            onResetCalculator={resetCalculator}
+          />
 
-            <dl className="mt-6 divide-y divide-white/10">
-              {[
-                ["Total dough", result.ingredients.total, false],
-                ["Flour", result.ingredients.flour, false],
-                ["Water", result.ingredients.water, false],
-                ["Salt", result.ingredients.salt, false],
-                [yeastLabel, result.ingredients.leavener, true],
-              ].map(([label, value, precise]) => (
-                <div key={String(label)} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
-                  <dt className="text-sm font-semibold text-white/62">{label}</dt>
-                  <dd className="text-2xl font-extrabold tabular-nums">
-                    {formatGrams(Number(value), Boolean(precise))} <span className="text-sm text-white/35">g</span>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-
-            <section className="mt-6 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-bakers-percentages">
-              <h3 id="quick-bakers-percentages" className="text-sm font-extrabold text-white">Baker’s percentages</h3>
-              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-white/45">Flour</dt><dd className="font-extrabold">100%</dd></div>
-                <div><dt className="text-white/45">Water</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.water)}%</dd></div>
-                <div><dt className="text-white/45">Salt</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.salt)}%</dd></div>
-                {presentation.showTechnicalResult && (
-                  <div><dt className="text-white/45">{yeastLabel}</dt><dd className="font-extrabold">{formatPercent(result.bakerPercentages.yeast, 3)}%</dd></div>
-                )}
-              </dl>
-              {presentation.resultDetail === "technical" && (
-                <p className="mt-3 text-xs leading-5 text-white/42">
-                  Same input values produce the same ingredient output in every guidance mode.
+          <section className="min-w-0 lg:col-start-1 lg:row-start-2" aria-labelledby="quick-advanced-tools-heading" data-quick-advanced-section>
+            {showAdvancedCard ? (
+              <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Advanced dough tools</p>
+                <h2 id="quick-advanced-tools-heading" className="mt-2 font-display text-3xl font-semibold">Temperature, yeast and formula tools</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/55">
+                  Optional tools for temperature planning, yeast conversion, custom ingredients and flour blending.
                 </p>
-              )}
-            </section>
-
-            <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-preferment-result">
-              <h3 id="quick-preferment-result" className="text-sm font-extrabold text-white">Preferment split</h3>
-              <p className="mt-2 text-xs leading-5 text-white/45">{result.preferment.label}</p>
-              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-white/45">Build</dt><dd className="font-extrabold">{formatGrams(result.preferment.build.totalGrams)} g</dd></div>
-                <div><dt className="text-white/45">Final flour</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.flourGrams)} g</dd></div>
-                <div><dt className="text-white/45">Final water</dt><dd className="font-extrabold">{formatGrams(result.preferment.finalDough.waterGrams)} g</dd></div>
-                <div><dt className="text-white/45">Target dough</dt><dd className="font-extrabold">{formatGrams(result.preferment.totalFormula.doughGrams)} g</dd></div>
-              </dl>
-            </section>
-
-            <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-working-assumptions">
-              <h3 id="quick-working-assumptions" className="text-sm font-extrabold text-white">Working assumptions</h3>
-              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-white/45">Dough method</dt><dd className="font-extrabold">{result.preferment.label}</dd></div>
-                <div><dt className="text-white/45">Fermentation temp</dt><dd className="font-extrabold">{formatTemperature(result.input.fermentationTemperatureCelsius)} °C</dd></div>
-                <div><dt className="text-white/45">Target dough temp</dt><dd className="font-extrabold">{formatTemperature(result.input.targetDoughTemperatureCelsius)} °C</dd></div>
-                <div><dt className="text-white/45">Water estimate</dt><dd className="font-extrabold">{formatTemperature(result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius)} °C</dd></div>
-              </dl>
-            </section>
-
-            <div className="mt-6 grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={copyRecipe}
-                className="rounded-2xl bg-tomato px-4 py-3 text-sm font-extrabold text-white transition hover:bg-tomato/90 active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                <div className="mt-5">{advancedControls}</div>
+              </div>
+            ) : (
+              <OptionalControlGroup
+                id="quick-optional-advanced-controls"
+                title="Advanced dough tools"
+                intro="Optional tools for temperature planning, yeast conversion, custom ingredients and flour blending."
+                defaultOpen={advancedDefaultOpen}
               >
-                {copyState === "copied" ? "Recipe copied" : copyState === "unavailable" ? "Copy unavailable" : "Copy recipe"}
-              </button>
-              <button
-                type="button"
-                onClick={resetCalculator}
-                className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-extrabold text-white/70 transition hover:bg-white/[.06] hover:text-white active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-              >
-                Reset calculator
-              </button>
+                {advancedControls}
+              </OptionalControlGroup>
+            )}
+          </section>
+
+          <section className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6 lg:col-start-1 lg:row-start-3" aria-labelledby="quick-recipe-management-heading" data-quick-save-share>
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(18rem,0.55fr)] xl:items-start">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Local recipes</p>
+                <h2 id="quick-recipe-management-heading" className="mt-2 font-display text-3xl font-semibold">Save, reload or share this quick recipe</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">
+                  Saved quick recipes stay only in this browser. Shared links restore these calculator inputs without creating a Pizza Session.
+                </p>
+                {recipeNotice !== "idle" && (
+                  <p className="mt-3 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs font-extrabold text-leaf" role="status">
+                    {recipeNotice === "saved" && "Quick recipe saved locally."}
+                    {recipeNotice === "loaded" && "Quick recipe loaded into the calculator."}
+                    {recipeNotice === "deleted" && "Quick recipe deleted."}
+                    {recipeNotice === "duplicated" && "Quick recipe duplicated."}
+                    {recipeNotice === "renamed" && "Quick recipe renamed."}
+                    {recipeNotice === "storage-error" && "This browser could not update local quick recipes."}
+                  </p>
+                )}
+              </div>
+              <div className="rounded-[1.5rem] border border-ink/10 bg-white p-4">
+                <label htmlFor="quick-recipe-name" className="text-sm font-extrabold text-ink/72">Recipe name</label>
+                <input
+                  id="quick-recipe-name"
+                  value={recipeName}
+                  onChange={(event) => setRecipeName(event.target.value)}
+                  className="mt-3 h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                  placeholder="Friday quick dough"
+                />
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={saveCurrentRecipe}
+                    className="rounded-2xl bg-ink px-4 py-3 text-sm font-extrabold text-white transition hover:bg-ink/90 active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  >
+                    Save recipe
+                  </button>
+                  <button
+                    type="button"
+                    onClick={copyShareUrl}
+                    className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-extrabold text-ink/65 transition hover:border-tomato/25 hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                  >
+                    {shareState === "copied" ? "Link copied" : shareState === "unavailable" ? "Copy unavailable" : "Copy share link"}
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <p className="mt-4 text-xs leading-5 text-white/42">
-              No session is created. No account or workflow data is saved.
-            </p>
-          </aside>
+            <div className="mt-5">
+              <h3 className="text-sm font-extrabold text-ink">Saved quick recipes</h3>
+              {savedRecipes.length === 0 ? (
+                <p className="mt-3 rounded-2xl border border-dashed border-ink/15 bg-cream/45 px-4 py-6 text-sm leading-6 text-ink/48">
+                  No saved recipes yet. Name the current calculator setup and save it here.
+                </p>
+              ) : (
+                <div className="mt-3 grid gap-3">
+                  {savedRecipes.map((recipe) => (
+                    <article key={recipe.id} className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                      <div className="min-w-0">
+                        <label className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/38" htmlFor={`quick-saved-recipe-${recipe.id}`}>
+                          Saved recipe
+                        </label>
+                        <input
+                          id={`quick-saved-recipe-${recipe.id}`}
+                          value={recipe.name}
+                          onChange={(event) => renameSavedRecipe(recipe.id, event.target.value)}
+                          className="mt-2 h-11 w-full rounded-xl border border-ink/10 px-3 text-sm font-extrabold text-ink outline-none focus:border-tomato focus:ring-4 focus:ring-tomato/10"
+                        />
+                        <p className="mt-2 text-xs leading-5 text-ink/45">
+                          {savedRecipeSummary(recipe.input)}
+                        </p>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3 md:min-w-[18rem]">
+                        <button type="button" onClick={() => loadSavedRecipe(recipe)} className="rounded-xl bg-tomato px-3 py-2.5 text-xs font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Load</button>
+                        <button type="button" onClick={() => duplicateSavedRecipe(recipe.id)} className="rounded-xl border border-ink/10 px-3 py-2.5 text-xs font-extrabold text-ink/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Duplicate</button>
+                        <button type="button" onClick={() => deleteSavedRecipe(recipe.id)} className="rounded-xl border border-tomato/20 px-3 py-2.5 text-xs font-extrabold text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">Delete</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </main>

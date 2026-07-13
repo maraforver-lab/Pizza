@@ -342,7 +342,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(nerd.collapsedGroups).toEqual([]);
     expect(component).toContain("OptionalControlGroup");
     expect(component).toContain("Formula details");
-    expect(component).toContain("Yeast and temperature details");
+    expect(component).toContain("Fermentation details");
+    expect(component).toContain("Advanced dough tools");
     expect(component).toContain("Working assumptions");
   });
 
@@ -906,7 +907,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     const sizing = source("lib/quick-calculator/pizza-sizing.ts");
     const preferments = source("lib/quick-calculator/quick-preferments.ts");
 
-    expect(component).toContain("Pizza style and sizing");
+    expect(component).toContain("What are you making?");
     expect(component).toContain("Sizing mode");
     expect(component).toContain("Pizza diameter");
     expect(component).toContain("Pan width");
@@ -926,19 +927,36 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Primary flour");
     expect(component).toContain("Secondary flour");
     expect(component).toContain("mt-3 grid gap-2 sm:grid-cols-3");
+    expect(component).not.toContain("02b");
     expect(sizing).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
     expect(preferments).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
+  });
+
+  it("uses the Patch 343 responsive workspace order without moving calculation state", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain('title="Guidance level"');
+    expect(component).toContain("data-quick-essential-controls");
+    expect(component).toContain("data-quick-result-panel");
+    expect(component).toContain("data-quick-advanced-section");
+    expect(component).toContain("data-quick-save-share");
+    expect(component.indexOf("data-quick-result-panel")).toBeLessThan(component.indexOf("data-quick-advanced-section"));
+    expect(component.indexOf("data-quick-advanced-section")).toBeLessThan(component.indexOf("data-quick-save-share"));
+    expect(component).toContain("RecipeResultPanel");
+    expect(component).toContain("calculateQuickDough(input)");
   });
 
   it("keeps the Quick Calculator mobile layout shrinkable at narrow widths", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
     expect(component).toContain("mt-6 grid min-w-0 gap-6");
-    expect(component).toContain('section className="grid min-w-0 gap-5" aria-label="Quick calculator inputs"');
+    expect(component).toContain('aria-label="Quick calculator essential inputs"');
+    expect(component).toContain("data-quick-batch-summary");
     expect(component).toContain('className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70');
     expect(component).toContain("min-w-0 rounded-[1.35rem] border p-4");
     expect(component).toContain("grid-cols-[2.5rem_minmax(3.5rem,1fr)_auto_2.5rem]");
     expect(component).toContain("sm:grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem]");
+    expect(component).toContain("lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)]");
     expect(component).toContain("h-5 w-5 rounded");
   });
 
