@@ -122,7 +122,7 @@ export default function GlobalToolNavigation() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/95 px-3 py-2.5 text-ink shadow-sm backdrop-blur-xl sm:px-6">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 overflow-hidden sm:gap-3">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
@@ -134,7 +134,7 @@ export default function GlobalToolNavigation() {
           <strong className="text-lg tracking-tight max-sm:sr-only">Dough<span className="text-tomato">Tools</span></strong>
         </Link>
 
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 max-w-[calc(100vw-5.25rem)] items-center justify-start gap-1 overflow-hidden sm:justify-end sm:gap-3">
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
             <Link
               href="/about"
@@ -155,7 +155,7 @@ export default function GlobalToolNavigation() {
               aria-expanded={guideMenuOpen}
               aria-controls="global-guide-menu"
               onClick={() => setOpenMenu((menu) => menu === "guide" ? null : "guide")}
-              className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-2.5 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:px-3"
             >
               {copy.guide}
               <DoughToolsIcon name="chevron-down" size={16} />
@@ -241,7 +241,7 @@ export default function GlobalToolNavigation() {
               aria-expanded={toolsMenuOpen}
               aria-controls="global-tools-menu"
               onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}
-              className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-3 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-2.5 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:px-3"
             >
               {copy.tools}
               <DoughToolsIcon name="chevron-down" size={16} />
@@ -269,7 +269,7 @@ export default function GlobalToolNavigation() {
             href="/account"
             aria-label={signedIn ? copy.accountActive : copy.account}
             aria-current={accountActive ? "page" : undefined}
-            className={`group relative flex h-10 items-center gap-2 rounded-full border px-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+            className={`group relative flex h-10 items-center gap-2 rounded-full border px-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:px-3 ${
               accountActive
                 ? "border-ink bg-ink text-white"
                 : signedIn

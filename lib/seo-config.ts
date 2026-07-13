@@ -24,9 +24,9 @@ const unsupportedMarketingClaims = /\b(perfect pizza|guaranteed|ultimate|revolut
 export const publicSeoRoutes = [
   {
     path: "/",
-    title: "Pizza Planning Workflow | DoughTools",
+    title: "Plan Better Pizza Nights | DoughTools",
     description:
-      "Plan a complete pizza session with a dough recipe, shopping guidance, timeline, Kitchen Mode and review path.",
+      "Plan a complete pizza night with a dough recipe, shopping guidance, timeline, Kitchen Mode and review path.",
     changeFrequency: "weekly",
     priority: 1,
   },

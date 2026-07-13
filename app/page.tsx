@@ -189,90 +189,99 @@ export default async function Home({ searchParams }: HomePageProps) {
     <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f1e6d8_42%,#fff8f1_100%)] text-ink">
       <section className="px-4 pb-10 pt-7 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8" aria-labelledby="homepage-hero-heading">
         <div className="mx-auto max-w-7xl">
-          <div className="relative overflow-hidden rounded-[2rem] bg-forest-dark shadow-overlay sm:rounded-[2.75rem] lg:min-h-[46rem]">
-            <picture>
-              <source media="(min-width: 1024px)" srcSet={desktopHeroSrcSet} sizes={desktopHeroSizes} />
-              <img
-                {...mobileHeroImageProps}
-                alt="Finished pizza with prepared dough in a warm pizza-making workspace"
-                className="absolute inset-0 h-full w-full object-cover object-[50%_62%] lg:object-[66%_center]"
-              />
-            </picture>
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,41,31,0.92)_0%,rgba(9,41,31,0.78)_38%,rgba(9,41,31,0.22)_100%)]" aria-hidden="true" />
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,rgba(9,41,31,0)_0%,rgba(9,41,31,0.82)_100%)]" aria-hidden="true" />
-
-            <div className="relative z-10 grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(21rem,0.62fr)] lg:items-end lg:p-10 lg:pb-12">
-              <div className="max-w-3xl py-6 lg:py-16">
+          <div className="grid min-w-0 overflow-hidden rounded-[2rem] bg-forest-dark shadow-overlay sm:rounded-[2.75rem] xl:min-h-[45rem] xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)]">
+            <div className="relative z-10 flex min-w-0 flex-col justify-center p-5 text-white sm:p-8 lg:p-10 xl:p-12">
+              <div className="min-w-0 max-w-2xl py-2 lg:py-10">
                 <p className="text-xs font-extrabold uppercase tracking-[.34em] text-oven-gold">
                   {homepageContent.hero.eyebrow}
                 </p>
-                <h1 id="homepage-hero-heading" className="mt-5 font-display text-[clamp(3.2rem,12vw,6.2rem)] font-semibold leading-[.88] tracking-[-.05em] text-white sm:text-7xl lg:text-[6.35rem]">
-                  {homepageContent.hero.h1}
+                <h1 id="homepage-hero-heading" className="mt-5 max-w-[9ch] break-words font-display text-[clamp(2.5rem,11vw,5.8rem)] font-semibold leading-[.9] tracking-[-.05em] text-white sm:max-w-[11ch] sm:text-7xl xl:max-w-none xl:text-[5.7rem] 2xl:text-[6.15rem]">
+                  <span className="block lg:inline">Better pizza</span>{" "}
+                  <span className="block lg:inline">starts</span>{" "}
+                  <span className="block lg:inline">before</span>{" "}
+                  <span className="block lg:inline">the oven.</span>
                 </h1>
-                <p className="mt-6 max-w-2xl rounded-[1.5rem] bg-forest-dark/42 p-4 text-base leading-7 text-white/86 backdrop-blur-sm sm:text-xl sm:leading-8 lg:bg-transparent lg:p-0 lg:backdrop-blur-0">
+                <p className="mt-6 max-w-xl break-words text-base leading-7 text-white/86 sm:text-xl sm:leading-8">
                   {homepageContent.hero.intro}
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Link
                     href={homepageContent.hero.primaryCta.href}
-                    className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition hover:bg-white hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark"
+                    className="inline-flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-2xl bg-tomato px-6 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition hover:bg-white hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark sm:w-auto sm:px-7"
                   >
                     {homepageContent.hero.primaryCta.label} →
                   </Link>
                   <a
                     href={homepageContent.hero.secondaryCta.href}
-                    className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/12 px-6 py-3 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark"
+                    className="inline-flex min-h-12 w-full items-center justify-center whitespace-nowrap rounded-2xl border border-white/20 bg-white/12 px-6 py-3 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark sm:w-auto"
                   >
                     {homepageContent.hero.secondaryCta.label}
                   </a>
                 </div>
                 <ul className="mt-6 grid gap-2 text-sm font-extrabold text-white/86 sm:grid-cols-3" aria-label="DoughTools helps you">
                   {heroValueStatements.map((statement) => (
-                    <li key={statement} className="flex items-center gap-2 rounded-2xl bg-white/12 px-3 py-2 backdrop-blur">
+                    <li key={statement} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2">
                       <DoughToolsIcon name="success" size={16} className="shrink-0 text-oven-gold" aria-hidden="true" />
                       <span>{statement}</span>
                     </li>
                   ))}
                 </ul>
               </div>
+            </div>
 
-              <div className="min-w-0 self-end">
-                <section
-                  className="w-full rounded-[1.75rem] border border-white/20 bg-white/88 p-4 shadow-card backdrop-blur-md sm:p-5 lg:ml-auto lg:max-w-[24rem]"
-                  aria-labelledby="homepage-session-preview"
-                >
-                  <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">What changes</p>
-                  <h2 id="homepage-session-preview" className="mt-2 font-display text-2xl font-semibold leading-none">
-                    Pizza night feels planned before it feels busy.
-                  </h2>
-                  <dl className="mt-4 grid gap-2">
-                    {heroPromiseRows.map((row) => (
-                      <div key={row.label} className="grid grid-cols-[4.8rem_1fr] gap-3 rounded-2xl bg-cream/80 px-3 py-2.5 text-sm">
-                        <dt className="font-extrabold text-ink/45">{row.label}</dt>
-                        <dd className="min-w-0 font-extrabold leading-5 text-ink">{row.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              </div>
+            <div className="relative min-h-[19rem] min-w-0 overflow-hidden bg-ink sm:min-h-[28rem] xl:min-h-full" aria-label="Finished pizza and prepared dough">
+              <picture>
+                <source media="(min-width: 1024px)" srcSet={desktopHeroSrcSet} sizes={desktopHeroSizes} />
+                <img
+                  {...mobileHeroImageProps}
+                  alt="Finished pizza with prepared dough in a warm pizza-making workspace"
+                  className="absolute inset-0 h-full w-full object-cover object-[50%_68%] sm:object-[50%_64%] xl:object-[62%_center]"
+                />
+              </picture>
+              <div className="absolute inset-y-0 left-0 hidden w-24 bg-[linear-gradient(90deg,rgba(9,41,31,0.48),rgba(9,41,31,0))] lg:block" aria-hidden="true" />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,rgba(9,41,31,0)_0%,rgba(9,41,31,0.34)_100%)]" aria-hidden="true" />
             </div>
           </div>
         </div>
 
-        <div className="mx-auto mt-8 max-w-7xl">
+        <div className="mx-auto mt-5 max-w-7xl space-y-5">
+          <section
+            className="rounded-[1.75rem] border border-white/80 bg-white/78 p-4 shadow-sm backdrop-blur-sm sm:p-5"
+            aria-labelledby="homepage-session-preview"
+          >
+            <div className="grid gap-3 md:grid-cols-[0.55fr_1fr] md:items-center">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">What changes</p>
+                <h2 id="homepage-session-preview" className="mt-2 font-display text-2xl font-semibold leading-none">
+                  Pizza night feels planned before it feels busy.
+                </h2>
+              </div>
+              <dl className="grid gap-2 sm:grid-cols-3">
+                {heroPromiseRows.map((row) => (
+                  <div key={row.label} className="rounded-2xl bg-cream/80 px-3 py-2.5 text-sm">
+                    <dt className="font-extrabold text-ink/45">{row.label}</dt>
+                    <dd className="mt-1 min-w-0 font-extrabold leading-5 text-ink">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </section>
           <ContinuePizzaSessionCard variant="hero" />
         </div>
       </section>
 
       <section id="how-it-works" className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-why-heading">
-        <div className="mx-auto grid max-w-7xl gap-7 overflow-hidden rounded-[2rem] border border-white/80 bg-white/78 p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.78fr_0.56fr_0.9fr] lg:items-center">
+        <div className="mx-auto grid max-w-7xl gap-7 overflow-hidden rounded-[2rem] border border-white/80 bg-white/78 p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[0.78fr_0.62fr_0.9fr] lg:items-center">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Why DoughTools exists</p>
             <h2 id="homepage-why-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
               Great pizza shouldn’t depend on guesswork.
             </h2>
             <p className="mt-4 max-w-xl text-base leading-7 text-ink/70">
-              The best pizza nights feel relaxed because the decisions are already made. DoughTools turns the little uncertainties into one calm plan, so your attention can stay on the dough, the oven and the people waiting for the first slice.
+              Pizza night gets easier when the decisions are already made.
+            </p>
+            <p className="mt-4 rounded-[1.5rem] bg-leaf/10 p-4 text-sm font-extrabold leading-6 text-leaf">
+              DoughTools turns those questions into one calm plan.
             </p>
           </div>
           <Image
@@ -281,7 +290,7 @@ export default async function Home({ searchParams }: HomePageProps) {
             width={900}
             height={675}
             sizes="(max-width: 1024px) 100vw, 24vw"
-            className="h-56 w-full rounded-[1.75rem] object-cover shadow-card lg:h-80"
+            className="h-64 w-full rounded-[1.75rem] object-cover shadow-card lg:h-96"
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {guessworkQuestions.map((question) => (
@@ -306,30 +315,35 @@ export default async function Home({ searchParams }: HomePageProps) {
               The result is the slice on the table. The way there is a sequence of small decisions made at the right time.
             </p>
           </div>
-          <div className="mt-8 grid gap-3 lg:grid-cols-5">
-            {journeyStages.map((stage, index) => (
-              <article key={stage.title} className="relative overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/82 shadow-sm">
-                {index > 0 && (
-                  <span className="absolute -left-4 top-1/2 hidden h-px w-5 bg-ink/12 lg:block" aria-hidden="true" />
-                )}
-                <Image
-                  src={stage.image}
-                  alt={stage.alt}
-                  width={640}
-                  height={480}
-                  sizes="(max-width: 1024px) 100vw, 20vw"
-                  className="h-28 w-full object-cover"
-                />
-                <div className="p-5">
+          <div className="mt-8 grid gap-5 lg:grid-cols-[0.86fr_1.14fr] lg:items-stretch">
+            <figure className="overflow-hidden rounded-[2rem] bg-white/80 shadow-card">
+              <Image
+                src="/dough-guide/guide-step-08-ball.webp"
+                alt="Dough balls prepared for the next stage of pizza making"
+                width={1200}
+                height={900}
+                sizes="(max-width: 1024px) 100vw, 42vw"
+                className="h-72 w-full object-cover sm:h-96 lg:h-full"
+              />
+              <figcaption className="p-5 text-sm font-bold leading-6 text-ink/62">
+                A better bake starts before the oven: dough ready, timing clear, next step known.
+              </figcaption>
+            </figure>
+
+            <div className="grid gap-3">
+              {journeyStages.map((stage, index) => (
+                <article key={stage.title} className="grid gap-4 rounded-[1.5rem] border border-white/80 bg-white/84 p-4 shadow-sm sm:grid-cols-[3.5rem_1fr] sm:items-center">
                   <span className="grid h-12 w-12 place-items-center rounded-2xl bg-leaf/10 text-leaf" aria-hidden="true">
                     <DoughToolsIcon name={stage.icon} size={24} />
                   </span>
-                  <p className="mt-5 text-xs font-extrabold uppercase tracking-[.22em] text-ink/35">Step {index + 1}</p>
-                  <h3 className="mt-2 font-display text-3xl font-semibold leading-none">{stage.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-ink/62">{stage.text}</p>
-                </div>
-              </article>
-            ))}
+                  <div>
+                    <p className="text-xs font-extrabold uppercase tracking-[.22em] text-ink/35">Step {index + 1}</p>
+                    <h3 className="mt-1 font-display text-3xl font-semibold leading-none">{stage.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-ink/62">{stage.text}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -379,7 +393,7 @@ export default async function Home({ searchParams }: HomePageProps) {
               You always know what happens next.
             </h2>
             <p className="mt-4 text-base leading-7 text-ink/70">
-              Product screens create trust only when they make the next step obvious. These moments show how the plan turns into action.
+              Product views create trust only when they answer a practical question. These moments show how the plan turns into action after the pizza already looks worth making.
             </p>
           </div>
 
@@ -406,6 +420,28 @@ export default async function Home({ searchParams }: HomePageProps) {
                 </div>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-10 sm:px-6 sm:py-16 lg:px-8" aria-labelledby="homepage-outcome-heading">
+        <div className="mx-auto grid max-w-7xl gap-6 overflow-hidden rounded-[2rem] bg-white/78 p-5 shadow-card sm:rounded-[2.5rem] sm:p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <Image
+            src="/images/timeline/review-result.webp"
+            alt="Finished pizza with an airy crust ready to slice and review"
+            width={1254}
+            height={1254}
+            sizes="(max-width: 1024px) 100vw, 48vw"
+            className="h-80 w-full rounded-[1.75rem] object-cover shadow-card sm:h-[28rem]"
+          />
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">The result</p>
+            <h2 id="homepage-outcome-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+              Planning should leave more attention for the pizza.
+            </h2>
+            <p className="mt-5 text-base leading-7 text-ink/70">
+              When the timing, shopping and next actions are already clear, the finished pizza becomes the focus again: the crust, the sauce, the heat, and the next slice.
+            </p>
           </div>
         </div>
       </section>
@@ -443,15 +479,15 @@ export default async function Home({ searchParams }: HomePageProps) {
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-tomato">Founder story</p>
             <h2 id="homepage-founder-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
-              Built by someone who got tired of guessing through pizza night.
+              Built because pizza night was harder to plan than it should be.
             </h2>
           </div>
           <div className="space-y-4 text-base leading-7 text-ink/70">
             <p>
-              DoughTools grew from a simple frustration: the dough numbers were only part of the problem. The harder part was knowing when to start, how to prepare, and how to stay calm when hungry people were already asking when the next pizza would be ready.
+              I did not build DoughTools because the dough numbers were difficult. I built it because planning pizza night was harder.
             </p>
             <p>
-              Marcin built it as a practical companion for better pizza nights — transparent enough to trust, focused enough to use, and still respectful of the craft.
+              It is a practical companion for better pizza nights — transparent enough to trust, focused enough to use, and still respectful of the craft.
             </p>
             <Link
               href="/about"
@@ -467,10 +503,10 @@ export default async function Home({ searchParams }: HomePageProps) {
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/80 bg-ink p-6 text-center text-white shadow-card sm:rounded-[2.5rem] sm:p-10">
           <p className="text-xs font-extrabold uppercase tracking-[.28em] text-oven-gold">Ready when you are</p>
           <h2 id="homepage-final-cta-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">
-            Let’s make the next pizza night feel easier.
+            Ready to plan your next pizza?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base sm:leading-7">
-            A few minutes of planning now means more confidence when the oven is hot.
+            It only takes a few minutes to create your first plan.
           </p>
           <Link
             href={homepageContent.hero.primaryCta.href}
