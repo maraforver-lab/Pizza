@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
@@ -50,6 +50,105 @@ const presetCards: Array<{ id: ToppingBalancePreset; label: string; description:
   { id: "too-much", label: "Too much", description: "Deep sauce, cheese blanket and less bake margin." },
   { id: "wet-overload", label: "Wet overload", description: "Balanced-looking grams, but poorly drained cheese." },
   { id: "heavy-toppings", label: "Heavy topping load", description: "Extra toppings push the pizza past easy baking." },
+];
+
+type ToppingVisualState = "too-little" | "balanced" | "too-much" | "wet-overload" | "heavy-load";
+type ToppingPizzaExampleId = "diavola" | "margherita" | "marinara" | "custom";
+
+type ToppingExampleImage = {
+  src: string;
+  alt: string;
+  label: string;
+};
+
+type ToppingPizzaExample = {
+  id: ToppingPizzaExampleId;
+  name: string;
+  description: string;
+  thumbnail: string;
+  thumbnailAlt: string;
+  images: Partial<Record<ToppingVisualState, ToppingExampleImage>>;
+};
+
+const visualStateLabels: Record<ToppingVisualState, string> = {
+  "too-little": "Too little",
+  balanced: "Balanced",
+  "too-much": "Too much",
+  "wet-overload": "Wet overload",
+  "heavy-load": "Heavy topping load",
+};
+
+const pizzaExamples: ToppingPizzaExample[] = [
+  {
+    id: "diavola",
+    name: "Diavola",
+    description: "Tomato, fior di latte and spicy salami make topping coverage easy to compare.",
+    thumbnail: "/toppings/diavola/diavola-balanced.webp",
+    thumbnailAlt: "Balanced Diavola pizza with tomato, fior di latte and spicy salami.",
+    images: {
+      "too-little": {
+        src: "/toppings/diavola/diavola-too-little.webp",
+        alt: "Diavola pizza with sparse sauce, cheese and spicy salami coverage.",
+        label: "Sparse Diavola reference",
+      },
+      balanced: {
+        src: "/toppings/diavola/diavola-balanced.webp",
+        alt: "Balanced Diavola pizza with tomato, fior di latte and spicy salami.",
+        label: "Balanced Diavola reference",
+      },
+      "too-much": {
+        src: "/toppings/diavola/diavola-too-much.webp",
+        alt: "Diavola pizza with heavy sauce, cheese and spicy salami coverage.",
+        label: "Too-much Diavola reference",
+      },
+      "wet-overload": {
+        src: "/toppings/diavola/diavola-wet-overload.webp",
+        alt: "Diavola pizza with wet-looking fior di latte and visible moisture risk.",
+        label: "Wet-overload Diavola reference",
+      },
+      "heavy-load": {
+        src: "/toppings/diavola/diavola-heavy-load.webp",
+        alt: "Diavola pizza with dense spicy salami and heavy topping coverage.",
+        label: "Heavy-load Diavola reference",
+      },
+    },
+  },
+  {
+    id: "margherita",
+    name: "Margherita",
+    description: "A balanced tomato, fior di latte and basil reference for classic restraint.",
+    thumbnail: "/toppings/examples/margherita-balanced.webp",
+    thumbnailAlt: "Balanced Margherita pizza with tomato, fior di latte and basil.",
+    images: {
+      balanced: {
+        src: "/toppings/examples/margherita-balanced.webp",
+        alt: "Balanced Margherita pizza with tomato, fior di latte and basil.",
+        label: "Balanced Margherita reference",
+      },
+    },
+  },
+  {
+    id: "marinara",
+    name: "Marinara",
+    description: "A cheese-free tomato, garlic, oregano and olive-oil reference.",
+    thumbnail: "/toppings/examples/marinara-balanced.webp",
+    thumbnailAlt: "Balanced Marinara pizza with tomato, garlic, oregano and olive oil.",
+    images: {
+      balanced: {
+        src: "/toppings/examples/marinara-balanced.webp",
+        alt: "Balanced Marinara pizza with tomato, garlic, oregano and olive oil.",
+        label: "Balanced Marinara reference",
+      },
+    },
+  },
+  {
+    id: "custom",
+    name: "Custom",
+    description: "Keep your current controls as the source of truth and compare them against Diavola references.",
+    thumbnail: "/toppings/diavola/diavola-balanced.webp",
+    thumbnailAlt: "Balanced Diavola comparison pizza used as a custom visual reference.",
+    images: {},
+  },
 ];
 
 type ToppingLesson = {
@@ -360,71 +459,243 @@ function GeometryControls({
   );
 }
 
-function PizzaBalanceVisual({ state, result }: { state: ToppingBalanceState; result: ReturnType<typeof calculateToppingBalance> }) {
-  const sauceScale = Math.min(1, Math.max(0.38, result.sauceDensity / 17));
-  const cheeseCount = Math.max(4, Math.min(18, Math.round(result.cheeseDensity * 0.72)));
-  const extraCount = state.toppingLoad === "none" ? 0 : state.toppingLoad === "light" ? 5 : state.toppingLoad === "moderate" ? 10 : 18;
-  const rimWidth = state.geometry.shape === "round"
-    ? Math.max(8, Math.min(22, state.geometry.rim * 5.5))
-    : 10;
-  const visualLabel = `${result.headline}: ${state.sauceGrams} g sauce, ${state.cheeseType === "none" ? 0 : state.cheeseGrams} g cheese, ${result.extraToppingGrams} g teaching topping load over ${result.usableArea} square centimeters of usable topping area.`;
+function visualStateForResult(state: ToppingBalanceState, result: ReturnType<typeof calculateToppingBalance>): ToppingVisualState {
+  if (result.moistureLevel === "high") return "wet-overload";
+  if (state.toppingLoad === "heavy" || result.combinedLevel === "overloaded") return "heavy-load";
+  if (result.combinedLevel === "very-light" || result.combinedLevel === "light") return "too-little";
+  if (result.combinedLevel === "heavy") return "too-much";
+  return "balanced";
+}
+
+function imageForExample(example: ToppingPizzaExample, visualState: ToppingVisualState) {
+  const fallback = pizzaExamples[0];
+  const image = example.images[visualState] ?? example.images.balanced;
+  if (image) {
+    return {
+      image,
+      fallbackName: null as string | null,
+      effectiveState: example.images[visualState] ? visualState : "balanced" as ToppingVisualState,
+    };
+  }
+
+  return {
+    image: fallback.images[visualState] ?? fallback.images.balanced!,
+    fallbackName: fallback.name,
+    effectiveState: visualState,
+  };
+}
+
+function ToppingPizzaExampleSelector({
+  selected,
+  onChange,
+}: {
+  selected: ToppingPizzaExampleId;
+  onChange: (example: ToppingPizzaExampleId) => void;
+}) {
+  return (
+    <label className="block text-xs font-extrabold uppercase tracking-[.14em] text-ink/45">
+      Pizza example
+      <select
+        value={selected}
+        onChange={(event) => onChange(event.target.value as ToppingPizzaExampleId)}
+        className="mt-2 h-12 w-full rounded-2xl border border-ink/10 bg-white px-3 text-sm font-bold normal-case tracking-normal text-ink outline-none focus:border-tomato focus:ring-2 focus:ring-tomato/20"
+      >
+        {pizzaExamples.map((example) => (
+          <option key={example.id} value={example.id}>{example.name}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function ToppingExampleDialog({
+  open,
+  selected,
+  onChange,
+  onClose,
+  returnFocusRef,
+}: {
+  open: boolean;
+  selected: ToppingPizzaExampleId;
+  onChange: (example: ToppingPizzaExampleId) => void;
+  onClose: () => void;
+  returnFocusRef: RefObject<HTMLButtonElement | null>;
+}) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousActive = document.activeElement;
+    const returnFocusNode = returnFocusRef.current;
+    closeButtonRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+      if (previousActive instanceof HTMLElement) {
+        previousActive.focus();
+      } else {
+        returnFocusNode?.focus();
+      }
+    };
+  }, [onClose, open, returnFocusRef]);
+
+  if (!open) return null;
 
   return (
-    <figure className="rounded-[2rem] border border-ink/10 bg-gradient-to-br from-flour to-white p-4 shadow-card sm:p-6" aria-label={visualLabel}>
-      <div className="mx-auto max-w-[34rem]">
-        <div className="relative aspect-square rounded-[2rem] bg-[radial-gradient(circle_at_48%_42%,rgba(255,248,241,.95),rgba(241,230,216,.7)_42%,rgba(15,61,46,.12)_100%)] p-4">
-          <div className="absolute inset-4 rounded-full bg-[#d99d57] shadow-[inset_0_0_0_8px_rgba(117,72,31,.18),inset_0_0_28px_rgba(31,31,31,.18)]" aria-hidden="true" />
-          <div
-            className="absolute rounded-full bg-[#f1d19a] shadow-inner"
-            style={{ inset: `${rimWidth}px` }}
-            aria-hidden="true"
-          />
-          <div
-            className="absolute rounded-full bg-[radial-gradient(circle_at_40%_38%,#e85d35,#b93322_68%,#8e251c)] opacity-95 shadow-inner"
-            style={{
-              inset: `${rimWidth + 8 + (1 - sauceScale) * 22}px`,
-            }}
-            aria-hidden="true"
-          />
-          {Array.from({ length: cheeseCount }).map((_, index) => (
-            <span
-              key={`cheese-${index}`}
-              className="absolute rounded-full bg-[#fff2d5] shadow-[0_1px_4px_rgba(31,31,31,.14)]"
-              style={{
-                width: `${7 + (index % 4) * 3}%`,
-                height: `${5 + (index % 3) * 2}%`,
-                left: `${22 + ((index * 17) % 52)}%`,
-                top: `${20 + ((index * 23) % 54)}%`,
-                transform: `rotate(${index * 31}deg)`,
-                opacity: state.cheeseType === "none" ? 0 : 0.92,
-              }}
-              aria-hidden="true"
-            />
-          ))}
-          {Array.from({ length: extraCount }).map((_, index) => (
-            <span
-              key={`extra-${index}`}
-              className="absolute rounded-full bg-[#5f6f35] shadow-[0_1px_3px_rgba(31,31,31,.18)]"
-              style={{
-                width: `${2.5 + (index % 3)}%`,
-                height: `${2.5 + (index % 3)}%`,
-                left: `${24 + ((index * 19) % 50)}%`,
-                top: `${24 + ((index * 29) % 48)}%`,
-                opacity: 0.75,
-              }}
-              aria-hidden="true"
-            />
-          ))}
-          {result.moistureLevel !== "low" && (
-            <div className="absolute inset-[32%] rounded-full bg-sky-300/20 blur-md" aria-hidden="true" />
-          )}
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-ink/45 p-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pizza-example-dialog-title"
+        className="max-h-[92vh] w-full overflow-y-auto rounded-[2rem] bg-warm-background p-4 shadow-overlay sm:max-w-2xl sm:p-6"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Visual reference</p>
+            <h2 id="pizza-example-dialog-title" className="mt-2 font-display text-3xl font-semibold">Choose a pizza example</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/62">The example changes the teaching photo only. Your sauce, cheese and topping values stay unchanged.</p>
+          </div>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={onClose}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink/10 bg-white text-ink transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+            aria-label="Close pizza example chooser"
+          >
+            <DoughToolsIcon name="close" size={20} />
+          </button>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {pizzaExamples.map((example) => {
+            const active = selected === example.id;
+            return (
+              <button
+                key={example.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => {
+                  onChange(example.id);
+                  onClose();
+                }}
+                className={`grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-[1.25rem] border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${active ? "border-tomato bg-tomato/10" : "border-ink/10 bg-white hover:border-tomato/30"}`}
+              >
+                <Image
+                  src={example.thumbnail}
+                  alt=""
+                  width={160}
+                  height={160}
+                  sizes="5rem"
+                  className="aspect-square rounded-2xl object-cover"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-extrabold">{example.name}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/58">{example.description}</span>
+                  {active && <span className="mt-2 inline-flex rounded-full bg-ink px-2 py-1 text-[10px] font-extrabold text-white">Selected</span>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ToppingRealisticReference({
+  state,
+  result,
+  selectedExample,
+  onExampleChange,
+}: {
+  state: ToppingBalanceState;
+  result: ReturnType<typeof calculateToppingBalance>;
+  selectedExample: ToppingPizzaExampleId;
+  onExampleChange: (example: ToppingPizzaExampleId) => void;
+}) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  const visualButtonRef = useRef<HTMLButtonElement | null>(null);
+  const visualState = visualStateForResult(state, result);
+  const example = pizzaExamples.find((item) => item.id === selectedExample) ?? pizzaExamples[0];
+  const { image, fallbackName, effectiveState } = imageForExample(example, visualState);
+  const cheeseGrams = state.cheeseType === "none" ? 0 : state.cheeseGrams;
+  const referenceName = fallbackName ? `${fallbackName} comparison reference` : `${example.name} reference`;
+  const setupSummary = `${state.sauceGrams} g sauce · ${cheeseGrams} g cheese · ${state.geometry.shape === "round" ? `${state.geometry.diameter} cm pizza` : `${state.geometry.width} × ${state.geometry.length} cm pizza`} · ${state.geometry.rim} cm rim`;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [image.src]);
+
+  return (
+    <figure className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-label={`${referenceName}: ${visualStateLabels[visualState]}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Real-world reference</p>
+          <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Visual example</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/62">{example.description}</p>
+          <p className="sr-only" aria-live="polite">{example.name} {visualStateLabels[effectiveState].toLowerCase()} reference selected.</p>
+        </div>
+        <div className="w-full sm:w-56">
+          <ToppingPizzaExampleSelector selected={selectedExample} onChange={onExampleChange} />
         </div>
       </div>
-      <figcaption className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
+
+      <button
+        ref={visualButtonRef}
+        type="button"
+        onClick={() => setDialogOpen(true)}
+        className="group mt-5 block w-full overflow-hidden rounded-[1.75rem] bg-flour text-left shadow-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+        aria-label="Change pizza example"
+      >
+        <span className="relative block aspect-square">
+          {imageFailed ? (
+            <span className="grid h-full place-items-center p-6 text-center text-sm font-extrabold text-ink/62">Visual reference unavailable</span>
+          ) : (
+            <Image
+              src={image.src}
+              alt={image.alt}
+              width={1200}
+              height={1200}
+              sizes="(max-width: 1024px) 100vw, 52vw"
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.015]"
+              onError={() => setImageFailed(true)}
+            />
+          )}
+          <span className="absolute left-3 top-3 rounded-full bg-ink/78 px-3 py-1.5 text-xs font-extrabold text-white backdrop-blur">
+            {example.name} · {visualStateLabels[effectiveState]}
+          </span>
+          {fallbackName && (
+            <span className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/88 px-3 py-2 text-xs font-bold text-ink shadow-soft backdrop-blur">
+              {example.name} does not have this full comparison series yet, so this uses a Diavola comparison reference.
+            </span>
+          )}
+        </span>
+      </button>
+
+      <figcaption className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Current visual result</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">{result.headline}</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/62">{result.likelyEffect}</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Your current setup</p>
+          <p className="mt-2 text-sm font-extrabold text-ink">{setupSummary}</p>
+          <p className="mt-2 text-sm leading-6 text-ink/62">
+            The photograph represents the nearest visual category, not the exact gram-perfect pizza. {result.likelyEffect}
+          </p>
+          <button
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            className="mt-4 inline-flex min-h-11 items-center rounded-full text-sm font-extrabold text-tomato underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            Change pizza example
+          </button>
         </div>
         <div className="rounded-2xl bg-ink p-4 text-white">
           <span className="text-xs font-extrabold uppercase tracking-[.16em] text-white/45">Combined load</span>
@@ -432,6 +703,14 @@ function PizzaBalanceVisual({ state, result }: { state: ToppingBalanceState; res
           <span className="mt-1 block text-xs text-white/58">{result.combinedDensity} g / 100 cm²</span>
         </div>
       </figcaption>
+
+      <ToppingExampleDialog
+        open={dialogOpen}
+        selected={selectedExample}
+        onChange={onExampleChange}
+        onClose={() => setDialogOpen(false)}
+        returnFocusRef={visualButtonRef}
+      />
     </figure>
   );
 }
@@ -569,6 +848,7 @@ function ToppingReferenceGallery({
 export default function ToppingBalanceLab() {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<ToppingBalanceState>(toppingBalanceDefaultState);
+  const [selectedExample, setSelectedExample] = useState<ToppingPizzaExampleId>("diavola");
   const result = useMemo(() => calculateToppingBalance(state), [state]);
 
   useEffect(() => {
@@ -652,7 +932,12 @@ export default function ToppingBalanceLab() {
 
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(18rem,.62fr)_minmax(0,1fr)]">
             <div className="space-y-5 lg:order-2" data-topping-visual-result>
-              <PizzaBalanceVisual state={state} result={result} />
+              <ToppingRealisticReference
+                state={state}
+                result={result}
+                selectedExample={selectedExample}
+                onExampleChange={setSelectedExample}
+              />
               <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-live="polite" aria-label="Current topping balance details">
                 {[
                   ["Usable topped area", `${result.usableArea} cm²`, "The clear rim is excluded."],

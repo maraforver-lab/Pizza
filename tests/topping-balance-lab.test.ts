@@ -174,6 +174,62 @@ describe("Topping Balance Lab page structure", () => {
     expect(component).toContain("lg:sticky lg:top-24");
   });
 
+  it("uses Diavola as the default realistic visual example without changing calculation state", () => {
+    expect(component).toContain('useState<ToppingPizzaExampleId>("diavola")');
+    expect(component).toContain("Pizza example");
+    expect(component).toContain("Tomato, fior di latte and spicy salami make topping coverage easy to compare.");
+    expect(component).toContain("The example changes the teaching photo only. Your sauce, cheese and topping values stay unchanged.");
+    expect(component).toContain("The photograph represents the nearest visual category, not the exact gram-perfect pizza.");
+    expect(component).toContain("visualStateForResult(state, result)");
+    expect(component).toContain("onExampleChange={setSelectedExample}");
+    expect(component).not.toContain("pizzaExample=");
+  });
+
+  it("renders an accessible pizza-example dialog and visible selector", () => {
+    expect(component).toContain("ToppingPizzaExampleSelector");
+    expect(component).toContain("ToppingExampleDialog");
+    expect(component).toContain("Choose a pizza example");
+    expect(component).toContain('role="dialog"');
+    expect(component).toContain('aria-modal="true"');
+    expect(component).toContain("Close pizza example chooser");
+    expect(component).toContain('event.key === "Escape"');
+    expect(component).toContain("Change pizza example");
+    expect(component).toContain("aria-pressed={active}");
+  });
+
+  it("maps topping balance states to the realistic Diavola image series", () => {
+    expect(component).toContain('"/toppings/diavola/diavola-too-little.webp"');
+    expect(component).toContain('"/toppings/diavola/diavola-balanced.webp"');
+    expect(component).toContain('"/toppings/diavola/diavola-too-much.webp"');
+    expect(component).toContain('"/toppings/diavola/diavola-wet-overload.webp"');
+    expect(component).toContain('"/toppings/diavola/diavola-heavy-load.webp"');
+    expect(component).toContain('"/toppings/examples/margherita-balanced.webp"');
+    expect(component).toContain('"/toppings/examples/marinara-balanced.webp"');
+    expect(component).toContain('width={1200}');
+    expect(component).toContain('height={1200}');
+    expect(component).toContain('sizes="(max-width: 1024px) 100vw, 52vw"');
+    expect(component).toContain("Visual reference unavailable");
+    expect(component).not.toContain("Current visual result");
+  });
+
+  it("stores every realistic visual reference as a local production asset", () => {
+    const files = [
+      "public/toppings/diavola/diavola-too-little.webp",
+      "public/toppings/diavola/diavola-balanced.webp",
+      "public/toppings/diavola/diavola-too-much.webp",
+      "public/toppings/diavola/diavola-wet-overload.webp",
+      "public/toppings/diavola/diavola-heavy-load.webp",
+      "public/toppings/examples/margherita-balanced.webp",
+      "public/toppings/examples/marinara-balanced.webp",
+    ];
+
+    for (const file of files) {
+      expect(existsSync(join(process.cwd(), file))).toBe(true);
+    }
+
+    expect(component).not.toMatch(/https?:\/\//);
+  });
+
   it("allows numeric controls to keep an editable draft before clamping", () => {
     expect(component).toContain("const [draft, setDraft]");
     expect(component).toContain("onBlur={(event) => commitValue(event.target.value)}");
