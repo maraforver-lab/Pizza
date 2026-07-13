@@ -255,10 +255,18 @@ describe("updates changelog", () => {
     expect(publicCopy).not.toMatch(/perfect pizza|guaranteed results/i);
   });
 
-  it("renders the updates page from the bounded visible history list", () => {
+  it("keeps the Updates page separate from the internal changelog history", () => {
     const updatesPageSource = readFileSync(join(process.cwd(), "app", "updates", "page.tsx"), "utf8");
+    const productUpdatesSource = readFileSync(join(process.cwd(), "lib", "product-updates.ts"), "utf8");
 
-    expect(updatesPageSource).toContain("visiblePatchHistory.map");
+    expect(updatesPageSource).toContain("productUpdates");
+    expect(updatesPageSource).toContain("No public updates are published yet.");
+    expect(updatesPageSource).not.toContain("@/lib/changelog");
+    expect(updatesPageSource).not.toContain("visiblePatchHistory.map");
+    expect(updatesPageSource).not.toContain("visiblePublicUpdates");
+    expect(updatesPageSource).not.toContain("latestPublicUpdate");
     expect(updatesPageSource).not.toContain("patchHistoryNewestFirst.map");
+    expect(productUpdatesSource).toContain("export type ProductUpdate");
+    expect(productUpdatesSource).toContain("export const productUpdates: readonly ProductUpdate[] = []");
   });
 });

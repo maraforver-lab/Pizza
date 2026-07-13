@@ -162,7 +162,7 @@ export const publicSeoRoutes = [
   {
     path: "/updates",
     title: "Updates | DoughTools",
-    description: "Review recent DoughTools product updates and launch-safety improvements.",
+    description: "The future home for clear DoughTools release notes, product changes and practical update context.",
     changeFrequency: "weekly",
     priority: 0.5,
   },
