@@ -423,7 +423,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("normalizeCloudPizzaSessionRow(payload.session)");
     expect(page).toContain("active = restoreCloudPizzaSessionToLocal(row)");
     expect(page).toContain("clearCloudBackedActivePizzaSessionPointer()");
-    expect(page).toContain("void saveCloudActivePizzaSession(session).catch");
+    expect(page).toContain("void queueCloudActivePizzaSessionSave(session).then");
     expect(page).toContain("status: \"planning\"");
     expect(page).toContain("currentStep");
     expect(page).not.toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
@@ -787,6 +787,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: \"/session/recipe\" }, \"summary\", experienceLevel, \"/session/recipe\")");
     expect(page).toContain("const saved = savePizzaSession(readyForRecipe)");
     expect(page).toContain("setActivePizzaSession(saved.id)");
+    expect(page).toContain("void queueCloudActivePizzaSessionSave(saved).catch");
     expect(page).not.toContain("function StartPizzaSessionEntry()");
     expect(page).not.toContain("setNeedsExplicitStart");
     expect(page).not.toContain("const baseSession = active ?? createAndSavePizzaSession");

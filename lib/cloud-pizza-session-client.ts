@@ -73,6 +73,17 @@ export function cloudBackedPizzaSessionRowId(
   return marker?.sessionId === session.id ? marker.cloudSessionId : undefined;
 }
 
+function cloudActivePizzaSessionSaveKey(session: PizzaSession) {
+  return [
+    session.id,
+    session.currentStep,
+    session.status,
+    session.lastRoute,
+    session.updatedAt,
+    session.lastSavedAt,
+  ].join(":");
+}
+
 export function clearCloudBackedActivePizzaSessionPointer(storage?: StorageLike) {
   const localSession = getActivePizzaSession(storage);
   if (localSession && isCloudBackedPizzaSession(localSession, storage)) {
@@ -111,7 +122,10 @@ export async function syncCloudBackedPizzaSession(
   session: PizzaSession,
   options: { complete?: boolean } = {},
 ) {
-  if (!isCloudBackedPizzaSession(session)) return { skipped: true };
+  if (!isCloudBackedPizzaSession(session)) {
+    if (options.complete) return { skipped: true };
+    return saveCloudActivePizzaSession(session);
+  }
   const cloudSessionId = cloudBackedPizzaSessionRowId(session);
 
   const response = await fetch("/api/pizza-sessions/active", {
@@ -137,4 +151,60 @@ export async function completeCloudBackedPizzaSession(session: PizzaSession) {
     status: "completed",
     currentStep: "review",
   }, { complete: true });
+}
+
+type QueuedCloudSave = {
+  key: string;
+  options: { complete?: boolean };
+  reject: Array<(error: unknown) => void>;
+  resolve: Array<(value: Awaited<ReturnType<typeof syncCloudBackedPizzaSession>>) => void>;
+  session: PizzaSession;
+};
+
+let queuedCloudSave: QueuedCloudSave | undefined;
+let activeCloudSave: Promise<void> | undefined;
+
+async function drainCloudSaveQueue() {
+  while (queuedCloudSave) {
+    const current = queuedCloudSave;
+    queuedCloudSave = undefined;
+    try {
+      const result = await syncCloudBackedPizzaSession(current.session, current.options);
+      current.resolve.forEach((resolve) => resolve(result));
+    } catch (error) {
+      current.reject.forEach((reject) => reject(error));
+    }
+  }
+}
+
+function startCloudSaveDrain() {
+  if (activeCloudSave) return;
+  activeCloudSave = drainCloudSaveQueue().finally(() => {
+    activeCloudSave = undefined;
+    if (queuedCloudSave) startCloudSaveDrain();
+  });
+}
+
+export function queueCloudActivePizzaSessionSave(
+  session: PizzaSession,
+  options: { complete?: boolean } = {},
+) {
+  const key = `${cloudActivePizzaSessionSaveKey(session)}:${options.complete === true ? "complete" : "active"}`;
+
+  return new Promise<Awaited<ReturnType<typeof syncCloudBackedPizzaSession>>>((resolve, reject) => {
+    if (queuedCloudSave?.key === key) {
+      queuedCloudSave.resolve.push(resolve);
+      queuedCloudSave.reject.push(reject);
+    } else {
+      queuedCloudSave = {
+        key,
+        options,
+        reject: queuedCloudSave ? [...queuedCloudSave.reject, reject] : [reject],
+        resolve: queuedCloudSave ? [...queuedCloudSave.resolve, resolve] : [resolve],
+        session,
+      };
+    }
+
+    startCloudSaveDrain();
+  });
 }

@@ -9,6 +9,7 @@ import {
   completeCloudBackedPizzaSession,
   isCloudBackedPizzaSession,
   markCloudBackedPizzaSession,
+  queueCloudActivePizzaSessionSave,
   syncCloudBackedPizzaSession,
 } from "@/lib/cloud-pizza-session-client";
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
@@ -1125,6 +1126,49 @@ describe("cloud pizza session foundation", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("serializes Kitchen Mode progress into cloud session rows and local restore", () => {
+    const kitchenSession = createPizzaSession({
+      id: "kitchen-cloud-latest",
+      currentStep: "prep",
+      status: "preparing",
+      timeline: {
+        generatedAt: "2026-07-04T10:00:00.000Z",
+        targetEatTime: "2026-07-04T20:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done", kind: "active" },
+          { id: "ball-dough", label: "Ball dough", status: "todo", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-04T10:05:00.000Z",
+          actualCompletedAt: "2026-07-04T10:15:00.000Z",
+        },
+      },
+      updatedAt: "2026-07-04T10:15:00.000Z",
+      lastSavedAt: "2026-07-04T10:15:00.000Z",
+    });
+    const row = normalizeCloudPizzaSessionRow({
+      id: "cloud-kitchen-latest",
+      user_id: "user-1",
+      status: "in_progress",
+      title: "Active pizza session",
+      current_step: "prep",
+      session_data: kitchenSession,
+      created_at: "2026-07-04T10:00:00.000Z",
+      updated_at: "2026-07-04T10:16:00.000Z",
+      completed_at: null,
+    })!;
+    const storage = new MemoryStorage();
+    const restored = restoreCloudPizzaSessionToLocal(row, storage);
+
+    expect((row.session_data as typeof kitchenSession).timeline?.steps[0].status).toBe("done");
+    expect((row.session_data as typeof kitchenSession).stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
+    expect(restored?.timeline?.steps[0].status).toBe("done");
+    expect(restored?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
+    expect(getActivePizzaSession(storage)?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
+  });
+
   it("sorts completed cloud history newest first with updated_at fallback", () => {
     const older = normalizeCloudPizzaSessionHistoryRow({
       id: "older",
@@ -1205,18 +1249,28 @@ describe("cloud pizza session foundation", () => {
     const client = source("lib/cloud-pizza-session-client.ts");
     const activeRoute = source("app/api/pizza-sessions/active/route.ts");
 
-    expect(startPage).toContain("saveCloudActivePizzaSession");
+    expect(startPage).toContain("queueCloudActivePizzaSessionSave");
     expect(startPage).toContain("lastCloudSaveKey");
-    expect(startPage).toContain("void saveCloudActivePizzaSession(session).catch");
+    expect(startPage).toContain("void queueCloudActivePizzaSessionSave(session).then");
+    expect(startPage).toContain('result.reason !== "unauthenticated"');
+    expect(startPage).toContain("void queueCloudActivePizzaSessionSave(saved).catch");
+    expect(startPage.indexOf("const saved = savePizzaSession(readyForRecipe)")).toBeLessThan(startPage.indexOf("void queueCloudActivePizzaSessionSave(saved).catch"));
+    expect(startPage.indexOf("void queueCloudActivePizzaSessionSave(saved).catch")).toBeLessThan(startPage.indexOf("router.push(\"/session/recipe\")"));
+    expect(startPage).toContain("if (getActivePizzaSession()?.id !== session.id) return");
     expect(client).toContain("const { data } = await supabase.auth.getSession()");
     expect(client).toContain("if (!hasSignedInUser) return { skipped: true, reason: \"unauthenticated\" as const }");
     expect(client).toContain('fetch("/api/pizza-sessions/active"');
     expect(client).toContain("method: \"POST\"");
+    expect(client).toContain("return saveCloudActivePizzaSession(session)");
+    expect(client).toContain("queueCloudActivePizzaSessionSave");
+    expect(client).toContain("drainCloudSaveQueue");
     expect(client).toContain("markCloudBackedPizzaSession(session.id, savedSession.id)");
     expect(activeRoute).toContain('.select("id,session_data,updated_at")');
     expect(activeRoute).toContain("existingSession.id !== session.id");
     expect(activeRoute).toContain("conflict: true");
     expect(activeRoute).toContain("{ status: 409 }");
+    expect(activeRoute).toContain("cloudSessionIsNewer(existingSession, session)");
+    expect(activeRoute).toContain('reason: "stale-session"');
   });
 
   it("syncs cloud-backed sessions from the major Pizza Session step pages", () => {
@@ -1227,14 +1281,32 @@ describe("cloud pizza session foundation", () => {
     const kitchenPage = source("app/session/kitchen/page.tsx");
     const reviewPage = source("app/session/review/page.tsx");
 
-    expect(syncComponent).toContain("syncCloudBackedPizzaSession(session)");
+    expect(syncComponent).toContain("queueCloudActivePizzaSessionSave(session)");
+    expect(syncComponent).toContain('result.reason !== "unauthenticated"');
     expect(syncComponent).toContain("lastSyncedKey");
+    expect(syncComponent).toContain("session.updatedAt");
+    expect(syncComponent).toContain("session.lastSavedAt");
     [recipePage, shoppingPage, timelinePage, kitchenPage, reviewPage].forEach((page) => {
       expect(page).toContain("CloudPizzaSessionSync");
       expect(page).toContain("<CloudPizzaSessionSync session={session} />");
     });
     expect(reviewPage).toContain("saveCloudActivePizzaSession(completed)");
     expect(reviewPage).toContain("completeCloudBackedPizzaSession(completed)");
+  });
+
+  it("documents active-session cloud queue behavior for newest update wins", () => {
+    const client = source("lib/cloud-pizza-session-client.ts");
+    const route = source("app/api/pizza-sessions/active/route.ts");
+
+    expect(queueCloudActivePizzaSessionSave).toBeTypeOf("function");
+    expect(client).toContain("let queuedCloudSave");
+    expect(client).toContain("let activeCloudSave");
+    expect(client).toContain("queuedCloudSave = {");
+    expect(client).toContain("session,");
+    expect(client).toContain("startCloudSaveDrain()");
+    expect(client).toContain("if (queuedCloudSave) startCloudSaveDrain()");
+    expect(route).toContain("cloudSessionIsNewer(existingSession, session)");
+    expect(route).toContain("return NextResponse.json({ session: normalizedExisting, skipped: true, reason: \"stale-session\" })");
   });
 
   it("shows saved active sessions on the Account page with an empty state", () => {

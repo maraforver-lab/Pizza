@@ -8,7 +8,7 @@ import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
   clearCloudBackedActivePizzaSessionPointer,
-  saveCloudActivePizzaSession,
+  queueCloudActivePizzaSessionSave,
 } from "@/lib/cloud-pizza-session-client";
 import { normalizeCloudPizzaSessionRow, type CloudPizzaSessionRow } from "@/lib/cloud-pizza-sessions";
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
@@ -705,8 +705,11 @@ function StartPizzaSessionContent() {
       session.lastSavedAt,
     ].join(":");
     if (lastCloudSaveKey.current === cloudSaveKey) return;
-    lastCloudSaveKey.current = cloudSaveKey;
-    void saveCloudActivePizzaSession(session).catch(() => {
+    void queueCloudActivePizzaSessionSave(session).then((result) => {
+      if (!("skipped" in result) || !("reason" in result) || result.reason !== "unauthenticated") {
+        lastCloudSaveKey.current = cloudSaveKey;
+      }
+    }).catch(() => {
       // Keep the local guest/session flow usable if account sync is unavailable.
     });
   }, [ready, session, conflictCloudRow]);
@@ -840,6 +843,9 @@ function StartPizzaSessionContent() {
     const saved = savePizzaSession(readyForRecipe);
     setActivePizzaSession(saved.id);
     setSession(saved);
+    void queueCloudActivePizzaSessionSave(saved).catch(() => {
+      // Local creation is the source of truth; cloud sync can retry from the next Session route.
+    });
     router.push("/session/recipe");
   };
 

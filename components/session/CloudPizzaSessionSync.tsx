@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { PizzaSession } from "@/lib/pizza-session";
-import { syncCloudBackedPizzaSession } from "@/lib/cloud-pizza-session-client";
+import { queueCloudActivePizzaSessionSave } from "@/lib/cloud-pizza-session-client";
 
 type CloudPizzaSessionSyncProps = {
   session: PizzaSession | null | undefined;
@@ -21,8 +21,11 @@ export function CloudPizzaSessionSync({ session }: CloudPizzaSessionSyncProps) {
       session.lastSavedAt,
     ].join(":");
     if (lastSyncedKey.current === syncKey) return;
-    lastSyncedKey.current = syncKey;
-    void syncCloudBackedPizzaSession(session).catch(() => {
+    void queueCloudActivePizzaSessionSave(session).then((result) => {
+      if (!("skipped" in result) || !("reason" in result) || result.reason !== "unauthenticated") {
+        lastSyncedKey.current = syncKey;
+      }
+    }).catch(() => {
       // Keep Pizza Session usable if account sync is temporarily unavailable.
     });
   }, [session]);

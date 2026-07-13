@@ -7,6 +7,18 @@ import {
 import { migratePizzaSession } from "@/lib/pizza-session";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
+function pizzaSessionUpdatedAtTime(session: ReturnType<typeof migratePizzaSession>) {
+  if (!session?.updatedAt) return undefined;
+  const time = new Date(session.updatedAt).getTime();
+  return Number.isFinite(time) ? time : undefined;
+}
+
+function cloudSessionIsNewer(existingSession: ReturnType<typeof migratePizzaSession>, incomingSession: ReturnType<typeof migratePizzaSession>) {
+  const existingTime = pizzaSessionUpdatedAtTime(existingSession);
+  const incomingTime = pizzaSessionUpdatedAtTime(incomingSession);
+  return existingTime !== undefined && incomingTime !== undefined && existingTime > incomingTime;
+}
+
 export async function GET() {
   const supabase = await getSupabaseServerClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -68,6 +80,10 @@ export async function POST(request: Request) {
       cloudSessionId: existingSession.id,
       cloudRowId: existing.id,
     }, { status: 409 });
+  }
+  if (existing?.id && existingSession && cloudSessionIsNewer(existingSession, session)) {
+    const normalizedExisting = normalizeCloudPizzaSessionRow(existing);
+    if (normalizedExisting) return NextResponse.json({ session: normalizedExisting, skipped: true, reason: "stale-session" });
   }
 
   const query = existing?.id
@@ -146,6 +162,10 @@ export async function PATCH(request: Request) {
       cloudSessionId: existingSession.id,
       cloudRowId: existing.id,
     }, { status: 409 });
+  }
+  if (existingSession && cloudSessionIsNewer(existingSession, session)) {
+    const normalizedExisting = normalizeCloudPizzaSessionRow(existing);
+    if (normalizedExisting) return NextResponse.json({ session: normalizedExisting, skipped: true, reason: "stale-session" });
   }
 
   const updatedAt = new Date().toISOString();
