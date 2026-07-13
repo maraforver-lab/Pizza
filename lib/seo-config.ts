@@ -96,8 +96,8 @@ export const publicSeoRoutes = [
   },
   {
     path: "/ovens",
-    title: "Pizza Oven Guide | DoughTools",
-    description: "Compare electric ovens, gas pizza ovens and other common pizza oven setups with practical trade-offs.",
+    title: "Home Oven vs Pizza Oven: Heat, Baking and Pizza Results | DoughTools",
+    description: "Learn how home ovens, pizza ovens, steels, stones, pans, preheating and heat balance change pizza crust, toppings and bake time.",
     changeFrequency: "monthly",
     priority: 0.6,
   },

@@ -1,44 +1,243 @@
-"use client";
-
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import AppSignature from "@/components/AppSignature";
 import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
-import { ovens, recommendOvens, type OvenBudget, type OvenPlace, type OvenPriority } from "@/lib/ovens";
+import HeatBalanceDiagram from "@/components/ovens/HeatBalanceDiagram";
+import OvenEnvironmentChapter from "@/components/ovens/OvenEnvironmentChapter";
+import OvenEnvironmentComparison from "@/components/ovens/OvenEnvironmentComparison";
+import OvenGuideHero from "@/components/ovens/OvenGuideHero";
+import OvenProblemGuide from "@/components/ovens/OvenProblemGuide";
+import OvenStyleFit from "@/components/ovens/OvenStyleFit";
+import PreheatTimeline from "@/components/ovens/PreheatTimeline";
+import OvenSupportBadge from "@/components/ovens/OvenSupportBadge";
+import { DoughToolsIcon } from "@/components/icons";
+import { ovenEnvironments, ovenUserFeedbackThemes, pizzaSessionOvenSupportSummary } from "@/lib/oven-education";
 
-const copy = {
-  fi: { back: "Laskuri", guide: "Ohjeet ja terminologia", eyebrow: "Oven Guide", title: "Oikea pizzauuni riippuu siitä, missä ja miten paistat.", intro: "Valitse ensin budjetti, käyttöpaikka ja tärkein ominaisuus. Saat kolme järkevää lähtövaihtoehtoa – sekä rehelliset syyt olla ostamatta niitä.", budget: "Kokonaisbudjetti uunille", place: "Missä paistat?", priority: "Mikä on tärkeintä?", starter: "Alle 350 €", mid: "350–700 €", premium: "Yli 700 €", indoor: "Sisällä", outdoor: "Ulkona", either: "Kumpikin käy", easy: "Helppous", portable: "Siirrettävyys", performance: "Suorituskyky", picks: "Sinulle sopivimmat lähtökohdat", compare: "Markkinoiden merkittävät vaihtoehdot", compareLead: "Hintaluokat ovat suuntaa antavia Euroopan hintoja. Tarkista aina päivän hinta, kaasuliitin ja sähkövaatimukset paikalliselta myyjältä.", good: "Hyvää", bad: "Huonoa", best: "Sopii parhaiten", avoid: "Älä valitse, jos", source: "Valmistajan tiedot", ease: "Helppous", portability: "Liikuteltavuus", power: "Teho", value: "Vastine", total: "Todellinen budjetti", totalIntro: "Pelkkä uuni ei riitä. Yhteisöissä yleisin yllätys on tarvikkeiden ja säilytyksen kustannus.", kits: [["0–180 €", "Nykyinen uuni + 6–8 mm paistoteräs + infrapunalämpömittari + tukeva lapio."], ["250–650 €", "Kaasu-uuni + ohut alumiinilapio + kääntölapio + suojapeite + kaasupullo ja paineensäädin."], ["700–1 400 €", "Tilava premium-uuni tai sähköuuni + työpöytä/jalusta + laadukkaat lapiot + säilytys + varaosa- ja huoltosuunnitelma."], ["1 500 €+", "Pysyvä ulkokeittiö: palamaton taso, sääsuoja, valaistus, työtila, kaasun turvallinen sijoitus ja mahdollinen sähkötyö."]], checklist: "Tarkista ennen ostamista", checks: ["Mahtuuko oma tavallinen pizzakokosi aukosta ja kiveen?", "Palautuuko kivi kuuden pizzan sarjassa vai joudutko odottamaan?", "Missä kuuma, likainen uuni säilytetään talvella?", "Sisältyvätkö lapio, suojus, jalusta ja lämpömittari hintaan?", "Onko laite varmasti hyväksytty sisäkäyttöön?", "Riittääkö pistorasia ja sulake sähköuunille?", "Saatko varaosia ja oikean kaasuliittimen Suomessa?"], community: "Mitä testeistä ja yhteisöistä toistuu", communityText: "Maksimilämpö ei yksin ratkaise. Käyttäjät puhuvat eniten kiven lämmön palautumisesta, suuaukon tilasta, liekin hallinnasta, puhdistuksesta ja siitä, jaksaako painavan uunin todella ottaa esiin. Kaasu voittaa helppoudessa, sähkö ympärivuotisuudessa ja suuri kupu-uuni lämmön vakaudessa.", sources: "Lähteet ja yhteisöt", note: "Mallisto ja hinnat muuttuvat. Tämä opas ei sisällä maksettuja sijoituksia tai affiliate-linkkejä." },
-  en: { back: "Calculator", guide: "Guide & glossary", eyebrow: "Oven Guide", title: "The right pizza oven depends on where and how you bake.", intro: "Choose budget, location and your main priority. You will get three sensible starting points – including honest reasons not to buy them.", budget: "Total oven budget", place: "Where do you bake?", priority: "What matters most?", starter: "Under €350", mid: "€350–700", premium: "Over €700", indoor: "Indoors", outdoor: "Outdoors", either: "Either", easy: "Ease", portable: "Portability", performance: "Performance", picks: "Best starting points for you", compare: "Significant market options", compareLead: "Price bands are indicative European prices. Always check current price, gas connector and electrical requirements with a local seller.", good: "Pros", bad: "Cons", best: "Best for", avoid: "Do not choose if", source: "Manufacturer details", ease: "Ease", portability: "Portability", power: "Power", value: "Value", total: "The real budget", totalIntro: "The oven alone is not enough. Accessories and storage are a common community surprise.", kits: [["€0–180", "Current oven + 6–8 mm baking steel + infrared thermometer + solid peel."], ["€250–650", "Gas oven + thin aluminium peel + turning peel + cover + gas bottle and regulator."], ["€700–1,400", "Large premium or electric oven + table/stand + quality peels + storage + service plan."], ["€1,500+", "Permanent outdoor kitchen: fire-safe surface, weather cover, lighting, workspace, safe gas placement and possible electrical work."]], checklist: "Check before buying", checks: ["Does your normal pizza size fit through the opening and on the stone?", "Will the stone recover across six pizzas?", "Where will a hot, dirty oven live in winter?", "Are peel, cover, stand and thermometer included?", "Is the appliance explicitly approved for indoor use?", "Can the circuit and socket support an electric oven?", "Are spare parts and the correct gas connector available locally?"], community: "What reviews and communities repeat", communityText: "Maximum temperature is not enough. Users repeatedly discuss stone recovery, opening space, flame control, cleaning and whether a heavy oven will really be brought out. Gas wins on convenience, electric on year-round use, and a large dome on thermal stability.", sources: "Sources and communities", note: "Ranges and prices change. This guide contains no paid rankings or affiliate links." },
-} as const;
+const chapterIds = ["home-oven", "home-oven-steel", "home-oven-stone", "high-heat-pizza-oven", "pan-baking"] as const;
 
-const externalSources = [["Ooni", "https://eu.ooni.com/collections/ovens"], ["Gozney", "https://www.gozney.com/collections/ovens"], ["Effeuno", "https://www.effeuno.biz/en/"], ["Witt", "https://www.wittpizza.com/"], ["Cozze", "https://cozze-pizza.com/"], ["Serious Eats oven tests", "https://www.seriouseats.com/best-pizza-ovens-7099135"], ["PizzaMaking forum", "https://www.pizzamaking.com/forum/index.php"], ["Reddit · r/ooni", "https://www.reddit.com/r/ooni/"], ["Reddit · r/Pizza", "https://www.reddit.com/r/Pizza/"]] as const;
+const safetyItems = [
+  "Follow the instructions for your specific oven and baking surface.",
+  "Use outdoor-only appliances outdoors, never in enclosed spaces.",
+  "Keep the oven on a stable, heat-resistant surface with safe clearance from combustible materials.",
+  "Keep children and pets away from active heat.",
+  "Manage fuel, cords and ventilation conservatively.",
+  "Allow the oven, stone, steel or pan to cool completely before storage or cleaning.",
+  "Do not use water or cleaning chemicals on a hot baking stone.",
+  "Do not modify fuel, ventilation or safety systems.",
+] as const;
 
 export default function OvensPage() {
-  const [ready, setReady] = useState(false); const [budget, setBudget] = useState<OvenBudget>("mid"); const [place, setPlace] = useState<OvenPlace>("outdoor"); const [priority, setPriority] = useState<OvenPriority>("easy"); const t = copy.en;
-  useEffect(() => { document.documentElement.lang = "en"; setReady(true); }, []);
-  const picks = useMemo(() => recommendOvens(budget, place, priority), [budget, place, priority]); if (!ready) return <main className="min-h-screen bg-cream"/>;
-  const button = (active: boolean) => `rounded-xl border px-4 py-3 text-sm font-bold transition ${active ? "border-tomato bg-tomato text-white" : "border-ink/10 bg-white text-ink/60"}`;
-  return <main className="min-h-screen bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl">
-    <header className="flex items-center justify-between gap-3"><Link href="/" className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white">🔥</span><strong>Dough<span className="text-tomato">Tools</span></strong></Link><div className="flex gap-2"><Link href="/guide" className="hidden rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold sm:block">{t.guide}</Link><Link href="/" className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.back}</Link></div></header>
-    <section className="py-10 sm:py-14"><LearningBreadcrumbs current="Oven Guide" /><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-none sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-2xl text-sm leading-6 text-ink/55 sm:text-base">{t.intro}</p></section>
-    <section className="rounded-[1.75rem] bg-white/80 p-5 shadow-card sm:p-7"><div className="grid gap-6 lg:grid-cols-3"><fieldset><legend className="mb-3 text-sm font-extrabold">1. {t.budget}</legend><div className="grid gap-2">{(["starter", "mid", "premium"] as OvenBudget[]).map(x => <button type="button" key={x} onClick={() => setBudget(x)} className={button(budget === x)}>{t[x]}</button>)}</div></fieldset><fieldset><legend className="mb-3 text-sm font-extrabold">2. {t.place}</legend><div className="grid gap-2">{(["indoor", "outdoor", "either"] as OvenPlace[]).map(x => <button type="button" key={x} onClick={() => setPlace(x)} className={button(place === x)}>{t[x]}</button>)}</div></fieldset><fieldset><legend className="mb-3 text-sm font-extrabold">3. {t.priority}</legend><div className="grid gap-2">{(["easy", "portable", "performance"] as OvenPriority[]).map(x => <button type="button" key={x} onClick={() => setPriority(x)} className={button(priority === x)}>{t[x]}</button>)}</div></fieldset></div><h2 className="mt-8 font-display text-3xl font-semibold">{t.picks}</h2><div className="mt-4 grid gap-3 md:grid-cols-3">{picks.map((oven, i) => <article key={oven.id} className={`rounded-2xl p-5 ${i === 0 ? "bg-ink text-white" : "bg-leaf/[.08]"}`}><span className="text-3xl">{oven.icon}</span><p className={`mt-3 text-[10px] font-extrabold uppercase tracking-wider ${i === 0 ? "text-oven-gold" : "text-leaf"}`}>#{i + 1} · {oven.price}</p><h3 className="mt-1 text-xl font-extrabold">{oven.maker} {oven.name}</h3><p className={`mt-3 text-sm leading-6 ${i === 0 ? "text-white/60" : "text-ink/55"}`}>{oven.bestEn}</p></article>)}</div></section>
-    <section className="py-14"><h2 className="font-display text-4xl font-semibold">{t.compare}</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-ink/50">{t.compareLead}</p><div className="mt-7 grid gap-5 md:grid-cols-2">{ovens.map(oven => { const good = oven.goodEn; const bad = oven.badEn; return <article key={oven.id} className="overflow-hidden rounded-[1.5rem] border border-white bg-white/80 shadow-card"><div className="flex items-start justify-between gap-4 border-b border-ink/10 p-5"><div><span className="text-3xl">{oven.icon}</span><h3 className="mt-2 text-xl font-extrabold">{oven.maker} {oven.name}</h3><p className="mt-1 text-xs text-ink/45">{oven.fuel} · {oven.size}</p></div><span className="rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato">{oven.price}</span></div><div className="grid grid-cols-3 border-b border-ink/10 text-center text-xs"><div className="p-3"><span className="block text-ink/35">Max</span><strong>{oven.heat}</strong></div><div className="border-x border-ink/10 p-3"><span className="block text-ink/35">Bake</span><strong>{oven.bake}</strong></div><div className="p-3"><span className="block text-ink/35">{t.value}</span><strong>{"●".repeat(oven.score.value)}{"○".repeat(5 - oven.score.value)}</strong></div></div><div className="grid gap-5 p-5 sm:grid-cols-2"><div><h4 className="text-xs font-extrabold text-leaf">+ {t.good}</h4><ul className="mt-2 space-y-2 text-xs leading-5 text-ink/55">{good.map(x => <li key={x}>• {x}</li>)}</ul></div><div><h4 className="text-xs font-extrabold text-tomato">– {t.bad}</h4><ul className="mt-2 space-y-2 text-xs leading-5 text-ink/55">{bad.map(x => <li key={x}>• {x}</li>)}</ul></div></div><div className="border-t border-ink/10 bg-ink/[.025] p-5 text-xs leading-5"><p><strong>{t.best}:</strong> {oven.bestEn}</p><p className="mt-2 text-ink/50"><strong>{t.avoid}:</strong> {oven.avoidEn}</p><a href={oven.source} target="_blank" rel="noreferrer" className="mt-3 inline-block font-bold text-tomato">{t.source} ↗</a></div></article>})}</div></section>
-    <section className="grid gap-5 lg:grid-cols-2"><article className="rounded-[1.5rem] bg-ink p-6 text-white"><h2 className="font-display text-3xl font-semibold">{t.total}</h2><p className="mt-3 text-sm leading-6 text-white/55">{t.totalIntro}</p><div className="mt-5 space-y-3">{t.kits.map(([price, body]) => <div key={price} className="rounded-xl border border-white/10 bg-white/[.05] p-4"><strong className="text-oven-gold">{price}</strong><p className="mt-1 text-xs leading-5 text-white/55">{body}</p></div>)}</div></article><article className="rounded-[1.5rem] bg-leaf/[.09] p-6"><h2 className="font-display text-3xl font-semibold">{t.checklist}</h2><ul className="mt-5 space-y-3">{t.checks.map(x => <li key={x} className="flex gap-3 text-sm leading-6 text-ink/60"><span className="font-bold text-leaf">✓</span>{x}</li>)}</ul></article></section>
-    <section className="mt-5 rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-6"><h2 className="font-display text-3xl font-semibold">{t.community}</h2><p className="mt-3 max-w-4xl text-sm leading-7 text-ink/60">{t.communityText}</p></section>
-    <Link href="/gear" className="mt-5 flex items-center justify-between rounded-[1.5rem] bg-leaf p-6 text-white shadow-card"><div><span className="text-[10px] font-extrabold uppercase tracking-wider text-white/55">Next step</span><h2 className="mt-1 font-display text-3xl font-semibold">What do you need besides the oven?</h2></div><span className="text-3xl">→</span></Link>
-    <div className="mt-5">
-      <RelatedLearning
-        title="Connect oven heat to the rest of the pizza"
-        intro="Oven choice changes sauce moisture, topping load, dough timing and troubleshooting decisions."
-        links={[
-          { href: "/guide#oven-heat", title: "Oven heat concept", description: "Learn how bake profile changes dough and toppings.", icon: "flame" },
-          { href: "/sauce", title: "Pizza Sauce", description: "Adjust sauce texture for home ovens and longer bakes.", icon: "water" },
-          { href: "/toppings", title: "Toppings", description: "Avoid overload and excess moisture in your bake setup.", icon: "pizza" },
-          { href: "/guide/pizza-troubleshooting#baking", title: "Baking troubleshooting", description: "Fix pale bases, soggy centers and uneven baking.", icon: "warning" },
-        ]}
-        cta={{ href: "/session/start", title: "Plan my next pizza", description: "Apply this oven choice in a Pizza Session.", icon: "calendar" }}
-      />
-    </div>
-    <section className="py-12"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><div className="mt-4 flex flex-wrap gap-2">{externalSources.map(([label, href]) => <a key={href} href={href} target="_blank" rel="noreferrer" className="rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold text-ink/55">{label} ↗</a>)}</div><p className="mt-5 text-xs text-ink/40">{t.note}</p><footer className="mt-8 border-t border-ink/10 pt-6"><AppSignature /></footer></section>
-  </div></main>;
+  return (
+    <main className="min-h-screen bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-7xl">
+        <LearningBreadcrumbs current="Oven Guide" />
+        <OvenGuideHero />
+
+        <section className="mt-8 rounded-[1.75rem] border border-leaf/20 bg-leaf/10 p-5 sm:p-6" aria-labelledby="oven-product-truth-title">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 id="oven-product-truth-title" className="font-display text-3xl font-semibold">What DoughTools currently uses</h2>
+              <p className="mt-3 max-w-4xl text-sm leading-6 text-ink/65">{pizzaSessionOvenSupportSummary}</p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <OvenSupportBadge support="supported" note="Home oven" />
+              <OvenSupportBadge support="supported" note="Pizza oven" />
+              <OvenSupportBadge support="education" note="Learning guide" />
+            </div>
+          </div>
+        </section>
+
+        <nav className="mt-8 rounded-[1.75rem] border border-ink/10 bg-white/76 p-4 shadow-card" aria-label="Oven guide section index">
+          <p className="px-1 text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Jump to a section</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Heat basics", "#heat-basics"],
+              ["Compare ovens", "#oven-environments"],
+              ["Preheat and recovery", "#preheat-recovery"],
+              ["Common problems", "#common-oven-problems"],
+            ].map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-extrabold text-ink transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        </nav>
+
+        <div className="mt-10">
+          <HeatBalanceDiagram />
+        </div>
+
+        <div className="mt-10">
+          <OvenEnvironmentComparison />
+        </div>
+
+        <section className="mt-12 grid gap-6" aria-label="Oven environment lessons">
+          {ovenEnvironments
+            .filter((environment) => chapterIds.includes(environment.id as (typeof chapterIds)[number]))
+            .map((environment, index) => (
+              <OvenEnvironmentChapter key={environment.id} environment={environment} index={index} />
+            ))}
+        </section>
+
+        <section className="mt-10 grid gap-5 lg:grid-cols-2" aria-labelledby="dough-topping-adaptation-title">
+          <article className="rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Dough adaptation</p>
+            <h2 id="dough-topping-adaptation-title" className="mt-3 font-display text-3xl font-semibold">Dough should match the heat.</h2>
+            <div className="mt-5 grid gap-4">
+              <div className="rounded-[1.25rem] bg-flour/70 p-4">
+                <h3 className="text-sm font-extrabold">High heat, short bake</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/62">
+                  The dough expands quickly, toppings have little time to dry, and excessive sugar, oil or moisture can burn fast.
+                </p>
+              </div>
+              <div className="rounded-[1.25rem] bg-flour/70 p-4">
+                <h3 className="text-sm font-extrabold">Lower heat, longer bake</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/62">
+                  Dough may need a formula suited to browning and tenderness, and toppings must be controlled so the center does not stay wet.
+                </p>
+              </div>
+            </div>
+          </article>
+          <article className="rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Sauce and toppings</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold">Moisture behaves differently in every oven.</h2>
+            <div className="mt-5 grid gap-4">
+              <div className="rounded-[1.25rem] bg-flour/70 p-4">
+                <h3 className="text-sm font-extrabold">High-heat oven</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/62">
+                  Use a thin sauce layer, restrained toppings and ingredients that can survive intense top heat.
+                </p>
+              </div>
+              <div className="rounded-[1.25rem] bg-flour/70 p-4">
+                <h3 className="text-sm font-extrabold">Home oven</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/62">
+                  Longer exposure gives wet sauce, fresh cheese and heavy toppings more time to soften the base.
+                </p>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <div className="mt-10">
+          <PreheatTimeline />
+        </div>
+
+        <section className="mt-10 rounded-[2rem] border border-ink/10 bg-white/78 p-5 shadow-card sm:p-7" aria-labelledby="measuring-temperature-title">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,.75fr)_minmax(0,1fr)] lg:items-center">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Measuring temperature</p>
+              <h2 id="measuring-temperature-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">Measure the surface you actually launch on.</h2>
+              <p className="mt-4 text-sm leading-7 text-ink/62">
+                An infrared thermometer reads the surface it is pointed at. Measure near the launch area, avoid shiny metal reflections or flame readings, take more than one reading when heat is uneven, and still judge the bake by the pizza.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {["Oven display", "Surface reading", "Bake feedback"].map((label, index) => (
+                <div key={label} className="rounded-[1.25rem] border border-ink/10 bg-flour/70 p-4 text-center">
+                  <DoughToolsIcon name={index === 0 ? "thermometer" : index === 1 ? "scale" : "pizza"} size={32} className="mx-auto text-leaf" />
+                  <p className="mt-3 text-sm font-extrabold">{label}</p>
+                  <p className="mt-2 text-xs leading-5 text-ink/55">
+                    {index === 0 ? "Useful context." : index === 1 ? "Launch-area clue." : "Final truth."}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-10">
+          <OvenStyleFit />
+        </div>
+
+        <div className="mt-10">
+          <OvenProblemGuide />
+        </div>
+
+        <section className="mt-10 grid gap-5 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1fr)]" aria-labelledby="user-feedback-title">
+          <article className="rounded-[2rem] bg-forest-dark p-5 text-white shadow-raised sm:p-7">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">What users struggle with most</p>
+            <h2 id="user-feedback-title" className="mt-3 font-display text-3xl font-semibold">The same oven problems appear again and again.</h2>
+            <p className="mt-4 text-sm leading-7 text-white/70">
+              Community discussions are not formal rules, but they reveal recurring confusion: people often buy heat before they understand what kind of pizza they want.
+            </p>
+          </article>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {ovenUserFeedbackThemes.map((theme) => (
+              <li key={theme} className="flex gap-3 rounded-[1.15rem] border border-ink/10 bg-white p-4 text-sm leading-6 text-ink/64">
+                <span className="mt-1 text-tomato" aria-hidden="true">•</span>
+                <span>{theme}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-10 rounded-[2rem] border border-tomato/15 bg-tomato/5 p-5 sm:p-7" aria-labelledby="oven-safety-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Safety</p>
+          <h2 id="oven-safety-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">Heat is useful because it is controlled.</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/62">
+            This is general guidance, not a replacement for your equipment manual. When the manual is more specific, follow the manual.
+          </p>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+            {safetyItems.map((item) => (
+              <li key={item} className="flex gap-3 rounded-[1.15rem] bg-white p-4 text-sm leading-6 text-ink/66">
+                <DoughToolsIcon name="warning" size={20} className="mt-0.5 shrink-0 text-tomato" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="mt-10">
+          <RelatedLearning
+            title="Connect heat to the rest of the pizza"
+            intro="Oven choice changes sauce moisture, topping load, dough timing and troubleshooting decisions."
+            links={[
+              { href: "/styles", title: "Pizza Style Atlas", description: "Match oven behavior to the style you want.", icon: "pizza" },
+              { href: "/sauce", title: "Pizza Sauce", description: "Adjust sauce texture for home ovens and longer bakes.", icon: "water" },
+              { href: "/guides/dough", title: "Dough Guide", description: "Handle dough so it suits the heat and bake time.", icon: "mixing-bowl" },
+              { href: "/toppings", title: "Toppings", description: "Control cheese, sauce and topping moisture.", icon: "pizza" },
+              { href: "/gear", title: "Gear", description: "Understand steels, stones, pans and peels.", icon: "shopping-basket" },
+              { href: "/guide/pizza-troubleshooting", title: "Troubleshooting", description: "Fix pale bases, wet centers and uneven baking.", icon: "warning" },
+            ]}
+            cta={{
+              href: "/session/start",
+              title: "Plan my next pizza",
+              description: "Choose your oven in DoughTools and the broad baking guidance adapts.",
+              icon: "calendar",
+            }}
+          />
+        </div>
+
+        <section className="mt-10 rounded-[2rem] bg-forest-dark p-6 text-white shadow-raised sm:p-8" aria-labelledby="oven-final-cta-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold">Ready to plan</p>
+          <h2 id="oven-final-cta-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">
+            Ready to match the pizza to your oven?
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70">
+            Choose Home oven or Pizza oven in DoughTools. The plan keeps the oven category broad while the guide helps you make the method practical.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/session/start"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-card transition hover:bg-white hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark"
+            >
+              Plan my next pizza →
+            </a>
+            <a
+              href="/styles"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-white hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-oven-gold focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark"
+            >
+              Compare pizza styles
+            </a>
+          </div>
+        </section>
+
+        <footer className="mt-8 border-t border-ink/10 py-6">
+          <AppSignature />
+        </footer>
+      </div>
+    </main>
+  );
 }
