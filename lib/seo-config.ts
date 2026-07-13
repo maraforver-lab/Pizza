@@ -54,15 +54,17 @@ export const publicSeoRoutes = [
   },
   {
     path: "/privacy",
-    title: "Privacy Policy | DoughTools",
-    description: "How DoughTools currently handles local browser storage and account authentication.",
+    title: "Privacy Notice | DoughTools",
+    description:
+      "How DoughTools uses local storage, optional accounts, cloud session data, Party Orders, pizza photos and service providers.",
     changeFrequency: "monthly",
     priority: 0.3,
   },
   {
     path: "/terms",
     title: "Terms of Use | DoughTools",
-    description: "Plain-English DoughTools terms covering estimates, limitations and user responsibility.",
+    description:
+      "Clear DoughTools terms for accounts, Pizza Sessions, Party Orders, photos, calculations, responsibilities and consumer rights.",
     changeFrequency: "monthly",
     priority: 0.3,
   },

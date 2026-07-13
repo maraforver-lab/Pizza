@@ -38,6 +38,12 @@ const pageText = (id: TrustPageId) => [
   trustPages[id].eyebrow,
   trustPages[id].title,
   trustPages[id].intro,
+  trustPages[id].lastUpdated ?? "",
+  trustPages[id].effectiveFrom ?? "",
+  trustPages[id].heroImage?.src ?? "",
+  trustPages[id].heroImage?.mobileSrc ?? "",
+  trustPages[id].heroImage?.alt ?? "",
+  ...(trustPages[id].summary?.flatMap((item) => [item.title, item.body, item.href]) ?? []),
   ...trustPages[id].sections.flatMap((section) => [
     section.heading,
     ...(section.paragraphs ?? []),
@@ -86,8 +92,8 @@ describe("trust and legal pages", () => {
   it("includes the required H1 text for each page", () => {
     expect(trustPages.about.title).toBe("Built from real pizza nights.");
     expect(trustPages.contact.title).toBe("Questions, corrections and feedback.");
-    expect(trustPages.privacy.title).toBe("How DoughTools handles data.");
-    expect(trustPages.terms.title).toBe("Use DoughTools as guidance, not a promise.");
+    expect(trustPages.privacy.title).toBe("Your data, explained clearly.");
+    expect(trustPages.terms.title).toBe("Clear rules for using DoughTools.");
     expect(trustPages.methodology.title).toBe("How the dough calculation works.");
   });
 
@@ -240,14 +246,98 @@ describe("trust and legal pages", () => {
     const privacy = pageText("privacy");
 
     expect(privacy).toContain("localStorage");
+    expect(privacy).toContain("sessionStorage");
     expect(privacy).toContain("Supabase");
+    expect(privacy).toContain("Account sync is optional");
+    expect(privacy).toContain("browser-local");
+    expect(privacy).toContain("Supabase-backed cloud storage");
     expect(privacy).not.toMatch(/\bjournal\b|community recipe drafts/i);
     expect(privacy).not.toMatch(/all data (stays|is stored|remains) local/i);
   });
 
+  it("covers the current privacy data flow without unsupported compliance claims", () => {
+    const privacy = pageText("privacy");
+
+    expect(privacy).toContain("Why and on what legal basis");
+    expect(privacy).toContain("performance of the requested service or contract");
+    expect(privacy).toContain("legitimate interests");
+    expect(privacy).toContain("Pizza photos and moderation");
+    expect(privacy).toContain("OpenAI");
+    expect(privacy).toContain("Party Orders");
+    expect(privacy).toMatch(/Anyone with the link|anyone who receives/i);
+    expect(privacy).toContain("public guest link");
+    expect(privacy).toContain("Vercel");
+    expect(privacy).toContain("International data transfers");
+    expect(privacy).toContain("Standard Contractual Clauses");
+    expect(privacy).toContain("Retention and deletion");
+    expect(privacy).toContain("Office of the Data Protection Ombudsman");
+    expect(privacy).toContain("13 July 2026");
+    expect(privacy).not.toMatch(/fully GDPR compliant|GDPR compliant|lawyer reviewed|regulator approved/i);
+  });
+
+  it("covers the current Terms product behavior and consumer-rights boundaries", () => {
+    const terms = pageText("terms");
+
+    expect(terms).toContain("What DoughTools provides");
+    expect(terms).toContain("Pizza Sessions");
+    expect(terms).toContain("Party Orders");
+    expect(terms).toContain("public guest links");
+    expect(terms).toContain("Calculations, recipes, and educational information");
+    expect(terms).toContain("estimates");
+    expect(terms).toContain("Equipment manufacturer instructions");
+    expect(terms).toContain("User content and photos");
+    expect(terms).toContain("limited permission");
+    expect(terms).toContain("limited operating licence");
+    expect(terms).toContain("mandatory consumer rights");
+    expect(terms).toContain("Finnish Consumer Advisory Services");
+    expect(terms).toContain("Finnish Consumer Disputes Board");
+    expect(terms).toContain("EU ODR platform was discontinued on 20 July 2025");
+    expect(terms).toContain("13 July 2026");
+    expect(terms).not.toMatch(/provided “as is” and we are never liable|waive all rights|Online Dispute Resolution platform.*href/i);
+  });
+
+  it("uses local people-free trust hero assets with explicit dimensions", () => {
+    for (const id of ["privacy", "terms"] as const) {
+      const image = trustPages[id].heroImage;
+
+      expect(image).toBeDefined();
+      expect(image?.src).toMatch(/^\/images\/trust\/.+-desktop\.webp$/);
+      expect(image?.mobileSrc).toMatch(/^\/images\/trust\/.+-mobile\.webp$/);
+      expect(image?.width).toBeGreaterThan(0);
+      expect(image?.height).toBeGreaterThan(0);
+      expect(image?.mobileWidth).toBeGreaterThan(0);
+      expect(image?.mobileHeight).toBeGreaterThan(0);
+      expect(image?.alt).toMatch(/workspace|pizza/i);
+      expect(existsSync(join(process.cwd(), "public", image?.src ?? ""))).toBe(true);
+      expect(existsSync(join(process.cwd(), "public", image?.mobileSrc ?? ""))).toBe(true);
+      expect(`${image?.alt} ${image?.src} ${image?.mobileSrc}`).not.toMatch(/person|people|hand|hands|face|logo|signature|legal text/i);
+    }
+  });
+
+  it("adds internal legal documentation without exposing raw internal paths publicly", () => {
+    for (const docPath of [
+      "docs/audits/patch-363-privacy-terms-legal-audit.md",
+      "docs/legal/privacy-data-map.md",
+      "docs/legal/terms-product-map.md",
+      "docs/legal/third-party-processors.md",
+    ]) {
+      expect(existsSync(join(process.cwd(), docPath))).toBe(true);
+    }
+
+    const audit = source("docs/audits/patch-363-privacy-terms-legal-audit.md");
+    const publicTrustText = `${pageText("privacy")}\n${pageText("terms")}`;
+
+    expect(audit).toContain("Requires Marcin confirmation");
+    expect(audit).toContain("Supabase");
+    expect(audit).toContain("Vercel");
+    expect(audit).toContain("OpenAI");
+    expect(audit).toContain("Terms acceptance");
+    expect(publicTrustText).not.toMatch(/docs\/legal|docs\\legal|app\/api|lib\/|C:\\|C:\/|\/Users\//);
+  });
+
   it("states that terms and methodology are estimates, not promises", () => {
     expect(pageText("terms")).toMatch(/estimates/i);
-    expect(pageText("terms")).toMatch(/not promises/i);
+    expect(pageText("terms")).toMatch(/not a guarantee|does not guarantee/i);
     expect(pageText("methodology")).toMatch(/does not promise/i);
   });
 

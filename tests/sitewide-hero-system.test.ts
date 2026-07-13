@@ -95,13 +95,14 @@ describe("sitewide hero and imagery system", () => {
     expect(component).toContain("DoughToolsIcon");
   });
 
-  it("applies the minimal utility header to trust pages without adding photography", () => {
+  it("applies the trust-page hero system with restrained legal imagery", () => {
     const layout = source("components/TrustPageLayout.tsx");
 
-    expect(layout).toContain("UtilityHeader");
+    expect(layout).toContain("TrustHero");
     expect(layout).toContain("Back to DoughTools");
-    expect(layout).not.toContain("next/image");
-    expect(layout).not.toContain("<Image");
+    expect(layout).toContain("next/image");
+    expect(layout).toContain("<Image");
+    expect(layout).toContain("<SiteFooter />");
   });
 
   it("keeps the patch free of new production image references and generated people imagery", () => {

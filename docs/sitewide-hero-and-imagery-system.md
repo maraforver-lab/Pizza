@@ -159,7 +159,7 @@ Characteristics:
 
 Image rule:
 
-No image is often the correct decision. Trust pages should feel credible, not promotional.
+No image is often the correct decision. Trust pages should feel credible, not promotional. When a legal or trust page uses imagery, it must be calm, people-free, hand-free, logo-free, text-free, and clearly support trust or transparency rather than marketing drama.
 
 ## Shared component guidance
 
