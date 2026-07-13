@@ -7,9 +7,9 @@ import {
 import { getSafeContextualReturnPath } from "@/lib/contextual-return";
 
 export const metadata: Metadata = {
-  title: "Pizza Troubleshooting Guide | DoughTools",
+  title: "Pizza Troubleshooting Guide: Dough, Stretching, Baking and Toppings | DoughTools",
   description:
-    "Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.",
+    "Diagnose common pizza problems by symptom, find immediate fixes, understand likely causes, and learn what to change on your next bake.",
 };
 
 type TroubleshootingPageProps = {
@@ -22,7 +22,7 @@ function firstParam(value: string | string[] | undefined) {
 
 export default async function PizzaTroubleshootingGuidePage({ searchParams }: TroubleshootingPageProps) {
   const params = await searchParams;
-  const requestedTopic = firstParam(params?.topic);
+  const requestedTopic = firstParam(params?.problem) ?? firstParam(params?.topic);
   const activeTopicId = isPizzaTroubleshootingTopicId(requestedTopic) ? requestedTopic : undefined;
   const returnPath = getSafeDoughGuideReturnPath(params?.from);
   const contextualReturnPath = getSafeContextualReturnPath(params?.returnTo);

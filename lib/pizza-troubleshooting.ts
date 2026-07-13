@@ -1,4 +1,5 @@
 import { getExperienceLevelConfig, normalizeExperienceLevel, type ExperienceLevel } from "@/lib/experience-levels";
+import type { DoughToolsIconName } from "@/components/icons";
 
 export type PizzaTroubleshootingTopicId =
   | "dough-not-rising"
@@ -89,6 +90,17 @@ export type PizzaTroubleshootingSection = {
     motif: string;
   };
   problems: PizzaTroubleshootingProblem[];
+};
+
+export type PizzaTroubleshootingCategoryMeta = {
+  id: PizzaTroubleshootingCategoryId;
+  icon: DoughToolsIconName;
+  plainDescription: string;
+};
+
+export type PizzaTroubleshootingSearchResult = {
+  section: PizzaTroubleshootingSection;
+  problem: PizzaTroubleshootingProblem;
 };
 
 export type PizzaTroubleshootingLevelPresentation = {
@@ -200,6 +212,39 @@ export const troubleshootingCategories: Array<Pick<PizzaTroubleshootingSection, 
     intro: "Problems caused by wet toppings, cheese moisture or too much weight in the center.",
   },
 ];
+
+export const troubleshootingCategoryMeta: Record<PizzaTroubleshootingCategoryId, PizzaTroubleshootingCategoryMeta> = {
+  "dough-fermentation": {
+    id: "dough-fermentation",
+    icon: "yeast",
+    plainDescription:
+      "The dough did not rise, spread too far, feels too warm, too cold, too sticky, or has weak structure.",
+  },
+  shaping: {
+    id: "shaping",
+    icon: "mixing-bowl",
+    plainDescription:
+      "The dough springs back, tears, sticks, stretches unevenly, or loses its shape while opening.",
+  },
+  launching: {
+    id: "launching",
+    icon: "forward",
+    plainDescription:
+      "The topped pizza will not slide cleanly, folds, stretches on the peel, or loses toppings during launch.",
+  },
+  baking: {
+    id: "baking",
+    icon: "oven",
+    plainDescription:
+      "The base, top, rim or center bakes unevenly, stays pale, burns, or changes between pizzas.",
+  },
+  toppings: {
+    id: "toppings",
+    icon: "pizza",
+    plainDescription:
+      "Sauce, cheese or toppings release moisture, burn, slide, overload the pizza, or cook unevenly.",
+  },
+};
 
 export const troubleshootingSections: PizzaTroubleshootingSection[] = [
   {
@@ -1909,6 +1954,52 @@ export const pizzaTroubleshootingTopicIds = troubleshootingSections.flatMap((sec
   section.problems.map((problem) => problem.id),
 );
 
+export const pizzaTroubleshootingSearchAliases: Partial<Record<PizzaTroubleshootingTopicId, string[]>> = {
+  "dough-not-rising": ["no rise", "flat dough", "yeast not working", "dough stayed small"],
+  "dough-too-sticky": ["sticky dough", "wet dough", "dough smears", "dough clings", "too much water"],
+  "dough-dry-skin": ["dry dough", "skin on dough", "crust on dough ball", "uncovered dough"],
+  "dough-balls-spread-flat": ["flat dough balls", "dough spreads", "balls collapse", "dough puddles"],
+  "dough-underproofed": ["underproofed", "tight dough", "dense crust", "not fermented enough"],
+  "dough-overproofed": ["overproofed", "collapsed dough", "weak dough", "too fermented"],
+  "dough-too-cold": ["cold dough", "will not stretch", "tight from fridge", "stiff dough"],
+  "dough-too-warm": ["warm dough", "loose dough", "slack dough", "dough melts"],
+  "weak-gluten-structure": ["weak gluten", "no strength", "tears easily", "no structure"],
+  "dough-collapses-after-rising": ["collapses", "falls after rising", "deflates", "lost volume"],
+  "dough-springs-back": ["springs back", "will not open", "elastic dough", "keeps shrinking"],
+  "dough-tears": ["holes", "dough tears", "rips", "thin spots"],
+  "dough-sticks-to-work-surface": ["sticks to table", "stuck to counter", "work surface", "bench sticking"],
+  "pizza-center-too-thin": ["center too thin", "middle thin", "transparent center", "weak middle"],
+  "pizza-loses-round-shape": ["not round", "oval pizza", "odd shape", "misshapen"],
+  "rim-flattened-during-shaping": ["flat rim", "no cornicione", "rim pressed", "edge flattened"],
+  "dough-stretches-unevenly": ["uneven stretch", "one side thin", "thick and thin", "uneven dough"],
+  "dough-tears-moving-to-peel": ["tears on peel", "transfer tear", "rips moving", "breaks on peel"],
+  "pizza-sticks-to-peel": ["stuck to peel", "will not launch", "launch stuck", "pizza stuck"],
+  "pizza-folds-during-launch": ["folds", "folded launch", "pizza folded", "launch fold"],
+  "toppings-slide-during-launch": ["toppings slide", "cheese slides", "sauce slides", "launch toppings"],
+  "too-much-flour-under-pizza": ["burnt flour", "semolina burns", "bitter bottom", "dusty base"],
+  "pizza-stretches-on-peel": ["stretches on peel", "long pizza", "deforms on peel", "pizza elongates"],
+  "launch-takes-too-long": ["slow launch", "takes too long", "topping while waiting", "peel delay"],
+  "pizza-soggy-middle": ["soggy middle", "wet center", "soft center", "soupy middle"],
+  "crust-burns-middle-doughy": ["burnt crust raw middle", "burns but doughy", "rim burned center raw"],
+  "base-burns-underneath": ["burnt base", "black bottom", "bottom burns", "base burned"],
+  "home-oven-pale-soft": ["pale base", "soft base", "home oven pale", "not brown"],
+  "gummy-layer-under-toppings": ["gummy layer", "gum line", "wet layer", "dense layer"],
+  "top-burns-before-bottom": ["top burns", "burnt cheese pale base", "top ahead", "bottom not ready"],
+  "rim-does-not-rise": ["rim not rising", "flat crust", "no oven spring", "dense rim"],
+  "pizza-bakes-unevenly": ["uneven bake", "one side burns", "hot spot", "uneven oven"],
+  "center-raw-or-doughy": ["raw center", "doughy center", "raw dough", "undercooked middle"],
+  "oven-loses-heat-between-pizzas": ["oven recovery", "later pizzas pale", "stone temperature drops", "loses heat"],
+  "toppings-release-water": ["watery toppings", "vegetables watery", "liquid toppings", "water on pizza"],
+  "cheese-burns-too-early": ["cheese burns", "burnt cheese", "cheese too dark", "cheese burned"],
+  "cheese-releases-oil": ["greasy cheese", "oil pools", "cheese oil", "orange oil"],
+  "toppings-slide-after-baking": ["toppings slide off", "slice toppings slide", "cheese sheet", "after baking slide"],
+  "sauce-makes-center-watery": ["watery sauce", "sauce too thin", "red liquid", "sauce pool"],
+  "mozzarella-releases-water": ["mozzarella water", "fresh mozzarella wet", "milky water", "wet mozzarella"],
+  "pizza-overloaded-with-toppings": ["too many toppings", "overloaded", "heavy pizza", "too much cheese"],
+  "toppings-cook-unevenly": ["toppings uneven", "vegetables raw", "some toppings burn", "uneven toppings"],
+  "rim-scorched-by-sauce-or-cheese": ["scorched rim", "cheese on rim burns", "sauce on rim", "burnt edge spots"],
+};
+
 export function isPizzaTroubleshootingTopicId(value: unknown): value is PizzaTroubleshootingTopicId {
   return typeof value === "string" && pizzaTroubleshootingTopicIds.includes(value as PizzaTroubleshootingTopicId);
 }
@@ -1920,6 +2011,61 @@ export function findPizzaTroubleshootingProblem(topicId: unknown) {
     if (problem) return { section, problem };
   }
   return undefined;
+}
+
+export function getAllPizzaTroubleshootingProblems(): PizzaTroubleshootingSearchResult[] {
+  return troubleshootingSections.flatMap((section) =>
+    section.problems.map((problem) => ({
+      section,
+      problem,
+    })),
+  );
+}
+
+function normalizeTroubleshootingSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, " ")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function searchPizzaTroubleshootingProblems(
+  query: string,
+  categoryId?: PizzaTroubleshootingCategoryId | null,
+): PizzaTroubleshootingSearchResult[] {
+  const normalizedQuery = normalizeTroubleshootingSearchText(query);
+  const words = normalizedQuery.split(" ").filter(Boolean);
+  const scopedProblems = getAllPizzaTroubleshootingProblems().filter((result) =>
+    categoryId ? result.section.id === categoryId : true,
+  );
+
+  if (!words.length) return scopedProblems;
+
+  return scopedProblems.filter(({ section, problem }) => {
+    const searchable = normalizeTroubleshootingSearchText(
+      [
+        section.title,
+        section.intro,
+        problem.title,
+        problem.shortSymptom,
+        problem.symptomDetails,
+        problem.quickCheck,
+        ...(problem.likelyCauses ?? []),
+        ...(pizzaTroubleshootingSearchAliases[problem.id] ?? []),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+
+    return words.every((word) => searchable.includes(word));
+  });
+}
+
+export function getPizzaTroubleshootingCategoryForProblem(topicId: unknown) {
+  return findPizzaTroubleshootingProblem(topicId)?.section.id ?? null;
 }
 
 export function getSafeDoughGuideReturnPath(value: string | string[] | null | undefined) {
