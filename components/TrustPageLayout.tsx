@@ -1,5 +1,5 @@
-import Link from "next/link";
 import AppSignature from "@/components/AppSignature";
+import { UtilityHeader } from "@/components/page-hero/PageHeroSystem";
 import { projectContactEmail, type TrustPage } from "@/lib/trust-pages";
 
 function LinkedParagraph({ text }: { text: string }) {
@@ -29,16 +29,13 @@ export default function TrustPageLayout({ page }: { page: TrustPage }) {
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:py-12">
       <div className="mx-auto max-w-5xl">
-        <section className="rounded-[2rem] border border-white/80 bg-white/65 p-5 shadow-card backdrop-blur sm:p-8">
-          <Link href="/" className="inline-flex rounded-full bg-ink px-4 py-2 text-xs font-extrabold text-white">
-            Back to DoughTools
-          </Link>
-          <p className="mt-8 text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{page.eyebrow}</p>
-          <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
-            {page.title}
-          </h1>
-          <p className="mt-5 max-w-3xl text-sm leading-6 text-ink/60 sm:text-base">{page.intro}</p>
-        </section>
+        <UtilityHeader
+          actions={[{ href: "/", label: "Back to DoughTools", variant: "secondary" }]}
+          body={page.intro}
+          eyebrow={page.eyebrow}
+          icon="information"
+          title={page.title}
+        />
 
         <section className="mt-6 grid gap-4">
           {page.sections.map((section) => (

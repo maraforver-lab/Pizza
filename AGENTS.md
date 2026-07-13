@@ -6,6 +6,7 @@ Always follow:
 - `docs/global-responsive-ux-rules.md`
 - `docs/visual-style-guide.md`
 - `docs/design-system.md`
+- `docs/sitewide-hero-and-imagery-system.md`
 
 Core product rules:
 
@@ -17,6 +18,7 @@ Core product rules:
 - Do not create separate mobile wizard flows.
 - New pages must use shared layout components where possible.
 - New pages must not create unrelated custom layouts.
+- New page introductions must follow the sitewide hero and imagery system.
 - Colors must come from the official DoughTools palette and semantic aliases in `docs/design-system.md`.
 - Legacy color names are compatibility aliases only.
 - Do not add new arbitrary brand colors or near-duplicate palette values.

@@ -3,7 +3,7 @@
 Version: 1.0  
 Purpose: Global product and responsive UX rules for all current and future DoughTools pages.
 
-Use together with: `docs/experience-principles.md`, `docs/design-system.md` and `docs/visual-style-guide.md`.
+Use together with: `docs/experience-principles.md`, `docs/design-system.md`, `docs/visual-style-guide.md` and `docs/sitewide-hero-and-imagery-system.md`.
 
 ## 1. Core principle
 
@@ -67,6 +67,8 @@ The user should always understand:
 5. Where the primary action goes
 
 Visual implementation must use the official palette, semantic aliases, typography roles, icon policy and image rules in `docs/design-system.md` and `docs/visual-style-guide.md`. Marketing surfaces and workspace surfaces may have different visual emphasis, but they must share the same visual foundation.
+
+Page-level hero size, imagery and introduction type must follow `docs/sitewide-hero-and-imagery-system.md`.
 
 ## 4. Desktop rule: guided workspace
 

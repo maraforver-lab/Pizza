@@ -2,9 +2,11 @@
 
 Version: 1.1  
 Purpose: Global visual design rules for all current and future DoughTools pages.  
-Use together with: `docs/experience-principles.md` and `docs/global-responsive-ux-rules.md`
+Use together with: `docs/experience-principles.md`, `docs/global-responsive-ux-rules.md`, and `docs/sitewide-hero-and-imagery-system.md`
 
 This guide defines how DoughTools should look and feel across the product. It is based on the current DoughTools direction, the product North Star in [Experience principles](./experience-principles.md), and the visual reference images reviewed during the UX work.
+
+For page-level hero selection, image role, and route-by-route introduction type, use [Sitewide hero and imagery system](./sitewide-hero-and-imagery-system.md).
 
 ---
 

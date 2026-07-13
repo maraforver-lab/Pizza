@@ -8,6 +8,7 @@ Use with:
 - [Experience principles](./experience-principles.md)
 - [Global responsive UX rules](./global-responsive-ux-rules.md)
 - [Visual style guide](./visual-style-guide.md)
+- [Sitewide hero and imagery system](./sitewide-hero-and-imagery-system.md)
 - [Shared layout visual reference](./design-reference/doughtools-shared-layout-reference.png)
 
 The visual reference is directional. It defines the desired DoughTools feeling and hierarchy, not a pixel-perfect template.
@@ -182,6 +183,7 @@ Purpose: explain what the page is and what the user should do first.
 - Mobile: stack content and keep the primary action visible early.
 - Use when a page needs orientation.
 - Do not turn every flow step into a marketing hero.
+- Choose the page-introduction type using the [sitewide hero and imagery system](./sitewide-hero-and-imagery-system.md).
 
 ### PageSection
 
