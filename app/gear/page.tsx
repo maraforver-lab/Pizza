@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import { gearItems, type GearCategory, type GearTier } from "@/lib/pizza-gear";
 
@@ -54,6 +54,7 @@ export default function GearPage() {
         cta={{ href: "/session/start", title: "Plan my next pizza", description: "Turn the station into a real pizza plan.", icon: "calendar" }}
       />
     </div>
-    <section className="py-12"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><div className="mt-4 flex flex-wrap gap-2">{sources.map(([label, href]) => <a key={href} href={href} target="_blank" rel="noreferrer" className="rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold text-ink/55">{label} ↗</a>)}</div><p className="mt-5 text-xs text-ink/40">{t.note}</p><footer className="mt-8 border-t border-ink/10 pt-6"><AppSignature /></footer></section>
+    <section className="py-12"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><div className="mt-4 flex flex-wrap gap-2">{sources.map(([label, href]) => <a key={href} href={href} target="_blank" rel="noreferrer" className="rounded-full border border-ink/10 bg-white px-4 py-2 text-xs font-bold text-ink/55">{label} ↗</a>)}</div><p className="mt-5 text-xs text-ink/40">{t.note}</p></section>
+    <SiteFooter />
   </div></main>;
 }

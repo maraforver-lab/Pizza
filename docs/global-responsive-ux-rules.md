@@ -494,6 +494,10 @@ Footer must not compete with the page’s primary action.
 
 In guided pages, footer should remain visually light.
 
+The canonical site footer is `components/SiteFooter.tsx`, based on the approved homepage footer. If a page already renders a footer, it must use that shared component. If a page has no footer, do not add one automatically for consistency.
+
+No visible route-specific content should appear after the footer. Place sources, methodology notes, final CTAs, account/security notes or product-specific disclosures before the footer.
+
 ### Mobile
 
 Focused task pages should not show a large footer by default.
@@ -514,6 +518,8 @@ Legal/trust links can be available from:
 Mobile content/learning pages may include a simplified footer if useful.
 
 Do not add a large footer to mobile flow pages unless explicitly requested.
+
+When a mobile page already has a footer, use the same canonical `SiteFooter` responsive behavior rather than creating a route-specific mobile footer.
 
 ## 10. Desktop-only and mobile-hidden content rules
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import EditableNumberInput from "@/components/EditableNumberInput";
 import { buttonClass, cardClass, cx, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
@@ -591,10 +591,7 @@ export default function PizzaCostsPlayfulClient() {
             </div>
           </article>
         </section>
-
-        <footer className="mt-8 border-t border-ink/10 py-6">
-          <AppSignature />
-        </footer>
+        <SiteFooter />
       </div>
     </main>
   );

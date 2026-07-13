@@ -19,6 +19,8 @@ Core product rules:
 - New pages must use shared layout components where possible.
 - New pages must not create unrelated custom layouts.
 - New page introductions must follow the sitewide hero and imagery system.
+- The homepage footer is the canonical site footer. Pages that already render a footer must use `components/SiteFooter.tsx`; pages without a footer must not receive one automatically.
+- No visible route-specific content may appear after the footer. Route-specific notes, source disclosures and CTAs belong before the footer.
 - Colors must come from the official DoughTools palette and semantic aliases in `docs/design-system.md`.
 - Legacy color names are compatibility aliases only.
 - Do not add new arbitrary brand colors or near-duplicate palette values.

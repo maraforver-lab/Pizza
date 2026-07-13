@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 
 const text = {
   fi: {
@@ -63,6 +63,7 @@ export default function HistoryPage() {
     <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20"><h2 className="font-display text-4xl font-semibold sm:text-5xl">{t.scienceTitle}</h2><p className="mt-4 max-w-2xl text-sm leading-7 text-ink/55">{t.scienceLead}</p><div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{t.science.map(([title, body], index) => <article key={title} className="rounded-2xl border border-ink/10 bg-white/70 p-5"><span className="text-2xl">{["●", "◯", "◒", "◇", "▱", "≈", "♨", "□"][index]}</span><h3 className="mt-3 font-extrabold">{title}</h3><p className="mt-2 text-xs leading-6 text-ink/55">{body}</p></article>)}</div></section>
     <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6 sm:pb-20"><h2 className="font-display text-4xl font-semibold">{t.mythTitle}</h2><div className="mt-7 space-y-3">{t.myths.map(([claim, verdict, reason]) => <details key={claim} className="group rounded-2xl border border-ink/10 bg-white/75 p-5"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-extrabold"><span>{claim}</span><span className="rounded-full bg-tomato/10 px-3 py-1 text-[10px] uppercase tracking-wide text-tomato">{verdict}</span></summary><p className="mt-4 border-t border-ink/10 pt-4 text-sm leading-6 text-ink/55">{reason}</p></details>)}</div></section>
     <section className="bg-ink px-4 py-16 text-white sm:px-6 sm:py-20"><div className="mx-auto max-w-6xl"><p className="text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold">Fun facts</p><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold sm:text-5xl">{t.factsTitle}</h2><p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">{t.factsLead}</p><div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{t.facts.map((fact, index) => <article key={fact[0]} className="rounded-2xl border border-white/10 bg-white/[.05] p-5"><span className="text-[10px] font-extrabold text-tomato">#{String(index + 1).padStart(2, "0")}</span><h3 className="mt-2 text-lg font-extrabold">{fact[0]}</h3><p className="mt-2 text-sm leading-6 text-white/55">{fact[1]}</p></article>)}</div></div></section>
-    <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{sources.map(([label, href]) => <a key={href} href={href} target="_blank" rel="noreferrer" className="rounded-2xl border border-ink/10 bg-white/70 p-4 text-sm font-bold transition hover:border-tomato/40 hover:text-tomato">{label} ↗</a>)}</div><footer className="mt-10 border-t border-ink/10 pt-6"><AppSignature /></footer></section>
+    <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6"><h2 className="font-display text-3xl font-semibold">{t.sources}</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{sources.map(([label, href]) => <a key={href} href={href} target="_blank" rel="noreferrer" className="rounded-2xl border border-ink/10 bg-white/70 p-4 text-sm font-bold transition hover:border-tomato/40 hover:text-tomato">{label} ↗</a>)}</div></section>
+    <SiteFooter />
   </main>;
 }

@@ -320,30 +320,29 @@ describe("homepage content model", () => {
 
   it("uses the final responsive homepage footer as the last visible page section", () => {
     const homepage = source("app/page.tsx");
-    const footerStart = homepage.indexOf('data-homepage-footer');
-    const footerEnd = homepage.lastIndexOf("</footer>");
+    const footer = source("components/SiteFooter.tsx");
+    const footerStart = homepage.indexOf("<SiteFooter />");
     const finalCtaStart = homepage.indexOf('id="homepage-final-cta-heading"');
 
     expect(footerStart).toBeGreaterThan(0);
     expect(finalCtaStart).toBeGreaterThan(0);
     expect(footerStart).toBeGreaterThan(finalCtaStart);
-    expect(footerEnd).toBeGreaterThan(footerStart);
-    const afterFooter = homepage.slice(footerEnd + "</footer>".length);
+    const afterFooter = homepage.slice(footerStart + "<SiteFooter />".length);
     expect(afterFooter).not.toContain("<section");
-    expect(afterFooter).not.toContain("<footer");
+    expect(afterFooter).not.toContain("<SiteFooter");
     expect(afterFooter).not.toContain("Plan my next pizza");
-    expect(homepage).toContain('aria-label="DoughTools footer"');
-    expect(homepage).toContain('id="homepage-footer-brand"');
-    expect(homepage).toContain("Made for better pizza nights.");
-    expect(homepage).toContain("Learn the craft, plan the evening, and keep the next useful page within reach.");
-    expect(homepage).toContain("lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.85fr)_minmax(0,.85fr)_minmax(0,.65fr)]");
-    expect(homepage).toContain("min-[390px]:grid-cols-2 md:grid-cols-1");
-    expect(homepage).toContain("min-h-9");
+    expect(footer).toContain('aria-label="DoughTools footer"');
+    expect(footer).toContain('id="site-footer-brand"');
+    expect(footer).toContain("Made for better pizza nights.");
+    expect(footer).toContain("Learn the craft, plan the evening, and keep the next useful page within reach.");
+    expect(footer).toContain("lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.85fr)_minmax(0,.85fr)_minmax(0,.65fr)]");
+    expect(footer).toContain("min-[390px]:grid-cols-2 md:grid-cols-1");
+    expect(footer).toContain("min-h-9");
     expect(homepage).not.toContain("<AppSignature");
   });
 
   it("keeps the homepage footer concise with approved link groups and routes", () => {
-    const homepage = source("app/page.tsx");
+    const footer = source("components/SiteFooter.tsx");
 
     for (const expected of [
       'title: "Learn"',
@@ -364,12 +363,12 @@ describe("homepage content model", () => {
       'label: "Privacy", href: "/privacy"',
       'label: "Terms", href: "/terms"',
     ]) {
-      expect(homepage).toContain(expected);
+      expect(footer).toContain(expected);
     }
 
-    expect(homepage).not.toContain("newsletter");
-    expect(homepage).not.toContain("social");
-    expect(homepage).not.toContain("copyright");
+    expect(footer).not.toContain("newsletter");
+    expect(footer).not.toContain("social");
+    expect(footer).not.toContain("copyright");
   });
 
   it("keeps the compact Tools menu focused on the standalone Quick Dough Calculator route", () => {

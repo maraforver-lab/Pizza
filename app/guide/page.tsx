@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 
 type ProblemEntry = {
@@ -522,10 +522,7 @@ export default function Guide() {
             Start a Pizza Session
           </Link>
         </section>
-
-        <footer className="mt-12 border-t border-ink/10 py-6">
-          <AppSignature />
-        </footer>
+        <SiteFooter />
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import HeatBalanceDiagram from "@/components/ovens/HeatBalanceDiagram";
 import OvenEnvironmentChapter from "@/components/ovens/OvenEnvironmentChapter";
@@ -233,10 +233,7 @@ export default function OvensPage() {
             </a>
           </div>
         </section>
-
-        <footer className="mt-8 border-t border-ink/10 py-6">
-          <AppSignature />
-        </footer>
+        <SiteFooter />
       </div>
     </main>
   );

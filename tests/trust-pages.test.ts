@@ -72,16 +72,17 @@ describe("trust and legal pages", () => {
     ]);
   });
 
-  it("keeps footer support links but removes the duplicated support-pages card", () => {
+  it("uses the canonical site footer and removes the duplicated support-pages card", () => {
     const layout = source("components/TrustPageLayout.tsx");
-    const signature = source("components/AppSignature.tsx");
+    const footer = source("components/SiteFooter.tsx");
 
     expect(layout).not.toContain("Support pages");
     expect(layout).not.toContain("support-pages");
     expect(layout).not.toContain("trustFooterLinks.map");
-    expect(layout).toContain("<AppSignature />");
-    expect(signature).toContain("trustFooterLinks.map");
-    expect(signature).toContain("DoughTools support links");
+    expect(layout).toContain("<SiteFooter />");
+    expect(footer).toContain("DoughTools footer");
+    expect(footer).toContain('href: "/privacy"');
+    expect(footer).toContain('href: "/terms"');
   });
 
   it("includes the required H1 text for each page", () => {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
 import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
@@ -187,8 +187,7 @@ export default function AccountPage() {
             </aside>
           </div>
         ) : null}
-
-        <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
+        <SiteFooter />
       </div>
     </main>
   );

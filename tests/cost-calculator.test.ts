@@ -105,7 +105,7 @@ describe("pizza cost calculator", () => {
     expect(page).toContain("The real bonus is the pizza night.");
     expect(page).toContain("Ready to turn the estimate into pizza?");
     expect(page).toContain("Plan my next pizza");
-    expect(page).toContain("<AppSignature />");
+    expect(page).toContain("<SiteFooter />");
   });
 
   it("keeps result copy neutral when home is not cheaper", () => {

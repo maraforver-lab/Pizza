@@ -1,4 +1,4 @@
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import PizzaStyleAtlas from "@/components/styles/PizzaStyleAtlas";
 import PizzaStyleComparison from "@/components/styles/PizzaStyleComparison";
@@ -123,10 +123,7 @@ export default function StylesPage() {
             </a>
           </div>
         </section>
-
-        <footer className="mt-8 border-t border-ink/10 py-6">
-          <AppSignature />
-        </footer>
+        <SiteFooter />
       </div>
     </main>
   );

@@ -98,7 +98,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
   it("keeps the route separate from homepage Calculator v1 and Calculator v2 routing", () => {
     const homepage = source("app/page.tsx");
     const navigation = source("components/GlobalToolNavigation.tsx");
-    const homepageRouting = homepage.split("const footerGroups")[0];
+    const homepageRouting = homepage.split("<SiteFooter />")[0];
 
     expect(homepageRouting).toContain('params.calculator === "2" ? "guided" : "entry"');
     expect(homepageRouting).not.toContain("/calculator/quick");

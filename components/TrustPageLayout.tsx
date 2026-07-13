@@ -1,4 +1,4 @@
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import { UtilityHeader } from "@/components/page-hero/PageHeroSystem";
 import { projectContactEmail, type TrustPage, type TrustPageSection } from "@/lib/trust-pages";
 
@@ -105,10 +105,7 @@ export default function TrustPageLayout({ page }: { page: TrustPage }) {
             </article>
           ))}
         </section>
-
-        <footer className="mt-8 border-t border-ink/10 py-6">
-          <AppSignature />
-        </footer>
+        <SiteFooter />
       </div>
     </main>
   );

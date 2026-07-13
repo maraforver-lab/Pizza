@@ -35,23 +35,25 @@ describe("learning architecture", () => {
 
   it("turns the homepage footer into a concise learning and product map", () => {
     const homepage = source("app", "page.tsx");
+    const footer = source("components", "SiteFooter.tsx");
 
-    expect(homepage).toContain("footerGroups");
-    expect(homepage).toContain('title: "Learn"');
-    expect(homepage).toContain('href: "/guide"');
-    expect(homepage).toContain('href: "/sauce"');
-    expect(homepage).toContain('href: "/guides/dough"');
-    expect(homepage).toContain('href: "/guide/pizza-troubleshooting"');
-    expect(homepage).toContain('href: "/styles"');
-    expect(homepage).toContain('href: "/ovens"');
-    expect(homepage).toContain('title: "Product"');
-    expect(homepage).toContain('href: "/session/start"');
-    expect(homepage).toContain('href: "/calculator/quick"');
-    expect(homepage).toContain('href: "/account/party-orders"');
-    expect(homepage).toContain('title: "Company"');
-    expect(homepage).toContain('aria-label="DoughTools footer"');
-    expect(homepage).toContain("Made for better pizza nights.");
-    expect(homepage).toContain("lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.85fr)_minmax(0,.85fr)_minmax(0,.65fr)]");
+    expect(homepage).toContain("<SiteFooter />");
+    expect(footer).toContain("footerGroups");
+    expect(footer).toContain('title: "Learn"');
+    expect(footer).toContain('href: "/guide"');
+    expect(footer).toContain('href: "/sauce"');
+    expect(footer).toContain('href: "/guides/dough"');
+    expect(footer).toContain('href: "/guide/pizza-troubleshooting"');
+    expect(footer).toContain('href: "/styles"');
+    expect(footer).toContain('href: "/ovens"');
+    expect(footer).toContain('title: "Product"');
+    expect(footer).toContain('href: "/session/start"');
+    expect(footer).toContain('href: "/calculator/quick"');
+    expect(footer).toContain('href: "/account/party-orders"');
+    expect(footer).toContain('title: "Company"');
+    expect(footer).toContain('aria-label="DoughTools footer"');
+    expect(footer).toContain("Made for better pizza nights.");
+    expect(footer).toContain("lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.85fr)_minmax(0,.85fr)_minmax(0,.65fr)]");
   });
 
   it("adds breadcrumbs or related learning to educational pages without creating new routes", () => {

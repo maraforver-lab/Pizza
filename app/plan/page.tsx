@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
 import { bakeFor } from "@/lib/baking";
 import { buildDoughInstructions } from "@/lib/dough-instructions";
@@ -162,7 +162,7 @@ export default function PlanPage() {
         </section>
         <Link href={`/timer?${recipeParams(settings).toString()}`} className="mt-5 flex items-center justify-between gap-4 rounded-[1.5rem] bg-tomato p-5 text-white shadow-card"><span><small className="text-[10px] font-extrabold uppercase tracking-[.16em] text-white/55">Bake stage</small><strong className="mt-1 block font-display text-2xl">{t.timerTitle}</strong><span className="mt-1 block text-xs text-white/65">{t.timerLead}</span></span><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl text-tomato">⏱</span></Link>
         <p className="mt-5 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs leading-5 text-ink/50">{levelCopy.estimated}</p>
-        <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
+        <SiteFooter />
       </div>
     </main>
   );

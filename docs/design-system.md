@@ -265,10 +265,15 @@ Purpose: future desktop wrapper with side context and main workspace.
 
 Purpose: consistent legal/trust/footer links.
 
-- Desktop: allowed on normal pages.
-- Mobile: avoid large footers in focused task flows.
-- Use on learning, content and browse pages.
-- Do not place footer links where they compete with the main task.
+The canonical implementation is `components/SiteFooter.tsx`, extracted from the approved homepage footer.
+
+- Desktop: use the canonical four-column structure from `SiteFooter`.
+- Mobile: preserve the canonical compact grouped-link behavior.
+- Pages that already render a footer must use `SiteFooter`.
+- Pages without a footer must not receive one automatically.
+- Route-specific notes, source disclosures, CTAs, account state and product metadata belong before the footer.
+- No visible normal-flow content may appear after the footer.
+- Do not create dark, compact, account-specific or route-specific footer variants.
 
 ## E. Shared UI components
 

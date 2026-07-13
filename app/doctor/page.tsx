@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
 import { diagnoseDough, doctorIssues, issueCopy, type DoctorIssueId } from "@/lib/dough-doctor";
 import { getEducationExperienceCopy } from "@/lib/education-experience-copy";
@@ -67,7 +67,7 @@ export default function DoctorPage() {
 
         <section className="mt-7 overflow-hidden rounded-[1.75rem] bg-ink text-white shadow-card" aria-live="polite">{diagnosis ? <><div className="grid gap-5 p-5 sm:p-7 md:grid-cols-3"><article><span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-oven-gold">01 · {t.likely}</span><p className="mt-3 text-sm leading-6 text-white/65">{diagnosis.cause}</p></article><article className="border-t border-white/10 pt-5 md:border-l md:border-t-0 md:pl-5 md:pt-0"><span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-oven-gold">02 · {t.now}</span><p className="mt-3 text-sm leading-6 text-white/65">{diagnosis.now}</p></article><article className="border-t border-white/10 pt-5 md:border-l md:border-t-0 md:pl-5 md:pt-0"><span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-oven-gold">03 · {t.next}</span><p className="mt-3 text-sm leading-6 text-white/65">{diagnosis.next}</p></article></div><div className="border-t border-white/10 bg-oven-gold/10 p-5 sm:px-7"><span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-oven-gold">04 · {t.styleAdvice} · {pizzaStyle.nameEn}</span><p className="mt-2 text-sm leading-6 text-white/65">{diagnosis.styleNote}</p></div><div className="border-t border-white/10 bg-white/[.035] p-5 sm:px-7"><span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-oven-gold">05 · {levelCopy.diagnosisDetailTitle}</span><ul className="mt-3 grid gap-2 text-sm leading-6 text-white/60">{levelCopy.diagnosisDetails.map((detail) => <li key={detail} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" /><span>{detail}</span></li>)}</ul></div><div className="grid grid-cols-2 gap-2 border-t border-white/10 bg-white/[.04] p-4 sm:flex sm:justify-end"><Link href={`/?${query}`} className="rounded-xl border border-white/15 px-4 py-3 text-center text-xs font-bold text-white/70">{t.edit}</Link><Link href={`/plan?${query}`} className="rounded-xl bg-tomato px-4 py-3 text-center text-xs font-extrabold text-white">{t.plan}</Link></div></> : <p className="p-7 text-center text-sm text-white/50">{t.prompt}</p>}</section>
         <p className="mt-4 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs leading-5 text-ink/50">{levelCopy.note}</p>
-        <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
+        <SiteFooter />
       </div>
     </main>
   );

@@ -40,6 +40,7 @@ describe("Patch 311 responsive visual audit protections", () => {
     const troubleshooting = source("components/guide/PizzaTroubleshootingGuideClient.tsx");
     const navigation = source("components/GlobalToolNavigation.tsx");
     const homepage = source("app/page.tsx");
+    const siteFooter = source("components/SiteFooter.tsx");
     const globals = source("app/globals.css");
 
     expect(kitchen).toContain("max-h-[calc(100vh-3rem)]");
@@ -53,9 +54,10 @@ describe("Patch 311 responsive visual audit protections", () => {
     expect(navigation).toContain("overflow-visible");
     expect(navigation).not.toContain("items-center justify-between gap-2 overflow-hidden");
     expect(navigation).not.toContain("items-center justify-start gap-1 overflow-hidden");
-    expect(homepage).toContain("data-homepage-footer");
-    expect(homepage).toContain("min-[390px]:grid-cols-2 md:grid-cols-1");
-    expect(homepage).toContain("min-h-9");
+    expect(homepage).toContain("<SiteFooter />");
+    expect(siteFooter).toContain("data-site-footer");
+    expect(siteFooter).toContain("min-[390px]:grid-cols-2 md:grid-cols-1");
+    expect(siteFooter).toContain("min-h-9");
     expect(globals).not.toContain("overflow-x: hidden");
   });
 

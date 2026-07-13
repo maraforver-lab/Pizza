@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import { metadataForRoute } from "@/lib/seo-config";
 
 export const metadata: Metadata = metadataForRoute("/about");
@@ -432,10 +432,7 @@ export default function AboutPage() {
             ))}
           </div>
         </section>
-
-        <footer className="mt-8 border-t border-ink/10 py-6">
-          <AppSignature />
-        </footer>
+        <SiteFooter />
       </div>
     </main>
   );

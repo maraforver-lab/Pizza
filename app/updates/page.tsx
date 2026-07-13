@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import {
   latestPublicUpdate,
   MAX_VISIBLE_UPDATES,
@@ -139,7 +139,7 @@ export default function UpdatesPage() {
             Open calculator →
           </Link>
         </div>
-        <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
+        <SiteFooter />
       </div>
     </main>
   );

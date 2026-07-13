@@ -198,7 +198,12 @@ The following must feel coherent:
 - buttons
 - cards
 - navigation
+- footer
 - tone of voice
+
+The homepage footer is the canonical DoughTools site footer. Existing footer-bearing pages should use the shared footer component so the end of each page feels like the same product. Pages without a footer should not receive one automatically, especially focused workflow pages.
+
+The footer should close the page. Route-specific sources, notes, final CTAs or product metadata belong before it, not after it.
 
 ## Future content rules
 

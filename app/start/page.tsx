@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import ExperienceLevelSelector, { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
 import {
   getExperienceLevelConfig,
@@ -156,8 +156,7 @@ export default function StartHerePage() {
             Planner and troubleshooting workflow. The dough formulas stay the same; the starting path is simply calmer.
           </p>
         </section>
-
-        <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
+        <SiteFooter />
       </div>
     </main>
   );

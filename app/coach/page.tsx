@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import { flourById } from "@/lib/flours";
 import { buildCoachAdvice, type CoachGoal, type CoachIssue } from "@/lib/pizza-coach";
 import { recipeParams, settingsFromUrl } from "@/lib/recipe-url";
@@ -31,6 +31,6 @@ export default function CoachPage() {
         {advice.warnings.length > 0 && <div className="border-t border-white/10 bg-tomato/10 p-6 sm:px-8"><strong className="text-xs text-oven-gold">{t.warnings}</strong><ul className="mt-2 space-y-2 text-xs leading-5 text-white/55">{advice.warnings.map(warning => <li key={warning}>• {warning}</li>)}</ul></div>}
         <div className="border-t border-white/10 p-5 sm:p-8">{changed ? <Link href={`/?${recommendationQuery}`} className="block rounded-xl bg-tomato px-5 py-4 text-center text-sm font-extrabold text-white">{t.apply} →</Link> : <p className="rounded-xl bg-white/[.06] p-4 text-center text-xs text-white/50">{t.noChange}</p>}</div>
       </section></div>
-    <footer className="mt-10 border-t border-ink/10 py-6"><AppSignature /></footer>
+        <SiteFooter />
   </div></main>;
 }

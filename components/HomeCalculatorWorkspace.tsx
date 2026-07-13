@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import AppSignature from "@/components/AppSignature";
+import SiteFooter from "@/components/SiteFooter";
 import ContinuePizzaSessionCard from "@/components/ContinuePizzaSessionCard";
 import EditableNumberInput from "@/components/EditableNumberInput";
 import ExperienceLevelSelector from "@/components/ExperienceLevelSelector";
@@ -2495,10 +2495,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           )}
         </section>
 
-        <footer className="mt-8 border-t border-ink/10 py-6">
-          <div className="flex flex-col gap-3 text-xs text-ink/45 sm:flex-row sm:items-center sm:justify-between"><p>{t.footer}</p><Link href="/guide" className="font-bold text-tomato sm:hidden">{t.guide} →</Link><p>{t.bakers}</p></div>
-          <div className="mt-4 border-t border-ink/5 pt-4"><AppSignature /></div>
-        </footer>
+        <SiteFooter />
         </>
         )}
       </div>
