@@ -1,9 +1,17 @@
+import {
+  publicPizzaSauceSources,
+  publicToppingBalanceSources,
+  type PublicResearchSource,
+} from "@/lib/public-research-sources";
+
 export type TrustPageId = "about" | "contact" | "privacy" | "terms" | "methodology";
 
 export type TrustPageSection = {
   heading: string;
+  id?: string;
   paragraphs?: string[];
   bullets?: string[];
+  sources?: PublicResearchSource[];
 };
 
 export type TrustPage = {
@@ -235,6 +243,24 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
           "The protected baseline case is: 6 pizzas, 260 g dough ball, 3% waste, 64% hydration, 2.8% salt, instant dry yeast, 24-hour cold fermentation and 4°C.",
           "Expected result: total dough 1606.8 g, flour 962.71 g, water 616.14 g, salt 26.96 g and yeast 0.99 g.",
         ],
+      },
+      {
+        heading: "Pizza sauce sources and methodology",
+        id: "pizza-sauce",
+        paragraphs: [
+          "Traditional Neapolitan sauce guidance is based on AVPN regulations and preparation guidance. Practical home-oven and recipe adaptations are clearly labelled as DoughTools recommendations or expert-informed adaptations.",
+          "Sauce quantities, salt ratios, garlic levels and reduction settings are educational starting points. Tomato brands, cheese moisture, oven heat and personal preference still matter.",
+        ],
+        sources: publicPizzaSauceSources,
+      },
+      {
+        heading: "Topping balance sources and methodology",
+        id: "topping-balance",
+        paragraphs: [
+          "The Topping Balance Lab uses DoughTools’ existing topping calculator as the product baseline, then adds visual guidance for topped area, sauce density, cheese density, mozzarella drainage and combined moisture load.",
+          "The visual guidance is practical and comparative. It is not a universal rule for every pizza style, oven or ingredient brand.",
+        ],
+        sources: publicToppingBalanceSources,
       },
     ],
   },

@@ -687,9 +687,12 @@ export default function ToppingBalanceLab() {
           <h2 id="source-title" className="font-display text-2xl font-semibold">Sources and methodology</h2>
           <p className="mt-3 text-sm leading-7 text-ink/62">
             The lab uses DoughTools’ existing topping calculator as the product baseline, then adds a visual teaching
-            layer for topped area, sauce density, cheese density, mozzarella drainage and combined moisture load. Source
-            notes are recorded in <code className="rounded bg-flour px-1 py-0.5">docs/research/topping-balance-sources.md</code>.
+            layer for topped area, sauce density, cheese density, mozzarella drainage and combined moisture load. The
+            public source notes explain the expert guidance and DoughTools interpretation behind this teaching layer.
           </p>
+          <Link href="/methodology#topping-balance" className="mt-4 inline-flex min-h-11 items-center rounded-full text-sm font-extrabold text-tomato underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato">
+            View topping sources and methodology
+          </Link>
         </section>
 
         <div className="mt-12">

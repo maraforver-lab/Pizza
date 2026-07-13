@@ -483,11 +483,13 @@ export default function SaucePage() {
         <section className="mt-12 rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft" aria-labelledby="sources-title">
           <h2 id="sources-title" className="font-display text-2xl font-semibold">Sources and methodology</h2>
           <p className="mt-3 text-sm leading-7 text-muted">
-            Traditional Neapolitan claims are based on AVPN regulations and preparation guidance. Practical adaptations
-            are labeled as DoughTools recommendations or expert-style adaptations. Food-safety timing uses USDA leftover
-            guidance. See <code className="rounded bg-flour px-1 py-0.5">docs/research/pizza-sauce-sources.md</code> for
-            concise source notes.
+            Traditional Neapolitan guidance on this page is based on AVPN regulations and preparation guidance. Practical
+            home-oven and recipe adaptations are clearly labelled as DoughTools recommendations or expert-informed
+            adaptations. Sauce amounts, salt ratios and storage guidance are educational starting points, not universal rules.
           </p>
+          <Link href="/methodology#pizza-sauce" className="mt-4 inline-flex min-h-11 items-center rounded-full text-sm font-extrabold text-tomato underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato">
+            View sources and methodology
+          </Link>
         </section>
 
         <footer className="mt-12 border-t border-ink/10 py-6">

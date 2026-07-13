@@ -159,5 +159,12 @@ describe("Topping Balance Lab page structure", () => {
     expect(component).toContain("Plan my next pizza");
     expect(component).toContain("Return to the Learning Center");
   });
+
+  it("links to public methodology without exposing internal research paths", () => {
+    expect(component).toContain("Sources and methodology");
+    expect(component).toContain('href="/methodology#topping-balance"');
+    expect(component).toContain("View topping sources and methodology");
+    expect(component).not.toContain("docs/research/topping-balance-sources.md");
+  });
 });
 

@@ -192,11 +192,14 @@ describe("pizza sauce learning lab page", () => {
     const page = source("app/sauce/page.tsx");
 
     expect(page).toContain("Sources and methodology");
+    expect(page).toContain('href="/methodology#pizza-sauce"');
+    expect(page).toContain("View sources and methodology");
     expect(page).toContain("USDA leftover guidance uses 3–4 days refrigerated or 3–4 months frozen");
     expect(page).toContain('["Pizza Learning Center", "/guide"');
     expect(page).toContain('["Pizza Dough Guide", "/guides/dough"');
     expect(page).toContain('["Pizza Troubleshooting Guide", "/guide/pizza-troubleshooting"');
     expect(page).toContain('href="/session/start"');
+    expect(page).not.toContain("docs/research/pizza-sauce-sources.md");
     expect(page).not.toContain("createAndSavePizzaSession");
     expect(page).not.toContain("setActivePizzaSession");
     expect(page).not.toContain("shoppingList");
