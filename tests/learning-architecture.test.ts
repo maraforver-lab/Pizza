@@ -49,6 +49,9 @@ describe("learning architecture", () => {
     expect(homepage).toContain('href: "/calculator/quick"');
     expect(homepage).toContain('href: "/account/party-orders"');
     expect(homepage).toContain('title: "Company"');
+    expect(homepage).toContain('aria-label="DoughTools footer"');
+    expect(homepage).toContain("Made for better pizza nights.");
+    expect(homepage).toContain("lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.85fr)_minmax(0,.85fr)_minmax(0,.65fr)]");
   });
 
   it("adds breadcrumbs or related learning to educational pages without creating new routes", () => {

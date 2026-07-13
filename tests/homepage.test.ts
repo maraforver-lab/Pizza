@@ -317,6 +317,60 @@ describe("homepage content model", () => {
     expect(content).toContain("See how it works");
   });
 
+  it("uses the final responsive homepage footer as the last visible page section", () => {
+    const homepage = source("app/page.tsx");
+    const footerStart = homepage.indexOf('data-homepage-footer');
+    const footerEnd = homepage.lastIndexOf("</footer>");
+    const finalCtaStart = homepage.indexOf('id="homepage-final-cta-heading"');
+
+    expect(footerStart).toBeGreaterThan(0);
+    expect(finalCtaStart).toBeGreaterThan(0);
+    expect(footerStart).toBeGreaterThan(finalCtaStart);
+    expect(footerEnd).toBeGreaterThan(footerStart);
+    const afterFooter = homepage.slice(footerEnd + "</footer>".length);
+    expect(afterFooter).not.toContain("<section");
+    expect(afterFooter).not.toContain("<footer");
+    expect(afterFooter).not.toContain("Plan my next pizza");
+    expect(homepage).toContain('aria-label="DoughTools footer"');
+    expect(homepage).toContain('id="homepage-footer-brand"');
+    expect(homepage).toContain("Made for better pizza nights.");
+    expect(homepage).toContain("Learn the craft, plan the evening, and keep the next useful page within reach.");
+    expect(homepage).toContain("lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.85fr)_minmax(0,.85fr)_minmax(0,.65fr)]");
+    expect(homepage).toContain("min-[390px]:grid-cols-2 md:grid-cols-1");
+    expect(homepage).toContain("min-h-9");
+    expect(homepage).not.toContain("<AppSignature");
+  });
+
+  it("keeps the homepage footer concise with approved link groups and routes", () => {
+    const homepage = source("app/page.tsx");
+
+    for (const expected of [
+      'title: "Learn"',
+      'title: "Product"',
+      'title: "Company"',
+      'label: "Learning Center", href: "/guide"',
+      'label: "Pizza Sauce", href: "/sauce"',
+      'label: "Dough Guide", href: "/guides/dough"',
+      'label: "Troubleshooting", href: "/guide/pizza-troubleshooting"',
+      'label: "Pizza Styles", href: "/styles"',
+      'label: "Ovens", href: "/ovens"',
+      'label: "Plan my next pizza", href: "/session/start"',
+      'label: "Quick Dough Calculator", href: "/calculator/quick"',
+      'label: "Party Orders", href: "/account/party-orders"',
+      'label: "Costs", href: "/costs"',
+      'label: "About", href: "/about"',
+      'label: "Updates", href: "/updates"',
+      'label: "Privacy", href: "/privacy"',
+      'label: "Terms", href: "/terms"',
+    ]) {
+      expect(homepage).toContain(expected);
+    }
+
+    expect(homepage).not.toContain("newsletter");
+    expect(homepage).not.toContain("social");
+    expect(homepage).not.toContain("copyright");
+  });
+
   it("keeps the compact Tools menu focused on the standalone Quick Dough Calculator route", () => {
     const header = source("components/GlobalToolNavigation.tsx");
     const homepage = source("app/page.tsx");
