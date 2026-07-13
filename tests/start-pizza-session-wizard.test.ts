@@ -422,7 +422,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("void saveCloudActivePizzaSession(session).catch");
     expect(page).toContain("status: \"planning\"");
     expect(page).toContain("currentStep");
-    expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
+    expect(page).not.toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
   });
 
   it("uses session experience level as the source of truth after local or cloud restore", () => {
@@ -796,8 +796,19 @@ describe("Start Pizza Session wizard", () => {
     expect(headerLogoIndex).toBeGreaterThan(-1);
     expect(sidebarIndex).toBeGreaterThan(-1);
     expect(page.indexOf('aria-label="DoughTools home"', sidebarIndex)).toBe(-1);
-    expect(page).toContain('<h1 className="font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>');
+    expect(page).toContain("Set up your pizza session.</h1>");
     expect(page).not.toContain('<p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>');
+  });
+
+  it("removes the Session Start sidebar local-save note and adds laptop-height density classes", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).not.toContain("You can change anything later. No worries!");
+    expect(page).not.toContain("No cloud sync.</span>");
+    expect(page).toContain("[@media_(min-width:1024px)_and_(max-height:860px)]");
+    expect(page).toContain("[@media_(min-width:1024px)_and_(max-height:860px)]:lg:grid-cols-[14rem_minmax(0,1fr)]");
+    expect(page).toContain("[@media_(min-width:1024px)_and_(max-height:860px)]:min-h-12");
+    expect(page).toContain("[@media_(min-width:1024px)_and_(max-height:860px)]:p-5");
   });
 
   it("is honest about local-first behavior and avoids unavailable claims", () => {
@@ -807,7 +818,7 @@ describe("Start Pizza Session wizard", () => {
     const combined = [page, doc, dataDoc].join("\n");
 
     expect(combined).toMatch(/Pizza [Ss]essions are currently saved in this browser on this device/);
-    expect(combined).toMatch(/No cloud sync|Cloud sync is not active yet/);
+    expect(combined).toMatch(/cloud sync|Cloud sync is not active yet/);
     expect(doc).toContain("/session/start");
     expect(doc).toContain("doughtools:pizza-sessions-v1");
     expect(doc).toContain("doughtools:active-pizza-session-id");

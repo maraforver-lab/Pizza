@@ -36,7 +36,6 @@ import {
   clearActivePizzaSession,
   createAndSavePizzaSession,
   getActivePizzaSession,
-  PIZZA_SESSION_LOCAL_ONLY_COPY,
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
@@ -747,7 +746,7 @@ function StartPizzaSessionContent() {
   ] satisfies Array<{ label: string; value: string; icon: DoughToolsIconName }>;
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-4 pb-16 text-ink sm:px-6 sm:py-6">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-4 pb-16 text-ink sm:px-6 sm:py-6 [@media_(min-width:1024px)_and_(max-height:860px)]:py-3 [@media_(min-width:1024px)_and_(max-height:860px)]:pb-8">
       <SessionViewportReset watchKey={step} />
       <header className="mx-auto mb-4 flex max-w-6xl items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-3 text-sm font-extrabold" aria-label="DoughTools home">
@@ -761,11 +760,11 @@ function StartPizzaSessionContent() {
         </Link>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[16rem_1fr]">
-        <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
-          <h1 className="font-display text-3xl font-semibold leading-none">Set up your pizza session.</h1>
-          <p className="mt-3 text-sm leading-5 text-ink/55">First choose the basics. Dough Plan, pizza choices, Shopping, Timeline, Kitchen Mode and Review come next.</p>
-          <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
+      <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[16rem_1fr] [@media_(min-width:1024px)_and_(max-height:860px)]:max-w-7xl [@media_(min-width:1024px)_and_(max-height:860px)]:gap-3 [@media_(min-width:1024px)_and_(max-height:860px)]:lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start [@media_(min-width:1024px)_and_(max-height:860px)]:top-3 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-[1.35rem] [@media_(min-width:1024px)_and_(max-height:860px)]:p-3">
+          <h1 className="font-display text-3xl font-semibold leading-none [@media_(min-width:1024px)_and_(max-height:860px)]:text-2xl">Set up your pizza session.</h1>
+          <p className="mt-3 text-sm leading-5 text-ink/55 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-2 [@media_(min-width:1024px)_and_(max-height:860px)]:text-xs [@media_(min-width:1024px)_and_(max-height:860px)]:leading-4">First choose the basics. Dough Plan, pizza choices, Shopping, Timeline, Kitchen Mode and Review come next.</p>
+          <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-3 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-xl [@media_(min-width:1024px)_and_(max-height:860px)]:p-2.5">
             <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
               <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>
               <span>{journeyPercent}%</span>
@@ -773,25 +772,25 @@ function StartPizzaSessionContent() {
             <div className="mt-3 h-2 rounded-full bg-ink/10">
               <div className="h-full rounded-full bg-leaf transition-all" style={{ width: `${journeyPercent}%` }} />
             </div>
-            <p className="mt-2 text-[11px] font-bold text-ink/45">Setup is steps 1–5 of the full pizza journey.</p>
+            <p className="mt-2 text-[11px] font-bold text-ink/45 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-1.5 [@media_(min-width:1024px)_and_(max-height:860px)]:text-[10px]">Setup is steps 1–5 of the full pizza journey.</p>
           </div>
-          <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session journey">
+          <ol className="mt-5 grid gap-1.5 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-3 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-1" aria-label="Pizza Session journey">
             {journeySteps.map((item, index) => {
               const state = journeyStepState(index, journeyProgress);
               const canNavigate = state === "complete";
               const content = (
                 <>
                   <span className="sr-only">{state === "current" ? "Current journey step: " : state === "complete" ? "Completed journey step: " : "Upcoming journey step: "}</span>
-                  <span className={`grid h-6 w-6 place-items-center rounded-full ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
+                  <span className={`grid h-6 w-6 place-items-center rounded-full [@media_(min-width:1024px)_and_(max-height:860px)]:h-5 [@media_(min-width:1024px)_and_(max-height:860px)]:w-5 [@media_(min-width:1024px)_and_(max-height:860px)]:text-[0.7rem] ${state === "current" ? "bg-white text-ink" : state === "complete" ? "bg-leaf text-white" : "bg-ink/10 text-ink/45"}`}>
                     {state === "complete" ? <DoughToolsIcon name="check" size={16} strokeWidth={2.4} /> : index + 1}
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate">{item.label}</span>
+                    <span className="block truncate [@media_(min-width:1024px)_and_(max-height:860px)]:leading-4">{item.label}</span>
                     <span className={`block text-[10px] ${state === "current" ? "text-white/55" : "text-ink/35"}`}>{item.phase}</span>
                   </span>
                 </>
               );
-              const className = `flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`;
+              const className = `flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold [@media_(min-width:1024px)_and_(max-height:860px)]:gap-1.5 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-lg [@media_(min-width:1024px)_and_(max-height:860px)]:px-2 [@media_(min-width:1024px)_and_(max-height:860px)]:py-1 ${state === "current" ? "bg-ink text-white" : state === "complete" ? "bg-leaf/10 text-leaf" : "bg-ink/[.04] text-ink/45"}`;
               return (
                 <li key={item.label}>
                   {canNavigate ? (
@@ -813,15 +812,10 @@ function StartPizzaSessionContent() {
               );
             })}
           </ol>
-          <div className="mt-5 rounded-2xl bg-cream/70 p-3 text-xs leading-5 text-ink/50">
-            <strong className="block text-sm text-ink">You can change anything later. No worries!</strong>
-            <span className="mt-2 block">{PIZZA_SESSION_LOCAL_ONLY_COPY}</span>
-            <span className="mt-1 block">No cloud sync.</span>
-          </div>
         </aside>
 
         <section
-          className="min-w-0 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem]"
+          className="min-w-0 rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6 lg:rounded-[2rem] [@media_(min-width:1024px)_and_(max-height:860px)]:p-5 [@media_(min-width:1024px)_and_(max-height:860px)]:lg:rounded-[1.5rem]"
           style={levelMainAccent}
           aria-live="polite"
         >
@@ -841,15 +835,15 @@ function StartPizzaSessionContent() {
             <p className="mt-1.5 text-[11px] font-bold normal-case tracking-normal text-ink/40">{setupPercent}% setup complete. Dough Plan next.</p>
           </div>
 
-          <div className="mb-4 flex flex-col gap-3 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="mb-4 flex flex-col gap-3 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between [@media_(min-width:1024px)_and_(max-height:860px)]:mb-3 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-2">
             <div className="min-w-0">
-              <h2 className="font-display text-3xl font-semibold leading-none sm:text-4xl">
+              <h2 className="font-display text-3xl font-semibold leading-none sm:text-4xl [@media_(min-width:1024px)_and_(max-height:860px)]:text-3xl">
                 {wizardStepQuestions[step]}
               </h2>
-              <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-3 sm:text-sm">{wizardStepHelpers[step]}</p>
+              <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-3 sm:text-sm [@media_(min-width:1024px)_and_(max-height:860px)]:mt-2 [@media_(min-width:1024px)_and_(max-height:860px)]:leading-5">{wizardStepHelpers[step]}</p>
             </div>
             {step === "time" && targetTimeDraft && (
-              <div className="w-full rounded-2xl border border-leaf/15 bg-leaf/[.07] px-4 py-3 text-left shadow-sm sm:w-auto sm:min-w-48 sm:text-right" aria-live="polite">
+              <div className="w-full rounded-2xl border border-leaf/15 bg-leaf/[.07] px-4 py-3 text-left shadow-sm sm:w-auto sm:min-w-48 sm:text-right [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-xl [@media_(min-width:1024px)_and_(max-height:860px)]:py-2" aria-live="polite">
                 <p className="text-[0.65rem] font-black uppercase tracking-[.16em] text-leaf/75">Target pizza time</p>
                 <p className="mt-1 text-sm font-extrabold leading-5 text-ink">{formatTargetDate(targetTimeDraft)}</p>
                 <p className="font-display text-2xl font-semibold leading-none text-leaf">{formatTargetClockTime(targetTimeDraft)}</p>
@@ -891,21 +885,21 @@ function StartPizzaSessionContent() {
           )}
 
           {step === "time" && (
-            <div className="grid gap-4">
-              <p className="max-w-2xl text-xs leading-5 text-ink/60 sm:text-sm">
+            <div className="grid gap-4 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-3">
+              <p className="max-w-2xl text-xs leading-5 text-ink/60 sm:text-sm [@media_(min-width:1024px)_and_(max-height:860px)]:text-xs">
                 Choose a target pizza time. DoughTools will build your dough, preparation and bake timeline backwards from this.
               </p>
 
               <section aria-labelledby="session-day-choice-heading">
                 <h3 id="session-day-choice-heading" className="text-sm font-extrabold text-ink">Pick a day</h3>
-                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-1.5">
                   {dayChoices.map((choice) => (
                     <button
                       key={choice.id}
                       type="button"
                       onClick={() => selectDayChoice(choice.id)}
                       aria-pressed={selectedDayChoice === choice.id}
-                      className={`min-h-14 rounded-2xl border p-2 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-16 sm:p-2.5 ${
+                      className={`min-h-14 rounded-2xl border p-2 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-16 sm:p-2.5 [@media_(min-width:1024px)_and_(max-height:860px)]:min-h-12 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-xl [@media_(min-width:1024px)_and_(max-height:860px)]:p-2 ${
                         selectedDayChoice === choice.id ? "border-tomato bg-tomato text-white shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
                       }`}
                     >
@@ -919,7 +913,7 @@ function StartPizzaSessionContent() {
               {selectedDayChoice && (
                 <section aria-labelledby="session-time-choice-heading">
                   <h3 id="session-time-choice-heading" className="text-sm font-extrabold text-ink">What time?</h3>
-                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-1.5">
                     {pizzaSessionTimeQuickChoices.map((choice) => (
                       <button
                         key={choice.id}
@@ -927,7 +921,7 @@ function StartPizzaSessionContent() {
                         onClick={() => selectTimeChoice(choice.id)}
                         aria-pressed={selectedTimeChoice === choice.id}
                         aria-label={choice.time ? `${choice.label} — ${choice.time}` : choice.label}
-                      className={`min-h-14 rounded-2xl border p-2 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-16 sm:p-2.5 ${
+                      className={`min-h-14 rounded-2xl border p-2 text-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-16 sm:p-2.5 [@media_(min-width:1024px)_and_(max-height:860px)]:min-h-12 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-xl [@media_(min-width:1024px)_and_(max-height:860px)]:p-2 ${
                           selectedTimeChoice === choice.id ? "border-tomato bg-tomato text-white shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
                         }`}
                       >
@@ -956,21 +950,21 @@ function StartPizzaSessionContent() {
                 </label>
               )}
 
-              <section aria-labelledby="dough-start-availability-heading" className="rounded-[1.25rem] border border-ink/10 bg-white/80 p-3.5 shadow-sm sm:p-4">
+              <section aria-labelledby="dough-start-availability-heading" className="rounded-[1.25rem] border border-ink/10 bg-white/80 p-3.5 shadow-sm sm:p-4 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-xl [@media_(min-width:1024px)_and_(max-height:860px)]:p-3">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <h3 id="dough-start-availability-heading" className="text-sm font-extrabold text-ink">When can you start the dough?</h3>
                     <p className="mt-1 text-xs leading-5 text-ink/55">This helps DoughTools calculate the real fermentation window later.</p>
                   </div>
                 </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <div className="mt-3 grid gap-2 sm:grid-cols-3 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-2 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-1.5">
                   {doughStartOptions.map((option) => (
                     <button
                       key={option.id}
                       type="button"
                       onClick={() => setDoughStartMode(option.id)}
                       aria-pressed={activeDoughStartMode === option.id}
-                      className={`min-h-16 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                      className={`min-h-16 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream [@media_(min-width:1024px)_and_(max-height:860px)]:min-h-14 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-xl [@media_(min-width:1024px)_and_(max-height:860px)]:p-2.5 ${
                         activeDoughStartMode === option.id ? "border-tomato bg-tomato/[.06] shadow-sm" : "border-ink/10 bg-white hover:border-tomato/30"
                       }`}
                     >
