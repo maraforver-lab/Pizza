@@ -31,6 +31,7 @@ import {
 } from "@/lib/timeline-early-start-warning";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
+import { applyPizzaSessionStepRuntime } from "@/lib/pizza-session-step-runtime";
 import { MemoryStorage } from "./helpers";
 
 function source(path: string) {
@@ -85,6 +86,41 @@ describe("Pizza Session timeline", () => {
     expect(formatSessionPlannedTime(undefined, now)).toBe("Timing not set");
   });
 
+  it("preserves step runtime timestamps separately from the planned timeline schedule", () => {
+    const session = createPizzaSession({
+      id: "runtime-session",
+      status: "preparing",
+      currentStep: "prep",
+      timeline: {
+        generatedAt: "2026-07-10T05:00:00.000Z",
+        targetEatTime: "2026-07-11T12:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-10T05:30:00.000Z", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T06:00:00.000Z", status: "todo", kind: "passive" },
+          { id: "cold-ferment", label: "Cold fermentation", scheduledAt: "2026-07-10T06:20:00.000Z", status: "todo", kind: "passive" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-10T05:43:00.000Z",
+          actualCompletedAt: "2026-07-10T05:53:00.000Z",
+        },
+      },
+    });
+
+    expect(session.stepRuntime?.["mix-dough"]?.actualStartedAt).toBe("2026-07-10T05:43:00.000Z");
+    expect(session.timeline?.steps.find((step) => step.id === "rest-dough")?.scheduledAt).toBe("2026-07-10T06:00:00.000Z");
+
+    const runtimeSteps = applyPizzaSessionStepRuntime(session.timeline!.steps, session.stepRuntime);
+    const restStep = runtimeSteps.find((step) => step.id === "rest-dough");
+
+    expect(restStep?.plannedScheduledAt).toBe("2026-07-10T06:00:00.000Z");
+    expect(restStep?.runtimeStartsAt).toBe("2026-07-10T05:53:00.000Z");
+    expect(restStep?.runtimeEndsAt).toBe("2026-07-10T06:13:00.000Z");
+    expect(restStep?.scheduledAt).toBe("2026-07-10T06:13:00.000Z");
+    expect(session.timeline?.steps.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe("2026-07-10T06:20:00.000Z");
+  });
+
   it("adds the /session/timeline route and timeline helper", () => {
     expect(existsSync(join(process.cwd(), "app", "session", "timeline", "page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "lib", "pizza-session-timeline.ts"))).toBe(true);
@@ -116,7 +152,8 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Timing highlights");
     expect(page).toContain("Full timeline");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
-    expect(page).toContain("Start dough →");
+    expect(page).toContain("Start mixing now →");
+    expect(page).toContain("Start balling now →");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("onClick={handleNextAction}");
@@ -978,9 +1015,9 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("const nextStepSummary = followingActionStep");
     expect(page).toContain("formatSessionPlannedTime(currentActionTime, currentTime)");
     expect(page).toContain("formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)");
-    expect(page).not.toContain("Scheduled");
+    expect(page).not.toContain(">Scheduled<");
     expect(page).toContain("Step ${currentActionIndex + 1} of ${actionableSteps.length}");
-    expect(page).toContain("cta: \"Start dough →\"");
+    expect(page).toContain("timelineStartActionLabel(nextStep)");
     expect(page).toContain("cta: \"Continue baking →\"");
     expect(page).toContain("cta: \"Review your pizza →\"");
     expect(page).toContain("onClick={handleNextAction}");
@@ -1133,6 +1170,7 @@ describe("Pizza Session timeline", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("href=\"/session/shopping\"");
+    expect(page).toContain("startCurrentRuntimeStepAndGoToKitchen");
     expect(page).toContain("router.push(nextAction.href)");
     expect(page).toContain("{nextAction.cta}");
     expect(page).toContain("BottomActionBar");
@@ -1154,7 +1192,8 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Starting now may affect the fermentation schedule and final dough quality.");
     expect(page).toContain("Start anyway");
     expect(page).toContain("Go back");
-    expect(page).toContain("router.push(\"/session/kitchen?from=timeline\")");
+    expect(page).toContain("startCurrentRuntimeStepAndGoToKitchen()");
+    expect(page).toContain("startPizzaSessionTimelineStep(session, currentActionStep.id)");
     expect(page).toContain("aria-modal=\"true\"");
   });
 

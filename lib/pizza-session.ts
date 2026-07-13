@@ -84,6 +84,13 @@ export type PizzaSessionTimeline = {
   steps: PizzaSessionTimelineStep[];
 };
 
+export type PizzaSessionStepRuntime = {
+  actualStartedAt?: string;
+  actualCompletedAt?: string;
+};
+
+export type PizzaSessionStepRuntimeMap = Record<string, PizzaSessionStepRuntime>;
+
 export type PizzaSessionShoppingGroup = "Dough" | "Sauce" | "Cheese" | "Toppings" | "Gear";
 
 export type PizzaSessionShoppingItem = {
@@ -150,6 +157,7 @@ export type PizzaSession = {
   recipeParams?: PizzaSessionRecipeParams;
   recipeSnapshot?: PizzaSessionRecipeSnapshot;
   timeline?: PizzaSessionTimeline;
+  stepRuntime?: PizzaSessionStepRuntimeMap;
   shoppingList?: PizzaSessionShoppingList;
   notes?: string;
   rating?: number;
@@ -326,6 +334,18 @@ function cloneTimeline(timeline?: PizzaSessionTimeline): PizzaSessionTimeline | 
   } : undefined;
 }
 
+function cloneStepRuntime(runtime?: PizzaSessionStepRuntimeMap): PizzaSessionStepRuntimeMap | undefined {
+  if (!isRecord(runtime)) return undefined;
+  const entries = Object.entries(runtime).flatMap(([stepId, raw]) => {
+    if (!stepId || !isRecord(raw)) return [];
+    const actualStartedAt = stringValue(raw.actualStartedAt);
+    const actualCompletedAt = stringValue(raw.actualCompletedAt);
+    if (!actualStartedAt && !actualCompletedAt) return [];
+    return [[stepId, { actualStartedAt, actualCompletedAt }] as const];
+  });
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 function cloneShoppingList(list?: PizzaSessionShoppingList): PizzaSessionShoppingList | undefined {
   if (!list || !Array.isArray(list.groups)) return undefined;
   const groups = list.groups.flatMap((group) => {
@@ -406,6 +426,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     recipeParams: cloneRecipeParams(input.recipeParams),
     recipeSnapshot: cloneRecipeSnapshot(input.recipeSnapshot),
     timeline: cloneTimeline(input.timeline),
+    stepRuntime: cloneStepRuntime(input.stepRuntime),
     shoppingList: cloneShoppingList(input.shoppingList),
     notes: stringValue(input.notes),
     rating: numberValue(input.rating),

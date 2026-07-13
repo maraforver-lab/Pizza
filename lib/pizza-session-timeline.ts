@@ -4,6 +4,7 @@ import { getPizzaSessionBakeProfileForSession } from "@/lib/pizza-session-bake-p
 import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { getActivePizzaSession, updatePizzaSession } from "@/lib/pizza-session-storage";
 import { buildSessionRecipe } from "@/lib/session-recipe";
+import { runtimeMapWithStepCompletion } from "@/lib/pizza-session-step-runtime";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export type PizzaSessionTimelineResult = {
@@ -457,6 +458,7 @@ export function markPizzaSessionTimelineStepDone(
     session.id,
     {
       timeline: { ...timeline, steps },
+      stepRuntime: runtimeMapWithStepCompletion(session, stepId, now),
       currentStep: "timeline",
     },
     storage,

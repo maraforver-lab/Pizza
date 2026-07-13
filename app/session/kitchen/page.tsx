@@ -18,6 +18,13 @@ import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-troubleshooting-links";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
+  formatRuntimeClockTime,
+  hasStepActuallyStarted,
+  isRuntimeDoughWorkStep,
+  startPizzaSessionTimelineStep,
+  type RuntimePizzaSessionTimelineStep,
+} from "@/lib/pizza-session-step-runtime";
+import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
   getKitchenExperienceGuidance,
@@ -98,6 +105,18 @@ function isOvenTroubleshootingStep(step?: { id: string }) {
   return step?.id === "preheat-oven" || step?.id === "bake-pizza";
 }
 
+function kitchenStartActionLabel(step?: { id: string }) {
+  if (step?.id === "mix-dough") return "Start mixing now";
+  if (step?.id === "ball-dough") return "Start balling now";
+  return "Start this step";
+}
+
+function kitchenCompleteActionLabel(step?: { id: string }) {
+  if (step?.id === "mix-dough") return "Mark mixing complete →";
+  if (step?.id === "ball-dough") return "Mark balling complete →";
+  return "Mark step as done →";
+}
+
 const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink("Something looks wrong? Open baking troubleshooting");
 
 export default function SessionKitchenPage() {
@@ -159,6 +178,7 @@ export default function SessionKitchenPage() {
   if (!kitchenState.ok) return null;
 
   const currentStep = kitchenState.currentStep;
+  const currentRuntimeStep = currentStep as RuntimePizzaSessionTimelineStep | undefined;
   const kitchenMode = getKitchenModeForStep(currentStep);
   const taskPresentation = getKitchenTaskPresentation(currentStep, session);
   const nextTaskPresentation = getKitchenTaskPresentation(kitchenState.nextStep, session);
@@ -168,6 +188,8 @@ export default function SessionKitchenPage() {
   const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, currentTime ?? new Date());
   const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date());
   const currentStepIsWaiting = currentStep?.kind === "passive";
+  const currentStepIsRuntimeWork = isRuntimeDoughWorkStep(currentStep);
+  const currentStepHasStarted = hasStepActuallyStarted(session, currentStep?.id);
   const doughGuideLink = getDoughGuideLinkForSessionStep(currentStep, "/session/kitchen");
   const ovenTroubleshootingLink = isOvenTroubleshootingStep(currentStep) ? bakingTroubleshootingLink : null;
   const doughGuideHref = doughGuideLink ? buildContextualReturnHref(doughGuideLink.href) : null;
@@ -192,8 +214,21 @@ export default function SessionKitchenPage() {
     setSession(updated);
   };
 
+  const startCurrentStep = () => {
+    if (!session || !currentStep || !currentStepIsRuntimeWork) return;
+    const now = new Date();
+    const updated = startPizzaSessionTimelineStep(session, currentStep.id, undefined, now);
+    if (!updated) return;
+    setCurrentTime(now);
+    setSession(updated);
+  };
+
   const markDone = () => {
     if (!currentStep) return;
+    if (currentStepIsRuntimeWork && !currentStepHasStarted) {
+      startCurrentStep();
+      return;
+    }
     if (shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())) {
       setCurrentTime(new Date());
       setConfirmEarlyCompletion(true);
@@ -244,10 +279,24 @@ export default function SessionKitchenPage() {
                   </div>
 
                   <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-cream/70 p-4 shadow-sm sm:p-5" aria-labelledby="kitchen-current-timing-heading">
-                    <p id="kitchen-current-timing-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned for</p>
+                    <p id="kitchen-current-timing-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">
+                      {currentRuntimeStep?.runtimeEndsAt ? "Running until" : "Planned for"}
+                    </p>
                     <p className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
                       {formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())}
                     </p>
+                    {currentRuntimeStep?.runtimeStartsAt && (
+                      <p className="mt-2 text-xs font-bold leading-5 text-ink/50">
+                        Planned for {formatRuntimeClockTime(currentRuntimeStep.plannedScheduledAt)}
+                        {" · "}
+                        Actually started at {formatRuntimeClockTime(currentRuntimeStep.runtimeStartsAt)}
+                      </p>
+                    )}
+                    {currentStepIsRuntimeWork && currentStepHasStarted && (
+                      <p className="mt-2 text-xs font-bold leading-5 text-ink/50">
+                        Started at {formatRuntimeClockTime(session.stepRuntime?.[currentStep.id]?.actualStartedAt)}
+                      </p>
+                    )}
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
                         currentLiveTiming.kind === "overdue"
@@ -417,7 +466,9 @@ export default function SessionKitchenPage() {
                       onClick={markDone}
                       className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
                     >
-                      Mark step as done →
+                      {currentStepIsRuntimeWork && !currentStepHasStarted
+                        ? kitchenStartActionLabel(currentStep)
+                        : kitchenCompleteActionLabel(currentStep)}
                     </button>
                   )}
                 />

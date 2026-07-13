@@ -22,6 +22,14 @@ import {
   getTimelineNote,
 } from "@/lib/pizza-session-timeline";
 import {
+  applyPizzaSessionStepRuntime,
+  formatRuntimeClockTime,
+  hasStepActuallyStarted,
+  isRuntimeDoughWorkStep,
+  startPizzaSessionTimelineStep,
+  type RuntimePizzaSessionTimelineStep,
+} from "@/lib/pizza-session-step-runtime";
+import {
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
@@ -235,17 +243,27 @@ function shoppingCheckpointState(session: PizzaSession | null): ShoppingCheckpoi
   return "Check";
 }
 
+function timelineStartActionLabel(step?: PizzaSessionTimelineStep) {
+  if (step?.id === "mix-dough") return "Start mixing now →";
+  if (step?.id === "ball-dough") return "Start balling now →";
+  return "Start dough step →";
+}
+
 function nextActionForTimeline({
   nextStep,
   allStepsComplete,
+  session,
 }: {
   nextStep?: PizzaSessionTimelineStep;
   allStepsComplete: boolean;
+  session?: PizzaSession | null;
 }) {
   if (nextStep && isDoughTimelineStep(nextStep)) {
+    const isWorkStep = isRuntimeDoughWorkStep(nextStep);
+    const hasStarted = hasStepActuallyStarted(session ?? undefined, nextStep.id);
     return {
       href: "/session/kitchen?from=timeline",
-      cta: "Start dough →",
+      cta: isWorkStep && !hasStarted ? timelineStartActionLabel(nextStep) : "Continue in Kitchen Mode →",
       title: nextStep.label,
       subtext: "This is your next dough preparation step.",
       kind: "dough",
@@ -411,7 +429,7 @@ export default function SessionTimelinePage() {
 
   const planningInfo = sessionRecipeResult.ok ? sessionRecipeResult.planningInfo : null;
   const planningResult = planningInfo?.ok ? planningInfo.result : null;
-  const displayTimelineSteps = timelineStepsForPlanningSummaryDisplay({
+  const plannedDisplayTimelineSteps = timelineStepsForPlanningSummaryDisplay({
     steps: timeline.steps,
     planningResult,
     session,
@@ -420,6 +438,7 @@ export default function SessionTimelinePage() {
       : undefined,
     anchorTime: timeline.anchorTime,
   });
+  const displayTimelineSteps = applyPizzaSessionStepRuntime(plannedDisplayTimelineSteps, session.stepRuntime);
   const actionableSteps = actionableTimelineSteps(displayTimelineSteps);
   const currentActionStep = actionableSteps.find((step) => step.status === "todo");
   const currentActionIndex = currentActionStep
@@ -434,7 +453,7 @@ export default function SessionTimelinePage() {
   const shoppingCheckpointInsertIndex = firstServiceStepIndex >= 0
     ? firstServiceStepIndex
     : displayTimelineSteps.length;
-  const nextAction = nextActionForTimeline({ nextStep: currentActionStep, allStepsComplete });
+  const nextAction = nextActionForTimeline({ nextStep: currentActionStep, allStepsComplete, session });
   const currentDoughGuideLink = getDoughGuideLinkForSessionStep(currentActionStep, "/session/timeline");
   const currentActionTime = currentActionStep?.scheduledAt ?? targetTime;
   const nextLiveTiming = formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime);
@@ -455,6 +474,14 @@ export default function SessionTimelinePage() {
     : buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot });
   const fermentationPlanPlace = fermentationDisplay.placeTemperatureLabel
     ?? fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode);
+  const startCurrentRuntimeStepAndGoToKitchen = () => {
+    if (currentActionStep && isRuntimeDoughWorkStep(currentActionStep) && !hasStepActuallyStarted(session, currentActionStep.id)) {
+      const updated = startPizzaSessionTimelineStep(session, currentActionStep.id);
+      if (updated) setSession(updated);
+    }
+    router.push(nextAction.href);
+  };
+
   const handleNextAction = () => {
     if (
       nextAction.kind === "dough" &&
@@ -464,11 +491,11 @@ export default function SessionTimelinePage() {
       return;
     }
 
-    router.push(nextAction.href);
+    startCurrentRuntimeStepAndGoToKitchen();
   };
   const continueToKitchenAnyway = () => {
     setEarlyStartStep(null);
-    router.push("/session/kitchen?from=timeline");
+    startCurrentRuntimeStepAndGoToKitchen();
   };
   const nextStepSummary = followingActionStep
     ? `${followingActionStep.label} · ${formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)}`
@@ -491,10 +518,24 @@ export default function SessionTimelinePage() {
           </div>
         </div>
         <div className="mt-4">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Planned for</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">
+            {(currentActionStep as RuntimePizzaSessionTimelineStep | undefined)?.runtimeEndsAt ? "Running until" : "Planned for"}
+          </p>
           <p className="mt-1 font-display text-3xl font-semibold leading-none text-ink sm:text-4xl">
             {formatSessionPlannedTime(currentActionTime, currentTime)}
           </p>
+          {(currentActionStep as RuntimePizzaSessionTimelineStep | undefined)?.runtimeStartsAt && (
+            <p className="mt-2 text-xs font-bold leading-5 text-ink/50">
+              Planned for {formatRuntimeClockTime((currentActionStep as RuntimePizzaSessionTimelineStep).plannedScheduledAt)}
+              {" · "}
+              Actually started at {formatRuntimeClockTime((currentActionStep as RuntimePizzaSessionTimelineStep).runtimeStartsAt)}
+            </p>
+          )}
+          {currentActionStep && isRuntimeDoughWorkStep(currentActionStep) && hasStepActuallyStarted(session, currentActionStep.id) && (
+            <p className="mt-2 text-xs font-bold leading-5 text-ink/50">
+              Started at {formatRuntimeClockTime(session.stepRuntime?.[currentActionStep.id]?.actualStartedAt)}
+            </p>
+          )}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className={statusPillClass({ className: "px-3 py-2", variant:
@@ -663,6 +704,13 @@ export default function SessionTimelinePage() {
                         </p>
                         <h3 className="mt-1.5 font-display text-2xl font-semibold">{step.label}</h3>
                         <p className="mt-1 text-xs leading-5 text-ink/60 sm:mt-2 sm:text-sm sm:leading-6">{step.description}</p>
+                        {(step as RuntimePizzaSessionTimelineStep).runtimeStartsAt && (
+                          <p className="mt-2 text-xs font-extrabold leading-5 text-leaf">
+                            Running from {formatRuntimeClockTime((step as RuntimePizzaSessionTimelineStep).runtimeStartsAt)}
+                            {" until "}
+                            {formatRuntimeClockTime((step as RuntimePizzaSessionTimelineStep).runtimeEndsAt)}
+                          </p>
+                        )}
                         <p className="mt-3 hidden text-sm leading-6 text-ink/65 sm:block">{getTimelineNote(step, session.experienceLevel)}</p>
                       </div>
                       {step.quietHoursWarning && (

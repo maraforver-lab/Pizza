@@ -244,6 +244,8 @@ describe("Pizza Session Kitchen Mode", () => {
     );
 
     expect(updated?.timeline?.steps[0].status).toBe("done");
+    expect(updated?.stepRuntime?.["mix-dough"]?.actualStartedAt).toBe("2026-06-25T10:30:00.000Z");
+    expect(updated?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-06-25T10:30:00.000Z");
     expect(getKitchenModeState(updated).ok && getKitchenModeState(updated).currentStep?.id).toBe("rest-dough");
     expect(updated?.currentStep).toBe("prep");
     expect(updated?.status).toBe("preparing");
@@ -253,6 +255,41 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(updated?.shoppingList?.presetName).toBe("Margherita");
     expect(getActivePizzaSession(storage)?.id).toBe(session.id);
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("mix-dough");
+  });
+
+  it("uses actual work completion to run the following rest for its full planned duration without changing the stored schedule", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-runtime-rest",
+      status: "planning",
+      currentStep: "timeline",
+      timeline: sampleTimeline,
+    }, storage, new Date("2026-06-25T09:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+
+    const updated = completeKitchenTimelineStep(
+      session,
+      "mix-dough",
+      storage,
+      new Date("2026-06-25T10:45:00.000Z"),
+    );
+    if (!updated) throw new Error("Expected updated session");
+
+    const originalRest = session.timeline?.steps.find((step) => step.id === "rest-dough");
+    const originalNext = session.timeline?.steps.find((step) => step.id === "bake-pizza");
+    const state = getKitchenModeState(updated, new Date("2026-06-25T10:46:00.000Z"));
+    if (!state.ok || !state.currentStep) throw new Error("Expected kitchen rest state");
+
+    const plannedDurationMinutes = Math.round(
+      (new Date(originalNext!.scheduledAt!).getTime() - new Date(originalRest!.scheduledAt!).getTime()) / 60_000,
+    );
+    const expectedRuntimeEnd = new Date(new Date("2026-06-25T10:45:00.000Z").getTime() + plannedDurationMinutes * 60_000).toISOString();
+
+    expect(state.currentStep.id).toBe("rest-dough");
+    expect(state.currentStep.scheduledAt).toBe(expectedRuntimeEnd);
+    expect(updated.timeline?.steps.find((step) => step.id === "rest-dough")?.scheduledAt).toBe(originalRest?.scheduledAt);
+    expect(updated.timeline?.steps.find((step) => step.id === "bake-pizza")?.scheduledAt).toBe(originalNext?.scheduledAt);
+    expect(updated.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-06-25T10:45:00.000Z");
   });
 
   it("moves to bake and review steps without creating public or cloud behavior", () => {

@@ -10,6 +10,10 @@ import { normalizeExperienceLevel, type ExperienceLevel } from "@/lib/experience
 import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-timeline-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { updatePizzaSession } from "@/lib/pizza-session-storage";
+import {
+  applyPizzaSessionStepRuntime,
+  runtimeMapWithStepCompletion,
+} from "@/lib/pizza-session-step-runtime";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export type KitchenModeState =
@@ -502,12 +506,13 @@ export function getKitchenModeState(session?: PizzaSession, now = new Date()): K
     anchorTime: session.timeline.anchorTime,
   });
 
-  const currentStep = displaySteps.find((step) => step.status === "todo" && step.id !== "review-result");
+  const runtimeSteps = applyPizzaSessionStepRuntime(displaySteps, session.stepRuntime);
+  const currentStep = runtimeSteps.find((step) => step.status === "todo" && step.id !== "review-result");
   const currentIndex = currentStep
-    ? displaySteps.findIndex((step) => step.id === currentStep.id)
-    : displaySteps.length - 1;
-  const nextStep = currentStep ? nextTodoAfter(displaySteps, currentStep.id) : undefined;
-  const doneCount = displaySteps.filter((step) => step.status === "done").length;
+    ? runtimeSteps.findIndex((step) => step.id === currentStep.id)
+    : runtimeSteps.length - 1;
+  const nextStep = currentStep ? nextTodoAfter(runtimeSteps, currentStep.id) : undefined;
+  const doneCount = runtimeSteps.filter((step) => step.status === "done").length;
 
   return {
     ok: true,
@@ -515,7 +520,7 @@ export function getKitchenModeState(session?: PizzaSession, now = new Date()): K
     currentIndex,
     nextStep,
     doneCount,
-    totalCount: displaySteps.length,
+    totalCount: runtimeSteps.length,
   };
 }
 
@@ -639,6 +644,7 @@ export function completeKitchenTimelineStep(
     session.id,
     {
       timeline: updatedTimeline,
+      stepRuntime: runtimeMapWithStepCompletion(session, stepId, now),
       currentStep: currentStepForTimelineStep(nextStep),
       status: statusForTimelineStep(nextStep),
     },
