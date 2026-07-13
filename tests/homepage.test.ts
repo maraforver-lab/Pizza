@@ -34,7 +34,6 @@ const existingRoutes = new Set([
   "/ovens",
   "/gear",
   "/history",
-  "/community",
   "/coach",
   "/costs",
   "/account",

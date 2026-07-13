@@ -52,7 +52,6 @@ Those features were not deleted. They remain in their existing routes or workflo
 - `/sauce`
 - `/toppings`
 - `/timer`
-- `/journal`
 - `/account`
 - `/updates`
 
@@ -70,4 +69,4 @@ It does not claim:
 
 ## Safety
 
-Patch 39 does not change dough formulas, yeast calculations, Pizza Session storage, saved recipe storage, planner timing logic, Dough Doctor logic, Journal IndexedDB behavior, authentication, Supabase behavior, security headers, analytics, payments or SEO indexing permissions.
+Patch 39 does not change dough formulas, yeast calculations, Pizza Session storage, saved recipe storage, planner timing logic, Dough Doctor logic, authentication, Supabase behavior, security headers, analytics, payments or SEO indexing permissions.

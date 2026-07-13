@@ -55,7 +55,7 @@ export const publicSeoRoutes = [
   {
     path: "/privacy",
     title: "Privacy Policy | DoughTools",
-    description: "How DoughTools currently handles local browser storage, journal data and account authentication.",
+    description: "How DoughTools currently handles local browser storage and account authentication.",
     changeFrequency: "monthly",
     priority: 0.3,
   },
@@ -153,13 +153,6 @@ export const publicSeoRoutes = [
     priority: 0.5,
   },
   {
-    path: "/community",
-    title: "Community Recipe Library | DoughTools",
-    description: "Browse locally available community recipe examples and pizza-making ideas inside DoughTools.",
-    changeFrequency: "monthly",
-    priority: 0.5,
-  },
-  {
     path: "/coach",
     title: "Pizza Coach | DoughTools",
     description: "Get structured pizza-making guidance from the current recipe settings and practical troubleshooting rules.",
@@ -200,7 +193,6 @@ export const statefulQueryParamRoutes = [
   "/",
   "/plan",
   "/doctor",
-  "/journal",
   "/sauce",
   "/toppings",
   "/timer",

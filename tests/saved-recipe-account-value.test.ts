@@ -69,7 +69,6 @@ describe("saved recipe account value UX", () => {
     expect(recipeWorkflowQueryHref("/toppings", query)).toBe(`/toppings?${query}`);
     expect(recipeWorkflowQueryHref("/timer", query)).toBe(`/timer?${query}`);
     expect(recipeWorkflowQueryHref("/doctor", query)).toBe(`/doctor?${query}`);
-    expect(recipeWorkflowQueryHref("/journal", query)).toBe(`/journal?${query}`);
   });
 
   it("explains the value of saving recipes by experience level on the calculator", () => {
@@ -91,7 +90,7 @@ describe("saved recipe account value UX", () => {
     expect(page).toContain('recipeWorkflowQueryHref("/toppings", savedRecipeQuery)');
     expect(page).toContain('recipeWorkflowQueryHref("/timer", savedRecipeQuery)');
     expect(page).toContain('recipeWorkflowQueryHref("/doctor", savedRecipeQuery)');
-    expect(page).toContain('recipeWorkflowQueryHref("/journal", savedRecipeQuery)');
+    expect(page).not.toContain('recipeWorkflowQueryHref("/journal", savedRecipeQuery)');
     expect(page).not.toMatch(/publish saved recipe|copy public recipe link|upload recipe to account/i);
   });
 
@@ -111,7 +110,7 @@ describe("saved recipe account value UX", () => {
 
     expect(doc).toContain("doughtools-saved-recipes-v1");
     expect(doc).toContain("does not change the saved recipe data format");
-    expect(doc).toContain("Saved recipes, local BakeResults and Journal photos are not uploaded to Supabase");
+    expect(doc).toContain("Saved recipes and local BakeResults are not uploaded to Supabase");
     expect(doc).toContain("account recipe sync");
     expect(persistenceDoc).toContain("Patch 29 improves the value copy and workflow links around saved recipes");
   });

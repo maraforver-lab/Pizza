@@ -39,9 +39,7 @@ These rules apply to all current and future DoughTools pages, including but not 
 - `/gear`
 - `/ovens`
 - `/guide`
-- `/journal`
 - `/account`
-- `/community`
 - `/history`
 - future `/learn/*`
 - future `/tools/*`
@@ -289,7 +287,6 @@ Purpose: user records what happened, saves notes, learns for next time.
 Examples:
 
 - `/session/review`
-- `/journal`
 - future saved bakes
 - future my pizzas
 

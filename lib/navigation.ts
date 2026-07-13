@@ -15,9 +15,7 @@ export type NavigationItemId =
   | "gear"
   | "history"
   | "saved-recipes"
-  | "journal"
   | "account"
-  | "community"
   | "coach"
   | "costs"
   | "updates";
@@ -72,10 +70,9 @@ export const navigationGroups = [
     id: "my",
     label: "My DoughTools",
     shortLabel: "My",
-    description: "Return to saved recipes, journal entries and your account.",
+    description: "Return to saved recipes and your account.",
     items: [
       { id: "saved-recipes", label: "Saved Recipes", href: "/?calculator=1#my-recipes", description: "Open the saved recipe section on the calculator." },
-      { id: "journal", label: "Pizza Journal", href: "/journal", description: "Record what happened and what to improve next time." },
       { id: "account", label: "Account", href: "/account", description: "Sign in and manage your DoughTools account.", preserveQuery: false },
     ],
   },
@@ -85,7 +82,6 @@ export const navigationGroups = [
     shortLabel: "More",
     description: "Helpful secondary tools and project information.",
     items: [
-      { id: "community", label: "Recipe Library", href: "/community", description: "Browse useful starter recipes and local shared setups." },
       { id: "coach", label: "Pizza Coach", href: "/coach", description: "Get local guidance from the current recipe settings." },
       { id: "costs", label: "Cost Calculator", href: "/costs", description: "Estimate the total cost of a pizza night." },
       { id: "updates", label: "Updates", href: "/updates", description: "See what changed and why DoughTools exists.", preserveQuery: false },

@@ -43,7 +43,6 @@ It does not add:
 - social sharing
 - cloud sync
 - account sync
-- automatic Journal migration
 
 ## Completion behavior
 
@@ -59,12 +58,6 @@ The `Complete session` action:
 - preserves recipe snapshot, timeline, shopping list and existing session fields
 
 The completed session is stored locally but no longer appears as the active Continue Session card.
-
-## Journal handoff
-
-Patch 38 links to `/journal` after review, but does not duplicate review data into the Journal IndexedDB database.
-
-Deeper Journal integration is future work because it needs a separate data-mapping and migration review.
 
 ## Kitchen Mode handoff
 
@@ -103,10 +96,9 @@ Future patches can build on this foundation with:
 - photo compression
 - local result photos
 - result cards
-- richer Journal integration
 - bake comparison
 - optional cloud sync after a separate privacy and schema review
 
 ## Safety notes
 
-Patch 38 does not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage keys, planner timing logic, Dough Doctor diagnosis logic, Journal IndexedDB, authentication, analytics, payments, security headers, install/PWA behavior or SEO indexing permissions.
+Patch 38 does not change dough formulas, yeast calculations, saved recipe storage, Pizza Session storage keys, planner timing logic, Dough Doctor diagnosis logic, authentication, analytics, payments, security headers, install/PWA behavior or SEO indexing permissions.

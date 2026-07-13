@@ -121,8 +121,6 @@ Examples:
 - `/account/party-orders`
 - public Party Order forms
 - `/plan`
-- `/journal`
-- `/community`
 
 Characteristics:
 

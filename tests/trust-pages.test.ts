@@ -15,13 +15,11 @@ const existingAndNewRoutes = new Set([
   "/",
   "/account",
   "/coach",
-  "/community",
   "/costs",
   "/doctor",
   "/gear",
   "/guide",
   "/history",
-  "/journal",
   "/ovens",
   "/plan",
   "/sauce",
@@ -238,12 +236,12 @@ describe("trust and legal pages", () => {
     expect(aboutPage).not.toContain("supabase/migrations");
   });
 
-  it("explains local browser storage, localStorage, IndexedDB and Supabase accurately", () => {
+  it("explains local browser storage, localStorage and Supabase accurately", () => {
     const privacy = pageText("privacy");
 
     expect(privacy).toContain("localStorage");
-    expect(privacy).toContain("IndexedDB");
     expect(privacy).toContain("Supabase");
+    expect(privacy).not.toMatch(/\bjournal\b|community recipe drafts/i);
     expect(privacy).not.toMatch(/all data (stays|is stored|remains) local/i);
   });
 

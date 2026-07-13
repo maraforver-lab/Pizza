@@ -98,7 +98,6 @@ Patch 22 does not change:
 - saved recipes
 - shared recipe URL parsing
 - BakeResult storage
-- Journal IndexedDB
 - authentication or Supabase behavior
 - noindex, robots, sitemap or domain behavior
 

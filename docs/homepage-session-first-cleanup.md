@@ -47,7 +47,7 @@ The underlying functionality was not deleted.
 - Shopping, sauce and toppings belong in `/session/shopping`, `/sauce` and `/toppings`.
 - Kitchen doing steps belong in `/session/kitchen`.
 - Saved recipes remain part of the calculator/account workflow.
-- Saved bakes remain part of Journal and future review flows.
+- Saved bakes remain local browser data and future review flows.
 - Sharing/result-card ideas remain future work, not the homepage primary flow.
 - Learning and troubleshooting remain available through Guide, Dough Doctor and the tool navigation.
 

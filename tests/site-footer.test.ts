@@ -10,13 +10,11 @@ const footerBearingSources = [
   ["about", source("app", "about", "page.tsx")],
   ["account", source("app", "account", "page.tsx")],
   ["coach", source("app", "coach", "page.tsx")],
-  ["community", source("app", "community", "page.tsx")],
   ["costs", source("components", "costs", "PizzaCostsPlayfulClient.tsx")],
   ["doctor", source("app", "doctor", "page.tsx")],
   ["gear", source("app", "gear", "page.tsx")],
   ["guide", source("app", "guide", "page.tsx")],
   ["history", source("app", "history", "page.tsx")],
-  ["journal", source("app", "journal", "page.tsx")],
   ["ovens", source("app", "ovens", "page.tsx")],
   ["plan", source("app", "plan", "page.tsx")],
   ["sauce", source("app", "sauce", "page.tsx")],
@@ -77,6 +75,8 @@ describe("canonical site footer", () => {
     }
 
     expect(footer).not.toMatch(/localhost|C:\\|C:\/|\/Users\//);
+    expect(footer).not.toContain('href: "/journal"');
+    expect(footer).not.toContain('href: "/community"');
     expect(footer).not.toContain("Version ");
     expect(footer).not.toContain("build ");
   });

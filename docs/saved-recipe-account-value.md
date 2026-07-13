@@ -12,7 +12,6 @@ Patch 29 clarifies why saving recipes matters in DoughTools.
   - Toppings
   - Timer
   - Dough Doctor
-  - Journal note
 - The Account page now explains the current local-first product model more clearly.
 
 ## Storage behavior
@@ -29,7 +28,7 @@ Patch 29 does not change the saved recipe data format, does not migrate existing
 
 Account sign-in remains authentication only for now.
 
-Saved recipes, local BakeResults and Journal photos are not uploaded to Supabase by this patch. Users should understand that local browser data can be lost if site data is cleared or if they use a different device.
+Saved recipes and local BakeResults are not uploaded to Supabase by this patch. Users should understand that local browser data can be lost if site data is cleared or if they use a different device.
 
 ## Experience-level copy
 

@@ -33,15 +33,6 @@ Shared recipe URLs are covered by tests for:
 - Ignoring legacy language query values such as `lang` and `toppingsLang`.
 - Rejecting invalid numeric ranges and invalid option values.
 
-## Pizza journal
-
-Pizza journal entries currently use IndexedDB through `window.indexedDB` in `lib/pizza-journal.ts`. Patch 02 adds lightweight tests for the pure entry shape and ID generation only.
-
-Full IndexedDB regression tests are intentionally not included yet because the project does not currently include a browser-like IndexedDB test environment. Before changing journal storage behavior, add either:
-
-- a focused fake IndexedDB dependency for unit tests, or
-- a browser integration test that runs against real IndexedDB.
-
 ## Local BakeResults
 
 Patch 12 adds private local BakeResult storage with this dedicated `localStorage` key:
@@ -50,7 +41,7 @@ Patch 12 adds private local BakeResult storage with this dedicated `localStorage
 doughtools:bake-results
 ```
 
-This storage is separate from saved recipes and separate from the IndexedDB pizza journal. It does not migrate existing recipes or journal entries, does not change the journal database version, and does not upload BakeResults to Supabase.
+This storage is separate from saved recipes and does not upload BakeResults to Supabase.
 
 The loader validates stored objects with the BakeResult migration helpers. Malformed storage data returns a safe empty list, and saved BakeResults are forced to private visibility.
 
@@ -64,7 +55,7 @@ doughtools.experienceLevel
 
 Allowed canonical values are `beginner`, `enthusiast` and `pizza_nerd`. Legacy values are normalized safely: `intermediate` becomes `enthusiast`, and `advanced` becomes `pizza_nerd`. Missing, malformed or unknown values fall back to `beginner` / Beginner.
 
-This preference is browser-local for now. It is not synced to Supabase, does not require login, does not change calculations, and does not alter saved recipe, BakeResult or Journal storage. A future account-based profile could move this setting into a user profile after separate schema and privacy review.
+This preference is browser-local for now. It is not synced to Supabase, does not require login, does not change calculations, and does not alter saved recipe or BakeResult storage. A future account-based profile could move this setting into a user profile after separate schema and privacy review.
 
 ## Pizza Sessions
 
@@ -75,7 +66,7 @@ doughtools:pizza-sessions-v1
 doughtools:active-pizza-session-id
 ```
 
-Pizza Sessions are separate from saved recipes, local BakeResults and the IndexedDB pizza journal. They are browser-local for now, are not uploaded to Supabase, and do not change the saved recipe storage key or journal database version.
+Pizza Sessions are separate from saved recipes and local BakeResults. They are browser-local for now, are not uploaded to Supabase, and do not change the saved recipe storage key.
 
 Malformed Pizza Session storage returns safe defaults instead of crashing the app. Completed or archived sessions are not treated as the active session by the active-session helper.
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   isNavigationGroupActive,
@@ -24,9 +24,7 @@ const requiredRoutes = [
   "/ovens",
   "/gear",
   "/history",
-  "/journal",
   "/account",
-  "/community",
   "/coach",
   "/costs",
   "/updates",
@@ -80,6 +78,17 @@ describe("shared navigation model", () => {
     for (const route of requiredRoutes) {
       expect(paths.has(route)).toBe(true);
     }
+  });
+
+  it("does not expose removed Journal or Community destinations", () => {
+    const hrefs = navigationItems.map((item) => item.href);
+    const labels = navigationItems.map((item) => item.label).join("\n");
+
+    expect(hrefs).not.toContain("/journal");
+    expect(hrefs).not.toContain("/community");
+    expect(labels).not.toMatch(/\b(Pizza Journal|Recipe Library)\b/);
+    expect(existsSync(join(process.cwd(), "app", "journal", "page.tsx"))).toBe(false);
+    expect(existsSync(join(process.cwd(), "app", "community", "page.tsx"))).toBe(false);
   });
 
   it("keeps Dough Calculator as the primary entry inside the Make pizza group", () => {

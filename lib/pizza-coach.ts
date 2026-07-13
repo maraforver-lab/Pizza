@@ -41,7 +41,7 @@ export function buildCoachAdvice(locale: CoachLocale, settings: RecipeSettings, 
     recommended.fermentation = flour.recommendedFermentation;
     add("Valitse jauhon keskialue", "Use the middle of the flour's range", `${recommended.hydration} % hydraatio on jauholle ${flourName} hallittava lähtökohta.`, `${recommended.hydration}% hydration is a manageable starting point for ${flourName}.`, "now");
     add("Käytä ennustettavaa aikataulua", "Use a predictable schedule", `${recommended.fermentation.replaceAll("-", " ")} sopii tämän jauhon profiiliin. Pidä lämpötila mitattuna.`, `${recommended.fermentation.replaceAll("-", " ")} suits this flour profile. Measure the actual temperature.`);
-    add("Harjoittele yhdellä muutoksella", "Practise one change at a time", "Pidä jauho, pallopaino ja uuni samoina kolme paistokertaa. Muuta vain yhtä asiaa ja kirjaa tulos päiväkirjaan.", "Keep flour, ball weight and oven unchanged for three bakes. Change one variable and record it in the journal.", "watch");
+    add("Harjoittele yhdellä muutoksella", "Practise one change at a time", "Pidä jauho, pallopaino ja uuni samoina kolme paistokertaa. Muuta vain yhtä asiaa ja vertaa tulosta seuraavalla paistolla.", "Keep flour, ball weight and oven unchanged for three bakes. Change one variable and compare the result on the next bake.", "watch");
   } else {
     recommended.fermentation = flour.fermentationHours[1] >= 48 ? "48h-cold" : flour.recommendedFermentation;
     add("Anna ajan tehdä maku", "Let time build flavour", `Kokeile ${recommended.fermentation.replaceAll("-", " ")} -kohotusta ja pidä jääkaappi todella noin 4 °C:ssa.`, `Try ${recommended.fermentation.replaceAll("-", " ")} fermentation and keep the fridge genuinely near 4°C.`, "now");

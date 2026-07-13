@@ -39,8 +39,6 @@ const expectedRoutes = [
   "/account/party-orders/[id]",
   "/order/[publicToken]",
   "/order/[publicToken]/edit/[submissionToken]",
-  "/journal",
-  "/community",
   "/coach",
   "/privacy",
   "/terms",

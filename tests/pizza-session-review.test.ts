@@ -346,18 +346,15 @@ describe("Pizza Session review and bake notes", () => {
     expect(saved?.review?.savedAt).toBe("2026-06-25T13:00:00.000Z");
   });
 
-  it("connects Kitchen Mode and Timeline to review without changing Journal storage", () => {
+  it("connects Kitchen Mode and Timeline to review without introducing public sharing or tracking", () => {
     const kitchen = source("app/session/kitchen/page.tsx");
     const timelinePage = source("app/session/timeline/page.tsx");
-    const journal = source("app/journal/page.tsx");
 
     expect(kitchen).toContain("/session/review");
     expect(kitchen).toContain("Review your pizza →");
     expect(timelinePage).toContain("/session/review");
     expect(timelinePage).toContain("Review your pizza →");
     expect(timelinePage).not.toContain("Review session");
-    expect(journal).toContain("@/lib/pizza-journal");
-    expect(journal).toContain("loadJournalEntries");
     expect([kitchen, timelinePage].join("\n")).not.toMatch(/upload photo|share card|public link|analytics added|tracking added/i);
   });
 

@@ -107,7 +107,6 @@ Kitchen Mode links back to:
 - `/session/recipe`
 - `/timer` during the Bake pizza step
 - `/session/review` during or after Review result
-- `/journal` from the review step when the user wants deeper notes
 
 The full calculator remains available and is not replaced.
 

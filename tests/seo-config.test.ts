@@ -45,7 +45,6 @@ const requiredPublicRoutes = [
   "/plan",
   "/costs",
   "/history",
-  "/community",
   "/coach",
   "/updates",
 ];
@@ -128,7 +127,6 @@ describe("SEO launch configuration", () => {
       "/",
       "/plan",
       "/doctor",
-      "/journal",
       "/sauce",
       "/toppings",
       "/timer",
@@ -144,6 +142,8 @@ describe("SEO launch configuration", () => {
     const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);
 
     expect(sitemapUrls.some((url) => url.includes("/account"))).toBe(false);
+    expect(sitemapUrls.some((url) => url.includes("/journal"))).toBe(false);
+    expect(sitemapUrls.some((url) => url.includes("/community"))).toBe(false);
     expect(sitemapUrls.some((url) => url.includes("?"))).toBe(false);
     expect(sitemapUrls.some((url) => url.includes("pizza-maraforver.vercel.app"))).toBe(false);
   });

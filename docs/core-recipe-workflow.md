@@ -15,7 +15,7 @@ Calculator / recipe result
 → Toppings
 → Timer
 → Dough Doctor
-→ Save / Journal / Account
+→ Save / Account
 ```
 
 The calculator still creates the same dough numbers. Patch 28 only clarifies what to do after those numbers are ready.
@@ -35,7 +35,6 @@ The section links to:
 - Toppings
 - Timer
 - Dough Doctor
-- Journal
 
 It also reminds the user that the recipe can be saved locally with the existing Save recipe behavior.
 
@@ -65,16 +64,6 @@ The preserved context can include:
 - oven type
 - flour profile
 - pizza style
-
-## General links
-
-The Journal link is intentionally general:
-
-```text
-/journal
-```
-
-The Journal currently shows locally saved bakes and notes. It does not accept a dedicated recipe-query handoff in this patch.
 
 Account behavior is not changed. Patch 28 does not add account recipe sync, cloud sync or Supabase storage.
 
@@ -112,7 +101,6 @@ Patch 28 does not change:
 - sauce, toppings or timer formulas
 - saved recipe persistence
 - BakeResult storage
-- Journal IndexedDB
 - authentication
 - Supabase behavior
 - analytics or tracking
@@ -124,7 +112,6 @@ Patch 28 does not change:
 Possible later patches:
 
 - stronger save recipe UX
-- Journal recipe comparison
 - sauce/toppings/timer deeper recipe integration
 - account/cloud sync only after a separate privacy and auth decision
 - privacy-first funnel measurement only after a separate analytics decision

@@ -44,7 +44,7 @@ schemaVersion: 1
 
 The migration helper currently accepts the current schema version as a no-op and safely rejects malformed data or unknown future versions.
 
-This avoids changing current saved recipes or journal entries.
+This avoids changing current saved recipes.
 
 ## Private by default
 
@@ -93,8 +93,6 @@ Patch 11 does not:
 - add public bake pages
 - add Supabase tables
 - change saved recipe storage
-- change journal storage
-- change IndexedDB version
 - migrate existing user data
 - change calculations
 
@@ -103,7 +101,7 @@ Patch 11 does not:
 Patch 12 connects the model to a small local workflow:
 
 ```text
-calculate recipe → save private local BakeResult → view saved bakes in Journal
+calculate recipe → save private local BakeResult
 ```
 
 Saved bakes are stored in browser `localStorage` with:
@@ -121,7 +119,7 @@ The feature is intentionally private and local-only:
 - no public or unlisted publishing UI
 - no public bake routes
 
-The calculator creates a `RecipeSnapshot` from the current recipe and saves it inside a private `BakeResult`. The Journal page shows a separate “Saved bakes” section so old photo journal entries remain untouched.
+The calculator creates a `RecipeSnapshot` from the current recipe and saves it inside a private `BakeResult`.
 
 If a user clears browser site data, local saved bakes may be lost.
 

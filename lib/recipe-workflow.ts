@@ -6,8 +6,7 @@ export type RecipeWorkflowActionId =
   | "toppings"
   | "timer"
   | "doctor"
-  | "save"
-  | "journal";
+  | "save";
 
 export type RecipeWorkflowAction = {
   id: RecipeWorkflowActionId;
@@ -80,14 +79,6 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
       priority: "support",
       preservesQuery: false,
     },
-    {
-      id: "journal",
-      label: "Open Journal",
-      description: "View saved bakes and notes stored locally on this device.",
-      href: "/journal",
-      priority: "support",
-      preservesQuery: false,
-    },
   ];
 
   if (level === "beginner") {
@@ -114,7 +105,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
     heading: "Next steps for this recipe",
     intro: "Carry this recipe context through the workflow so variables stay comparable from dough numbers to bake notes.",
     primaryActionId: "planner",
-    detail: "Planner, Sauce, Toppings, Timer and Dough Doctor receive the current recipe query where supported. Journal is a general local saved-bakes destination.",
+    detail: "Planner, Sauce, Toppings, Timer and Dough Doctor receive the current recipe query where supported.",
     actions,
   };
 }

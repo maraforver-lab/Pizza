@@ -53,7 +53,6 @@ tests/fixtures/
 - URL recipe state parsing and serialization.
 - Saved recipe localStorage compatibility.
 - Pizza style and flour database consistency.
-- Lightweight journal entry compatibility.
 
 ## Rules for future patches
 
@@ -61,4 +60,3 @@ tests/fixtures/
 - When changing persisted data shape, add legacy fixtures before changing loaders.
 - Keep tests close to pure functions when possible.
 - Do not rely on UI screenshots to validate recipe math.
-- Add browser/integration tests before changing IndexedDB photo journal behavior.

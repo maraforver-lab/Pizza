@@ -133,7 +133,6 @@ Patch 24 did not change:
 - saved recipe behavior
 - shared recipe URL behavior
 - BakeResult storage
-- Journal IndexedDB behavior
 - Supabase/auth behavior
 - analytics or tracking
 - SEO indexing permissions

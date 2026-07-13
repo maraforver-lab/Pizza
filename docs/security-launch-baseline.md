@@ -128,7 +128,6 @@ Patch 27 does not change:
 - recipe URL behavior
 - saved recipes
 - local saved bakes
-- Journal IndexedDB
 - Planner timing logic
 - Dough Doctor diagnosis logic
 - authentication

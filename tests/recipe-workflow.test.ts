@@ -28,14 +28,13 @@ describe("core recipe workflow handoff", () => {
     }
   });
 
-  it("keeps Journal and Save as local/general handoffs without inventing query support", () => {
+  it("keeps Save as a local/general handoff without inventing query support", () => {
     const handoff = getRecipeWorkflowHandoff("pizza_nerd", recipeParams(baseSettings).toString());
     const save = handoff.actions.find((item) => item.id === "save");
-    const journal = handoff.actions.find((item) => item.id === "journal");
 
     expect(save).toMatchObject({ label: "Save this recipe", preservesQuery: false });
     expect(save?.href).toBeUndefined();
-    expect(journal).toMatchObject({ label: "Open Journal", href: "/journal", preservesQuery: false });
+    expect(handoff.actions.some((item) => item.href === "/journal")).toBe(false);
   });
 
   it("adapts next-step copy for Beginner, Enthusiast and Pizza Nerd", () => {

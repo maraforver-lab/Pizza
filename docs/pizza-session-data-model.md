@@ -40,7 +40,6 @@ These keys are separate from:
 - saved recipes: `doughtools-saved-recipes-v1`
 - local BakeResults: `doughtools:bake-results`
 - experience level: `doughtools.experienceLevel`
-- Journal IndexedDB database: `doughtools-journal`
 
 ## Statuses
 

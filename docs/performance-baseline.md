@@ -27,7 +27,6 @@ Additional routes included in the production build summary where available:
 - `/sauce`
 - `/toppings`
 - `/timer`
-- `/journal`
 
 ## Build output summary
 
@@ -49,7 +48,6 @@ The build completed successfully and generated 31 static pages. The relevant rou
 | `/sauce` | Static | 6.06 kB | 119 kB |
 | `/toppings` | Static | 12.7 kB | 126 kB |
 | `/timer` | Static | 5.3 kB | 113 kB |
-| `/journal` | Static | 7.26 kB | 120 kB |
 | `/about` | Static | 178 B | 106 kB |
 | `/privacy` | Static | 178 B | 106 kB |
 | `/terms` | Static | 178 B | 106 kB |
@@ -177,7 +175,6 @@ It does not change:
 - planner timing logic
 - Dough Doctor diagnosis logic
 - BakeResult storage
-- Journal IndexedDB
 - authentication or Supabase behavior
 - experience-level storage keys or canonical values
 - product routes or navigation

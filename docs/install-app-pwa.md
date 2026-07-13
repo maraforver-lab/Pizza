@@ -61,7 +61,7 @@ iOS/iPadOS and unsupported browsers may not provide a JavaScript install prompt.
 
 ## Privacy and launch safety
 
-The install feature is local UI only. It does not send install choices anywhere and does not change recipe, saved bake, journal, account or Supabase behavior.
+The install feature is local UI only. It does not send install choices anywhere and does not change recipe, saved bake, account or Supabase behavior.
 
 Google indexing remains disabled by the existing pre-launch configuration until the project owner explicitly decides otherwise.
 

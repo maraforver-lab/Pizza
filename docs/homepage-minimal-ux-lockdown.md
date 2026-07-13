@@ -45,7 +45,6 @@ No product routes were deleted. These routes remain available directly:
 - `/sauce`
 - `/toppings`
 - `/timer`
-- `/journal`
 - `/account`
 - `/updates`
 
@@ -67,4 +66,4 @@ No cloud sync, account sync, cross-device sync, tracking, analytics or offline m
 
 ## Safety
 
-Patch 40 does not change dough formulas, yeast calculations, Pizza Session storage, saved recipe storage, planner timing logic, Dough Doctor logic, Journal IndexedDB behavior, authentication, Supabase behavior, security headers, payments or SEO indexing permissions.
+Patch 40 does not change dough formulas, yeast calculations, Pizza Session storage, saved recipe storage, planner timing logic, Dough Doctor logic, authentication, Supabase behavior, security headers, payments or SEO indexing permissions.

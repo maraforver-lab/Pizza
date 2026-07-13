@@ -110,8 +110,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       {
         heading: "Local browser storage",
         paragraphs: [
-          "Some recipe and tool data may be stored locally in your browser. This includes saved recipes in localStorage, active planning state in localStorage, gear checklist choices in localStorage, cost currency choices in localStorage and locally saved community recipe drafts.",
-          "Pizza journal entries and compressed journal photos use the browser’s IndexedDB storage. This means the data is tied to the browser and device where it was saved unless a future feature explicitly moves it elsewhere.",
+          "Some recipe and tool data may be stored locally in your browser. This includes saved recipes in localStorage, active planning state in localStorage, gear checklist choices in localStorage and cost currency choices in localStorage.",
           "Browser-local data may be lost if you clear site data, reset the browser profile or use a different device.",
         ],
       },
@@ -120,7 +119,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         paragraphs: [
           "DoughTools includes account sign-in functionality. Where account features are used, account-related data may be handled by the configured Supabase authentication provider.",
           "Passwords are handled by Supabase authentication and are not stored in DoughTools application code.",
-          "At this stage, saved recipes and journal entries are not described as cloud-synced account data.",
+          "At this stage, saved recipes are not described as cloud-synced account data.",
         ],
       },
       {
@@ -132,7 +131,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       {
         heading: "Export and deletion",
         paragraphs: [
-          "Saved recipes can be deleted from the saved recipes section. Journal entries can be deleted from the journal where that feature is available.",
+          "Saved recipes can be deleted from the saved recipes section.",
           "Browser-stored data may also be removed by clearing site data in the browser. Account deletion is not currently described as a self-service feature. For privacy-related questions or requests, contact DoughTools at hello@doughtools.app.",
         ],
       },
@@ -172,7 +171,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       {
         heading: "User content and sharing",
         paragraphs: [
-          "Some current features let users save local recipes, journal entries or share recipe links. Public sharing, community publishing and account-connected storage should be treated only as available where implemented in the current product.",
+          "Some current features let users save local recipes or share recipe links. Public sharing and account-connected storage should be treated only as available where implemented in the current product.",
         ],
       },
       {

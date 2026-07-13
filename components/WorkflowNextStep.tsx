@@ -9,16 +9,12 @@ const nextSteps: Record<string, { route: string; label: string }> = {
   "/styles": { route: "/", label: "Fine-tune the selected recipe" },
   "/plan": { route: "/sauce", label: "Calculate the pizza sauce next" },
   "/sauce": { route: "/toppings", label: "Choose cheese and toppings" },
-  "/timer": { route: "/journal", label: "Record the bake in your pizza journal" },
-  "/costs": { route: "/journal", label: "Save the result in your journal" },
   "/doctor": { route: "/plan", label: "Open the adjusted preparation plan" },
   "/coach": { route: "/", label: "Take the recommendations to the calculator" },
   "/guide": { route: "/styles", label: "Explore pizza styles" },
   "/updates": { route: "/", label: "Try the latest version in the calculator" },
   "/history": { route: "/styles", label: "Explore classic pizza styles" },
   "/gear": { route: "/plan", label: "Continue to the pizza-night plan" },
-  "/journal": { route: "/community", label: "Explore community recipes" },
-  "/community": { route: "/", label: "Open a recipe in the calculator" },
 };
 
 export default function WorkflowNextStep() {
