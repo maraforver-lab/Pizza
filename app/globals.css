@@ -84,10 +84,6 @@ body {
 main header { display: none !important; }
 .legacy-tool-nav { display: none !important; }
 
-@media (max-width: 767px) {
-  body { padding-bottom: calc(5.25rem + env(safe-area-inset-bottom)); }
-}
-
 button, input, select { font: inherit; }
 
 input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
@@ -126,6 +122,5 @@ input[type="number"]::-webkit-outer-spin-button { margin: 0; appearance: none; -
 @media (display-mode: standalone) {
   body {
     padding-top: env(safe-area-inset-top);
-    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
   }
 }

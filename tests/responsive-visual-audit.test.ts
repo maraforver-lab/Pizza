@@ -61,6 +61,21 @@ describe("Patch 311 responsive visual audit protections", () => {
     expect(globals).not.toContain("overflow-x: hidden");
   });
 
+  it("does not add sitewide blank scroll space after the final content or footer", () => {
+    const globals = source("app/globals.css");
+    const siteFooter = source("components/SiteFooter.tsx");
+    const trustLayout = source("components/TrustPageLayout.tsx");
+    const workflowNextStep = source("components/WorkflowNextStep.tsx");
+    const sessionKitchen = source("app/session/kitchen/page.tsx");
+
+    expect(globals).not.toContain("padding-bottom: calc(5.25rem + env(safe-area-inset-bottom))");
+    expect(globals).not.toMatch(/@media\s*\(max-width:\s*767px\)\s*{\s*body\s*{\s*padding-bottom/);
+    expect(siteFooter).toContain("data-site-footer");
+    expect(trustLayout.indexOf("<SiteFooter />")).toBeGreaterThan(trustLayout.indexOf("Back to DoughTools"));
+    expect(workflowNextStep).not.toMatch(/fixed|sticky|bottom-0/);
+    expect(sessionKitchen).toContain("pb-28");
+  });
+
   it("preserves navigation routes and business-logic boundaries while applying responsive fixes", () => {
     const navigation = source("components/GlobalToolNavigation.tsx");
     const quickCalculator = source("components/quick-calculator/QuickDoughCalculator.tsx");
