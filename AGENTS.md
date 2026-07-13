@@ -7,6 +7,7 @@ Always follow:
 - `docs/visual-style-guide.md`
 - `docs/design-system.md`
 - `docs/sitewide-hero-and-imagery-system.md`
+- `docs/pizza-session-autosave-and-resume.md` when working on Pizza Session persistence or resume behavior
 
 Core product rules:
 

@@ -1,0 +1,81 @@
+# Pizza Session autosave and resume
+
+Patch 355 makes Pizza Session persistence local-first from the moment a user explicitly starts a plan.
+
+## Explicit creation event
+
+A Pizza Session draft is created only after an explicit start action, currently the `Start a new pizza plan` action that opens `/session/start?new=1`, or an explicit Party Orders handoff.
+
+Opening `/session/start` without an active session shows a start entry state instead of creating an empty ghost session.
+
+## Local-first principle
+
+The browser-local session is the operational source for the current device.
+
+When a draft is created, DoughTools immediately stores:
+
+- one stable Pizza Session ID
+- draft/planning status
+- created, updated and saved timestamps
+- the current setup step
+- the last safe Session route
+- available setup values
+- the existing session schema version
+
+Setup changes are saved through the existing Pizza Session storage helpers. Step changes and deliberate selections save immediately.
+
+## Cloud mirror for signed-in users
+
+After the local save succeeds, authenticated users mirror the same Pizza Session payload to the cloud using the existing active-session API.
+
+The Supabase row has its own row ID, but the stable Pizza Session identity remains `session_data.id` and matches the local session ID. The local cloud marker stores the relationship between the local session ID and the cloud row ID.
+
+Cloud save failure never blocks the local workflow. The user can continue planning from the local draft.
+
+## Progress route and resume
+
+Each setup step stores a safe `lastRoute`, such as:
+
+- `/session/start?step=path`
+- `/session/start?step=preset`
+- `/session/start?step=time`
+- `/session/start?step=quantity`
+- `/session/start?step=flour`
+- `/session/recipe`
+
+Resume links use only an allowlisted Session route. Invalid or missing routes fall back to the existing step-based continuation behavior.
+
+## Existing active sessions
+
+If an active local session exists, `/session/start` resumes that session instead of creating a new one.
+
+Starting a genuinely new plan requires the explicit `new=1` start route. The current one-active-session product model is preserved.
+
+## Local/cloud conflicts
+
+When the same signed-in user has a local active session and a different cloud active session, DoughTools does not silently choose or overwrite either plan.
+
+The user must choose between:
+
+- continuing this device’s plan
+- continuing the cloud plan
+
+The cloud API also rejects an immediate save if it would overwrite a different active session in the account.
+
+## Offline and retry behavior
+
+Offline or failed cloud writes keep the local draft valid. Existing cloud sync components retry on later saves or page visits when the account connection is available.
+
+The UI does not show a persistent `Saved locally` line below the primary action. Normal successful autosave is quiet.
+
+## Compatibility
+
+New progress fields are optional. Older sessions without `lastRoute` continue using the existing `currentStep` resume mapping.
+
+Completed and archived sessions are still excluded from active-session resume.
+
+## Completion and deletion
+
+Existing Review completion and Account deletion behavior remain responsible for clearing the active-session pointer and cloud marker where appropriate.
+
+Patch 355 does not add multiple active sessions, a manual save button, a database migration, or new calculation behavior.

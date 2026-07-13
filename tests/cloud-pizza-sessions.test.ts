@@ -1203,6 +1203,7 @@ describe("cloud pizza session foundation", () => {
   it("promotes signed-in Start Pizza Session changes to cloud without changing guest-local storage", () => {
     const startPage = source("app/session/start/page.tsx");
     const client = source("lib/cloud-pizza-session-client.ts");
+    const activeRoute = source("app/api/pizza-sessions/active/route.ts");
 
     expect(startPage).toContain("saveCloudActivePizzaSession");
     expect(startPage).toContain("lastCloudSaveKey");
@@ -1212,6 +1213,10 @@ describe("cloud pizza session foundation", () => {
     expect(client).toContain('fetch("/api/pizza-sessions/active"');
     expect(client).toContain("method: \"POST\"");
     expect(client).toContain("markCloudBackedPizzaSession(session.id, savedSession.id)");
+    expect(activeRoute).toContain('.select("id,session_data,updated_at")');
+    expect(activeRoute).toContain("existingSession.id !== session.id");
+    expect(activeRoute).toContain("conflict: true");
+    expect(activeRoute).toContain("{ status: 409 }");
   });
 
   it("syncs cloud-backed sessions from the major Pizza Session step pages", () => {

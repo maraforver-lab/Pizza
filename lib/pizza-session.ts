@@ -135,6 +135,7 @@ export type PizzaSession = {
   updatedAt: string;
   lastOpenedAt: string;
   lastSavedAt: string;
+  lastRoute?: string;
   currentStep: PizzaSessionStep;
   experienceLevel: ExperienceLevel;
   pizzaStyle?: string;
@@ -402,6 +403,7 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     updatedAt: input.updatedAt ?? timestamp,
     lastOpenedAt: input.lastOpenedAt ?? timestamp,
     lastSavedAt: input.lastSavedAt ?? timestamp,
+    lastRoute: stringValue(input.lastRoute),
     currentStep: normalizeStep(input.currentStep),
     experienceLevel: normalizeExperienceLevel(input.experienceLevel ?? DEFAULT_EXPERIENCE_LEVEL),
     pizzaStyle: stringValue(input.pizzaStyle),
@@ -522,7 +524,8 @@ export function pizzaSessionRecipeQuery(session: PizzaSession) {
 }
 
 export function pizzaSessionContinueHref(session: PizzaSession) {
-  const query = pizzaSessionRecipeQuery(session);
+  const safeLastRoute = safePizzaSessionResumeRoute(session.lastRoute);
+  if (safeLastRoute) return safeLastRoute;
   const hasActiveTimelineTask = session.timeline?.steps.some((step) => step.status === "todo") ?? false;
   if (hasActiveTimelineTask && ["timeline", "prep", "bake"].includes(session.currentStep)) return "/session/kitchen";
   if (session.currentStep === "timeline") return "/session/timeline";
@@ -531,5 +534,24 @@ export function pizzaSessionContinueHref(session: PizzaSession) {
   if (session.currentStep === "recipe") return "/session/recipe";
   if (["prep", "bake"].includes(session.currentStep)) return "/session/kitchen";
   return "/session/start";
+}
+
+const safeSessionResumeRoutes = new Set([
+  "/session/start",
+  "/session/start?step=path",
+  "/session/start?step=preset",
+  "/session/start?step=time",
+  "/session/start?step=quantity",
+  "/session/start?step=flour",
+  "/session/recipe",
+  "/session/shopping",
+  "/session/timeline",
+  "/session/kitchen",
+  "/session/review",
+]);
+
+export function safePizzaSessionResumeRoute(value?: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return undefined;
+  return safeSessionResumeRoutes.has(value) ? value : undefined;
 }
 

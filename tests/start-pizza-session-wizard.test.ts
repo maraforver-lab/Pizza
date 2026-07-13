@@ -299,7 +299,9 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('const requestedStep = wizardStepFromQuery(searchParams.get("step"))');
     expect(page).toContain("setStep((currentStep) => requestedStep === currentStep ? currentStep : requestedStep)");
     expect(page).toContain("router.replace(wizardStepHref(nextStep), { scroll: false })");
-    expect(page).toContain("setStep(requestedStep ?? initialWizardStep(experienceScopedSession))");
+    expect(page).toContain("const restoredStep = requestedStep ?? wizardStepFromQuery");
+    expect(page).toContain("setStep(restoredStep)");
+    expect(page).toContain("lastRoute: requestedStep ? wizardStepHref(requestedStep) : wizardStepHref(\"path\")");
     expect(page).toContain('value !== "summary"');
     expect(page).toContain("const canNavigate = state === \"complete\"");
     expect(page).toContain("onClick={() => goToStep(wizardSteps[index])}");
@@ -334,14 +336,14 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("You’re ready for your Dough Plan.");
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
     expect(page).toContain("Build my Dough Plan →");
-    expect(page).toContain('href="/session/recipe"');
+    expect(page).toContain("const continueToRecipe = () =>");
+    expect(page).toContain("router.push(\"/session/recipe\")");
+    expect(page).toContain("onClick={continueToRecipe}");
     expect(page).not.toContain("Save and continue later");
     expect(page.match(/Build my Dough Plan →/g)).toHaveLength(1);
     expect(page).toContain("Back");
-    expect(page).toContain("Saved locally");
-    expect(page).toContain('DoughToolsIcon name="check"');
-    expect(page).toContain("hidden items-center gap-1 text-xs font-bold text-ink/40 sm:flex");
-    expect(page.indexOf("Build my Dough Plan →")).toBeLessThan(page.indexOf("Saved locally"));
+    expect(page).not.toContain("Saved locally");
+    expect(page).not.toContain("hidden items-center gap-1 text-xs font-bold text-ink/40 sm:flex");
     expect(page).not.toContain("Next: build your dough plan");
     expect(page).not.toContain("Last saved:");
     expect(page).not.toContain("Open timeline →");
@@ -410,9 +412,10 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("setActivePizzaSession");
     expect(page).toContain("updatePizzaSession");
     expect(page).toContain('const shouldStartNewSession = query.get("new") === "1"');
+    expect(page).toContain('const shouldReplaceExistingSession = query.get("replace") === "1"');
     expect(page).toContain('const shouldPreserveLocalHandoff = query.get("handoff") === "1"');
-    expect(page).toContain("if (shouldStartNewSession)");
-    expect(page).toContain("let active = shouldStartNewSession ? undefined : getActivePizzaSession()");
+    expect(page).toContain("if (shouldStartNewSession && shouldReplaceExistingSession)");
+    expect(page).toContain("let active = shouldStartNewSession ? undefined : existingBeforeNew");
     expect(page).toContain("if (!shouldStartNewSession && !shouldPreserveLocalHandoff)");
     expect(page).toContain("const { data } = await supabase.auth.getSession()");
     expect(page).toContain("fetch(\"/api/pizza-sessions/active\"");
@@ -767,6 +770,48 @@ describe("Start Pizza Session wizard", () => {
     expect(homepage).toContain("/session/start");
     expect(startPage).toContain("Start Pizza Session");
     expect(startPage).toContain("href=\"/session/start\"");
+  });
+
+  it("creates setup drafts only after an explicit start and preserves resume context", () => {
+    const page = source("app/session/start/page.tsx");
+    const docs = source("docs/pizza-session-autosave-and-resume.md");
+
+    expect(page).toContain("function StartPizzaSessionEntry()");
+    expect(page).toContain("Start a new pizza plan →");
+    expect(page).toContain('href="/session/start?new=1"');
+    expect(page).toContain("setNeedsExplicitStart(true)");
+    expect(page).toContain("if (!active && !shouldStartNewSession && !shouldPreserveLocalHandoff)");
+    expect(page.indexOf("if (!active && !shouldStartNewSession && !shouldPreserveLocalHandoff)")).toBeLessThan(page.indexOf("const baseSession = active ?? createAndSavePizzaSession"));
+    expect(page).toContain("lastRoute: wizardStepHref(nextStep)");
+    expect(page).toContain("lastRoute: \"/session/recipe\"");
+    expect(docs).toContain("Opening `/session/start` without an active session shows a start entry state");
+    expect(docs).toContain("does not add multiple active sessions");
+  });
+
+  it("requires confirmation before replacing an existing active setup draft", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("function ReplaceActiveSessionChoice");
+    expect(page).toContain("Active pizza plan found");
+    expect(page).toContain("Continue current pizza plan");
+    expect(page).toContain('href="/session/start?new=1&replace=1"');
+    expect(page).toContain("const shouldReplaceExistingSession = query.get(\"replace\") === \"1\"");
+    expect(page).toContain("if (shouldStartNewSession && existingBeforeNew && !shouldReplaceExistingSession)");
+    expect(page).toContain("setReplaceCandidate(existingBeforeNew)");
+  });
+
+  it("requires an explicit choice when local and cloud active sessions differ", () => {
+    const page = source("app/session/start/page.tsx");
+    const docs = source("docs/pizza-session-autosave-and-resume.md");
+
+    expect(page).toContain("function SessionConflictChoice");
+    expect(page).toContain("You have two active pizza plans.");
+    expect(page).toContain("Continue this device’s plan");
+    expect(page).toContain("Continue cloud plan");
+    expect(page).toContain("cloudPizzaSession.id !== active.id");
+    expect(page).toContain("setConflictCloudRow(row)");
+    expect(page).toContain("DoughTools will not silently replace this device’s plan");
+    expect(docs).toContain("DoughTools does not silently choose or overwrite either plan.");
   });
 
   it("keeps one shared wizard with Beginner, Enthusiast and Pizza Nerd guidance", () => {

@@ -236,3 +236,5 @@ Future product, UX, design, learning and marketing patches should reference this
 These principles may be overridden only when a user request explicitly states an approved exception.
 
 When a future patch conflicts with this document, the implementation should name the conflict and explain why the exception is intentional.
+
+Pizza Session persistence and resume work must also respect [Pizza Session autosave and resume](./pizza-session-autosave-and-resume.md) so local-first planning remains reliable without creating ghost sessions or silently overwriting active plans.

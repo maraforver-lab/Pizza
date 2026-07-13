@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   const updatedAt = new Date().toISOString();
   const { data: existing, error: existingError } = await supabase
     .from("pizza_sessions")
-    .select("id")
+    .select("id,session_data,updated_at")
     .eq("user_id", user.id)
     .eq("status", "in_progress")
     .order("updated_at", { ascending: false })
@@ -59,6 +59,16 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  const existingSession = existing?.session_data ? migratePizzaSession(existing.session_data) : undefined;
+  if (existing?.id && existingSession && existingSession.id !== session.id) {
+    return NextResponse.json({
+      error: "A different active pizza session is already saved to this account.",
+      conflict: true,
+      localSessionId: session.id,
+      cloudSessionId: existingSession.id,
+      cloudRowId: existing.id,
+    }, { status: 409 });
+  }
 
   const query = existing?.id
     ? supabase
@@ -109,14 +119,14 @@ export async function PATCH(request: Request) {
   const existingQuery = requestedCloudSessionId
     ? supabase
       .from("pizza_sessions")
-      .select("id")
+      .select("id,session_data,updated_at")
       .eq("id", requestedCloudSessionId)
       .eq("user_id", user.id)
       .eq("status", "in_progress")
       .maybeSingle()
     : supabase
       .from("pizza_sessions")
-      .select("id")
+      .select("id,session_data,updated_at")
       .eq("user_id", user.id)
       .eq("status", "in_progress")
       .order("updated_at", { ascending: false })
@@ -127,6 +137,16 @@ export async function PATCH(request: Request) {
 
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
   if (!existing?.id) return NextResponse.json({ session: null, skipped: true });
+  const existingSession = existing.session_data ? migratePizzaSession(existing.session_data) : undefined;
+  if (existingSession && existingSession.id !== session.id) {
+    return NextResponse.json({
+      error: "A different active pizza session is already saved to this account.",
+      conflict: true,
+      localSessionId: session.id,
+      cloudSessionId: existingSession.id,
+      cloudRowId: existing.id,
+    }, { status: 409 });
+  }
 
   const updatedAt = new Date().toISOString();
   const shouldComplete = record.complete === true || record.status === "completed";

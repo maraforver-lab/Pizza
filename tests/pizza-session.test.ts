@@ -28,6 +28,7 @@ import {
   PIZZA_SESSION_SCHEMA_VERSION,
   PIZZA_SESSION_STATUSES,
   PIZZA_SESSION_STEPS,
+  safePizzaSessionResumeRoute,
   serializePizzaSession,
   validatePizzaSession,
 } from "@/lib/pizza-session";
@@ -263,6 +264,31 @@ describe("Pizza Session local storage", () => {
     expect(pizzaSessionContinueHref(prepSession)).toBe("/session/kitchen");
     expect(pizzaSessionContinueHref(reviewSession)).toBe("/session/review");
     expect(pizzaSessionContinueHref(styleSession)).toBe("/session/start");
+  });
+
+  it("prefers an allowlisted saved resume route without accepting arbitrary URLs", () => {
+    const setupSession = createPizzaSession({
+      id: "setup-route-link",
+      currentStep: "style",
+      lastRoute: "/session/start?step=time",
+    });
+    const invalidExternal = createPizzaSession({
+      id: "invalid-external-route",
+      currentStep: "style",
+      lastRoute: "https://example.com/session/start",
+    });
+    const invalidInternal = createPizzaSession({
+      id: "invalid-internal-route",
+      currentStep: "style",
+      lastRoute: "/account",
+    });
+
+    expect(pizzaSessionContinueHref(setupSession)).toBe("/session/start?step=time");
+    expect(pizzaSessionContinueHref(invalidExternal)).toBe("/session/start");
+    expect(pizzaSessionContinueHref(invalidInternal)).toBe("/session/start");
+    expect(safePizzaSessionResumeRoute("/session/kitchen")).toBe("/session/kitchen");
+    expect(safePizzaSessionResumeRoute("//evil.example/session/start")).toBeUndefined();
+    expect(safePizzaSessionResumeRoute("javascript:alert(1)")).toBeUndefined();
   });
 
   it("documents Pizza Session storage and local-first limitations", () => {

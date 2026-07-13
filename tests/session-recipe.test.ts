@@ -1496,7 +1496,9 @@ describe("Session recipe build step", () => {
     const wizardDoc = source("docs/start-pizza-session-wizard.md");
     const seoConfig = source("lib/seo-config.ts");
 
-    expect(startPage).toContain("href=\"/session/recipe\"");
+    expect(startPage).toContain("const continueToRecipe = () =>");
+    expect(startPage).toContain("savePatch({ lastRoute: \"/session/recipe\" }, \"summary\")");
+    expect(startPage).toContain("router.push(\"/session/recipe\")");
     expect(startPage).toContain("Choose your oven");
     expect(startPage).toContain("Choose your pizza style");
     expect(startPage).toContain("DoughTools currently plans Neapolitan-style pizza for home ovens and pizza ovens. Toppings are chosen later for the shopping list.");

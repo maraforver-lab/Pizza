@@ -430,6 +430,7 @@ export function generateAndSaveActiveSessionRecipe(storage?: Storage, now = new 
     session.id,
     {
       currentStep: "recipe",
+      lastRoute: "/session/recipe",
       status: "planning",
       recipeParams: result.recipeParams,
       recipeSnapshot: result.recipeSnapshot,

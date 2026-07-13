@@ -10,7 +10,7 @@ import {
   clearCloudBackedActivePizzaSessionPointer,
   saveCloudActivePizzaSession,
 } from "@/lib/cloud-pizza-session-client";
-import { normalizeCloudPizzaSessionRow } from "@/lib/cloud-pizza-sessions";
+import { normalizeCloudPizzaSessionRow, type CloudPizzaSessionRow } from "@/lib/cloud-pizza-sessions";
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
 import {
   getExperienceLevelCornerAccentStyle,
@@ -23,6 +23,7 @@ import {
   type PizzaSessionFlourWRange,
   type PizzaSession,
   type PizzaSessionStep,
+  pizzaSessionContinueHref,
 } from "@/lib/pizza-session";
 import {
   buildPizzaSessionTargetTime,
@@ -425,11 +426,117 @@ function StartPizzaSessionLoading() {
   );
 }
 
+function StartPizzaSessionEntry() {
+  return (
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-8 text-ink sm:px-6 sm:py-12">
+      <div className="mx-auto max-w-3xl rounded-[2rem] border border-white/80 bg-white/85 p-6 shadow-card backdrop-blur sm:p-8">
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session</p>
+        <h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+          Plan your next pizza.
+        </h1>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
+          Start when you’re ready. DoughTools will create a local pizza plan only after you choose to begin, then keep your setup choices available if you reload.
+        </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Link href="/session/start?new=1" className={buttonClass({ className: "min-h-12 px-6" })}>
+            Start a new pizza plan →
+          </Link>
+          <Link href="/" className={buttonClass({ className: "min-h-12 px-6", variant: "secondary" })}>
+            Back to homepage
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function SessionConflictChoice({
+  localSession,
+  cloudRow,
+  onContinueLocal,
+  onContinueCloud,
+}: {
+  localSession: PizzaSession;
+  cloudRow: CloudPizzaSessionRow;
+  onContinueLocal: () => void;
+  onContinueCloud: (row: CloudPizzaSessionRow) => void;
+}) {
+  const cloudSession = cloudRow.session_data as PizzaSession;
+  const formatUpdated = (value: string) => new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+
+  return (
+    <main className="min-h-screen bg-cream px-4 py-8 text-ink sm:px-6 sm:py-12">
+      <div className="mx-auto max-w-4xl rounded-[2rem] border border-ink/10 bg-white p-6 shadow-card sm:p-8">
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Choose pizza plan</p>
+        <h1 className="mt-3 font-display text-4xl font-semibold leading-none">You have two active pizza plans.</h1>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
+          Pick which plan to continue. DoughTools will not silently replace this device’s plan or the plan saved to your account.
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <button type="button" onClick={onContinueLocal} className="rounded-[1.5rem] border border-leaf/25 bg-leaf/[.07] p-5 text-left transition hover:border-leaf/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
+            <span className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">This device</span>
+            <span className="mt-2 block font-display text-2xl font-semibold">Continue this device’s plan</span>
+            <span className="mt-3 block text-sm leading-6 text-ink/60">
+              Last saved {formatUpdated(localSession.lastSavedAt)} · {localSession.pizzaCount ?? "No"} pizzas · {localSession.targetEatTime ? formatTargetTime(localSession.targetEatTime) : "time not set"}
+            </span>
+          </button>
+          <button type="button" onClick={() => onContinueCloud(cloudRow)} className="rounded-[1.5rem] border border-tomato/25 bg-tomato/[.06] p-5 text-left transition hover:border-tomato/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+            <span className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Account</span>
+            <span className="mt-2 block font-display text-2xl font-semibold">Continue cloud plan</span>
+            <span className="mt-3 block text-sm leading-6 text-ink/60">
+              Last saved {formatUpdated(cloudSession.lastSavedAt)} · {cloudSession.pizzaCount ?? "No"} pizzas · {cloudSession.targetEatTime ? formatTargetTime(cloudSession.targetEatTime) : "time not set"}
+            </span>
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function ReplaceActiveSessionChoice({
+  existingSession,
+  onContinueExisting,
+}: {
+  existingSession: PizzaSession;
+  onContinueExisting: () => void;
+}) {
+  const lastSaved = new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(existingSession.lastSavedAt));
+
+  return (
+    <main className="min-h-screen bg-cream px-4 py-8 text-ink sm:px-6 sm:py-12">
+      <div className="mx-auto max-w-3xl rounded-[2rem] border border-ink/10 bg-white p-6 shadow-card sm:p-8">
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Active pizza plan found</p>
+        <h1 className="mt-3 font-display text-4xl font-semibold leading-none">Start a new pizza plan?</h1>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
+          You already have an in-progress plan from {lastSaved}. Continue it, or explicitly replace it with a fresh plan on this device.
+        </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <button type="button" onClick={onContinueExisting} className={buttonClass({ className: "min-h-12 px-6" })}>
+            Continue current pizza plan
+          </button>
+          <Link href="/session/start?new=1&replace=1" className={buttonClass({ className: "min-h-12 px-6", variant: "secondary" })}>
+            Start a new pizza plan
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function StartPizzaSessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
+  const [needsExplicitStart, setNeedsExplicitStart] = useState(false);
+  const [conflictCloudRow, setConflictCloudRow] = useState<CloudPizzaSessionRow | null>(null);
+  const [replaceCandidate, setReplaceCandidate] = useState<PizzaSession | null>(null);
   const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
@@ -448,12 +555,24 @@ function StartPizzaSessionContent() {
       const preferredLevel = readExperienceLevelPreference();
       const query = new URLSearchParams(window.location.search);
       const shouldStartNewSession = query.get("new") === "1";
+      const shouldReplaceExistingSession = query.get("replace") === "1";
       const shouldPreserveLocalHandoff = query.get("handoff") === "1";
-      if (shouldStartNewSession) {
+      const requestedStep = wizardStepFromQuery(query.get("step"));
+      const existingBeforeNew = getActivePizzaSession();
+      if (shouldStartNewSession && existingBeforeNew && !shouldReplaceExistingSession) {
+        if (!mounted) return;
+        setExperienceLevel(preferredLevel);
+        setSession(null);
+        setReplaceCandidate(existingBeforeNew);
+        setReady(true);
+        return;
+      }
+      if (shouldStartNewSession && shouldReplaceExistingSession) {
         clearActivePizzaSession();
+        clearCloudBackedActivePizzaSessionPointer();
       }
 
-      let active = shouldStartNewSession ? undefined : getActivePizzaSession();
+      let active = shouldStartNewSession ? undefined : existingBeforeNew;
       if (!shouldStartNewSession && !shouldPreserveLocalHandoff) {
         try {
           const supabase = getSupabaseBrowserClient();
@@ -464,6 +583,16 @@ function StartPizzaSessionContent() {
               const payload = await response.json().catch(() => ({}));
               const row = normalizeCloudPizzaSessionRow(payload.session);
               if (row) {
+                const cloudPizzaSession = row.session_data as PizzaSession;
+                if (active && cloudPizzaSession.id !== active.id) {
+                  if (!mounted) return;
+                  setExperienceLevel(preferredLevel);
+                  setSession(active);
+                  setConflictCloudRow(row);
+                  setNeedsExplicitStart(false);
+                  setReady(true);
+                  return;
+                }
                 active = restoreCloudPizzaSessionToLocal(row);
               } else {
                 clearCloudBackedActivePizzaSessionPointer();
@@ -476,9 +605,19 @@ function StartPizzaSessionContent() {
         }
       }
 
+      if (!active && !shouldStartNewSession && !shouldPreserveLocalHandoff) {
+        if (!mounted) return;
+        setExperienceLevel(preferredLevel);
+        setSession(null);
+        setNeedsExplicitStart(true);
+        setReady(true);
+        return;
+      }
+
       const baseSession = active ?? createAndSavePizzaSession({
         status: "planning",
         currentStep: "style",
+        lastRoute: requestedStep ? wizardStepHref(requestedStep) : wizardStepHref("path"),
         experienceLevel: preferredLevel,
         pizzaStyle: "pizza-oven",
         ovenType: "gas",
@@ -542,8 +681,8 @@ function StartPizzaSessionContent() {
         setSelectedDayChoice("tomorrow");
         setSelectedTimeChoice("dinner");
       }
-      const requestedStep = wizardStepFromQuery(query.get("step"));
-      setStep(requestedStep ?? initialWizardStep(experienceScopedSession));
+      const restoredStep = requestedStep ?? wizardStepFromQuery(new URLSearchParams(experienceScopedSession.lastRoute?.split("?")[1] ?? "").get("step")) ?? initialWizardStep(experienceScopedSession);
+      setStep(restoredStep);
       setReady(true);
     }
 
@@ -567,6 +706,7 @@ function StartPizzaSessionContent() {
       session.id,
       session.currentStep,
       session.status,
+      session.lastRoute,
       session.updatedAt,
       session.lastSavedAt,
     ].join(":");
@@ -592,6 +732,7 @@ function StartPizzaSessionContent() {
       ...patch,
       status: "planning",
       currentStep: stepToSessionStep(nextStep),
+      lastRoute: wizardStepHref(nextStep),
       experienceLevel,
     });
     if (updated) {
@@ -697,6 +838,12 @@ function StartPizzaSessionContent() {
     router.replace(wizardStepHref(nextStep), { scroll: false });
   };
 
+  const continueToRecipe = () => {
+    if (!session) return;
+    savePatch({ lastRoute: "/session/recipe" }, "summary");
+    router.push("/session/recipe");
+  };
+
   const continueStep = () => {
     const index = stepIndex(step);
     const nextStep = wizardSteps[Math.min(wizardSteps.length - 1, index + 1)];
@@ -725,7 +872,39 @@ function StartPizzaSessionContent() {
     || step === "summary";
 
   if (!ready || !session) {
+    if (ready && replaceCandidate) {
+      return (
+        <ReplaceActiveSessionChoice
+          existingSession={replaceCandidate}
+          onContinueExisting={() => {
+            setReplaceCandidate(null);
+            setSession(replaceCandidate);
+            router.replace(pizzaSessionContinueHref(replaceCandidate));
+          }}
+        />
+      );
+    }
+    if (ready && needsExplicitStart) return <StartPizzaSessionEntry />;
     return <StartPizzaSessionLoading />;
+  }
+
+  if (conflictCloudRow) {
+    return (
+      <SessionConflictChoice
+        localSession={session}
+        cloudRow={conflictCloudRow}
+        onContinueLocal={() => {
+          setConflictCloudRow(null);
+          setNeedsExplicitStart(false);
+          router.replace(pizzaSessionContinueHref(session));
+        }}
+        onContinueCloud={(row) => {
+          const restored = restoreCloudPizzaSessionToLocal(row);
+          setConflictCloudRow(null);
+          if (restored) router.push(pizzaSessionContinueHref(restored));
+        }}
+      />
+    );
   }
 
   const selectedOvenLabel = session.pizzaStyle ? sessionStyleLabels[session.pizzaStyle] : undefined;
@@ -1239,13 +1418,10 @@ function StartPizzaSessionContent() {
                   Continue →
                 </button>
               ) : (
-                <Link href="/session/recipe" className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
+                <button type="button" onClick={continueToRecipe} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
                   Build my Dough Plan →
-                </Link>
+                </button>
               )}
-              <p className="hidden items-center gap-1 text-xs font-bold text-ink/40 sm:flex">
-                Saved locally <DoughToolsIcon name="check" size={16} />
-              </p>
             </div>
             )}
           />
