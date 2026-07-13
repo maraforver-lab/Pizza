@@ -369,7 +369,7 @@ export default function PizzaCostsPlayfulClient() {
               This is a simple estimate for fun — real prices vary by ingredients, restaurant, location, and delivery fees.
             </p>
             <button type="button" onClick={focusInputs} className={buttonClass({ className: "mt-5 w-full sm:w-auto" })}>
-              Calculate pizza night
+              Estimate my pizza cost
             </button>
           </div>
 

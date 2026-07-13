@@ -17,16 +17,16 @@ Core rule:
 
 | Step | Journey step | Route | Purpose | User question | Primary action | Back action | Page type |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Oven | `/session/start` | Choose oven setup | Choose your oven | Continue → | Back | Planning page |
-| 2 | Pizza style | `/session/start` | Choose dough style | Choose your pizza style | Continue → | Back | Planning page |
-| 3 | When | `/session/start` | Choose target pizza time | When do you want pizza? | Continue → | Back | Planning page |
-| 4 | Quantity | `/session/start` | Choose pizza count and dough ball size | How many pizzas? | Continue → | Back | Planning page |
-| 5 | Flour situation | `/session/start` | Choose flour situation or W-value range | Do you already have flour? | Continue → | Back | Planning page |
+| 1 | Oven | `/session/start` | Choose oven setup | Choose your oven | Continue setup | Back | Planning page |
+| 2 | Pizza style | `/session/start` | Choose dough style | Choose your pizza style | Continue setup | Back | Planning page |
+| 3 | When | `/session/start` | Choose target pizza time | When do you want pizza? | Continue setup | Back | Planning page |
+| 4 | Quantity | `/session/start` | Choose pizza count and dough ball size | How many pizzas? | Continue setup | Back | Planning page |
+| 5 | Flour situation | `/session/start` | Choose flour situation or W-value range | Do you already have flour? | Continue setup | Back | Planning page |
 | 6 | Dough Plan | `/session/recipe` | Show preparation and dough amounts | What dough should I make? | Continue to Shopping → | Back | Reference page |
 | 7 | Choose pizzas & Shopping | `/session/shopping` | Choose toppings and check ingredients | What pizzas and ingredients do I need? | Continue to Timeline → | Back | Checklist page |
 | 8 | Timeline | `/session/timeline` | Show schedule overview and critical moments | When should I do each step? | Start dough → | Back | Reference page |
 | 9 | Kitchen Mode | `/session/kitchen` | Guided execution | What should I do now? | Mark step as done → | Back | Execution page |
-| 10 | Review | `/session/review` | Save learning and notes | How did the pizza turn out? | Save review → | Back | Review / learning page |
+| 10 | Review | `/session/review` | Save learning and notes | How did the pizza turn out? | Finish session | Back | Review / learning page |
 
 ## Setup phase rule
 
@@ -42,7 +42,7 @@ After those choices are complete, `/session/start` shows a compact transition:
 
 - Heading: `Your setup is ready.`
 - Body: `Next, we’ll build your Dough Plan.`
-- Primary action: `Create my pizza plan →`
+- Primary action: `Create my pizza plan`
 - Destination: `/session/recipe`
 
 This transition is not a separate route. It is the handoff into journey step 6.

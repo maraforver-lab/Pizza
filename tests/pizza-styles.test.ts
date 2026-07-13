@@ -22,13 +22,13 @@ describe("Pizza Style Atlas", () => {
     expect(page).toContain("PizzaStyleComparison");
     expect(page).toContain("PizzaStyleGoalGuide");
     expect(hero).toContain("Pizza Style Atlas");
-    expect(hero).toContain("Explore the styles");
+    expect(hero).toContain("Compare pizza styles");
     expect(hero).toContain("See what DoughTools supports");
     expect(page).toContain("A pizza style is more than its toppings.");
     expect(page).toContain("What DoughTools currently plans");
     expect(page).toContain("Ready to plan the style DoughTools supports today?");
-    expect(atlas).toContain("Explore by what the pizza looks and feels like.");
-    expect(atlas).toContain("Explore style");
+    expect(atlas).toContain("Compare by what the pizza looks and feels like.");
+    expect(atlas).toContain("Compare style details");
     expect(atlas).toContain("role=\"dialog\"");
     expect(atlas).toContain("aria-modal=\"true\"");
     expect(page).not.toContain("recipeParams");

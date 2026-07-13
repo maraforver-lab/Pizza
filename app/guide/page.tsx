@@ -204,7 +204,7 @@ const concepts: Concept[] = [
       { label: "Oven heat", href: "#oven-heat" },
       { label: "Baker’s percentages", href: "#bakers-percentages" },
     ],
-    action: { label: "Calculate a quick recipe", href: "/calculator/quick" },
+    action: { label: "Calculate my dough", href: "/calculator/quick" },
   },
   {
     id: "oven-heat",
@@ -220,7 +220,7 @@ const concepts: Concept[] = [
       { label: "Ball weight and pizza size", href: "#ball-weight" },
       { label: "Fermentation", href: "#fermentation" },
     ],
-    action: { label: "Open the Topping Balance Lab", href: "/toppings" },
+    action: { label: "Build my topping balance", href: "/toppings" },
   },
   {
     id: "bakers-percentages",
@@ -236,7 +236,7 @@ const concepts: Concept[] = [
       { label: "Salt", href: "#salt" },
       { label: "Ball weight and pizza size", href: "#ball-weight" },
     ],
-    action: { label: "Try it in the calculator", href: "/calculator/quick" },
+    action: { label: "Calculate my dough", href: "/calculator/quick" },
   },
 ];
 
@@ -278,7 +278,7 @@ export default function Guide() {
                 href="#essential-concepts"
                 className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-6 text-sm font-extrabold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-tomato-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
-                Explore the essentials
+                Understand dough basics
               </a>
               <a
                 href="#problem-led-entry"
@@ -399,7 +399,7 @@ export default function Guide() {
                 </dl>
                 <details className="mt-5 rounded-2xl border border-ink/10 bg-flour/70 p-4">
                   <summary className="cursor-pointer text-sm font-extrabold text-ink marker:text-tomato">
-                    Learn more
+                    What to check next
                   </summary>
                   <div className="mt-4 grid gap-4 text-sm leading-6 text-ink/64">
                     <p>

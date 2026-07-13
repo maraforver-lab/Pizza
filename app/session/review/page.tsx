@@ -357,7 +357,7 @@ export default function SessionReviewPage() {
                   disabled={saving}
                   className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:opacity-60 sm:w-auto"
                 >
-                  {saving ? "Saving review…" : "Save review →"}
+                  {saving ? "Finishing session…" : "Finish session"}
                 </button>
               )}
             />

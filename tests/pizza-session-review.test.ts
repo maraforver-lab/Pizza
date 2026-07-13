@@ -63,8 +63,8 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("What worked well?");
     expect(page).toContain("What would you improve?");
     expect(page).toContain("Free notes");
-    expect(page).toContain("Save review →");
-    expect(page).toContain("Saving review…");
+    expect(page).toContain("Finish session");
+    expect(page).toContain("Finishing session…");
     expect(page).toContain("Add a pizza photo and share your bake");
     expect(page).toContain("If you’re signed in, you can also save a finished pizza photo as a memory after this review.");
     expect(page).toContain("share image with your bake and preparation parameters");
@@ -115,7 +115,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page.indexOf("Overall result")).toBeLessThan(page.indexOf("What worked well?"));
     expect(page.indexOf("What worked well?")).toBeLessThan(page.indexOf("What would you improve?"));
     expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Free notes"));
-    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Save review →"));
+    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Finish session"));
     [
       "Great crust",
       "Good oven spring",
@@ -145,7 +145,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).not.toContain("placeholder={copy.nextTimeTryPlaceholder}");
   });
 
-  it("uses Save review as the final completion action", () => {
+  it("uses Finish session as the final completion action", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page).toContain("const saveReview = async () =>");
@@ -154,10 +154,11 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("saveCloudActivePizzaSession(completed)");
     expect(page).toContain("completeCloudBackedPizzaSession(completed)");
     expect(page).toContain("router.push(\"/\")");
-    expect(page).toContain("Saving review…");
+    expect(page).toContain("Finishing session…");
+    expect(page).toContain("Finish session");
     expect(page).not.toContain("const finishSession");
     expect(page).not.toContain("Review saved");
-    expect(page).not.toContain("Finish session");
+    expect(page).not.toContain("Save review →");
     expect(page).not.toContain("Back to homepage →");
     expect(page).not.toContain("Start a new Pizza Session →");
     expect(page).not.toContain('href="/session/start?new=1"');
@@ -355,9 +356,9 @@ describe("Pizza Session review and bake notes", () => {
     const timelinePage = source("app/session/timeline/page.tsx");
 
     expect(kitchen).toContain("/session/review");
-    expect(kitchen).toContain("Review your pizza →");
+    expect(kitchen).toContain("Review my pizza");
     expect(timelinePage).toContain("/session/review");
-    expect(timelinePage).toContain("Review your pizza →");
+    expect(timelinePage).toContain("Review my pizza");
     expect(timelinePage).not.toContain("Review session");
     expect([kitchen, timelinePage].join("\n")).not.toMatch(/upload photo|share card|public link|analytics added|tracking added/i);
   });

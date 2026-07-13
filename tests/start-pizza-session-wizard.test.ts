@@ -64,7 +64,7 @@ describe("Start Pizza Session wizard", () => {
     expect(doc).toContain("`/session/shopping`");
     expect(doc).toContain("`/session/kitchen`");
     expect(doc).toContain("`/session/review`");
-    expect(doc).toContain("Create my pizza plan →");
+    expect(doc).toContain("Create my pizza plan");
   });
 
   it("adds the /session/start route with the expected wizard steps", () => {
@@ -335,12 +335,12 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("You’re ready for your Dough Plan.");
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
-    expect(page).toContain("Create my pizza plan →");
+    expect(page).toContain("Create my pizza plan");
     expect(page).toContain("const continueToRecipe = () =>");
     expect(page).toContain("router.push(\"/session/recipe\")");
     expect(page).toContain("onClick={continueToRecipe}");
     expect(page).not.toContain("Save and continue later");
-    expect(page.match(/Create my pizza plan →/g)).toHaveLength(1);
+    expect(page.match(/Create my pizza plan/g) ?? []).toHaveLength(1);
     expect(page).toContain("Back");
     expect(page).not.toContain("Saved locally");
     expect(page).not.toContain("hidden items-center gap-1 text-xs font-bold text-ink/40 sm:flex");
@@ -769,7 +769,8 @@ describe("Start Pizza Session wizard", () => {
     expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my next pizza", href: "/session/start" });
     expect(homepage).toContain("Plan my next pizza");
     expect(homepage).toContain("/session/start");
-    expect(startPage).toContain("Start Pizza Session");
+    expect(startPage).toContain("Plan my next pizza");
+    expect(startPage).not.toContain("Start Pizza Session");
     expect(startPage).toContain("href=\"/session/start\"");
   });
 
@@ -800,7 +801,7 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("function ReplaceActiveSessionChoice");
     expect(page).toContain("Active pizza plan found");
-    expect(page).toContain("Continue current pizza plan");
+    expect(page).toContain("Continue my plan");
     expect(page).toContain('href="/session/start?new=1&replace=1"');
     expect(page).toContain("const shouldReplaceExistingSession = query.get(\"replace\") === \"1\"");
     expect(page).toContain("if (shouldStartNewSession && existingBeforeNew && !shouldReplaceExistingSession)");
@@ -814,7 +815,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("function SessionConflictChoice");
     expect(page).toContain("You have two active pizza plans.");
     expect(page).toContain("Continue this device’s plan");
-    expect(page).toContain("Continue cloud plan");
+    expect(page).toContain("Continue saved plan");
     expect(page).toContain("cloudPizzaSession.id !== active.id");
     expect(page).toContain("setConflictCloudRow(row)");
     expect(page).toContain("DoughTools will not silently replace this device’s plan");

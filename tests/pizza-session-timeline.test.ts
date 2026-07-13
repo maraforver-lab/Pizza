@@ -152,8 +152,9 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Timing highlights");
     expect(page).toContain("Full timeline");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
-    expect(page).toContain("Start mixing now →");
-    expect(page).toContain("Start balling now →");
+    expect(page).toContain("Start Kitchen Mode");
+    expect(page).not.toContain("Start mixing now →");
+    expect(page).not.toContain("Start balling now →");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("onClick={handleNextAction}");
@@ -1017,9 +1018,9 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)");
     expect(page).not.toContain(">Scheduled<");
     expect(page).toContain("Step ${currentActionIndex + 1} of ${actionableSteps.length}");
-    expect(page).toContain("timelineStartActionLabel(nextStep)");
-    expect(page).toContain("cta: \"Continue baking →\"");
-    expect(page).toContain("cta: \"Review your pizza →\"");
+    expect(page).toContain("timelineStartActionLabel()");
+    expect(page).toContain("cta: \"Start Kitchen Mode\"");
+    expect(page).toContain("cta: \"Review my pizza\"");
     expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("{nextAction.title}");
     expect(page).toContain("{nextAction.subtext}");

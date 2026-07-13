@@ -83,7 +83,7 @@ describe("Pizza Session desktop refinement components", () => {
     expect(downstreamPages).toContain("variant=\"error\"");
     expect(startPage).not.toContain("SessionRouteState");
     expect(startPage).toContain("createPlanningDraftSession");
-    expect(startPage).toContain("Create my pizza plan →");
+    expect(startPage).toContain("Create my pizza plan");
   });
 
   it("keeps Pizza Session viewport reset mounted across route-query step variants", () => {

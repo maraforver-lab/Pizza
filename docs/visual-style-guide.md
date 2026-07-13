@@ -185,15 +185,14 @@ Use warm orange for primary CTAs.
 
 Primary action examples:
 
-- Start Pizza Session →
-- Continue →
-- Build my dough plan →
-- Continue to Timeline →
-- Open shopping list →
-- Start dough work →
-- Next step →
-- Mark step as done →
-- Save review →
+- Plan my next pizza
+- Create my pizza plan
+- Continue to Shopping
+- Continue to Timeline
+- Start Kitchen Mode
+- Review my pizza
+- Finish session
+- Mark step as done
 
 Primary action should stand out clearly, especially on mobile.
 
@@ -206,7 +205,7 @@ Secondary actions should not compete with the primary action.
 Examples:
 
 - Back
-- Open calculator
+- Calculate my dough
 - View details
 - Advanced details
 
@@ -214,7 +213,7 @@ Examples:
 
 A dark high-contrast button can be used sparingly for “resume” or active-session continuation, for example:
 
-- Continue session →
+- Continue my plan
 
 Do not use dark buttons randomly. They should signal strong continuation or active-state emphasis.
 
@@ -372,8 +371,8 @@ Hero:
 
 - large headline
 - warm pizza image or illustration
-- primary CTA: Start Pizza Session →
-- secondary CTA: Open calculator
+- primary CTA: Plan my next pizza
+- secondary CTA: See how it works
 - local/private reassurance
 
 Desktop:
@@ -469,15 +468,14 @@ Rules:
 
 Examples:
 
-- Start Pizza Session →
-- Continue →
-- Build my dough plan →
-- Continue to Timeline →
-- Open shopping list →
-- Start dough work →
-- Next step →
-- Mark step as done →
-- Save review →
+- Plan my next pizza
+- Create my pizza plan
+- Continue to Shopping
+- Continue to Timeline
+- Start Kitchen Mode
+- Review my pizza
+- Finish session
+- Mark step as done
 
 ### Secondary button
 
@@ -506,7 +504,7 @@ Use sparingly.
 Examples:
 
 - Advanced details
-- Learn more
+- Understand flour strength
 - View assumptions
 
 Tertiary links should not interrupt the guided flow.
@@ -519,8 +517,8 @@ Avoid showing many equal-weight actions together:
 - Review dough plan
 - Shopping list
 - Save later
-- Open calculator
-- Open doctor
+- Calculate my dough
+- Diagnose my dough
 
 When several utilities are needed, place them behind:
 

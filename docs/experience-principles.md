@@ -181,6 +181,27 @@ Related Learning is not a second CTA wall. A page ending should normally contain
 
 Utility actions such as Copy, Save, Share, Reset, Back and Export are allowed when they perform distinct functions, but they should not visually compete with the main next step.
 
+### CTA language governance
+
+Primary CTA text must name the user's immediate outcome before internal product terminology.
+
+Use stable vocabulary for the same action across routes. Copy variation must reflect a real difference in action, not editorial variety.
+
+Canonical examples:
+
+- Public planning entry: `Plan my next pizza`
+- Plan creation inside the start flow: `Create my pizza plan`
+- Known active plan continuation: `Continue my plan`
+- Saved-plan recovery: `Continue saved plan`
+- Workflow progression: `Continue to Shopping`, `Continue to Timeline`, `Start Kitchen Mode`, `Review my pizza`, `Finish session`
+- Tool actions: `Calculate my dough`, `Calculate my sauce`, `Estimate my pizza cost`, `Diagnose my dough`, `Build my topping balance`, `Start the timer`
+
+Avoid vague primary labels such as `Continue`, `Explore`, `Discover`, `Learn more`, `Read more`, `Open` or `Proceed` when the destination or result can be named.
+
+Standalone tools may lead deeper into the product only when that continuation is real. Do not use labels such as `Use this in my pizza plan` or `Add this to my pizza plan` unless the implementation actually transfers or preserves the settings.
+
+Primary, learning, navigation and utility actions must remain visually distinct.
+
 ### Related-learning budget
 
 Related Learning should normally contain no more than three carefully selected links.

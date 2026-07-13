@@ -173,7 +173,7 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
             href={pizzaSessionContinueHref(session)}
             className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 py-3 text-xs font-extrabold text-white transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
-            Continue session →
+            Continue my plan
           </Link>
         </div>
         <div className="mt-4 border-t border-ink/10 pt-4 text-sm leading-6 text-ink/55">
@@ -206,7 +206,7 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
           href={pizzaSessionContinueHref(session)}
           className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-ink px-5 py-3 text-sm font-extrabold text-white transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
-          Continue session →
+          Continue my plan
         </Link>
       </div>
     </section>

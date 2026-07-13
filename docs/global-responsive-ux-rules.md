@@ -383,16 +383,18 @@ Do not create button menus with many equal-weight actions.
 - Desktop: may sit in the main card, hero action, or bottom action row depending on page type
 - Mobile: should be clearly visible, large and easy to tap
 - Must describe the user’s next meaningful action
+- Must follow the CTA language governance in `docs/experience-principles.md`
 
 Examples:
 
-- Continue →
-- Build my dough plan →
-- Continue to Timeline →
-- Open shopping list →
-- Start dough work →
-- Mark step as done →
-- Save review →
+- Plan my next pizza
+- Create my pizza plan
+- Continue to Shopping
+- Continue to Timeline
+- Start Kitchen Mode
+- Review my pizza
+- Finish session
+- Mark step as done
 
 ### Secondary action
 
@@ -436,12 +438,13 @@ Desktop:
 - Back is secondary and placed at the bottom-left of the action area.
 - The primary forward action is placed at the bottom-right of the action area.
 - The primary forward action uses the page-specific label, for example:
-  - Continue →
-  - Build my dough plan →
-  - Continue to Timeline →
-  - Open shopping list →
-  - Next step →
-  - Mark step as done →
+  - Create my pizza plan
+  - Continue to Shopping
+  - Continue to Timeline
+  - Start Kitchen Mode
+  - Review my pizza
+  - Finish session
+  - Mark step as done
 
 Mobile:
 

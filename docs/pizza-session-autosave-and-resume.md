@@ -4,7 +4,7 @@ Pizza Session persistence is local-first from the moment the user explicitly cre
 
 ## Explicit creation event
 
-A Pizza Session draft is stored only after an explicit creation action, currently the final setup action on `/session/start`, or an explicit Party Orders handoff.
+A Pizza Session draft is stored only after an explicit creation action, currently the final `Create my pizza plan` setup action on `/session/start`, or an explicit Party Orders handoff.
 
 Opening `/session/start` without an active session renders the normal planning form with an in-memory draft. It must not create an empty ghost session, active session ID or cloud record.
 

@@ -245,7 +245,7 @@ export default function AboutPage() {
               That workflow became Pizza Session: not a different logic, but the natural continuation of a real bake. A pizza night is not only a formula. It is dough, shopping, timing, oven work, serving and learning from what happened.
             </p>
             <div className="pt-2">
-              <SecondaryLink href="/session/start">Explore Pizza Sessions</SecondaryLink>
+              <SecondaryLink href="/session/start">Plan my next pizza</SecondaryLink>
             </div>
           </StoryChapter>
 

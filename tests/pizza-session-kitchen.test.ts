@@ -365,7 +365,7 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("Pizza session complete");
     expect(page).toContain("Save what worked and what you want to improve next time.");
-    expect(page).toContain("Review your pizza →");
+    expect(page).toContain("Review my pizza");
     expect(page).toContain("href=\"/session/review\"");
     expect(page).not.toContain("All kitchen steps done");
     expect(page).not.toContain("Ready for review");

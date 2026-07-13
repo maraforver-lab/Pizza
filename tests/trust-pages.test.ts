@@ -162,7 +162,7 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain('href="/account/party-orders/new"');
     expect(aboutPage).toContain("Plan a pizza party");
     expect(aboutPage).toContain('href="/session/start"');
-    expect(aboutPage).toContain("Explore Pizza Sessions");
+    expect(aboutPage).toContain("Plan my next pizza");
     expect(aboutPage).toContain('href="/contact"');
     expect(aboutPage).toContain("Share an idea");
     expect(aboutPage).not.toMatch(/RSVP|email invitation|allerg(?:y|ies)|payment|fully automatic|zero host decisions/i);
@@ -203,7 +203,7 @@ describe("trust and legal pages", () => {
 
   it("keeps product CTAs contextual, unique and below the originating story sections", () => {
     const aboutPage = source("app/about/page.tsx");
-    const pizzaSessionIndex = aboutPage.indexOf("Explore Pizza Sessions");
+    const pizzaSessionIndex = aboutPage.indexOf("Plan my next pizza");
     const workflowIndex = aboutPage.indexOf("From calculator to workflow");
     const partyIndex = aboutPage.indexOf("Plan a pizza party");
     const partyStoryIndex = aboutPage.indexOf("Then another problem appeared.");
@@ -215,7 +215,8 @@ describe("trust and legal pages", () => {
     expect(partyStoryIndex).toBeGreaterThan(-1);
     expect(partyIndex).toBeGreaterThan(partyStoryIndex);
     expect(shareIndex).toBeGreaterThan(closingIndex);
-    expect(aboutPage.match(/Explore Pizza Sessions/g) ?? []).toHaveLength(1);
+    expect(aboutPage.match(/Plan my next pizza/g) ?? []).toHaveLength(1);
+    expect(aboutPage).not.toContain("Explore Pizza Sessions");
     expect(aboutPage.match(/Plan a pizza party/g) ?? []).toHaveLength(1);
     expect(aboutPage.match(/Share an idea/g) ?? []).toHaveLength(1);
   });

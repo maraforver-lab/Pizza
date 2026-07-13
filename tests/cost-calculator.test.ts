@@ -97,7 +97,7 @@ describe("pizza cost calculator", () => {
     expect(appPage).toContain("<PizzaCostsPlayfulClient />");
     expect(page).toContain("Pizza Night Economics");
     expect(page).toContain("What does pizza night really cost?");
-    expect(page).toContain("Calculate pizza night");
+    expect(page).toContain("Estimate my pizza cost");
     expect(page).toContain("Made at home");
     expect(page).toContain("Restaurant order");
     expect(page).toContain("Home cost breakdown");

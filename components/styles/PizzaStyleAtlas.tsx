@@ -269,7 +269,7 @@ function StyleCard({ onExplore, style }: { onExplore: (style: PizzaStyleEducatio
         type="button"
         onClick={() => onExplore(style)}
         className="group block w-full overflow-hidden bg-ink text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-tomato"
-        aria-label={`Explore ${style.name}`}
+        aria-label={`Compare ${style.name}`}
       >
         <StyleImage style={style} />
         <span className="sr-only">Open style detail</span>
@@ -295,7 +295,7 @@ function StyleCard({ onExplore, style }: { onExplore: (style: PizzaStyleEducatio
           onClick={() => onExplore(style)}
           className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-ink px-5 py-3 text-sm font-extrabold text-white transition hover:bg-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
         >
-          Explore style
+          Compare style details
         </button>
       </div>
     </article>
@@ -316,7 +316,7 @@ export default function PizzaStyleAtlas() {
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Style gallery</p>
             <h2 id="style-gallery-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">
-              Explore by what the pizza looks and feels like.
+              Compare by what the pizza looks and feels like.
             </h2>
           </div>
           <p className="max-w-2xl text-sm leading-6 text-ink/60">

@@ -243,10 +243,8 @@ function shoppingCheckpointState(session: PizzaSession | null): ShoppingCheckpoi
   return "Check";
 }
 
-function timelineStartActionLabel(step?: PizzaSessionTimelineStep) {
-  if (step?.id === "mix-dough") return "Start mixing now →";
-  if (step?.id === "ball-dough") return "Start balling now →";
-  return "Start dough step →";
+function timelineStartActionLabel() {
+  return "Start Kitchen Mode";
 }
 
 function nextActionForTimeline({
@@ -263,7 +261,7 @@ function nextActionForTimeline({
     const hasStarted = hasStepActuallyStarted(session ?? undefined, nextStep.id);
     return {
       href: "/session/kitchen?from=timeline",
-      cta: isWorkStep && !hasStarted ? timelineStartActionLabel(nextStep) : "Continue in Kitchen Mode →",
+      cta: isWorkStep && !hasStarted ? timelineStartActionLabel() : "Start Kitchen Mode",
       title: nextStep.label,
       subtext: "This is your next dough preparation step.",
       kind: "dough",
@@ -274,7 +272,7 @@ function nextActionForTimeline({
   if (nextStep && isServiceTimelineStep(nextStep)) {
     return {
       href: "/session/kitchen?from=timeline",
-      cta: "Continue baking →",
+      cta: "Start Kitchen Mode",
       title: nextStep.label,
       subtext: "Kitchen Mode will guide the active cooking steps.",
       kind: "service",
@@ -284,7 +282,7 @@ function nextActionForTimeline({
 
   return {
     href: "/session/review",
-    cta: "Review your pizza →",
+    cta: "Review my pizza",
     title: allStepsComplete ? "Review your pizza" : "Review your session",
     subtext: "Save what worked for next time.",
     kind: "review",

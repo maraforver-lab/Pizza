@@ -521,7 +521,7 @@ function SessionConflictChoice({
           </button>
           <button type="button" onClick={() => onContinueCloud(cloudRow)} className="rounded-[1.5rem] border border-tomato/25 bg-tomato/[.06] p-5 text-left transition hover:border-tomato/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
             <span className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Account</span>
-            <span className="mt-2 block font-display text-2xl font-semibold">Continue cloud plan</span>
+            <span className="mt-2 block font-display text-2xl font-semibold">Continue saved plan</span>
             <span className="mt-3 block text-sm leading-6 text-ink/60">
               Last saved {formatUpdated(cloudSession.lastSavedAt)} · {cloudSession.pizzaCount ?? "No"} pizzas · {cloudSession.targetEatTime ? formatTargetTime(cloudSession.targetEatTime) : "time not set"}
             </span>
@@ -554,10 +554,10 @@ function ReplaceActiveSessionChoice({
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <button type="button" onClick={onContinueExisting} className={buttonClass({ className: "min-h-12 px-6" })}>
-            Continue current pizza plan
+            Continue my plan
           </button>
           <Link href="/session/start?new=1&replace=1" className={buttonClass({ className: "min-h-12 px-6", variant: "secondary" })}>
-            Start a new pizza plan
+            Start a new plan
           </Link>
         </div>
       </div>
@@ -1412,11 +1412,11 @@ function StartPizzaSessionContent() {
               <div className="flex flex-col gap-2 sm:items-end">
               {step !== "summary" ? (
                 <button type="button" onClick={continueStep} disabled={!canContinue} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
-                  Continue →
+                  Continue setup
                 </button>
               ) : (
                 <button type="button" onClick={continueToRecipe} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
-                  Create my pizza plan →
+                  Create my pizza plan
                 </button>
               )}
             </div>

@@ -36,20 +36,19 @@ describe("Pizza Session flow navigation integrity", () => {
     const kitchen = source("app/session/kitchen/page.tsx");
     const review = source("app/session/review/page.tsx");
 
-    expect(start).toContain("Create my pizza plan →");
+    expect(start).toContain("Create my pizza plan");
     expect(start).toContain("const continueToRecipe = () =>");
     expect(start).toContain("router.push(\"/session/recipe\")");
     expectTextLink(recipe, "Continue to Shopping →", "/session/shopping");
     expectTextLink(shopping, "Continue to Timeline →", "/session/timeline");
     expect(timeline).toContain('onClick={handleNextAction}');
     expect(timeline).toContain('router.push(nextAction.href)');
-    expect(timeline).toContain('Start mixing now →');
-    expect(timeline).toContain('Continue baking →');
+    expect(timeline).toContain('Start Kitchen Mode');
     expectTextLink(timeline, "Back", "/session/shopping");
     expect(kitchen).toContain("href={backHref}");
     expect(kitchen).toContain("kitchenBackHrefFromSource");
-    expectTextLink(kitchen, "Review your pizza →", "/session/review");
-    expect(review).toContain("Save review →");
+    expectTextLink(kitchen, "Review my pizza", "/session/review");
+    expect(review).toContain("Finish session");
     expect(review).toContain("router.push(\"/\")");
     expect(review).not.toContain("Back to Kitchen Mode");
     expect(review).not.toContain("View timeline");
@@ -123,7 +122,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("hideLocalSaveNote");
     expect(kitchen).toContain("Mark step as done →");
     expect(kitchen).toContain("Pizza session complete");
-    expect(kitchen).toContain("Review your pizza →");
+    expect(kitchen).toContain("Review my pizza");
     expect(kitchen).toContain('href="/session/review"');
     expect(kitchen).toContain("href={backHref}");
     expect(kitchen).toContain("This step is scheduled later");
@@ -138,8 +137,8 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).not.toContain("Do this now");
     expect(kitchen).not.toContain("SessionStepHero");
     expect(kitchen).not.toMatch(/Review dough plan|Open shopping list|Save and continue later|Open full Calculator/);
-    expect(review).toContain("Save review →");
-    expect(review).toContain("Saving review…");
+    expect(review).toContain("Finish session");
+    expect(review).toContain("Finishing session…");
     expect(review).toContain("Add a pizza photo and share your bake");
     expect(review).toContain("Nothing to review yet");
     expect(review).not.toContain("How did your pizza turn out?");

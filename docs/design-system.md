@@ -342,6 +342,16 @@ Back, cancel or light alternative. Never competes with the primary button.
 
 Compact utility action only. Never replace a main CTA with an icon-only button.
 
+### CTA language
+
+Buttons must describe the immediate user outcome. Use the CTA language governance in [Experience principles](./experience-principles.md) as the canonical source.
+
+Public planning entry actions should normally read `Plan my next pizza`. Inside active workflows, primary labels should name the next stage, such as `Continue to Shopping`, `Continue to Timeline`, `Start Kitchen Mode`, `Review my pizza` or `Finish session`.
+
+Tool buttons should use task verbs such as `Calculate my dough`, `Calculate my sauce`, `Estimate my pizza cost`, `Diagnose my dough`, `Build my topping balance` or `Start the timer`.
+
+Do not use primary button styling for ordinary learning links, and do not let several labels describe the same destination and purpose inside one decision point.
+
 ### StatusPill
 
 Small state label such as saved locally, done, current, private or guidance mode.
@@ -581,7 +591,7 @@ A future page or section can start with this shape:
     eyebrow="Pizza-making made simple"
     title="Better decisions. Better pizza."
     body="Guide the user toward one clear next action."
-    actions={<PrimaryButton href="/session/start">Start Pizza Session →</PrimaryButton>}
+    actions={<PrimaryButton href="/session/start">Plan my next pizza</PrimaryButton>}
   />
 
   <PageSection title="Your pizza journey">

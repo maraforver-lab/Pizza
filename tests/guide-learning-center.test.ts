@@ -12,11 +12,12 @@ describe("Pizza Learning Center guide index", () => {
 
     expect(guide).toContain("Pizza Learning Center");
     expect(guide).toContain("Understand your dough. Make better pizza.");
-    expect(guide).toContain("Explore the essentials");
+    expect(guide).toContain("Understand dough basics");
     expect(guide).toContain("Solve a pizza problem");
     expect(guide).toContain('id="problem-led-entry"');
     expect(guide).toContain('id="essential-concepts"');
     expect(guide).toContain("The essentials behind better pizza");
+    expect(guide).not.toContain("Learn more");
   });
 
   it("removes the Guide-only experience-level selector without touching global level systems", () => {
