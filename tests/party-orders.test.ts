@@ -603,20 +603,28 @@ describe("Party Orders foundation", () => {
   it("shows owner list cards and the future public share link shell", () => {
     const list = source("components/account/PartyOrdersList.tsx");
     expect(list).toContain("Party Orders");
-    expect(list).toContain("Create party order");
+    expect(list).toContain("Plan the menu. Let guests choose.");
+    expect(list).toContain("Create a pizza party");
     expect(list).toContain("fetch(\"/api/party-orders\")");
     expect(list).toContain("activeEvents");
     expect(list).toContain("archivedEvents");
-    expect(list).toContain("Active Party Orders");
-    expect(list).toContain("Archived Party Orders");
-    expect(list).toContain("Current");
-    expect(list).toContain("History");
-    expect(list).toContain("Archived · Not accepting guest orders");
-    expect(list).toContain("Archived Party Orders stay viewable, but guests cannot submit or edit orders while they are archived.");
-    expect(list).toContain("Saved for review. Restore it to move it back to your active list.");
-    expect(list).toContain("Open / View");
+    expect(list).toContain("Account breadcrumb");
+    expect(list).toContain("Active parties");
+    expect(list).toContain("Archived parties");
+    expect(list).toContain("Current pizza party");
+    expect(list).toContain("Guest ordering");
+    expect(list).toContain("Guest orders");
+    expect(list).toContain("Share ordering link");
+    expect(list).toContain("View guest orders");
+    expect(list).toContain("Prepare this party");
+    expect(list).toContain("Archived parties stay available for reference, but guests cannot submit or edit orders while they are archived.");
+    expect(list).toContain("View archived party");
     expect(list).toContain("Restore party order");
+    expect(list).toContain("Plan your first pizza party");
+    expect(list).toContain("Create the menu, share one link with your guests");
+    expect(list).toContain("Turn orders into a Pizza Session");
     expect(list).toContain("partyOrderOwnerStatusSummary(event)");
+    expect(source("app/account/party-orders/page.tsx")).toContain("max-w-6xl");
 
     const detail = source("components/account/PartyOrderDetail.tsx");
     const editForm = source("components/account/PartyOrderSettingsEditForm.tsx");

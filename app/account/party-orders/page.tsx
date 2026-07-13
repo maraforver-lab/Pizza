@@ -12,8 +12,8 @@ export default async function PartyOrdersPage() {
   await requireSignedInUser();
 
   return (
-    <main className="min-h-screen bg-cream px-4 py-10 pb-28 text-ink sm:px-6">
-      <div className="mx-auto max-w-4xl">
+    <main className="min-h-screen bg-cream px-4 py-8 pb-24 text-ink sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-6xl">
         <PartyOrdersList />
       </div>
     </main>
