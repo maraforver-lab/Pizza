@@ -321,10 +321,43 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(getQuickCalculatorPresentation("beginner").badge).toBe("Beginner");
     expect(getQuickCalculatorPresentation("enthusiast").badge).toBe("Enthusiast");
     expect(getQuickCalculatorPresentation("pizza_nerd").badge).toBe("Pizza Nerd");
-    expect(component).toContain("ExperienceLevelSelector");
     expect(component).toContain("readExperienceLevelPreference");
-    expect(component).toContain("GuidanceModeBadge");
+    expect(component).toContain("writeExperienceLevelPreference");
+    expect(component).toContain("getExperienceLevelConfig");
+    expect(component).toContain("data-quick-guidance-preference");
     expect(component).not.toContain("Beginner | Enthusiast | Pizza Nerd");
+  });
+
+  it("moves Quick Calculator guidance selection into a compact footer preference", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("Guidance: {selectedGuidance.label}");
+    expect(component).toContain("quickGuidanceLevelDescriptions");
+    expect(component).toContain("Clear next steps and fewer decisions.");
+    expect(component).toContain("More explanation and practical control.");
+    expect(component).toContain("Advanced variables and deeper technical detail.");
+    expect(component).toContain('aria-controls="quick-calculator-guidance-preference"');
+    expect(component).toContain("QuickCalculatorGuidancePreference");
+    expect(component).toContain("data-quick-guidance-preference");
+    expect(component).toContain("Calculator preference");
+    expect(component).toContain("Guidance level updated");
+    expect(component).not.toContain("ExperienceLevelSelector");
+    expect(component).not.toContain("Choose how much of the same calculator model you want visible while you work.");
+  });
+
+  it("preserves guidance preference focus, scroll and footer order without URL navigation", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("matchMedia(\"(prefers-reduced-motion: reduce)\")");
+    expect(component).toContain("scrollIntoView");
+    expect(component).toContain("focus({ preventScroll: true })");
+    expect(component).toContain("window.scrollBy({ top: nextTop - previousTop");
+    expect(component).toContain("window.requestAnimationFrame");
+    expect(component).not.toMatch(/window\.location\s*=/);
+    expect(component).not.toMatch(/history\.pushState|history\.replaceState/);
+    expect(component).not.toContain("router.push");
+    expect(component.indexOf("data-quick-save-share")).toBeLessThan(component.lastIndexOf("<QuickCalculatorGuidancePreference"));
+    expect(component.lastIndexOf("<QuickCalculatorGuidancePreference")).toBeLessThan(component.indexOf("<SiteFooter />"));
   });
 
   it("keeps Beginner simpler while preserving access to the same effective inputs", () => {
@@ -935,7 +968,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
   it("uses the Patch 343 responsive workspace order without moving calculation state", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain('title="Guidance level"');
+    expect(component).toContain("data-quick-guidance-preference");
     expect(component).toContain("data-quick-essential-controls");
     expect(component).toContain("data-quick-result-panel");
     expect(component).toContain("data-quick-advanced-section");

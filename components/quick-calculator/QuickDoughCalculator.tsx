@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import EditableNumberInput from "@/components/EditableNumberInput";
-import ExperienceLevelSelector, { GuidanceModeBadge } from "@/components/ExperienceLevelSelector";
+import SiteFooter from "@/components/SiteFooter";
 import {
+  EXPERIENCE_LEVELS,
+  getExperienceLevelConfig,
   readExperienceLevelPreference,
+  writeExperienceLevelPreference,
   type ExperienceLevel,
 } from "@/lib/experience-levels";
 import {
@@ -47,6 +50,12 @@ type CopyState = "idle" | "copied" | "unavailable";
 type RecipeNotice = "idle" | "saved" | "loaded" | "deleted" | "duplicated" | "renamed" | "storage-error";
 
 const numberInputClassName = "h-12 w-full min-w-0 rounded-2xl border border-ink/10 bg-white px-3 text-base font-extrabold tabular-nums text-ink outline-none transition focus:border-tomato focus:ring-4 focus:ring-tomato/10";
+
+const quickGuidanceLevelDescriptions: Record<ExperienceLevel, string> = {
+  beginner: "Clear next steps and fewer decisions.",
+  enthusiast: "More explanation and practical control.",
+  pizza_nerd: "Advanced variables and deeper technical detail.",
+};
 
 function formatGrams(value: number, precise = false) {
   return new Intl.NumberFormat("en-GB", {
@@ -244,6 +253,121 @@ function SelectField<T extends string>({
   );
 }
 
+function QuickCalculatorGuidancePreference({
+  level,
+  open,
+  notice,
+  onToggle,
+  onSelectLevel,
+  sectionRef,
+  headingRef,
+}: {
+  level: ExperienceLevel;
+  open: boolean;
+  notice: string | null;
+  onToggle: () => void;
+  onSelectLevel: (level: ExperienceLevel) => void;
+  sectionRef: RefObject<HTMLElement | null>;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+}) {
+  const selected = getExperienceLevelConfig(level);
+
+  return (
+    <section
+      ref={sectionRef}
+      id="quick-calculator-guidance-preference"
+      className="scroll-mt-6 rounded-[1.75rem] border border-ink/10 bg-white/72 p-4 shadow-sm backdrop-blur sm:p-5"
+      aria-labelledby="quick-guidance-preference-heading"
+      data-quick-guidance-preference
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-tomato">Calculator preference</p>
+          <h2
+            ref={headingRef}
+            id="quick-guidance-preference-heading"
+            tabIndex={-1}
+            className="mt-1 text-xl font-extrabold text-ink outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+          >
+            Guidance level
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-ink/55">
+            <span className="font-extrabold text-ink">{selected.label}</span> · {quickGuidanceLevelDescriptions[selected.id]}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-controls="quick-guidance-level-options"
+          className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/25 hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        >
+          {open ? "Done" : "Change"}
+        </button>
+      </div>
+
+      {open && (
+        <fieldset id="quick-guidance-level-options" className="mt-4">
+          <legend className="sr-only">Select guidance level</legend>
+          <div className="hidden gap-2 sm:grid sm:grid-cols-3" role="group" aria-label="Guidance level options">
+            {EXPERIENCE_LEVELS.map((option) => {
+              const active = option.id === selected.id;
+
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => onSelectLevel(option.id)}
+                  aria-pressed={active}
+                  className={`rounded-2xl border px-3 py-3 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+                    active ? "border-tomato bg-tomato text-white shadow-sm" : "border-ink/10 bg-cream/35 text-ink hover:border-tomato/30"
+                  }`}
+                >
+                  <span className="block font-extrabold">{option.label}</span>
+                  <span className={`mt-1 block text-xs leading-5 ${active ? "text-white/72" : "text-ink/50"}`}>
+                    {quickGuidanceLevelDescriptions[option.id]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="grid gap-2 sm:hidden">
+            {EXPERIENCE_LEVELS.map((option) => (
+              <label
+                key={option.id}
+                className={`flex min-h-14 items-start gap-3 rounded-2xl border p-3 transition ${
+                  option.id === selected.id ? "border-tomato bg-tomato/[.08]" : "border-ink/10 bg-cream/35"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="quick-guidance-level"
+                  value={option.id}
+                  checked={option.id === selected.id}
+                  onChange={() => onSelectLevel(option.id)}
+                  className="mt-1 h-4 w-4 border-ink/20 text-tomato focus:ring-tomato"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-extrabold text-ink">{option.label}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/52">
+                    {quickGuidanceLevelDescriptions[option.id]}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
+      {notice && (
+        <p className="mt-3 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs font-extrabold text-leaf" role="status">
+          {notice}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function RecipeResultPanel({
   result,
   presentation,
@@ -378,11 +502,16 @@ export default function QuickDoughCalculator() {
   const [shareState, setShareState] = useState<CopyState>("idle");
   const [recipeNotice, setRecipeNotice] = useState<RecipeNotice>("idle");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [guidancePreferenceOpen, setGuidancePreferenceOpen] = useState(false);
+  const [guidanceNotice, setGuidanceNotice] = useState<string | null>(null);
   const [recipeName, setRecipeName] = useState("My quick dough");
   const [activeRecipeId, setActiveRecipeId] = useState<string | null>(null);
   const [savedRecipes, setSavedRecipes] = useState<QuickCalculatorSavedRecipeV1[]>([]);
+  const guidancePreferenceRef = useRef<HTMLElement | null>(null);
+  const guidancePreferenceHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const result = useMemo(() => calculateQuickDough(input), [input]);
   const presentation = getQuickCalculatorPresentation(experienceLevel);
+  const selectedGuidance = getExperienceLevelConfig(experienceLevel);
 
   const selectedEnvironment = quickCalculatorEnvironmentOptions.find((option) => option.value === result.input.fermentationEnvironment)
     ?? quickCalculatorEnvironmentOptions[0];
@@ -392,6 +521,40 @@ export default function QuickDoughCalculator() {
   const showAdvancedCard = presentation.visibleGroups.includes("advanced");
   const formulaDefaultOpen = !presentation.collapsedGroups.includes("formula");
   const advancedDefaultOpen = !presentation.collapsedGroups.includes("advanced");
+
+  const prefersReducedMotion = () => (
+    typeof window !== "undefined"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+
+  const focusGuidancePreference = () => {
+    setGuidancePreferenceOpen(true);
+    window.requestAnimationFrame(() => {
+      guidancePreferenceRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start",
+      });
+      guidancePreferenceHeadingRef.current?.focus({ preventScroll: true });
+    });
+  };
+
+  const updateGuidanceLevel = (level: ExperienceLevel) => {
+    const preferenceSection = guidancePreferenceRef.current;
+    const previousTop = preferenceSection?.getBoundingClientRect().top ?? null;
+    const savedLevel = writeExperienceLevelPreference(level);
+
+    setExperienceLevel(savedLevel);
+    setGuidanceNotice("Guidance level updated");
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if (preferenceSection && previousTop !== null) {
+          const nextTop = preferenceSection.getBoundingClientRect().top;
+          window.scrollBy({ top: nextTop - previousTop, left: 0, behavior: "auto" });
+        }
+        guidancePreferenceHeadingRef.current?.focus({ preventScroll: true });
+      });
+    });
+  };
 
   useEffect(() => {
     setExperienceLevel(readExperienceLevelPreference());
@@ -800,7 +963,8 @@ export default function QuickDoughCalculator() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f6ecdf_48%,#fff8f1_100%)] px-4 py-6 text-ink sm:px-6 sm:py-8 lg:px-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f6ecdf_48%,#fff8f1_100%)] text-ink">
+    <main className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <section className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="quick-calculator-heading">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,0.58fr)] lg:items-center">
@@ -813,7 +977,18 @@ export default function QuickDoughCalculator() {
                 Enter dough values, get ingredient amounts, then leave with the recipe. This tool does not save or start a pizza workflow.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <GuidanceModeBadge level={experienceLevel} />
+                <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${selectedGuidance.badgeClassName}`}>
+                  <span aria-hidden="true">{selectedGuidance.marker}</span>
+                  Guidance: {selectedGuidance.label}
+                </span>
+                <button
+                  type="button"
+                  onClick={focusGuidancePreference}
+                  className="inline-flex min-h-10 items-center rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold text-ink/55 transition hover:border-tomato/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  aria-controls="quick-calculator-guidance-preference"
+                >
+                  Change
+                </button>
                 <span className="rounded-full bg-ink/[.055] px-3 py-2 text-xs font-extrabold text-ink/45">{presentation.heading}</span>
               </div>
             </div>
@@ -829,15 +1004,6 @@ export default function QuickDoughCalculator() {
             </div>
           </div>
         </section>
-
-        <ExperienceLevelSelector
-          value={experienceLevel}
-          onChange={setExperienceLevel}
-          compact
-          title="Guidance level"
-          intro="Choose how much of the same calculator model you want visible while you work."
-          className="mt-5"
-        />
 
         <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)] lg:items-start">
           <section className="grid min-w-0 gap-5 lg:col-start-1 lg:row-start-1" aria-label="Quick calculator essential inputs" data-quick-essential-controls>
@@ -1315,7 +1481,21 @@ export default function QuickDoughCalculator() {
             </div>
           </section>
         </div>
+
+        <div className="mt-6">
+          <QuickCalculatorGuidancePreference
+            level={experienceLevel}
+            open={guidancePreferenceOpen}
+            notice={guidanceNotice}
+            onToggle={() => setGuidancePreferenceOpen((current) => !current)}
+            onSelectLevel={updateGuidanceLevel}
+            sectionRef={guidancePreferenceRef}
+            headingRef={guidancePreferenceHeadingRef}
+          />
+        </div>
       </div>
     </main>
+    <SiteFooter />
+    </div>
   );
 }
