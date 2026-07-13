@@ -49,7 +49,7 @@ export const navigationGroups = [
       { id: "calculator", label: "Dough Calculator", href: "/?calculator=1", description: "Start with dough weight, hydration, salt, yeast and fermentation." },
       { id: "planner", label: "Fermentation Planner", href: "/plan", description: "Turn the recipe into a timeline and preparation plan." },
       { id: "sauce", label: "Sauce Calculator", href: "/sauce", description: "Calculate tomato sauce for the number of pizzas." },
-      { id: "toppings", label: "Toppings Calculator", href: "/toppings", description: "Balance cheese, toppings and moisture before baking." },
+      { id: "toppings", label: "Topping Balance Lab", href: "/toppings", description: "See how sauce, cheese, pizza size and moisture change topping balance." },
       { id: "timer", label: "Baking Timer", href: "/timer", description: "Use a pizza-oven timer while baking." },
     ],
   },

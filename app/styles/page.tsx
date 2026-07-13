@@ -106,7 +106,7 @@ export default function StylesPage() {
               { href: "/sauce", title: "Pizza Sauce", description: "Choose a sauce method that fits the bake and style.", icon: "water" },
               { href: "/guides/dough", title: "Dough Guide", description: "Follow the dough-making process step by step.", icon: "mixing-bowl" },
               { href: "/ovens", title: "Oven Guide", description: "Match the style to your real oven environment.", icon: "oven" },
-              { href: "/toppings", title: "Toppings", description: "Manage cheese, sauce and topping moisture.", icon: "pizza" },
+              { href: "/toppings", title: "Topping Balance Lab", description: "Manage cheese, sauce and topping moisture.", icon: "pizza" },
               { href: "/guide/pizza-troubleshooting", title: "Troubleshooting", description: "Fix dense crust, pale bases, sticky dough and launch issues.", icon: "warning" },
             ]}
             cta={{

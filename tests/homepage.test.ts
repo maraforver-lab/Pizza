@@ -219,12 +219,13 @@ describe("homepage content model", () => {
     expect(header).toContain('type OpenNavigationMenu = "guide" | "tools" | null');
     expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("About");
-    expect(header).not.toContain("Lab");
     expect(header).not.toContain("Start Pizza Session");
     expect(header).not.toContain('href="/session/start"');
     expect(header).toContain("Quick Dough Calculator");
     expect(header).toContain("Standalone dough amounts, preferments, sizing and advanced tools.");
     expect(header).toContain('href: "/calculator/quick"');
+    expect(header).toContain("Topping Balance Lab");
+    expect(header).toContain('href: "/toppings"');
     expect(header).not.toContain('href: "/?calculator=2"');
     expect(header).not.toContain("Calculator v2");
     expect(header).not.toContain("Pizza dough calculator");
@@ -388,7 +389,10 @@ describe("homepage content model", () => {
     expect(header).toContain('href: "/calculator/quick"');
     expect(header).toContain("toolsMenuItems.map");
     expect(header).toContain('const quickCalculatorActive = pathname === "/calculator/quick"');
-    expect(header).toContain('aria-current={quickCalculatorActive ? "page" : undefined}');
+    expect(header).toContain('const toppingBalanceLabActive = pathname === "/toppings"');
+    expect(header).toContain("Topping Balance Lab");
+    expect(header).toContain('href: "/toppings"');
+    expect(header).toContain('aria-current={active ? "page" : undefined}');
     expect(header).not.toContain("Calculator v2");
     expect(header).not.toContain("Guided recommendation from bake time and ingredients.");
     expect(header).not.toContain('href: "/?calculator=2"');

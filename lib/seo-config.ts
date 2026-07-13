@@ -118,8 +118,9 @@ export const publicSeoRoutes = [
   },
   {
     path: "/toppings",
-    title: "Cheese and Topping Calculator | DoughTools",
-    description: "Plan cheese and topping amounts while keeping moisture and topping load under control.",
+    title: "Pizza Topping Balance Lab: Sauce, Cheese and Moisture | DoughTools",
+    description:
+      "See how sauce, cheese, pizza size and mozzarella moisture change topping balance, and learn what too little, balanced and overloaded pizza look like.",
     changeFrequency: "monthly",
     priority: 0.7,
   },

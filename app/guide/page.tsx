@@ -61,6 +61,12 @@ const problemEntries: ProblemEntry[] = [
     icon: "oven",
   },
   {
+    title: "My pizza gets wet under the toppings",
+    description: "See how sauce, cheese, diameter, moisture, and oven heat interact.",
+    href: "/toppings",
+    icon: "pizza",
+  },
+  {
     title: "I want a lighter, airier crust",
     description: "Understand the combined effect of hydration, strength, fermentation, handling, and heat.",
     href: "#hydration-comparison",
@@ -214,7 +220,7 @@ const concepts: Concept[] = [
       { label: "Ball weight and pizza size", href: "#ball-weight" },
       { label: "Fermentation", href: "#fermentation" },
     ],
-    action: { label: "Troubleshoot baking problems", href: "/guide/pizza-troubleshooting" },
+    action: { label: "Open the Topping Balance Lab", href: "/toppings" },
   },
   {
     id: "bakers-percentages",
@@ -467,7 +473,7 @@ export default function Guide() {
           </div>
         </section>
 
-        <section className="mt-16 grid gap-5 lg:grid-cols-3" aria-labelledby="guide-next-title">
+        <section className="mt-16 grid gap-5 lg:grid-cols-4" aria-labelledby="guide-next-title">
           <div className="lg:col-span-3">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Go deeper</p>
             <h2 id="guide-next-title" className="mt-3 font-display text-4xl font-semibold">
@@ -486,6 +492,13 @@ export default function Guide() {
             <h3 className="mt-5 font-display text-2xl font-semibold">Pizza Troubleshooting Guide</h3>
             <p className="mt-3 text-sm leading-6 text-ink/62">
               Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.
+            </p>
+          </Link>
+          <Link href="/toppings" className="rounded-[1.75rem] border border-ink/10 bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-card">
+            <DoughToolsIcon name="pizza" className="text-tomato" size={32} />
+            <h3 className="mt-5 font-display text-2xl font-semibold">Topping Balance Lab</h3>
+            <p className="mt-3 text-sm leading-6 text-ink/62">
+              Compare sauce, cheese, usable topped area and mozzarella moisture before the pizza reaches the oven.
             </p>
           </Link>
           <Link href="/session/start" className="rounded-[1.75rem] border border-ink/10 bg-forest-dark p-6 text-white shadow-card transition hover:-translate-y-1">

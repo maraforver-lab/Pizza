@@ -197,7 +197,7 @@ export default function OvensPage() {
               { href: "/styles", title: "Pizza Style Atlas", description: "Match oven behavior to the style you want.", icon: "pizza" },
               { href: "/sauce", title: "Pizza Sauce", description: "Adjust sauce texture for home ovens and longer bakes.", icon: "water" },
               { href: "/guides/dough", title: "Dough Guide", description: "Handle dough so it suits the heat and bake time.", icon: "mixing-bowl" },
-              { href: "/toppings", title: "Toppings", description: "Control cheese, sauce and topping moisture.", icon: "pizza" },
+              { href: "/toppings", title: "Topping Balance Lab", description: "Control cheese, sauce and topping moisture.", icon: "pizza" },
               { href: "/gear", title: "Gear", description: "Understand steels, stones, pans and peels.", icon: "shopping-basket" },
               { href: "/guide/pizza-troubleshooting", title: "Troubleshooting", description: "Fix pale bases, wet centers and uneven baking.", icon: "warning" },
             ]}

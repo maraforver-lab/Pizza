@@ -12,6 +12,8 @@ const copy = {
   tools: "Tools",
   quickCalculator: "Quick Dough Calculator",
   quickCalculatorDescription: "Standalone dough amounts, preferments, sizing and advanced tools.",
+  toppingBalanceLab: "Topping Balance Lab",
+  toppingBalanceLabDescription: "See how sauce, cheese, pizza size and moisture change the bake.",
   guide: "Guide",
   doughGuide: "Dough Guide",
   doughGuideDescription: "Step-by-step dough preparation from mixing to a ball ready to stretch.",
@@ -33,6 +35,11 @@ const toolsMenuItems = [
     href: "/calculator/quick",
     label: copy.quickCalculator,
     description: copy.quickCalculatorDescription,
+  },
+  {
+    href: "/toppings",
+    label: copy.toppingBalanceLab,
+    description: copy.toppingBalanceLabDescription,
   },
 ] as const;
 
@@ -66,6 +73,7 @@ export default function GlobalToolNavigation() {
   const ovenGuideActive = pathname === "/ovens";
   const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting";
   const quickCalculatorActive = pathname === "/calculator/quick";
+  const toppingBalanceLabActive = pathname === "/toppings";
   const aboutActive = pathname === "/about";
 
   useEffect(() => {
@@ -267,19 +275,22 @@ export default function GlobalToolNavigation() {
             </button>
             {toolsMenuOpen && (
               <div id="global-tools-menu" className="absolute right-0 top-12 z-[70] w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Tools menu">
-                {toolsMenuItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    role="menuitem"
-                    aria-current={quickCalculatorActive ? "page" : undefined}
-                    onClick={() => setOpenMenu(null)}
-                    className={guideMenuItemClass(quickCalculatorActive)}
-                  >
-                    <span className="block text-sm font-extrabold">{item.label}</span>
-                    <span className="mt-1 block text-xs leading-5 text-ink/55">{item.description}</span>
-                  </Link>
-                ))}
+                {toolsMenuItems.map((item) => {
+                  const active = item.href === "/calculator/quick" ? quickCalculatorActive : item.href === "/toppings" ? toppingBalanceLabActive : false;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      aria-current={active ? "page" : undefined}
+                      onClick={() => setOpenMenu(null)}
+                      className={guideMenuItemClass(active)}
+                    >
+                      <span className="block text-sm font-extrabold">{item.label}</span>
+                      <span className="mt-1 block text-xs leading-5 text-ink/55">{item.description}</span>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

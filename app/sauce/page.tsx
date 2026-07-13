@@ -205,7 +205,7 @@ const relatedLinks = [
   ["Pizza Dough Guide", "/guides/dough", "Follow the dough process from mixing to stretching readiness."],
   ["Pizza Troubleshooting Guide", "/guide/pizza-troubleshooting", "Fix wet centers, pale bases, scorched rims and other problems."],
   ["Pizza Styles", "/styles", "Match sauce choices to the style you want to bake."],
-  ["Toppings", "/toppings", "Choose cheese and toppings without overloading the pizza."],
+  ["Topping Balance Lab", "/toppings", "Compare sauce, cheese and topping load before the pizza reaches the oven."],
   ["Ovens", "/ovens", "Understand how your baking setup changes sauce and moisture decisions."],
 ] as const;
 

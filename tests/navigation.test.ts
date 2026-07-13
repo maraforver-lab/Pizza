@@ -127,11 +127,10 @@ describe("shared navigation model", () => {
     expect(header).not.toContain('label: "Dough Calculator"');
   });
 
-  it("removes Lab from the global header without deleting the legacy calculator route", () => {
+  it("removes the legacy Lab entry from the global header without deleting calculator routes", () => {
     const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
     const homepage = readFileSync(join(process.cwd(), "app", "page.tsx"), "utf8");
 
-    expect(header).not.toContain("Lab");
     expect(header).not.toContain("copy.lab");
     expect(header).not.toContain('href="/?calculator=1"');
     expect(header).toContain("About");
@@ -164,7 +163,7 @@ describe("shared navigation model", () => {
     expect(header).not.toContain("<summary");
   });
 
-  it("limits the Tools dropdown to the standalone Quick Dough Calculator destination", () => {
+  it("keeps the Tools dropdown focused on standalone tools including the Topping Balance Lab", () => {
     const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
 
     expect(header).toContain("const toolsMenuItems = [");
@@ -173,9 +172,14 @@ describe("shared navigation model", () => {
     expect(header).toContain("Standalone dough amounts, preferments, sizing and advanced tools.");
     expect(header).toContain('href: "/calculator/quick"');
     expect(header.split('href: "/calculator/quick"')).toHaveLength(2);
+    expect(header).toContain("Topping Balance Lab");
+    expect(header).toContain("See how sauce, cheese, pizza size and moisture change the bake.");
+    expect(header).toContain('href: "/toppings"');
+    expect(header.split('href: "/toppings"')).toHaveLength(2);
     expect(header).toContain('const quickCalculatorActive = pathname === "/calculator/quick"');
-    expect(header).toContain('aria-current={quickCalculatorActive ? "page" : undefined}');
-    expect(header).toContain("guideMenuItemClass(quickCalculatorActive)");
+    expect(header).toContain('const toppingBalanceLabActive = pathname === "/toppings"');
+    expect(header).toContain('aria-current={active ? "page" : undefined}');
+    expect(header).toContain("guideMenuItemClass(active)");
     expect(header).not.toContain("Calculator v2");
     expect(header).not.toContain("Pizza dough calculator");
     expect(header).not.toContain("Calculator v1");

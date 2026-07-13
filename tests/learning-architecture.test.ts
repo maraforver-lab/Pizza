@@ -62,7 +62,7 @@ describe("learning architecture", () => {
       source("app", "ovens", "page.tsx"),
       source("app", "gear", "page.tsx"),
       source("app", "styles", "page.tsx"),
-      source("app", "toppings", "page.tsx"),
+      source("components", "toppings", "ToppingBalanceLab.tsx"),
     ];
 
     for (const page of educationalSources) {
