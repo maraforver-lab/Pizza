@@ -1,6 +1,6 @@
 import AppSignature from "@/components/AppSignature";
 import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
-import PizzaStyleChapter from "@/components/styles/PizzaStyleChapter";
+import PizzaStyleAtlas from "@/components/styles/PizzaStyleAtlas";
 import PizzaStyleComparison from "@/components/styles/PizzaStyleComparison";
 import PizzaStyleGoalGuide from "@/components/styles/PizzaStyleGoalGuide";
 import PizzaStyleHero from "@/components/styles/PizzaStyleHero";
@@ -54,7 +54,7 @@ export default function StylesPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-[1.75rem] border border-leaf/20 bg-leaf/10 p-5 sm:p-6" aria-labelledby="planner-support-title">
+        <section id="planner-support" className="mt-8 scroll-mt-24 rounded-[1.75rem] border border-leaf/20 bg-leaf/10 p-5 sm:p-6" aria-labelledby="planner-support-title">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 id="planner-support-title" className="font-display text-3xl font-semibold">What DoughTools currently plans</h2>
@@ -67,31 +67,13 @@ export default function StylesPage() {
           </div>
         </section>
 
-        <nav className="mt-8 rounded-[1.75rem] border border-ink/10 bg-white/76 p-4 shadow-card" aria-label="Pizza style index">
-          <p className="px-1 text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Jump to a style</p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {pizzaStyleEducation.map((style) => (
-              <a
-                key={style.id}
-                href={`#${style.id}`}
-                className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm font-extrabold text-ink transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-              >
-                {style.shortName}
-                <span className="mt-1 block text-xs font-semibold text-ink/45">{style.supportNote}</span>
-              </a>
-            ))}
-          </div>
-        </nav>
+        <div className="mt-10">
+          <PizzaStyleAtlas />
+        </div>
 
         <div className="mt-10">
           <PizzaStyleComparison />
         </div>
-
-        <section className="mt-12 grid gap-6" aria-label="Pizza style chapters">
-          {pizzaStyleEducation.map((style, index) => (
-            <PizzaStyleChapter key={style.id} style={style} index={index} />
-          ))}
-        </section>
 
         <div className="mt-10">
           <PizzaStyleGoalGuide />

@@ -20,6 +20,17 @@ export type PizzaStyleImage = {
   audit: string;
 };
 
+export type PizzaStyleCallout = {
+  id: string;
+  label: string;
+  description?: string;
+  anchorX: number;
+  anchorY: number;
+  labelX: number;
+  labelY: number;
+  alignment?: "left" | "right";
+};
+
 export type PizzaStyleEducation = {
   id: PizzaStyleEducationId;
   name: string;
@@ -30,6 +41,8 @@ export type PizzaStyleEducation = {
   supportNote: string;
   description: string;
   image?: PizzaStyleImage;
+  galleryTraits: readonly string[];
+  callouts: readonly PizzaStyleCallout[];
   shape: string;
   thickness: string;
   edge: string;
@@ -85,6 +98,14 @@ export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [
       fileSizeBytes: 154726,
       audit: "Retain: accurate round geometry, raised rim, restrained topping and strong mobile crop.",
     },
+    galleryTraits: ["Raised cornicione", "Thin soft center", "Restrained toppings", "Fast high-heat bake"],
+    callouts: [
+      { id: "cornicione", label: "Raised cornicione", anchorX: 21, anchorY: 23, labelX: 8, labelY: 10, alignment: "left" },
+      { id: "center", label: "Thin soft center", anchorX: 52, anchorY: 52, labelX: 61, labelY: 46, alignment: "right" },
+      { id: "toppings", label: "Restrained topping load", anchorX: 45, anchorY: 39, labelX: 59, labelY: 24, alignment: "right" },
+      { id: "cheese", label: "Fresh mozzarella", anchorX: 61, anchorY: 59, labelX: 66, labelY: 67, alignment: "right" },
+      { id: "heat", label: "Fast high-heat bake", anchorX: 77, anchorY: 26, labelX: 59, labelY: 9, alignment: "right" },
+    ],
     shape: "Round personal pizza",
     thickness: "Thin center with a raised rim",
     edge: "Soft, elastic cornicione",
@@ -124,6 +145,14 @@ export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [
       fileSizeBytes: 126934,
       audit: "Retain: clearly shows a larger rim than classic Neapolitan without people or text.",
     },
+    galleryTraits: ["Expressive airy rim", "Thin center", "Modern toppings", "High-heat bake"],
+    callouts: [
+      { id: "rim", label: "Expressive airy rim", anchorX: 24, anchorY: 28, labelX: 8, labelY: 12, alignment: "left" },
+      { id: "structure", label: "Open rim structure", anchorX: 33, anchorY: 76, labelX: 10, labelY: 78, alignment: "left" },
+      { id: "center", label: "Thin soft center", anchorX: 50, anchorY: 50, labelX: 63, labelY: 44, alignment: "right" },
+      { id: "balance", label: "Restrained load", anchorX: 62, anchorY: 37, labelX: 66, labelY: 23, alignment: "right" },
+      { id: "heat", label: "High-heat family", anchorX: 75, anchorY: 70, labelX: 62, labelY: 80, alignment: "right" },
+    ],
     shape: "Round personal pizza",
     thickness: "Thin center with a more expressive rim",
     edge: "Often tall and airy, but not a single formal standard",
@@ -163,6 +192,14 @@ export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [
       fileSizeBytes: 135724,
       audit: "Retain: visibly low rim and broad cheese coverage distinguish it from Neapolitan.",
     },
+    galleryTraits: ["Large round pie", "Foldable slice", "Crisp underside", "Low-moisture mozzarella"],
+    callouts: [
+      { id: "rim", label: "Low rim", anchorX: 18, anchorY: 27, labelX: 8, labelY: 12, alignment: "left" },
+      { id: "center", label: "Medium-thin center", anchorX: 49, anchorY: 51, labelX: 61, labelY: 43, alignment: "right" },
+      { id: "base", label: "Crisp underside", anchorX: 66, anchorY: 78, labelX: 60, labelY: 82, alignment: "right" },
+      { id: "cheese", label: "Low-moisture mozzarella", anchorX: 57, anchorY: 35, labelX: 60, labelY: 20, alignment: "right" },
+      { id: "fold", label: "Foldable slice structure", anchorX: 36, anchorY: 65, labelX: 8, labelY: 70, alignment: "left" },
+    ],
     shape: "Large round pie",
     thickness: "Medium-thin",
     edge: "Lower rim than Neapolitan",
@@ -202,6 +239,14 @@ export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [
       fileSizeBytes: 179866,
       audit: "Retain: accurate rectangular pan, sauce stripes and clear style geometry; edge detail is acceptable.",
     },
+    galleryTraits: ["Rectangular pan", "Caramelized cheese edge", "Airy pan crumb", "Sauce above cheese"],
+    callouts: [
+      { id: "shape", label: "Rectangular pan shape", anchorX: 18, anchorY: 22, labelX: 8, labelY: 10, alignment: "left" },
+      { id: "edge", label: "Caramelized cheese edge", anchorX: 83, anchorY: 29, labelX: 58, labelY: 12, alignment: "right" },
+      { id: "crumb", label: "Airy pan crumb", anchorX: 28, anchorY: 79, labelX: 8, labelY: 78, alignment: "left" },
+      { id: "base", label: "Oil-crisped base", anchorX: 55, anchorY: 86, labelX: 58, labelY: 82, alignment: "right" },
+      { id: "sauce", label: "Sauce above cheese", anchorX: 53, anchorY: 43, labelX: 61, labelY: 43, alignment: "right" },
+    ],
     shape: "Rectangular or square pan pizza",
     thickness: "Moderately thick but airy",
     edge: "Crisp caramelized cheese edge",
@@ -241,6 +286,13 @@ export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [
       fileSizeBytes: 124502,
       audit: "Retain and relabel: current asset accurately represents a low-rim thin Roman round style.",
     },
+    galleryTraits: ["Very thin center", "Low flat edge", "Crisp base", "Light topping balance"],
+    callouts: [
+      { id: "center", label: "Very thin center", anchorX: 52, anchorY: 51, labelX: 62, labelY: 44, alignment: "right" },
+      { id: "edge", label: "Low flat edge", anchorX: 20, anchorY: 31, labelX: 9, labelY: 16, alignment: "left" },
+      { id: "base", label: "Crisp base", anchorX: 66, anchorY: 78, labelX: 62, labelY: 80, alignment: "right" },
+      { id: "load", label: "Light topping balance", anchorX: 45, anchorY: 38, labelX: 58, labelY: 22, alignment: "right" },
+    ],
     shape: "Round",
     thickness: "Very thin",
     edge: "Low or almost flat",
@@ -272,6 +324,22 @@ export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [
     support: "learning",
     supportNote: "Learning guide",
     description: "A rectangular Roman pan format, often cut by the piece, with crisp base and airy interior.",
+    image: {
+      src: "/pizza-styles/roman-al-taglio.webp",
+      alt: "Roman al Taglio rectangular tray pizza cut into portions with an airy interior and crisp sheet-pan base.",
+      width: 900,
+      height: 900,
+      fileSizeBytes: 166988,
+      audit: "Added in Patch 349: realistic rectangular tray form, visible portions and airy edge; no people, hands, text or logos.",
+    },
+    galleryTraits: ["Rectangular tray form", "Airy interior", "Crisp sheet-pan base", "Cut-by-the-piece format"],
+    callouts: [
+      { id: "form", label: "Rectangular tray form", anchorX: 18, anchorY: 22, labelX: 8, labelY: 10, alignment: "left" },
+      { id: "interior", label: "Airy interior", anchorX: 63, anchorY: 83, labelX: 60, labelY: 82, alignment: "right" },
+      { id: "base", label: "Crisp sheet-pan base", anchorX: 39, anchorY: 85, labelX: 8, labelY: 78, alignment: "left" },
+      { id: "stages", label: "Variable topping stages", anchorX: 58, anchorY: 42, labelX: 61, labelY: 28, alignment: "right" },
+      { id: "cut", label: "Cut-by-the-piece format", anchorX: 48, anchorY: 62, labelX: 10, labelY: 56, alignment: "left" },
+    ],
     shape: "Rectangular pan or tray",
     thickness: "Medium to thick, variable",
     edge: "Open pan edge rather than caramelized Detroit cheese wall",
@@ -311,6 +379,13 @@ export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [
       fileSizeBytes: 148010,
       audit: "Retain and label carefully: it reads as Italian-American Sicilian pan pizza, not all Sicilian regional forms.",
     },
+    galleryTraits: ["Thick pan structure", "Bread-like interior", "Oil-crisped base", "Regional variation"],
+    callouts: [
+      { id: "structure", label: "Thick pan structure", anchorX: 18, anchorY: 32, labelX: 8, labelY: 16, alignment: "left" },
+      { id: "interior", label: "Bread-like interior", anchorX: 37, anchorY: 78, labelX: 8, labelY: 78, alignment: "left" },
+      { id: "base", label: "Oil-crisped base", anchorX: 60, anchorY: 86, labelX: 61, labelY: 81, alignment: "right" },
+      { id: "variation", label: "Regional variation", anchorX: 63, anchorY: 38, labelX: 61, labelY: 22, alignment: "right" },
+    ],
     shape: "Often rectangular in Italian-American pan context; regional forms vary",
     thickness: "Thicker, bread-like pan structure",
     edge: "Pan edge, less cheese-wall focused than Detroit",

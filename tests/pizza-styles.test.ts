@@ -15,16 +15,22 @@ describe("Pizza Style Atlas", () => {
   it("rebuilds /styles as an educational atlas rather than a calculator selector", () => {
     const page = source("app", "styles", "page.tsx");
     const hero = source("components", "styles", "PizzaStyleHero.tsx");
+    const atlas = source("components", "styles", "PizzaStyleAtlas.tsx");
 
     expect(page).toContain("PizzaStyleHero");
+    expect(page).toContain("PizzaStyleAtlas");
     expect(page).toContain("PizzaStyleComparison");
-    expect(page).toContain("PizzaStyleChapter");
     expect(page).toContain("PizzaStyleGoalGuide");
     expect(hero).toContain("Pizza Style Atlas");
+    expect(hero).toContain("Explore the styles");
+    expect(hero).toContain("See what DoughTools supports");
     expect(page).toContain("A pizza style is more than its toppings.");
     expect(page).toContain("What DoughTools currently plans");
-    expect(page).toContain("Jump to a style");
     expect(page).toContain("Ready to plan the style DoughTools supports today?");
+    expect(atlas).toContain("Explore by what the pizza looks and feels like.");
+    expect(atlas).toContain("Explore style");
+    expect(atlas).toContain("role=\"dialog\"");
+    expect(atlas).toContain("aria-modal=\"true\"");
     expect(page).not.toContain("recipeParams");
     expect(page).not.toContain("Use this style");
     expect(page).not.toContain("Apply every setting to the calculator");
@@ -39,7 +45,7 @@ describe("Pizza Style Atlas", () => {
     expect(pizzaStyleSupportSummary).toContain("currently plans Neapolitan-style pizza");
     expect(pizzaStyleSupportSummary).toContain("Other styles here are educational learning guides");
     expect(page).toContain("Start with a Neapolitan-style Pizza Session");
-    expect(hero).toContain('href="/session/start"');
+    expect(hero).toContain('href: "#planner-support"');
     expect(goalGuide).toContain('href="/session/start"');
     expect(page).not.toMatch(/Plan my (New York|Detroit|Roman|Sicilian|Contemporary)/);
     expect(page).not.toContain("Coming soon");
@@ -69,6 +75,20 @@ describe("Pizza Style Atlas", () => {
       expect(style.name).toBeTruthy();
       expect(style.origin).toBeTruthy();
       expect(style.description).toBeTruthy();
+      expect(style.galleryTraits.length).toBeGreaterThanOrEqual(3);
+      expect(style.galleryTraits.length).toBeLessThanOrEqual(4);
+      expect(style.callouts.length).toBeGreaterThanOrEqual(4);
+      expect(style.callouts.length).toBeLessThanOrEqual(5);
+      for (const callout of style.callouts) {
+        expect(callout.anchorX).toBeGreaterThanOrEqual(0);
+        expect(callout.anchorX).toBeLessThanOrEqual(100);
+        expect(callout.anchorY).toBeGreaterThanOrEqual(0);
+        expect(callout.anchorY).toBeLessThanOrEqual(100);
+        expect(callout.labelX).toBeGreaterThanOrEqual(0);
+        expect(callout.labelX).toBeLessThanOrEqual(100);
+        expect(callout.labelY).toBeGreaterThanOrEqual(0);
+        expect(callout.labelY).toBeLessThanOrEqual(100);
+      }
       expect(style.shape).toBeTruthy();
       expect(style.thickness).toBeTruthy();
       expect(style.edge).toBeTruthy();
@@ -121,10 +141,11 @@ describe("Pizza Style Atlas", () => {
       imageSources.set(style.image.src, style.id);
     }
 
-    expect(imageSources.size).toBe(6);
-    expect(pizzaStyleEducation.find((style) => style.id === "roman-al-taglio")?.image).toBeUndefined();
-    expect(source("components", "styles", "PizzaStyleChapter.tsx")).toContain("StructureDiagram");
-    expect(source("components", "styles", "PizzaStyleChapter.tsx")).toContain("role=\"img\"");
+    expect(imageSources.size).toBe(7);
+    expect(pizzaStyleEducation.find((style) => style.id === "roman-al-taglio")?.image?.src).toBe("/pizza-styles/roman-al-taglio.webp");
+    expect(source("components", "styles", "PizzaStyleAtlas.tsx")).toContain("AnnotationLayer");
+    expect(source("components", "styles", "PizzaStyleAtlas.tsx")).toContain("anchorX");
+    expect(source("components", "styles", "PizzaStyleAtlas.tsx")).toContain("labelX");
   });
 
   it("records research sources and distinguishes formal standards from expert guidance", () => {
@@ -142,17 +163,20 @@ describe("Pizza Style Atlas", () => {
   it("keeps accessibility and mobile strategy explicit in components", () => {
     const page = source("app", "styles", "page.tsx");
     const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
-    const chapter = source("components", "styles", "PizzaStyleChapter.tsx");
+    const atlas = source("components", "styles", "PizzaStyleAtlas.tsx");
     const badge = source("components", "styles", "PizzaStyleSupportBadge.tsx");
 
     expect(page).toContain("LearningBreadcrumbs");
-    expect(page).toContain("aria-label=\"Pizza style index\"");
     expect(page).toContain("aria-label=\"Dough to texture style system\"");
-    expect(comparison).toContain("sm:grid-cols-[9rem_minmax(0,1fr)]");
+    expect(atlas).toContain("md:grid-cols-2 xl:grid-cols-3");
+    expect(atlas).toContain("onKeyDown");
+    expect(atlas).toContain("Escape");
+    expect(atlas).toContain("Close style detail");
+    expect(atlas).toContain("hidden md:block");
+    expect(atlas).toContain("Open style detail");
     expect(comparison).not.toContain("<table");
-    expect(chapter).toContain("<details");
-    expect(chapter).toContain("<summary");
-    expect(chapter).toContain("figcaption");
+    expect(atlas).toContain("<details");
+    expect(atlas).toContain("<summary");
     expect(badge).toContain("support === \"supported\"");
     expect(badge).toContain("note");
   });
