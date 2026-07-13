@@ -111,24 +111,101 @@ const commonMistakes = [
   ["Adding more because the uncooked pizza looks sparse", "Pizza fills visually as cheese melts; restraint often bakes better."],
 ] as const;
 
-const referenceImages = [
+type ToppingReferenceCategory = "sauce" | "cheese" | "moisture";
+type ToppingReferenceState = "light" | "balanced" | "heavy" | "wet" | "drained";
+
+const referenceImageGroups: Array<{
+  id: ToppingReferenceCategory;
+  label: string;
+  title: string;
+  description: string;
+  items: Array<{
+    state: ToppingReferenceState;
+    label: string;
+    src: string;
+    alt: string;
+    note: string;
+  }>;
+}> = [
   {
-    src: "/toppings/too-light.webp",
-    title: "Sparse reference",
-    alt: "Pizza reference with sparse cheese coverage and visible sauce.",
-    note: "Retained as a local visual reference; the lab simulation carries the precise teaching.",
+    id: "sauce",
+    label: "Sauce",
+    title: "Sauce coverage changes the bake.",
+    description: "Compare how the same pizza base reads when the tomato layer is restrained, balanced or too deep.",
+    items: [
+      {
+        state: "light",
+        label: "Light sauce",
+        src: "/toppings/references/sauce-light.webp",
+        alt: "Pizza with sparse tomato sauce coverage and visible untopped dough between sauce patches.",
+        note: "Useful when the bite feels dry or tomato disappears.",
+      },
+      {
+        state: "balanced",
+        label: "Balanced sauce",
+        src: "/toppings/references/sauce-balanced.webp",
+        alt: "Pizza with an even tomato sauce layer and a clear raised rim.",
+        note: "A thin, even layer supports the dough without flooding the center.",
+      },
+      {
+        state: "heavy",
+        label: "Heavy sauce",
+        src: "/toppings/references/sauce-heavy.webp",
+        alt: "Pizza with a deep tomato sauce layer and visible wet pools near the center.",
+        note: "A deep layer adds water the base must bake through.",
+      },
+    ],
   },
   {
-    src: "/toppings/balanced.webp",
-    title: "Balanced reference",
-    alt: "Pizza reference with balanced sauce, cheese and mushroom coverage.",
-    note: "Useful comparison image with consistent top-down crop.",
+    id: "cheese",
+    label: "Cheese",
+    title: "Cheese should melt in balance with the sauce.",
+    description: "Compare sparse coverage, restrained islands and a continuous blanket that can trap steam.",
+    items: [
+      {
+        state: "light",
+        label: "Light cheese",
+        src: "/toppings/references/cheese-light.webp",
+        alt: "Pizza with sparse melted fior di latte pieces and tomato sauce visible between them.",
+        note: "Light cheese can be intentional, but it changes the bite and visual balance.",
+      },
+      {
+        state: "balanced",
+        label: "Balanced cheese",
+        src: "/toppings/references/cheese-balanced.webp",
+        alt: "Pizza with restrained melted fior di latte islands and visible tomato sauce.",
+        note: "Sauce remains visible and the cheese does not become a lid.",
+      },
+      {
+        state: "heavy",
+        label: "Heavy cheese",
+        src: "/toppings/references/cheese-heavy.webp",
+        alt: "Pizza covered by a near-continuous blanket of melted mozzarella.",
+        note: "A cheese blanket can slow evaporation and dominate the bake.",
+      },
+    ],
   },
   {
-    src: "/toppings/too-heavy.webp",
-    title: "Overloaded reference",
-    alt: "Pizza reference with heavy cheese and multiple toppings covering most of the surface.",
-    note: "Strong visual warning for total topping overload.",
+    id: "moisture",
+    label: "Mozzarella moisture",
+    title: "Fresh mozzarella moisture matters before it reaches the pizza.",
+    description: "The same grams behave differently when the cheese is wet versus properly drained.",
+    items: [
+      {
+        state: "wet",
+        label: "Still wet",
+        src: "/toppings/references/mozzarella-wet.webp",
+        alt: "Fresh fior di latte pieces sitting in visible milky liquid.",
+        note: "Wet cheese carries extra water into the center.",
+      },
+      {
+        state: "drained",
+        label: "Drained",
+        src: "/toppings/references/mozzarella-drained.webp",
+        alt: "Fresh fior di latte pieces with a dry-looking surface and no pooling liquid.",
+        note: "Drained cheese keeps freshness while reducing water risk.",
+      },
+    ],
   },
 ] as const;
 
@@ -155,11 +232,16 @@ function writeUrl(state: ToppingBalanceState, mode: "push" | "replace") {
   const query = buildToppingBalanceSearch(state);
   const nextUrl = `${window.location.pathname}?${query}`;
   if (mode === "push") {
-    window.location.assign(nextUrl);
+    window.history.pushState(null, "", nextUrl);
   } else {
     window.history.replaceState(null, "", nextUrl);
   }
   window.dispatchEvent(new Event("doughtools:urlchange"));
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, Math.round(value * 10) / 10));
 }
 
 function NumberControl({
@@ -179,10 +261,28 @@ function NumberControl({
   unit: string;
   onChange: (value: number) => void;
 }) {
-  const setValue = (next: number) => onChange(Math.min(max, Math.max(min, Math.round(next * 10) / 10)));
+  const [draft, setDraft] = useState(String(value));
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (!editing) setDraft(String(value));
+  }, [editing, value]);
+
+  const commitValue = (raw: string) => {
+    const next = clampNumber(Number(raw), min, max);
+    setDraft(String(next));
+    setEditing(false);
+    onChange(next);
+  };
+
+  const setValue = (next: number) => {
+    const clamped = clampNumber(next, min, max);
+    setDraft(String(clamped));
+    onChange(clamped);
+  };
 
   return (
-    <label className="block rounded-[1.25rem] border border-ink/10 bg-white p-4">
+    <label className="block rounded-[1.25rem] border border-ink/10 bg-white p-4" data-topping-number-control>
       <span className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/45">{label}</span>
       <span className="mt-3 grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2">
         <button
@@ -199,8 +299,23 @@ function NumberControl({
             min={min}
             max={max}
             step={step}
-            value={value}
-            onChange={(event) => setValue(Number(event.target.value))}
+            value={draft}
+            onFocus={() => setEditing(true)}
+            onChange={(event) => {
+              const nextDraft = event.target.value;
+              setDraft(nextDraft);
+              if (nextDraft.trim() !== "" && Number.isFinite(Number(nextDraft))) {
+                onChange(clampNumber(Number(nextDraft), min, max));
+              }
+            }}
+            onBlur={(event) => commitValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                commitValue(event.currentTarget.value);
+                event.currentTarget.blur();
+              }
+            }}
             className="min-w-0 bg-transparent py-3 text-center text-lg font-extrabold tabular-nums text-ink outline-none"
           />
           <span className="text-xs font-extrabold text-ink/40">{unit}</span>
@@ -347,6 +462,110 @@ function ReferenceComparison({ activeLevel }: { activeLevel: BalanceLevel }) {
   );
 }
 
+function referenceStateForLevel(level: BalanceLevel): ToppingReferenceState {
+  if (level === "very-light" || level === "light") return "light";
+  if (level === "balanced") return "balanced";
+  return "heavy";
+}
+
+function referenceStateForDrainState(drainState: DrainState): ToppingReferenceState {
+  return drainState === "undrained" || drainState === "under-1h" || drainState === "1-3h" ? "wet" : "drained";
+}
+
+function ToppingReferenceGallery({
+  state,
+  result,
+}: {
+  state: ToppingBalanceState;
+  result: ReturnType<typeof calculateToppingBalance>;
+}) {
+  const [activeGroupId, setActiveGroupId] = useState<ToppingReferenceCategory>("sauce");
+  const activeGroup = referenceImageGroups.find((group) => group.id === activeGroupId) ?? referenceImageGroups[0];
+  const suggestedState = activeGroup.id === "sauce"
+    ? referenceStateForLevel(result.sauceLevel)
+    : activeGroup.id === "cheese"
+      ? referenceStateForLevel(result.cheeseLevel)
+      : referenceStateForDrainState(state.drainState);
+  const [manualState, setManualState] = useState<ToppingReferenceState | null>(null);
+  const activeState = manualState && activeGroup.items.some((item) => item.state === manualState)
+    ? manualState
+    : suggestedState;
+  const activeItem = activeGroup.items.find((item) => item.state === activeState) ?? activeGroup.items[0];
+
+  useEffect(() => {
+    setManualState(null);
+  }, [activeGroupId, result.sauceLevel, result.cheeseLevel, state.drainState]);
+
+  return (
+    <section className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-labelledby="reference-images-title" data-topping-reference-gallery>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,.84fr)_minmax(18rem,.56fr)] lg:items-center">
+        <figure className="overflow-hidden rounded-[1.5rem] bg-flour">
+          <Image
+            src={activeItem.src}
+            alt={activeItem.alt}
+            width={960}
+            height={960}
+            sizes="(max-width: 1024px) 100vw, 52vw"
+            className="aspect-square h-auto w-full object-cover"
+          />
+          <figcaption className="border-t border-ink/10 bg-white p-4">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{activeGroup.label}</p>
+            <h3 className="mt-2 text-base font-extrabold">{activeItem.label}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink/62">{activeItem.note}</p>
+          </figcaption>
+        </figure>
+
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Realistic references</p>
+          <h2 id="reference-images-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">
+            {activeGroup.title}
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-ink/62">{activeGroup.description}</p>
+
+          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-1" role="group" aria-label="Choose topping reference topic">
+            {referenceImageGroups.map((group) => (
+              <button
+                key={group.id}
+                type="button"
+                aria-pressed={group.id === activeGroup.id}
+                onClick={() => setActiveGroupId(group.id)}
+                className={`min-h-11 rounded-2xl border px-4 py-3 text-left text-sm font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                  group.id === activeGroup.id ? "border-tomato bg-tomato/10 text-ink" : "border-ink/10 bg-flour text-ink/60 hover:border-tomato/30"
+                }`}
+              >
+                {group.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={`Choose ${activeGroup.label.toLowerCase()} reference state`}>
+            {activeGroup.items.map((item) => (
+              <button
+                key={item.state}
+                type="button"
+                aria-pressed={item.state === activeItem.state}
+                onClick={() => setManualState(item.state)}
+                className={`min-h-10 rounded-full px-4 text-xs font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                  item.state === activeItem.state ? "bg-ink text-white" : "bg-flour text-ink/58 hover:text-ink"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-2xl bg-flour p-4">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/45">Current lab signal</p>
+            <p className="mt-2 text-sm leading-6 text-ink/62">
+              The selected reference follows the current sauce, cheese or drainage state, but you can switch states to compare the teaching images directly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function ToppingBalanceLab() {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<ToppingBalanceState>(toppingBalanceDefaultState);
@@ -432,7 +651,30 @@ export default function ToppingBalanceLab() {
           </div>
 
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(18rem,.62fr)_minmax(0,1fr)]">
-            <aside className="space-y-4 lg:sticky lg:top-24">
+            <div className="space-y-5 lg:order-2" data-topping-visual-result>
+              <PizzaBalanceVisual state={state} result={result} />
+              <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-live="polite" aria-label="Current topping balance details">
+                {[
+                  ["Usable topped area", `${result.usableArea} cm²`, "The clear rim is excluded."],
+                  ["Sauce density", `${result.sauceDensity} g / 100 cm²`, `Suggested start: ${result.recommendedSauceRange[0]}–${result.recommendedSauceRange[1]} g.`],
+                  ["Cheese density", `${result.cheeseDensity} g / 100 cm²`, `Suggested start: ${result.recommendedCheeseRange[0]}–${result.recommendedCheeseRange[1]} g.`],
+                  ["Moisture risk", result.moistureLevel, "Affected by fresh cheese drainage and extra toppings."],
+                ].map(([label, value, note]) => (
+                  <div key={label} className="rounded-[1.35rem] border border-ink/10 bg-white p-4 shadow-soft">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[.14em] text-ink/42">{label}</p>
+                    <strong className="mt-2 block text-xl capitalize">{value}</strong>
+                    <p className="mt-2 text-xs leading-5 text-ink/52">{note}</p>
+                  </div>
+                ))}
+              </section>
+              <ReferenceComparison activeLevel={result.combinedLevel} />
+              <section className="rounded-[1.75rem] border border-leaf/20 bg-leaf/10 p-5" aria-labelledby="recommendation-title">
+                <h3 id="recommendation-title" className="font-display text-2xl font-semibold">What to adjust next</h3>
+                <p className="mt-3 text-sm leading-7 text-ink/68">{result.recommendedAdjustment}</p>
+              </section>
+            </div>
+
+            <aside className="space-y-4 lg:order-1 lg:sticky lg:top-24" data-topping-controls>
               <section className="rounded-[1.75rem] border border-ink/10 bg-white/82 p-4 shadow-card sm:p-5" aria-labelledby="preset-title">
                 <h3 id="preset-title" className="font-display text-2xl font-semibold">Build and compare presets</h3>
                 <div className="mt-4 grid gap-2">
@@ -519,29 +761,6 @@ export default function ToppingBalanceLab() {
                 </label>
               </section>
             </aside>
-
-            <div className="space-y-5">
-              <PizzaBalanceVisual state={state} result={result} />
-              <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-live="polite" aria-label="Current topping balance details">
-                {[
-                  ["Usable topped area", `${result.usableArea} cm²`, "The clear rim is excluded."],
-                  ["Sauce density", `${result.sauceDensity} g / 100 cm²`, `Suggested start: ${result.recommendedSauceRange[0]}–${result.recommendedSauceRange[1]} g.`],
-                  ["Cheese density", `${result.cheeseDensity} g / 100 cm²`, `Suggested start: ${result.recommendedCheeseRange[0]}–${result.recommendedCheeseRange[1]} g.`],
-                  ["Moisture risk", result.moistureLevel, "Affected by fresh cheese drainage and extra toppings."],
-                ].map(([label, value, note]) => (
-                  <div key={label} className="rounded-[1.35rem] border border-ink/10 bg-white p-4 shadow-soft">
-                    <p className="text-[11px] font-extrabold uppercase tracking-[.14em] text-ink/42">{label}</p>
-                    <strong className="mt-2 block text-xl capitalize">{value}</strong>
-                    <p className="mt-2 text-xs leading-5 text-ink/52">{note}</p>
-                  </div>
-                ))}
-              </section>
-              <ReferenceComparison activeLevel={result.combinedLevel} />
-              <section className="rounded-[1.75rem] border border-leaf/20 bg-leaf/10 p-5" aria-labelledby="recommendation-title">
-                <h3 id="recommendation-title" className="font-display text-2xl font-semibold">What to adjust next</h3>
-                <p className="mt-3 text-sm leading-7 text-ink/68">{result.recommendedAdjustment}</p>
-              </section>
-            </div>
           </div>
         </section>
 
@@ -647,25 +866,9 @@ export default function ToppingBalanceLab() {
           </div>
         </section>
 
-        <section className="mt-12" aria-labelledby="reference-images-title">
-          <div className="max-w-3xl">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Reference images</p>
-            <h2 id="reference-images-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">Photos support the lesson; the lab controls the variables.</h2>
-          </div>
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            {referenceImages.map((image) => (
-              <figure key={image.src} className="overflow-hidden rounded-[1.75rem] border border-ink/10 bg-white shadow-card">
-                <div className="relative aspect-square">
-                  <Image src={image.src} alt={image.alt} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" />
-                </div>
-                <figcaption className="p-4">
-                  <h3 className="text-sm font-extrabold">{image.title}</h3>
-                  <p className="mt-2 text-xs leading-5 text-ink/55">{image.note}</p>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
+        <div className="mt-12">
+          <ToppingReferenceGallery state={state} result={result} />
+        </div>
 
         <section className="mt-12 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="mistakes-title">
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Common mistakes</p>

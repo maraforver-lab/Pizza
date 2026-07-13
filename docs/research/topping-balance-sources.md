@@ -26,13 +26,21 @@ This document supports Patch 342. The page uses DoughTools' existing topping cal
 
 | File | Dimensions | Size | Subject | Current use | Realism and accuracy | Recommendation |
 | --- | ---: | ---: | --- | --- | --- | --- |
-| `too-light.webp` | 960×960 | 266,318 B | Top-down pizza with sparse cheese and visible sauce | Retained as a reference image | Same crop family as the other images. The label is directionally useful, but the sauce appears fairly heavy, so the new lab does not rely on it as precise proof. | Retain as secondary reference |
-| `balanced.webp` | 960×960 | 265,124 B | Top-down pizza with sauce, melted cheese and mushrooms | Retained as a reference image | Consistent top-down crop and useful balanced comparison. It includes mushrooms, so it is not a pure cheese-only variable study. | Retain as secondary reference |
-| `too-heavy.webp` | 960×960 | 291,162 B | Top-down pizza with heavy cheese and multiple toppings | Retained as a reference image | Clearly communicates overload. It changes several variables at once, so it is useful as a warning image rather than a controlled single-variable comparison. | Retain as secondary reference |
+| `too-light.webp` | 960×960 | 266,318 B | Top-down pizza with sparse cheese and visible sauce | Legacy local reference asset | Same crop family as the other original images. Directionally useful but not a controlled single-variable study. | Retain in repo for compatibility / avoid unrelated cleanup |
+| `balanced.webp` | 960×960 | 265,124 B | Top-down pizza with sauce, melted cheese and mushrooms | Legacy local reference asset | Consistent top-down crop and useful balanced comparison, but mushrooms make it unsuitable as a pure cheese-only variable reference. | Retain in repo for compatibility / avoid unrelated cleanup |
+| `too-heavy.webp` | 960×960 | 291,162 B | Top-down pizza with heavy cheese and multiple toppings | Legacy local reference asset | Clearly communicates overload, but it changes several variables at once. | Retain in repo for compatibility / avoid unrelated cleanup |
+| `references/sauce-light.webp` | 960×960 | 172,994 B | Pizza with sparse tomato coverage | Active realistic sauce reference | Shows light sauce as a distinct variable while keeping the rim and dough visible. | Use |
+| `references/sauce-balanced.webp` | 960×960 | 232,582 B | Pizza with even tomato coverage | Active realistic sauce reference | Shows thin, even tomato coverage and a clear rim. | Use |
+| `references/sauce-heavy.webp` | 960×960 | 211,944 B | Pizza with deep tomato layer and wet pools | Active realistic sauce reference | Shows excessive sauce and visible moisture without changing cheese variables. | Use |
+| `references/cheese-light.webp` | 960×960 | 187,884 B | Pizza with sparse fior di latte pieces | Active realistic cheese reference | Shows sauce still visible and cheese islands remaining separate. | Use |
+| `references/cheese-balanced.webp` | 960×960 | 150,434 B | Pizza with restrained fior di latte islands | Active realistic cheese reference | Shows cheese supporting the sauce without forming a blanket. | Use |
+| `references/cheese-heavy.webp` | 960×960 | 104,270 B | Pizza with near-continuous melted mozzarella | Active realistic cheese reference | Shows a cheese blanket that can trap steam and dominate the bake. | Use |
+| `references/mozzarella-wet.webp` | 960×960 | 64,260 B | Fresh fior di latte pieces with visible milky liquid | Active realistic moisture reference | Shows undrained cheese before it reaches the pizza. | Use |
+| `references/mozzarella-drained.webp` | 960×960 | 63,986 B | Fresh fior di latte pieces with dry-looking surface | Active realistic moisture reference | Shows drained cheese with no pooling liquid. | Use |
 
 ## Image decision
 
-Patch 342 did not add new photographic assets. The page uses the existing local images as supporting references and introduces a CSS-based visual simulation for the primary experiment. This avoids pretending that unrelated photos prove precise sauce or cheese gram thresholds.
+Patch 342 did not add new photographic assets. Patch 352 adds a controlled local WebP reference series for sauce amount, cheese amount and fresh mozzarella moisture state while keeping the CSS-based visual simulation as the primary live experiment. The reference images are teaching examples, not precise proof of universal gram thresholds.
 
 No production topping asset contains people, hands, faces, arms, silhouettes, human reflections, logos, packaging or embedded text.
 

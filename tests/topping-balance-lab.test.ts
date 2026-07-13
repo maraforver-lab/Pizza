@@ -136,12 +136,49 @@ describe("Topping Balance Lab page structure", () => {
   });
 
   it("uses local topping assets with explicit dimensions documented in the audit", () => {
-    for (const file of ["too-light.webp", "balanced.webp", "too-heavy.webp"]) {
-      expect(component).toContain(`/toppings/${file}`);
-      expect(existsSync(join(process.cwd(), "public", "toppings", file))).toBe(true);
-      expect(research).toContain(`\`${file}\``);
+    const files = [
+      "sauce-light.webp",
+      "sauce-balanced.webp",
+      "sauce-heavy.webp",
+      "cheese-light.webp",
+      "cheese-balanced.webp",
+      "cheese-heavy.webp",
+      "mozzarella-wet.webp",
+      "mozzarella-drained.webp",
+    ];
+
+    for (const file of files) {
+      expect(component).toContain(`/toppings/references/${file}`);
+      expect(existsSync(join(process.cwd(), "public", "toppings", "references", file))).toBe(true);
+      expect(research).toContain(`\`references/${file}\``);
       expect(research).toContain("960×960");
     }
+
+    expect(component).toContain("data-topping-reference-gallery");
+    expect(component).toContain("width={960}");
+    expect(component).toContain("height={960}");
+  });
+
+  it("uses soft browser history updates instead of reloading when presets change", () => {
+    expect(component).toContain("window.history.pushState");
+    expect(component).toContain("window.history.replaceState");
+    expect(component).toContain('window.addEventListener("popstate", restoreFromUrl)');
+    expect(component).not.toContain("window.location.assign");
+  });
+
+  it("keeps the mobile lab focused on the current visual result before controls", () => {
+    expect(component).toContain("data-topping-visual-result");
+    expect(component).toContain("data-topping-controls");
+    expect(component).toContain("lg:order-2");
+    expect(component).toContain("lg:order-1");
+    expect(component).toContain("lg:sticky lg:top-24");
+  });
+
+  it("allows numeric controls to keep an editable draft before clamping", () => {
+    expect(component).toContain("const [draft, setDraft]");
+    expect(component).toContain("onBlur={(event) => commitValue(event.target.value)}");
+    expect(component).toContain('event.key === "Enter"');
+    expect(component).toContain("data-topping-number-control");
   });
 
   it("records no people, hands, remote production images or text-in-image dependency", () => {
