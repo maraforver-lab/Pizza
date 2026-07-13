@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar, buttonClass, cardClass, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
-import { SessionEmptyState } from "@/components/session/SessionEmptyState";
+import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
@@ -373,6 +373,7 @@ function ShoppingCheckpointRow({
 export default function SessionTimelinePage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [routeError, setRouteError] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [missingReason, setMissingReason] = useState<string | null>(null);
   const [earlyStartStep, setEarlyStartStep] = useState<PizzaSessionTimelineStep | null>(null);
@@ -380,10 +381,15 @@ export default function SessionTimelinePage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    const { session: updatedSession, result } = generateAndSaveActivePizzaSessionTimeline();
-    setSession(updatedSession ?? null);
-    setMissingReason(result.ok ? null : result.missingReason ?? "unknown");
-    setReady(true);
+    try {
+      const { session: updatedSession, result } = generateAndSaveActivePizzaSessionTimeline();
+      setSession(updatedSession ?? null);
+      setMissingReason(result.ok ? null : result.missingReason ?? "unknown");
+    } catch {
+      setRouteError(true);
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -396,33 +402,51 @@ export default function SessionTimelinePage() {
   const timeline = session?.timeline ?? timelineResult.timeline;
   const targetTime = timeline?.targetEatTime ?? session?.targetEatTime ?? session?.targetBakeTime;
 
+  if (routeError) {
+    return (
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Start a new plan" }}
+        body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
+        eyebrow="Timeline"
+        onRetry={() => window.location.reload()}
+        title="We couldn’t open your timeline."
+        variant="error"
+      />
+    );
+  }
+
   if (!ready) {
     return (
-      <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className={cardClass({ className: "mx-auto max-w-3xl rounded-hero p-6 text-sm font-bold text-ink/50" })}>
-          Loading your local pizza timeline…
-        </div>
-      </main>
+      <SessionRouteState
+        body="Checking this browser for an active pizza plan before building the preparation schedule."
+        eyebrow="Timeline"
+        title="Opening your timeline"
+        variant="checking"
+      />
     );
   }
 
   if (!session) {
     return (
-      <SessionEmptyState
-        title="No active pizza session"
-        body="Start a Pizza Session first. DoughTools will save the session locally in this browser on this device."
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Plan my next pizza" }}
+        body="Your preparation schedule is created after your pizza plan is ready."
+        eyebrow="Timeline"
+        title="No timeline yet"
+        variant="no-session"
       />
     );
   }
 
   if (!timeline || missingReason) {
     return (
-      <SessionEmptyState
-        eyebrow="Your pizza timeline"
-        title="Choose a target time first."
-        body="A backward schedule needs a planned eating or baking time. Return to the session starter and set a target time."
-        actionLabel="Return to Start Pizza Session →"
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Complete my pizza plan" }}
+        body="Complete your pizza plan first so DoughTools can build the preparation schedule."
+        eyebrow="Timeline"
         localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No reminders, cloud sync or account sync are active yet.`}
+        title="Your timeline is not ready yet."
+        variant="step-unavailable"
       />
     );
   }

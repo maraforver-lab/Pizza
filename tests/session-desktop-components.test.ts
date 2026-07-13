@@ -39,6 +39,7 @@ describe("Pizza Session desktop refinement components", () => {
   it("adds a shared viewport reset for session route and step openings", () => {
     const component = source("components/session/SessionViewportReset.tsx");
     const emptyState = source("components/session/SessionEmptyState.tsx");
+    const routeState = source("components/session/SessionRouteState.tsx");
 
     expect(component).toContain("export function SessionViewportReset");
     expect(component).toContain("usePathname");
@@ -51,7 +52,38 @@ describe("Pizza Session desktop refinement components", () => {
     expect(component).toContain("window.requestAnimationFrame(reset)");
     expect(component).toContain("}, [routeKey, watchKey])");
     expect(component).not.toContain("}, [pathname, watchKey])");
-    expect(emptyState).toContain("SessionViewportReset");
+    expect(emptyState).toContain("SessionRouteState");
+    expect(routeState).toContain("SessionViewportReset");
+  });
+
+  it("uses one shared downstream route state model without guarding /session/start", () => {
+    const routeState = source("components/session/SessionRouteState.tsx");
+    const startPage = source("app/session/start/page.tsx");
+    const downstreamPages = [
+      "app/session/recipe/page.tsx",
+      "app/session/shopping/page.tsx",
+      "app/session/timeline/page.tsx",
+      "app/session/kitchen/page.tsx",
+      "app/session/review/page.tsx",
+    ].map(source).join("\n");
+
+    expect(routeState).toContain("SESSION_ROUTE_STATE_KINDS");
+    expect(routeState).toContain("\"checking\"");
+    expect(routeState).toContain("\"active\"");
+    expect(routeState).toContain("\"no-session\"");
+    expect(routeState).toContain("\"recoverable\"");
+    expect(routeState).toContain("\"error\"");
+    expect(routeState).toContain("\"step-unavailable\"");
+    expect(routeState).toContain("role={isChecking ? \"status\" : isError ? \"alert\" : undefined}");
+    expect(routeState).toContain("aria-live={isChecking ? \"polite\" : undefined}");
+    expect(routeState).toContain("secondaryAction.href !== action?.href");
+    expect(downstreamPages).toContain("variant=\"checking\"");
+    expect(downstreamPages).toContain("variant=\"no-session\"");
+    expect(downstreamPages).toContain("variant=\"step-unavailable\"");
+    expect(downstreamPages).toContain("variant=\"error\"");
+    expect(startPage).not.toContain("SessionRouteState");
+    expect(startPage).toContain("createPlanningDraftSession");
+    expect(startPage).toContain("Create my pizza plan →");
   });
 
   it("keeps Pizza Session viewport reset mounted across route-query step variants", () => {

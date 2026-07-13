@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
-import { SessionEmptyState } from "@/components/session/SessionEmptyState";
+import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -108,13 +108,36 @@ function FeedbackChipGroup({
   );
 }
 
+function sessionIsReviewable(session: PizzaSession) {
+  if (session.currentStep === "review") return true;
+  const actionableSteps = session.timeline?.steps.filter((step) => step.id !== "review-result") ?? [];
+  return actionableSteps.length > 0 && actionableSteps.every((step) => step.status === "done" || step.status === "skipped");
+}
+
+function nearestReviewPrerequisiteHref(session: PizzaSession) {
+  if (session.timeline?.steps.length) return "/session/kitchen";
+  if (session.shoppingList) return "/session/timeline";
+  if (session.recipeSnapshot) return "/session/shopping";
+  return "/session/recipe";
+}
+
+function nearestReviewPrerequisiteLabel(session: PizzaSession) {
+  const href = nearestReviewPrerequisiteHref(session);
+  if (href === "/session/kitchen") return "Open Kitchen Mode";
+  if (href === "/session/timeline") return "Open timeline";
+  if (href === "/session/shopping") return "Open shopping";
+  return "Open Dough Plan";
+}
+
 function MissingReviewState() {
   return (
-    <SessionEmptyState
-      eyebrow="Pizza Session review"
-      title="No pizza session to review"
-      body="Start a Pizza Session first."
+    <SessionRouteState
+      action={{ href: "/session/start", label: "Plan my next pizza" }}
+      body="Finish a pizza plan before opening its results and notes."
+      eyebrow="Review"
       localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} Completed or archived sessions are not treated as active.`}
+      title="Nothing to review yet"
+      variant="no-session"
     />
   );
 }
@@ -122,6 +145,7 @@ function MissingReviewState() {
 export default function SessionReviewPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [routeError, setRouteError] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState("");
@@ -135,29 +159,63 @@ export default function SessionReviewPage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    const active = getActivePizzaSession() ?? null;
-    setSession(active);
-    setRating(active?.rating ?? 0);
-    setNotes(active?.notes ?? "");
-    setLegacyWhatWorked(active?.review?.whatWorked ?? "");
-    setLegacyImproveNextTime(active?.review?.improveNextTime ?? "");
-    setLegacyNextTimeTry(active?.review?.nextTimeTry ?? "");
-    setWhatWorked(selectionsFromSavedText(active?.review?.whatWorked, workedWellOptions));
-    setImproveNextTime(selectionsFromSavedText(active?.review?.improveNextTime, improveOptions));
-    setReady(true);
+    try {
+      const active = getActivePizzaSession() ?? null;
+      setSession(active);
+      setRating(active?.rating ?? 0);
+      setNotes(active?.notes ?? "");
+      setLegacyWhatWorked(active?.review?.whatWorked ?? "");
+      setLegacyImproveNextTime(active?.review?.improveNextTime ?? "");
+      setLegacyNextTimeTry(active?.review?.nextTimeTry ?? "");
+      setWhatWorked(selectionsFromSavedText(active?.review?.whatWorked, workedWellOptions));
+      setImproveNextTime(selectionsFromSavedText(active?.review?.improveNextTime, improveOptions));
+    } catch {
+      setRouteError(true);
+    } finally {
+      setReady(true);
+    }
   }, []);
+
+  if (routeError) {
+    return (
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Start a new plan" }}
+        body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
+        eyebrow="Review"
+        onRetry={() => window.location.reload()}
+        title="We couldn’t open your review."
+        variant="error"
+      />
+    );
+  }
 
   if (!ready) {
     return (
-      <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
-          Loading review from this browser…
-        </div>
-      </main>
+      <SessionRouteState
+        body="Checking this browser for an active pizza plan before opening results and notes."
+        eyebrow="Review"
+        title="Opening your review"
+        variant="checking"
+      />
     );
   }
 
   if (!session) return <MissingReviewState />;
+
+  if (!sessionIsReviewable(session)) {
+    return (
+      <SessionRouteState
+        action={{
+          href: nearestReviewPrerequisiteHref(session),
+          label: nearestReviewPrerequisiteLabel(session),
+        }}
+        body="Finish your pizza plan before opening its results and notes."
+        eyebrow="Review"
+        title="Nothing to review yet"
+        variant="step-unavailable"
+      />
+    );
+  }
 
   const reviewInput = {
     rating: rating || undefined,

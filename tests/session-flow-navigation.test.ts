@@ -65,13 +65,17 @@ describe("Pizza Session flow navigation integrity", () => {
 
     expect(start).toContain("createPlanningDraftSession");
     expect(start).toContain("const baseSession = active ?? createPlanningDraftSession(preferredLevel, requestedStep)");
+    expect(start).not.toContain("SessionRouteState");
     expect(start).not.toContain("SessionEmptyState");
-    expect(recipe).toContain("SessionEmptyState");
+    expect(recipe).toContain("SessionRouteState");
+    expect(recipe).toContain("No active pizza plan");
     expect(shopping).toContain('missingReason === "no-session"');
-    expect(timeline).toContain("if (!session)");
-    expect(timeline).toContain("No active pizza session");
+    expect(shopping).toContain("No shopping list yet");
+    expect(timeline).toContain("if (!timeline || missingReason)");
+    expect(timeline).toContain("No timeline yet");
     expect(kitchen).toContain('missingReason === "no-session"');
-    expect(review).toContain("No pizza session to review");
+    expect(kitchen).toContain("Kitchen Mode is not ready yet");
+    expect(review).toContain("Nothing to review yet");
   });
 
   it("keeps the Timeline shopping checkpoint visible before service and bake steps", () => {
@@ -137,7 +141,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(review).toContain("Save review →");
     expect(review).toContain("Saving review…");
     expect(review).toContain("Add a pizza photo and share your bake");
-    expect(review).toContain("No pizza session to review");
+    expect(review).toContain("Nothing to review yet");
     expect(review).not.toContain("How did your pizza turn out?");
   });
 
