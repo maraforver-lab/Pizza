@@ -335,10 +335,25 @@ export default function SauceCalculator() {
         <aside className="bg-forest-dark p-5 text-white sm:p-7 lg:p-9" aria-live="polite">
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Your sauce plan</p>
           <div className="mt-4 rounded-[1.5rem] bg-white/10 p-5">
-            <p className="text-sm text-white/65">Total finished sauce required</p>
-            <strong className="mt-2 block font-display text-5xl leading-none">{formatGrams(result.finishedSauceGrams)}</strong>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-white/48">Pizzas</p>
+                <strong className="mt-1 block text-2xl">{result.pizzaCount}</strong>
+              </div>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-white/48">Per pizza</p>
+                <strong className="mt-1 block text-2xl">{result.sauceGramsPerPizza} g</strong>
+              </div>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-white/48">Total sauce</p>
+                <strong className="mt-1 block text-2xl">{formatGrams(result.finishedSauceGrams)}</strong>
+              </div>
+            </div>
+            <p className="mt-5 font-display text-3xl font-semibold leading-tight">
+              You need approximately {formatGrams(result.finishedSauceGrams)} of sauce.
+            </p>
             <p className="mt-2 text-xs leading-5 text-white/55">
-              {result.pizzaCount} pizzas × {result.sauceGramsPerPizza} g, including {result.reservePercent}% reserve.
+              Includes {result.reservePercent}% preparation reserve. Adjust by oven, cheese moisture and how much coverage you want.
             </p>
           </div>
 

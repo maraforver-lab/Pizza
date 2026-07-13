@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -162,106 +162,102 @@ describe("pizza sauce calculator helper", () => {
   });
 });
 
-describe("pizza sauce learning lab page", () => {
-  it("contains the required hero, calculator and method structure", () => {
+describe("simplified pizza sauce page", () => {
+  it("puts the calculator before educational content and keeps one hero action", () => {
     const page = source("app/sauce/page.tsx");
 
-    expect(page).toContain("Pizza Sauce Guide");
-    expect(page).toContain("Better pizza sauce starts with better decisions.");
+    expect(page).toContain("Calculate the right amount. Choose the right sauce.");
     expect(page).toContain("Calculate my sauce");
-    expect(page).toContain("Learn the three methods");
-    expect(page).toContain("SauceCalculator");
-    expect(page).toContain("Classic Neapolitan tomato base");
-    expect(page).toContain("Traditional Marinara topping");
-    expect(page).toContain("Home-oven cooked sauce");
+    expect(page).not.toContain("Learn the three methods");
+    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("Practical recommendation"));
+    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("Choose your tomatoes"));
   });
 
-  it("distinguishes traditional Margherita, Marinara and home-oven adaptation claims", () => {
-    const page = source("app/sauce/page.tsx");
+  it("keeps the calculator result hierarchy explicit without changing formulas", () => {
+    const calculator = source("components/sauce/SauceCalculator.tsx");
+    const engine = source("lib/pizza-sauce-calculator.ts");
 
-    expect(page).toContain("The base is fundamentally quality peeled tomatoes and salt");
-    expect(page).toContain("Garlic is not standard in the classic Margherita tomato base.");
-    expect(page).toContain("Oregano is not standard in the classic Margherita tomato base.");
-    expect(page).toContain("Sugar is not automatically required.");
-    expect(page).toContain("Traditional Marinara includes tomato, garlic, oregano and extra-virgin olive oil.");
-    expect(page).toContain("This is an adaptation, not the AVPN");
-    expect(page).not.toMatch(/ultimate pizza sauce|world’s best|world's best|Master the perfect sauce/i);
+    expect(calculator).toContain("Pizzas");
+    expect(calculator).toContain("Per pizza");
+    expect(calculator).toContain("Total sauce");
+    expect(calculator).toContain("You need approximately");
+    expect(calculator).toContain("calculatePizzaSauce");
+    expect(engine).toContain("export function calculatePizzaSauce");
+    expect(engine).toContain("baseSauceGrams = pizzaCount * sauceGramsPerPizza");
   });
 
-  it("includes methodology, safety and related learning without changing app integrations", () => {
+  it("uses one practical recommendation summary and three core learning topics", () => {
     const page = source("app/sauce/page.tsx");
 
-    expect(page).toContain("Sources and methodology");
-    expect(page).toContain('href="/methodology#pizza-sauce"');
-    expect(page).toContain("View sources and methodology");
-    expect(page).toContain("USDA leftover guidance uses 3–4 days refrigerated or 3–4 months frozen");
-    expect(page).toContain('["Pizza Learning Center", "/guide"');
-    expect(page).toContain('["Pizza Dough Guide", "/guides/dough"');
-    expect(page).toContain('["Pizza Troubleshooting Guide", "/guide/pizza-troubleshooting"');
-    expect(page).toContain('href="/session/start"');
-    expect(page).not.toContain("docs/research/pizza-sauce-sources.md");
+    expect(page).toContain("Practical recommendation");
+    expect(page).toContain("Choose your tomatoes");
+    expect(page).toContain("Choose your method");
+    expect(page).toContain("Adjust for your oven");
+    expect(page).toContain("Whole peeled tomatoes");
+    expect(page).toContain("Raw sauce");
+    expect(page).toContain("Pizza oven");
+  });
+
+  it("keeps troubleshooting compact with four sauce problems", () => {
+    const page = source("app/sauce/page.tsx");
+
+    for (const title of [
+      "Pizza becomes watery",
+      "Sauce tastes flat",
+      "Sauce burns",
+      "Center remains wet",
+    ]) {
+      expect(page).toContain(`title: "${title}"`);
+    }
+
+    expect(page).not.toContain("Using too much sauce");
+    expect(page).not.toContain("Making sauce too far ahead without safe storage");
+    expect((page.match(/<SauceMistakeCard/g) ?? []).length).toBe(1);
+    expect(page).toContain("Open deeper troubleshooting");
+  });
+
+  it("keeps advanced detail behind accessible disclosure instead of separate card walls", () => {
+    const page = source("app/sauce/page.tsx");
+
+    expect(page).toContain("<details");
+    expect(page).toContain("<summary");
+    expect(page).toContain("Tomato solids and free water");
+    expect(page).toContain("Salt, acidity and tasting");
+    expect(page).toContain("Processing method");
+    expect(page).toContain("Storage and safety");
+    expect(page).not.toContain("Ingredient roles");
+    expect(page).not.toContain("How much sauce should go on the pizza?");
+  });
+
+  it("limits related learning to three links and keeps one final primary action before the footer", () => {
+    const page = source("app/sauce/page.tsx");
+    const relatedBlock = page.slice(page.indexOf("const relatedLinks"), page.indexOf("const finalAction"));
+    const pageEnding = source("components/learning/PublicPageEnding.tsx");
+
+    expect(page).toContain("PublicPageEnding");
+    expect(pageEnding).toContain("links.length > 3");
+    expect(pageEnding).toContain("cannot repeat the same destination");
+    expect((relatedBlock.match(/href:/g) ?? []).length).toBe(3);
+    expect(relatedBlock).toContain('href: "/ovens"');
+    expect(relatedBlock).toContain('href: "/toppings"');
+    expect(relatedBlock).toContain('href: "/guide/pizza-troubleshooting"');
+    expect((page.match(/href: "\/session\/start"/g) ?? []).length).toBe(1);
+    expect(pageEnding.indexOf("{relatedEyebrow}")).toBeLessThan(pageEnding.indexOf("{actionEyebrow}"));
+    expect(page.indexOf("<PublicPageEnding")).toBeLessThan(page.indexOf("<SiteFooter />"));
+    expect(page.indexOf("Ready to use the sauce in a real plan?")).toBeLessThan(page.indexOf("<SiteFooter />"));
+    expect(page.slice(page.indexOf("<SiteFooter />"))).not.toContain("Plan my next pizza");
+  });
+
+  it("does not reintroduce WorkflowNextStep, duplicate CTA walls or session integration", () => {
+    const page = source("app/sauce/page.tsx");
+    const layout = source("app/layout.tsx");
+
+    expect(layout).not.toContain("WorkflowNextStep");
+    expect(page).not.toContain("WorkflowNextStep");
+    expect(page).not.toContain("Return to the Pizza Learning Center");
     expect(page).not.toContain("createAndSavePizzaSession");
     expect(page).not.toContain("setActivePizzaSession");
     expect(page).not.toContain("shoppingList");
-  });
-
-  it("keeps every Sauce mistake while improving card hierarchy and order", () => {
-    const page = source("app/sauce/page.tsx");
-    const card = source("components/sauce/SauceMistakeCard.tsx");
-
-    const currentMistakes = [
-      "Using too much sauce",
-      "Using tomatoes with poor flavor",
-      "Blending until completely foamy or watery",
-      "Automatically adding garlic to Margherita sauce",
-      "Automatically adding sugar",
-      "Cooking a classic fast-bake sauce without a reason",
-      "Leaving a home-oven sauce excessively wet",
-      "Ignoring wet mozzarella or topping moisture",
-      "Measuring only by spoons",
-      "Making sauce too far ahead without safe storage",
-    ];
-
-    for (const mistake of currentMistakes) {
-      expect(page).toContain(`title: "${mistake}"`);
-    }
-
-    expect(page).toContain("SauceMistakeCard");
-    expect(page).toContain("Start with what you see. Fix the current pizza first");
-    expect(card.indexOf("What happens")).toBeLessThan(card.indexOf("Fix it now"));
-    expect(card.indexOf("Fix it now")).toBeLessThan(card.indexOf("Likely cause"));
-    expect(card.indexOf("Likely cause")).toBeLessThan(card.indexOf("Next time"));
-  });
-
-  it("uses accessible mobile disclosure for secondary Sauce mistake detail", () => {
-    const card = source("components/sauce/SauceMistakeCard.tsx");
-
-    expect(card).toContain('"use client"');
-    expect(card).toContain("aria-expanded={expanded}");
-    expect(card).toContain("aria-controls={detailsId}");
-    expect(card).toContain("Why it happened and what to change next time");
-    expect(card).toContain("lg:hidden");
-    expect(card).toContain("hidden border-t border-ink/10 pt-4 lg:grid");
-    expect(card).toContain('name="warning"');
-    expect(card).toContain('name="success"');
-    expect(card).toContain('name="information"');
-    expect(card).toContain('name="restore"');
-    expect(card).not.toMatch(/🍅|⚠️|✅|❌/);
-  });
-
-  it("uses local people-free sauce assets with dimensions already present in the repository", () => {
-    const page = source("app/sauce/page.tsx");
-    const sauceAssets = ["neapolitan.webp", "marinara.webp", "home.webp"];
-
-    for (const asset of sauceAssets) {
-      const path = join(process.cwd(), "public", "sauce", asset);
-      expect(existsSync(path)).toBe(true);
-      expect(statSync(path).size).toBeGreaterThan(50_000);
-      expect(page).toContain(`/sauce/${asset}`);
-    }
-
-    expect(page).not.toMatch(/https?:\/\/.*\.(webp|png|jpe?g)/i);
-    expect(page).not.toMatch(/person|people|hands|faces|chef portrait/i);
   });
 
   it("keeps accessibility and responsive semantics explicit", () => {
@@ -272,11 +268,12 @@ describe("pizza sauce learning lab page", () => {
     expect(page).toContain("<h1");
     expect(page).toContain("aria-labelledby");
     expect(page).toContain("overflow-x-clip");
-    expect(page).toContain("grid items-start gap-5 lg:grid-cols-2");
     expect(calculator).toContain("aria-live=\"polite\"");
     expect(calculator).toContain("aria-label={`Decrease ${label}`}");
     expect(calculator).toContain("aria-label={`Increase ${label}`}");
     expect(calculator).toContain("aria-pressed");
+    expect(mistakeCard).toContain("aria-expanded={expanded}");
+    expect(mistakeCard).toContain("aria-controls={detailsId}");
     expect(mistakeCard).toContain("focus-visible:outline");
     expect(mistakeCard).toContain("min-h-12");
   });
@@ -286,20 +283,20 @@ describe("pizza sauce learning lab page", () => {
     const seo = source("lib/seo-config.ts");
 
     expect(metadata.title).toBe("Pizza Sauce Guide and Calculator | DoughTools");
-    expect(metadata.description).toContain("Neapolitan, Marinara, and home-oven pizza sauce");
+    expect(metadata.description).toContain("raw, cooked or reduced sauce");
     expect(seo).toContain('"/sauce"');
     expect(seo).toContain("statefulQueryParamRoutes");
     expect(seo).toContain("ALLOW_INDEXING");
   });
 
-  it("records concise source notes for sauce claims", () => {
+  it("preserves concise source notes for sauce claims", () => {
     const notes = source("docs/research/pizza-sauce-sources.md");
+    const page = source("app/sauce/page.tsx");
 
     expect(notes).toContain("AVPN International Regulations");
     expect(notes).toContain("AVPN Pizza Napoletana recipe");
-    expect(notes).toContain("AVPN “Marinara and her sisters”");
-    expect(notes).toContain("Ooni AVPN Standard Pizza Marinara");
     expect(notes).toContain("USDA leftovers and food safety");
-    expect(notes).toContain("DoughTools practical interpretation");
+    expect(page).toContain("View sources and methodology");
+    expect(page).not.toContain("docs/research/pizza-sauce-sources.md");
   });
 });

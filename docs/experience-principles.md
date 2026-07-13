@@ -141,6 +141,79 @@ Users should never ask:
 What should I do now?
 ```
 
+## Content and action discipline
+
+Every route must define one primary user job.
+
+A page must not expand into several loosely related products merely because more content is available.
+
+Every visible section, card, link and button should answer at least one practical question:
+
+- What decision does this help the user make?
+- What task does this help the user complete?
+- What is the next meaningful step in the DoughTools workflow?
+- Is this information already explained elsewhere on the same page?
+
+If there is no clear answer, remove or consolidate the element.
+
+### Content budget
+
+Default public learning pages should generally contain:
+
+- one compact hero
+- one primary interactive or explanatory outcome
+- approximately three to six major content sections
+- one compact related-learning group
+- one final primary action
+- one canonical footer
+
+These are defaults, not hard limits. Legal pages and genuinely complex workspaces may need different structures, but exceptions should be intentional.
+
+### CTA budget
+
+Use one primary action per decision point.
+
+Do not show more than one visually dominant primary action inside the same section or viewport.
+
+Avoid duplicate buttons and text links that lead to the same destination for the same purpose.
+
+Related Learning is not a second CTA wall. A page ending should normally contain one final primary action.
+
+Utility actions such as Copy, Save, Share, Reset, Back and Export are allowed when they perform distinct functions, but they should not visually compete with the main next step.
+
+### Related-learning budget
+
+Related Learning should normally contain no more than three carefully selected links.
+
+Each link should help the user understand the current decision or move to a clearly relevant next topic. Do not use Related Learning as a miniature sitemap.
+
+### New-section rule
+
+Before adding a new visible section, check whether the information can be:
+
+- merged into an existing section
+- expressed as a short contextual note
+- placed behind progressive disclosure
+- linked to an existing dedicated guide
+- omitted because it does not change the user’s decision
+
+### Card discipline
+
+Do not convert every paragraph or fact into a card.
+
+Use cards when they establish a meaningful conceptual group, comparison, state, result or interaction. Several small cards with equal visual weight often weaken hierarchy.
+
+### Product-depth rule
+
+Public page actions should usually move the user deeper into DoughTools:
+
+1. complete the current page’s primary task
+2. enter or continue pizza planning
+3. open a directly relevant deeper guide
+4. return to a broad navigation hub only when no more specific next step exists
+
+Avoid sending users sideways through several equivalent learning pages without a clear reason.
+
 ## Photography philosophy
 
 Photography should:

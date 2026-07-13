@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import PublicPageEnding, { type PublicPageEndingLink } from "@/components/learning/PublicPageEnding";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import SauceCalculator from "@/components/sauce/SauceCalculator";
 import SauceMistakeCard from "@/components/sauce/SauceMistakeCard";
@@ -10,18 +10,29 @@ import SauceMistakeCard from "@/components/sauce/SauceMistakeCard";
 export const metadata: Metadata = {
   title: "Pizza Sauce Guide and Calculator | DoughTools",
   description:
-    "Learn how to make Neapolitan, Marinara, and home-oven pizza sauce, choose the right tomatoes, avoid common mistakes, and calculate exact quantities for your pizzas.",
+    "Calculate how much pizza sauce you need, choose raw, cooked or reduced sauce, and adjust tomato moisture for your pizza style and oven.",
+};
+
+type ChoiceCard = {
+  title: string;
+  use: string;
+  tradeoff: string;
+  icon: DoughToolsIconName;
 };
 
 type MethodCard = {
   title: string;
-  label: string;
-  image: string;
-  alt: string;
-  summary: string;
-  ingredients: string[];
-  steps: string[];
-  note: string;
+  use: string;
+  benefit: string;
+  risk: string;
+  icon: DoughToolsIconName;
+};
+
+type OvenAdjustment = {
+  title: string;
+  guidance: string;
+  watch: string;
+  icon: DoughToolsIconName;
 };
 
 type Mistake = {
@@ -32,391 +43,272 @@ type Mistake = {
   next: string;
 };
 
-const methods: MethodCard[] = [
+const tomatoChoices: ChoiceCard[] = [
   {
-    title: "Classic Neapolitan tomato base",
-    label: "AVPN-defined traditional practice",
-    image: "/sauce/neapolitan.webp",
-    alt: "Uncooked tomato base with visible tomato texture beside a finished Neapolitan-style pizza.",
-    summary: "The tomato should taste fresh because the oven cooks it on the pizza.",
-    ingredients: ["quality whole peeled tomatoes", "salt"],
-    steps: [
-      "Open and inspect the tomatoes.",
-      "Drain only when clearly necessary; do not remove all useful juice by default.",
-      "Crush by hand, pass through a food mill, or process very briefly.",
-      "Preserve a natural, slightly chunky consistency.",
-      "Add the calculated salt, taste, and keep cold until needed.",
-      "Apply a controlled amount to the pizza, leaving the cornicione clear.",
-    ],
-    note: "Avoid blending until foamy or completely uniform. Careful milling or a very brief pulse can be useful; the problem is destroying texture, not the existence of a tool.",
+    title: "Whole peeled tomatoes",
+    icon: "water",
+    use: "Best default when you want control over texture and fresh tomato character.",
+    tradeoff: "You need to crush or mill them yourself and decide how much packing juice to keep.",
   },
   {
-    title: "Traditional Marinara topping",
-    label: "Traditional pizza topping profile",
-    image: "/sauce/marinara.webp",
-    alt: "Pizza marinara with tomato, garlic, oregano and olive oil, without cheese.",
-    summary: "Marinara is tomato, garlic, oregano and extra-virgin olive oil — no mozzarella required.",
-    ingredients: ["tomato", "garlic", "oregano", "extra-virgin olive oil", "salt"],
-    steps: [
-      "Prepare the tomato base without cooking it.",
-      "Spread tomato thinly from the center outward.",
-      "Add thinly sliced or carefully prepared garlic as part of the topping profile.",
-      "Season with oregano and extra-virgin olive oil.",
-      "Choose mild, traditional, or stronger garlic according to taste and clove size.",
-    ],
-    note: "The name does not mean seafood. It is a classic cheese-free pizza profile, not a universal tomato sauce for every pizza.",
+    title: "Passata",
+    icon: "information",
+    use: "Useful for smoother cooked sauces, pan pizzas or longer-baked styles.",
+    tradeoff: "It can be too smooth or wet for a classic fast-baked Neapolitan-style pizza.",
   },
   {
-    title: "Home-oven cooked sauce",
-    label: "DoughTools practical adaptation",
-    image: "/sauce/home.webp",
-    alt: "Thicker tomato sauce prepared for a longer home-oven pizza bake.",
-    summary: "Lower oven heat and longer bake time can benefit from more controlled moisture.",
-    ingredients: ["whole peeled tomatoes", "salt", "extra-virgin olive oil", "optional garlic", "optional oregano"],
-    steps: [
-      "Crush or mill the tomatoes.",
-      "Cook gently, uncovered.",
-      "Add optional garlic and oregano according to the selected profile.",
-      "Reduce only enough to reach the intended consistency.",
-      "Cool fully before using.",
-      "Weigh the finished yield if you need exact coverage.",
-    ],
-    note: "This is not the classic uncooked Neapolitan method. Do not add sugar automatically; taste first and use only a very small amount when tomatoes are genuinely harsh.",
+    title: "Fresh tomatoes",
+    icon: "success",
+    use: "Useful only when the tomatoes are truly ripe, flavorful and in season.",
+    tradeoff: "They often need water management; ordinary pale supermarket tomatoes are not automatically better than good canned tomatoes.",
   },
 ];
 
-const tomatoTypes = [
-  ["Whole peeled plum tomatoes", "Best default for control over texture, manual crushing, and evaluating actual tomato quality."],
-  ["San Marzano DOP", "A protected origin designation. It can be excellent, but “San Marzano style” is not the same as DOP certification, and non-DOP tomatoes can still be excellent."],
-  ["Crushed tomatoes", "Useful when the ingredient list is clean and the texture is already right. Brand variation is large."],
-  ["Passata", "Useful for smoother or cooked styles, but often too smooth or wet for classic Neapolitan preferences."],
-  ["Fresh ripe tomatoes", "Can be beautiful in season, but ordinary pale supermarket tomatoes are not automatically better than quality canned tomatoes."],
-] as const;
-
-const textureStates = [
+const methodChoices: MethodCard[] = [
   {
-    title: "Too watery",
-    icon: "water",
-    appearance: "Free liquid pools around the tomato.",
-    result: "Wet center, diluted flavor, sliding toppings, and a soft home-oven base.",
-    correction: "Use less sauce, leave excess packing juice behind, drain briefly, reduce cooked sauce, manage cheese moisture, and preheat the stone or steel properly.",
-  },
-  {
-    title: "Balanced",
+    title: "Raw sauce",
     icon: "success",
-    appearance: "Spoonable texture with no large pools of free liquid.",
-    result: "Fresh tomato flavor spreads cleanly without acting like paste.",
-    correction: "Keep the texture natural and judge coverage together with cheese moisture, pizza size and oven heat.",
+    use: "Use for fast, high-heat pizzas where the oven cooks the tomato on the pizza.",
+    benefit: "Fresh tomato flavor and a lighter, less cooked profile.",
+    risk: "Too much free liquid can soften the center.",
   },
   {
-    title: "Too thick",
-    icon: "warning",
-    appearance: "Paste-like sauce that resists spreading.",
-    result: "Heavy tomato layer, dry flavor, poor spreading, and sauce that dominates dough and cheese.",
-    correction: "Add reserved tomato juice, reduce less, use less tomato paste, or lower the sauce amount per pizza.",
+    title: "Cooked sauce",
+    icon: "oven",
+    use: "Use for lower-heat or longer-baked pizzas when you want more control.",
+    benefit: "Moisture becomes easier to manage before the pizza reaches the oven.",
+    risk: "Overcooking can make the sauce taste heavy or paste-like.",
   },
-] as const satisfies Array<{ title: string; icon: DoughToolsIconName; appearance: string; result: string; correction: string }>;
+  {
+    title: "Reduced sauce",
+    icon: "timer",
+    use: "Use when the same tomato product is too loose for your bake.",
+    benefit: "Concentrates tomato and reduces the chance of a wet center.",
+    risk: "Too much reduction can dominate the dough and cheese.",
+  },
+];
 
-const ingredientRoles = [
-  ["Tomato", "Core flavor, acidity, sweetness, moisture and texture."],
-  ["Salt", "Balances tomato flavor. Calculate by tomato weight, then taste and remember that cheese and cured toppings add salt."],
-  ["Extra-virgin olive oil", "Aroma, richness and cooking behavior. Traditionally applied as part of the pizza topping, not automatically blended into every tomato base."],
-  ["Basil", "Fresh aromatic topping. It can go before baking or be protected beneath cheese when burning is a risk."],
-  ["Garlic", "Central to Marinara, optional in many cooked sauces, and not required in a classic Margherita tomato base."],
-  ["Oregano", "Traditional in Marinara and common in some longer-baked styles, but not required in classic Margherita tomato base."],
-  ["Sugar", "Not a default requirement. It can slightly soften harsh acidity, but it cannot turn poor tomatoes into ripe tomatoes."],
-  ["Tomato paste", "Useful in some cooked, pan, American or long-baked styles; generally unnecessary for classic uncooked Neapolitan tomato base."],
-] as const;
+const ovenAdjustments: OvenAdjustment[] = [
+  {
+    title: "Pizza oven",
+    icon: "oven",
+    guidance: "Use controlled amounts and keep the tomato fresh. The short bake gives less time for moisture to evaporate, but strong heat sets the pizza quickly.",
+    watch: "Avoid heavy sauce and overloaded toppings.",
+  },
+  {
+    title: "Home oven",
+    icon: "thermometer",
+    guidance: "Use slightly tighter moisture control: drain excess juice, reduce gently, or use less sauce when the bake is longer.",
+    watch: "Watch for a soft center, wet cheese and a pale base.",
+  },
+  {
+    title: "Pan or longer bake",
+    icon: "pizza",
+    guidance: "A thicker or lightly cooked sauce can make sense because the bake is slower and the dough style can carry more topping.",
+    watch: "Do not turn sauce into paste; it should still spread easily.",
+  },
+];
 
 const mistakes: Mistake[] = [
   {
-    title: "Using too much sauce",
-    happens: "The center stays wet and toppings slide.",
-    cause: "Coverage is heavier than the dough, cheese moisture or oven heat can support.",
-    now: "Remove obvious excess before adding cheese, or bake one pizza as a test and reduce the next one.",
-    next: "Weigh the sauce for a few pizzas and adjust from the calculator’s balanced amount.",
+    title: "Pizza becomes watery",
+    happens: "The center stays soft, toppings slide or the base feels wet after baking.",
+    cause: "Sauce, cheese and toppings release more moisture than the oven and dough can handle.",
+    now: "Use less sauce on the next pizza and remove obvious pools before adding cheese.",
+    next: "Drain loose tomato juice, manage wet mozzarella and preheat the baking surface properly.",
   },
   {
-    title: "Using tomatoes with poor flavor",
-    happens: "The pizza tastes flat, harsh or metallic even when the dough is good.",
-    cause: "The tomato product lacks ripe flavor or balance.",
-    now: "Taste before seasoning. Add salt carefully, but do not hide bad tomatoes with sugar or garlic.",
-    next: "Compare whole peeled tomatoes, crushed tomatoes and passata by taste, not label alone.",
+    title: "Sauce tastes flat",
+    happens: "The tomato tastes dull even though the dough and bake are fine.",
+    cause: "The tomato product lacks ripe flavor, or the salt level is not balanced for that brand.",
+    now: "Taste the sauce before using it and adjust salt carefully.",
+    next: "Compare tomato products by flavor, not label alone; sugar and garlic cannot rescue poor tomatoes.",
   },
   {
-    title: "Blending until completely foamy or watery",
-    happens: "The sauce becomes pale, thin or strangely uniform.",
-    cause: "Too much processing destroys natural texture and may break more seeds.",
-    now: "Let foam settle and use a lighter amount.",
-    next: "Crush by hand, use a food mill, or pulse very briefly.",
+    title: "Sauce burns",
+    happens: "Tomato tastes bitter or scorched before the pizza is otherwise ready.",
+    cause: "Sauce is too exposed, too thick, too sugary or used in a heat environment that is too aggressive for the topping load.",
+    now: "Use a thinner layer and protect exposed tomato with cheese or topping balance where appropriate.",
+    next: "Match the sauce method to the oven: fresh and light for high heat, more controlled for longer bakes.",
   },
   {
-    title: "Automatically adding garlic to Margherita sauce",
-    happens: "Garlic dominates a pizza that should taste like tomato, dairy, basil and oil.",
-    cause: "Marinara habits are applied to Margherita tomato base.",
-    now: "Use it intentionally as a nontraditional variation, not by default.",
-    next: "Keep garlic for Marinara or styles where it belongs.",
-  },
-  {
-    title: "Automatically adding sugar",
-    happens: "The sauce becomes sweet without solving weak tomato flavor.",
-    cause: "Sugar is used before tasting and understanding acidity.",
-    now: "Stop adding more; balance with salt and better tomato choice.",
-    next: "Use a tiny amount only when tomatoes are genuinely harsh.",
-  },
-  {
-    title: "Cooking a classic fast-bake sauce without a reason",
-    happens: "The tomato loses the fresh character expected from fast-baked Neapolitan pizza.",
-    cause: "A home-oven adaptation is used for a high-heat method that does not need it.",
-    now: "Use less cooked sauce or switch to the uncooked method next pizza.",
-    next: "Choose the method from the oven and pizza style, not habit.",
-  },
-  {
-    title: "Leaving a home-oven sauce excessively wet",
-    happens: "The base stays pale, soft or soggy during a longer bake.",
-    cause: "Lower oven heat gives moisture more time to soak into dough and toppings.",
-    now: "Reduce sauce amount and manage cheese moisture.",
-    next: "Cook gently to the target consistency or leave excess packing juice behind.",
-  },
-  {
-    title: "Ignoring wet mozzarella or topping moisture",
-    happens: "The sauce gets blamed, but the wet layer comes from everything on top.",
-    cause: "Fresh cheese, vegetables or heavy topping load release moisture during baking.",
-    now: "Drain or blot wet ingredients before the next pizza.",
-    next: "Treat sauce, cheese and toppings as one moisture system.",
-  },
-  {
-    title: "Measuring only by spoons",
-    happens: "Two pizzas get very different amounts of sauce.",
-    cause: "Consistency varies, so spoon volume is unreliable.",
-    now: "Weigh the next pizza’s sauce once to calibrate your eye.",
-    next: "Use grams while learning, then switch to feel when the result is consistent.",
-  },
-  {
-    title: "Making sauce too far ahead without safe storage",
-    happens: "Fresh tomato flavor fades, or the sauce becomes unsafe.",
-    cause: "The batch was warmed, cooled, contaminated or held too long.",
-    now: "Discard sauce with spoilage, fermentation, mold, off odors or unsafe handling history.",
-    next: "Refrigerate promptly in clean covered containers and freeze excess when useful.",
+    title: "Center remains wet",
+    happens: "The rim looks done, but the middle stays pale, soft or soupy.",
+    cause: "Too much total moisture sits in the center: sauce amount, cheese moisture, toppings and insufficient bottom heat all combine.",
+    now: "Reduce sauce amount and blot or drain wet toppings before the next pizza.",
+    next: "Treat sauce as part of the whole moisture system, not as a separate problem.",
   },
 ];
 
-const relatedLinks = [
-  ["Pizza Learning Center", "/guide", "Understand hydration, fermentation, oven heat and other concepts."],
-  ["Pizza Dough Guide", "/guides/dough", "Follow the dough process from mixing to stretching readiness."],
-  ["Pizza Troubleshooting Guide", "/guide/pizza-troubleshooting", "Fix wet centers, pale bases, scorched rims and other problems."],
-  ["Pizza Styles", "/styles", "Match sauce choices to the style you want to bake."],
-  ["Topping Balance Lab", "/toppings", "Compare sauce, cheese and topping load before the pizza reaches the oven."],
-  ["Ovens", "/ovens", "Understand how your baking setup changes sauce and moisture decisions."],
-] as const;
+const relatedLinks: PublicPageEndingLink[] = [
+  {
+    title: "Oven Guide",
+    href: "/ovens",
+    description: "Match sauce moisture to your real baking environment.",
+  },
+  {
+    title: "Topping Balance Lab",
+    href: "/toppings",
+    description: "Balance sauce, cheese and topping moisture before baking.",
+  },
+  {
+    title: "Pizza Troubleshooting Guide",
+    href: "/guide/pizza-troubleshooting",
+    description: "Diagnose wet centers, pale bases and burnt toppings.",
+  },
+];
+
+const finalAction: PublicPageEndingLink = {
+  title: "Plan my next pizza",
+  href: "/session/start",
+  description: "Use the sauce in a real pizza plan.",
+};
+
+const advancedDetails = [
+  {
+    title: "Tomato solids and free water",
+    body: "Two cans with the same weight can behave differently because one contains more flesh and the other carries more loose juice. The calculator gives a quantity target; the texture still needs judgment.",
+  },
+  {
+    title: "Salt, acidity and tasting",
+    body: "Salt changes how sweet, sharp and ripe the tomato tastes. Start from the calculator, then taste. Cheese, cured toppings and grated hard cheese can make the final pizza saltier than the sauce alone.",
+  },
+  {
+    title: "Processing method",
+    body: "Hand crushing keeps texture. A food mill can be clean and controlled. A brief pulse can work. The problem is over-processing until the tomato becomes foamy, watery or completely uniform.",
+  },
+  {
+    title: "Storage and safety",
+    body: "Keep sauce cold in a clean covered container, use clean utensils, avoid repeated warming and cooling, label the preparation date, and discard sauce with mold, off odors, fermentation or unsafe handling history.",
+  },
+];
+
+function SectionIntro({ body, eyebrow, id, title }: { body?: string; eyebrow: string; id: string; title: string }) {
+  return (
+    <div className="max-w-3xl">
+      <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">{eyebrow}</p>
+      <h2 id={id} className="mt-3 font-display text-4xl font-semibold sm:text-5xl">{title}</h2>
+      {body ? <p className="mt-4 text-sm leading-7 text-muted sm:text-base">{body}</p> : null}
+    </div>
+  );
+}
 
 export default function SaucePage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
-      <section className="relative overflow-hidden bg-forest-dark text-white">
-        <div className="absolute inset-0 opacity-72">
-          <Image
-            src="/sauce/neapolitan.webp"
-            alt="Fresh tomato sauce and finished pizza on a warm pizza-making surface"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[54%_center]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/76 to-ink/20" aria-hidden="true" />
-        </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+      <section className="border-b border-ink/10 bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <div className="max-w-3xl">
-            <div className="[&_a]:text-oven-gold [&_span]:text-white/60">
-              <LearningBreadcrumbs current="Pizza Sauce" />
-            </div>
-            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza Sauce Guide</p>
-            <h1 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
-              Better pizza sauce starts with better decisions.
+            <LearningBreadcrumbs current="Pizza Sauce" />
+            <p className="mt-7 text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Pizza Sauce Guide</p>
+            <h1 className="mt-4 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+              Calculate the right amount. Choose the right sauce.
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-white/78 sm:text-lg">
-              Learn which tomatoes to choose, how to season them, when not to cook the sauce, and exactly how much you
-              need for every pizza.
+            <p className="mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg">
+              Work out how much tomato sauce you need, then choose a raw, cooked or reduced method that fits your pizza
+              style and oven.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-6 text-sm font-extrabold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" href="#sauce-calculator">
-                Calculate my sauce
-              </a>
-              <a className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" href="#three-methods">
-                Learn the three methods
-              </a>
-            </div>
+            <a
+              className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-6 text-sm font-extrabold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato"
+              href="#sauce-calculator"
+            >
+              Calculate my sauce
+            </a>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <section className="rounded-[2rem] border border-ink/10 bg-card p-5 shadow-card sm:p-8" aria-labelledby="quick-answer-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Quick answer</p>
-          <h2 id="quick-answer-title" className="mt-3 font-display text-4xl font-semibold">
-            What goes into Neapolitan pizza sauce?
-          </h2>
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <article className="rounded-[1.5rem] bg-flour p-5">
-              <h3 className="text-lg font-extrabold">Classic Margherita tomato base</h3>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                The base is fundamentally quality peeled tomatoes and salt. Fresh basil, extra-virgin olive oil,
-                mozzarella or fior di latte, and optional grated hard cheese are pizza toppings rather than ingredients
-                that must be blended into the tomato base.
-              </p>
-              <ul className="mt-4 space-y-2 text-sm leading-6 text-muted">
-                <li>Garlic is not standard in the classic Margherita tomato base.</li>
-                <li>Oregano is not standard in the classic Margherita tomato base.</li>
-                <li>Sugar is not automatically required.</li>
-                <li>The tomato base is generally not precooked for a fast-baked Neapolitan pizza.</li>
-              </ul>
-            </article>
-            <article className="rounded-[1.5rem] bg-flour p-5">
-              <h3 className="text-lg font-extrabold">Pizza Marinara</h3>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Traditional Marinara includes tomato, garlic, oregano and extra-virgin olive oil. Despite the name, it
-                is not a seafood sauce. It is the classic cheese-free tomato pizza profile.
-              </p>
-            </article>
-            <article className="rounded-[1.5rem] border border-tomato/20 bg-tomato/10 p-5">
-              <h3 className="text-lg font-extrabold">Home-oven adaptation</h3>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                A longer bake at lower heat may benefit from more controlled moisture, a somewhat thicker consistency,
-                optional brief cooking or draining, and style-specific seasoning. This is an adaptation, not the AVPN
-                Margherita method.
-              </p>
-            </article>
-          </div>
-        </section>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <SauceCalculator />
 
-        <div className="mt-12">
-          <SauceCalculator />
-        </div>
-
-        <section id="three-methods" className="mt-16 scroll-mt-24" aria-labelledby="methods-title">
-          <div className="max-w-3xl">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Three sauce methods</p>
-            <h2 id="methods-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
-              Choose the method from the oven and the pizza, not habit.
-            </h2>
-          </div>
-          <div className="mt-8 grid gap-5">
-            {methods.map((method) => (
-              <article key={method.title} className="overflow-hidden rounded-[2rem] border border-ink/10 bg-card shadow-card lg:grid lg:grid-cols-[0.72fr_1.28fr]">
-                <div className="relative min-h-[18rem]">
-                  <Image src={method.image} alt={method.alt} fill sizes="(max-width: 1024px) 100vw, 40vw" className="object-cover" />
-                </div>
-                <div className="p-5 sm:p-7 lg:p-9">
-                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">{method.label}</p>
-                  <h3 className="mt-2 font-display text-3xl font-semibold">{method.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-muted">{method.summary}</p>
-                  <div className="mt-5 grid gap-5 lg:grid-cols-[0.55fr_1fr]">
-                    <div>
-                      <h4 className="text-sm font-extrabold">Ingredients</h4>
-                      <ul className="mt-2 space-y-1 text-sm leading-6 text-muted">
-                        {method.ingredients.map((ingredient) => <li key={ingredient}>• {ingredient}</li>)}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-extrabold">Method</h4>
-                      <ol className="mt-2 space-y-2 text-sm leading-6 text-muted">
-                        {method.steps.map((step, index) => <li key={step}><strong className="text-ink">{index + 1}. </strong>{step}</li>)}
-                      </ol>
-                    </div>
-                  </div>
-                  <p className="mt-5 rounded-2xl bg-flour p-4 text-sm leading-6 text-muted">{method.note}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-16 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]" aria-labelledby="tomato-title">
+        <section className="mt-10 rounded-[2rem] border border-leaf/20 bg-leaf/[.08] p-5 shadow-soft sm:p-7 lg:grid lg:grid-cols-[0.8fr_1.2fr] lg:gap-8">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Tomato selection</p>
-            <h2 id="tomato-title" className="mt-3 font-display text-4xl font-semibold">
-              Choose tomatoes for flavor, not for the label alone.
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-muted">
-              Look for ripe tomato flavor, balanced sweetness and acidity, low bitterness, enough flesh, and limited
-              unnecessary additives. The label helps, but tasting teaches more.
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Practical recommendation</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">Start simple, then adjust by oven.</h2>
+          </div>
+          <div className="mt-5 grid gap-4 text-sm leading-7 text-muted sm:grid-cols-2 lg:mt-0">
+            <p>
+              For a fast, high-heat pizza, start with whole peeled tomatoes, salt and a raw sauce texture that is
+              spoonable but not watery.
+            </p>
+            <p>
+              For a home oven or longer bake, control moisture first: drain loose juice, reduce gently or use less sauce
+              before adding more seasoning.
             </p>
           </div>
-          <div className="grid gap-3">
-            {tomatoTypes.map(([title, body]) => (
-              <article key={title} className="rounded-2xl border border-ink/10 bg-card p-5 shadow-soft">
-                <h3 className="text-base font-extrabold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+        </section>
+
+        <section className="mt-16" aria-labelledby="tomatoes-title">
+          <SectionIntro
+            id="tomatoes-title"
+            eyebrow="Choose your tomatoes"
+            title="Pick the tomato by the job it needs to do."
+            body="The label matters less than flavor, texture and water content. Choose the product that helps this pizza bake well."
+          />
+          <div className="mt-7 grid gap-4 lg:grid-cols-3">
+            {tomatoChoices.map((choice) => (
+              <article key={choice.title} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft">
+                <DoughToolsIcon name={choice.icon} className="text-tomato" size={24} />
+                <h3 className="mt-4 text-lg font-extrabold">{choice.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-muted">{choice.use}</p>
+                <p className="mt-3 rounded-2xl bg-flour p-3 text-sm leading-6 text-muted">
+                  <strong className="text-ink">Trade-off:</strong> {choice.tradeoff}
+                </p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="mt-16 rounded-[2rem] bg-forest-dark p-5 text-white shadow-card sm:p-8 lg:p-10" aria-labelledby="texture-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Texture and moisture</p>
-          <h2 id="texture-title" className="mt-3 font-display text-4xl font-semibold">
-            Sauce texture is a baking decision.
-          </h2>
+        <section className="mt-16" aria-labelledby="method-title">
+          <SectionIntro
+            id="method-title"
+            eyebrow="Choose your method"
+            title="Raw, cooked and reduced sauce solve different problems."
+            body="There is no universal best sauce. The method should match the bake, the tomato and the topping load."
+          />
           <div className="mt-7 grid gap-4 lg:grid-cols-3">
-            {textureStates.map((state) => (
-              <article key={state.title} className="rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
-                <DoughToolsIcon name={state.icon} className="text-oven-gold" size={32} />
-                <h3 className="mt-4 text-lg font-extrabold">{state.title}</h3>
-                <dl className="mt-4 space-y-3 text-sm leading-6 text-white/68">
-                  <div><dt className="font-extrabold text-white">Appearance</dt><dd>{state.appearance}</dd></div>
-                  <div><dt className="font-extrabold text-white">Likely result</dt><dd>{state.result}</dd></div>
-                  <div><dt className="font-extrabold text-white">Correction</dt><dd>{state.correction}</dd></div>
+            {methodChoices.map((method) => (
+              <article key={method.title} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft">
+                <DoughToolsIcon name={method.icon} className="text-leaf" size={24} />
+                <h3 className="mt-4 text-lg font-extrabold">{method.title}</h3>
+                <dl className="mt-4 space-y-3 text-sm leading-6 text-muted">
+                  <div><dt className="font-extrabold text-ink">Use when</dt><dd>{method.use}</dd></div>
+                  <div><dt className="font-extrabold text-ink">Benefit</dt><dd>{method.benefit}</dd></div>
+                  <div><dt className="font-extrabold text-ink">Risk</dt><dd>{method.risk}</dd></div>
                 </dl>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="mt-16" aria-labelledby="roles-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Ingredient roles</p>
-          <h2 id="roles-title" className="mt-3 font-display text-4xl font-semibold">
-            Every ingredient should have a reason.
-          </h2>
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {ingredientRoles.map(([title, body]) => (
-              <article key={title} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft">
-                <h3 className="text-base font-extrabold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+        <section className="mt-16" aria-labelledby="oven-title">
+          <SectionIntro
+            id="oven-title"
+            eyebrow="Adjust for your oven"
+            title="The oven decides how careful you need to be with moisture."
+            body="Sauce does not bake alone. Dough thickness, cheese moisture, toppings and oven heat all affect the result."
+          />
+          <div className="mt-7 grid gap-4 lg:grid-cols-3">
+            {ovenAdjustments.map((adjustment) => (
+              <article key={adjustment.title} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft">
+                <DoughToolsIcon name={adjustment.icon} className="text-tomato" size={24} />
+                <h3 className="mt-4 text-lg font-extrabold">{adjustment.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-muted">{adjustment.guidance}</p>
+                <p className="mt-3 rounded-2xl bg-warm-background p-3 text-sm leading-6 text-muted">
+                  <strong className="text-ink">Watch:</strong> {adjustment.watch}
+                </p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="mt-16 overflow-hidden rounded-[2rem] border border-ink/10 bg-card shadow-card" aria-labelledby="application-title">
-          <div className="grid lg:grid-cols-[1fr_1fr]">
-            <div className="relative min-h-[20rem]">
-              <Image src="/sauce/marinara.webp" alt="Pizza with a balanced tomato sauce layer spread inside the rim" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
-            </div>
-            <div className="p-5 sm:p-8 lg:p-10">
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Sauce application</p>
-              <h2 id="application-title" className="mt-3 font-display text-4xl font-semibold">
-                How much sauce should go on the pizza?
-              </h2>
-              <ul className="mt-5 space-y-3 text-sm leading-7 text-muted">
-                <li>Weigh the sauce during initial practice.</li>
-                <li>Start with the calculator’s balanced amount.</li>
-                <li>Place sauce in the center and spread outward in a controlled spiral.</li>
-                <li>Leave the cornicione clear.</li>
-                <li>Avoid large pools and judge coverage together with cheese moisture and oven type.</li>
-                <li>Remember that pizza diameter matters; use grams per pizza as a starting point and adjust by result.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
         <section className="mt-16" aria-labelledby="mistakes-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Common mistakes and corrections</p>
-          <h2 id="mistakes-title" className="mt-3 font-display text-4xl font-semibold">
-            Diagnose the sauce by what happens on the pizza.
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">
-            Start with what you see. Fix the current pizza first, then change one thing on the next bake.
-          </p>
+          <SectionIntro
+            id="mistakes-title"
+            eyebrow="Compact troubleshooting"
+            title="Fix the sauce by what happens on the pizza."
+            body="Start with the visible problem, make one correction and keep the next bake easier to read."
+          />
           <div className="mt-7 grid items-start gap-5 lg:grid-cols-2">
             {mistakes.map((mistake) => (
               <SauceMistakeCard
@@ -429,71 +321,50 @@ export default function SaucePage() {
               />
             ))}
           </div>
-          <Link href="/guide/pizza-troubleshooting" className="mt-5 inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-forest">
-            Open the Pizza Troubleshooting Guide
+          <Link
+            href="/guide/pizza-troubleshooting"
+            className="mt-5 inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
+          >
+            Open deeper troubleshooting
           </Link>
         </section>
 
-        <section className="mt-16 rounded-[2rem] border border-ink/10 bg-flour p-5 shadow-soft sm:p-8" aria-labelledby="storage-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Storage and food safety</p>
-          <h2 id="storage-title" className="mt-3 font-display text-4xl font-semibold">
-            Keep sauce clean, cold and clearly dated.
-          </h2>
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            <ul className="space-y-2 text-sm leading-7 text-muted">
-              <li>Refrigerate promptly in a clean covered container.</li>
-              <li>Keep raw tomato sauce cold until use.</li>
-              <li>Avoid repeatedly warming and cooling the same batch.</li>
-              <li>Use clean utensils and divide large batches into smaller containers when useful.</li>
-            </ul>
-            <ul className="space-y-2 text-sm leading-7 text-muted">
-              <li>Label the preparation date.</li>
-              <li>Freeze excess when appropriate.</li>
-              <li>Discard sauce showing spoilage, fermentation, mold, off odors or unsafe handling history.</li>
-              <li>USDA leftover guidance uses 3–4 days refrigerated or 3–4 months frozen as a general safety reference.</li>
-            </ul>
+        <section className="mt-16 rounded-[2rem] border border-ink/10 bg-card p-5 shadow-soft sm:p-7" aria-labelledby="advanced-title">
+          <SectionIntro
+            id="advanced-title"
+            eyebrow="Advanced detail"
+            title="More detail, only when it changes your decision."
+            body="These notes are useful when you want to tune sauce more precisely. The calculator and recommendation above are enough for most pizza nights."
+          />
+          <div className="mt-7 grid gap-3">
+            {advancedDetails.map((detail) => (
+              <details key={detail.title} className="group rounded-2xl border border-ink/10 bg-flour p-4">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 text-sm font-extrabold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato">
+                  {detail.title}
+                  <DoughToolsIcon name="chevron-down" className="text-tomato transition group-open:rotate-180" size={20} />
+                </summary>
+                <p className="mt-3 text-sm leading-7 text-muted">{detail.body}</p>
+              </details>
+            ))}
           </div>
-        </section>
-
-        <section className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-labelledby="related-title">
-          <div className="sm:col-span-2 lg:col-span-3">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Related learning</p>
-            <h2 id="related-title" className="mt-3 font-display text-4xl font-semibold">Keep the sauce connected to the whole pizza.</h2>
-          </div>
-          {relatedLinks.map(([title, href, body]) => (
-            <Link key={href} href={href} className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-card">
-              <h3 className="text-base font-extrabold">{title}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+          <p className="mt-6 text-sm leading-7 text-muted">
+            Traditional Neapolitan guidance is based on AVPN regulations and preparation guidance. Practical home-oven
+            adaptations are DoughTools recommendations, not claims that every sauce must be prepared one way.
+            {" "}
+            <Link href="/methodology#pizza-sauce" className="font-extrabold text-tomato underline-offset-4 hover:underline">
+              View sources and methodology
             </Link>
-          ))}
-        </section>
-
-        <section className="mt-16 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-10 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/70">Ready to use the sauce in a real pizza plan?</p>
-            <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Plan my next pizza with the sauce in mind.</h2>
-          </div>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-0">
-            <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-extrabold text-tomato shadow-soft transition hover:-translate-y-0.5 hover:bg-flour">
-              Plan my next pizza
-            </Link>
-            <Link href="/guide" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-white/10">
-              Return to the Pizza Learning Center
-            </Link>
-          </div>
-        </section>
-
-        <section className="mt-12 rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft" aria-labelledby="sources-title">
-          <h2 id="sources-title" className="font-display text-2xl font-semibold">Sources and methodology</h2>
-          <p className="mt-3 text-sm leading-7 text-muted">
-            Traditional Neapolitan guidance on this page is based on AVPN regulations and preparation guidance. Practical
-            home-oven and recipe adaptations are clearly labelled as DoughTools recommendations or expert-informed
-            adaptations. Sauce amounts, salt ratios and storage guidance are educational starting points, not universal rules.
+            .
           </p>
-          <Link href="/methodology#pizza-sauce" className="mt-4 inline-flex min-h-11 items-center rounded-full text-sm font-extrabold text-tomato underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato">
-            View sources and methodology
-          </Link>
         </section>
+
+        <PublicPageEnding
+          links={relatedLinks}
+          relatedTitle="Keep sauce connected to heat and toppings."
+          action={finalAction}
+          actionEyebrow="Ready to use the sauce in a real plan?"
+          actionTitle="Plan my next pizza with the sauce in mind."
+        />
         <SiteFooter />
       </div>
     </main>

@@ -39,6 +39,12 @@ Core product rules:
 - Do not overuse Italian clichés.
 - Do not redesign individual pages independently unless explicitly requested.
 - Do not change formulas, calculations, persistence, auth, SEO, pricing or route behavior unless the task explicitly requests it.
+- Every route must have one primary user job. Do not let public pages grow into several loosely related products.
+- Public learning pages should normally keep a compact content budget: one hero, one primary outcome or interaction, roughly three to six major sections, a compact related-learning group, one final primary action and the canonical footer.
+- Use one dominant action per decision point. Avoid duplicate buttons or links that send users to the same destination for the same purpose.
+- Related Learning should be curated, not a miniature sitemap; normally use no more than three links unless the user explicitly approves a broader index.
+- Before adding a new visible section, first check whether the idea can be merged, shortened, disclosed, linked to an existing guide or omitted.
+- Do not turn every fact into a card. Cards should represent meaningful groups, comparisons, states, results or interactions.
 
 Testing guidance:
 

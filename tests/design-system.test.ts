@@ -30,6 +30,27 @@ describe("DoughTools design foundation", () => {
     expect(agents).toContain("docs/design-system.md");
     expect(agents).toContain("Do not create separate mobile business logic.");
     expect(agents).toContain("Do not change formulas, calculations, persistence, auth, SEO, pricing or route behavior unless the task explicitly requests it.");
+    expect(agents).toContain("Every route must have one primary user job.");
+    expect(agents).toContain("Related Learning should be curated, not a miniature sitemap");
+  });
+
+  it("documents content, card and CTA discipline for future page work", () => {
+    const experiencePrinciples = source("docs/experience-principles.md");
+    const responsiveRules = source("docs/global-responsive-ux-rules.md");
+    const designSystem = source("docs/design-system.md");
+
+    for (const doc of [experiencePrinciples, responsiveRules, designSystem]) {
+      expect(doc).toContain("one primary user job");
+      expect(doc).toContain("one final primary action");
+      expect(doc).toContain("Related Learning");
+      expect(doc).toContain("no more than three");
+      expect(doc).toContain("Do not");
+      expect(doc).toMatch(/card|cards/i);
+    }
+
+    expect(experiencePrinciples).toContain("A page must not expand into several loosely related products");
+    expect(responsiveRules).toContain("Responsive design should not hide an overloaded page.");
+    expect(designSystem).toContain("Design consistency includes restraint.");
   });
 
   it("adds shared visual tokens through the existing global CSS approach", () => {

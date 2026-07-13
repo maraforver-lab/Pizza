@@ -612,6 +612,7 @@ All future DoughTools pages must define before implementation:
 
 - page type
 - purpose
+- one primary user job
 - primary user action
 - secondary/back action
 - desktop layout rule
@@ -625,6 +626,32 @@ All future DoughTools pages must define before implementation:
 New pages should reuse existing DoughTools responsive rules and patterns.
 
 Do not invent a new layout pattern unless explicitly approved.
+
+## 13.1 Content and action budget
+
+Responsive design should not hide an overloaded page. Start by keeping the page focused.
+
+Default public learning pages should generally use:
+
+- one compact hero
+- one primary outcome, explanation or interaction
+- roughly three to six major content sections
+- one compact Related Learning group
+- one final primary action
+- the canonical footer as the final visible element
+
+Exceptions are allowed for legal pages and complex application workspaces, but they must be intentional and should not create repeated summaries or competing CTAs.
+
+Rules:
+
+- one primary action per decision point
+- no duplicate primary actions with the same destination and purpose
+- no more than one dominant CTA in the same section or viewport
+- Related Learning should normally contain no more than three links
+- do not use Related Learning as a sitemap
+- utility actions such as Copy, Save, Share, Reset, Back or Export are allowed when they perform distinct functions
+- before adding a new visible section, first try merging, shortening, disclosing, linking or omitting the content
+- do not turn every fact into a card
 
 ## 14. Recommended shared components
 

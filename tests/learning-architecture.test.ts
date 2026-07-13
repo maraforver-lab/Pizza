@@ -8,13 +8,19 @@ describe("learning architecture", () => {
   it("provides one shared related-learning and breadcrumb pattern", () => {
     const componentPath = join(process.cwd(), "components", "learning", "RelatedLearning.tsx");
     const component = source("components", "learning", "RelatedLearning.tsx");
+    const pageEndingPath = join(process.cwd(), "components", "learning", "PublicPageEnding.tsx");
+    const pageEnding = source("components", "learning", "PublicPageEnding.tsx");
 
     expect(existsSync(componentPath)).toBe(true);
+    expect(existsSync(pageEndingPath)).toBe(true);
     expect(component).toContain("LearningBreadcrumbs");
     expect(component).toContain('aria-label="Breadcrumb"');
     expect(component).toContain('aria-current="page"');
     expect(component).toContain("RelatedLearning");
     expect(component).toContain("DoughToolsIcon");
+    expect(pageEnding).toContain("PublicPageEnding");
+    expect(pageEnding).toContain("links.length > 3");
+    expect(pageEnding).toContain("cannot repeat the same destination");
   });
 
   it("makes important learning pages discoverable from the Guide dropdown", () => {

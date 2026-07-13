@@ -517,6 +517,7 @@ Every new page should define:
 
 - page type
 - purpose
+- primary user job
 - primary action
 - secondary action
 - desktop layout
@@ -526,6 +527,35 @@ Every new page should define:
 - footer behavior
 - whether keep-screen-awake may be relevant
 - which shared components are used
+
+## J.1 Content, card and CTA discipline
+
+Design consistency includes restraint.
+
+Every route should have one primary user job.
+
+Cards, buttons and sections should not multiply just because more facts are available.
+
+Use cards when they create a meaningful:
+
+- comparison
+- state
+- result
+- decision group
+- interaction
+- navigation group
+
+Do not use cards to give every paragraph equal weight.
+
+CTA rules:
+
+- one dominant primary action per decision point
+- no duplicate buttons or text links with the same purpose and destination
+- related links must stay visually secondary to the final primary action
+- public page endings should normally contain one final primary action followed by the canonical footer
+- utility controls may be numerous only when each control performs a distinct tool action
+
+Related Learning should normally contain no more than three carefully selected links. It should help the user progress, not recreate the full navigation system.
 
 ## K. Implementation rule
 
