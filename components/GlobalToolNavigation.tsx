@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from "react";
 import { DoughToolsIcon } from "@/components/icons";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -53,6 +53,9 @@ export default function GlobalToolNavigation() {
   const [openMenu, setOpenMenu] = useState<OpenNavigationMenu>(null);
   const guideMenuOpen = openMenu === "guide";
   const toolsMenuOpen = openMenu === "tools";
+  const navigationRootRef = useRef<HTMLDivElement>(null);
+  const guideButtonRef = useRef<HTMLButtonElement>(null);
+  const toolsButtonRef = useRef<HTMLButtonElement>(null);
   const guideMenuRef = useRef<HTMLDivElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const accountActive = pathname === "/account";
@@ -75,17 +78,17 @@ export default function GlobalToolNavigation() {
 
     const closeOnPointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (guideMenuOpen && !guideMenuRef.current?.contains(target)) {
+      if (!navigationRootRef.current?.contains(target)) {
         setOpenMenu(null);
-      }
-      if (toolsMenuOpen && !toolsMenuRef.current?.contains(target)) {
-        setOpenMenu(null);
+        return;
       }
     };
 
-    const closeOnEscape = (event: KeyboardEvent) => {
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") {
+        const trigger = openMenu === "guide" ? guideButtonRef.current : openMenu === "tools" ? toolsButtonRef.current : null;
         setOpenMenu(null);
+        trigger?.focus();
       }
     };
 
@@ -96,7 +99,19 @@ export default function GlobalToolNavigation() {
       document.removeEventListener("pointerdown", closeOnPointerDown);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [guideMenuOpen, toolsMenuOpen]);
+  }, [guideMenuOpen, openMenu, toolsMenuOpen]);
+
+  const openMenuFromKeyboard = (menu: Exclude<OpenNavigationMenu, null>) => (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setOpenMenu(menu);
+      window.requestAnimationFrame(() => {
+        const menuElement = menu === "guide" ? guideMenuRef.current : toolsMenuRef.current;
+        const firstMenuItem = menuElement?.querySelector<HTMLElement>('[role="menuitem"]');
+        firstMenuItem?.focus();
+      });
+    }
+  };
 
   useEffect(() => {
     let pulseTimer: number | undefined;
@@ -121,8 +136,8 @@ export default function GlobalToolNavigation() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/95 px-3 py-2.5 text-ink shadow-sm backdrop-blur-xl sm:px-6">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 overflow-hidden sm:gap-3">
+    <header className="sticky top-0 z-[60] overflow-visible border-b border-ink/10 bg-cream/95 px-3 py-2.5 text-ink shadow-sm backdrop-blur-xl sm:px-6">
+      <div ref={navigationRootRef} className="mx-auto flex max-w-7xl items-center justify-between gap-2 overflow-visible sm:gap-3">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
@@ -134,7 +149,7 @@ export default function GlobalToolNavigation() {
           <strong className="text-lg tracking-tight max-sm:sr-only">Dough<span className="text-tomato">Tools</span></strong>
         </Link>
 
-        <div className="flex min-w-0 max-w-[calc(100vw-5.25rem)] items-center justify-start gap-1 overflow-hidden sm:justify-end sm:gap-3">
+        <div className="flex min-w-0 max-w-[calc(100vw-5.25rem)] items-center justify-start gap-1 overflow-visible sm:justify-end sm:gap-3">
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
             <Link
               href="/about"
@@ -150,18 +165,20 @@ export default function GlobalToolNavigation() {
           </nav>
           <div ref={guideMenuRef} className="relative">
             <button
+              ref={guideButtonRef}
               type="button"
               aria-haspopup="menu"
               aria-expanded={guideMenuOpen}
               aria-controls="global-guide-menu"
               onClick={() => setOpenMenu((menu) => menu === "guide" ? null : "guide")}
+              onKeyDown={openMenuFromKeyboard("guide")}
               className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-2.5 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:px-3"
             >
               {copy.guide}
               <DoughToolsIcon name="chevron-down" size={16} />
             </button>
             {guideMenuOpen && (
-              <div id="global-guide-menu" className="absolute right-0 top-12 z-50 w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:max-h-[calc(100vh-4.5rem)] max-sm:w-auto max-sm:overflow-y-auto" role="menu" aria-label="Guide menu">
+              <div id="global-guide-menu" className="absolute right-0 top-12 z-[70] w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:max-h-[calc(100vh-4.5rem)] max-sm:w-auto max-sm:overflow-y-auto" role="menu" aria-label="Guide menu">
                 <Link
                   href="/guide"
                   role="menuitem"
@@ -236,18 +253,20 @@ export default function GlobalToolNavigation() {
           </div>
           <div ref={toolsMenuRef} className="relative">
             <button
+              ref={toolsButtonRef}
               type="button"
               aria-haspopup="menu"
               aria-expanded={toolsMenuOpen}
               aria-controls="global-tools-menu"
               onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}
+              onKeyDown={openMenuFromKeyboard("tools")}
               className="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/10 bg-white/75 px-2.5 text-[11px] font-extrabold text-ink/65 shadow-sm transition hover:border-tomato/30 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:px-3"
             >
               {copy.tools}
               <DoughToolsIcon name="chevron-down" size={16} />
             </button>
             {toolsMenuOpen && (
-              <div id="global-tools-menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Tools menu">
+              <div id="global-tools-menu" className="absolute right-0 top-12 z-[70] w-64 rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto" role="menu" aria-label="Tools menu">
                 {toolsMenuItems.map((item) => (
                   <Link
                     key={item.href}

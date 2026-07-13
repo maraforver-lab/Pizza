@@ -843,7 +843,7 @@ describe("Pizza Dough Guide foundation", () => {
 
     expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("}, [pathname]);");
-    expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
+    expect(header).toContain("navigationRootRef.current?.contains(target)");
     expect(header).toContain("event.key === \"Escape\"");
     expect(header).toContain('aria-controls="global-guide-menu"');
     expect(header).toContain('role="menu" aria-label="Guide menu"');

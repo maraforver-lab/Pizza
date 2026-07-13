@@ -150,9 +150,12 @@ describe("shared navigation model", () => {
     expect(header).toContain("const toolsMenuRef = useRef<HTMLDivElement>(null)");
     expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("}, [pathname]);");
-    expect(header).toContain("toolsMenuOpen && !toolsMenuRef.current?.contains(target)");
+    expect(header).toContain("const navigationRootRef = useRef<HTMLDivElement>(null)");
+    expect(header).toContain("!navigationRootRef.current?.contains(target)");
     expect(header).toContain("event.key === \"Escape\"");
+    expect(header).toContain("trigger?.focus()");
     expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}');
+    expect(header).toContain('onKeyDown={openMenuFromKeyboard("tools")}');
     expect(header).toContain("aria-expanded={toolsMenuOpen}");
     expect(header).toContain('aria-controls="global-tools-menu"');
     expect(header).toContain('role="menu" aria-label="Tools menu"');
@@ -185,8 +188,12 @@ describe("shared navigation model", () => {
 
     expect(header).toContain('const guideMenuOpen = openMenu === "guide"');
     expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
+    expect(header).toContain("const guideButtonRef = useRef<HTMLButtonElement>(null)");
+    expect(header).toContain("const toolsButtonRef = useRef<HTMLButtonElement>(null)");
     expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "guide" ? null : "guide")}');
     expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}');
+    expect(header).toContain('onKeyDown={openMenuFromKeyboard("guide")}');
+    expect(header).toContain('event.key === "ArrowDown"');
     expect(header).toContain('aria-controls="global-guide-menu"');
     expect(header).toContain('id="global-guide-menu"');
     expect(header).toContain('role="menu" aria-label="Guide menu"');
@@ -209,7 +216,10 @@ describe("shared navigation model", () => {
     expect(header).toContain("guideMenuItemClass(ovenGuideActive)");
     expect(header).toContain("guideMenuItemClass(troubleshootingGuideActive)");
     expect(header).toContain("guideMenuItemClass(aboutActive)");
-    expect(header).toContain("guideMenuOpen && !guideMenuRef.current?.contains(target)");
+    expect(header).toContain("!navigationRootRef.current?.contains(target)");
+    expect(header).toContain("overflow-visible");
+    expect(header).toContain("z-[60]");
+    expect(header).toContain("z-[70]");
     expect(header).toContain("w-[min(21rem,calc(100vw-1.5rem))]");
     expect(header).toContain("max-sm:max-h-[calc(100vh-4.5rem)]");
     expect(header).toContain("max-sm:overflow-y-auto");
