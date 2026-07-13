@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomActionBar, buttonClass, cardClass, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
-import { SessionEmptyState } from "@/components/session/SessionEmptyState";
+import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -96,6 +96,7 @@ function IngredientIcon({ item }: { item: PizzaSessionShoppingItem }) {
 
 export default function SessionShoppingPage() {
   const [ready, setReady] = useState(false);
+  const [routeError, setRouteError] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [missingReason, setMissingReason] = useState<string | null>(null);
   const [exportingImage, setExportingImage] = useState(false);
@@ -104,11 +105,16 @@ export default function SessionShoppingPage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    const initialSession = getActivePizzaSession();
-    const { session: updatedSession, result } = generateAndSaveActiveShoppingList();
-    setSession(updatedSession ?? initialSession ?? null);
-    setMissingReason(result.ok ? null : result.missingReason);
-    setReady(true);
+    try {
+      const initialSession = getActivePizzaSession();
+      const { session: updatedSession, result } = generateAndSaveActiveShoppingList();
+      setSession(updatedSession ?? initialSession ?? null);
+      setMissingReason(result.ok ? null : result.missingReason);
+    } catch {
+      setRouteError(true);
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   const generationResult = useMemo(
@@ -174,37 +180,51 @@ export default function SessionShoppingPage() {
     }
   };
 
+  if (routeError) {
+    return (
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Start a new plan" }}
+        body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
+        eyebrow="Shopping list"
+        onRetry={() => window.location.reload()}
+        title="We couldn’t open your shopping list."
+        variant="error"
+      />
+    );
+  }
+
   if (!ready) {
     return (
-      <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className="mx-auto grid max-w-3xl gap-3 rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/55 shadow-card">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-cream text-tomato" aria-hidden="true">
-            <DoughToolsIcon name="shopping-basket" size={20} />
-          </span>
-          <span>Loading your local shopping list…</span>
-        </div>
-      </main>
+      <SessionRouteState
+        body="Checking this browser for an active pizza plan before building the shopping list."
+        eyebrow="Shopping list"
+        title="Opening your shopping list"
+        variant="checking"
+      />
     );
   }
 
   if (!session || missingReason === "no-session") {
     return (
-      <SessionEmptyState
-        eyebrow="Pizza Session shopping"
-        title="No active pizza session"
-        body="Start a Pizza Session first. DoughTools will save your shopping list locally in this browser on this device."
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Create my pizza plan" }}
+        body="Your shopping list is created from your pizza and dough plan."
+        eyebrow="Shopping list"
+        title="No shopping list yet"
+        variant="no-session"
       />
     );
   }
 
-  if (missingReason === "missing-pizza-count") {
+  if (missingReason) {
     return (
-      <SessionEmptyState
-        eyebrow="Pizza Session shopping"
-        title="Choose pizza count first."
-        body="A shopping list needs to know how many pizzas you are making. Return to the session starter and choose the quantity."
-        actionLabel="Return to Start Pizza Session →"
+      <SessionRouteState
+        action={{ href: "/session/recipe", label: "Open Dough Plan" }}
+        body="Complete your dough plan first so DoughTools can build the ingredients and pizza menu from a valid plan."
+        eyebrow="Shopping list"
         localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.`}
+        title="Your shopping list is not ready yet."
+        variant="step-unavailable"
       />
     );
   }

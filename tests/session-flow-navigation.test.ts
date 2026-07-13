@@ -118,7 +118,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(review).toContain("Save review →");
     expect(review).toContain("Saving review…");
     expect(review).toContain("Add a pizza photo and share your bake");
-    expect(review).toContain("No pizza session to review");
+    expect(review).toContain("Nothing to review yet");
     expect(review).not.toContain("How did your pizza turn out?");
   });
 

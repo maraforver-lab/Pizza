@@ -80,8 +80,8 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("Follow one step at a time.");
     expect(page).toContain("hideLocalSaveNote");
     expect(page).toContain("Mark step as done");
-    expect(page).toContain("No active pizza session");
-    expect(page).toContain("Create a timeline first");
+    expect(page).toContain("Kitchen Mode is not ready yet");
+    expect(page).toContain("Build my timeline");
     expect(page).toContain("Ingredient amounts unavailable");
     expect(page).not.toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).not.toContain("Saved as you go.");

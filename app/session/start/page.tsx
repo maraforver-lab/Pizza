@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { BottomActionBar, buttonClass, focusRingClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
   clearCloudBackedActivePizzaSessionPointer,
@@ -418,11 +419,12 @@ function isValidTargetTime(value?: string) {
 
 function StartPizzaSessionLoading() {
   return (
-    <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-      <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
-        Loading your local pizza session…
-      </div>
-    </main>
+    <SessionRouteState
+      body="Checking this browser and your account for a pizza plan you can continue."
+      eyebrow="Pizza Session"
+      title="Opening your pizza plan"
+      variant="checking"
+    />
   );
 }
 

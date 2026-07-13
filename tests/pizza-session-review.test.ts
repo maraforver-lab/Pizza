@@ -52,7 +52,9 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).not.toContain("Learning page</");
     expect(page).not.toContain("How did your pizza turn out?");
     expect(page).not.toContain("Save what worked and what you want to improve next time.");
-    expect(page).toContain("No pizza session to review");
+    expect(page).toContain("Nothing to review yet");
+    expect(page).toContain("sessionIsReviewable");
+    expect(page).toContain("nearestReviewPrerequisiteHref");
     expect(page).toContain("Overall result");
     expect(page).toContain("1 — Poor");
     expect(page).toContain("5 — Excellent");

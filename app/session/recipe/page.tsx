@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
-import { SessionEmptyState } from "@/components/session/SessionEmptyState";
+import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSessionToAccount";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
@@ -120,72 +120,102 @@ function selectedFlourLabel(value?: string) {
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
   if (reason === "no-session") {
     return {
-      title: "No active pizza session",
-      body: "Start a Pizza Session first. DoughTools will save the session locally in this browser on this device.",
-      action: "Start Pizza Session →",
+      action: "Plan my next pizza",
+      actionHref: "/session/start",
+      body: "Start by choosing when you want to eat and what kind of pizza you want to make.",
+      title: "No active pizza plan",
+      variant: "no-session" as const,
     };
   }
   if (reason === "missing-path") {
     return {
-      title: "Choose your baking path first.",
+      action: "Complete my pizza plan",
+      actionHref: "/session/start",
       body: "The dough plan needs to know whether you are baking in a home oven, pizza oven or pan.",
-      action: "Return to session choices →",
+      title: "Your dough plan is not ready yet.",
+      variant: "step-unavailable" as const,
     };
   }
   if (reason === "missing-preset") {
     return {
-      title: "Choose a pizza style first.",
+      action: "Complete my pizza plan",
+      actionHref: "/session/start",
       body: "The pizza style keeps dough planning separate from the topping choices you’ll allocate in Shopping.",
-      action: "Return to session choices →",
+      title: "Your dough plan is not ready yet.",
+      variant: "step-unavailable" as const,
     };
   }
   if (reason === "missing-quantity") {
     return {
-      title: "Choose the pizza count first.",
+      action: "Complete my pizza plan",
+      actionHref: "/session/start",
       body: "The dough plan needs a number of pizzas before it can calculate the total dough.",
-      action: "Return to session choices →",
+      title: "Your dough plan is not ready yet.",
+      variant: "step-unavailable" as const,
     };
   }
   return {
-    title: "Choose your flour first.",
+    action: "Complete my pizza plan",
+    actionHref: "/session/start",
     body: "Pick the closest flour type in the session starter. Exact flour tuning remains available in the full calculator.",
-    action: "Return to session choices →",
+    title: "Your dough plan is not ready yet.",
+    variant: "step-unavailable" as const,
   };
 }
 
 export default function SessionRecipePage() {
   const [ready, setReady] = useState(false);
+  const [routeError, setRouteError] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [result, setResult] = useState<SessionRecipeBuildResult | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    const saved = generateAndSaveActiveSessionRecipe();
-    setSession(saved.session ?? null);
-    setResult(saved.result);
-    setReady(true);
+    try {
+      const saved = generateAndSaveActiveSessionRecipe();
+      setSession(saved.session ?? null);
+      setResult(saved.result);
+    } catch {
+      setRouteError(true);
+    } finally {
+      setReady(true);
+    }
   }, []);
+
+  if (routeError) {
+    return (
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Start a new plan" }}
+        body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
+        eyebrow="Dough Plan"
+        onRetry={() => window.location.reload()}
+        title="We couldn’t open your pizza plan."
+        variant="error"
+      />
+    );
+  }
 
   if (!ready || !result) {
     return (
-      <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
-          Building your local dough plan…
-        </div>
-      </main>
+      <SessionRouteState
+        body="Checking this browser for an active pizza plan before building the dough recipe."
+        eyebrow="Dough Plan"
+        title="Opening your pizza plan"
+        variant="checking"
+      />
     );
   }
 
   if (!result.ok || !session) {
     const copy = missingCopy(result.ok ? "no-session" : result.missingReason);
     return (
-      <SessionEmptyState
+      <SessionRouteState
+        action={{ href: copy.actionHref, label: copy.action }}
         eyebrow="Pizza Session recipe"
         title={copy.title}
         body={copy.body}
-        actionHref="/session/start"
-        actionLabel={copy.action}
         localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.`}
+        variant={copy.variant}
       />
     );
   }

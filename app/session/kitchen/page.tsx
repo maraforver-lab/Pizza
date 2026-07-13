@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
-import { SessionEmptyState } from "@/components/session/SessionEmptyState";
+import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import { getExperienceLevelConfig } from "@/lib/experience-levels";
@@ -121,6 +121,7 @@ const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink("Some
 
 export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
+  const [routeError, setRouteError] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [backHref, setBackHref] = useState("/session/shopping");
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -128,11 +129,16 @@ export default function SessionKitchenPage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    setSession(getActivePizzaSession() ?? null);
-    const source = new URLSearchParams(window.location.search).get("from");
-    setBackHref(source ? kitchenBackHrefFromSource(source) : kitchenBackHrefFromReferrer(document.referrer));
-    setCurrentTime(new Date());
-    setReady(true);
+    try {
+      setSession(getActivePizzaSession() ?? null);
+      const source = new URLSearchParams(window.location.search).get("from");
+      setBackHref(source ? kitchenBackHrefFromSource(source) : kitchenBackHrefFromReferrer(document.referrer));
+      setCurrentTime(new Date());
+    } catch {
+      setRouteError(true);
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -143,39 +149,66 @@ export default function SessionKitchenPage() {
 
   const kitchenState = useMemo(() => getKitchenModeState(session ?? undefined), [session]);
 
-  if (!ready) {
+  if (routeError) {
     return (
-      <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
-          Loading Kitchen Mode from this browser…
-        </div>
-      </main>
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Start a new plan" }}
+        body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
+        eyebrow="Kitchen Mode"
+        onRetry={() => window.location.reload()}
+        title="We couldn’t open Kitchen Mode."
+        variant="error"
+      />
     );
   }
 
-  if (!session || !kitchenState.ok && kitchenState.missingReason === "no-session") {
+  if (!ready) {
     return (
-      <SessionEmptyState
+      <SessionRouteState
+        body="Checking this browser for an active pizza plan before opening guided cooking."
         eyebrow="Kitchen Mode"
-        title="No active pizza session"
-        body="Start a Pizza Session first, then Kitchen Mode will guide you through the next step."
+        title="Opening Kitchen Mode"
+        variant="checking"
+      />
+    );
+  }
+
+  if (!session || (!kitchenState.ok && kitchenState.missingReason === "no-session")) {
+    return (
+      <SessionRouteState
+        action={{ href: "/session/start", label: "Create my plan" }}
+        body="Create your pizza plan and preparation timeline before starting guided cooking."
+        eyebrow="Kitchen Mode"
+        title="Kitchen Mode is not ready yet"
+        variant="no-session"
       />
     );
   }
 
   if (!kitchenState.ok && kitchenState.missingReason === "missing-timeline") {
     return (
-      <SessionEmptyState
+      <SessionRouteState
+        action={{ href: "/session/timeline", label: "Build my timeline" }}
+        body="Create your pizza plan and preparation timeline before starting guided cooking."
         eyebrow="Kitchen Mode"
-        title="Create a timeline first."
-        body="Kitchen Mode needs a session timeline so it knows the next practical task."
-        actionHref="/session/timeline"
-        actionLabel="Create session timeline →"
+        title="Kitchen Mode is not ready yet"
+        variant="step-unavailable"
       />
     );
   }
 
-  if (!kitchenState.ok) return null;
+  if (!kitchenState.ok) {
+    return (
+      <SessionRouteState
+        action={{ href: "/session/timeline", label: "Open timeline" }}
+        body="Kitchen Mode could not find the next practical task for this session."
+        eyebrow="Kitchen Mode"
+        onRetry={() => window.location.reload()}
+        title="We couldn’t open Kitchen Mode."
+        variant="error"
+      />
+    );
+  }
 
   const currentStep = kitchenState.currentStep;
   const currentRuntimeStep = currentStep as RuntimePizzaSessionTimelineStep | undefined;
