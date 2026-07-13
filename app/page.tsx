@@ -187,24 +187,24 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   return (
     <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_12%_0%,rgba(233,75,46,0.10),transparent_32rem),linear-gradient(180deg,#fff8f1_0%,#f1e6d8_42%,#fff8f1_100%)] text-ink">
-      <section className="px-4 pb-10 pt-7 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8" aria-labelledby="homepage-hero-heading">
+      <section className="px-4 pb-10 pt-7 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8 lg:pb-12 lg:pt-8" aria-labelledby="homepage-hero-heading">
         <div className="mx-auto max-w-7xl">
-          <div className="grid min-w-0 overflow-hidden rounded-[2rem] bg-forest-dark shadow-overlay sm:rounded-[2.75rem] xl:min-h-[45rem] xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)]">
-            <div className="relative z-10 flex min-w-0 flex-col justify-center p-5 text-white sm:p-8 lg:p-10 xl:p-12">
-              <div className="min-w-0 max-w-2xl py-2 lg:py-10">
+          <div className="grid min-w-0 overflow-hidden rounded-[2rem] bg-forest-dark shadow-overlay sm:rounded-[2.75rem] lg:min-h-[clamp(34rem,calc(100svh-6rem),40rem)] lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:min-h-[clamp(35rem,calc(100svh-6rem),41rem)] xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+            <div className="relative z-10 flex min-w-0 flex-col justify-center p-5 text-white sm:p-8 lg:p-9 xl:p-10">
+              <div className="min-w-0 max-w-2xl py-2 lg:py-4 xl:py-6">
                 <p className="text-xs font-extrabold uppercase tracking-[.34em] text-oven-gold">
                   {homepageContent.hero.eyebrow}
                 </p>
-                <h1 id="homepage-hero-heading" className="mt-5 max-w-[9ch] break-words font-display text-[clamp(2.5rem,11vw,5.8rem)] font-semibold leading-[.9] tracking-[-.05em] text-white sm:max-w-[11ch] sm:text-7xl xl:max-w-none xl:text-[5.7rem] 2xl:text-[6.15rem]">
+                <h1 id="homepage-hero-heading" className="mt-4 max-w-[9ch] break-words font-display text-[clamp(2.5rem,11vw,5.8rem)] font-semibold leading-[.9] tracking-[-.05em] text-white sm:max-w-[11ch] sm:text-7xl lg:max-w-[13ch] lg:text-[clamp(4rem,5.2vw,5.1rem)] xl:max-w-[14ch] xl:text-[clamp(4.4rem,4.6vw,5.35rem)] 2xl:text-[5.55rem]">
                   <span className="block lg:inline">Better pizza</span>{" "}
                   <span className="block lg:inline">starts</span>{" "}
                   <span className="block lg:inline">before</span>{" "}
                   <span className="block lg:inline">the oven.</span>
                 </h1>
-                <p className="mt-6 max-w-xl break-words text-base leading-7 text-white/86 sm:text-xl sm:leading-8">
+                <p className="mt-4 max-w-xl break-words text-base leading-7 text-white/86 sm:text-xl sm:leading-8 lg:text-lg lg:leading-7 xl:text-xl xl:leading-8">
                   {homepageContent.hero.intro}
                 </p>
-                <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Link
                     href={homepageContent.hero.primaryCta.href}
                     className="inline-flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-2xl bg-tomato px-6 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition hover:bg-white hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark sm:w-auto sm:px-7"
@@ -218,7 +218,7 @@ export default async function Home({ searchParams }: HomePageProps) {
                     {homepageContent.hero.secondaryCta.label}
                   </a>
                 </div>
-                <ul className="mt-6 grid gap-2 text-sm font-extrabold text-white/86 sm:grid-cols-3" aria-label="DoughTools helps you">
+                <ul className="mt-5 grid gap-2 text-sm font-extrabold text-white/86 sm:grid-cols-3" aria-label="DoughTools helps you">
                   {heroValueStatements.map((statement) => (
                     <li key={statement} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2">
                       <DoughToolsIcon name="success" size={16} className="shrink-0 text-oven-gold" aria-hidden="true" />
@@ -229,13 +229,13 @@ export default async function Home({ searchParams }: HomePageProps) {
               </div>
             </div>
 
-            <div className="relative min-h-[19rem] min-w-0 overflow-hidden bg-ink sm:min-h-[28rem] xl:min-h-full" aria-label="Finished pizza and prepared dough">
+            <div className="relative min-h-[19rem] min-w-0 overflow-hidden bg-ink sm:min-h-[28rem] lg:min-h-full" aria-label="Finished pizza and prepared dough">
               <picture>
                 <source media="(min-width: 1024px)" srcSet={desktopHeroSrcSet} sizes={desktopHeroSizes} />
                 <img
                   {...mobileHeroImageProps}
                   alt="Finished pizza with prepared dough in a warm pizza-making workspace"
-                  className="absolute inset-0 h-full w-full object-cover object-[50%_68%] sm:object-[50%_64%] xl:object-[62%_center]"
+                  className="absolute inset-0 h-full w-full object-cover object-[50%_68%] sm:object-[50%_64%] lg:object-[58%_58%] xl:object-[58%_55%]"
                 />
               </picture>
               <div className="absolute inset-y-0 left-0 hidden w-24 bg-[linear-gradient(90deg,rgba(9,41,31,0.48),rgba(9,41,31,0))] lg:block" aria-hidden="true" />
