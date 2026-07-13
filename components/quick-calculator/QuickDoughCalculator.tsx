@@ -1008,15 +1008,6 @@ export default function QuickDoughCalculator() {
         <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)] lg:items-start">
           <section className="grid min-w-0 gap-5 lg:col-start-1 lg:row-start-1" aria-label="Quick calculator essential inputs" data-quick-essential-controls>
             <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current workspace</p>
-              <h2 className="mt-2 font-display text-3xl font-semibold">{presentation.heading}</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">{presentation.description}</p>
-              <p className="mt-4 rounded-2xl bg-ink/[.045] px-4 py-3 text-sm font-extrabold text-ink/68" data-quick-batch-summary>
-                {result.input.pizzaCount} {result.input.sizingMode === "pan" ? "pans" : "pizzas"} · {formatGrams(result.sizing.doughWeightPerPieceGrams)} g each · {formatGrams(result.ingredients.total)} g dough · {result.sizing.style.label}
-              </p>
-            </div>
-
-            <div className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-card backdrop-blur sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza and batch</p>

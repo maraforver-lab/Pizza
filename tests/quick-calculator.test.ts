@@ -984,13 +984,29 @@ describe("Quick Dough Calculator isolated core UI", () => {
 
     expect(component).toContain("mt-6 grid min-w-0 gap-6");
     expect(component).toContain('aria-label="Quick calculator essential inputs"');
-    expect(component).toContain("data-quick-batch-summary");
+    expect(component).not.toContain("data-quick-batch-summary");
+    expect(component).not.toContain("Current workspace");
+    expect(component).not.toContain("{presentation.description}");
     expect(component).toContain('className="min-w-0 rounded-[2rem] border border-white/80 bg-white/70');
     expect(component).toContain("min-w-0 rounded-[1.35rem] border p-4");
     expect(component).toContain("grid-cols-[2.5rem_minmax(3.5rem,1fr)_auto_2.5rem]");
     expect(component).toContain("sm:grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem]");
     expect(component).toContain("lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.62fr)]");
     expect(component).toContain("h-5 w-5 rounded");
+  });
+
+  it("removes the redundant intro workspace panel while keeping the calculator header and results", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("Quick Dough Calculator");
+    expect(component).toContain("Guidance: {selectedGuidance.label}");
+    expect(component).toContain("Batch");
+    expect(component).toContain("Total dough");
+    expect(component).toContain("What are you making?");
+    expect(component).toContain("RecipeResultPanel");
+    expect(component).toContain("calculateQuickDough(input)");
+    expect(component).not.toContain("Fast recipe, fewer decisions");
+    expect(component).not.toContain("data-quick-batch-summary");
   });
 
   it("keeps advanced dough tools isolated from session, planning and Calculator v2 code", () => {

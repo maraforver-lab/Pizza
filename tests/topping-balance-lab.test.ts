@@ -188,20 +188,25 @@ describe("Topping Balance Lab page structure", () => {
     expect(research).toContain("visual simulation");
   });
 
-  it("keeps related learning and final CTA relevant", () => {
-    expect(component).toContain("Pizza Sauce Guide");
-    expect(component).toContain("Oven and Heat Guide");
-    expect(component).toContain("Pizza Style Atlas");
-    expect(component).toContain("Pizza Learning Center");
+  it("removes redundant sources and related-learning sections while keeping the final CTA", () => {
+    expect(component).not.toContain("Sources and methodology");
+    expect(component).not.toContain("View topping sources and methodology");
+    expect(component).not.toContain("Connect topping balance to the whole pizza");
+    expect(component).not.toContain("<RelatedLearning");
+    expect(component).not.toContain("Oven and Heat Guide");
+    expect(component).not.toContain("Pizza Style Atlas");
     expect(component).toContain("Plan my next pizza");
     expect(component).toContain("Return to the Learning Center");
+    expect(component).toContain('href="/session/start"');
+    expect(component).toContain('href="/guide"');
+    expect(component).not.toContain("docs/research/topping-balance-sources.md");
   });
 
-  it("links to public methodology without exposing internal research paths", () => {
-    expect(component).toContain("Sources and methodology");
-    expect(component).toContain('href="/methodology#topping-balance"');
-    expect(component).toContain("View topping sources and methodology");
-    expect(component).not.toContain("docs/research/topping-balance-sources.md");
+  it("keeps the canonical footer as the last visible Toppings page section", () => {
+    expect(component).toContain("<SiteFooter />");
+    expect(component.indexOf("Ready to use this balance in your next pizza?")).toBeLessThan(component.indexOf("<SiteFooter />"));
+    expect(source("components/WorkflowNextStep.tsx")).not.toContain('"/toppings":');
+    expect(source("components/WorkflowNextStep.tsx")).not.toContain("Bake with the pizza timer");
   });
 });
 

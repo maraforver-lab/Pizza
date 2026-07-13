@@ -9,7 +9,6 @@ const nextSteps: Record<string, { route: string; label: string }> = {
   "/styles": { route: "/", label: "Fine-tune the selected recipe" },
   "/plan": { route: "/sauce", label: "Calculate the pizza sauce next" },
   "/sauce": { route: "/toppings", label: "Choose cheese and toppings" },
-  "/toppings": { route: "/timer", label: "Bake with the pizza timer" },
   "/timer": { route: "/journal", label: "Record the bake in your pizza journal" },
   "/costs": { route: "/journal", label: "Save the result in your journal" },
   "/doctor": { route: "/plan", label: "Open the adjusted preparation plan" },

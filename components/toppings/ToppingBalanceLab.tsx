@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
-import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
+import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import { settingsFromUrl } from "@/lib/recipe-url";
 import type { PizzaStyleId } from "@/lib/saved-recipes";
 import type { CheeseType, DrainState, PizzaGeometry } from "@/lib/topping-calculator";
@@ -885,32 +885,6 @@ export default function ToppingBalanceLab() {
             Troubleshoot toppings that slide, flood or bake unevenly →
           </Link>
         </section>
-
-        <section className="mt-12 rounded-[1.75rem] border border-ink/10 bg-white/70 p-5 shadow-soft" aria-labelledby="source-title">
-          <h2 id="source-title" className="font-display text-2xl font-semibold">Sources and methodology</h2>
-          <p className="mt-3 text-sm leading-7 text-ink/62">
-            The lab uses DoughTools’ existing topping calculator as the product baseline, then adds a visual teaching
-            layer for topped area, sauce density, cheese density, mozzarella drainage and combined moisture load. The
-            public source notes explain the expert guidance and DoughTools interpretation behind this teaching layer.
-          </p>
-          <Link href="/methodology#topping-balance" className="mt-4 inline-flex min-h-11 items-center rounded-full text-sm font-extrabold text-tomato underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato">
-            View topping sources and methodology
-          </Link>
-        </section>
-
-        <div className="mt-12">
-          <RelatedLearning
-            title="Connect topping balance to the whole pizza"
-            intro="Topping load only makes sense together with sauce texture, oven heat, pizza style and troubleshooting feedback."
-            links={[
-              { href: "/sauce", title: "Pizza Sauce Guide", description: "Control tomato texture, moisture and sauce amount.", icon: "water" },
-              { href: "/ovens", title: "Oven and Heat Guide", description: "Understand how heat changes topping and cheese behavior.", icon: "oven" },
-              { href: "/styles", title: "Pizza Style Atlas", description: "Match topping restraint to the style you want to bake.", icon: "pizza" },
-              { href: "/guide/pizza-troubleshooting#toppings", title: "Troubleshooting", description: "Fix wet centers, sliding toppings and overloaded pizzas.", icon: "warning" },
-              { href: "/guide", title: "Pizza Learning Center", description: "Return to the central learning hub.", icon: "information" },
-            ]}
-          />
-        </div>
 
         <section className="mt-12 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-8 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8" aria-labelledby="final-cta-title">
           <div>
