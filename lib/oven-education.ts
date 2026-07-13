@@ -44,7 +44,7 @@ export type OvenProblem = {
 };
 
 export const pizzaSessionOvenSupportSummary =
-  "DoughTools Pizza Session currently distinguishes Home oven and Pizza oven paths. This guide explains more heat environments for learning, but it does not add manufacturer, fuel, rotating-stone or electric-model presets.";
+  "DoughTools Pizza Session currently uses two broad oven choices: Home oven and Pizza oven. This guide explains what those two environments change without adding brands, models or extra planner presets.";
 
 export const ovenEnvironments: readonly OvenEnvironment[] = [
   {

@@ -1,49 +1,43 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  ovenEnvironments,
-  ovenProblems,
-  ovenUserFeedbackThemes,
-  pizzaSessionOvenSupportSummary,
-} from "@/lib/oven-education";
+import { pizzaSessionOvenSupportSummary } from "@/lib/oven-education";
 import { getPizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
-describe("Oven and Heat Guide", () => {
-  it("rebuilds /ovens as a brand-neutral heat guide instead of an oven catalogue", () => {
+describe("Oven Guide", () => {
+  it("simplifies /ovens into a two-path Home oven and Pizza oven learning guide", () => {
     const page = source("app", "ovens", "page.tsx");
     const hero = source("components", "ovens", "OvenGuideHero.tsx");
 
     expect(page).toContain("OvenGuideHero");
-    expect(page).toContain("HeatBalanceDiagram");
-    expect(page).toContain("OvenEnvironmentComparison");
-    expect(page).toContain("OvenEnvironmentChapter");
-    expect(page).toContain("PreheatTimeline");
-    expect(page).toContain("OvenProblemGuide");
-    expect(page).toContain("OvenStyleFit");
-    expect(hero).toContain("Oven and Heat Guide");
-    expect(hero).toContain("The oven changes the pizza.");
-    expect(page).not.toContain("recommendOvens");
-    expect(page).not.toContain("Total oven budget");
-    expect(page).not.toContain("Significant market options");
-    expect(page).not.toContain("Manufacturer details");
+    expect(hero).toContain("Oven Guide");
+    expect(hero).toContain("Home oven or pizza oven?");
+    expect(hero).toContain("Compare the ovens");
+    expect(hero).toContain("See common mistakes");
+    expect(page).toContain("Home oven vs Pizza oven");
+    expect(page).toContain("Two heat environments. Two different workflows.");
+    expect(page).toContain("What changes");
+    expect(page).toContain("Setup and preheat");
+    expect(page).toContain("Common mistakes");
+    expect(page).toContain("Which one fits your goal?");
+    expect(page).toContain("Ready to plan for your oven?");
   });
 
-  it("removes brands, model comparisons, rankings and commercial links from the page", () => {
-    const pageAndComponents = [
-      source("app", "ovens", "page.tsx"),
-      source("components", "ovens", "OvenGuideHero.tsx"),
-      source("components", "ovens", "OvenEnvironmentComparison.tsx"),
-      source("components", "ovens", "OvenEnvironmentChapter.tsx"),
-      source("components", "ovens", "OvenProblemGuide.tsx"),
-    ].join("\n");
+  it("removes the previous encyclopedia-style page complexity from the rendered page", () => {
+    const page = source("app", "ovens", "page.tsx");
 
-    expect(pageAndComponents).not.toMatch(/Ooni|Gozney|Effeuno|Witt|Cozze|Chef Matteo|Koda|Arc XL|Tread|Rotante|Dome|P134H/i);
-    expect(pageAndComponents).not.toMatch(/affiliate|paid ranking|best pizza oven|price bands|€|Amazon/i);
-    expect(pageAndComponents).not.toContain("target=\"_blank\"");
-    expect(pageAndComponents).not.toContain("http");
+    expect(page).not.toContain("HeatBalanceDiagram");
+    expect(page).not.toContain("OvenEnvironmentComparison");
+    expect(page).not.toContain("OvenEnvironmentChapter");
+    expect(page).not.toContain("PreheatTimeline");
+    expect(page).not.toContain("OvenProblemGuide");
+    expect(page).not.toContain("OvenStyleFit");
+    expect(page).not.toContain("<RelatedLearning");
+    expect(page).not.toContain("What users struggle with most");
+    expect(page).not.toContain("Sources and communities");
+    expect(page).not.toContain("Measure the surface you actually launch on.");
   });
 
   it("keeps product truth limited to existing Home oven and Pizza oven planner categories", () => {
@@ -51,7 +45,7 @@ describe("Oven and Heat Guide", () => {
     const bakeProfile = source("lib", "pizza-session-bake-profile.ts");
 
     expect(pizzaSessionOvenSupportSummary).toContain("Home oven and Pizza oven");
-    expect(pizzaSessionOvenSupportSummary).toContain("does not add manufacturer");
+    expect(pizzaSessionOvenSupportSummary).toContain("without adding brands, models or extra planner presets");
     expect(sessionStart).toContain('id: "pizza-oven"');
     expect(sessionStart).toContain('id: "home-oven"');
     expect(sessionStart).not.toContain('id: "steel"');
@@ -64,175 +58,107 @@ describe("Oven and Heat Guide", () => {
     expect(getPizzaSessionBakeProfile("gas").overlayBakeTime).toBe("90 SEC");
   });
 
-  it("defines educational oven environments without turning them into planner options", () => {
-    expect(ovenEnvironments.map((environment) => environment.id)).toEqual([
-      "home-oven",
-      "home-oven-steel",
-      "home-oven-stone",
-      "high-heat-pizza-oven",
-      "pan-baking",
-      "indoor-high-heat",
-    ]);
+  it("keeps the comparison concise and free of brands, models, rankings and affiliate links", () => {
+    const pageAndHero = [source("app", "ovens", "page.tsx"), source("components", "ovens", "OvenGuideHero.tsx")].join("\n");
 
-    const supported = ovenEnvironments.filter((environment) => environment.plannerSupport === "supported");
-    const educational = ovenEnvironments.filter((environment) => environment.plannerSupport === "education");
-
-    expect(supported.map((environment) => environment.id)).toEqual(["home-oven", "high-heat-pizza-oven"]);
-    expect(educational.map((environment) => environment.id)).toEqual([
-      "home-oven-steel",
-      "home-oven-stone",
-      "pan-baking",
-      "indoor-high-heat",
-    ]);
-
-    for (const environment of ovenEnvironments) {
-      expect(environment.summary).toBeTruthy();
-      expect(environment.heatIntensity).toBeTruthy();
-      expect(environment.topHeat).toBeTruthy();
-      expect(environment.bottomHeat).toBeTruthy();
-      expect(environment.preheatBehavior).toBeTruthy();
-      expect(environment.heatRecovery).toBeTruthy();
-      expect(environment.suitableStyles).toBeTruthy();
-      expect(environment.advantages.length).toBeGreaterThanOrEqual(4);
-      expect(environment.limitations.length).toBeGreaterThanOrEqual(4);
-    }
+    expect(pageAndHero).not.toMatch(/Ooni|Gozney|Effeuno|Witt|Cozze|Chef Matteo|Koda|Arc XL|Tread|Rotante|Dome|P134H/i);
+    expect(pageAndHero).not.toMatch(/affiliate|paid ranking|best pizza oven|price bands|Amazon/i);
+    expect(pageAndHero).not.toContain("target=\"_blank\"");
+    expect(pageAndHero).not.toContain("http");
+    expect(pageAndHero).not.toContain("recommendOvens");
+    expect(pageAndHero).not.toContain("Total oven budget");
+    expect(pageAndHero).not.toContain("Manufacturer details");
   });
 
-  it("teaches air-versus-surface, top-versus-bottom heat, preheating and recovery", () => {
-    const heat = source("components", "ovens", "HeatBalanceDiagram.tsx");
-    const preheat = source("components", "ovens", "PreheatTimeline.tsx");
+  it("uses one local oven hero image with explicit dimensions, alt text and responsive loading", () => {
+    const hero = source("components", "ovens", "OvenGuideHero.tsx");
+    const assetPath = join(process.cwd(), "public", "ovens", "home-vs-pizza-oven.webp");
+
+    expect(existsSync(assetPath)).toBe(true);
+    expect(statSync(assetPath).size).toBeGreaterThan(50_000);
+    expect(hero).toContain('src="/ovens/home-vs-pizza-oven.webp"');
+    expect(hero).toContain("width={1756}");
+    expect(hero).toContain("height={896}");
+    expect(hero).toContain("sizes=");
+    expect(hero).toContain("Home oven and high-heat pizza oven shown side by side");
+    expect(hero).not.toMatch(/person|people|hands|chef|logo|brand/i);
+    expect(hero).not.toMatch(/https?:\/\/.*\.(webp|png|jpe?g)/i);
+  });
+
+  it("keeps the comparison responsive without horizontal tables or post-footer content", () => {
+    const page = source("app", "ovens", "page.tsx");
+    const workflowNextStep = source("components", "WorkflowNextStep.tsx");
+
+    expect(page).toContain("sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)]");
+    expect(page).not.toContain("<table");
+    expect(page).toContain("SiteFooter");
+    expect(workflowNextStep).not.toContain('"/ovens"');
+  });
+
+  it("retains only the practical common mistakes and deeper troubleshooting link", () => {
     const page = source("app", "ovens", "page.tsx");
 
-    expect(heat).toContain("An oven has more than one temperature.");
-    expect(heat).toContain("Top heat");
-    expect(heat).toContain("Bottom heat");
-    expect(heat).toContain("the stone, steel, pan or oven floor is ready");
-    expect(preheat).toContain("Cold oven");
-    expect(preheat).toContain("Air is hot");
-    expect(preheat).toContain("Surface is ready");
-    expect(preheat).toContain("Recovery");
-    expect(page).toContain("Measure the surface you actually launch on.");
-    expect(preheat).toContain("The first pizza and the fifth pizza may not see the same oven.");
-  });
-
-  it("covers required common problems with corrections and related troubleshooting links", () => {
-    expect(ovenProblems).toHaveLength(10);
-    expect(ovenProblems.map((problem) => problem.title)).toEqual([
-      "Base is pale",
-      "Base burns before the top cooks",
-      "Top burns before the base cooks",
-      "Center stays wet",
-      "Rim burns too fast",
-      "Pizza sticks during launch",
-      "Stone temperature drops between pizzas",
-      "Pizza bakes unevenly",
-      "Home-oven pizza dries out",
-      "Oven will not maintain expected heat",
-    ]);
-
-    for (const problem of ovenProblems) {
-      expect(problem.sees).toBeTruthy();
-      expect(problem.likelyCauses.length).toBeGreaterThanOrEqual(3);
-      expect(problem.doNow).toBeTruthy();
-      expect(problem.nextBake).toBeTruthy();
-      expect(problem.relatedHref).toMatch(/^\/guide\/pizza-troubleshooting#/);
-    }
-  });
-
-  it("keeps safety conservative and avoids unsafe hacks", () => {
-    const page = source("app", "ovens", "page.tsx");
-
-    expect(page).toContain("Safety");
-    expect(page).toContain("Use outdoor-only appliances outdoors");
-    expect(page).toContain("Follow the instructions for your specific oven");
-    expect(page).toContain("Do not modify fuel, ventilation or safety systems.");
-    expect(page).not.toMatch(/disable safety|bypass|hack|blower|garage with door open|indoors if ventilated/i);
-  });
-
-  it("uses community feedback only as synthesis of recurring user struggles", () => {
-    const page = source("app", "ovens", "page.tsx");
-
-    expect(page).toContain("What users struggle with most");
-    expect(page).toContain("Community discussions are not formal rules");
-    expect(ovenUserFeedbackThemes).toContain("confusing air temperature with stone or floor temperature");
-    expect(ovenUserFeedbackThemes).toContain("expecting a pizza oven to remove the learning curve");
-    expect(page).not.toContain("u/");
-    expect(page).not.toContain("r/ooni");
-  });
-
-  it("keeps related learning concise and internal", () => {
-    const page = source("app", "ovens", "page.tsx");
-
-    for (const href of [
-      "/styles",
-      "/sauce",
-      "/guides/dough",
-      "/toppings",
-      "/gear",
-      "/guide/pizza-troubleshooting",
-      "/session/start",
+    for (const title of [
+      "Base is pale or soft",
+      "Top browns before the base",
+      "Pizza dries during the bake",
+      "Scorched rim, undercooked center",
+      "Burnt base with pale top",
+      "Later pizzas bake worse",
     ]) {
-      expect(page).toContain(`href: "${href}"`);
+      expect(page).toContain(title);
     }
 
-    expect(page).not.toContain("externalSources");
-    expect(page).not.toContain("Sources and communities");
+    expect(page).toContain("/guide/pizza-troubleshooting");
+    expect(page).toContain("What you see:");
+    expect(page).toContain("Likely reason:");
+    expect(page).toContain("What to change:");
   });
 
-  it("records research sources without exposing a raw bibliography in the page", () => {
-    const researchPath = join(process.cwd(), "docs", "research", "pizza-oven-sources.md");
-    const research = source("docs", "research", "pizza-oven-sources.md");
+  it("keeps concise setup, surface and safety guidance without becoming a gear guide", () => {
     const page = source("app", "ovens", "page.tsx");
 
-    expect(existsSync(researchPath)).toBe(true);
-    expect(research).toContain("formal safety guidance");
-    expect(research).toContain("expert practical advice");
-    expect(research).toContain("recurring user feedback");
-    expect(research).toContain("DoughTools product truth");
-    expect(research).toContain("United States Fire Administration");
-    expect(research).toContain("King Arthur Baking");
-    expect(research).toContain("Serious Eats");
-    expect(page).not.toContain("United States Fire Administration");
-    expect(page).not.toContain("Serious Eats");
+    expect(page).toContain("Preheat thoroughly at the highest safe setting.");
+    expect(page).toContain("Heat the floor, not only the air or flame.");
+    expect(page).toContain("Steel");
+    expect(page).toContain("Stone");
+    expect(page).toContain("Pan");
+    expect(page).toContain("Small safety note");
+    expect(page).toContain("Follow your equipment manufacturer");
+    expect(page).toContain("Use outdoor-only ovens outdoors.");
+    expect(page).not.toContain("Do not modify fuel, ventilation or safety systems.");
+    expect(page).not.toContain("infrared thermometer guide");
   });
 
-  it("uses local CSS diagrams and no production raster oven images", () => {
-    const pageAndComponents = [
-      source("app", "ovens", "page.tsx"),
-      source("components", "ovens", "OvenGuideHero.tsx"),
-      source("components", "ovens", "HeatBalanceDiagram.tsx"),
-      source("components", "ovens", "OvenEnvironmentChapter.tsx"),
-    ].join("\n");
+  it("uses one final primary CTA and keeps related links secondary", () => {
+    const page = source("app", "ovens", "page.tsx");
 
-    expect(pageAndComponents).not.toContain("next/image");
-    expect(pageAndComponents).not.toContain("<Image");
-    expect(pageAndComponents).not.toMatch(/<img|<Image|src=|backgroundImage/i);
-    expect(pageAndComponents).not.toMatch(/aria-label="[^"]*(person|people|hands|chef|logo)[^"]*"/i);
-    expect(pageAndComponents).toContain("role=\"img\"");
-    expect(pageAndComponents).toContain("aria-label=");
+    expect(page).toContain("Ready to plan for your oven?");
+    expect(page).toContain('href="/session/start"');
+    expect(page).toContain("Plan my next pizza");
+    expect(page).toContain('href="/guides/dough"');
+    expect(page).toContain('href="/toppings"');
+    expect(page).not.toContain("Compare pizza styles");
   });
 
   it("updates SEO positioning without changing indexing policy", () => {
     const seo = source("lib", "seo-config.ts");
 
     expect(seo).toContain("Home Oven vs Pizza Oven: Heat, Baking and Pizza Results | DoughTools");
-    expect(seo).toContain("Learn how home ovens, pizza ovens, steels, stones, pans, preheating and heat balance change pizza crust");
+    expect(seo).toContain("Compare Home oven and Pizza oven baking paths, including heat, bake time, topping moisture");
     expect(seo).toContain("ALLOW_INDEXING");
     expect(seo).not.toContain("Compare electric ovens, gas pizza ovens and other common pizza oven setups with practical trade-offs.");
   });
 
-  it("keeps accessibility and responsive strategy explicit", () => {
+  it("preserves learning architecture and accessible section semantics", () => {
     const page = source("app", "ovens", "page.tsx");
-    const comparison = source("components", "ovens", "OvenEnvironmentComparison.tsx");
-    const problemGuide = source("components", "ovens", "OvenProblemGuide.tsx");
+    const hero = source("components", "ovens", "OvenGuideHero.tsx");
 
     expect(page).toContain("LearningBreadcrumbs");
-    expect(page).toContain("aria-label=\"Oven guide section index\"");
-    expect(page).toContain("aria-label=\"Oven environment lessons\"");
-    expect(comparison).toContain("sm:grid-cols-[9rem_minmax(0,1fr)]");
-    expect(comparison).not.toContain("<table");
-    expect(problemGuide).toContain("<details");
-    expect(problemGuide).toContain("<summary");
-    expect(page).toContain("focus-visible:ring");
+    expect(page).toContain('id="oven-comparison"');
+    expect(page).toContain('id="common-oven-mistakes"');
+    expect(page).toContain("aria-labelledby");
+    expect(hero).toContain("alt=");
+    expect(hero).toContain("priority");
   });
 });

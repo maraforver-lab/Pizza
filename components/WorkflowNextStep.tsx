@@ -17,7 +17,6 @@ const nextSteps: Record<string, { route: string; label: string }> = {
   "/guide": { route: "/styles", label: "Explore pizza styles" },
   "/updates": { route: "/", label: "Try the latest version in the calculator" },
   "/history": { route: "/styles", label: "Explore classic pizza styles" },
-  "/ovens": { route: "/gear", label: "See the gear needed with your oven" },
   "/gear": { route: "/plan", label: "Continue to the pizza-night plan" },
   "/journal": { route: "/community", label: "Explore community recipes" },
   "/community": { route: "/", label: "Open a recipe in the calculator" },

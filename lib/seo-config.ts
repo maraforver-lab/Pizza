@@ -97,7 +97,7 @@ export const publicSeoRoutes = [
   {
     path: "/ovens",
     title: "Home Oven vs Pizza Oven: Heat, Baking and Pizza Results | DoughTools",
-    description: "Learn how home ovens, pizza ovens, steels, stones, pans, preheating and heat balance change pizza crust, toppings and bake time.",
+    description: "Compare Home oven and Pizza oven baking paths, including heat, bake time, topping moisture, dough behavior, preheating and common mistakes.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
