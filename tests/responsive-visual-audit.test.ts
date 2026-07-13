@@ -65,14 +65,14 @@ describe("Patch 311 responsive visual audit protections", () => {
     const globals = source("app/globals.css");
     const siteFooter = source("components/SiteFooter.tsx");
     const trustLayout = source("components/TrustPageLayout.tsx");
-    const workflowNextStep = source("components/WorkflowNextStep.tsx");
+    const rootLayout = source("app/layout.tsx");
     const sessionKitchen = source("app/session/kitchen/page.tsx");
 
     expect(globals).not.toContain("padding-bottom: calc(5.25rem + env(safe-area-inset-bottom))");
     expect(globals).not.toMatch(/@media\s*\(max-width:\s*767px\)\s*{\s*body\s*{\s*padding-bottom/);
     expect(siteFooter).toContain("data-site-footer");
     expect(trustLayout.indexOf("<SiteFooter />")).toBeGreaterThan(trustLayout.indexOf("Back to DoughTools"));
-    expect(workflowNextStep).not.toMatch(/fixed|sticky|bottom-0/);
+    expect(rootLayout).not.toContain("WorkflowNextStep");
     expect(sessionKitchen).toContain("pb-28");
   });
 

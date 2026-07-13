@@ -123,7 +123,6 @@ describe("homepage content model", () => {
     const continueCard = source("components/ContinuePizzaSessionCard.tsx");
     const header = source("components/GlobalToolNavigation.tsx");
     const updateNotice = source("components/LatestUpdateNotice.tsx");
-    const nextStep = source("components/WorkflowNextStep.tsx");
 
     expect(content).toContain("Plan my next pizza");
     expect(content).toContain("Your pizza, planned properly.");
@@ -234,7 +233,6 @@ describe("homepage content model", () => {
     expect(header).not.toMatch(/Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
     expect(header).not.toContain('label: "Dough Calculator"');
     expect(updateNotice).toContain('pathname === "/"');
-    expect(nextStep).not.toContain('"/":');
     expect(homepage).not.toContain("homepageContent.hero.learnCta.href");
     expect(homepage).not.toContain("Your pizza session in 8 steps");
     expect(homepage).not.toContain("All tools at your fingertips");

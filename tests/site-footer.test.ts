@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -43,6 +43,14 @@ const noFooterSources = [
 ] as const;
 
 describe("canonical site footer", () => {
+  it("does not render a global workflow prompt after page content", () => {
+    const layout = source("app", "layout.tsx");
+
+    expect(layout).not.toContain("WorkflowNextStep");
+    expect(layout).not.toContain("<WorkflowNextStep");
+    expect(existsSync(join(process.cwd(), "components", "WorkflowNextStep.tsx"))).toBe(false);
+  });
+
   it("defines one shared canonical footer with the approved groups and links", () => {
     const footer = source("components", "SiteFooter.tsx");
 
@@ -103,6 +111,24 @@ describe("canonical site footer", () => {
     expect(sauce.indexOf("Sources and methodology")).toBeLessThan(sauce.indexOf("<SiteFooter />"));
     expect(gear.indexOf("{t.sources}")).toBeLessThan(gear.indexOf("<SiteFooter />"));
     expect(history.indexOf("{t.sources}")).toBeLessThan(history.indexOf("<SiteFooter />"));
+  });
+
+  it("keeps the canonical footer as the final visible element on footer-bearing pages", () => {
+    for (const [name, text] of footerBearingSources) {
+      const footerStart = text.indexOf("<SiteFooter />");
+      expect(footerStart, name).toBeGreaterThanOrEqual(0);
+
+      const afterFooter = text.slice(footerStart + "<SiteFooter />".length);
+      expect(afterFooter, name).not.toMatch(/<section|<aside|<article|<nav|<Link|<a\s/);
+      expect(afterFooter, name).not.toMatch(/Plan my next pizza|Start Pizza Session|Next step|NEXT STEP/i);
+    }
+  });
+
+  it("avoids duplicate primary Pizza Session CTAs on public footer-bearing pages", () => {
+    for (const [name, text] of footerBearingSources) {
+      const directSessionStartLinks = (text.match(/href=["{:]?\s*["']\/session\/start/g) ?? []).length;
+      expect(directSessionStartLinks, name).toBeLessThanOrEqual(1);
+    }
   });
 
   it("retains only non-page footer markup in export components", () => {

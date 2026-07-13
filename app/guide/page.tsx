@@ -473,7 +473,7 @@ export default function Guide() {
           </div>
         </section>
 
-        <section className="mt-16 grid gap-5 lg:grid-cols-4" aria-labelledby="guide-next-title">
+        <section className="mt-16 grid gap-5 lg:grid-cols-3" aria-labelledby="guide-next-title">
           <div className="lg:col-span-3">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Go deeper</p>
             <h2 id="guide-next-title" className="mt-3 font-display text-4xl font-semibold">
@@ -501,13 +501,6 @@ export default function Guide() {
               Compare sauce, cheese, usable topped area and mozzarella moisture before the pizza reaches the oven.
             </p>
           </Link>
-          <Link href="/session/start" className="rounded-[1.75rem] border border-ink/10 bg-forest-dark p-6 text-white shadow-card transition hover:-translate-y-1">
-            <DoughToolsIcon name="pizza" className="text-oven-gold" size={32} />
-            <h3 className="mt-5 font-display text-2xl font-semibold">Turn it into a pizza plan</h3>
-            <p className="mt-3 text-sm leading-6 text-white/68">
-              Use DoughTools to create the recipe, shopping list, timeline, Kitchen Mode, and review for your next bake.
-            </p>
-          </Link>
         </section>
 
         <section className="mt-16 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-10 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8">
@@ -519,7 +512,7 @@ export default function Guide() {
             href="/session/start"
             className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-extrabold text-tomato shadow-soft transition hover:-translate-y-0.5 hover:bg-flour focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:mt-0"
           >
-            Start a Pizza Session
+            Plan my next pizza
           </Link>
         </section>
         <SiteFooter />

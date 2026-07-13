@@ -261,8 +261,7 @@ describe("Topping Balance Lab page structure", () => {
   it("keeps the canonical footer as the last visible Toppings page section", () => {
     expect(component).toContain("<SiteFooter />");
     expect(component.indexOf("Ready to use this balance in your next pizza?")).toBeLessThan(component.indexOf("<SiteFooter />"));
-    expect(source("components/WorkflowNextStep.tsx")).not.toContain('"/toppings":');
-    expect(source("components/WorkflowNextStep.tsx")).not.toContain("Bake with the pizza timer");
+    expect(source("app/layout.tsx")).not.toContain("WorkflowNextStep");
   });
 });
 

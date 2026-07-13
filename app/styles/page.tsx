@@ -91,12 +91,6 @@ export default function StylesPage() {
               { href: "/toppings", title: "Topping Balance Lab", description: "Manage cheese, sauce and topping moisture.", icon: "pizza" },
               { href: "/guide/pizza-troubleshooting", title: "Troubleshooting", description: "Fix dense crust, pale bases, sticky dough and launch issues.", icon: "warning" },
             ]}
-            cta={{
-              href: "/session/start",
-              title: "Plan my next pizza",
-              description: "Start with the style DoughTools supports today.",
-              icon: "calendar",
-            }}
           />
         </div>
 

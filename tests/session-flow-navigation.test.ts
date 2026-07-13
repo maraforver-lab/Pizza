@@ -167,7 +167,6 @@ describe("Pizza Session flow navigation integrity", () => {
   it("uses the shared semantic icon system for primary functional session icons", () => {
     const targetedFiles = [
       "components/GlobalToolNavigation.tsx",
-      "components/WorkflowNextStep.tsx",
       "components/session/SessionProgressSidebar.tsx",
       "app/session/start/page.tsx",
       "app/session/recipe/page.tsx",

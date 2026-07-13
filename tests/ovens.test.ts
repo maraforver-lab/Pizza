@@ -87,12 +87,11 @@ describe("Oven Guide", () => {
 
   it("keeps the comparison responsive without horizontal tables or post-footer content", () => {
     const page = source("app", "ovens", "page.tsx");
-    const workflowNextStep = source("components", "WorkflowNextStep.tsx");
 
     expect(page).toContain("sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)]");
     expect(page).not.toContain("<table");
     expect(page).toContain("SiteFooter");
-    expect(workflowNextStep).not.toContain('"/ovens"');
+    expect(page.indexOf("Ready to plan for your oven?")).toBeLessThan(page.indexOf("<SiteFooter />"));
   });
 
   it("retains only the practical common mistakes and deeper troubleshooting link", () => {
