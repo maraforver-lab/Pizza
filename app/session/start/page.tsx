@@ -18,6 +18,7 @@ import {
   type ExperienceLevel,
 } from "@/lib/experience-levels";
 import {
+  createPizzaSession,
   type PizzaSessionDoughStartMode,
   type PizzaSessionFlourSituation,
   type PizzaSessionFlourWRange,
@@ -35,8 +36,8 @@ import {
 } from "@/lib/session-time-quick-choices";
 import {
   clearActivePizzaSession,
-  createAndSavePizzaSession,
   getActivePizzaSession,
+  savePizzaSession,
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
@@ -45,6 +46,7 @@ import { DEFAULT_SESSION_YEAST_TYPE, normalizeSessionYeastType, sessionYeastType
 
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
+type PizzaSessionPatch = Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">>;
 
 const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"];
 const DEFAULT_SESSION_TOPPING_PRESET = "margherita";
@@ -378,7 +380,7 @@ function shouldShowPizzaNerdDoughControls(level: ExperienceLevel) {
   return level === "pizza_nerd";
 }
 
-function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): Partial<PizzaSession> {
+function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): PizzaSessionPatch {
   if (shouldShowPizzaNerdDoughControls(level)) return {};
   return {
     ...(session.doughBallWeight !== SIMPLE_SESSION_DOUGH_BALL_WEIGHT
@@ -416,35 +418,69 @@ function isValidTargetTime(value?: string) {
   return Boolean(value && !Number.isNaN(new Date(value).getTime()));
 }
 
+function createPlanningDraftSession(preferredLevel: ExperienceLevel, requestedStep?: WizardStep) {
+  return createPizzaSession({
+    status: "planning",
+    currentStep: "style",
+    lastRoute: requestedStep ? wizardStepHref(requestedStep) : wizardStepHref("path"),
+    experienceLevel: preferredLevel,
+    pizzaStyle: "pizza-oven",
+    ovenType: "gas",
+    pizzaPreset: DEFAULT_SESSION_TOPPING_PRESET,
+    pizzaCount: 4,
+    flourSituation: "recommend",
+    flour: DEFAULT_SESSION_FORMULA_FLOUR,
+  });
+}
+
+function applySessionPatchInMemory(
+  session: PizzaSession,
+  patch: PizzaSessionPatch,
+  nextStep: WizardStep,
+  experienceLevel: ExperienceLevel,
+  lastRoute = wizardStepHref(nextStep),
+) {
+  const updatedAt = new Date().toISOString();
+  return createPizzaSession({
+    ...session,
+    ...patch,
+    id: session.id,
+    createdAt: session.createdAt,
+    updatedAt,
+    lastSavedAt: session.lastSavedAt,
+    status: "planning",
+    currentStep: stepToSessionStep(nextStep),
+    lastRoute,
+    experienceLevel,
+  });
+}
+
+function applyLoadSessionPatch(session: PizzaSession, patch: PizzaSessionPatch, persist: boolean) {
+  if (persist) {
+    return updatePizzaSession(session.id, {
+      ...patch,
+      status: "planning",
+      currentStep: session.currentStep,
+      experienceLevel: session.experienceLevel,
+    }) ?? { ...session, ...patch };
+  }
+  return createPizzaSession({
+    ...session,
+    ...patch,
+    id: session.id,
+    createdAt: session.createdAt,
+    lastSavedAt: session.lastSavedAt,
+    status: "planning",
+    currentStep: session.currentStep,
+    experienceLevel: session.experienceLevel,
+  });
+}
+
 function StartPizzaSessionLoading() {
   return (
     <main className="min-h-screen bg-cream px-4 py-10 text-ink">
       <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
-        Loading your local pizza session…
-      </div>
-    </main>
-  );
-}
-
-function StartPizzaSessionEntry() {
-  return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(226,71,38,0.10),transparent_32rem),linear-gradient(135deg,#f7f0e4,#fffaf2_45%,#f4eadc)] px-4 py-8 text-ink sm:px-6 sm:py-12">
-      <div className="mx-auto max-w-3xl rounded-[2rem] border border-white/80 bg-white/85 p-6 shadow-card backdrop-blur sm:p-8">
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session</p>
-        <h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
-          Plan your next pizza.
-        </h1>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
-          Start when you’re ready. DoughTools will create a local pizza plan only after you choose to begin, then keep your setup choices available if you reload.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Link href="/session/start?new=1" className={buttonClass({ className: "min-h-12 px-6" })}>
-            Start a new pizza plan →
-          </Link>
-          <Link href="/" className={buttonClass({ className: "min-h-12 px-6", variant: "secondary" })}>
-            Back to homepage
-          </Link>
-        </div>
+        Opening your pizza setup…
       </div>
     </main>
   );
@@ -534,7 +570,6 @@ function StartPizzaSessionContent() {
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
-  const [needsExplicitStart, setNeedsExplicitStart] = useState(false);
   const [conflictCloudRow, setConflictCloudRow] = useState<CloudPizzaSessionRow | null>(null);
   const [replaceCandidate, setReplaceCandidate] = useState<PizzaSession | null>(null);
   const [step, setStep] = useState<WizardStep>("path");
@@ -589,7 +624,6 @@ function StartPizzaSessionContent() {
                   setExperienceLevel(preferredLevel);
                   setSession(active);
                   setConflictCloudRow(row);
-                  setNeedsExplicitStart(false);
                   setReady(true);
                   return;
                 }
@@ -605,71 +639,30 @@ function StartPizzaSessionContent() {
         }
       }
 
-      if (!active && !shouldStartNewSession && !shouldPreserveLocalHandoff) {
-        if (!mounted) return;
-        setExperienceLevel(preferredLevel);
-        setSession(null);
-        setNeedsExplicitStart(true);
-        setReady(true);
-        return;
-      }
-
-      const baseSession = active ?? createAndSavePizzaSession({
-        status: "planning",
-        currentStep: "style",
-        lastRoute: requestedStep ? wizardStepHref(requestedStep) : wizardStepHref("path"),
-        experienceLevel: preferredLevel,
-        pizzaStyle: "pizza-oven",
-        ovenType: "gas",
-        pizzaPreset: DEFAULT_SESSION_TOPPING_PRESET,
-        pizzaCount: 4,
-        flourSituation: "recommend",
-        flour: DEFAULT_SESSION_FORMULA_FLOUR,
-      });
+      const shouldPersistInitialSession = Boolean(active);
+      const baseSession = active ?? createPlanningDraftSession(preferredLevel, requestedStep);
       const sessionLevel = baseSession.experienceLevel;
       const hasSavedTargetTime = isValidTargetTime(baseSession.targetEatTime);
       const defaultTargetEatTime = getDefaultPizzaSessionTargetTime();
       const nextSession = hasSavedTargetTime
         ? baseSession
-        : updatePizzaSession(baseSession.id, {
-          targetEatTime: defaultTargetEatTime,
-          status: "planning",
-          currentStep: baseSession.currentStep,
-          experienceLevel: sessionLevel,
-        }) ?? { ...baseSession, targetEatTime: defaultTargetEatTime };
+        : applyLoadSessionPatch(baseSession, { targetEatTime: defaultTargetEatTime }, shouldPersistInitialSession);
 
       const supportedSession = nextSession.pizzaStyle === "not-sure" || nextSession.flour === "not-sure" || nextSession.flourSituation === "unknown_w"
-        ? updatePizzaSession(nextSession.id, {
+        ? applyLoadSessionPatch(nextSession, {
           ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
           ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
           ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
-          status: "planning",
-          currentStep: nextSession.currentStep,
-          experienceLevel: sessionLevel,
-        }) ?? {
-          ...nextSession,
-          ...(nextSession.pizzaStyle === "not-sure" ? { pizzaStyle: "pizza-oven", ovenType: "gas" } : {}),
-          ...(nextSession.flour === "not-sure" ? { flour: "tipo-00" } : {}),
-          ...(nextSession.flourSituation === "unknown_w" ? { flourSituation: "recommend" as const } : {}),
-        }
+        }, shouldPersistInitialSession)
         : nextSession;
 
       const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession);
       const experienceScopedSession = Object.keys(simpleDefaultsPatch).length
-        ? updatePizzaSession(supportedSession.id, {
-          ...simpleDefaultsPatch,
-          status: "planning",
-          currentStep: supportedSession.currentStep,
-          experienceLevel: sessionLevel,
-        }) ?? {
-          ...supportedSession,
-          ...simpleDefaultsPatch,
-          experienceLevel: sessionLevel,
-        }
+        ? applyLoadSessionPatch(supportedSession, simpleDefaultsPatch, shouldPersistInitialSession)
         : supportedSession;
 
       if (!mounted) return;
-      setActivePizzaSession(experienceScopedSession.id);
+      if (shouldPersistInitialSession) setActivePizzaSession(experienceScopedSession.id);
       setExperienceLevel(sessionLevel);
       setSession(experienceScopedSession);
       setTargetTimeDraft(experienceScopedSession.targetEatTime ?? "");
@@ -701,7 +694,8 @@ function StartPizzaSessionContent() {
   }, [ready, searchParams]);
 
   useEffect(() => {
-    if (!ready || !session) return;
+    if (!ready || !session || conflictCloudRow) return;
+    if (getActivePizzaSession()?.id !== session.id) return;
     const cloudSaveKey = [
       session.id,
       session.currentStep,
@@ -715,7 +709,7 @@ function StartPizzaSessionContent() {
     void saveCloudActivePizzaSession(session).catch(() => {
       // Keep the local guest/session flow usable if account sync is unavailable.
     });
-  }, [ready, session]);
+  }, [ready, session, conflictCloudRow]);
 
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);
@@ -724,20 +718,22 @@ function StartPizzaSessionContent() {
   const setupProgress = step === "summary" ? wizardSteps.length : progress;
 
   const savePatch = (
-    patch: Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">>,
+    patch: PizzaSessionPatch,
     nextStep: WizardStep = step,
   ) => {
     if (!session) return;
-    const updated = updatePizzaSession(session.id, {
+    const persistedActiveSession = getActivePizzaSession()?.id === session.id;
+    const lastRoute = patch.lastRoute ?? wizardStepHref(nextStep);
+    const updated = persistedActiveSession ? updatePizzaSession(session.id, {
       ...patch,
       status: "planning",
       currentStep: stepToSessionStep(nextStep),
-      lastRoute: wizardStepHref(nextStep),
+      lastRoute,
       experienceLevel,
-    });
+    }) : applySessionPatchInMemory(session, patch, nextStep, experienceLevel, lastRoute);
     if (updated) {
       setSession(updated);
-      setActivePizzaSession(updated.id);
+      if (persistedActiveSession) setActivePizzaSession(updated.id);
     }
   };
 
@@ -823,7 +819,7 @@ function StartPizzaSessionContent() {
 
   const goToStep = (nextStep: WizardStep) => {
     const targetEatTime = step === "time" ? targetTimeDraft || targetTimeInputRef.current?.value || session?.targetEatTime : session?.targetEatTime;
-    const patch: Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">> = {
+    const patch: PizzaSessionPatch = {
       targetEatTime,
     };
     if (step === "time") {
@@ -840,7 +836,10 @@ function StartPizzaSessionContent() {
 
   const continueToRecipe = () => {
     if (!session) return;
-    savePatch({ lastRoute: "/session/recipe" }, "summary");
+    const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: "/session/recipe" }, "summary", experienceLevel, "/session/recipe");
+    const saved = savePizzaSession(readyForRecipe);
+    setActivePizzaSession(saved.id);
+    setSession(saved);
     router.push("/session/recipe");
   };
 
@@ -884,7 +883,6 @@ function StartPizzaSessionContent() {
         />
       );
     }
-    if (ready && needsExplicitStart) return <StartPizzaSessionEntry />;
     return <StartPizzaSessionLoading />;
   }
 
@@ -895,7 +893,6 @@ function StartPizzaSessionContent() {
         cloudRow={conflictCloudRow}
         onContinueLocal={() => {
           setConflictCloudRow(null);
-          setNeedsExplicitStart(false);
           router.replace(pizzaSessionContinueHref(session));
         }}
         onContinueCloud={(row) => {
@@ -1419,7 +1416,7 @@ function StartPizzaSessionContent() {
                 </button>
               ) : (
                 <button type="button" onClick={continueToRecipe} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
-                  Build my Dough Plan →
+                  Create my pizza plan →
                 </button>
               )}
             </div>

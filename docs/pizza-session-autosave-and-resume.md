@@ -1,18 +1,18 @@
 # Pizza Session autosave and resume
 
-Patch 355 makes Pizza Session persistence local-first from the moment a user explicitly starts a plan.
+Pizza Session persistence is local-first from the moment the user explicitly creates a plan.
 
 ## Explicit creation event
 
-A Pizza Session draft is created only after an explicit start action, currently the `Start a new pizza plan` action that opens `/session/start?new=1`, or an explicit Party Orders handoff.
+A Pizza Session draft is stored only after an explicit creation action, currently the final setup action on `/session/start`, or an explicit Party Orders handoff.
 
-Opening `/session/start` without an active session shows a start entry state instead of creating an empty ghost session.
+Opening `/session/start` without an active session renders the normal planning form with an in-memory draft. It must not create an empty ghost session, active session ID or cloud record.
 
 ## Local-first principle
 
 The browser-local session is the operational source for the current device.
 
-When a draft is created, DoughTools immediately stores:
+When the plan is explicitly created, DoughTools stores:
 
 - one stable Pizza Session ID
 - draft/planning status
@@ -22,7 +22,7 @@ When a draft is created, DoughTools immediately stores:
 - available setup values
 - the existing session schema version
 
-Setup changes are saved through the existing Pizza Session storage helpers. Step changes and deliberate selections save immediately.
+Setup changes for an already active plan are saved through the existing Pizza Session storage helpers. Setup choices made before the explicit creation action stay in memory until the plan is created.
 
 ## Cloud mirror for signed-in users
 
@@ -49,7 +49,7 @@ Resume links use only an allowlisted Session route. Invalid or missing routes fa
 
 If an active local session exists, `/session/start` resumes that session instead of creating a new one.
 
-Starting a genuinely new plan requires the explicit `new=1` start route. The current one-active-session product model is preserved.
+Starting a genuinely new plan while another plan is active still requires an explicit replace choice. The current one-active-session product model is preserved.
 
 ## Local/cloud conflicts
 
@@ -78,4 +78,4 @@ Completed and archived sessions are still excluded from active-session resume.
 
 Existing Review completion and Account deletion behavior remain responsible for clearing the active-session pointer and cloud marker where appropriate.
 
-Patch 355 does not add multiple active sessions, a manual save button, a database migration, or new calculation behavior.
+This model does not add multiple active sessions, a manual save button, a database migration, or new calculation behavior.

@@ -64,7 +64,7 @@ describe("Start Pizza Session wizard", () => {
     expect(doc).toContain("`/session/shopping`");
     expect(doc).toContain("`/session/kitchen`");
     expect(doc).toContain("`/session/review`");
-    expect(doc).toContain("Build my Dough Plan →");
+    expect(doc).toContain("Create my pizza plan →");
   });
 
   it("adds the /session/start route with the expected wizard steps", () => {
@@ -169,7 +169,7 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("const SIMPLE_SESSION_DOUGH_BALL_WEIGHT = 260");
-    expect(page).toContain("function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): Partial<PizzaSession>");
+    expect(page).toContain("function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): PizzaSessionPatch");
     expect(page).toContain("if (shouldShowPizzaNerdDoughControls(level)) return {}");
     expect(page).toContain("doughBallWeight: SIMPLE_SESSION_DOUGH_BALL_WEIGHT");
     expect(page).toContain("yeastType: DEFAULT_SESSION_YEAST_TYPE");
@@ -335,12 +335,12 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("You’re ready for your Dough Plan.");
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
-    expect(page).toContain("Build my Dough Plan →");
+    expect(page).toContain("Create my pizza plan →");
     expect(page).toContain("const continueToRecipe = () =>");
     expect(page).toContain("router.push(\"/session/recipe\")");
     expect(page).toContain("onClick={continueToRecipe}");
     expect(page).not.toContain("Save and continue later");
-    expect(page.match(/Build my Dough Plan →/g)).toHaveLength(1);
+    expect(page.match(/Create my pizza plan →/g)).toHaveLength(1);
     expect(page).toContain("Back");
     expect(page).not.toContain("Saved locally");
     expect(page).not.toContain("hidden items-center gap-1 text-xs font-bold text-ink/40 sm:flex");
@@ -407,7 +407,8 @@ describe("Start Pizza Session wizard", () => {
     const page = source("app/session/start/page.tsx");
 
     expect(page).toContain("getActivePizzaSession");
-    expect(page).toContain("createAndSavePizzaSession");
+    expect(page).toContain("createPlanningDraftSession");
+    expect(page).toContain("savePizzaSession");
     expect(page).toContain("clearActivePizzaSession");
     expect(page).toContain("setActivePizzaSession");
     expect(page).toContain("updatePizzaSession");
@@ -434,7 +435,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const preferredLevel = readExperienceLevelPreference()");
     expect(page).toContain("experienceLevel: preferredLevel");
     expect(page).toContain("const sessionLevel = baseSession.experienceLevel");
-    expect(page).toContain("experienceLevel: sessionLevel");
+    expect(page).toContain("experienceLevel: session.experienceLevel");
     expect(page).toContain("simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession)");
     expect(page).toContain("setExperienceLevel(sessionLevel)");
     expect(page).not.toContain("const level = readExperienceLevelPreference()");
@@ -772,19 +773,25 @@ describe("Start Pizza Session wizard", () => {
     expect(startPage).toContain("href=\"/session/start\"");
   });
 
-  it("creates setup drafts only after an explicit start and preserves resume context", () => {
+  it("renders the start form without creating a ghost session and persists only on plan creation", () => {
     const page = source("app/session/start/page.tsx");
     const docs = source("docs/pizza-session-autosave-and-resume.md");
 
-    expect(page).toContain("function StartPizzaSessionEntry()");
-    expect(page).toContain("Start a new pizza plan →");
-    expect(page).toContain('href="/session/start?new=1"');
-    expect(page).toContain("setNeedsExplicitStart(true)");
-    expect(page).toContain("if (!active && !shouldStartNewSession && !shouldPreserveLocalHandoff)");
-    expect(page.indexOf("if (!active && !shouldStartNewSession && !shouldPreserveLocalHandoff)")).toBeLessThan(page.indexOf("const baseSession = active ?? createAndSavePizzaSession"));
-    expect(page).toContain("lastRoute: wizardStepHref(nextStep)");
+    expect(page).toContain("function createPlanningDraftSession");
+    expect(page).toContain("const baseSession = active ?? createPlanningDraftSession(preferredLevel, requestedStep)");
+    expect(page).toContain("const shouldPersistInitialSession = Boolean(active)");
+    expect(page).toContain("if (shouldPersistInitialSession) setActivePizzaSession(experienceScopedSession.id)");
+    expect(page).toContain("const persistedActiveSession = getActivePizzaSession()?.id === session.id");
+    expect(page).toContain("if (getActivePizzaSession()?.id !== session.id) return");
+    expect(page).toContain("const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: \"/session/recipe\" }, \"summary\", experienceLevel, \"/session/recipe\")");
+    expect(page).toContain("const saved = savePizzaSession(readyForRecipe)");
+    expect(page).toContain("setActivePizzaSession(saved.id)");
+    expect(page).not.toContain("function StartPizzaSessionEntry()");
+    expect(page).not.toContain("setNeedsExplicitStart");
+    expect(page).not.toContain("const baseSession = active ?? createAndSavePizzaSession");
+    expect(page).not.toContain("Loading your local pizza session");
     expect(page).toContain("lastRoute: \"/session/recipe\"");
-    expect(docs).toContain("Opening `/session/start` without an active session shows a start entry state");
+    expect(docs).toContain("Opening `/session/start` without an active session renders the normal planning form with an in-memory draft.");
     expect(docs).toContain("does not add multiple active sessions");
   });
 

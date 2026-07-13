@@ -42,7 +42,7 @@ After those choices are complete, `/session/start` shows a compact transition:
 
 - Heading: `Your setup is ready.`
 - Body: `Next, we’ll build your Dough Plan.`
-- Primary action: `Build my Dough Plan →`
+- Primary action: `Create my pizza plan →`
 - Destination: `/session/recipe`
 
 This transition is not a separate route. It is the handoff into journey step 6.
@@ -57,7 +57,7 @@ Desktop should feel like a guided workspace:
 - compact option cards
 - passive saved-locally indicator
 - Back bottom-left
-- Continue / Build my Dough Plan bottom-right
+- Continue / Create my pizza plan bottom-right
 
 Desktop may show the full journey rail because there is room for context.
 

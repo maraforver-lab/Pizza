@@ -1497,7 +1497,7 @@ describe("Session recipe build step", () => {
     const seoConfig = source("lib/seo-config.ts");
 
     expect(startPage).toContain("const continueToRecipe = () =>");
-    expect(startPage).toContain("savePatch({ lastRoute: \"/session/recipe\" }, \"summary\")");
+    expect(startPage).toContain("savePizzaSession(readyForRecipe)");
     expect(startPage).toContain("router.push(\"/session/recipe\")");
     expect(startPage).toContain("Choose your oven");
     expect(startPage).toContain("Choose your pizza style");

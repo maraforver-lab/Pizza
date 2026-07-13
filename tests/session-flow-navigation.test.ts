@@ -36,7 +36,7 @@ describe("Pizza Session flow navigation integrity", () => {
     const kitchen = source("app/session/kitchen/page.tsx");
     const review = source("app/session/review/page.tsx");
 
-    expect(start).toContain("Build my Dough Plan →");
+    expect(start).toContain("Create my pizza plan →");
     expect(start).toContain("const continueToRecipe = () =>");
     expect(start).toContain("router.push(\"/session/recipe\")");
     expectTextLink(recipe, "Continue to Shopping →", "/session/shopping");
@@ -53,6 +53,25 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(review).toContain("router.push(\"/\")");
     expect(review).not.toContain("Back to Kitchen Mode");
     expect(review).not.toContain("View timeline");
+  });
+
+  it("keeps /session/start unprotected while downstream routes keep their empty states", () => {
+    const start = source("app/session/start/page.tsx");
+    const recipe = source("app/session/recipe/page.tsx");
+    const shopping = source("app/session/shopping/page.tsx");
+    const timeline = source("app/session/timeline/page.tsx");
+    const kitchen = source("app/session/kitchen/page.tsx");
+    const review = source("app/session/review/page.tsx");
+
+    expect(start).toContain("createPlanningDraftSession");
+    expect(start).toContain("const baseSession = active ?? createPlanningDraftSession(preferredLevel, requestedStep)");
+    expect(start).not.toContain("SessionEmptyState");
+    expect(recipe).toContain("SessionEmptyState");
+    expect(shopping).toContain('missingReason === "no-session"');
+    expect(timeline).toContain("if (!session)");
+    expect(timeline).toContain("No active pizza session");
+    expect(kitchen).toContain('missingReason === "no-session"');
+    expect(review).toContain("No pizza session to review");
   });
 
   it("keeps the Timeline shopping checkpoint visible before service and bake steps", () => {

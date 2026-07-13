@@ -451,7 +451,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).not.toContain("This is a preparation checklist for your kitchen.");
     expect(page).not.toMatch(/textarea|contentEditable|public link|upload photo|cloud sync is active|Copy shopping list|Open Sauce tool|Open Toppings tool|Back to timeline|Review dough plan/i);
     expect(timeline).toContain("/session/kitchen");
-    expect(start).toContain("Build my Dough Plan");
+    expect(start).toContain("Create my pizza plan");
     expect(start).not.toContain("Shopping list →");
   });
 
