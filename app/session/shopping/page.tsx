@@ -32,6 +32,7 @@ import {
 } from "@/lib/pizza-session-shopping-list";
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { downloadShoppingListImage } from "@/lib/shopping-image-export";
+import { getShoppingPizzaImage } from "@/lib/shopping-pizza-images";
 
 function isItemReady(status: PizzaSessionShoppingItem["status"]) {
   return status === "already_have" || status === "bought";
@@ -44,26 +45,6 @@ function sectionLabel(group: string) {
   if (group === "Toppings") return "Toppings";
   if (group === "Gear") return "Optional gear";
   return group;
-}
-
-function pizzaMenuImagePath(pizzaType: PizzaSessionPizzaMixType) {
-  if (pizzaType === "margherita") return "/images/shopping/pizza-margherita.webp";
-  if (pizzaType === "marinara") return "/images/shopping/pizza-marinara.webp";
-  if (pizzaType === "diavola") return "/images/shopping/pizza-diavola.webp";
-  if (pizzaType === "funghi") return "/images/shopping/pizza-funghi.webp";
-  if (pizzaType === "prosciutto") return "/images/shopping/pizza-prosciutto.webp";
-  if (pizzaType === "quattro-formaggi") return "/images/shopping/pizza-quattro-formaggi.webp";
-  return "/images/shopping/pizza-margherita.webp";
-}
-
-function pizzaMenuImageAlt(pizzaType: PizzaSessionPizzaMixType, name: string) {
-  if (pizzaType === "margherita") return "Freshly baked Margherita pizza with tomato, mozzarella and basil.";
-  if (pizzaType === "marinara") return "Freshly baked Marinara pizza with tomato, garlic and oregano, without cheese.";
-  if (pizzaType === "diavola") return "Freshly baked Diavola pizza with spicy salami and melted mozzarella.";
-  if (pizzaType === "funghi") return "Freshly baked Funghi pizza with roasted mushrooms and mozzarella.";
-  if (pizzaType === "prosciutto") return "Freshly baked Prosciutto pizza finished with prosciutto and arugula.";
-  if (pizzaType === "quattro-formaggi") return "Freshly baked Quattro Formaggi pizza with a rich melted cheese topping.";
-  return `Freshly baked ${name} pizza.`;
 }
 
 function pizzaChefRecommendation(pizzaType: PizzaSessionPizzaMixType) {
@@ -196,8 +177,11 @@ export default function SessionShoppingPage() {
   if (!ready) {
     return (
       <main className="min-h-screen bg-cream px-4 py-10 text-ink">
-        <div className="mx-auto max-w-3xl rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/50 shadow-card">
-          Loading your local shopping list…
+        <div className="mx-auto grid max-w-3xl gap-3 rounded-[2rem] bg-white p-6 text-sm font-bold text-ink/55 shadow-card">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-cream text-tomato" aria-hidden="true">
+            <DoughToolsIcon name="shopping-basket" size={20} />
+          </span>
+          <span>Loading your local shopping list…</span>
         </div>
       </main>
     );
@@ -257,29 +241,38 @@ export default function SessionShoppingPage() {
               const selected = quantity > 0;
               const canIncrement = canIncrementPizzaType(option.id, pizzaMix);
               const canDecrement = option.id !== "margherita" && quantity > 0;
+              const image = getShoppingPizzaImage(option.id);
               return (
                 <article
                   key={option.id}
-                  className={`overflow-hidden rounded-card border text-left transition focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 ${
+                  aria-label={`${option.name}: ${quantity} selected`}
+                  className={`flex min-w-0 flex-col overflow-hidden rounded-card border text-left transition focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 ${
                     selected
                       ? "border-action-primary/45 bg-background-card shadow-card"
                       : "border-ink/10 bg-background-subtle/65 hover:border-action-primary/25 hover:bg-background-card"
                   }`}
                 >
-                  <div className="relative h-52 overflow-hidden bg-cream sm:h-48 lg:h-52">
+                  <figure className="bg-background-subtle">
                     <Image
-                      src={pizzaMenuImagePath(option.id)}
-                      alt={pizzaMenuImageAlt(option.id, option.name)}
-                      fill
+                      src={image.src}
+                      alt={image.alt}
+                      width={image.width}
+                      height={image.height}
                       sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      className="object-cover"
+                      loading="lazy"
+                      className="aspect-[4/3] w-full object-cover"
+                      style={{ objectPosition: image.objectPosition }}
                     />
-                    <span className="absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-white/5" />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <span className="text-sm font-extrabold text-ink">{option.name}</span>
+                  </figure>
+                  <div className="flex flex-1 flex-col p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="[overflow-wrap:anywhere] text-base font-extrabold leading-5 text-ink">{option.name}</h3>
+                        {selected && (
+                          <span className="mt-1 inline-flex rounded-full bg-action-primary/10 px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-[.12em] text-action-primary">
+                            Selected
+                          </span>
+                        )}
                       </div>
                       <span className={statusPillClass({ className: "px-2.5 py-1 text-[11px]", variant: selected ? "selected" : "archived" })}>
                         {quantity} pizza{quantity === 1 ? "" : "s"}
@@ -290,26 +283,28 @@ export default function SessionShoppingPage() {
                     <p className="mt-3 rounded-2xl bg-cream/75 px-3 py-2 text-xs font-extrabold leading-5 text-ink/60">
                       {pizzaChefRecommendation(option.id)}
                     </p>
-                    <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white/80 p-2 ring-1 ring-ink/5">
-                      <button
-                        type="button"
-                        onClick={() => updatePizzaMix(option.id, -1)}
-                        disabled={!canDecrement}
-                        aria-label={`Decrease ${option.name} quantity`}
-                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
-                      >
-                        <DoughToolsIcon name="remove" size={20} strokeWidth={2.4} />
-                      </button>
-                      <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => updatePizzaMix(option.id, 1)}
-                        disabled={!canIncrement}
-                        aria-label={`Increase ${option.name} quantity`}
-                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
-                      >
-                        <DoughToolsIcon name="add" size={20} strokeWidth={2.4} />
-                      </button>
+                    <div className="mt-auto pt-4">
+                      <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/80 p-2 ring-1 ring-ink/5">
+                        <button
+                          type="button"
+                          onClick={() => updatePizzaMix(option.id, -1)}
+                          disabled={!canDecrement}
+                          aria-label={`Decrease ${option.name} quantity`}
+                          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          <DoughToolsIcon name="remove" size={20} strokeWidth={2.4} />
+                        </button>
+                        <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => updatePizzaMix(option.id, 1)}
+                          disabled={!canIncrement}
+                          aria-label={`Increase ${option.name} quantity`}
+                          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          <DoughToolsIcon name="add" size={20} strokeWidth={2.4} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </article>

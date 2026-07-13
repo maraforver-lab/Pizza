@@ -753,6 +753,15 @@ Future homepage hero direction:
 - work in both desktop and mobile compositions
 - remain consistent with the light DoughTools application interface
 
+Shopping Pizza Menu photography direction:
+
+- prioritize realistic, comparable and identifiable pizzas over dramatic atmosphere
+- use a coherent 30–45 degree menu-led composition family where each pizza remains easy to distinguish
+- keep the full or nearly full pizza visible so toppings, sauce, cheese and crust can be compared quickly
+- match the represented pizza exactly; do not add random garnish or use one pizza image for multiple identities
+- avoid obvious AI patterns such as duplicated toppings, impossible crust geometry, floating ingredients, plastic cheese or repeated compositions with only toppings swapped
+- keep text and controls outside informative pizza images; Shopping images confirm the menu choice, while the checklist remains the practical buying tool
+
 Do not create final homepage assets until a dedicated homepage visual patch asks for them.
 
 ### Decorative imagery guardrails

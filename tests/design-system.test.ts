@@ -104,6 +104,9 @@ describe("DoughTools design foundation", () => {
     expect(visualGuide).toContain("This includes faces, full bodies, partial bodies, visible hands, silhouettes, reflections and background people.");
     expect(visualGuide).toContain("Do not create a synthetic founder replacement.");
     expect(visualGuide).toContain("Future homepage hero direction");
+    expect(visualGuide).toContain("Shopping Pizza Menu photography direction");
+    expect(visualGuide).toContain("prioritize realistic, comparable and identifiable pizzas");
+    expect(visualGuide).toContain("do not add random garnish or use one pizza image for multiple identities");
 
     expect(responsiveRules).toContain("Marketing surfaces and workspace surfaces may have different visual emphasis");
     expect(agents).toContain("Legacy color names are compatibility aliases only.");

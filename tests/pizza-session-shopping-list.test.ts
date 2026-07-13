@@ -23,6 +23,7 @@ import {
   SHOPPING_LIST_LOCAL_ONLY_COPY,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
+import { shoppingPizzaImageList } from "@/lib/shopping-pizza-images";
 import { patchHistory } from "@/lib/changelog";
 import { MemoryStorage } from "./helpers";
 
@@ -433,13 +434,13 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Decrease");
     expect(page).toContain("Increase");
     expect(page).toContain("pizzaChefRecommendation(option.id)");
-    expect(page).toContain("pizzaMenuImageAlt(option.id, option.name)");
+    expect(page).toContain("getShoppingPizzaImage(option.id)");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={7}");
     expect(page).toContain("hideMeta");
     expect(page).toContain("Continue to Timeline →");
     expect(page).toContain("Back");
-    expect(page).toContain("pizzaMenuImagePath(option.id)");
+    expect(page).toContain("image.src");
     expect(page).toContain("Before Timeline");
     expect(page).toContain("Download the shopping image if you want it, then continue to the Timeline.");
     expect(page).not.toContain("desktopAside={renderNextActionCard()}");
@@ -481,19 +482,10 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).not.toContain("Have</");
   });
 
-  it("renders richer restaurant-style pizza cards with local photo assets and chef recommendations", () => {
+  it("renders clear pizza menu cards with local photo assets and chef recommendations", () => {
     const page = source("app/session/shopping/page.tsx");
-    const pizzaAssets = [
-      "pizza-margherita.webp",
-      "pizza-marinara.webp",
-      "pizza-diavola.webp",
-      "pizza-funghi.webp",
-      "pizza-prosciutto.webp",
-      "pizza-quattro-formaggi.webp",
-    ];
 
-    expect(page).toContain("function pizzaMenuImagePath");
-    expect(page).toContain("function pizzaMenuImageAlt");
+    expect(page).toContain("getShoppingPizzaImage(option.id)");
     expect(page).toContain("function pizzaChefRecommendation");
     expect(page).toContain("Perfect if you're making classic Neapolitan pizza.");
     expect(page).toContain("A traditional cheese-free classic.");
@@ -501,13 +493,15 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Excellent with roasted mushrooms.");
     expect(page).toContain("Best finished with fresh arugula.");
     expect(page).toContain("Rich, creamy and cheese-forward.");
-    expect(page).toContain("h-52 overflow-hidden");
+    expect(page).toContain("aspect-[4/3] w-full object-cover");
+    expect(page).toContain("width={image.width}");
+    expect(page).toContain("height={image.height}");
+    expect(page).toContain("style={{ objectPosition: image.objectPosition }}");
+    expect(page).toContain("aria-label={`${option.name}: ${quantity} selected`}");
+    expect(page).toContain("Selected");
     expect(page).toContain("inline-flex h-12 w-12");
     expect(page).not.toContain("{option.marker}");
-    for (const asset of pizzaAssets) {
-      expect(page).toContain(`/images/shopping/${asset}`);
-      expect(existsSync(join(process.cwd(), "public", "images", "shopping", asset))).toBe(true);
-    }
+    expect(page).not.toContain("bg-gradient-to-t from-ink/25");
     expect(page).not.toMatch(/https?:\/\//);
   });
 
@@ -622,16 +616,30 @@ describe("Pizza Session shopping list presets", () => {
 
   it("uses local pizza images for the Shopping Pizza Menu cards", () => {
     const page = source("app/session/shopping/page.tsx");
+    const metadata = source("lib/shopping-pizza-images.ts");
 
-    expect(page).toContain("function pizzaMenuImagePath");
     expect(page).toContain("import Image from \"next/image\"");
-    expect(page).toContain('return "/images/shopping/pizza-margherita.webp"');
-    expect(page).toContain('return "/images/shopping/pizza-marinara.webp"');
-    expect(page).toContain('return "/images/shopping/pizza-diavola.webp"');
-    expect(page).toContain('return "/images/shopping/pizza-funghi.webp"');
-    expect(page).toContain('return "/images/shopping/pizza-prosciutto.webp"');
-    expect(page).toContain('return "/images/shopping/pizza-quattro-formaggi.webp"');
-    expect(page).not.toMatch(/https?:\/\//);
+    expect(page).toContain("getShoppingPizzaImage(option.id)");
+    expect(shoppingPizzaImageList).toHaveLength(PIZZA_MIX_OPTIONS.length);
+
+    const seenSources = new Set<string>();
+    for (const image of shoppingPizzaImageList) {
+      expect(image.src).toMatch(/^\/images\/shopping\/pizza-[a-z-]+\.webp$/);
+      expect(image.src).not.toMatch(/https?:\/\//);
+      expect(existsSync(join(process.cwd(), "public", image.src))).toBe(true);
+      expect(image.width).toBe(1200);
+      expect(image.height).toBe(900);
+      expect(image.alt).toBeTruthy();
+      expect(image.alt).not.toMatch(/pizza image|delicious|perfect|best|\.webp|filename/i);
+      expect(image.audit.noPeopleOrHands).toBe(true);
+      expect(image.audit.disposition).toBe("retain");
+      expect(image.audit.notes).not.toMatch(/people|hands|faces|arms|silhouette/i);
+      expect(seenSources.has(image.src)).toBe(false);
+      seenSources.add(image.src);
+    }
+    expect(metadata).not.toMatch(/https?:\/\/|data:image/i);
+    expect(metadata).toContain("representedPizza");
+    expect(metadata).toContain("mobileSuitability");
   });
 
   it("keeps active session preset compatibility when generating the list", () => {
