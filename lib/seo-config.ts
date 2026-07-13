@@ -82,8 +82,8 @@ export const publicSeoRoutes = [
   },
   {
     path: "/styles",
-    title: "Pizza Style Library | DoughTools",
-    description: "Compare pizza styles and apply practical starting settings to the DoughTools calculator.",
+    title: "Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools",
+    description: "Compare major pizza styles by crust, texture, dough, oven, sauce and baking method, and learn which style DoughTools currently supports for planning.",
     changeFrequency: "monthly",
     priority: 0.7,
   },
