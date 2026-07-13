@@ -140,8 +140,8 @@ export const publicSeoRoutes = [
   },
   {
     path: "/costs",
-    title: "Pizza Cost Calculator | DoughTools",
-    description: "Estimate pizza night costs from dough, sauce, cheese, toppings, energy, waste and packaging inputs.",
+    title: "Home Pizza vs Restaurant Pizza Cost Calculator | DoughTools",
+    description: "Compare the estimated cost of making pizza at home with buying the same number of pizzas from a restaurant, including cost per pizza and total difference.",
     changeFrequency: "monthly",
     priority: 0.5,
   },
