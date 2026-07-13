@@ -4,14 +4,15 @@ import Link from "next/link";
 
 type PartyOrdersAccountEntryCardProps = {
   enabled: boolean;
+  className?: string;
 };
 
-export function PartyOrdersAccountEntryCard({ enabled }: PartyOrdersAccountEntryCardProps) {
+export function PartyOrdersAccountEntryCard({ enabled, className = "" }: PartyOrdersAccountEntryCardProps) {
   if (!enabled) return null;
 
   return (
     <section
-      className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7"
+      className={`rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7 ${className}`}
       aria-labelledby="party-orders-account-entry-heading"
     >
       <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-start">

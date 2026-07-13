@@ -576,8 +576,9 @@ describe("Party Orders foundation", () => {
     const card = source("components/account/PartyOrdersAccountEntryCard.tsx");
 
     expect(accountPage).toContain("PartyOrdersAccountEntryCard");
-    expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled={Boolean(user)} />");
-    expect(accountPage).toContain("<PartyOrdersAccountEntryCard enabled={Boolean(user)} />");
+    expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled");
+    expect(accountPage).toContain("<PartyOrdersAccountEntryCard enabled");
+    expect(accountPage).toContain("aria-label=\"Account support tools\"");
     expect(card).toContain("if (!enabled) return null");
     expect(card).toContain("PIZZA PARTY ORDERS");
     expect(card).toContain("Collect pizza orders from guests");

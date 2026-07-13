@@ -23,9 +23,10 @@ import {
 
 type AccountActivePizzaSessionCardProps = {
   enabled: boolean;
+  className?: string;
 };
 
-export function AccountActivePizzaSessionCard({ enabled }: AccountActivePizzaSessionCardProps) {
+export function AccountActivePizzaSessionCard({ enabled, className = "" }: AccountActivePizzaSessionCardProps) {
   const router = useRouter();
   const [cloudSession, setCloudSession] = useState<CloudPizzaSessionRow | null>(null);
   const [ready, setReady] = useState(false);
@@ -106,7 +107,7 @@ export function AccountActivePizzaSessionCard({ enabled }: AccountActivePizzaSes
 
   if (!ready) {
     return (
-      <section className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7">
+      <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7 ${className}`}>
         Loading saved pizza session…
       </section>
     );
@@ -114,7 +115,7 @@ export function AccountActivePizzaSessionCard({ enabled }: AccountActivePizzaSes
 
   if (!cloudSession) {
     return (
-      <section className="mt-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="account-active-session-heading">
+      <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7 ${className}`} aria-labelledby="account-active-session-heading">
         <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Pizza Session</p>
         <div className="mt-2 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
@@ -137,7 +138,7 @@ export function AccountActivePizzaSessionCard({ enabled }: AccountActivePizzaSes
   const summary = cloudPizzaSessionSummary(cloudSession);
 
   return (
-    <section className="mt-8 rounded-[1.75rem] border border-leaf/20 bg-leaf/[.08] p-5 shadow-card sm:p-6" aria-labelledby="account-active-session-heading">
+    <section className={`rounded-[1.75rem] border border-leaf/20 bg-leaf/[.08] p-5 shadow-card sm:p-6 ${className}`} aria-labelledby="account-active-session-heading">
       <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Pizza Session</p>

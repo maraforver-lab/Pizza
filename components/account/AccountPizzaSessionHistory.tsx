@@ -13,11 +13,15 @@ import { migratePizzaSession } from "@/lib/pizza-session";
 
 type AccountPizzaSessionHistoryProps = {
   enabled: boolean;
+  className?: string;
 };
 
-export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHistoryProps) {
+const ACCOUNT_HISTORY_COLLAPSED_LIMIT = 2;
+
+export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountPizzaSessionHistoryProps) {
   const [sessions, setSessions] = useState<CloudPizzaSessionRow[]>([]);
   const [ready, setReady] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -30,6 +34,7 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
     if (!enabled) {
       setSessions([]);
       setReady(false);
+      setHistoryExpanded(false);
       return;
     }
 
@@ -58,6 +63,10 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
       mounted = false;
     };
   }, [enabled]);
+
+  useEffect(() => {
+    if (sessions.length <= ACCOUNT_HISTORY_COLLAPSED_LIMIT) setHistoryExpanded(false);
+  }, [sessions.length]);
 
   if (!enabled) return null;
 
@@ -102,14 +111,18 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
 
   if (!ready) {
     return (
-      <section className="my-8 rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7">
+      <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7 ${className}`}>
         Loading pizza session history…
       </section>
     );
   }
 
+  const visibleSessions = historyExpanded ? sessions : sessions.slice(0, ACCOUNT_HISTORY_COLLAPSED_LIMIT);
+  const hiddenSessionCount = Math.max(0, sessions.length - ACCOUNT_HISTORY_COLLAPSED_LIMIT);
+  const hasMoreSessions = hiddenSessionCount > 0;
+
   return (
-    <section className="my-8 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="pizza-session-history-heading">
+    <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7 ${className}`} aria-labelledby="pizza-session-history-heading">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Completed sessions</p>
@@ -118,7 +131,11 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
           </h2>
         </div>
         {sessions.length > 0 && (
-          <p className="text-xs font-bold leading-5 text-ink/45">Showing your latest completed sessions.</p>
+          <p className="text-xs font-bold leading-5 text-ink/45">
+            {hasMoreSessions && !historyExpanded
+              ? `Showing your 2 most recent of ${sessions.length} completed sessions.`
+              : "Showing your latest completed sessions."}
+          </p>
         )}
       </div>
 
@@ -128,8 +145,8 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
           <p className="mt-2 text-sm leading-6 text-ink/60">Finish a Pizza Session to save it here.</p>
         </div>
       ) : (
-        <div className="mt-5 grid gap-3">
-          {sessions.map((session) => {
+        <div id="account-pizza-session-history-list" className="mt-5 grid gap-3">
+          {visibleSessions.map((session) => {
             const summary = cloudPizzaSessionHistorySummary(session);
             const sessionData = migratePizzaSession(session.session_data);
             const photo = sessionData?.photo?.url;
@@ -288,6 +305,17 @@ export function AccountPizzaSessionHistory({ enabled }: AccountPizzaSessionHisto
               </article>
             );
           })}
+          {hasMoreSessions && (
+            <button
+              type="button"
+              aria-expanded={historyExpanded}
+              aria-controls="account-pizza-session-history-list"
+              onClick={() => setHistoryExpanded((current) => !current)}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-cream/65 px-4 text-sm font-extrabold text-ink/70 transition hover:border-leaf/35 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              {historyExpanded ? "Show fewer sessions" : `Show ${hiddenSessionCount} more sessions`}
+            </button>
+          )}
         </div>
       )}
     </section>

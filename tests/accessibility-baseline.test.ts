@@ -115,18 +115,17 @@ describe("core accessibility baseline", () => {
     expect(doctorSource).toContain("focus-visible:ring");
   });
 
-  it("removes the account page experience selector while preserving Pizza Session experience controls", () => {
+  it("keeps account guidance compact while preserving Pizza Session experience controls", () => {
     const accountSource = source("app/account/page.tsx");
+    const accountGuidanceSource = source("components/account/AccountGuidancePreference.tsx");
     const sessionStartSource = source("app/session/start/page.tsx");
 
-    expect(accountSource).not.toContain("aria-labelledby=\"account-experience-heading\"");
-    expect(accountSource).not.toContain("Account experience level options");
-    expect(accountSource).not.toContain("Choose how much guidance you want.");
-    expect(accountSource).not.toContain("Beginner");
-    expect(accountSource).not.toContain("Enthusiast");
-    expect(accountSource).not.toContain("Pizza Nerd");
-    expect(accountSource).not.toContain("EXPERIENCE_LEVELS");
-    expect(accountSource).not.toContain("writeExperienceLevelPreference");
+    expect(accountSource).toContain("AccountGuidancePreference");
+    expect(accountGuidanceSource).toContain("Guidance level");
+    expect(accountGuidanceSource).toContain("aria-expanded={expanded}");
+    expect(accountGuidanceSource).toContain("aria-controls=\"account-guidance-selector\"");
+    expect(accountGuidanceSource).toContain("readExperienceLevelPreference");
+    expect(accountGuidanceSource).toContain("ExperienceLevelSelector");
     expect(sessionStartSource).toContain("readExperienceLevelPreference");
     expect(sessionStartSource).toContain("shouldShowPizzaNerdDoughControls");
     expect(sessionStartSource).toContain("pizza_nerd");

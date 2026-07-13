@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import AppSignature from "@/components/AppSignature";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
+import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
 import { PartyOrdersAccountEntryCard } from "@/components/account/PartyOrdersAccountEntryCard";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
@@ -61,21 +62,134 @@ export default function AccountPage() {
     setLoading(false); setUser(null); setMessage(error ? error.message : t.signedOut); setIsError(Boolean(error));
   };
 
-  return <main className="min-h-screen bg-cream px-4 py-10 pb-28 text-ink sm:px-6"><div className="mx-auto max-w-4xl">
-    <section className="grid min-w-0 items-center gap-8 py-8 lg:grid-cols-[1fr_20rem]">
-      <div className="min-w-0"><p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p><h1 className="mt-3 max-w-2xl break-words font-display text-5xl font-semibold leading-[.95] sm:text-6xl">{t.title}</h1><p className="mt-5 max-w-xl leading-7 text-ink/55">{t.intro}</p><Link href="/" className="mt-7 inline-flex min-h-12 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold">← {t.back}</Link></div>
-      <section className="min-w-0 rounded-[1.5rem] bg-white p-4 shadow-card sm:p-5">
-        {loading && !user ? <div className="grid min-h-48 place-items-center text-sm font-bold text-ink/45">{t.working}</div> : user ? <div className="text-center"><span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-leaf text-base font-extrabold text-white">✓</span><h2 className="mt-3 font-display text-2xl font-semibold">{t.signedIn}</h2><p className="mt-1 break-all text-sm text-ink/55">{user.email}</p><button type="button" onClick={signOut} disabled={loading} className="mt-5 min-h-11 w-full rounded-xl bg-ink px-5 text-sm font-extrabold text-white disabled:opacity-50">{loading ? t.working : t.signOut}</button></div> : <>
-          <div className="grid grid-cols-2 rounded-xl bg-ink/[.05] p-1">{(["login", "signup"] as Mode[]).map(item => <button key={item} type="button" onClick={() => { setMode(item); setMessage(""); setIsError(false); }} className={`min-h-11 rounded-lg px-3 text-xs font-extrabold ${mode === item ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}>{item === "login" ? t.login : t.signup}</button>)}</div>
-          <form onSubmit={submit} className="mt-5 space-y-4"><label className="block text-xs font-bold text-ink/55">{t.email}<input type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"/></label><label className="block text-xs font-bold text-ink/55">{t.password}<input type="password" required minLength={8} autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={event => setPassword(event.target.value)} className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"/><span className="mt-1 block text-[10px] font-normal text-ink/35">{t.passwordHint}</span></label><button type="submit" disabled={loading} className="min-h-12 w-full rounded-xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg disabled:opacity-50">{loading ? t.working : mode === "login" ? t.login : t.signup}</button></form>
-        </>}
-        {message && <p role="status" className={`mt-4 rounded-xl p-3 text-xs leading-5 ${isError ? "bg-tomato/10 text-tomato" : "bg-leaf/10 text-leaf"}`}>{message}</p>}
-      </section>
-    </section>
-    <AccountActivePizzaSessionCard enabled={Boolean(user)} />
-    <PartyOrdersAccountEntryCard enabled={Boolean(user)} />
-    <AccountPizzaSessionHistory enabled={Boolean(user)} />
-    <InstallAppPrompt className="mt-8" />
-    <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
-  </div></main>;
+  return (
+    <main className="min-h-screen bg-cream px-4 py-7 pb-24 text-ink sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-7xl">
+        <section className="grid min-w-0 gap-5 rounded-[2rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-center">
+          <div className="min-w-0">
+            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
+            <h1 className="mt-3 max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
+              {user ? "Your DoughTools workspace." : t.title}
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
+              {user
+                ? "Continue your active pizza plan, review recent bakes, manage party orders and keep your guidance preferences in one calm place."
+                : t.intro}
+            </p>
+            <Link
+              href="/"
+              className="mt-6 inline-flex min-h-11 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              ← {t.back}
+            </Link>
+          </div>
+
+          <section className="min-w-0 rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="account-access-heading">
+            {loading && !user ? (
+              <div className="min-h-48 space-y-4" aria-busy="true">
+                <h2 id="account-access-heading" className="font-display text-2xl font-semibold">
+                  Loading your DoughTools workspace…
+                </h2>
+                <div className="space-y-3" aria-hidden="true">
+                  <div className="h-4 w-3/4 rounded-full bg-ink/10" />
+                  <div className="h-4 w-1/2 rounded-full bg-ink/10" />
+                  <div className="h-12 rounded-2xl bg-ink/10" />
+                </div>
+              </div>
+            ) : user ? (
+              <div>
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-leaf text-base font-extrabold text-white">✓</span>
+                <h2 id="account-access-heading" className="mt-3 font-display text-2xl font-semibold">
+                  {t.signedIn}
+                </h2>
+                <p className="mt-1 break-all text-sm text-ink/55">{user.email}</p>
+                <p className="mt-4 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/55">
+                  Cloud-backed Pizza Sessions appear here when they are active or completed.
+                </p>
+              </div>
+            ) : (
+              <>
+                <h2 id="account-access-heading" className="sr-only">
+                  Account access
+                </h2>
+                <div className="grid grid-cols-2 rounded-xl bg-ink/[.05] p-1">
+                  {(["login", "signup"] as Mode[]).map(item => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => { setMode(item); setMessage(""); setIsError(false); }}
+                      className={`min-h-11 rounded-lg px-3 text-xs font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${mode === item ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}
+                    >
+                      {item === "login" ? t.login : t.signup}
+                    </button>
+                  ))}
+                </div>
+                <form onSubmit={submit} className="mt-5 space-y-4">
+                  <label className="block text-xs font-bold text-ink/55">
+                    {t.email}
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={event => setEmail(event.target.value)}
+                      className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"
+                    />
+                  </label>
+                  <label className="block text-xs font-bold text-ink/55">
+                    {t.password}
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                      value={password}
+                      onChange={event => setPassword(event.target.value)}
+                      className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"
+                    />
+                    <span className="mt-1 block text-[10px] font-normal text-ink/35">{t.passwordHint}</span>
+                  </label>
+                  <button type="submit" disabled={loading} className="min-h-12 w-full rounded-xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg disabled:opacity-50">
+                    {loading ? t.working : mode === "login" ? t.login : t.signup}
+                  </button>
+                </form>
+              </>
+            )}
+            {message && <p role="status" className={`mt-4 rounded-xl p-3 text-xs leading-5 ${isError ? "bg-tomato/10 text-tomato" : "bg-leaf/10 text-leaf"}`}>{message}</p>}
+          </section>
+        </section>
+
+        {user ? (
+          <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.75fr)] lg:items-start">
+            <div className="min-w-0 space-y-6">
+              <AccountActivePizzaSessionCard enabled className="mt-0" />
+              <AccountPizzaSessionHistory enabled className="mt-0" />
+            </div>
+            <aside className="min-w-0 space-y-6 lg:sticky lg:top-24" aria-label="Account support tools">
+              <PartyOrdersAccountEntryCard enabled className="mt-0" />
+              <InstallAppPrompt compact collapsible className="mt-0" />
+              <AccountGuidancePreference />
+              <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-security-heading">
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
+                <h2 id="account-security-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
+                  Account and security
+                </h2>
+                <p className="mt-2 break-all text-sm leading-6 text-ink/60">{user.email}</p>
+                <button
+                  type="button"
+                  onClick={signOut}
+                  disabled={loading}
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-cream/65 px-5 text-sm font-extrabold text-ink/75 transition hover:border-tomato/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-50"
+                >
+                  {loading ? t.working : t.signOut}
+                </button>
+              </section>
+            </aside>
+          </div>
+        ) : null}
+
+        <footer className="mt-8 border-t border-ink/10 py-6"><AppSignature /></footer>
+      </div>
+    </main>
+  );
 }

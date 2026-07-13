@@ -1237,9 +1237,10 @@ describe("cloud pizza session foundation", () => {
     const accountCard = source("components/account/AccountActivePizzaSessionCard.tsx");
 
     expect(accountPage).toContain("AccountActivePizzaSessionCard");
-    expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled={Boolean(user)} />");
+    expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled");
+    expect(accountPage).toContain("Your DoughTools workspace.");
     expect(accountPage).toContain("Back to homepage");
-    expect(accountPage).toContain('<Link href="/"');
+    expect(accountPage).toContain('href="/"');
     expect(accountPage).toContain("t.signedIn");
     expect(accountPage).toContain("user.email");
     expect(accountPage).toContain("t.signOut");
@@ -1287,7 +1288,7 @@ describe("cloud pizza session foundation", () => {
     const relevanceHelper = source("lib/pizza-photo-relevance.ts");
 
     expect(accountPage).toContain("AccountPizzaSessionHistory");
-    expect(accountPage).toContain("<AccountPizzaSessionHistory enabled={Boolean(user)} />");
+    expect(accountPage).toContain("<AccountPizzaSessionHistory enabled");
     expect(historyRoute).toContain("supabase.auth.getUser()");
     expect(historyRoute).toContain("withSignedPizzaPhotoUrl");
     expect(historyRoute).toContain("createSignedUrl(session.photo.path");
