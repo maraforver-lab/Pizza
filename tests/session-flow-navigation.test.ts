@@ -81,10 +81,11 @@ describe("Pizza Session flow navigation integrity", () => {
     const timeline = source("app/session/timeline/page.tsx");
 
     expect(timeline).toContain("Shopping checkpoint");
-    expect(timeline).toContain("Shopping review");
-    expect(timeline).toContain("Shopping should be handled before Timeline.");
+    expect(timeline).toContain("Shopping list");
+    expect(timeline).not.toContain("Shopping should be handled before Timeline.");
     expect(timeline).not.toContain("Pizza choices and shopping");
-    expect(timeline).toContain("Review shopping →");
+    expect(timeline).not.toContain("Review shopping →");
+    expect(timeline).toContain("Use Back if you still need to check ingredients.");
     expect(timeline).toContain('href="/session/shopping"');
     expect(timeline).toContain("const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep)");
     expect(timeline).toContain("index === shoppingCheckpointInsertIndex");

@@ -126,15 +126,18 @@ describe("Pizza Session timeline", () => {
     expect(existsSync(join(process.cwd(), "lib", "pizza-session-timeline.ts"))).toBe(true);
 
     const page = source("app/session/timeline/page.tsx");
-    expect(page).toContain("Your pizza timeline");
+    expect(page).toContain("title=\"Timeline\"");
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={8}");
     expect(page).toContain("hideMeta");
-    expect(page).toContain("Follow the key moments and you’ll always know what to do next.");
+    expect(page).toContain("Use this schedule to see the next required action, its planned time and the path into Kitchen Mode.");
     expect(page).not.toContain("Next up</p>");
     expect(page).toContain("Now");
     expect(page).toContain("Planned for");
     expect(page).toContain("Next:");
+    expect(page).toContain("Target");
+    expect(page).toContain("Schedule");
+    expect(page).toContain("Kitchen Mode");
     expect(page).toContain("timeline-current-action-card");
     expect(page).toContain("actionableTimelineSteps");
     expect(page).toContain("currentActionStep");
@@ -146,21 +149,21 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("formatTimelineLiveTiming");
     expect(page).toContain("stepProgressLabel");
     expect(page).toContain("setInterval(() => setCurrentTime(new Date()), 15_000)");
-    expect(page).toContain("Timeline planning summary");
-    expect(page).toContain("Planning timing notes");
-    expect(page).toContain("What happens when");
-    expect(page).toContain("Timing highlights");
-    expect(page).toContain("Full timeline");
+    expect(page).not.toContain("Timeline planning summary");
+    expect(page).not.toContain("Planning timing notes");
+    expect(page).not.toContain("What happens when");
+    expect(page).not.toContain("Timing highlights");
+    expect(page).toContain("Ordered steps");
     expect(page).toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).toContain("Start Kitchen Mode");
     expect(page).not.toContain("Start mixing now →");
     expect(page).not.toContain("Start balling now →");
-    expect(page).toContain("BottomActionBar");
+    expect(page).not.toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("<SessionWorkspaceLayout activeStep={8} hideLocalSaveNote>");
     expect(page).toContain("{renderNextActionCard()}");
-    expect(page).toContain('cardClass({ className: "max-w-2xl p-4 shadow-sm sm:p-5", variant: "success" })');
+    expect(page).toContain('cardClass({ className: "p-4 shadow-sm sm:p-5", variant: "success" })');
     expect(page).toContain("formatSessionPlannedTime(currentActionTime, currentTime)");
     expect(page).toContain("formatSessionPlannedTime(followingActionStep.scheduledAt, currentTime)");
     expect(page).not.toContain("timeline-next-step-heading");
@@ -180,22 +183,22 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("<AppSignature");
   });
 
-  it("shows a compact planning timing summary without changing timeline generation", () => {
+  it("removes the repeated planning timing summary without changing timeline generation", () => {
     const page = source("app/session/timeline/page.tsx");
     const helper = source("lib/pizza-session-timeline.ts");
 
     expect(page).toContain("buildSessionRecipe(session ?? undefined)");
     expect(page).toContain("timelineStepsForPlanningSummaryDisplay");
-    expect(page).toContain("Timeline planning summary");
-    expect(page).toContain("Timeline guidance is based on available session choices.");
+    expect(page).not.toContain("Timeline planning summary");
+    expect(page).not.toContain("Timeline guidance is based on available session choices.");
     expect(page).not.toContain("readablePlanningLabel");
     expect(page).not.toMatch(/Not enough information/i);
     expect(page).not.toContain("Saved as you go.");
-    expect(page).toContain("Bake target");
-    expect(page).toContain("Available time");
-    expect(page).toContain("Fermentation plan");
-    expect(page).toContain("fermentationDisplay.label");
-    expect(page).toContain("fermentationPlanPlace");
+    expect(page).not.toContain("Bake target");
+    expect(page).not.toContain("Available time");
+    expect(page).not.toContain("Fermentation plan");
+    expect(page).not.toContain("fermentationDisplay.label");
+    expect(page).not.toContain("fermentationPlanPlace");
     expect(page).not.toContain("Overall risk");
     expect(page).not.toContain("What to adjust first");
     expect(page).not.toContain("displayedRiskSummary");
@@ -204,10 +207,8 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("Fermentation place");
     expect(page).not.toContain("Fermentation temperature");
     expect(page).not.toContain("Selected fermentation");
-    expect(page).toContain("buildSessionFermentationDisplay");
-    expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
-    expect(page.indexOf("Bake target")).toBeLessThan(page.indexOf("Fermentation plan"));
-    expect(page.indexOf("Available time")).toBeLessThan(page.indexOf("Fermentation plan"));
+    expect(page).not.toContain("buildSessionFermentationDisplay");
+    expect(page).not.toContain("Add bake time and dough plan details for stronger timing recommendations.");
     expect(page).not.toContain("Dough planning notes");
     expect(helper).not.toContain("buildPlanningResult");
     expect(helper).toContain("buildSessionRecipe");
@@ -216,15 +217,15 @@ describe("Pizza Session timeline", () => {
   it("keeps the simplified Timeline fallback copy without risk-specific guidance", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("Add bake time and dough plan details for stronger timing recommendations.");
+    expect(page).not.toContain("Add bake time and dough plan details for stronger timing recommendations.");
     expect(page).not.toContain("Timeline guidance is using your saved bake target.");
     expect(page).not.toContain("Use the timing notes and long-horizon options");
   });
 
-  it("keeps cold-specific fermentation copy in Timeline steps instead of the removed risk block", () => {
+  it("removes cold-specific fermentation summary copy with the repeated risk block", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("Cold fermentation");
+    expect(page).not.toContain("Cold fermentation");
     expect(page).not.toContain("cold fermentation gives more control");
   });
 
@@ -1028,7 +1029,7 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("const nextStep = displayTimelineSteps.find((step) => step.status === \"todo\")");
     expect(page).not.toContain("timeline-next-action-heading");
     expect(page).not.toContain("timeline-next-step-heading");
-    expect(page).toContain("Review shopping →");
+    expect(page).not.toContain("Review shopping →");
     expect(page).toContain("href: \"/session/kitchen?from=timeline\"");
     expect(page).toContain("href: \"/session/review\"");
     expect(page).toContain("href=\"/session/shopping\"");
@@ -1044,11 +1045,11 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("cardClass");
     expect(page).toContain("statusPillClass");
     expect(page).toContain('variant: "success"');
-    expect(page).toContain('variant: "guidance"');
+    expect(page).not.toContain('variant: "guidance"');
     expect(page).toContain("bg-status-success/10");
     expect(page).toContain("bg-action-primary/10");
-    expect(page).toContain('variant: step.id === "bake-pizza" ? "danger" : "success"');
-    expect(page).toContain('tone: "forest"');
+    expect(page).toContain('step.id === "bake-pizza"');
+    expect(page).not.toContain('tone: "forest"');
   });
 
   it("adds a shopping checkpoint before service and bake steps without changing timeline data", () => {
@@ -1056,12 +1057,13 @@ describe("Pizza Session timeline", () => {
 
     expect(page).toContain("function ShoppingCheckpointRow");
     expect(page).toContain("Shopping checkpoint");
-    expect(page).toContain("Shopping review");
-    expect(page).toContain("Shopping should be handled before Timeline.");
+    expect(page).toContain("Shopping list");
+    expect(page).not.toContain("Shopping should be handled before Timeline.");
     expect(page).not.toContain("Pizza choices and shopping");
-    expect(page).toContain("Timeline stays focused on when to work; Shopping owns toppings and buy-list checks.");
+    expect(page).not.toContain("Timeline stays focused on when to work; Shopping owns toppings and buy-list checks.");
+    expect(page).toContain("Use Back if you still need to check ingredients.");
     expect(page).toContain("href=\"/session/shopping\"");
-    expect(page).toContain("Review shopping →");
+    expect(page).not.toContain("Review shopping →");
     expect(page).toContain("shoppingCheckpointState(session)");
     expect(page).toContain("const firstServiceStepIndex = displayTimelineSteps.findIndex(isServiceTimelineStep)");
     expect(page).toContain("const shoppingCheckpointInsertIndex = firstServiceStepIndex");
@@ -1107,33 +1109,34 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("[\"Oven\"");
   });
 
-  it("renders timeline cards with step number, title, date/time, status and relative timing", () => {
+  it("renders compact timeline rows with step number, title, date/time, status and relative timing", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("Step {index + 1}");
-    expect(page).toContain("formatShortDateTime(step.scheduledAt)");
+    expect(page).not.toContain("formatShortDateTime(step.scheduledAt)");
     expect(page).toContain("{step.label}");
     expect(page).toContain("{step.description}");
     expect(page).toContain("statusLabel(step, currentActionStep)");
     expect(page).toContain("relativeFromTarget(step.scheduledAt, targetTime)");
     expect(page).toContain("step.id === currentActionStep?.id");
-    expect(page).toContain('data-testid="timeline-step-media-panel"');
-    expect(page).toContain("function TimelineStepMediaPanel");
-    expect(page).toContain("flex min-w-0 items-stretch gap-3");
-    expect(page).toContain("w-[5.5rem]");
-    expect(page).toContain("<TimelineStepMediaPanel step={step} />");
-    expect(page).toContain("function timelineStepImagePath");
-    expect(page).toContain('data-testid="timeline-step-media-image"');
-    expect(page).toContain('src={imagePath}');
-    expect(page).toContain('alt=""');
-    expect(page).toContain('getDoughStepPrimaryImageForTimelineStep(step.id)');
-    expect(page).toContain("return doughStepImage.src");
-    expect(page).toContain('getDoughStepPrimaryImageForTimelineStep("mix-dough")?.src');
-    expect(page).toContain('"/dough-guide/guide-step-03-mix.webp"');
-    expect(page).toContain('return "/images/timeline/preheat-oven.webp"');
-    expect(page).toContain('return "/images/timeline/prepare-toppings.webp"');
-    expect(page).toContain('return "/images/timeline/bake-pizza.webp"');
-    expect(page).toContain('return "/images/timeline/review-result.webp"');
+    expect(page).toContain("formatTimelineDate(step.scheduledAt)");
+    expect(page).toContain("formatTimelineTime(step.scheduledAt)");
+    expect(page).not.toContain('data-testid="timeline-step-media-panel"');
+    expect(page).not.toContain("function TimelineStepMediaPanel");
+    expect(page).not.toContain("flex min-w-0 items-stretch gap-3");
+    expect(page).not.toContain("w-[5.5rem]");
+    expect(page).not.toContain("<TimelineStepMediaPanel step={step} />");
+    expect(page).not.toContain("function timelineStepImagePath");
+    expect(page).not.toContain('data-testid="timeline-step-media-image"');
+    expect(page).not.toContain('src={imagePath}');
+    expect(page).not.toContain('getDoughStepPrimaryImageForTimelineStep(step.id)');
+    expect(page).not.toContain("return doughStepImage.src");
+    expect(page).not.toContain('getDoughStepPrimaryImageForTimelineStep("mix-dough")?.src');
+    expect(page).not.toContain('"/dough-guide/guide-step-03-mix.webp"');
+    expect(page).not.toContain('return "/images/timeline/preheat-oven.webp"');
+    expect(page).not.toContain('return "/images/timeline/prepare-toppings.webp"');
+    expect(page).not.toContain('return "/images/timeline/bake-pizza.webp"');
+    expect(page).not.toContain('return "/images/timeline/review-result.webp"');
     expect(page).not.toMatch(/https?:\/\//);
     expect(page).not.toContain("bottom-5 left-1/2 h-9 w-16");
     expect(page).not.toContain("rounded-2xl text-xl ring-1 sm:h-12 sm:w-12 sm:text-2xl");
@@ -1141,27 +1144,27 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("onClick={() => markDone(step.id)}");
   });
 
-  it("renders critical moments as a chronological what-happens-when list", () => {
+  it("removes critical moments as a separate chronological what-happens-when list", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("function getCriticalMoments");
-    expect(page).toContain("function relativeFromNow");
+    expect(page).not.toContain("function getCriticalMoments");
+    expect(page).not.toContain("function relativeFromNow");
     expect(page).toContain("\"cold-ferment\"");
     expect(page).toContain("\"room-temperature-rest\"");
     expect(page).toContain("\"preheat-oven\"");
     expect(page).toContain("\"bake-pizza\"");
-    expect(page).toContain("criticalMoments.map((step)");
-    expect(page).toContain("criticalMomentTitle(step)");
-    expect(page).toContain("Cold fermentation");
+    expect(page).not.toContain("criticalMoments.map((step)");
+    expect(page).not.toContain("criticalMomentTitle(step)");
+    expect(page).not.toContain("Cold fermentation");
     expect(page).not.toContain("Put dough in fridge");
-    expect(page).toContain("Take dough out");
+    expect(page).not.toContain("Take dough out");
     expect(page).toContain("formatTimelineDate(step.scheduledAt)");
     expect(page).toContain("formatTimelineTime(step.scheduledAt)");
-    expect(page).toContain("relativeFromNow(step.scheduledAt)");
-    expect(page).toContain("What happens when");
-    expect(page).toContain("The most important moments from your actual pizza timeline.");
-    expect(page).toContain("return diffMinutes > 0 ? `In ${parts}` : `${parts} ago`");
-    expect(page).toContain("return aTime - bTime");
+    expect(page).not.toContain("relativeFromNow(step.scheduledAt)");
+    expect(page).not.toContain("What happens when");
+    expect(page).not.toContain("The most important moments from your actual pizza timeline.");
+    expect(page).not.toContain("return diffMinutes > 0 ? `In ${parts}` : `${parts} ago`");
+    expect(page).not.toContain("return aTime - bTime");
     expect(page).not.toContain("Don’t miss these moments");
     expect(page).not.toContain("These are pulled from your actual timeline, not a separate checklist.");
     expect(page).not.toContain("sm:grid-cols-2 sm:gap-3");
@@ -1169,27 +1172,29 @@ describe("Pizza Session timeline", () => {
 
   it("keeps Back and Next navigation aligned with the next action", () => {
     const page = source("app/session/timeline/page.tsx");
-    const actionBlock = page.slice(page.indexOf("<BottomActionBar"), page.indexOf("{earlyStartStep"));
+    const actionBlock = page.slice(page.indexOf("<button"), page.indexOf("<section aria-labelledby=\"full-timeline-heading\""));
+    const backBlock = page.slice(page.indexOf("<nav aria-label=\"Timeline navigation\""), page.indexOf("<section aria-labelledby=\"timeline-guidance-heading\""));
 
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("startCurrentRuntimeStepAndGoToKitchen");
     expect(page).toContain("router.push(nextAction.href)");
     expect(page).toContain("{nextAction.cta}");
-    expect(page).toContain("BottomActionBar");
-    expect(actionBlock).toContain("href=\"/session/shopping\"");
-    expect(actionBlock).toContain("Back");
+    expect(page).not.toContain("BottomActionBar");
+    expect(backBlock).toContain("href=\"/session/shopping\"");
+    expect(backBlock).toContain("Back");
     expect(actionBlock).toContain("type=\"button\"");
     expect(actionBlock).toContain("onClick={handleNextAction}");
     expect(actionBlock).toContain("{nextAction.cta}");
-    expect(actionBlock.indexOf("Back")).toBeLessThan(actionBlock.indexOf("{nextAction.cta}"));
-    expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("<BottomActionBar"));
+    expect(page.match(/onClick=\{handleNextAction\}/g)?.length).toBe(1);
+    expect(page.indexOf("timeline-current-action-card")).toBeLessThan(page.indexOf("aria-label=\"Pizza timeline steps\""));
+    expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("<nav aria-label=\"Timeline navigation\""));
     expect(page).not.toContain("Review dough plan →");
   });
 
   it("simplifies the Timeline page ending without changing the action row", () => {
     const page = source("app/session/timeline/page.tsx");
     const helper = source("lib/pizza-session-timeline.ts");
-    const actionBlock = page.slice(page.indexOf("<BottomActionBar"), page.indexOf("{earlyStartStep"));
+    const backBlock = page.slice(page.indexOf("<nav aria-label=\"Timeline navigation\""), page.indexOf("<section aria-labelledby=\"timeline-guidance-heading\""));
 
     expect(page).not.toContain("Timing assumptions");
     expect(page).not.toContain("timeline.assumptions");
@@ -1201,12 +1206,12 @@ describe("Pizza Session timeline", () => {
     expect(page).not.toContain("No cloud sync, push notifications or email reminders are active yet.");
     expect(page).not.toContain("rounded-[1.5rem] border border-ink/10 bg-white/60");
     expect(page).toContain("overflow-x-clip");
-    expect(actionBlock).toContain("href=\"/session/shopping\"");
-    expect(actionBlock).toContain("Back");
-    expect(actionBlock).toContain("onClick={handleNextAction}");
-    expect(actionBlock).toContain("{nextAction.cta}");
-    expect(actionBlock).toContain("buttonClass({ className: \"w-full sm:w-auto\" })");
-    expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("<BottomActionBar"));
+    expect(backBlock).toContain("href=\"/session/shopping\"");
+    expect(backBlock).toContain("Back");
+    expect(backBlock).not.toContain("onClick={handleNextAction}");
+    expect(backBlock).not.toContain("{nextAction.cta}");
+    expect(backBlock).toContain("buttonClass({ className: \"w-full sm:w-auto\", variant: \"secondary\" })");
+    expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("<nav aria-label=\"Timeline navigation\""));
     expect(helper).toContain("DEFAULT_TIMELINE_ASSUMPTIONS");
     expect(helper).toContain("TIMELINE_ROUNDING_MINUTES = 15");
     expect(helper).toContain("QUIET_HOURS_START = 22");
@@ -1252,7 +1257,7 @@ describe("Pizza Session timeline", () => {
   it("keeps timeline page focused without repeated metadata or footer clutter", () => {
     const page = source("app/session/timeline/page.tsx");
 
-    expect(page).toContain("year: \"numeric\"");
+    expect(page).not.toContain("year: \"numeric\"");
     expect(page).not.toContain("Target: {formatDateTime(targetTime)}");
     expect(page).not.toContain("Target: {timeline.targetEatTime");
     expect(page).not.toContain("Pizza preset");
@@ -1562,24 +1567,30 @@ describe("Pizza Session timeline", () => {
     expect(changelog).not.toMatch(/cloud sync is active|push notifications enabled|email reminders enabled|Google indexing enabled/i);
   });
 
-  it("adds a secondary Dough Guide link to the current Timeline action without replacing the primary action", () => {
+  it("moves optional Dough Guide help into a secondary disclosure without replacing the primary action", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("getDoughGuideLinkForSessionStep(currentActionStep, \"/session/timeline\")");
+    expect(page).toContain("const [guidanceOpen, setGuidanceOpen] = useState(false)");
+    expect(page).toContain("timeline-optional-guidance-panel");
+    expect(page).toContain("aria-expanded={guidanceOpen}");
     expect(page).toContain("currentDoughGuideLink.href");
     expect(page).toContain("currentDoughGuideLink.ariaLabel");
     expect(page).toContain("{currentDoughGuideLink.label}");
     expect(page).toContain("{nextAction.cta}");
     expect(page).toContain("onClick={handleNextAction}");
+    expect(page.match(/onClick=\{handleNextAction\}/g)?.length).toBe(1);
+    expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("timeline-optional-guidance-panel"));
     expect(page).toContain("shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt)");
   });
 
-  it("adds restrained baking troubleshooting help to the Full Timeline bake step only", () => {
+  it("keeps baking troubleshooting help in the optional guidance disclosure", () => {
     const page = source("app/session/timeline/page.tsx");
 
     expect(page).toContain("getPizzaSessionBakingTroubleshootingLink");
     expect(page).toContain("const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink()");
-    expect(page).toContain('step.id === "bake-pizza" &&');
+    expect(page).not.toContain('step.id === "bake-pizza" &&');
+    expect(page).toContain("timeline-optional-guidance-panel");
     expect(page).toContain("bakingTroubleshootingLink.href");
     expect(page).toContain("bakingTroubleshootingLink.ariaLabel");
     expect(page).toContain("{bakingTroubleshootingLink.label}");

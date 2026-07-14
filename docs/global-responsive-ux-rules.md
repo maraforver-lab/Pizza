@@ -135,6 +135,8 @@ Longer technique notes, educational exits and advanced experience-level detail s
 Desktop Kitchen Mode may show richer context, but the current action remains dominant.
 
 Educational links that leave an active cooking workflow must provide an explicit validated return path. Browser Back alone is not enough navigation design for active workflows. Return URLs must be same-product internal paths and must not expose session data.
+
+Active-session routes must prioritize current state and the next required action. Desktop may show more context, but it must not repeat actions or explanations merely because more space is available.
 - no repeated summaries
 - no unnecessary footer inside focused task flows
 - no advanced links unless behind a clear “More” or “Advanced” disclosure

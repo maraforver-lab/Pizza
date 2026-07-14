@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { BottomActionBar, buttonClass, cardClass, statusPillClass } from "@/components/design-system";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { buttonClass, cardClass, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
@@ -31,8 +30,6 @@ import {
 import {
   timelineStepsForPlanningSummaryDisplay,
 } from "@/lib/pizza-session-timeline-display";
-import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
-import { getDoughStepPrimaryImageForTimelineStep } from "@/lib/dough-step-images";
 import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
 import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-troubleshooting-links";
 import { buildSessionRecipe } from "@/lib/session-recipe";
@@ -42,20 +39,6 @@ import {
   shouldWarnBeforeEarlyTimelineStart,
 } from "@/lib/timeline-early-start-warning";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
-
-function formatDateTime(value?: string) {
-  if (!value) return "Time not set";
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Time not set";
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 function formatShortDateTime(value?: string) {
   if (!value) return "Time not set";
@@ -124,35 +107,6 @@ function timelineStepIconTone(step?: PizzaSessionTimelineStep) {
   return "bg-white text-ink ring-ink/10";
 }
 
-function TimelineStepMediaPanel({ step }: { step: PizzaSessionTimelineStep }) {
-  const imagePath = timelineStepImagePath(step);
-
-  return (
-    <div className="relative h-full min-h-24 w-[5.5rem] shrink-0 overflow-hidden rounded-[1.35rem] bg-cream shadow-inner ring-1 ring-white/80 sm:min-h-36 sm:w-36" aria-hidden="true" data-testid="timeline-step-media-panel">
-      <Image
-        src={imagePath}
-        alt=""
-        fill
-        sizes="(min-width: 640px) 144px, 88px"
-        className="object-cover"
-        loading="lazy"
-        data-testid="timeline-step-media-image"
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-ink/15" />
-    </div>
-  );
-}
-
-function timelineStepImagePath(step: PizzaSessionTimelineStep) {
-  const doughStepImage = getDoughStepPrimaryImageForTimelineStep(step.id);
-  if (doughStepImage) return doughStepImage.src;
-  if (step.id === "preheat-oven") return "/images/timeline/preheat-oven.webp";
-  if (step.id === "prepare-sauce-toppings") return "/images/timeline/prepare-toppings.webp";
-  if (step.id === "bake-pizza") return "/images/timeline/bake-pizza.webp";
-  if (step.id === "review-result") return "/images/timeline/review-result.webp";
-  return getDoughStepPrimaryImageForTimelineStep("mix-dough")?.src ?? "/dough-guide/guide-step-03-mix.webp";
-}
-
 function isDoughTimelineStep(step?: PizzaSessionTimelineStep) {
   if (!step) return false;
   return [
@@ -199,40 +153,6 @@ function relativeFromTarget(stepTime?: string, targetTime?: string) {
     minutes ? `${minutes}m` : "",
   ].filter(Boolean).join(" ");
   return `${parts || "0m"} ${diffMinutes < 0 ? "before" : "after"} target`;
-}
-
-function relativeFromNow(stepTime?: string) {
-  if (!stepTime) return "Timing guide";
-  const step = new Date(stepTime);
-  const now = new Date();
-  if (!Number.isFinite(step.getTime())) return "Timing guide";
-  const diffMinutes = Math.round((step.getTime() - now.getTime()) / 60_000);
-  if (Math.abs(diffMinutes) < 1) return "Now";
-  const abs = Math.abs(diffMinutes);
-  const days = Math.floor(abs / 1440);
-  const hours = Math.floor((abs % 1440) / 60);
-  const minutes = abs % 60;
-  const parts = [
-    days ? `${days}d` : "",
-    hours ? `${hours}h` : "",
-    !days && minutes ? `${minutes}m` : "",
-  ].filter(Boolean).join(" ");
-  return diffMinutes > 0 ? `In ${parts}` : `${parts} ago`;
-}
-
-function formatAvailableHours(value?: number) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "Time not available";
-  if (value < 1) return `${Math.round(value * 60)} min`;
-  const rounded = Math.round(value * 10) / 10;
-  return `${rounded} h`;
-}
-
-function fermentationPlaceLabel(value?: string | null) {
-  if (value === "cold") return "Fridge / cold fermentation";
-  if (value === "hybrid") return "Room + fridge";
-  if (value === "room") return "Room temperature";
-  if (value === "not_recommended") return "Not recommended";
-  return "Fermentation details unavailable";
 }
 
 type ShoppingCheckpointState = "Check" | "Done";
@@ -296,34 +216,6 @@ function actionableTimelineSteps(steps: PizzaSessionTimelineStep[]) {
   ));
 }
 
-function criticalMomentTitle(step: PizzaSessionTimelineStep) {
-  if (step.id === "cold-ferment") return "Cold fermentation";
-  if (step.id === "room-ferment") return "Room temperature ferment";
-  if (step.id === "ferment-dough") return "Ferment dough";
-  if (step.id === "room-temperature-rest" && step.label !== "Room temperature rest") return step.label;
-  if (step.id === "room-temperature-rest") return "Take dough out";
-  return step.label;
-}
-
-function getCriticalMoments(steps: PizzaSessionTimelineStep[]) {
-  const preferredIds = [
-    "cold-ferment",
-    "room-ferment",
-    "ferment-dough",
-    "room-temperature-rest",
-    "preheat-oven",
-    "bake-pizza",
-  ];
-  return preferredIds.flatMap((id) => {
-    const step = steps.find((candidate) => candidate.id === id);
-    return step ? [step] : [];
-  }).sort((a, b) => {
-    const aTime = a.scheduledAt ? new Date(a.scheduledAt).getTime() : Number.POSITIVE_INFINITY;
-    const bTime = b.scheduledAt ? new Date(b.scheduledAt).getTime() : Number.POSITIVE_INFINITY;
-    return aTime - bTime;
-  });
-}
-
 const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink();
 
 function ShoppingCheckpointRow({
@@ -332,38 +224,25 @@ function ShoppingCheckpointRow({
   checkpointState: ShoppingCheckpointState;
 }) {
   return (
-    <article
+    <li
       id="shopping-checkpoint"
-      className={cardClass({ className: "rounded-[1.25rem] p-4 shadow-sm sm:rounded-card sm:p-5", variant: "success" })}
+      className="flex min-w-0 items-start gap-3 rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-3 shadow-sm sm:p-4"
       aria-label="Shopping checkpoint"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-        <div className="flex min-w-0 gap-3 sm:gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-leaf shadow-sm sm:h-12 sm:w-12" aria-hidden="true">
-            <DoughToolsIcon name="shopping-basket" size={24} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
-              Shopping checkpoint
-            </p>
-            <h3 className="mt-1.5 font-display text-2xl font-semibold">Shopping review</h3>
-            <p className="mt-1 text-sm leading-5 text-ink/60 sm:mt-2 sm:leading-6">Shopping should be handled before Timeline. Reopen it only if you need to adjust toppings or buy-list checks.</p>
-            <p className="mt-2 hidden text-sm leading-6 text-ink/65 sm:block">Timeline stays focused on when to work; Shopping owns toppings and buy-list checks.</p>
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-          <span className={statusPillClass({ className: "px-3 py-2", variant: checkpointState === "Done" ? "success" : "archived" })}>
-            {checkpointState}
-          </span>
-          <Link
-            href="/session/shopping"
-            className={buttonClass({ className: "px-4", tone: "forest" })}
-          >
-            Review shopping →
-          </Link>
-        </div>
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-leaf ring-1 ring-leaf/15" aria-hidden="true">
+        <DoughToolsIcon name="shopping-basket" size={20} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Shopping checkpoint</p>
+        <h3 className="mt-1 font-display text-xl font-semibold">Shopping list</h3>
+        <p className="mt-1 text-sm leading-5 text-ink/60">
+          {checkpointState === "Done" ? "Checklist is ready for cooking." : "Use Back if you still need to check ingredients."}
+        </p>
       </div>
-    </article>
+      <span className={statusPillClass({ className: "shrink-0 px-3 py-2", variant: checkpointState === "Done" ? "success" : "archived" })}>
+        {checkpointState}
+      </span>
+    </li>
   );
 }
 
@@ -374,6 +253,7 @@ export default function SessionTimelinePage() {
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [missingReason, setMissingReason] = useState<string | null>(null);
   const [earlyStartStep, setEarlyStartStep] = useState<PizzaSessionTimelineStep | null>(null);
+  const [guidanceOpen, setGuidanceOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
   useEffect(() => {
@@ -484,17 +364,11 @@ export default function SessionTimelinePage() {
     : allStepsComplete
       ? `Step ${actionableSteps.length} of ${actionableSteps.length}`
       : "Step timing unavailable";
-  const criticalMoments = getCriticalMoments(displayTimelineSteps);
-  const fermentationSetup = planningResult?.fermentationSetupRecommendation;
-  const fermentationDisplay = sessionRecipeResult.ok
-    ? buildSessionFermentationDisplay({
-      session,
-      snapshot: sessionRecipeResult.recipeSnapshot,
-      basis: sessionRecipeResult.continuousYeast?.recommendation,
-    })
-    : buildSessionFermentationDisplay({ session, snapshot: session.recipeSnapshot });
-  const fermentationPlanPlace = fermentationDisplay.placeTemperatureLabel
-    ?? fermentationPlaceLabel(fermentationSetup?.recommendedFermentationMode);
+  const kitchenModeAvailability = nextAction.kind === "dough" && shouldWarnBeforeEarlyTimelineStart(nextAction.scheduledAt, currentTime)
+    ? "Timing check first"
+    : nextAction.kind === "review"
+      ? "Review next"
+      : "Ready when you confirm";
   const startCurrentRuntimeStepAndGoToKitchen = () => {
     if (currentActionStep && isRuntimeDoughWorkStep(currentActionStep) && !hasStepActuallyStarted(session, currentActionStep.id)) {
       const updated = startPizzaSessionTimelineStep(session, currentActionStep.id);
@@ -524,8 +398,24 @@ export default function SessionTimelinePage() {
       ? "Ready for Review"
       : "Next step not available";
   const renderNextActionCard = () => (
-    <div className={cardClass({ className: "max-w-2xl p-4 shadow-sm sm:p-5", variant: "success" })} data-testid="timeline-current-action-card">
+    <div className={cardClass({ className: "p-4 shadow-sm sm:p-5", variant: "success" })} data-testid="timeline-current-action-card">
       <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
+        <dl className="mb-4 grid gap-2 rounded-[1.25rem] border border-leaf/15 bg-white/80 p-3 sm:grid-cols-3">
+          <div className="min-w-0">
+            <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Target</dt>
+            <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{formatShortDateTime(targetTime)}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Schedule</dt>
+            <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">
+              {currentLiveTiming.label}{currentLiveTiming.value ? ` ${currentLiveTiming.value}` : ""}
+            </dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Kitchen Mode</dt>
+            <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{kitchenModeAvailability}</dd>
+          </div>
+        </dl>
         <div className="flex min-w-0 items-start gap-3">
           <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ring-1 ${timelineStepIconTone(currentActionStep)}`} aria-hidden="true">
             <DoughToolsIcon name={timelineStepIcon(currentActionStep)} size={24} strokeWidth={2.1} />
@@ -559,20 +449,6 @@ export default function SessionTimelinePage() {
           )}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className={statusPillClass({ className: "px-3 py-2", variant:
-            currentLiveTiming.kind === "overdue"
-              ? "danger"
-              : currentLiveTiming.kind === "unknown"
-                ? "archived"
-                : "success"
-          })}>
-            {currentLiveTiming.label}
-          </span>
-          {currentLiveTiming.value && (
-            <span className={statusPillClass({ className: "px-3 py-2", variant: "danger" })}>
-              {currentLiveTiming.value}
-            </span>
-          )}
           <span className={statusPillClass({ className: "px-3 py-2", variant: "archived" })}>
             {stepProgressLabel}
           </span>
@@ -599,15 +475,6 @@ export default function SessionTimelinePage() {
       >
         {nextAction.cta}
       </button>
-      {currentDoughGuideLink && (
-        <Link
-          href={currentDoughGuideLink.href}
-          aria-label={currentDoughGuideLink.ariaLabel}
-          className={buttonClass({ className: "mt-3 w-full px-4", variant: "secondary" })}
-        >
-          {currentDoughGuideLink.label}
-        </Link>
-      )}
     </div>
   );
 
@@ -620,96 +487,33 @@ export default function SessionTimelinePage() {
           step={8}
           label="Timeline"
           pageType="Timeline page"
-          title="Your pizza timeline"
-          body="Follow the key moments and you’ll always know what to do next."
+          title="Timeline"
+          body="Use this schedule to see the next required action, its planned time and the path into Kitchen Mode."
           level={session.experienceLevel}
           hideMeta
         >
           {renderNextActionCard()}
         </SessionStepHero>
 
-        <section aria-labelledby="timeline-planning-summary-heading" className={cardClass({ className: "mt-5 p-4 sm:mt-6 sm:rounded-hero sm:p-6", variant: "guidance" })}>
-          <div className="max-w-2xl">
-            <div className="min-w-0">
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Planning timing notes</p>
-              <h2 id="timeline-planning-summary-heading" className="mt-2 font-display text-3xl font-semibold">Timeline planning summary</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                Timeline guidance is based on available session choices. It does not replace the timeline steps below or change Kitchen Mode.
-              </p>
+        <section aria-labelledby="full-timeline-heading" className="mt-5 sm:mt-6">
+          <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Schedule</p>
+              <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Ordered steps</h2>
             </div>
-          </div>
-
-          {planningResult ? (
-            <div className="mt-4 grid gap-3">
-              <dl className="grid gap-2 rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="rounded-2xl bg-white p-3">
-                  <dt className="text-xs font-extrabold text-ink/45">Bake target</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{formatDateTime(targetTime)}</dd>
-                </div>
-                <div className="rounded-2xl bg-white p-3">
-                  <dt className="text-xs font-extrabold text-ink/45">Available time</dt>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/70">{formatAvailableHours(planningResult.availableFermentationHours)}</dd>
-                </div>
-                <div className="rounded-2xl bg-white p-3 sm:col-span-2 lg:col-span-1">
-                  <dt className="text-xs font-extrabold text-ink/45">Fermentation plan</dt>
-                  <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{fermentationDisplay.label}</dd>
-                  <dd className="mt-1 text-sm font-bold leading-5 text-ink/60">{fermentationPlanPlace}</dd>
-                </div>
-              </dl>
-            </div>
-          ) : (
-            <div className="mt-4 rounded-[1.25rem] border border-ink/10 bg-cream p-4 text-sm leading-6 text-ink/65">
-              Add bake time and dough plan details for stronger timing recommendations. The existing timeline below still uses your saved target time.
-            </div>
-          )}
-        </section>
-
-        {criticalMoments.length > 0 && (
-          <section aria-labelledby="what-happens-when-heading" className={cardClass({ className: "mt-5 p-4 sm:mt-6 sm:rounded-hero sm:p-6", variant: "guidance" })}>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Timing highlights</p>
-                <h2 id="what-happens-when-heading" className="mt-2 font-display text-3xl font-semibold">What happens when</h2>
-              </div>
-              <p className="hidden max-w-md text-sm leading-6 text-ink/55 sm:block">The most important moments from your actual pizza timeline.</p>
-            </div>
-            <div className="mt-4 overflow-hidden rounded-[1.25rem] border border-ink/10 bg-white sm:mt-5">
-              {criticalMoments.map((step) => (
-                <article key={step.id} className="grid gap-3 border-b border-ink/10 p-4 last:border-b-0 sm:grid-cols-[8rem_1fr_auto] sm:items-center sm:gap-5 sm:p-5">
-                  <div className="flex items-center justify-between gap-3 sm:block">
-                    <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{formatTimelineDate(step.scheduledAt)}</p>
-                    <p className="text-sm font-extrabold text-leaf sm:mt-1">{formatTimelineTime(step.scheduledAt)}</p>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-display text-2xl font-semibold">{criticalMomentTitle(step)}</h3>
-                    <p className="mt-1 text-sm leading-6 text-ink/60">{step.beginnerNote ?? step.description}</p>
-                  </div>
-                  <span className={statusPillClass({ className: "px-3 py-2 sm:justify-self-end", variant: step.id === "bake-pizza" ? "danger" : "success" })}>
-                    {relativeFromNow(step.scheduledAt)}
-                  </span>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section aria-labelledby="full-timeline-heading" className="mt-6">
-          <div className="mb-4">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Full timeline</p>
-            <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Full timeline</h2>
-            <p className="mt-2 hidden text-sm leading-6 text-ink/55 sm:block">
-              This overview is for planning. Use Kitchen Mode when you are ready to work through each task.
+            <p className="text-sm font-bold leading-5 text-ink/55 sm:text-right">
+              {actionableSteps.length} action steps
             </p>
           </div>
 
-          <section className="grid min-w-0 gap-3" aria-label="Pizza timeline steps">
+          <ol className="grid min-w-0 gap-2" aria-label="Pizza timeline steps">
             {displayTimelineSteps.map((step, index) => (
-              <div key={step.id} className="grid gap-3">
+              <Fragment key={step.id}>
                 {index === shoppingCheckpointInsertIndex && (
                   <ShoppingCheckpointRow checkpointState={checkpointState} />
                 )}
-                <article
-                  className={`rounded-[1.25rem] border p-3 shadow-sm sm:rounded-[1.5rem] sm:p-4 ${
+                <li
+                  className={`grid min-w-0 gap-3 rounded-[1.25rem] border p-3 shadow-sm sm:grid-cols-[6.75rem_2.75rem_minmax(0,1fr)_auto] sm:items-start sm:p-4 ${
                     step.id === currentActionStep?.id
                       ? "border-leaf/30 bg-leaf/[.08]"
                       : step.id === "bake-pizza"
@@ -717,76 +521,94 @@ export default function SessionTimelinePage() {
                       : "border-white/80 bg-white/80"
                   }`}
                 >
-                  <div className="flex min-w-0 items-stretch gap-3 sm:gap-4">
-                    <div className="flex min-w-0 flex-1 flex-col gap-3 p-1 sm:p-1.5">
-                      <div className="min-w-0">
-                        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/35">
-                          Step {index + 1} · {formatShortDateTime(step.scheduledAt)}
-                        </p>
-                        <h3 className="mt-1.5 font-display text-2xl font-semibold">{step.label}</h3>
-                        <p className="mt-1 text-xs leading-5 text-ink/60 sm:mt-2 sm:text-sm sm:leading-6">{step.description}</p>
-                        {(step as RuntimePizzaSessionTimelineStep).runtimeStartsAt && (
-                          <p className="mt-2 text-xs font-extrabold leading-5 text-leaf">
-                            Running from {formatRuntimeClockTime((step as RuntimePizzaSessionTimelineStep).runtimeStartsAt)}
-                            {" until "}
-                            {formatRuntimeClockTime((step as RuntimePizzaSessionTimelineStep).runtimeEndsAt)}
-                          </p>
-                        )}
-                        <p className="mt-3 hidden text-sm leading-6 text-ink/65 sm:block">{getTimelineNote(step, session.experienceLevel)}</p>
-                      </div>
-                      {step.quietHoursWarning && (
-                        <p className="mt-3 rounded-2xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
-                          Quiet-hours warning: {step.quietHoursWarning}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === currentActionStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
-                          {statusLabel(step, currentActionStep)}
-                        </span>
-                        <span className="text-sm font-bold text-ink/55">
-                          {relativeFromTarget(step.scheduledAt, targetTime)}
-                        </span>
-                      </div>
-                      {step.id === "bake-pizza" && (
-                        <Link
-                          href={bakingTroubleshootingLink.href}
-                          aria-label={bakingTroubleshootingLink.ariaLabel}
-                          className={buttonClass({ className: "min-h-10 w-fit px-3 text-xs", variant: "secondary" })}
-                        >
-                          {bakingTroubleshootingLink.label}
-                        </Link>
-                      )}
-                    </div>
-                    <TimelineStepMediaPanel step={step} />
+                  <div className="flex items-center justify-between gap-3 sm:block">
+                    <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{formatTimelineDate(step.scheduledAt)}</p>
+                    <p className="text-sm font-extrabold text-leaf sm:mt-1">{formatTimelineTime(step.scheduledAt)}</p>
                   </div>
-                </article>
-              </div>
+                  <span className={`hidden h-11 w-11 place-items-center rounded-2xl ring-1 sm:grid ${timelineStepIconTone(step)}`} aria-hidden="true">
+                    <DoughToolsIcon name={timelineStepIcon(step)} size={20} strokeWidth={2.1} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/35">Step {index + 1}</p>
+                    <h3 className="mt-1 font-display text-2xl font-semibold">{step.label}</h3>
+                    <p className="mt-1 text-sm leading-5 text-ink/60">{step.description}</p>
+                    {(step as RuntimePizzaSessionTimelineStep).runtimeStartsAt && (
+                      <p className="mt-2 text-xs font-extrabold leading-5 text-leaf">
+                        Running from {formatRuntimeClockTime((step as RuntimePizzaSessionTimelineStep).runtimeStartsAt)}
+                        {" until "}
+                        {formatRuntimeClockTime((step as RuntimePizzaSessionTimelineStep).runtimeEndsAt)}
+                      </p>
+                    )}
+                    <p className="mt-2 hidden text-sm leading-5 text-ink/55 lg:block">{getTimelineNote(step, session.experienceLevel)}</p>
+                    {step.quietHoursWarning && (
+                      <p className="mt-3 rounded-2xl bg-tomato/10 p-3 text-sm font-bold leading-6 text-tomato">
+                        Quiet-hours warning: {step.quietHoursWarning}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                    <span className={`w-fit rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${statusClass(step.id === currentActionStep?.id ? "next" : step.id === "bake-pizza" ? "target" : step.status)}`}>
+                      {statusLabel(step, currentActionStep)}
+                    </span>
+                    <span className="text-sm font-bold text-ink/55">
+                      {relativeFromTarget(step.scheduledAt, targetTime)}
+                    </span>
+                  </div>
+                </li>
+              </Fragment>
             ))}
             {shoppingCheckpointInsertIndex === displayTimelineSteps.length && (
               <ShoppingCheckpointRow checkpointState={checkpointState} />
             )}
-          </section>
+          </ol>
         </section>
 
-        <BottomActionBar
-          back={(
-            <Link
-              href="/session/shopping"
-              className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
-            >
-              Back
-            </Link>
+        <nav aria-label="Timeline navigation" className="mt-5 flex justify-start border-t border-ink/10 pt-4 sm:mt-6">
+          <Link
+            href="/session/shopping"
+            className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+          >
+            Back
+          </Link>
+        </nav>
+
+        <section aria-labelledby="timeline-guidance-heading" className={cardClass({ className: "mt-4 p-4 shadow-sm sm:p-5", variant: "default" })}>
+          <button
+            type="button"
+            aria-expanded={guidanceOpen}
+            aria-controls="timeline-optional-guidance-panel"
+            onClick={() => setGuidanceOpen((open) => !open)}
+            className="flex w-full items-center justify-between gap-3 text-left"
+          >
+            <span className="min-w-0">
+              <span className="block text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Optional guidance</span>
+              <span id="timeline-guidance-heading" className="mt-1 block font-display text-2xl font-semibold">Need help?</span>
+            </span>
+            <span className={statusPillClass({ className: "shrink-0 px-3 py-2", variant: "archived" })}>
+              {guidanceOpen ? "Hide" : "Show"}
+            </span>
+          </button>
+          {guidanceOpen && (
+            <div id="timeline-optional-guidance-panel" className="mt-4 grid gap-2 sm:grid-cols-2">
+              {currentDoughGuideLink && (
+                <Link
+                  href={currentDoughGuideLink.href}
+                  aria-label={currentDoughGuideLink.ariaLabel}
+                  className={buttonClass({ className: "w-full px-4", variant: "secondary" })}
+                >
+                  {currentDoughGuideLink.label}
+                </Link>
+              )}
+              <Link
+                href={bakingTroubleshootingLink.href}
+                aria-label={bakingTroubleshootingLink.ariaLabel}
+                className={buttonClass({ className: "w-full px-4", variant: "secondary" })}
+              >
+                {bakingTroubleshootingLink.label}
+              </Link>
+            </div>
           )}
-          primary={(
-            <button
-              type="button"
-              onClick={handleNextAction}
-              className={buttonClass({ className: "w-full sm:w-auto" })}
-            >
-              {nextAction.cta}
-            </button>
-          )}
-        />
+        </section>
 
         {earlyStartStep && (
           <div
