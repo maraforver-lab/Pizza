@@ -7,26 +7,26 @@ import { getPizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
 describe("Oven Guide", () => {
-  it("simplifies /ovens into a two-path Home oven and Pizza oven learning guide", () => {
+  it("makes /ovens a practical Home oven and Pizza oven comparison", () => {
     const page = source("app", "ovens", "page.tsx");
     const hero = source("components", "ovens", "OvenGuideHero.tsx");
 
     expect(page).toContain("OvenGuideHero");
     expect(hero).toContain("Oven Guide");
     expect(hero).toContain("Home oven or pizza oven?");
-    expect(hero).toContain("Compare the ovens");
-    expect(hero).toContain("See common mistakes");
-    expect(page).toContain("Home oven vs Pizza oven");
-    expect(page).toContain("Two heat environments. Two different workflows.");
-    expect(page).toContain("What changes");
-    expect(page).toContain("Setup and preheat");
-    expect(page).toContain("Common mistakes");
-    expect(page).toContain("Which one fits your goal?");
-    expect(page).toContain("Ready to plan for your oven?");
+    expect(hero).toContain("Compare the heat, preheat, placement, bake time and result");
+    expect(page).toContain("Pick the oven path that matches your real heat");
+    expect(page).toContain("Bake instructions");
+    expect(page).toContain("Pizza oven");
+    expect(page).toContain("Home oven");
+    expect(page).toContain("Stone, steel and tray");
+    expect(page).toContain("Pizza Session effect");
+    expect(page).toContain("Plan with the oven you actually have.");
   });
 
   it("removes the previous encyclopedia-style page complexity from the rendered page", () => {
     const page = source("app", "ovens", "page.tsx");
+    const hero = source("components", "ovens", "OvenGuideHero.tsx");
 
     expect(page).not.toContain("HeatBalanceDiagram");
     expect(page).not.toContain("OvenEnvironmentComparison");
@@ -37,10 +37,12 @@ describe("Oven Guide", () => {
     expect(page).not.toContain("<RelatedLearning");
     expect(page).not.toContain("What users struggle with most");
     expect(page).not.toContain("Sources and communities");
-    expect(page).not.toContain("Measure the surface you actually launch on.");
+    expect(hero).not.toContain("Compare the ovens");
+    expect(hero).not.toContain("See common mistakes");
   });
 
   it("keeps product truth limited to existing Home oven and Pizza oven planner categories", () => {
+    const page = source("app", "ovens", "page.tsx");
     const sessionStart = source("app", "session", "start", "page.tsx");
     const bakeProfile = source("lib", "pizza-session-bake-profile.ts");
 
@@ -53,9 +55,22 @@ describe("Oven Guide", () => {
     expect(sessionStart).not.toContain('id: "indoor-high-heat"');
     expect(bakeProfile).toContain('ovenType: "home"');
     expect(bakeProfile).toContain('ovenType: "pizza"');
+    expect(page).toContain("getPizzaSessionBakeProfile");
+    expect(page).toContain("homeProfile.preheatDurationMinutes");
+    expect(page).toContain("pizzaProfile.preheatDurationMinutes");
+    expect(page).toContain("homeProfile.bakeTimeLabel");
+    expect(page).toContain("pizzaProfile.bakeTimeLabel");
 
-    expect(getPizzaSessionBakeProfile("home").overlayBakeTime).toBe("5 MIN");
-    expect(getPizzaSessionBakeProfile("gas").overlayBakeTime).toBe("90 SEC");
+    expect(getPizzaSessionBakeProfile("home")).toMatchObject({
+      preheatDurationMinutes: 75,
+      bakeTimeLabel: "about 5 min",
+      overlayBakeTime: "5 MIN",
+    });
+    expect(getPizzaSessionBakeProfile("gas")).toMatchObject({
+      preheatDurationMinutes: 60,
+      bakeTimeLabel: "60–90 sec",
+      overlayBakeTime: "90 SEC",
+    });
   });
 
   it("keeps the comparison concise and free of brands, models, rankings and affiliate links", () => {
@@ -88,56 +103,56 @@ describe("Oven Guide", () => {
   it("keeps the comparison responsive without horizontal tables or post-footer content", () => {
     const page = source("app", "ovens", "page.tsx");
 
-    expect(page).toContain("sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)]");
+    expect(page).toContain("lg:grid-cols-2");
     expect(page).not.toContain("<table");
+    expect(page).toContain("overflow-x-clip");
     expect(page).toContain("SiteFooter");
-    expect(page.indexOf("Ready to plan for your oven?")).toBeLessThan(page.indexOf("<SiteFooter />"));
+    expect(page.indexOf("Plan with the oven you actually have.")).toBeLessThan(page.indexOf("<SiteFooter />"));
   });
 
-  it("retains only the practical common mistakes and deeper troubleshooting link", () => {
+  it("retains compact practical troubleshooting and a deeper troubleshooting link", () => {
     const page = source("app", "ovens", "page.tsx");
 
     for (const title of [
-      "Base is pale or soft",
-      "Top browns before the base",
-      "Pizza dries during the bake",
-      "Scorched rim, undercooked center",
-      "Burnt base with pale top",
-      "Later pizzas bake worse",
+      "Pale or soft base",
+      "Burnt base, pale top",
+      "Top burns first",
+      "Later pizzas get worse",
     ]) {
       expect(page).toContain(title);
     }
 
     expect(page).toContain("/guide/pizza-troubleshooting");
-    expect(page).toContain("What you see:");
-    expect(page).toContain("Likely reason:");
-    expect(page).toContain("What to change:");
+    expect(page).toContain("Use the baked pizza as feedback.");
   });
 
   it("keeps concise setup, surface and safety guidance without becoming a gear guide", () => {
     const page = source("app", "ovens", "page.tsx");
 
-    expect(page).toContain("Preheat thoroughly at the highest safe setting.");
-    expect(page).toContain("Heat the floor, not only the air or flame.");
+    expect(page).toContain("Preheat the surface, place the pizza deliberately");
+    expect(page).toContain("judge the floor, not only the flame");
     expect(page).toContain("Steel");
     expect(page).toContain("Stone");
-    expect(page).toContain("Pan");
-    expect(page).toContain("Small safety note");
-    expect(page).toContain("Follow your equipment manufacturer");
+    expect(page).toContain("Tray");
+    expect(page).toContain("Safety checks");
+    expect(page).toContain("Follow your own appliance manual");
     expect(page).toContain("Use outdoor-only ovens outdoors.");
     expect(page).not.toContain("Do not modify fuel, ventilation or safety systems.");
     expect(page).not.toContain("infrared thermometer guide");
   });
 
-  it("uses one final primary CTA and keeps related links secondary", () => {
+  it("uses one final route primary CTA and keeps related links secondary", () => {
     const page = source("app", "ovens", "page.tsx");
+    const routeContentBeforeFooter = page.slice(0, page.indexOf("<SiteFooter />"));
 
-    expect(page).toContain("Ready to plan for your oven?");
-    expect(page).toContain('href="/session/start"');
-    expect(page).toContain("Plan my next pizza");
+    expect(routeContentBeforeFooter).toContain("Plan with the oven you actually have.");
+    expect(routeContentBeforeFooter).toContain('href="/session/start"');
+    expect(routeContentBeforeFooter).toContain("Plan my next pizza");
+    expect(routeContentBeforeFooter.match(/href="\/session\/start"/g)).toHaveLength(1);
     expect(page).toContain('href="/guides/dough"');
     expect(page).toContain('href="/toppings"');
     expect(page).not.toContain("Compare pizza styles");
+    expect(page).not.toContain('href="/start"');
   });
 
   it("updates SEO positioning without changing indexing policy", () => {
@@ -155,8 +170,9 @@ describe("Oven Guide", () => {
 
     expect(page).toContain("LearningBreadcrumbs");
     expect(page).toContain('id="oven-comparison"');
-    expect(page).toContain('id="common-oven-mistakes"');
+    expect(page).toContain('id="actionable-bake-title"');
     expect(page).toContain("aria-labelledby");
+    expect(page).toContain("<ol");
     expect(hero).toContain("alt=");
     expect(hero).toContain("priority");
   });
