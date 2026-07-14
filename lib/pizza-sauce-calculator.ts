@@ -11,6 +11,13 @@ export type SauceReservePercent = 0 | 5 | 10 | 15;
 export type SauceReductionPercent = 0 | 10 | 15 | 20;
 export type SauceGarlicIntensity = "mild" | "traditional" | "strong";
 export type SauceCanSize = 400 | 800;
+export type SessionPizzaSauceType =
+  | "margherita"
+  | "marinara"
+  | "diavola"
+  | "funghi"
+  | "prosciutto"
+  | "quattro-formaggi";
 
 export type SauceCalculatorInput = {
   method: SauceMethod;
@@ -40,6 +47,7 @@ export type SauceCalculatorResult = {
   preparationSauceGrams: number;
   startingTomatoGrams: number;
   finishedSauceGrams: number;
+  shoppingPurchaseGrams: number;
   reserveGrams: number;
   reservePercent: SauceReservePercent;
   reductionPercent: SauceReductionPercent;
@@ -52,6 +60,33 @@ export type SauceCalculatorResult = {
   ingredients: SauceIngredientResult[];
   toppingGuidance: SauceIngredientResult[];
   calculationNote: string;
+};
+
+export type SessionPizzaSauceProfile = {
+  pizzaType: SessionPizzaSauceType;
+  method?: SauceMethod;
+  label: string;
+  sauceGramsPerPizza: number;
+  note: string;
+};
+
+export type SessionPizzaSauceLine = SessionPizzaSauceProfile & {
+  pizzaCount: number;
+  finishedSauceGrams: number;
+  preparationSauceGrams: number;
+  startingTomatoGrams: number;
+};
+
+export type SessionPizzaSauceSummary = {
+  lines: SessionPizzaSauceLine[];
+  finishedSauceGrams: number;
+  preparationSauceGrams: number;
+  startingTomatoGrams: number;
+  reservePercent: SauceReservePercent;
+  canSizeGrams: SauceCanSize;
+  cansNeeded: number;
+  shoppingPurchaseGrams: number;
+  estimatedLeftoverGrams: number;
 };
 
 export const sauceMethodLabels: Record<SauceMethod, string> = {
@@ -73,6 +108,11 @@ const methodDefaultSauceGrams: Record<SauceMethod, number> = {
   marinara: 80,
   "home-oven-cooked": 80,
 };
+
+const restrainedToppingSauceGramsPerPizza = 55;
+
+export const SESSION_SAUCE_RESERVE_PERCENT: SauceReservePercent = 10;
+export const SESSION_SAUCE_CAN_SIZE_GRAMS: SauceCanSize = 400;
 
 const garlicMultiplier: Record<SauceGarlicIntensity, number> = {
   mild: 0.5,
@@ -116,6 +156,47 @@ export function defaultSauceGramsForMethod(method: SauceMethod): number {
   return methodDefaultSauceGrams[method];
 }
 
+function isHomeOvenSession(context?: { ovenType?: string; pizzaStyle?: string }) {
+  return context?.ovenType === "home" || context?.pizzaStyle === "home-oven";
+}
+
+export function sessionSauceProfileForPizza(
+  pizzaType: SessionPizzaSauceType,
+  context?: { ovenType?: string; pizzaStyle?: string },
+): SessionPizzaSauceProfile | undefined {
+  if (pizzaType === "quattro-formaggi") return undefined;
+
+  if (pizzaType === "marinara") {
+    return {
+      pizzaType,
+      method: "marinara",
+      label: "Marinara pizza",
+      sauceGramsPerPizza: defaultSauceGramsForMethod("marinara"),
+      note: "Cheese-free tomato, garlic, oregano and oil profile.",
+    };
+  }
+
+  if (pizzaType === "margherita") {
+    const method: SauceMethod = isHomeOvenSession(context) ? "home-oven-cooked" : "classic-neapolitan";
+    return {
+      pizzaType,
+      method,
+      label: method === "home-oven-cooked" ? "Home-oven Margherita" : "Classic Margherita",
+      sauceGramsPerPizza: defaultSauceGramsForMethod(method),
+      note: method === "home-oven-cooked"
+        ? "Home-oven sessions use the cooked-sauce starting amount."
+        : "Pizza-oven sessions match the Classic Neapolitan sauce amount.",
+    };
+  }
+
+  return {
+    pizzaType,
+    label: "Restrained tomato pizza",
+    sauceGramsPerPizza: restrainedToppingSauceGramsPerPizza,
+    note: "Topping-heavy tomato pizzas keep a lighter sauce layer so cheese and toppings do not overload the center.",
+  };
+}
+
 export function clampPizzaCount(value: number): number {
   if (!Number.isFinite(value)) return 1;
   return Math.min(30, Math.max(1, Math.round(value)));
@@ -151,6 +232,10 @@ export function formatGrams(value: number, precision: 0 | 1 = 0): string {
   })} g`;
 }
 
+export function formatSauceCanPurchase(cansNeeded: number, canSizeGrams: SauceCanSize): string {
+  return `${cansNeeded} x ${canSizeGrams} g can${cansNeeded === 1 ? "" : "s"}`;
+}
+
 export function calculatePizzaSauce(input: SauceCalculatorInput): SauceCalculatorResult {
   const method = input.method;
   const pizzaCount = clampPizzaCount(input.pizzaCount);
@@ -172,7 +257,7 @@ export function calculatePizzaSauce(input: SauceCalculatorInput): SauceCalculato
   const startingTomatoGrams = method === "home-oven-cooked"
     ? preparationSauceGrams / (1 - reductionFraction)
     : preparationSauceGrams;
-  const finishedSauceGrams = preparationSauceGrams;
+  const finishedSauceGrams = baseSauceGrams;
   const reserveGrams = preparationSauceGrams - baseSauceGrams;
   const saltGrams = startingTomatoGrams * (saltPercent / 100);
   const cansNeeded = Math.max(1, Math.ceil(startingTomatoGrams / canSizeGrams));
@@ -275,6 +360,7 @@ export function calculatePizzaSauce(input: SauceCalculatorInput): SauceCalculato
     preparationSauceGrams: roundGrams(preparationSauceGrams),
     startingTomatoGrams: roundGrams(startingTomatoGrams),
     finishedSauceGrams: roundGrams(finishedSauceGrams),
+    shoppingPurchaseGrams: canTotalGrams,
     reserveGrams: roundGrams(reserveGrams),
     reservePercent,
     reductionPercent,
@@ -289,5 +375,72 @@ export function calculatePizzaSauce(input: SauceCalculatorInput): SauceCalculato
     calculationNote: method === "home-oven-cooked"
       ? "Starting tomato mass = required finished sauce ÷ (1 − reduction fraction)."
       : "Tomato mass equals the target sauce quantity plus the selected preparation reserve.",
+  };
+}
+
+export function calculateSessionPizzaSauce(input: {
+  pizzaMix: Partial<Record<SessionPizzaSauceType, number>>;
+  ovenType?: string;
+  pizzaStyle?: string;
+  reservePercent?: SauceReservePercent;
+  canSizeGrams?: SauceCanSize;
+}): SessionPizzaSauceSummary {
+  const reservePercent = input.reservePercent ?? SESSION_SAUCE_RESERVE_PERCENT;
+  const canSizeGrams = input.canSizeGrams ?? SESSION_SAUCE_CAN_SIZE_GRAMS;
+  const lines: SessionPizzaSauceLine[] = [];
+
+  for (const [pizzaType, rawCount] of Object.entries(input.pizzaMix) as Array<[SessionPizzaSauceType, number | undefined]>) {
+    const pizzaCount = Math.max(0, Math.floor(rawCount ?? 0));
+    if (pizzaCount < 1) continue;
+
+    const profile = sessionSauceProfileForPizza(pizzaType, input);
+    if (!profile) continue;
+
+    if (profile.method) {
+      const result = calculatePizzaSauce({
+        ...defaultSauceCalculatorInput(),
+        method: profile.method,
+        pizzaCount,
+        sauceGramsPerPizza: profile.sauceGramsPerPizza,
+        reservePercent,
+        canSizeGrams,
+      });
+      lines.push({
+        ...profile,
+        pizzaCount,
+        finishedSauceGrams: result.finishedSauceGrams,
+        preparationSauceGrams: result.preparationSauceGrams,
+        startingTomatoGrams: result.startingTomatoGrams,
+      });
+      continue;
+    }
+
+    const finishedSauceGrams = pizzaCount * profile.sauceGramsPerPizza;
+    const preparationSauceGrams = finishedSauceGrams * (1 + reservePercent / 100);
+    lines.push({
+      ...profile,
+      pizzaCount,
+      finishedSauceGrams: roundGrams(finishedSauceGrams),
+      preparationSauceGrams: roundGrams(preparationSauceGrams),
+      startingTomatoGrams: roundGrams(preparationSauceGrams),
+    });
+  }
+
+  const finishedSauceGrams = lines.reduce((total, line) => total + line.finishedSauceGrams, 0);
+  const preparationSauceGrams = lines.reduce((total, line) => total + line.preparationSauceGrams, 0);
+  const startingTomatoGrams = lines.reduce((total, line) => total + line.startingTomatoGrams, 0);
+  const cansNeeded = startingTomatoGrams > 0 ? Math.ceil(startingTomatoGrams / canSizeGrams) : 0;
+  const shoppingPurchaseGrams = cansNeeded * canSizeGrams;
+
+  return {
+    lines,
+    finishedSauceGrams,
+    preparationSauceGrams,
+    startingTomatoGrams,
+    reservePercent,
+    canSizeGrams,
+    cansNeeded,
+    shoppingPurchaseGrams,
+    estimatedLeftoverGrams: Math.max(0, shoppingPurchaseGrams - startingTomatoGrams),
   };
 }

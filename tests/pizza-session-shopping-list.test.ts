@@ -183,10 +183,22 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("240 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("280 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Mozzarella")).toBe("320 g · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Fresh basil")).toBe("small handfuls · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Extra virgin olive oil")).toBe("4 tsp · estimate for 4 selected pizzas");
+  });
+
+  it("uses the home-oven sauce method for a home-oven Margherita session", () => {
+    const result = generatePizzaSessionShoppingList(createPizzaSession({
+      pizzaCount: 4,
+      ovenType: "home",
+      pizzaStyle: "home-oven",
+    }), "margherita");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("320 g to use · buy 2 x 400 g cans · estimate for 4 selected pizzas");
   });
 
   it("renders Marinara topping quantities from the selected pizza plan", () => {
@@ -195,7 +207,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.shoppingList.groups.map((group) => group.group)).toEqual(["Dough", "Sauce", "Toppings"]);
-    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("280 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("320 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Garlic")).toBe("2 cloves · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Oregano")).toBe("small pinches · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Extra virgin olive oil")).toBe("4 tsp · estimate for 4 selected pizzas");
@@ -206,7 +218,7 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("220 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("220 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Mozzarella")).toBe("300 g · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Spicy salami or pepperoni")).toBe("140 g · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Basil or oregano")).toBe("small pinches or a handful of leaves · estimate for 4 selected pizzas");
@@ -217,7 +229,7 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("220 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("220 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Mozzarella")).toBe("300 g · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Mushrooms")).toBe("240 g · estimate for 4 selected pizzas");
   });
@@ -252,7 +264,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(result.shoppingList.presetId).toBe("pizza-mix");
     expect(result.shoppingList.presetName).toBe("Pizza mix");
     expect(result.pizzaMix).toMatchObject({ margherita: 4, diavola: 2 });
-    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("350 g · estimate for 6 selected pizzas");
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("390 g to use · buy 2 x 400 g cans · estimate for 6 selected pizzas");
     expect(itemAmount(result, "Mozzarella")).toBe("470 g · estimate for 6 selected pizzas");
     expect(itemAmount(result, "Spicy salami or pepperoni")).toBe("70 g · estimate for 6 selected pizzas");
     expect(itemAmount(result, "Extra virgin olive oil")).toBe("6 tsp · estimate for 6 selected pizzas");
@@ -274,7 +286,7 @@ describe("Pizza Session shopping list presets", () => {
     if (!result.ok) return;
     expect(result.pizzaMix).toMatchObject({ margherita: 1, marinara: 2, diavola: 1 });
     expect(result.shoppingList.presetId).toBe("pizza-mix");
-    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("255 g · estimate for 4 selected pizzas");
+    expect(itemAmount(result, "Tomato sauce or crushed tomatoes")).toBe("285 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Mozzarella")).toBe("155 g · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Spicy salami or pepperoni")).toBe("35 g · estimate for 4 selected pizzas");
     expect(itemAmount(result, "Extra virgin olive oil")).toBe("4 tsp · estimate for 4 selected pizzas");
@@ -290,8 +302,8 @@ describe("Pizza Session shopping list presets", () => {
     if (!twoPizzas.ok || !fourPizzas.ok) return;
     const twoSauce = twoPizzas.shoppingList.groups.flatMap((group) => group.items).find((item) => item.label === "Tomato sauce or crushed tomatoes");
     const fourSauce = fourPizzas.shoppingList.groups.flatMap((group) => group.items).find((item) => item.label === "Tomato sauce or crushed tomatoes");
-    expect(twoSauce?.amount).toBe("120 g · estimate for 2 selected pizzas");
-    expect(fourSauce?.amount).toBe("240 g · estimate for 4 selected pizzas");
+    expect(twoSauce?.amount).toBe("140 g to use · buy 1 x 400 g can · estimate for 2 selected pizzas");
+    expect(fourSauce?.amount).toBe("280 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
   });
 
   it("handles missing active session, missing pizza count and unknown preset safely", () => {
@@ -399,7 +411,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(refreshed?.pizzaMix).toMatchObject({ margherita: 1, marinara: 2, diavola: 1 });
     expect(refreshed?.shoppingList?.presetId).toBe("pizza-mix");
     expect(refreshed?.shoppingList?.groups.flatMap((group) => group.items).find((entry) => entry.label === "Tomato sauce or crushed tomatoes")?.amount)
-      .toBe("255 g · estimate for 4 selected pizzas");
+      .toBe("285 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
   });
 
   it("formats a plain-text copy without public sharing or cloud claims", () => {
@@ -412,6 +424,7 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(text).toContain("DoughTools shopping list");
     expect(text).toContain("Preset: Marinara");
+    expect(text).toContain("Tomato sauce or crushed tomatoes — 80 g to use · buy 1 x 400 g can · estimate for 1 selected pizza");
     expect(text).toContain("Saved locally on this device");
     expect(text).toContain("No cloud sync or public sharing is active");
     expect(text).not.toMatch(/cloud sync enabled|public sharing enabled|share card/i);

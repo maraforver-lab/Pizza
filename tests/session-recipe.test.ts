@@ -17,6 +17,7 @@ import {
   generateAndSaveActiveSessionRecipe,
   sessionRecipeQuery,
 } from "@/lib/session-recipe";
+import { calculateSessionPizzaSauce } from "@/lib/pizza-sauce-calculator";
 import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import type { RecipeSettings } from "@/lib/saved-recipes";
 
@@ -221,9 +222,58 @@ describe("Session recipe build step", () => {
 
   it("keeps sauce, cheese, toppings and baking gear out of the dough preparation checklist", () => {
     const page = source("app/session/recipe/page.tsx");
+    const doughIngredientRowsBlock = page.slice(
+      page.indexOf("const doughIngredientRows"),
+      page.indexOf("] satisfies Array"),
+    );
 
     expect(page).not.toMatch(/const doughPrepTools[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
-    expect(page).not.toMatch(/doughIngredientRows[\s\S]*(sauce|cheese|toppings|pizza peel|thermometer|stone|steel)/i);
+    expect(doughIngredientRowsBlock).not.toMatch(/sauce|cheese|toppings|pizza peel|thermometer|stone|steel/i);
+  });
+
+  it("shows one separate sauce quantity summary without changing the dough ingredient list", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page).toContain("Sauce for this plan");
+    expect(page).toContain("Use on pizzas");
+    expect(page).toContain("Prepare");
+    expect(page).toContain("Shopping");
+    expect(page).toContain("Shopping rounds tomato cans separately.");
+    expect(page).toContain("calculateSessionPizzaSauce");
+    expect(page).toContain("normalizePizzaMixForCount(result.settings.pizzas, session.pizzaMix, session.pizzaPreset)");
+    expect(page.indexOf("doughIngredientRows")).toBeLessThan(page.indexOf("sauceSummary"));
+  });
+
+  it("uses the same Sauce helper for Recipe and Shopping sauce quantities", () => {
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-sauce-consistency",
+      pizzaPreset: "margherita",
+      pizzaCount: 4,
+      ovenType: "gas",
+      pizzaStyle: "pizza-oven",
+    });
+    const recipe = buildSessionRecipe(session);
+    expect(recipe.ok).toBe(true);
+    if (!recipe.ok) throw new Error("Expected recipe result");
+
+    const sauce = calculateSessionPizzaSauce({
+      pizzaMix: { margherita: 4 },
+      ovenType: recipe.recipeSnapshot.oven,
+      pizzaStyle: session.pizzaStyle,
+    });
+    const shopping = generatePizzaSessionShoppingList({ ...session, recipeSnapshot: recipe.recipeSnapshot }, undefined);
+    expect(shopping.ok).toBe(true);
+    if (!shopping.ok) throw new Error("Expected shopping result");
+
+    const shoppingSauce = shopping.shoppingList.groups
+      .find((group) => group.group === "Sauce")
+      ?.items.find((item) => item.label === "Tomato sauce or crushed tomatoes")?.amount;
+
+    expect(sauce.finishedSauceGrams).toBe(280);
+    expect(sauce.preparationSauceGrams).toBe(308);
+    expect(shoppingSauce).toContain("280 g to use");
+    expect(shoppingSauce).toContain("buy 1 x 400 g can");
   });
 
   it("keeps Shopping as the primary next step from the dough plan page", () => {

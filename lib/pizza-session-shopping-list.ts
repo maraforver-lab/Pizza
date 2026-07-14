@@ -18,6 +18,11 @@ import {
   findPizzaSessionPreset,
   pizzaSessionPresets,
 } from "@/lib/pizza-session-presets";
+import {
+  calculateSessionPizzaSauce,
+  formatSauceCanPurchase,
+  formatGrams as formatSauceGrams,
+} from "@/lib/pizza-sauce-calculator";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export const SHOPPING_LIST_LOCAL_ONLY_COPY = "Shopping lists are saved locally in this browser on this device.";
@@ -201,32 +206,27 @@ function shoppingListNameFromMix(mix: PizzaMixAllocation) {
 
 const toppingQuantityPlans: Record<PizzaSessionPizzaMixType, ToppingQuantityIngredient[]> = {
   margherita: [
-    { group: "Sauce", id: "tomato-sauce", label: "Tomato sauce or crushed tomatoes", gramsPerPizza: 60 },
     { group: "Cheese", id: "mozzarella", label: "Mozzarella", gramsPerPizza: 80 },
     { group: "Toppings", id: "basil", label: "Fresh basil", text: (count) => `${count === 1 ? "small handful" : "small handfuls"} · ${selectedPizzaEstimateLabel(count)}` },
     { group: "Toppings", id: "olive-oil", label: "Extra virgin olive oil", tspPerPizza: 1 },
   ],
   marinara: [
-    { group: "Sauce", id: "tomato-sauce", label: "Tomato sauce or crushed tomatoes", gramsPerPizza: 70 },
     { group: "Toppings", id: "garlic", label: "Garlic", text: (count) => `${Math.max(1, Math.ceil(count / 2))} clove${Math.ceil(count / 2) === 1 ? "" : "s"} · ${selectedPizzaEstimateLabel(count)}` },
     { group: "Toppings", id: "oregano", label: "Oregano", text: (count) => `${count === 1 ? "small pinch" : "small pinches"} · ${selectedPizzaEstimateLabel(count)}` },
     { group: "Toppings", id: "olive-oil", label: "Extra virgin olive oil", tspPerPizza: 1 },
   ],
   diavola: [
-    { group: "Sauce", id: "tomato-sauce", label: "Tomato sauce or crushed tomatoes", gramsPerPizza: 55 },
     { group: "Cheese", id: "mozzarella", label: "Mozzarella", gramsPerPizza: 75 },
     { group: "Toppings", id: "spicy-salami", label: "Spicy salami or pepperoni", gramsPerPizza: 35 },
     { group: "Toppings", id: "basil-or-oregano", label: "Basil or oregano", text: (count) => `${count === 1 ? "small pinch or few leaves" : "small pinches or a handful of leaves"} · ${selectedPizzaEstimateLabel(count)}` },
     { group: "Toppings", id: "olive-oil", label: "Extra virgin olive oil", tspPerPizza: 1 },
   ],
   funghi: [
-    { group: "Sauce", id: "tomato-sauce", label: "Tomato sauce or crushed tomatoes", gramsPerPizza: 55 },
     { group: "Cheese", id: "mozzarella", label: "Mozzarella", gramsPerPizza: 75 },
     { group: "Toppings", id: "mushrooms", label: "Mushrooms", gramsPerPizza: 60 },
     { group: "Toppings", id: "olive-oil", label: "Extra virgin olive oil", tspPerPizza: 1 },
   ],
   prosciutto: [
-    { group: "Sauce", id: "tomato-sauce", label: "Tomato sauce or crushed tomatoes", gramsPerPizza: 55 },
     { group: "Cheese", id: "mozzarella", label: "Mozzarella", gramsPerPizza: 75 },
     { group: "Toppings", id: "prosciutto", label: "Prosciutto", gramsPerPizza: 40 },
     { group: "Toppings", id: "basil-or-arugula", label: "Basil or arugula", text: (count) => `${count === 1 ? "small handful" : "small handfuls"} · ${selectedPizzaEstimateLabel(count)}` },
@@ -240,6 +240,27 @@ const toppingQuantityPlans: Record<PizzaSessionPizzaMixType, ToppingQuantityIngr
     { group: "Toppings", id: "olive-oil", label: "Extra virgin olive oil", tspPerPizza: 1 },
   ],
 };
+
+function sauceIngredientForMix(mix: PizzaMixAllocation, session: PizzaSession): QuantifiedShoppingIngredient[] {
+  const summary = calculateSessionPizzaSauce({
+    pizzaMix: mix,
+    ovenType: session.recipeSnapshot?.oven ?? session.ovenType,
+    pizzaStyle: session.pizzaStyle,
+  });
+
+  if (summary.finishedSauceGrams <= 0 || summary.cansNeeded <= 0) return [];
+
+  return [{
+    group: "Sauce",
+    id: "tomato-sauce",
+    label: "Tomato sauce or crushed tomatoes",
+    amount: () => [
+      `${formatSauceGrams(summary.finishedSauceGrams)} to use`,
+      `buy ${formatSauceCanPurchase(summary.cansNeeded, summary.canSizeGrams)}`,
+      selectedPizzaEstimateLabel(pizzaMixSum(mix)),
+    ].join(" · "),
+  }];
+}
 
 function toppingIngredientsForMix(mix: PizzaMixAllocation): QuantifiedShoppingIngredient[] {
   const combined = new Map<string, {
@@ -320,6 +341,7 @@ export function generatePizzaSessionShoppingList(
   const statuses = existingStatusMap(session, listId);
   const quantifiedIngredients = [
     ...doughIngredients(session),
+    ...sauceIngredientForMix(pizzaMix, session),
     ...toppingIngredientsForMix(pizzaMix),
   ];
   const groupOrder: PizzaSessionShoppingGroup[] = ["Dough", "Sauce", "Cheese", "Toppings", "Gear"];

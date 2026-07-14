@@ -3,9 +3,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   calculatePizzaSauce,
+  calculateSessionPizzaSauce,
   defaultSaltPercentForTomato,
   defaultSauceCalculatorInput,
   defaultSauceGramsForMethod,
+  formatSauceCanPurchase,
+  sessionSauceProfileForPizza,
 } from "@/lib/pizza-sauce-calculator";
 import { metadataForRoute } from "@/lib/seo-config";
 
@@ -41,7 +44,8 @@ describe("pizza sauce calculator helper", () => {
     expect(result.baseSauceGrams).toBe(280);
     expect(result.preparationSauceGrams).toBe(308);
     expect(result.reserveGrams).toBe(28);
-    expect(result.finishedSauceGrams).toBe(308);
+    expect(result.finishedSauceGrams).toBe(280);
+    expect(result.startingTomatoGrams).toBe(308);
   });
 
   it("clamps the thirty-pizza upper boundary", () => {
@@ -105,7 +109,8 @@ describe("pizza sauce calculator helper", () => {
       reductionPercent: 15,
     });
 
-    expect(result.finishedSauceGrams).toBe(352);
+    expect(result.finishedSauceGrams).toBe(320);
+    expect(result.preparationSauceGrams).toBe(352);
     expect(result.startingTomatoGrams).toBe(414);
     expect(result.reductionPercent).toBe(15);
     expect(result.calculationNote).toContain("reduction fraction");
@@ -148,6 +153,7 @@ describe("pizza sauce calculator helper", () => {
 
     expect(result.cansNeeded).toBe(1);
     expect(result.canTotalGrams).toBe(400);
+    expect(result.shoppingPurchaseGrams).toBe(400);
     expect(result.estimatedLeftoverGrams).toBe(92);
     expect(result.ingredients.find((item) => item.id === "salt")?.amountLabel).toMatch(/\d\.\d g/);
   });
@@ -160,6 +166,88 @@ describe("pizza sauce calculator helper", () => {
 
     expect(result.ingredients.map((item) => item.id)).toEqual(["tomato", "salt"]);
     expect(JSON.stringify(result.ingredients)).not.toContain("0 g garlic");
+  });
+});
+
+describe("Pizza Session sauce quantity contract", () => {
+  it("maps matching session assumptions to the Sauce calculator defaults", () => {
+    expect(sessionSauceProfileForPizza("margherita", { ovenType: "gas" })).toMatchObject({
+      method: "classic-neapolitan",
+      sauceGramsPerPizza: 70,
+    });
+    expect(sessionSauceProfileForPizza("margherita", { ovenType: "home" })).toMatchObject({
+      method: "home-oven-cooked",
+      sauceGramsPerPizza: 80,
+    });
+    expect(sessionSauceProfileForPizza("marinara", { ovenType: "gas" })).toMatchObject({
+      method: "marinara",
+      sauceGramsPerPizza: 80,
+    });
+  });
+
+  it("keeps topping-heavy tomato pizzas as an intentional lighter session profile", () => {
+    const diavola = sessionSauceProfileForPizza("diavola", { ovenType: "gas" });
+    const funghi = sessionSauceProfileForPizza("funghi", { ovenType: "home" });
+
+    expect(diavola).toMatchObject({ sauceGramsPerPizza: 55 });
+    expect(diavola).not.toHaveProperty("method");
+    expect(funghi).toMatchObject({ sauceGramsPerPizza: 55 });
+    expect(funghi).not.toHaveProperty("method");
+    expect(sessionSauceProfileForPizza("quattro-formaggi", { ovenType: "gas" })).toBeUndefined();
+  });
+
+  it("calculates session finished totals, reserve and purchase rounding from one source", () => {
+    const result = calculateSessionPizzaSauce({
+      pizzaMix: { margherita: 4 },
+      ovenType: "gas",
+    });
+
+    expect(result.finishedSauceGrams).toBe(280);
+    expect(result.preparationSauceGrams).toBe(308);
+    expect(result.startingTomatoGrams).toBe(308);
+    expect(result.cansNeeded).toBe(1);
+    expect(result.shoppingPurchaseGrams).toBe(400);
+    expect(formatSauceCanPurchase(result.cansNeeded, result.canSizeGrams)).toBe("1 x 400 g can");
+  });
+
+  it("supports Marinara, home-oven cooked sauce and the thirty-pizza boundary", () => {
+    const marinara = calculateSessionPizzaSauce({
+      pizzaMix: { marinara: 4 },
+      ovenType: "gas",
+    });
+    const homeOven = calculateSessionPizzaSauce({
+      pizzaMix: { margherita: 4 },
+      ovenType: "home",
+    });
+    const maximum = calculateSessionPizzaSauce({
+      pizzaMix: { margherita: 30 },
+      ovenType: "gas",
+    });
+
+    expect(marinara.finishedSauceGrams).toBe(320);
+    expect(marinara.preparationSauceGrams).toBe(352);
+    expect(homeOven.finishedSauceGrams).toBe(320);
+    expect(homeOven.startingTomatoGrams).toBe(414);
+    expect(maximum.finishedSauceGrams).toBe(2100);
+    expect(maximum.preparationSauceGrams).toBe(2310);
+    expect(maximum.shoppingPurchaseGrams).toBeGreaterThanOrEqual(maximum.startingTomatoGrams);
+  });
+
+  it("sums mixed pizza menus without treating purchase quantity as applied sauce", () => {
+    const result = calculateSessionPizzaSauce({
+      pizzaMix: { margherita: 1, marinara: 2, diavola: 1 },
+      ovenType: "gas",
+    });
+
+    expect(result.lines.map((line) => [line.pizzaType, line.sauceGramsPerPizza, line.finishedSauceGrams])).toEqual([
+      ["margherita", 70, 70],
+      ["marinara", 80, 160],
+      ["diavola", 55, 55],
+    ]);
+    expect(result.finishedSauceGrams).toBe(285);
+    expect(result.preparationSauceGrams).toBe(314);
+    expect(result.shoppingPurchaseGrams).toBe(400);
+    expect(result.shoppingPurchaseGrams).toBeGreaterThan(result.finishedSauceGrams);
   });
 });
 
@@ -181,8 +269,9 @@ describe("simplified pizza sauce page", () => {
 
     expect(calculator).toContain("Sauce per pizza");
     expect(calculator).toContain("Pizzas");
-    expect(calculator).toContain("Total sauce");
-    expect(calculator).toContain("The finished batch above covers the selected pizzas plus prep reserve.");
+    expect(calculator).toContain("Finished total");
+    expect(calculator).toContain("Before prep reserve");
+    expect(calculator).toContain("Prepare {formatGrams(result.preparationSauceGrams)} including");
     expect(calculator).toContain("Use {result.sauceGramsPerPizza} g on each pizza");
     expect(calculator).toContain("calculatePizzaSauce");
     expect(calculator).toContain("defaultSauceGramsForMethod");
@@ -211,7 +300,7 @@ describe("simplified pizza sauce page", () => {
     expect(calculator).toContain("Coverage preset");
     expect(calculator).toContain("Adjust tomato, salt and batch details");
     expect(calculator.indexOf("Sauce per pizza")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
-    expect(calculator.indexOf("Total sauce")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
+    expect(calculator.indexOf("Finished total")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
   });
 
   it("connects the calculated batch to concise sauce recipe steps", () => {

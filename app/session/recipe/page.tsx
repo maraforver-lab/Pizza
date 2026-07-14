@@ -21,6 +21,12 @@ import {
   generateAndSaveActiveSessionRecipe,
   type SessionRecipeBuildResult,
 } from "@/lib/session-recipe";
+import {
+  calculateSessionPizzaSauce,
+  formatSauceCanPurchase,
+  formatGrams as formatSauceGrams,
+} from "@/lib/pizza-sauce-calculator";
+import { normalizePizzaMixForCount } from "@/lib/pizza-session-shopping-list";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 function formatGram(value?: number) {
@@ -268,6 +274,14 @@ export default function SessionRecipePage() {
     ?? temperatureBounds.defaultValue;
   const defaultHydration = session.pizzaStyle === "pan-tray" || session.ovenType === "pan" ? 75 : 64;
   const hydrationImpact = hydrationImpactMessage(result.settings.hydration, defaultHydration);
+  const sauceSummary = calculateSessionPizzaSauce({
+    pizzaMix: normalizePizzaMixForCount(result.settings.pizzas, session.pizzaMix, session.pizzaPreset),
+    ovenType: result.recipeSnapshot.oven ?? session.ovenType,
+    pizzaStyle: session.pizzaStyle,
+  });
+  const saucePerPizzaLabel = sauceSummary.lines.length === 1
+    ? `${sauceSummary.lines[0].sauceGramsPerPizza} g per pizza`
+    : "varies by pizza mix";
 
   const regenerateRecipeAfterSessionUpdate = (updated?: PizzaSession) => {
     const saved = generateAndSaveActiveSessionRecipe();
@@ -492,6 +506,32 @@ export default function SessionRecipePage() {
                     ))}
                   </dl>
                 </section>
+
+                {sauceSummary.finishedSauceGrams > 0 && (
+                  <section aria-labelledby="session-recipe-sauce-heading" className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 id="session-recipe-sauce-heading" className="font-display text-2xl font-semibold">Sauce for this plan</h3>
+                      <span className="rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato">Prepare separately</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-ink/55">
+                      Use this when preparing toppings. Shopping rounds tomato cans separately.
+                    </p>
+                    <dl className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <div className="rounded-2xl bg-white p-3">
+                        <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Use on pizzas</dt>
+                        <dd className="mt-1 text-sm font-extrabold text-ink">{formatSauceGrams(sauceSummary.finishedSauceGrams)} total · {saucePerPizzaLabel}</dd>
+                      </div>
+                      <div className="rounded-2xl bg-white p-3">
+                        <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Prepare</dt>
+                        <dd className="mt-1 text-sm font-extrabold text-ink">{formatSauceGrams(sauceSummary.preparationSauceGrams)} with {sauceSummary.reservePercent}% reserve</dd>
+                      </div>
+                      <div className="rounded-2xl bg-white p-3">
+                        <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Shopping</dt>
+                        <dd className="mt-1 text-sm font-extrabold text-ink">Buy {formatSauceCanPurchase(sauceSummary.cansNeeded, sauceSummary.canSizeGrams)}</dd>
+                      </div>
+                    </dl>
+                  </section>
+                )}
               </div>
             </article>
 

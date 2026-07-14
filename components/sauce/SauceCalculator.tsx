@@ -196,8 +196,9 @@ export default function SauceCalculator() {
             <strong className="mt-1 block text-3xl">{result.pizzaCount}</strong>
           </div>
           <div className="rounded-2xl border border-ink/10 bg-white p-4">
-            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/48">Total sauce</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/48">Finished total</p>
             <strong className="mt-1 block text-3xl">{formatGrams(result.finishedSauceGrams)}</strong>
+            <span className="mt-1 block text-xs font-bold text-muted">Before prep reserve</span>
           </div>
         </div>
       </div>
@@ -395,7 +396,7 @@ export default function SauceCalculator() {
             This uses the selected style starting amount for a typical 30-32 cm pizza, then includes {result.reservePercent}% preparation reserve.
           </p>
           <p className="mt-3 rounded-2xl border border-white/10 bg-white/[.07] p-4 text-sm font-bold leading-6 text-white/78">
-            The finished batch above covers the selected pizzas plus prep reserve. Use {result.sauceGramsPerPizza} g on each pizza.
+            Prepare {formatGrams(result.preparationSauceGrams)} including {result.reservePercent}% reserve. Use {result.sauceGramsPerPizza} g on each pizza.
           </p>
 
           <section className="mt-5" aria-labelledby="sauce-recipe-title">
