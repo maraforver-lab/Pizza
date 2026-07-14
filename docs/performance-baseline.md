@@ -9,7 +9,7 @@ This is a measurement and planning document. It does not enable indexing, add an
 Routes checked for the core baseline:
 
 - `/`
-- `/start`
+- `/session/start`
 - `/plan`
 - `/doctor`
 - `/guide`
@@ -37,7 +37,7 @@ The build completed successfully and generated 31 static pages. The relevant rou
 | Route | Build type shown | Route size | First Load JS |
 | --- | --- | ---: | ---: |
 | `/` | Static | 18.8 kB | 132 kB |
-| `/start` | Static | 6.23 kB | 114 kB |
+| `/session/start` | Static | tracked by the active Pizza Session route | tracked by the active Pizza Session route |
 | `/plan` | Static | 18 kB | 131 kB |
 | `/doctor` | Static | 9.61 kB | 123 kB |
 | `/guide` | Static | 10.1 kB | 121 kB |
@@ -64,7 +64,7 @@ After building, the local production server should be checked with `next start` 
 Patch 25 smoke-test target routes:
 
 - `/`
-- `/start`
+- `/session/start`
 - `/plan`
 - `/doctor`
 - `/guide`
@@ -96,10 +96,10 @@ No analytics, tracking, Search Console verification, or sitemap submission was a
 Confirmed findings:
 
 - The inspected core routes build successfully.
-- `/`, `/start`, `/plan`, `/doctor`, `/guide`, `/updates`, and `/account` are shown as static in the Next.js build output.
+- `/`, `/session/start`, `/plan`, `/doctor`, `/guide`, `/updates`, and `/account` are shown as static in the Next.js build output.
 - `/auth/callback` is the only dynamic app route shown in the build output.
-- Many application pages currently start with `"use client"`, including the homepage, Start Here, Planner, Dough Doctor, Guide, Updates and Account.
-- Start Here, Guide and Updates contain meaningful visible copy and headings in the page source.
+- Many application pages currently start with `"use client"`, including the homepage, Pizza Session start, Planner, Dough Doctor, Guide, Updates and Account.
+- Pizza Session start, Guide and Updates contain meaningful visible copy and headings in the page source.
 - Planner and Dough Doctor provide meaningful page shells and headings, but they also rely on client-side state for recipe-aware interactivity.
 - The homepage calculator is intentionally interactive and carries one of the larger route sizes.
 - `/account` has the largest First Load JS in the current build output, likely because account/auth UI and Supabase client behavior are client-side.
@@ -124,7 +124,7 @@ Not verified in this patch:
 These are starting guidelines, not enforced budgets.
 
 - Homepage `/`: keep focused on the main workflow and avoid importing unrelated tools into first load.
-- `/start`: keep mostly static, content-first and fast to scan.
+- `/session/start`: keep the guided setup focused and avoid importing unrelated tools into the planning flow.
 - `/updates`: keep static/data-driven and avoid turning it into an interactive feed.
 - `/guide`: keep content-first; split large interactive education widgets if added later.
 - `/plan`: interactive planning is expected, but avoid unrelated calculators or heavy visual modules.
@@ -138,12 +138,12 @@ These are starting guidelines, not enforced budgets.
 Priority ideas for later patches:
 
 1. Review which content-first routes can become server components or split their interactive islands.
-2. Keep Start Here and Updates mostly static.
+2. Keep Pizza Session start and Updates scoped to their primary jobs.
 3. Avoid importing calculator-heavy modules into informational pages.
 4. Consider lazy-loading non-critical sections on the homepage if route size grows.
 5. Review shared modules that are imported by the homepage, Planner and Dough Doctor.
 6. Check whether `/account` can reduce first-load client cost without changing auth behavior.
-7. Run Lighthouse/lab checks on `/`, `/start`, `/plan`, `/doctor`, `/guide`, `/updates` and `/account`.
+7. Run Lighthouse/lab checks on `/`, `/session/start`, `/plan`, `/doctor`, `/guide`, `/updates` and `/account`.
 8. Add privacy-first field measurement only after a separate product/legal decision.
 9. Use this Patch 25 baseline to guide Patch 26 calculator progressive disclosure so the beginner experience improves without making first load heavier.
 

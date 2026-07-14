@@ -40,7 +40,6 @@ Those features were not deleted. They remain in their existing routes or workflo
 
 - `/`
 - `/?calculator=1`
-- `/start`
 - `/session/start`
 - `/session/recipe`
 - `/session/timeline`

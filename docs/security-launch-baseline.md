@@ -144,7 +144,7 @@ After deployment to Vercel, verify:
 1. Open the production site.
 2. Check response headers for:
    - `/`
-   - `/start`
+   - `/session/start`
    - `/plan`
    - `/doctor`
    - `/account`

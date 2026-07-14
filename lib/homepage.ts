@@ -53,7 +53,7 @@ export const homepageContent = {
     "You control your session data",
   ],
   secondaryTools: [
-    { name: "Start Here", href: "/start" },
+    { name: "Plan my next pizza", href: "/session/start" },
     { name: "Pizza Styles", href: "/styles" },
     { name: "Dough Guide", href: "/guide" },
     { name: "Oven Guide", href: "/ovens" },

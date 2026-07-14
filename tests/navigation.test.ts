@@ -12,7 +12,7 @@ import {
 
 const requiredRoutes = [
   "/",
-  "/start",
+  "/session/start",
   "/plan",
   "/sauce",
   "/toppings",

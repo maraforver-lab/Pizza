@@ -762,16 +762,18 @@ describe("Start Pizza Session wizard", () => {
     expect(buildPizzaSessionTargetTime("tomorrow", "custom-time", new Date("2026-06-25T10:00:00"))).toBe("");
   });
 
-  it("connects the homepage and Start Here page to the wizard without removing /start", () => {
+  it("connects the homepage and legacy /start URL to the wizard without reintroducing the beta page", () => {
     const startPage = source("app/start/page.tsx");
     const homepage = source("lib/homepage.ts");
 
     expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my next pizza", href: "/session/start" });
     expect(homepage).toContain("Plan my next pizza");
     expect(homepage).toContain("/session/start");
-    expect(startPage).toContain("Plan my next pizza");
+    expect(startPage).toContain("permanentRedirect");
+    expect(startPage).toContain('"/session/start"');
+    expect(startPage).not.toContain('"use client"');
+    expect(startPage).not.toContain("Start Here");
     expect(startPage).not.toContain("Start Pizza Session");
-    expect(startPage).toContain("href=\"/session/start\"");
   });
 
   it("renders the start form without creating a ghost session and persists only on plan creation", () => {

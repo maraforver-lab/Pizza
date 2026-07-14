@@ -3,7 +3,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { EXPERIENCE_LEVELS } from "@/lib/experience-levels";
 import { navigationGroups, navigationItems } from "@/lib/navigation";
-import { startHerePaths } from "@/lib/start-here";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -22,24 +21,14 @@ describe("core accessibility baseline", () => {
     }
   });
 
-  it("keeps Start Here cards labelled by visible headings and clear CTAs", () => {
+  it("keeps the legacy /start route free of client-only UI while preserving the redirect", () => {
     const startSource = source("app/start/page.tsx");
 
-    expect(startSource).toContain("aria-labelledby={headingId}");
-    expect(startSource).toContain("id={headingId}");
-    expect(startSource).toContain("aria-hidden=\"true\"");
-    expect(startSource).toContain("focus-visible:ring");
-    expect(startHerePaths.map((path) => path.title)).toEqual([
-      "Home oven pizza",
-      "Pizza oven pizza",
-      "Pan / tray pizza",
-    ]);
-    for (const path of startHerePaths) {
-      expect(path.primaryCta).not.toMatch(/\b(here|click|more)\b/i);
-      expect(path.secondaryCta).not.toMatch(/\b(here|click|more)\b/i);
-      expect(path.title.trim()).toBeTruthy();
-      expect(path.description.trim()).toBeTruthy();
-    }
+    expect(startSource).toContain("permanentRedirect");
+    expect(startSource).toContain('"/session/start"');
+    expect(startSource).not.toContain('"use client"');
+    expect(startSource).not.toContain("ExperienceLevelSelector");
+    expect(startSource).not.toContain("Start Here");
   });
 
   it("keeps minimal global header controls named and active state available without color alone", () => {

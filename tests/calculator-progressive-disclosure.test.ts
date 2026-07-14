@@ -147,12 +147,10 @@ describe("calculator progressive disclosure", () => {
     expect(doc).toContain("does not change dough formulas");
   });
 
-  it("preserves Start Here links and Patch 24 accessibility markers", () => {
-    const startHere = source("lib/start-here.ts");
+  it("preserves Patch 24 accessibility markers after removing the old Start Here path data", () => {
     const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
 
-    expect(startHere).toContain("startHerePathHref");
-    expect(startHere).toContain("recipeParams(path.settings)");
+    expect(existsSync(join(process.cwd(), "lib", "start-here.ts"))).toBe(false);
     expect(calculatorWorkspace).toContain("focus-visible:ring");
     expect(calculatorWorkspace).toContain("aria-pressed");
   });

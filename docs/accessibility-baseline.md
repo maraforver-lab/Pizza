@@ -9,7 +9,7 @@ This is not a full WCAG audit. It is a practical baseline for a form-heavy pizza
 Core routes reviewed during this pass:
 
 - `/`
-- `/start`
+- `/session/start`
 - `/plan`
 - `/doctor`
 - `/guide`
@@ -59,7 +59,7 @@ Do not add positive `tabIndex` values unless there is a reviewed accessibility r
 Important user journeys:
 
 1. homepage hero
-2. Start Here
+2. Pizza Session start
 3. calculator settings
 4. recipe result
 5. planner

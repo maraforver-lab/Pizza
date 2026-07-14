@@ -110,7 +110,6 @@ Examples:
 
 - advanced calculator workspace on `/`
 - `/calculator/quick`
-- `/start`
 - `/session/start`
 - `/session/recipe`
 - `/session/shopping`

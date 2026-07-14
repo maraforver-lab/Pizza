@@ -64,12 +64,12 @@ describe("core recipe workflow handoff", () => {
     expect(calculatorWorkspace).toContain("focus-visible:ring");
   });
 
-  it("preserves Start Here, calculations and route behavior while adding workflow documentation", () => {
+  it("preserves calculations and route behavior while adding workflow documentation", () => {
     const docPath = join(process.cwd(), "docs", "core-recipe-workflow.md");
     const ingredients = calculateDoughIngredients(baseSettings);
 
     expect(existsSync(docPath)).toBe(true);
-    expect(source("lib/start-here.ts")).toContain("recipeParams(path.settings)");
+    expect(existsSync(join(process.cwd(), "lib", "start-here.ts"))).toBe(false);
     expect(source("docs/core-recipe-workflow.md")).toContain("Calculator / recipe result");
     expect(source("docs/core-recipe-workflow.md")).toContain("/plan");
     expect(source("docs/core-recipe-workflow.md")).toContain("/sauce");

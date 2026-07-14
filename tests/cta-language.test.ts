@@ -14,7 +14,6 @@ describe("sitewide CTA language", () => {
   it("uses canonical public planning language for /session/start entry points", () => {
     const publicEntrySources = sources([
       "lib/homepage.ts",
-      "app/start/page.tsx",
       "app/about/page.tsx",
       "app/guide/page.tsx",
       "app/ovens/page.tsx",

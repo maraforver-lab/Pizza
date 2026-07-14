@@ -6,7 +6,7 @@ This patch changes presentation and guidance only. It does not change dough form
 
 ## Why this exists
 
-Start Here gives beginners a simpler first path. The calculator also needs to respect that same idea: a new user should not meet every technical parameter before they understand the basic recipe.
+The Pizza Session start flow gives beginners a simpler first path. The calculator also needs to respect that same idea: a new user should not meet every technical parameter before they understand the basic recipe.
 
 The goal is:
 

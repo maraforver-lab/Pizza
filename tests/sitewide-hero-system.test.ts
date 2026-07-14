@@ -24,7 +24,6 @@ const expectedRoutes = [
   "/doctor",
   "/timer",
   "/calculator/quick",
-  "/start",
   "/plan",
   "/session/start",
   "/session/recipe",

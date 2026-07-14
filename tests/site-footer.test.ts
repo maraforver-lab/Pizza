@@ -18,7 +18,6 @@ const footerBearingSources = [
   ["ovens", source("app", "ovens", "page.tsx")],
   ["plan", source("app", "plan", "page.tsx")],
   ["sauce", source("app", "sauce", "page.tsx")],
-  ["start", source("app", "start", "page.tsx")],
   ["styles", source("app", "styles", "page.tsx")],
   ["timer", source("app", "timer", "page.tsx")],
   ["toppings", source("components", "toppings", "ToppingBalanceLab.tsx")],
@@ -40,6 +39,7 @@ const noFooterSources = [
   ["session shopping", source("app", "session", "shopping", "page.tsx")],
   ["session start", source("app", "session", "start", "page.tsx")],
   ["session timeline", source("app", "session", "timeline", "page.tsx")],
+  ["legacy start redirect", source("app", "start", "page.tsx")],
 ] as const;
 
 describe("canonical site footer", () => {

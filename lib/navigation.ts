@@ -43,7 +43,7 @@ export const navigationGroups = [
     shortLabel: "Make",
     description: "Choose a style, calculate dough, plan fermentation, prepare toppings and bake.",
     items: [
-      { id: "start", label: "Start Here", href: "/start", description: "Choose a simple pizza path before tuning detailed settings." },
+      { id: "start", label: "Plan my next pizza", href: "/session/start", description: "Create a guided pizza plan before moving into recipe, shopping, timeline and kitchen steps." },
       { id: "calculator", label: "Dough Calculator", href: "/?calculator=1", description: "Start with dough weight, hydration, salt, yeast and fermentation." },
       { id: "planner", label: "Fermentation Planner", href: "/plan", description: "Turn the recipe into a timeline and preparation plan." },
       { id: "sauce", label: "Sauce Calculator", href: "/sauce", description: "Calculate tomato sauce for the number of pizzas." },

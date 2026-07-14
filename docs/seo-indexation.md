@@ -23,7 +23,7 @@ The central source of truth is `publicSeoRoutes` in `lib/seo-config.ts`.
 Important public routes include:
 
 - `/`
-- `/start`
+- `/session/start`
 - `/guide`
 - `/methodology`
 - `/about`
@@ -124,7 +124,7 @@ The sitemap includes clean public routes only.
 It must include:
 
 - `/`
-- `/start`
+- `/session/start`
 - `/guide`
 - `/updates`
 - `/plan`
@@ -169,7 +169,7 @@ When DoughTools is ready for public indexing:
 2. Submit `https://www.doughtools.app/sitemap.xml`.
 3. Inspect:
    - `/`
-   - `/start`
+   - `/session/start`
    - `/guide`
    - `/plan`
    - `/doctor`

@@ -77,7 +77,7 @@ It excludes:
 
 The sitemap uses the configured safe site URL when available.
 
-`/start` is included as a public discovery route. Query-param tool URLs remain shareable, but they are not listed as sitemap entries.
+`/session/start` is the public planning entry route. Legacy `/start` redirects to it and is not listed as a separate sitemap entry. Query-param tool URLs remain shareable, but they are not listed as sitemap entries.
 
 ## Robots behavior
 

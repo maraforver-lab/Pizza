@@ -28,7 +28,6 @@ import {
 
 const requiredPublicRoutes = [
   "/",
-  "/start",
   "/about",
   "/contact",
   "/privacy",
@@ -115,7 +114,6 @@ describe("SEO launch configuration", () => {
     expect(seoRoutePolicy.publicIndexableRoutes).toEqual(requiredPublicRoutes);
     expect(seoRoutePolicy.publicToolBaseRoutes).toEqual([
       "/",
-      "/start",
       "/plan",
       "/doctor",
       "/sauce",
@@ -151,7 +149,7 @@ describe("SEO launch configuration", () => {
   it("generates clean canonical URLs only from the configured safe URL helper", () => {
     expect(cleanCanonicalPath("/plan?hydration=64#recipe")).toBe("/plan");
     expect(cleanCanonicalPath("https://example.com/doctor?hydration=64")).toBe("/doctor");
-    expect(cleanCanonicalPath("/start/")).toBe("/start");
+    expect(cleanCanonicalPath("/session/start/")).toBe("/session/start");
     expect(canonicalUrl("/sauce?balls=6", { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app/" })).toBe(
       "https://www.doughtools.app/sauce",
     );
@@ -164,8 +162,9 @@ describe("SEO launch configuration", () => {
     expect(metadataForRoute("/", { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" }).alternates).toMatchObject({
       canonical: "https://www.doughtools.app/",
     });
-    expect(metadataForRoute("/start", { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" }).alternates)
-      .toMatchObject({ canonical: "https://www.doughtools.app/start" });
+    expect(canonicalUrl("/start", { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" })).toBe(
+      "https://www.doughtools.app/start",
+    );
   });
 
   it("keeps stateful query-param tool routes shareable but out of sitemap", () => {
@@ -200,10 +199,9 @@ describe("SEO launch configuration", () => {
   });
 
   it("keeps public pages indexable only when indexing is explicitly allowed and private pages noindex", () => {
-    expect(metadataForRoute("/start", {
-      ALLOW_INDEXING: "true",
-      NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
-    }).robots).toMatchObject({ index: true, follow: true });
+    expect(() => metadataForRoute("/start" as Parameters<typeof metadataForRoute>[0])).toThrow(
+      "Missing SEO metadata for route: /start",
+    );
 
     expect(metadataForRoute("/updates", {
       ALLOW_INDEXING: "true",
@@ -301,7 +299,8 @@ describe("SEO launch configuration", () => {
     const indexationDoc = readFileSync(indexationDocPath, "utf8");
 
     expect(indexationDoc).toContain("https://www.doughtools.app");
-    expect(indexationDoc).toContain("/start");
+    expect(indexationDoc).toContain("/session/start");
+    expect(indexationDoc).not.toContain("- `/start`");
     expect(indexationDoc).toContain("/sitemap.xml");
     expect(indexationDoc).toContain("/robots.txt");
     expect(indexationDoc).toContain("Search Console");

@@ -31,14 +31,6 @@ export const publicSeoRoutes = [
     priority: 1,
   },
   {
-    path: "/start",
-    title: "Start Here Pizza Path | DoughTools",
-    description:
-      "Choose a beginner-friendly home oven, pizza oven or pan pizza path before adjusting detailed dough settings.",
-    changeFrequency: "weekly",
-    priority: 0.9,
-  },
-  {
     path: "/about",
     title: "About DoughTools | DoughTools",
     description: "Read why Marcin Arcisz created DoughTools from real pizza nights, dough planning questions and the need to make hosting pizza easier.",
@@ -182,7 +174,6 @@ export const privateSeoRoutes = [
 
 export const publicToolBaseRoutes = [
   "/",
-  "/start",
   "/plan",
   "/doctor",
   "/sauce",
