@@ -183,6 +183,31 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(pizzaSessionContinueHref(reviewSession)).toBe("/session/review");
   });
 
+  it("resumes persisted Kitchen progress to Kitchen even when the last safe route is stale", () => {
+    const kitchenStartedSession = createPizzaSession({
+      id: "flow-kitchen-stale-last-route",
+      currentStep: "prep",
+      status: "preparing",
+      lastRoute: "/session/timeline",
+      timeline: {
+        generatedAt: "2026-06-25T10:00:00.000Z",
+        targetEatTime: "2026-06-27T18:00",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", status: "todo", kind: "passive" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-06-25T10:15:00.000Z",
+          actualCompletedAt: "2026-06-25T10:30:00.000Z",
+        },
+      },
+    });
+
+    expect(pizzaSessionContinueHref(kitchenStartedSession)).toBe("/session/kitchen");
+  });
+
   it("does not introduce Finnish UI copy in session flow pages", () => {
     const combined = sessionRoutes
       .map(([, , file]) => source(file))

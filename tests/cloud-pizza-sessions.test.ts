@@ -1294,6 +1294,25 @@ describe("cloud pizza session foundation", () => {
     expect(reviewPage).toContain("completeCloudBackedPizzaSession(completed)");
   });
 
+  it("queues the latest Kitchen mutation snapshot before immediate navigation can unmount the sync effect", () => {
+    const kitchenPage = source("app/session/kitchen/page.tsx");
+
+    expect(kitchenPage).toContain("queueCloudActivePizzaSessionSave");
+    expect(kitchenPage).toContain("queueCloudActivePizzaSessionSave(updated).catch");
+    const syncCalls = [...kitchenPage.matchAll(/queueKitchenProgressSync\(updated\)/g)].map((match) => match.index ?? -1);
+    expect(syncCalls).toHaveLength(2);
+
+    const completeMutation = kitchenPage.indexOf("const updated = completeKitchenTimelineStep(session, currentStep.id)");
+    const completeSetSession = kitchenPage.indexOf("setSession(updated)", syncCalls[0]);
+    expect(completeMutation).toBeLessThan(syncCalls[0]);
+    expect(syncCalls[0]).toBeLessThan(completeSetSession);
+
+    const startMutation = kitchenPage.indexOf("const updated = startPizzaSessionTimelineStep(session, currentStep.id, undefined, now)");
+    const startSetSession = kitchenPage.indexOf("setSession(updated)", syncCalls[1]);
+    expect(startMutation).toBeLessThan(syncCalls[1]);
+    expect(syncCalls[1]).toBeLessThan(startSetSession);
+  });
+
   it("documents active-session cloud queue behavior for newest update wins", () => {
     const client = source("lib/cloud-pizza-session-client.ts");
     const route = source("app/api/pizza-sessions/active/route.ts");

@@ -10,6 +10,7 @@ import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import { getExperienceLevelConfig } from "@/lib/experience-levels";
+import { queueCloudActivePizzaSessionSave } from "@/lib/cloud-pizza-session-client";
 import { buildContextualReturnHref } from "@/lib/contextual-return";
 import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
 import {
@@ -100,6 +101,12 @@ function kitchenStepIconTone(step?: { id: string }) {
 
 function levelModeLabel(label: string) {
   return `${label} mode`;
+}
+
+function queueKitchenProgressSync(updated: PizzaSession) {
+  void queueCloudActivePizzaSessionSave(updated).catch(() => {
+    // The local session remains current; route-level sync can retry on the next render.
+  });
 }
 
 function isOvenTroubleshootingStep(step?: { id: string }) {
@@ -244,6 +251,7 @@ export default function SessionKitchenPage() {
     if (!session || !currentStep) return;
     const updated = completeKitchenTimelineStep(session, currentStep.id);
     if (!updated) return;
+    queueKitchenProgressSync(updated);
     setConfirmEarlyCompletion(false);
     setSession(updated);
   };
@@ -253,6 +261,7 @@ export default function SessionKitchenPage() {
     const now = new Date();
     const updated = startPizzaSessionTimelineStep(session, currentStep.id, undefined, now);
     if (!updated) return;
+    queueKitchenProgressSync(updated);
     setCurrentTime(now);
     setSession(updated);
   };
