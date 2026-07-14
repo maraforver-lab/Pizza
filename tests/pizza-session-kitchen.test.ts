@@ -608,6 +608,7 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).toContain("levelModeLabel(experience.label)");
     expect(page).toContain("${label} mode");
+    expect(page).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} />");
     expect(getExperienceLevelConfig("beginner").label).toBe("Beginner");
     expect(getExperienceLevelConfig("enthusiast").label).toBe("Enthusiast");
     expect(getExperienceLevelConfig("pizza_nerd").label).toBe("Pizza Nerd");

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
+import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -289,6 +290,7 @@ export default function SessionKitchenPage() {
                         <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/45">
                           Kitchen Mode
                         </span>
+                        <SessionExperienceLevelBadge level={session.experienceLevel} />
                         {waitInfo.isTooEarly && waitInfo.waitLabel && (
                           <span className="rounded-full bg-tomato/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-tomato">
                             {waitInfo.waitLabel}

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { StatusPill } from "@/components/design-system";
+import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
 import {
   getExperienceLevelCornerAccentStyle,
   type ExperienceLevel,
@@ -31,6 +32,7 @@ export function SessionStepHero({
   title,
 }: SessionStepHeroProps) {
   const levelAccent = level ? getExperienceLevelCornerAccentStyle(level) : undefined;
+  const showMetaRow = !hideMeta || Boolean(level);
 
   return (
     <section
@@ -40,14 +42,19 @@ export function SessionStepHero({
     >
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:justify-between">
         <div className="min-w-0">
-          {!hideMeta && (
+          {showMetaRow && (
             <div className="flex flex-wrap gap-2">
-              <StatusPill className="bg-tomato/10 text-tomato">Step {step} of 10</StatusPill>
-              <StatusPill className="hidden sm:inline-flex">{label}</StatusPill>
-              <StatusPill className="hidden sm:inline-flex">{pageType}</StatusPill>
+              {!hideMeta && (
+                <>
+                  <StatusPill className="bg-tomato/10 text-tomato">Step {step} of 10</StatusPill>
+                  <StatusPill className="hidden sm:inline-flex">{label}</StatusPill>
+                  <StatusPill className="hidden sm:inline-flex">{pageType}</StatusPill>
+                </>
+              )}
+              {level && <SessionExperienceLevelBadge level={level} />}
             </div>
           )}
-          <h1 id="session-step-heading" className={`${hideMeta ? "" : "mt-4"} max-w-3xl font-display text-3xl font-semibold leading-none sm:text-6xl`}>
+          <h1 id="session-step-heading" className={`${showMetaRow ? "mt-4" : ""} max-w-3xl font-display text-3xl font-semibold leading-none sm:text-6xl`}>
             {title}
           </h1>
           {body && <p className="mt-2 max-w-2xl text-xs leading-5 text-ink/60 sm:mt-4 sm:text-base sm:leading-6">{body}</p>}

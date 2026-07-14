@@ -263,8 +263,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('aria-label="Pizza Session journey"');
     expect(page).toContain('aria-label="Pizza Session setup progress"');
     expect(page).toContain("setup complete. Dough Plan next.");
+    expect(page).toContain("<SessionExperienceLevelBadge level={experienceLevel}");
     expect(page).not.toContain("GuidanceModeBadge");
-    expect(page).not.toContain("Guidance mode:");
     expect(page).not.toContain("Pizza Session V2");
     expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
     expect(page).not.toContain("sm:inline-flex ${experience.badgeClassName}");
@@ -835,6 +835,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("pizza_nerd");
     expect(page).toContain("getExperienceLevelCornerAccentStyle");
     expect(page).toContain("const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel)");
+    expect(page).toContain("<SessionExperienceLevelBadge level={experienceLevel}");
     expect(levels).toContain("Beginner");
     expect(levels).toContain("Enthusiast");
     expect(levels).toContain("Pizza Nerd");

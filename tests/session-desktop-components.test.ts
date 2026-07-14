@@ -19,6 +19,8 @@ describe("Pizza Session desktop refinement components", () => {
     expect(component).toContain("desktopAside");
     expect(component).toContain("hideMeta");
     expect(component).toContain("!hideMeta");
+    expect(component).toContain("const showMetaRow = !hideMeta || Boolean(level)");
+    expect(component).toContain("SessionExperienceLevelBadge");
     expect(component).toContain("getExperienceLevelCornerAccentStyle");
     expect(component).toContain("const levelAccent = level ? getExperienceLevelCornerAccentStyle(level) : undefined");
     expect(component).not.toContain("GuidanceModeBadge");
@@ -108,6 +110,7 @@ describe("Pizza Session desktop refinement components", () => {
     for (const pagePath of pages) {
       const page = source(pagePath);
       expect(page).toContain("SessionStepHero");
+      expect(page).toContain("level={session.experienceLevel}");
       expect(page).toContain("SessionViewportReset");
     }
 
@@ -167,5 +170,20 @@ describe("Pizza Session desktop refinement components", () => {
       expect(page).toContain("SessionWorkspaceLayout");
       expect(page).toContain(activeStep);
     }
+  });
+
+  it("keeps Pizza Session guidance level visible from the active session value", () => {
+    const badge = source("components/session/SessionExperienceLevelBadge.tsx");
+    const hero = source("components/session/SessionStepHero.tsx");
+    const startPage = source("app/session/start/page.tsx");
+    const kitchenPage = source("app/session/kitchen/page.tsx");
+
+    expect(badge).toContain("Pizza Session guidance level: ${config.label}");
+    expect(badge).toContain("Guidance: {config.label}");
+    expect(badge).toContain("data-session-experience-level={config.id}");
+    expect(hero).toContain("{level && <SessionExperienceLevelBadge level={level} />}");
+    expect(startPage).toContain("<SessionExperienceLevelBadge level={experienceLevel}");
+    expect(kitchenPage).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} />");
+    expect(kitchenPage).toContain("getKitchenExperienceGuidance(currentStep, session.experienceLevel, session)");
   });
 });

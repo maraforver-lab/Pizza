@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { BottomActionBar, buttonClass, focusRingClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import {
   clearCloudBackedActivePizzaSessionPointer,
@@ -1019,6 +1020,7 @@ function StartPizzaSessionContent() {
 
           <div className="mb-4 flex flex-col gap-3 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between [@media_(min-width:1024px)_and_(max-height:860px)]:mb-3 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-2">
             <div className="min-w-0">
+              <SessionExperienceLevelBadge level={experienceLevel} className="mb-3" />
               <h2 className="font-display text-3xl font-semibold leading-none sm:text-4xl [@media_(min-width:1024px)_and_(max-height:860px)]:text-3xl">
                 {wizardStepQuestions[step]}
               </h2>

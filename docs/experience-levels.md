@@ -40,6 +40,12 @@ The preference is safe for server rendering: helper functions do not require `wi
 
 The current implementation is browser-local only. It is not synced to Supabase and does not require a user account.
 
+## Active Pizza Session ownership
+
+An active Pizza Session owns its experience level through `PizzaSession.experienceLevel`.
+
+The global `doughtools.experienceLevel` preference may initialize a future session draft, but it must not override the current active session once that session exists. Recipe, Shopping, Timeline, Kitchen and Review must render level labels, guidance variants and level-dependent controls from the active session value, using the shared Beginner fallback for missing legacy session values.
+
 ## Future profile field
 
 A later authenticated-profile version may sync this value to a user profile field such as:

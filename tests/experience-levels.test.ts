@@ -167,4 +167,16 @@ describe("experience levels foundation", () => {
       expect(level.description).toMatch(/I (want|already)/);
     }
   });
+
+  it("supports a shared visible Pizza Session guidance badge without duplicating label mappings", () => {
+    const badge = readFileSync(join(process.cwd(), "components", "session", "SessionExperienceLevelBadge.tsx"), "utf8");
+    const hero = readFileSync(join(process.cwd(), "components", "session", "SessionStepHero.tsx"), "utf8");
+
+    expect(badge).toContain("getExperienceLevelConfig(level)");
+    expect(badge).toContain("Guidance: {config.label}");
+    expect(badge).toContain("data-session-experience-level={config.id}");
+    expect(badge).toContain("markerClassName");
+    expect(badge).not.toContain("{config.marker}");
+    expect(hero).toContain("SessionExperienceLevelBadge");
+  });
 });
