@@ -831,8 +831,8 @@ describe("Pizza Dough Guide foundation", () => {
     expect(header).toContain('href="/guides/dough"');
     expect(header).toContain("Pizza Troubleshooting Guide");
     expect(header).toContain('href="/guide/pizza-troubleshooting"');
-    expect(guideIndex).toContain("Pizza Dough Guide");
-    expect(guideIndex).toContain('href="/guides/dough"');
+    expect(guideIndex).toContain("How to make pizza dough");
+    expect(guideIndex).toContain('href: "/guides/dough"');
     expect(navigation).toContain('id: "dough-guide"');
     expect(navigation).toContain('href: "/guides/dough"');
   });

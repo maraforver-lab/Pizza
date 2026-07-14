@@ -584,11 +584,9 @@ describe("Pizza Troubleshooting Guide", () => {
   it("links the troubleshooting guide from the existing Guide index", () => {
     const guide = source("app/guide/page.tsx");
 
-    expect(guide).toContain("Pizza Troubleshooting Guide");
-    expect(guide).toContain(
-      "Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.",
-    );
-    expect(guide).toContain('href="/guide/pizza-troubleshooting"');
+    expect(guide).toContain("Pizza Troubleshooting");
+    expect(guide).toContain("Find causes and fixes when dough, baking or toppings go wrong.");
+    expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
   });
 
   it("keeps Pizza Session pages free of embedded troubleshooting guide content while allowing contextual links", () => {

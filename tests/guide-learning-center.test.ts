@@ -11,12 +11,11 @@ describe("Pizza Learning Center guide index", () => {
     const guide = page();
 
     expect(guide).toContain("Pizza Learning Center");
-    expect(guide).toContain("Understand your dough. Make better pizza.");
-    expect(guide).toContain("Understand dough basics");
-    expect(guide).toContain("Solve a pizza problem");
-    expect(guide).toContain('id="problem-led-entry"');
-    expect(guide).toContain('id="essential-concepts"');
-    expect(guide).toContain("The essentials behind better pizza");
+    expect(guide).toContain("Find the right pizza guide.");
+    expect(guide).toContain("Start with dough or sauce");
+    expect(guide).toContain("Dough and sauce");
+    expect(guide).toContain("Supporting guides");
+    expect(guide).toContain("Quick orientation");
     expect(guide).not.toContain("Learn more");
   });
 
@@ -30,72 +29,60 @@ describe("Pizza Learning Center guide index", () => {
     expect(guide).not.toContain("getEducationExperienceCopy");
   });
 
-  it("offers problem-led entry cards with real destinations", () => {
+  it("puts the canonical dough and sauce guides directly after the hero", () => {
     const guide = page();
-    const problems = [
-      "My dough is sticky",
-      "My dough will not stretch",
-      "My crust is dense",
-      "My dough spreads or collapses",
-      "I do not know which flour to choose",
-      "I use a home oven",
-      "I want a lighter, airier crust",
-      "I am confused by pizza percentages",
-    ];
 
-    for (const problem of problems) expect(guide).toContain(problem);
-    expect(guide).toContain('href: "#hydration"');
-    expect(guide).toContain('href: "#gluten-development"');
-    expect(guide).toContain('href: "#flour-strength"');
-    expect(guide).toContain('href: "#oven-heat"');
-    expect(guide).toContain('href: "#bakers-percentages"');
+    expect(guide).toContain("const primaryGuides");
+    expect(guide).toContain("How to make pizza dough");
+    expect(guide).toContain("Learn how to make the dough and understand fermentation.");
+    expect(guide).toContain('href: "/guides/dough"');
+    expect(guide).toContain("How to make pizza sauce");
+    expect(guide).toContain("Learn how to make the sauce and see the right sauce amount for one pizza or a full batch.");
+    expect(guide).toContain('href: "/sauce"');
+    expect(guide.indexOf("primaryGuides")).toBeLessThan(guide.indexOf("secondaryGuides"));
   });
 
-  it("includes the required essential concepts with stable anchors", () => {
+  it("keeps a compact set of stable topic anchors without recreating dough instructions", () => {
     const guide = page();
-    const concepts = [
+    const topics = [
       "Hydration",
       "Fermentation",
-      "Dough temperature",
       "Flour strength",
       "Gluten development",
-      "Yeast",
-      "Salt",
-      "Ball weight and pizza size",
-      "Oven heat and bake profile",
-      "Baker’s percentages",
+      "Oven heat",
     ];
     const anchors = [
       "hydration",
       "fermentation",
-      "dough-temperature",
       "flour-strength",
       "gluten-development",
-      "yeast",
-      "salt",
-      "ball-weight",
       "oven-heat",
-      "bakers-percentages",
     ];
 
-    for (const concept of concepts) expect(guide).toContain(concept);
+    for (const concept of topics) expect(guide).toContain(concept);
     for (const anchor of anchors) expect(guide).toContain(`id: "${anchor}"`);
-    expect(guide).toContain("Why it matters");
-    expect(guide).toContain("Practical effect");
-    expect(guide).toContain("Commonly goes wrong");
-    expect(guide).toContain("Consider next");
+    expect(guide).toContain("These anchors keep older learning links useful.");
+    expect(guide).not.toContain("Why it matters");
+    expect(guide).not.toContain("Practical effect");
+    expect(guide).not.toContain("Commonly goes wrong");
+    expect(guide).not.toContain("Consider next");
   });
 
-  it("keeps the Guide index as a hub for the dedicated detailed guides", () => {
+  it("keeps the Guide index as a hub for existing learning routes", () => {
     const guide = page();
 
-    expect(guide).toContain("Pizza Dough Guide");
-    expect(guide).toContain('href="/guides/dough"');
-    expect(guide).toContain("Pizza Troubleshooting Guide");
-    expect(guide).toContain('href="/guide/pizza-troubleshooting"');
-    expect(guide).toContain(
-      "Common pizza dough and baking problems — what causes them, how to fix them now, and how to prevent them next time.",
-    );
+    expect(guide).toContain("How to make pizza dough");
+    expect(guide).toContain('href: "/guides/dough"');
+    expect(guide).toContain("How to make pizza sauce");
+    expect(guide).toContain('href: "/sauce"');
+    expect(guide).toContain("Oven Guide");
+    expect(guide).toContain('href: "/ovens"');
+    expect(guide).toContain("Pizza Styles");
+    expect(guide).toContain('href: "/styles"');
+    expect(guide).toContain("Pizza Troubleshooting");
+    expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
+    expect(guide).toContain("Plan my next pizza");
+    expect(guide).toContain('href="/session/start"');
   });
 
   it("uses approved local imagery and the unified icon system", () => {
@@ -103,13 +90,12 @@ describe("Pizza Learning Center guide index", () => {
 
     expect(guide).toContain("DoughToolsIcon");
     expect(guide).toContain("/images/homepage/doughtools-hero-desktop.webp");
-    expect(guide).toContain("/dough-guide/guide-step-03-mix.webp");
+    expect(guide).not.toContain("/dough-guide/guide-step-03-mix.webp");
     expect(guide).not.toMatch(/https?:\/\/|\/\/images|unsplash|pexels|stock/i);
     expect(existsSync(join(process.cwd(), "public", "images", "homepage", "doughtools-hero-desktop.webp"))).toBe(true);
-    expect(existsSync(join(process.cwd(), "public", "dough-guide", "guide-step-03-mix.webp"))).toBe(true);
   });
 
-  it("removes the old flour catalogue and technical settings-reference page shape", () => {
+  it("does not add guide-specific recipes, formulas, amounts or old catalogue content", () => {
     const guide = page();
 
     expect(guide).not.toContain("flourProducts");
@@ -117,5 +103,11 @@ describe("Pizza Learning Center guide index", () => {
     expect(guide).not.toContain("Caputo Classica");
     expect(guide).not.toContain("Real pizza flours at different strengths");
     expect(guide).not.toContain("Exact calculation or estimate?");
+    expect(guide).not.toContain("calculateDoughIngredients");
+    expect(guide).not.toContain("calculateSauce");
+    expect(guide).not.toContain("sauceGrams");
+    expect(guide).not.toContain("hydrationPercent");
+    expect(guide).not.toContain("642 g");
+    expect(guide).not.toContain("235 g");
   });
 });

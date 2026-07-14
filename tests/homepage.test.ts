@@ -202,8 +202,8 @@ describe("homepage content model", () => {
     expect(header).toContain("border-ink bg-ink text-white");
     expect(header).toContain("Tools");
     expect(header).toContain("Guide");
-    expect(header).toContain("Guide and glossary");
-    expect(header).toContain("Learn terminology, flour strength and dough principles.");
+    expect(header).toContain("Learning Center");
+    expect(header).toContain("Find the dough, sauce, oven, style and troubleshooting guides.");
     expect(header).toContain("Pizza Sauce Guide");
     expect(header).toContain('href="/sauce"');
     expect(header).toContain("Pizza Troubleshooting Guide");
