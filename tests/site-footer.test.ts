@@ -13,7 +13,6 @@ const footerBearingSources = [
   ["costs", source("components", "costs", "PizzaCostsPlayfulClient.tsx")],
   ["guide", source("app", "guide", "page.tsx")],
   ["ovens", source("app", "ovens", "page.tsx")],
-  ["plan", source("app", "plan", "page.tsx")],
   ["sauce", source("app", "sauce", "page.tsx")],
   ["styles", source("app", "styles", "page.tsx")],
   ["timer", source("app", "timer", "page.tsx")],
@@ -40,6 +39,7 @@ const noFooterSources = [
   ["legacy history redirect", source("app", "history", "page.tsx")],
   ["legacy gear redirect", source("app", "gear", "page.tsx")],
   ["legacy doctor redirect", source("app", "doctor", "page.tsx")],
+  ["legacy plan redirect", source("app", "plan", "page.tsx")],
 ] as const;
 
 describe("canonical site footer", () => {

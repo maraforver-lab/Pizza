@@ -10,7 +10,7 @@ The intended core flow is:
 
 ```text
 Calculator / recipe result
-→ Planner
+→ Pizza Session
 → Sauce
 → Toppings
 → Timer
@@ -30,7 +30,7 @@ Next steps for this recipe
 
 The section links to:
 
-- Planner
+- Pizza Session
 - Sauce
 - Toppings
 - Timer
@@ -42,13 +42,14 @@ It also reminds the user that the recipe can be saved locally with the existing 
 
 The following tool links preserve the existing recipe query context:
 
-- `/plan`
 - `/sauce`
 - `/toppings`
 - `/timer`
 - `/guide/pizza-troubleshooting`
 
 The query is built from the existing `recipeParams(settings)` convention. Patch 28 does not rename query parameters and does not invent unsupported parameters.
+
+Patch 391B retired the legacy `/plan` handoff. Creating or configuring the current guided plan now starts at `/session/start`; unsupported legacy recipe query parameters are not forwarded into that route.
 
 The preserved context can include:
 
@@ -73,8 +74,8 @@ The next-step copy adapts lightly to the existing experience-level system:
 
 | Level | Behavior |
 | --- | --- |
-| Beginner | Keeps the next move simple and emphasizes Planner first. |
-| Enthusiast | Explains why Planner, Sauce, Toppings and Timer matter together. |
+| Beginner | Keeps the next move simple and emphasizes Pizza Session first. |
+| Enthusiast | Explains why Pizza Session, Sauce, Toppings and Timer matter together. |
 | Pizza Nerd | Mentions query continuity and repeatable variables. |
 
 The canonical values remain:
@@ -96,7 +97,7 @@ Patch 28 does not change:
 - dough formulas
 - yeast calculations
 - recipe URL parsing
-- planner timing logic
+- active Pizza Session timing logic
 - Troubleshooting guide content
 - sauce, toppings or timer formulas
 - saved recipe persistence

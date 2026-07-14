@@ -91,7 +91,7 @@ Canonical URLs are generated only when `NEXT_PUBLIC_SITE_URL` is configured as a
 
 If it is missing, invalid, localhost or a Vercel preview URL, canonical links are not promoted from that value.
 
-Stateful recipe and tool URLs canonicalize to their clean base route where route metadata is available. For example, `/plan?hydration=64` should resolve to the clean `/plan` canonical URL rather than becoming a separate sitemap page.
+Stateful recipe and tool URLs canonicalize to their clean base route where route metadata is available. For example, `/sauce?balls=6` should resolve to the clean `/sauce` canonical URL rather than becoming a separate sitemap page. Legacy `/plan?...` URLs are redirect-only after Patch 391B and are not treated as stateful tool URLs.
 
 ## Before enabling indexing
 

@@ -50,7 +50,6 @@ const requiredPublicRoutes = [
 ];
 
 const legacyNoindexRoutePaths = [
-  "/plan",
   "/coach",
 ];
 
@@ -128,7 +127,6 @@ describe("SEO launch configuration", () => {
     ]);
     expect(seoRoutePolicy.statefulQueryParamRoutes).toEqual([
       "/",
-      "/plan",
       "/sauce",
       "/calculator/quick",
       "/toppings",
@@ -219,6 +217,21 @@ describe("SEO launch configuration", () => {
     expect(sitemapUrls.every((url) => !url.includes("?"))).toBe(true);
   });
 
+  it("keeps retired plan redirect-only without legacy noindex metadata or sitemap inclusion", () => {
+    const page = readFileSync(join(process.cwd(), "app", "plan", "page.tsx"), "utf8");
+    const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);
+
+    expect(page).toContain('permanentRedirect("/session/start")');
+    expect(legacyNoindexRoutes.map((route) => route.path)).not.toContain("/plan");
+    expect(seoRoutePolicy.legacyNoindexRoutes).not.toContain("/plan");
+    expect(seoRoutePolicy.statefulQueryParamRoutes).not.toContain("/plan");
+    expect(sitemapUrls).not.toContain("https://doughtools.app/plan");
+    expect(sitemapUrls).toContain("https://doughtools.app/session/start");
+    expect(() => metadataForLegacyRoute("/plan" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
+      "Missing legacy SEO metadata for route: /plan",
+    );
+  });
+
   it("blocks all crawlers by default in robots.txt policy while still advertising the sitemap location", () => {
     expect(robotsPolicy({})).toEqual({
       rules: { userAgent: "*", disallow: "/" },
@@ -268,6 +281,9 @@ describe("SEO launch configuration", () => {
     );
     expect(() => metadataForLegacyRoute("/doctor" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
       "Missing legacy SEO metadata for route: /doctor",
+    );
+    expect(() => metadataForLegacyRoute("/plan" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
+      "Missing legacy SEO metadata for route: /plan",
     );
 
     for (const route of legacyNoindexRoutePaths) {

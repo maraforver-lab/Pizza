@@ -34,11 +34,11 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
   const actions: RecipeWorkflowAction[] = [
     {
       id: "planner",
-      label: "Plan fermentation",
-      description: "Turn the dough numbers into mixing, resting, balling, warming and baking times.",
-      href: recipeWorkflowQueryHref("/plan", recipeQuery),
+      label: "Plan my next pizza",
+      description: "Create the guided plan for recipe, shopping, timeline, Kitchen Mode and review.",
+      href: "/session/start",
       priority: "primary",
-      preservesQuery: true,
+      preservesQuery: false,
     },
     {
       id: "sauce",
@@ -84,9 +84,9 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
   if (level === "beginner") {
     return {
       heading: "Next steps for this recipe",
-      intro: "You have the dough numbers. Next, plan when to mix, rest and bake.",
+      intro: "You have the dough numbers. Next, create the guided pizza plan.",
       primaryActionId: "planner",
-      detail: "Start with the planner first. Sauce, toppings, timer and troubleshooting are ready when you need them.",
+      detail: "Start with Pizza Session first. Sauce, toppings, timer and troubleshooting are ready when you need them.",
       actions,
     };
   }
@@ -96,7 +96,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
       heading: "Next steps for this recipe",
       intro: "Use the recipe as the base for the whole bake: timing controls fermentation, sauce and toppings control balance, and the timer helps repeatability.",
       primaryActionId: "planner",
-      detail: "Planner is the best next move, then finish the pizza setup with sauce, toppings and oven timing.",
+      detail: "Pizza Session is the best next move, then finish the pizza setup with sauce, toppings and oven timing.",
       actions,
     };
   }
@@ -105,7 +105,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
     heading: "Next steps for this recipe",
     intro: "Carry this recipe context through the workflow so variables stay comparable from dough numbers to bake notes.",
     primaryActionId: "planner",
-    detail: "Planner, Sauce, Toppings and Timer receive the current recipe query where supported. Troubleshooting stays recipe-neutral.",
+    detail: "Pizza Session starts from the canonical planning flow. Sauce, Toppings and Timer receive the current recipe query where supported. Troubleshooting stays recipe-neutral.",
     actions,
   };
 }

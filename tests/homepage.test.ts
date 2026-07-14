@@ -101,6 +101,20 @@ describe("homepage content model", () => {
     }
   });
 
+  it("does not expose the retired Plan route from homepage tool surfaces", () => {
+    const toolText = homepageContent.coreTools.flatMap((tool) => [
+      tool.name,
+      tool.description,
+      tool.href,
+      tool.action,
+    ]).join("\n");
+
+    expect(homepageContent.coreTools.map((tool) => tool.href)).not.toContain("/plan");
+    expect(toolText).not.toContain("Fermentation Planner");
+    expect(toolText).not.toMatch(/\bPlanner\b/);
+    expect(toolText).toContain("/session/start");
+  });
+
   it("keeps core workflow tool route entries unique", () => {
     const hrefs = homepageContent.coreTools.map((tool) => tool.href);
 

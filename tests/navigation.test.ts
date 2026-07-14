@@ -13,7 +13,6 @@ import {
 const requiredRoutes = [
   "/",
   "/session/start",
-  "/plan",
   "/sauce",
   "/toppings",
   "/timer",
@@ -76,6 +75,15 @@ describe("shared navigation model", () => {
     for (const route of requiredRoutes) {
       expect(paths.has(route)).toBe(true);
     }
+  });
+
+  it("does not expose the retired Plan route in shared navigation", () => {
+    const hrefs = navigationItems.map((item) => item.href);
+    const labels = navigationItems.map((item) => item.label).join("\n");
+
+    expect(hrefs).not.toContain("/plan");
+    expect(hrefs.some((href) => href.startsWith("/plan?"))).toBe(false);
+    expect(labels).not.toContain("Fermentation Planner");
   });
 
   it("does not expose removed Journal or Community destinations", () => {

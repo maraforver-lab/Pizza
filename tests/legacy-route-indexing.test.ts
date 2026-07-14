@@ -5,7 +5,6 @@ import { join } from "node:path";
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
 const legacyRoutes = [
-  { route: "/plan", dir: "plan", marker: "doughtools-active-plan-v1" },
   { route: "/coach", dir: "coach", marker: "buildCoachAdvice" },
 ] as const;
 
@@ -62,6 +61,19 @@ describe("legacy predecessor route indexing", () => {
     expect(page).not.toContain("metadataForLegacyRoute");
   });
 
+  it("keeps retired plan as a server-side redirect without the old planner page, storage or metadata layout", () => {
+    const page = source("app", "plan", "page.tsx");
+
+    expect(existsSync(join(process.cwd(), "app", "plan", "page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app", "plan", "layout.tsx"))).toBe(false);
+    expect(page).toContain('permanentRedirect("/session/start")');
+    expect(page).not.toContain("doughtools-active-plan-v1");
+    expect(page).not.toContain("scheduleInstructions");
+    expect(page).not.toContain("nextScheduledStep");
+    expect(page).not.toContain("SiteFooter");
+    expect(page).not.toContain("metadataForLegacyRoute");
+  });
+
   it("removes normal product links to the retired history route", () => {
     const linkedSurfaces = [
       source("lib", "navigation.ts"),
@@ -103,5 +115,23 @@ describe("legacy predecessor route indexing", () => {
     expect(linkedSurfaces).not.toContain("/doctor?");
     expect(linkedSurfaces).not.toContain("Dough Doctor");
     expect(linkedSurfaces).toContain("/guide/pizza-troubleshooting");
+  });
+
+  it("removes normal product links to the retired plan route", () => {
+    const linkedSurfaces = [
+      source("lib", "navigation.ts"),
+      source("lib", "homepage.ts"),
+      source("components", "HomeCalculatorWorkspace.tsx"),
+      source("components", "SiteFooter.tsx"),
+      source("lib", "recipe-workflow.ts"),
+      source("app", "timer", "page.tsx"),
+    ].join("\n");
+
+    expect(linkedSurfaces).not.toContain('href="/plan"');
+    expect(linkedSurfaces).not.toContain('href: "/plan"');
+    expect(linkedSurfaces).not.toContain("/plan?");
+    expect(linkedSurfaces).not.toContain("doughtools-active-plan-v1");
+    expect(linkedSurfaces).not.toContain("Fermentation Planner");
+    expect(linkedSurfaces).toContain("/session/start");
   });
 });

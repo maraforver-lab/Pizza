@@ -169,11 +169,6 @@ export const privateSeoRoutes = [
 
 export const legacyNoindexRoutes = [
   {
-    path: "/plan",
-    title: "Pizza Fermentation Planner | DoughTools",
-    description: "Legacy pizza schedule planner retained temporarily while canonical Pizza Session routing is finalized.",
-  },
-  {
     path: "/coach",
     title: "Pizza Coach | DoughTools",
     description: "Legacy pizza coach route retained temporarily while guidance rules are inventoried.",
@@ -191,7 +186,6 @@ export const publicToolBaseRoutes = [
 
 export const statefulQueryParamRoutes = [
   "/",
-  "/plan",
   "/sauce",
   "/calculator/quick",
   "/toppings",

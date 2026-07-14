@@ -64,7 +64,7 @@ describe("saved recipe account value UX", () => {
   it("uses existing recipe query helpers for saved recipe workflow actions", () => {
     const query = recipeParams(baseSettings).toString();
 
-    expect(recipeWorkflowQueryHref("/plan", query)).toBe(`/plan?${query}`);
+    expect(recipeWorkflowQueryHref("/session/start", "")).toBe("/session/start");
     expect(recipeWorkflowQueryHref("/sauce", query)).toBe(`/sauce?${query}`);
     expect(recipeWorkflowQueryHref("/toppings", query)).toBe(`/toppings?${query}`);
     expect(recipeWorkflowQueryHref("/timer", query)).toBe(`/timer?${query}`);
@@ -84,13 +84,14 @@ describe("saved recipe account value UX", () => {
     const page = source("components/HomeCalculatorWorkspace.tsx");
 
     expect(page).toContain("savedRecipeActions");
-    expect(page).toContain('recipeWorkflowQueryHref("/plan", savedRecipeQuery)');
+    expect(page).toContain('href: "/session/start"');
     expect(page).toContain('recipeWorkflowQueryHref("/sauce", savedRecipeQuery)');
     expect(page).toContain('recipeWorkflowQueryHref("/toppings", savedRecipeQuery)');
     expect(page).toContain('recipeWorkflowQueryHref("/timer", savedRecipeQuery)');
     expect(page).toContain('href: "/guide/pizza-troubleshooting"');
     expect(page).not.toContain('recipeWorkflowQueryHref("/journal", savedRecipeQuery)');
     expect(page).not.toContain('recipeWorkflowQueryHref("/doctor", savedRecipeQuery)');
+    expect(page).not.toContain('recipeWorkflowQueryHref("/plan", savedRecipeQuery)');
     expect(page).not.toMatch(/publish saved recipe|copy public recipe link|upload recipe to account/i);
   });
 

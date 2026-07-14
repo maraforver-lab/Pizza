@@ -13,11 +13,17 @@ describe("core recipe workflow handoff", () => {
     const query = recipeParams(baseSettings).toString();
     const handoff = getRecipeWorkflowHandoff("beginner", query);
 
-    expect(recipeWorkflowQueryHref("/plan", query)).toBe(`/plan?${query}`);
     expect(handoff.heading).toBe("Next steps for this recipe");
     expect(handoff.primaryActionId).toBe("planner");
 
-    for (const id of ["planner", "sauce", "toppings", "timer"] as const) {
+    const planner = handoff.actions.find((item) => item.id === "planner");
+    expect(planner).toMatchObject({
+      label: "Plan my next pizza",
+      href: "/session/start",
+      preservesQuery: false,
+    });
+
+    for (const id of ["sauce", "toppings", "timer"] as const) {
       const action = handoff.actions.find((item) => item.id === id);
 
       expect(action).toBeDefined();
@@ -49,12 +55,12 @@ describe("core recipe workflow handoff", () => {
     const enthusiast = getRecipeWorkflowHandoff("enthusiast", query);
     const nerd = getRecipeWorkflowHandoff("pizza_nerd", query);
 
-    expect(beginner.intro).toContain("Next, plan when to mix");
-    expect(beginner.detail).toContain("planner first");
+    expect(beginner.intro).toContain("guided pizza plan");
+    expect(beginner.detail).toContain("Pizza Session first");
     expect(enthusiast.intro).toContain("timing controls fermentation");
     expect(enthusiast.detail).toContain("sauce, toppings and oven timing");
     expect(nerd.intro).toContain("recipe context");
-    expect(nerd.detail).toContain("Troubleshooting stays recipe-neutral");
+    expect(nerd.detail).toContain("Pizza Session starts from the canonical planning flow");
   });
 
   it("wires the calculator workspace recipe result to a semantic next-step section with accessible link text", () => {
@@ -77,7 +83,7 @@ describe("core recipe workflow handoff", () => {
     expect(existsSync(docPath)).toBe(true);
     expect(existsSync(join(process.cwd(), "lib", "start-here.ts"))).toBe(false);
     expect(source("docs/core-recipe-workflow.md")).toContain("Calculator / recipe result");
-    expect(source("docs/core-recipe-workflow.md")).toContain("/plan");
+    expect(source("docs/core-recipe-workflow.md")).toContain("/session/start");
     expect(source("docs/core-recipe-workflow.md")).toContain("/sauce");
     expect(source("docs/core-recipe-workflow.md")).toContain("/toppings");
     expect(source("docs/core-recipe-workflow.md")).toContain("/timer");

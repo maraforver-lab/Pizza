@@ -197,7 +197,7 @@ const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentat
 
 const copy = {
   en: {
-    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", troubleshooting: "Troubleshooting", styles: "Pizza styles", eyebrow: "Dough recipe builder", title: "Build the dough recipe.",
+    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Pizza Session", troubleshooting: "Troubleshooting", styles: "Pizza styles", eyebrow: "Dough recipe builder", title: "Build the dough recipe.",
     intro: "Choose a pizza style, oven and fermentation. DoughTools calculates the batch with baker's percentages.", build: "Fine-tune your batch",
     quickTitle: "What kind of pizza do you want?", quickIntro: "Choose the result, fermentation time and environment, and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "Fermentation time and environment",
     oven: "Which oven do you use?", homeOven: "Electric oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
@@ -213,9 +213,9 @@ const copy = {
       "24h-cold": ["24 h in the fridge", "About 4 °C"], "48h-cold": ["48 h in the fridge", "About 4 °C"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
-    saveRecipe: "Save recipe", saveRecipeValueTitle: "Save the setup that worked", saveRecipeValueIntro: "A saved recipe keeps the exact calculator settings so you can repeat it, plan it again, troubleshoot it later or compare the next bake.", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Use again", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", savedRecipeLocal: "Saved locally in this browser. Use it again or send the same setup into another DoughTools step.", savedRecipeNextActions: "Next actions", savedRecipePlanner: "Planner", savedRecipeSauce: "Sauce", savedRecipeToppings: "Toppings", savedRecipeTimer: "Timer", savedRecipeTroubleshooting: "Troubleshooting", saveBake: "Save this bake", bakeSaved: "Bake result saved locally", bakeRating: "Overall rating", bakeTimeSeconds: "Bake time", bakeOvenTemp: "Oven temperature", privateBakeNote: "Private note", privateBakePlaceholder: "What happened in the oven?", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
+    saveRecipe: "Save recipe", saveRecipeValueTitle: "Save the setup that worked", saveRecipeValueIntro: "A saved recipe keeps the exact calculator settings so you can repeat it, start a pizza session, troubleshoot it later or compare the next bake.", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Use again", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", savedRecipeLocal: "Saved locally in this browser. Use it again or start another DoughTools step.", savedRecipeNextActions: "Next actions", savedRecipePlanner: "Pizza Session", savedRecipeSauce: "Sauce", savedRecipeToppings: "Toppings", savedRecipeTimer: "Timer", savedRecipeTroubleshooting: "Troubleshooting", saveBake: "Save this bake", bakeSaved: "Bake result saved locally", bakeRating: "Overall rating", bakeTimeSeconds: "Bake time", bakeOvenTemp: "Oven temperature", privateBakeNote: "Private note", privateBakePlaceholder: "What happened in the oven?", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
-    instructionsTitle: "Plan fermentation next", instructionsIntro: "Your dough numbers are ready. Open the planner for step-by-step instructions and exact clock times.", openPlan: "Open Fermentation Planner", startClock: "Start now or choose your desired baking time.",
+    instructionsTitle: "Plan the pizza session next", instructionsIntro: "Your dough numbers are ready. Create a guided plan for the full recipe, shopping, timeline and kitchen path.", openPlan: "Plan my next pizza", startClock: "Use the guided flow when you are ready to plan the bake.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
   fi: {
@@ -1761,7 +1761,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
 
   const recipeQuery = recipeParams(currentSettings).toString();
   const toolHref = (tool: HomepageTool) => tool.preserveRecipe ? `${tool.href}?${recipeQuery}` : tool.href;
-  const planHref = `/plan?${recipeQuery}`;
+  const planHref = "/session/start";
   const troubleshootingHref = "/guide/pizza-troubleshooting";
   const sauceHref = `/sauce?${recipeQuery}`;
   const toppingsHref = `/toppings?${recipeQuery}`;
@@ -1972,7 +1972,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
             value={experienceLevel}
             onChange={setExperienceLevel}
             title="Choose how DoughTools should guide you"
-            intro="Pick the pizza-making level that feels like you today. Beginner keeps the path simple, Enthusiast explains the why, and Pizza Nerd exposes deeper technical context. The calculator, planner and help pages use the same local choice."
+            intro="Pick the pizza-making level that feels like you today. Beginner keeps the path simple, Enthusiast explains the why, and Pizza Nerd exposes deeper technical context. The calculator, session and help pages use the same local choice."
             className="mb-7"
           />
         </div>
@@ -1996,7 +1996,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           <h2 id="calculator-intro" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl">{t.title}</h2>
           <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{levelCopy.calculatorIntro}</p>
           <p className="mt-3 max-w-xl text-sm leading-6 text-ink/55">
-            The calculator gives the numbers. The guidance explains what they mean, then Planner and Troubleshooting help with timing and problem-solving.
+            The calculator gives the numbers. The guidance explains what they mean, then Pizza Session and Troubleshooting help with timing and problem-solving.
           </p>
         </section>
         </>
@@ -2457,7 +2457,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
               {savedRecipes.map((savedRecipe) => {
                 const savedRecipeQuery = recipeParams(savedRecipe.settings).toString();
                 const savedRecipeActions = [
-                  { label: t.savedRecipePlanner, href: recipeWorkflowQueryHref("/plan", savedRecipeQuery) },
+                  { label: t.savedRecipePlanner, href: "/session/start" },
                   { label: t.savedRecipeSauce, href: recipeWorkflowQueryHref("/sauce", savedRecipeQuery) },
                   { label: t.savedRecipeToppings, href: recipeWorkflowQueryHref("/toppings", savedRecipeQuery) },
                   { label: t.savedRecipeTimer, href: recipeWorkflowQueryHref("/timer", savedRecipeQuery) },

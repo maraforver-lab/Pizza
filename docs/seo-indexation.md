@@ -45,13 +45,12 @@ These routes should have stable page metadata and clean canonical URLs.
 
 ## Legacy noindex and redirect routes
 
-Patch 387 kept predecessor routes accessible but removed them from the public sitemap and assigned explicit noindex metadata. Patch 388 retires `/history` further as a server-side redirect to `/about`. Patch 389 retires `/gear` further as a server-side redirect to `/ovens#other-equipment`. Patch 390B retires `/doctor` further as a server-side redirect to `/guide/pizza-troubleshooting`.
+Patch 387 kept predecessor routes accessible but removed them from the public sitemap and assigned explicit noindex metadata. Patch 388 retires `/history` further as a server-side redirect to `/about`. Patch 389 retires `/gear` further as a server-side redirect to `/ovens#other-equipment`. Patch 390B retires `/doctor` further as a server-side redirect to `/guide/pizza-troubleshooting`. Patch 391B retires `/plan` further as a server-side redirect to `/session/start`.
 
 The central source of truth is `legacyNoindexRoutes` in `lib/seo-config.ts`.
 
 Current legacy noindex routes are:
 
-- `/plan`
 - `/coach`
 
 These routes remain reachable from existing links until a later migration patch decides whether to redirect, merge, remove or preserve their unique logic. They must not appear in `/sitemap.xml`.
@@ -59,6 +58,7 @@ These routes remain reachable from existing links until a later migration patch 
 Current redirect-only legacy routes are:
 
 - `/start` -> `/session/start`
+- `/plan` -> `/session/start`
 - `/history` -> `/about`
 - `/gear` -> `/ovens#other-equipment`
 - `/doctor` -> `/guide/pizza-troubleshooting`
@@ -85,12 +85,11 @@ These routes must not appear in the sitemap.
 
 ## Stateful query-param routes
 
-DoughTools uses query parameters so users can share calculator, planning and troubleshooting setups.
+DoughTools uses query parameters so users can share calculator and supporting tool setups.
 
 Examples:
 
 - `/?balls=6&ballWeight=260`
-- `/plan?hydration=64`
 - `/sauce?balls=6`
 - `/calculator/quick?quick=...`
 - `/toppings?toppings=mushroom%3A35%3Araw`
@@ -106,7 +105,6 @@ However, query-param variants should not create a large duplicate-content footpr
 
 Examples:
 
-- `/plan?hydration=64` canonicalizes to `https://www.doughtools.app/plan` and remains explicitly noindexed by route metadata
 - `/calculator/quick?quick=...` canonicalizes to `https://www.doughtools.app/calculator/quick`
 - `/?balls=4` canonicalizes to `https://www.doughtools.app/`
 
@@ -190,7 +188,7 @@ app/robots.ts
 
 While `ALLOW_INDEXING=false`, robots blocks crawling broadly as part of the temporary launch protection. This is not the only protection layer; pages also use noindex metadata and response headers.
 
-When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes. Legacy predecessor routes remain noindexed by page metadata even when global indexing is enabled.
+When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes. Legacy predecessor routes that still render pages remain noindexed by page metadata even when global indexing is enabled.
 
 Redirect-only compatibility routes are handled by server-side redirects rather than page-level noindex metadata.
 
@@ -212,12 +210,11 @@ When DoughTools is ready for public indexing:
    - `/guide/pizza-troubleshooting`
    - `/sauce`
    - `/calculator/quick`
-4. Confirm `/plan` and `/coach` are not submitted through the sitemap and report noindex metadata.
-5. Confirm `/history` redirects to `/about`, `/gear` redirects to `/ovens#other-equipment`, `/doctor` redirects to `/guide/pizza-troubleshooting` and none of those routes are submitted through the sitemap.
+4. Confirm `/coach` is not submitted through the sitemap and reports noindex metadata.
+5. Confirm `/plan` redirects to `/session/start`, `/history` redirects to `/about`, `/gear` redirects to `/ovens#other-equipment`, `/doctor` redirects to `/guide/pizza-troubleshooting` and none of those routes are submitted through the sitemap.
 6. Inspect representative query-param URLs:
    - `/?balls=6&ballWeight=260`
    - `/calculator/quick?quick=...`
-   - `/plan?hydration=64`
 7. Confirm clean canonical URLs.
 8. Confirm private/account routes are not submitted.
 9. Monitor duplicate URL patterns.
@@ -232,7 +229,7 @@ The current SEO policy does not add:
 - structured data for recipes, FAQ or how-to content
 - public bake pages
 - share-card metadata
-- redirects for `/plan` or `/coach`
+- redirects for `/coach`
 - route removal
 - query-aware route-level noindex for every stateful tool URL
 - Core Web Vitals or route-level performance baseline

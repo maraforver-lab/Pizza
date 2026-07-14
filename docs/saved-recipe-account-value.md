@@ -7,12 +7,13 @@ Patch 29 clarifies why saving recipes matters in DoughTools.
 - The calculator result area now explains that saving a recipe preserves the current dough setup for later reuse.
 - Saved recipe cards now expose next actions for the same setup:
   - Use again
-  - Planner
+  - Pizza Session
   - Sauce
   - Toppings
   - Timer
   - Troubleshooting
 - The Account page now explains the current local-first product model more clearly.
+- Patch 391B later retired the legacy `/plan` action; saved recipe cards now start the canonical Pizza Session at `/session/start` instead of generating a legacy Plan URL.
 
 ## Storage behavior
 

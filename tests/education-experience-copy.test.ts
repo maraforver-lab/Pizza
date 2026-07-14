@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bakeFor } from "@/lib/baking";
-import { buildDoughInstructions } from "@/lib/dough-instructions";
 import { educationExperienceCopy, getEducationExperienceCopy } from "@/lib/education-experience-copy";
 import { getExperienceLevelOrder } from "@/lib/experience-levels";
-import { flourById } from "@/lib/flours";
-import { scheduleInstructions } from "@/lib/pizza-schedule";
-import { baseSettings } from "./helpers";
 
 const textFor = (value: unknown): string => {
   if (typeof value === "string") return value;
@@ -51,19 +46,9 @@ describe("education experience copy", () => {
     }
   });
 
-  it("keeps planner timing values independent of experience level", () => {
-    const flour = flourById(baseSettings.flourId);
-    const bake = bakeFor(baseSettings.goal, baseSettings.ovenType);
-    const instructions = buildDoughInstructions({ locale: "en", settings: baseSettings, flour, bake });
-    const anchor = new Date("2026-06-24T12:00:00.000Z");
-    const baselineTimes = scheduleInstructions(instructions.steps, baseSettings.fermentation, anchor, "start")
-      .map((step) => [step.id, step.at.toISOString()]);
-
+  it("keeps planner copy informational after the legacy planner route is retired", () => {
     for (const level of getExperienceLevelOrder()) {
       expect(getEducationExperienceCopy(level).planner.intro).toBeTruthy();
-      const times = scheduleInstructions(instructions.steps, baseSettings.fermentation, anchor, "start")
-        .map((step) => [step.id, step.at.toISOString()]);
-      expect(times).toEqual(baselineTimes);
     }
   });
 });

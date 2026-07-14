@@ -21,7 +21,6 @@ import {
   getDoughGuideStepFlourGuidance,
   getDoughGuideStepPersonalization,
 } from "@/lib/dough-guide-session-context";
-import { beginnerHelpFor } from "@/lib/beginner-guide";
 import { createPizzaSession } from "@/lib/pizza-session";
 import { isPizzaTroubleshootingTopicId } from "@/lib/pizza-troubleshooting";
 import { buildSessionRecipe } from "@/lib/session-recipe";
@@ -385,7 +384,7 @@ describe("Pizza Dough Guide foundation", () => {
     expect(getDoughStepPrimaryImageForTimelineStep("bake-pizza")).toBeUndefined();
   });
 
-  it("maps matching Beginner Guide steps to shared primary images while preserving the distinct bake image", () => {
+  it("maps matching legacy beginner step ids to shared primary images without preserving Plan-only bake fallback", () => {
     expect(getDoughStepPrimaryImageForBeginnerStep("mix")?.src).toBe(DOUGH_STEP_PRIMARY_IMAGES["mix-dough"].src);
     expect(getDoughStepPrimaryImageForBeginnerStep("knead")?.src).toBe(
       DOUGH_STEP_PRIMARY_IMAGES["develop-dough"].src,
@@ -397,8 +396,6 @@ describe("Pizza Dough Guide foundation", () => {
       DOUGH_STEP_PRIMARY_IMAGES["check-readiness"].src,
     );
     expect(getDoughStepPrimaryImageForBeginnerStep("bake")).toBeUndefined();
-    expect(beginnerHelpFor("mix", "en").image).toBe(DOUGH_STEP_PRIMARY_IMAGES["mix-dough"].src);
-    expect(beginnerHelpFor("bake", "en").image).toBe("/dough-guide/09-open.webp");
   });
 
   it("uses improved local Warm and Release step photos with accurate accessibility text", () => {

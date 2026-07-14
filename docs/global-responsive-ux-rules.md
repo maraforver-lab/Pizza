@@ -30,7 +30,6 @@ These rules apply to all current and future DoughTools pages, including but not 
 
 - `/`
 - `/session/*`
-- `/plan`
 - `/sauce`
 - `/toppings`
 - `/costs`
@@ -324,11 +323,10 @@ Mobile:
 
 ### G. Tool page
 
-Purpose: user uses a calculator, planner, doctor, timer or decision tool.
+Purpose: user uses a calculator, timer or decision tool.
 
 Examples:
 
-- `/plan`
 - `/costs`
 - `/timer`
 - `/sauce`

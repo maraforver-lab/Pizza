@@ -82,15 +82,15 @@ describe("core accessibility baseline", () => {
     expect(homepageSource).toContain("<h1");
   });
 
-  it("keeps Planner selectable controls labelled, stateful and focusable", () => {
+  it("keeps retired Plan as a server-side redirect without selectable planner controls", () => {
     const planSource = source("app/plan/page.tsx");
 
-    expect(planSource).toContain("<h1");
-    expect(planSource).toContain("aria-pressed={mode === \"start\"}");
-    expect(planSource).toContain("aria-pressed={mode === \"bake\"}");
-    expect(planSource).toContain("aria-pressed={isDone}");
-    expect(planSource).toContain("Selected schedule mode");
-    expect(planSource).toContain("focus-visible:ring");
+    expect(planSource).toContain("permanentRedirect");
+    expect(planSource).toContain('"/session/start"');
+    expect(planSource).not.toContain("<h1");
+    expect(planSource).not.toContain("aria-pressed");
+    expect(planSource).not.toContain("Selected schedule mode");
+    expect(planSource).not.toContain("doughtools-active-plan-v1");
   });
 
   it("keeps retired Doctor as a server-side redirect without diagnostic UI", () => {
