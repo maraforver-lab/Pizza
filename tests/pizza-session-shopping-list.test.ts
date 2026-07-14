@@ -417,19 +417,22 @@ describe("Pizza Session shopping list presets", () => {
     expect(text).not.toMatch(/cloud sync enabled|public sharing enabled|share card/i);
   });
 
-  it("adds the /session/shopping route, pizza choice UI and local-first copy without a free-text ingredient editor", () => {
+  it("adds the /session/shopping route, secondary pizza mix UI and local-first copy without a free-text ingredient editor", () => {
     const page = source("app/session/shopping/page.tsx");
     const timeline = source("app/session/timeline/page.tsx");
     const start = source("app/session/start/page.tsx");
 
-    expect(page).toContain("Shopping & Pizza Menu");
-    expect(page).toContain("Choose what you’ll make and get your ingredients ready.");
-    expect(page.match(/Shopping & Pizza Menu/g)).toHaveLength(1);
+    expect(page).toContain('title="Your shopping list"');
+    expect(page).toContain("Check ingredients, confirm the pizza mix, then continue to Timeline.");
     expect(page).not.toContain("choose-pizzas-heading");
     expect(page).not.toContain("Dough style and dough formula stay in the Dough Plan.");
-    expect(page).toContain('aria-label="Pizza menu allocation"');
+    expect(page).toContain("Optional shopping tools");
+    expect(page).toContain("Pizza mix");
     expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi.");
-    expect(page).toContain("Choose your pizzas");
+    expect(page).toContain("Edit pizza mix");
+    expect(page).toContain("Hide pizza mix controls");
+    expect(page).toContain('aria-controls="pizza-menu-controls-panel"');
+    expect(page).toContain("aria-expanded={menuControlsOpen}");
     expect(page).toContain("Total selected:");
     expect(page).toContain("Decrease");
     expect(page).toContain("Increase");
@@ -441,8 +444,8 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Continue to Timeline →");
     expect(page).toContain("Back");
     expect(page).toContain("image.src");
-    expect(page).toContain("Before Timeline");
-    expect(page).toContain("Download the shopping image if you want it, then continue to the Timeline.");
+    expect(page).not.toContain("Before Timeline");
+    expect(page).not.toContain("Download the shopping image if you want it, then continue to the Timeline.");
     expect(page).not.toContain("desktopAside={renderNextActionCard()}");
     expect(page).not.toContain("<div className=\"lg:hidden\">");
     expect(page).not.toContain("SHOPPING_LIST_LOCAL_ONLY_COPY");
@@ -460,7 +463,8 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(page).toContain("Dough ingredients");
     expect(page).toContain("Shopping Checklist");
-    expect(page).toContain("Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix.");
+    expect(page).toContain("Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.");
+    expect(page).toContain("selectedPizzaMixSummary");
     expect(page).toContain("Shopping progress");
     expect(page).toContain("{readyShoppingItems} / {shoppingItems.length} ingredients ready");
     expect(page).toContain("shoppingList?.groups.flatMap((group) => group.items) ?? []");
@@ -512,6 +516,11 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Download shopping image");
     expect(page).toContain("Preparing image…");
     expect(page).toContain("Save a branded DoughTools shopping list to your phone or computer.");
+    expect(page).toContain("Show export");
+    expect(page).toContain("Hide export");
+    expect(page).toContain('aria-controls="shopping-image-export-panel"');
+    expect(page).toContain("aria-expanded={exportPanelOpen}");
+    expect(page).toContain("Export uses the same checklist data shown above.");
     expect(page).toContain("ShoppingListExportCard");
     expect(page).toContain("downloadShoppingListImage(exportCardRef.current)");
     expect(exportHelper).toContain("html-to-image");
@@ -565,7 +574,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain('href="/session/timeline"');
     expect(page).toContain("Continue to Timeline →");
     expect(page.match(/Continue to Timeline →/g)).toHaveLength(1);
-    expect(page).toContain("Before Timeline");
+    expect(page).not.toContain("Before Timeline");
     expect(page).not.toContain("const renderNextActionCard");
     expect(page).toContain("updatePizzaMix");
     expect(page).toContain("generateAndSaveActiveShoppingList(undefined, undefined, new Date(), nextMix)");
@@ -592,8 +601,8 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain('variant: "guidance"');
     expect(page).toContain('variant: "success"');
     expect(page).toContain('variant: selected ? "selected" : "archived"');
-    expect(page).toContain('tone: "dark"');
     expect(page).toContain('variant: "secondary"');
+    expect(page).not.toContain('tone: "dark"');
     expect(page).not.toContain("focus-visible:ring-tomato sm:w-auto");
   });
 
@@ -601,13 +610,14 @@ describe("Pizza Session shopping list presets", () => {
     const page = source("app/session/shopping/page.tsx");
 
     expect(page).toContain("step={7}");
-    expect(page).toContain("Shopping & Pizza Menu");
+    expect(page).toContain("Your shopping list");
     expect(page).toContain("BottomActionBar");
-    expect(page.indexOf("Total selected:")).toBeLessThan(page.indexOf("PIZZA_MIX_OPTIONS.map"));
-    expect(page.indexOf("PIZZA_MIX_OPTIONS.map")).toBeLessThan(page.indexOf("Shopping Checklist"));
-    expect(page.indexOf("Shopping Checklist")).toBeLessThan(page.indexOf("Before Timeline"));
-    expect(page.indexOf("Before Timeline")).toBeLessThan(page.indexOf("<BottomActionBar"));
-    expect(page).toContain("Choose pizzas & Shopping");
+    expect(page.indexOf("Shopping Checklist")).toBeLessThan(page.indexOf("<BottomActionBar"));
+    expect(page.indexOf("<BottomActionBar")).toBeLessThan(page.indexOf("Optional shopping tools"));
+    expect(page.indexOf("Optional shopping tools")).toBeLessThan(page.indexOf("Edit pizza mix"));
+    expect(page.indexOf("Edit pizza mix")).toBeLessThan(page.indexOf("PIZZA_MIX_OPTIONS.map"));
+    expect(page.indexOf("Show export")).toBeLessThan(page.indexOf("Download shopping image"));
+    expect(page).toContain("Shopping list");
     expect(page).toContain("hideMeta");
     expect(page).not.toContain("id=\"choose-pizzas-heading\"");
     expect(page).not.toContain("Checklist page</");

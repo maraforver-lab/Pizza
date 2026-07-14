@@ -101,6 +101,8 @@ export default function SessionShoppingPage() {
   const [missingReason, setMissingReason] = useState<string | null>(null);
   const [exportingImage, setExportingImage] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [menuControlsOpen, setMenuControlsOpen] = useState(false);
+  const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const exportCardRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -141,6 +143,12 @@ export default function SessionShoppingPage() {
   const allocatedPizzaCount = pizzaMix
     ? Object.values(pizzaMix).reduce((total, value) => total + value, 0)
     : 0;
+  const selectedPizzaMixSummary = pizzaMix
+    ? PIZZA_MIX_OPTIONS
+      .filter((option) => (pizzaMix[option.id] ?? 0) > 0)
+      .map((option) => `${pizzaMix[option.id]} ${option.name}`)
+      .join(", ")
+    : "Pizza mix not ready";
   const updatePizzaMix = (pizzaType: PizzaSessionPizzaMixType, delta: number) => {
     if (!session || !pizzaMix || pizzaCount < 1) return;
     const nextMix = adjustPizzaMixAllocation(pizzaMix, pizzaType, delta, pizzaCount);
@@ -236,106 +244,13 @@ export default function SessionShoppingPage() {
       <SessionWorkspaceLayout activeStep={7}>
         <SessionStepHero
           step={7}
-          label="Choose pizzas & Shopping"
+          label="Shopping list"
           pageType="Checklist page"
-          title="Shopping & Pizza Menu"
-          body="Choose what you’ll make and get your ingredients ready."
+          title="Your shopping list"
+          body="Check ingredients, confirm the pizza mix, then continue to Timeline."
           level={session.experienceLevel}
           hideMeta
         />
-
-        <section className={cardClass({ className: "mt-4 p-4 sm:mt-6 sm:p-5", variant: "guidance" })} aria-label="Pizza menu allocation">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza Menu</p>
-              <h2 className="mt-1 font-display text-2xl font-semibold">Choose your pizzas</h2>
-            </div>
-            <span className={statusPillClass({ className: "bg-background-subtle text-ink/55", variant: "info" })}>
-              Total selected: {allocatedPizzaCount}/{pizzaCount || "—"}
-            </span>
-          </div>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {PIZZA_MIX_OPTIONS.map((option) => {
-              const quantity = pizzaMix?.[option.id] ?? 0;
-              const selected = quantity > 0;
-              const canIncrement = canIncrementPizzaType(option.id, pizzaMix);
-              const canDecrement = option.id !== "margherita" && quantity > 0;
-              const image = getShoppingPizzaImage(option.id);
-              return (
-                <article
-                  key={option.id}
-                  aria-label={`${option.name}: ${quantity} selected`}
-                  className={`flex min-w-0 flex-col overflow-hidden rounded-card border text-left transition focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 ${
-                    selected
-                      ? "border-action-primary/45 bg-background-card shadow-card"
-                      : "border-ink/10 bg-background-subtle/65 hover:border-action-primary/25 hover:bg-background-card"
-                  }`}
-                >
-                  <figure className="bg-background-subtle">
-                    <Image
-                      src={image.src}
-                      alt={image.alt}
-                      width={image.width}
-                      height={image.height}
-                      sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      loading="lazy"
-                      className="aspect-[4/3] w-full object-cover"
-                      style={{ objectPosition: image.objectPosition }}
-                    />
-                  </figure>
-                  <div className="flex flex-1 flex-col p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="[overflow-wrap:anywhere] text-base font-extrabold leading-5 text-ink">{option.name}</h3>
-                        {selected && (
-                          <span className="mt-1 inline-flex rounded-full bg-action-primary/10 px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-[.12em] text-action-primary">
-                            Selected
-                          </span>
-                        )}
-                      </div>
-                      <span className={statusPillClass({ className: "px-2.5 py-1 text-[11px]", variant: selected ? "selected" : "archived" })}>
-                        {quantity} pizza{quantity === 1 ? "" : "s"}
-                      </span>
-                    </div>
-                    <span className="mt-3 block text-sm leading-5 text-ink/60">{option.shortDescription}</span>
-                    <span className="mt-2 block text-xs font-bold leading-5 text-ink/45">{option.ingredientSummary}</span>
-                    <p className="mt-3 rounded-2xl bg-cream/75 px-3 py-2 text-xs font-extrabold leading-5 text-ink/60">
-                      {pizzaChefRecommendation(option.id)}
-                    </p>
-                    <div className="mt-auto pt-4">
-                      <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/80 p-2 ring-1 ring-ink/5">
-                        <button
-                          type="button"
-                          onClick={() => updatePizzaMix(option.id, -1)}
-                          disabled={!canDecrement}
-                          aria-label={`Decrease ${option.name} quantity`}
-                          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
-                        >
-                          <DoughToolsIcon name="remove" size={20} strokeWidth={2.4} />
-                        </button>
-                        <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => updatePizzaMix(option.id, 1)}
-                          disabled={!canIncrement}
-                          aria-label={`Increase ${option.name} quantity`}
-                          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
-                        >
-                          <DoughToolsIcon name="add" size={20} strokeWidth={2.4} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          <p className="mt-4 rounded-2xl border border-dashed border-ink/15 bg-cream/60 p-3 text-xs font-bold leading-5 text-ink/55">
-            V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi. Margherita automatically fills any unallocated pizzas so the total always matches your pizza count.
-          </p>
-        </section>
 
         <section className={cardClass({ className: "mt-4 overflow-hidden p-0 sm:mt-6", variant: "guidance" })} aria-labelledby="shopping-checklist-heading">
           <div className="border-b border-ink/10 px-4 py-4 sm:px-5">
@@ -344,7 +259,7 @@ export default function SessionShoppingPage() {
                 <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Shopping Checklist</p>
                 <h2 id="shopping-checklist-heading" className="mt-1 font-display text-2xl font-semibold">Shopping Checklist</h2>
                 <p className="mt-1 text-sm leading-6 text-ink/60">
-                  Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix.
+                  Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.
                 </p>
               </div>
               <div className={cardClass({ className: "px-4 py-3 shadow-none", variant: "success" })}>
@@ -395,46 +310,6 @@ export default function SessionShoppingPage() {
           ))}
         </section>
 
-        <section className={cardClass({ className: "mt-4 p-4 shadow-sm sm:mt-6 sm:p-5", variant: "success" })} aria-labelledby="before-timeline-heading">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Before Timeline</p>
-          <h2 id="before-timeline-heading" className="mt-2 font-display text-2xl font-semibold">Before Timeline</h2>
-          <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/65">
-            Download the shopping image if you want it, then continue to the Timeline.
-          </p>
-        </section>
-
-        {shoppingList && (
-          <section className={cardClass({ className: "mt-4 p-4 sm:mt-6 sm:p-5", variant: "guidance" })} aria-labelledby="shopping-image-export-heading">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 id="shopping-image-export-heading" className="font-display text-2xl font-semibold">Save your shopping list</h2>
-                <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60">
-                  Save a branded DoughTools shopping list to your phone or computer.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={downloadShoppingImage}
-                disabled={exportingImage}
-                className={buttonClass({ className: "w-full sm:w-auto", tone: "dark" })}
-              >
-                {exportingImage ? "Preparing image…" : "Download shopping image"}
-              </button>
-            </div>
-            {exportError && (
-              <p className="mt-3 rounded-2xl border border-tomato/20 bg-tomato/[.06] px-4 py-3 text-sm font-bold leading-6 text-tomato" role="status">
-                {exportError}
-              </p>
-            )}
-          </section>
-        )}
-
-        {session && shoppingList && (
-          <div className="fixed -left-[10000px] top-0" aria-hidden="true">
-            <ShoppingListExportCard ref={exportCardRef} session={session} shoppingList={shoppingList} />
-          </div>
-        )}
-
         <BottomActionBar
           back={(
             <Link
@@ -453,6 +328,170 @@ export default function SessionShoppingPage() {
             </Link>
           )}
         />
+
+        <section className="mt-4 grid gap-4 sm:mt-6 lg:grid-cols-2" aria-labelledby="shopping-secondary-tools-heading">
+          <h2 id="shopping-secondary-tools-heading" className="sr-only">Optional shopping tools</h2>
+
+          <section className={cardClass({ className: "p-4 sm:p-5 lg:col-span-2", variant: "guidance" })} aria-labelledby="pizza-menu-controls-heading">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza Menu</p>
+                <h2 id="pizza-menu-controls-heading" className="mt-1 font-display text-2xl font-semibold">Pizza mix</h2>
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60">
+                  {selectedPizzaMixSummary}
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 sm:items-end">
+                <span className={statusPillClass({ className: "bg-background-subtle text-ink/55", variant: "info" })}>
+                  Total selected: {allocatedPizzaCount}/{pizzaCount || "—"}
+                </span>
+                <button
+                  type="button"
+                  aria-controls="pizza-menu-controls-panel"
+                  aria-expanded={menuControlsOpen}
+                  onClick={() => setMenuControlsOpen((current) => !current)}
+                  className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+                >
+                  {menuControlsOpen ? "Hide pizza mix controls" : "Edit pizza mix"}
+                </button>
+              </div>
+            </div>
+
+            {menuControlsOpen && (
+              <div id="pizza-menu-controls-panel" className="mt-4">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {PIZZA_MIX_OPTIONS.map((option) => {
+                    const quantity = pizzaMix?.[option.id] ?? 0;
+                    const selected = quantity > 0;
+                    const canIncrement = canIncrementPizzaType(option.id, pizzaMix);
+                    const canDecrement = option.id !== "margherita" && quantity > 0;
+                    const image = getShoppingPizzaImage(option.id);
+                    return (
+                      <article
+                        key={option.id}
+                        aria-label={`${option.name}: ${quantity} selected`}
+                        className={`flex min-w-0 flex-col overflow-hidden rounded-card border text-left transition focus-within:ring-2 focus-within:ring-focus-ring focus-within:ring-offset-2 ${
+                          selected
+                            ? "border-action-primary/45 bg-background-card shadow-card"
+                            : "border-ink/10 bg-background-subtle/65 hover:border-action-primary/25 hover:bg-background-card"
+                        }`}
+                      >
+                        <figure className="bg-background-subtle">
+                          <Image
+                            src={image.src}
+                            alt={image.alt}
+                            width={image.width}
+                            height={image.height}
+                            sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+                            loading="lazy"
+                            className="aspect-[4/3] w-full object-cover"
+                            style={{ objectPosition: image.objectPosition }}
+                          />
+                        </figure>
+                        <div className="flex flex-1 flex-col p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="[overflow-wrap:anywhere] text-base font-extrabold leading-5 text-ink">{option.name}</h3>
+                              {selected && (
+                                <span className="mt-1 inline-flex rounded-full bg-action-primary/10 px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-[.12em] text-action-primary">
+                                  Selected
+                                </span>
+                              )}
+                            </div>
+                            <span className={statusPillClass({ className: "px-2.5 py-1 text-[11px]", variant: selected ? "selected" : "archived" })}>
+                              {quantity} pizza{quantity === 1 ? "" : "s"}
+                            </span>
+                          </div>
+                          <span className="mt-3 block text-sm leading-5 text-ink/60">{option.shortDescription}</span>
+                          <span className="mt-2 block text-xs font-bold leading-5 text-ink/45">{option.ingredientSummary}</span>
+                          <p className="mt-3 rounded-2xl bg-cream/75 px-3 py-2 text-xs font-extrabold leading-5 text-ink/60">
+                            {pizzaChefRecommendation(option.id)}
+                          </p>
+                          <div className="mt-auto pt-4">
+                            <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/80 p-2 ring-1 ring-ink/5">
+                              <button
+                                type="button"
+                                onClick={() => updatePizzaMix(option.id, -1)}
+                                disabled={!canDecrement}
+                                aria-label={`Decrease ${option.name} quantity`}
+                                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
+                              >
+                                <DoughToolsIcon name="remove" size={20} strokeWidth={2.4} />
+                              </button>
+                              <span className="text-2xl font-extrabold tabular-nums text-ink">{quantity}</span>
+                              <button
+                                type="button"
+                                onClick={() => updatePizzaMix(option.id, 1)}
+                                disabled={!canIncrement}
+                                aria-label={`Increase ${option.name} quantity`}
+                                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-white text-xl font-extrabold text-ink/70 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-35"
+                              >
+                                <DoughToolsIcon name="add" size={20} strokeWidth={2.4} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+
+                <p className="mt-4 rounded-2xl border border-dashed border-ink/15 bg-cream/60 p-3 text-xs font-bold leading-5 text-ink/55">
+                  V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi. Margherita automatically fills any unallocated pizzas so the total always matches your pizza count.
+                </p>
+              </div>
+            )}
+          </section>
+
+          {shoppingList && (
+            <section className={cardClass({ className: "p-4 sm:p-5 lg:col-span-2", variant: "guidance" })} aria-labelledby="shopping-image-export-heading">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Export</p>
+                  <h2 id="shopping-image-export-heading" className="mt-1 font-display text-2xl font-semibold">Save your shopping list</h2>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60">
+                    Save a branded DoughTools shopping list to your phone or computer.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  aria-controls="shopping-image-export-panel"
+                  aria-expanded={exportPanelOpen}
+                  onClick={() => setExportPanelOpen((current) => !current)}
+                  className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+                >
+                  {exportPanelOpen ? "Hide export" : "Show export"}
+                </button>
+              </div>
+              {exportPanelOpen && (
+                <div id="shopping-image-export-panel" className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-bold leading-6 text-ink/55">
+                    Export uses the same checklist data shown above.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={downloadShoppingImage}
+                    disabled={exportingImage}
+                    className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+                  >
+                    {exportingImage ? "Preparing image…" : "Download shopping image"}
+                  </button>
+                </div>
+              )}
+              {exportError && (
+                <p className="mt-3 rounded-2xl border border-tomato/20 bg-tomato/[.06] px-4 py-3 text-sm font-bold leading-6 text-tomato" role="status">
+                  {exportError}
+                </p>
+              )}
+            </section>
+          )}
+        </section>
+
+        {session && shoppingList && (
+          <div className="fixed -left-[10000px] top-0" aria-hidden="true">
+            <ShoppingListExportCard ref={exportCardRef} session={session} shoppingList={shoppingList} />
+          </div>
+        )}
 
       </SessionWorkspaceLayout>
     </main>

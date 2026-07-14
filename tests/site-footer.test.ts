@@ -131,10 +131,11 @@ describe("canonical site footer", () => {
     }
   });
 
-  it("retains only non-page footer markup in export components", () => {
+  it("keeps export branding out of page footer landmarks", () => {
     const exportCard = source("components", "session", "ShoppingListExportCard.tsx");
 
-    expect(exportCard).toContain("<footer");
+    expect(exportCard).toContain("data-export-footer");
+    expect(exportCard).not.toContain("<footer");
     expect(exportCard).not.toContain("<SiteFooter");
     expect(exportCard).not.toContain("<AppSignature");
   });

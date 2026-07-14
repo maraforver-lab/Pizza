@@ -197,10 +197,10 @@ export const ShoppingListExportCard = forwardRef<HTMLElement, ShoppingListExport
           ))}
         </div>
 
-        <footer className="mt-10 flex items-center justify-between border-t border-[#1f1f1f]/10 pt-7 text-xl font-extrabold text-[#6b645d]">
+        <div className="mt-10 flex items-center justify-between border-t border-[#1f1f1f]/10 pt-7 text-xl font-extrabold text-[#6b645d]" data-export-footer>
           <span>Made with DoughTools</span>
           <span>doughtools.app</span>
-        </footer>
+        </div>
         </div>
       </div>
     </article>

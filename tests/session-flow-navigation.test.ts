@@ -96,15 +96,19 @@ describe("Pizza Session flow navigation integrity", () => {
   it("keeps the Shopping page as pizza choice and shopping before Timeline", () => {
     const shopping = source("app/session/shopping/page.tsx");
 
-    expect(shopping).toContain("Shopping & Pizza Menu");
-    expect(shopping).toContain("Choose what you’ll make and get your ingredients ready.");
+    expect(shopping).toContain("Your shopping list");
+    expect(shopping).toContain("Check ingredients, confirm the pizza mix, then continue to Timeline.");
     expect(shopping).toContain("Shopping Checklist");
-    expect(shopping).toContain("Before Timeline");
-    expect(shopping.indexOf("Total selected:")).toBeLessThan(shopping.indexOf("PIZZA_MIX_OPTIONS.map"));
-    expect(shopping.indexOf("PIZZA_MIX_OPTIONS.map")).toBeLessThan(shopping.indexOf("Shopping Checklist"));
-    expect(shopping.indexOf("Shopping Checklist")).toBeLessThan(shopping.indexOf("Before Timeline"));
+    expect(shopping).not.toContain("Before Timeline");
+    expect(shopping.indexOf("Shopping Checklist")).toBeLessThan(shopping.indexOf("<BottomActionBar"));
+    expect(shopping.indexOf("<BottomActionBar")).toBeLessThan(shopping.indexOf("Optional shopping tools"));
+    expect(shopping.indexOf("Optional shopping tools")).toBeLessThan(shopping.indexOf("Edit pizza mix"));
+    expect(shopping.indexOf("Edit pizza mix")).toBeLessThan(shopping.indexOf("PIZZA_MIX_OPTIONS.map"));
     expect(shopping).not.toContain("Dough style and dough formula stay in the Dough Plan.");
     expect(shopping).toContain("Total selected:");
+    expect(shopping).toContain("selectedPizzaMixSummary");
+    expect(shopping).toContain('aria-controls="pizza-menu-controls-panel"');
+    expect(shopping).toContain("aria-expanded={menuControlsOpen}");
     expect(shopping).toContain("Dough ingredients");
     expect(shopping).toContain("Sauce");
     expect(shopping).toContain("Cheese");
