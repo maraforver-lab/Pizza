@@ -4,26 +4,10 @@ import { join } from "node:path";
 
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
-const legacyRoutes = [
-  { route: "/coach", dir: "coach", marker: "buildCoachAdvice" },
-] as const;
-
 describe("legacy predecessor route indexing", () => {
-  it("keeps obsolete predecessor pages accessible while routing metadata through explicit noindex layouts", () => {
-    for (const legacy of legacyRoutes) {
-      const pagePath = join(process.cwd(), "app", legacy.dir, "page.tsx");
-      const layoutPath = join(process.cwd(), "app", legacy.dir, "layout.tsx");
-      const page = source("app", legacy.dir, "page.tsx");
-      const layout = source("app", legacy.dir, "layout.tsx");
-
-      expect(existsSync(pagePath), legacy.route).toBe(true);
-      expect(existsSync(layoutPath), legacy.route).toBe(true);
-      expect(page, legacy.route).toContain(legacy.marker);
-      expect(page, legacy.route).not.toContain("redirect(");
-      expect(page, legacy.route).not.toContain("permanentRedirect(");
-      expect(layout, legacy.route).toContain("metadataForLegacyRoute");
-      expect(layout, legacy.route).toContain(`"${legacy.route}"`);
-    }
+  it("has retired all rendered predecessor utility pages from legacy noindex layouts", () => {
+    expect(existsSync(join(process.cwd(), "app", "coach", "layout.tsx"))).toBe(false);
+    expect(existsSync(join(process.cwd(), "lib", "pizza-coach.ts"))).toBe(false);
   });
 
   it("keeps retired history as a server-side redirect without the old editorial page or metadata layout", () => {
@@ -70,6 +54,20 @@ describe("legacy predecessor route indexing", () => {
     expect(page).not.toContain("doughtools-active-plan-v1");
     expect(page).not.toContain("scheduleInstructions");
     expect(page).not.toContain("nextScheduledStep");
+    expect(page).not.toContain("SiteFooter");
+    expect(page).not.toContain("metadataForLegacyRoute");
+  });
+
+  it("keeps retired coach as a server-side redirect without the old advice page or metadata layout", () => {
+    const page = source("app", "coach", "page.tsx");
+
+    expect(existsSync(join(process.cwd(), "app", "coach", "page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app", "coach", "layout.tsx"))).toBe(false);
+    expect(existsSync(join(process.cwd(), "lib", "pizza-coach.ts"))).toBe(false);
+    expect(page).toContain('permanentRedirect("/guide/pizza-troubleshooting")');
+    expect(page).not.toContain("buildCoachAdvice");
+    expect(page).not.toContain("CoachGoal");
+    expect(page).not.toContain("CoachIssue");
     expect(page).not.toContain("SiteFooter");
     expect(page).not.toContain("metadataForLegacyRoute");
   });
@@ -133,5 +131,20 @@ describe("legacy predecessor route indexing", () => {
     expect(linkedSurfaces).not.toContain("doughtools-active-plan-v1");
     expect(linkedSurfaces).not.toContain("Fermentation Planner");
     expect(linkedSurfaces).toContain("/session/start");
+  });
+
+  it("removes normal product links to the retired coach route", () => {
+    const linkedSurfaces = [
+      source("lib", "navigation.ts"),
+      source("lib", "homepage.ts"),
+      source("components", "HomeCalculatorWorkspace.tsx"),
+      source("components", "SiteFooter.tsx"),
+    ].join("\n");
+
+    expect(linkedSurfaces).not.toContain('href="/coach"');
+    expect(linkedSurfaces).not.toContain('href: "/coach"');
+    expect(linkedSurfaces).not.toContain("/coach?");
+    expect(linkedSurfaces).not.toContain("Pizza Coach");
+    expect(linkedSurfaces).toContain("/guide/pizza-troubleshooting");
   });
 });

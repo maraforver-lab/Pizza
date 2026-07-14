@@ -49,9 +49,7 @@ const requiredPublicRoutes = [
   "/updates",
 ];
 
-const legacyNoindexRoutePaths = [
-  "/coach",
-];
+const legacyNoindexRoutePaths: string[] = [];
 
 const trustPageText = (id: TrustPageId) => [
   trustPages[id].title,
@@ -232,6 +230,20 @@ describe("SEO launch configuration", () => {
     );
   });
 
+  it("keeps retired coach redirect-only without legacy noindex metadata or sitemap inclusion", () => {
+    const page = readFileSync(join(process.cwd(), "app", "coach", "page.tsx"), "utf8");
+    const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);
+
+    expect(page).toContain('permanentRedirect("/guide/pizza-troubleshooting")');
+    expect(legacyNoindexRoutes.map((route) => route.path)).not.toContain("/coach");
+    expect(seoRoutePolicy.legacyNoindexRoutes).not.toContain("/coach");
+    expect(sitemapUrls).not.toContain("https://doughtools.app/coach");
+    expect(sitemapUrls).toContain("https://doughtools.app/guide/pizza-troubleshooting");
+    expect(() => metadataForLegacyRoute("/coach" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
+      "Missing legacy SEO metadata for route: /coach",
+    );
+  });
+
   it("blocks all crawlers by default in robots.txt policy while still advertising the sitemap location", () => {
     expect(robotsPolicy({})).toEqual({
       rules: { userAgent: "*", disallow: "/" },
@@ -285,6 +297,9 @@ describe("SEO launch configuration", () => {
     expect(() => metadataForLegacyRoute("/plan" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
       "Missing legacy SEO metadata for route: /plan",
     );
+    expect(() => metadataForLegacyRoute("/coach" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
+      "Missing legacy SEO metadata for route: /coach",
+    );
 
     for (const route of legacyNoindexRoutePaths) {
       expect(() => metadataForRoute(route as Parameters<typeof metadataForRoute>[0])).toThrow(
@@ -309,14 +324,6 @@ describe("SEO launch configuration", () => {
     expect(seoText).not.toMatch(/\b(perfect pizza|guaranteed|ultimate|revolutionary|scientifically exact)\b/i);
     expect(seoText).not.toMatch(/\bplaceholder\b|to be added before public launch|lorem|TODO|FIXME/i);
     expect(seoText).not.toMatch(/\b(Laskuri|Pizzatyylit|Aikataulu|Kalkylator|Pizzastilar|Tidsplan)\b|[äöåÄÖÅ]/);
-  });
-
-  it("keeps legacy Pizza Coach metadata noindexed without unsupported AI claims", () => {
-    const coach = metadataForLegacyRoute("/coach");
-    const coachText = `${coach.title} ${coach.description}`;
-
-    expect(coachText).toContain("Pizza Coach");
-    expect(coachText).not.toMatch(/\bAI\b|artificial intelligence|guaranteed|perfect/i);
   });
 
   it("keeps real trust details visible for launch readiness", () => {

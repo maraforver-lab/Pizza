@@ -13,7 +13,6 @@ export type NavigationItemId =
   | "ovens"
   | "saved-recipes"
   | "account"
-  | "coach"
   | "costs"
   | "updates";
 
@@ -76,7 +75,6 @@ export const navigationGroups = [
     shortLabel: "More",
     description: "Helpful secondary tools and project information.",
     items: [
-      { id: "coach", label: "Pizza Coach", href: "/coach", description: "Get local guidance from the current recipe settings." },
       { id: "costs", label: "Cost Calculator", href: "/costs", description: "Estimate the total cost of a pizza night." },
       { id: "updates", label: "Updates", href: "/updates", description: "See what changed and why DoughTools exists.", preserveQuery: false },
     ],

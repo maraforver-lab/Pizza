@@ -22,7 +22,6 @@ const requiredRoutes = [
   "/guides/dough",
   "/ovens",
   "/account",
-  "/coach",
   "/costs",
   "/updates",
 ] as const;
@@ -84,6 +83,16 @@ describe("shared navigation model", () => {
     expect(hrefs).not.toContain("/plan");
     expect(hrefs.some((href) => href.startsWith("/plan?"))).toBe(false);
     expect(labels).not.toContain("Fermentation Planner");
+  });
+
+  it("does not expose the retired Coach route in shared navigation", () => {
+    const hrefs = navigationItems.map((item) => item.href);
+    const labels = navigationItems.map((item) => item.label).join("\n");
+
+    expect(hrefs).not.toContain("/coach");
+    expect(hrefs.some((href) => href.startsWith("/coach?"))).toBe(false);
+    expect(labels).not.toContain("Pizza Coach");
+    expect(hrefs).toContain("/guide/pizza-troubleshooting");
   });
 
   it("does not expose removed Journal or Community destinations", () => {

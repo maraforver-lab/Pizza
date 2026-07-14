@@ -167,13 +167,7 @@ export const privateSeoRoutes = [
   "/debug",
 ] as const;
 
-export const legacyNoindexRoutes = [
-  {
-    path: "/coach",
-    title: "Pizza Coach | DoughTools",
-    description: "Legacy pizza coach route retained temporarily while guidance rules are inventoried.",
-  },
-] as const satisfies readonly SeoRoute[];
+export const legacyNoindexRoutes: readonly SeoRoute[] = [];
 
 export const publicToolBaseRoutes = [
   "/",

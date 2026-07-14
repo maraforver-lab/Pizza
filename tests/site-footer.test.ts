@@ -9,7 +9,6 @@ const footerBearingSources = [
   ["calculator workspace", source("components", "HomeCalculatorWorkspace.tsx")],
   ["about", source("app", "about", "page.tsx")],
   ["account", source("app", "account", "page.tsx")],
-  ["coach", source("app", "coach", "page.tsx")],
   ["costs", source("components", "costs", "PizzaCostsPlayfulClient.tsx")],
   ["guide", source("app", "guide", "page.tsx")],
   ["ovens", source("app", "ovens", "page.tsx")],
@@ -40,6 +39,7 @@ const noFooterSources = [
   ["legacy gear redirect", source("app", "gear", "page.tsx")],
   ["legacy doctor redirect", source("app", "doctor", "page.tsx")],
   ["legacy plan redirect", source("app", "plan", "page.tsx")],
+  ["legacy coach redirect", source("app", "coach", "page.tsx")],
 ] as const;
 
 describe("canonical site footer", () => {
