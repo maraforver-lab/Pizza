@@ -25,6 +25,7 @@ import { beginnerHelpFor } from "@/lib/beginner-guide";
 import { createPizzaSession } from "@/lib/pizza-session";
 import { isPizzaTroubleshootingTopicId } from "@/lib/pizza-troubleshooting";
 import { buildSessionRecipe } from "@/lib/session-recipe";
+import { metadataForRoute } from "@/lib/seo-config";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 const now = new Date("2026-07-11T10:00:00.000Z");
@@ -157,9 +158,10 @@ describe("Pizza Dough Guide foundation", () => {
 
     const route = source("app/guides/dough/page.tsx");
     const page = source("components/guide/DoughGuidePageClient.tsx");
+    const metadata = metadataForRoute("/guides/dough");
 
-    expect(route).toContain("Pizza Dough Guide | DoughTools");
-    expect(route).toContain("Learn how to make pizza dough step by step");
+    expect(metadata.title).toBe("Pizza Dough Guide | DoughTools");
+    expect(metadata.description).toContain("Learn how to make pizza dough step by step");
     expect(route).toContain("<DoughGuidePageClient />");
     expect(page).toContain("Pizza Dough Guide");
     expect(page).toContain("from the first mix to a dough ball that is ready to stretch");

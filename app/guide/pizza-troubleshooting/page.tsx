@@ -5,12 +5,9 @@ import {
   isPizzaTroubleshootingTopicId,
 } from "@/lib/pizza-troubleshooting";
 import { getSafeContextualReturnPath } from "@/lib/contextual-return";
+import { metadataForRoute } from "@/lib/seo-config";
 
-export const metadata: Metadata = {
-  title: "Pizza Troubleshooting Guide: Dough, Stretching, Baking and Toppings | DoughTools",
-  description:
-    "Diagnose common pizza problems by symptom, find immediate fixes, understand likely causes, and learn what to change on your next bake.",
-};
+export const metadata: Metadata = metadataForRoute("/guide/pizza-troubleshooting");
 
 type TroubleshootingPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;

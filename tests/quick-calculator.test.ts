@@ -49,6 +49,7 @@ import {
   quickCalculatorInputToRecipeSettings,
 } from "@/lib/quick-calculator/quick-dough-calculator";
 import { MemoryStorage } from "./helpers";
+import { metadataForRoute } from "@/lib/seo-config";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -86,9 +87,11 @@ const forbiddenBoundaryPatterns = [
 describe("Quick Dough Calculator isolated core UI", () => {
   it("adds a dedicated public quick calculator route", () => {
     const page = source("app/calculator/quick/page.tsx");
+    const metadata = metadataForRoute("/calculator/quick");
 
     expect(page).toContain("QuickDoughCalculator");
-    expect(page).toContain("Quick Dough Calculator");
+    expect(metadata.title).toBe("Quick Dough Calculator | DoughTools");
+    expect(metadata.description).toContain("Calculate pizza dough ingredient amounts");
     expect(page).not.toContain("redirect(");
     expect(page).not.toContain("HomeCalculatorWorkspace");
     expect(page).not.toContain("calculator=1");

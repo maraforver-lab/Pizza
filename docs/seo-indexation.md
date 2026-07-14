@@ -1,12 +1,12 @@
 # DoughTools SEO indexation policy
 
-Patch 23 defines the first clean search-indexing baseline for DoughTools.
+Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updates that baseline after the Pizza Session and Learning Center simplification work.
 
-The goal is not to open indexing immediately. The goal is to make the route policy, canonical URLs, sitemap and robots behavior clear before DoughTools grows into more public recipe, troubleshooting and learning pages.
+The goal is still not to open indexing automatically. The goal is to keep the public sitemap, canonical URLs, explicit noindex routes and robots behavior aligned with the current product architecture.
 
 ## Current launch state
 
-DoughTools is live for testing, but indexing remains controlled by the existing centralized launch switch:
+DoughTools is live for testing, but indexing remains controlled by the centralized launch switch:
 
 ```text
 ALLOW_INDEXING=false
@@ -20,24 +20,44 @@ Clean public routes are the routes intended to become discoverable when indexing
 
 The central source of truth is `publicSeoRoutes` in `lib/seo-config.ts`.
 
-Important public routes include:
+Current public indexable routes are:
 
 - `/`
-- `/session/start`
-- `/guide`
-- `/methodology`
 - `/about`
 - `/contact`
 - `/privacy`
 - `/terms`
-- `/updates`
-- `/plan`
-- `/doctor`
+- `/methodology`
+- `/guide`
+- `/session/start`
+- `/guides/dough`
+- `/guide/pizza-troubleshooting`
+- `/styles`
+- `/ovens`
 - `/sauce`
 - `/toppings`
+- `/calculator/quick`
 - `/timer`
+- `/costs`
+- `/updates`
 
 These routes should have stable page metadata and clean canonical URLs.
+
+## Legacy noindex routes
+
+Patch 387 keeps predecessor routes accessible but removes them from the public sitemap and assigns explicit noindex metadata.
+
+The central source of truth is `legacyNoindexRoutes` in `lib/seo-config.ts`.
+
+Current legacy noindex routes are:
+
+- `/plan`
+- `/doctor`
+- `/gear`
+- `/history`
+- `/coach`
+
+These routes remain reachable from existing links until a later migration patch decides whether to redirect, merge, remove or preserve their unique logic. They must not appear in `/sitemap.xml`.
 
 ## Private and noindex routes
 
@@ -67,6 +87,7 @@ Examples:
 - `/plan?hydration=64`
 - `/doctor?hydration=64`
 - `/sauce?balls=6`
+- `/calculator/quick?quick=...`
 - `/toppings?toppings=mushroom%3A35%3Araw`
 - `/timer?oven=gas`
 
@@ -80,11 +101,12 @@ However, query-param variants should not create a large duplicate-content footpr
 
 Examples:
 
-- `/plan?hydration=64` canonicalizes to `https://www.doughtools.app/plan`
-- `/doctor?hydration=64` canonicalizes to `https://www.doughtools.app/doctor`
+- `/plan?hydration=64` canonicalizes to `https://www.doughtools.app/plan` and remains explicitly noindexed by route metadata
+- `/doctor?hydration=64` canonicalizes to `https://www.doughtools.app/doctor` and remains explicitly noindexed by route metadata
+- `/calculator/quick?quick=...` canonicalizes to `https://www.doughtools.app/calculator/quick`
 - `/?balls=4` canonicalizes to `https://www.doughtools.app/`
 
-Route-level query-param noindex is intentionally not implemented yet because the current App Router metadata layer is static for these pages. If duplicate-content signals become a practical issue after indexing is opened, add a separate patch for query-aware robots handling.
+Route-level query-param noindex is intentionally not implemented yet for every stateful tool URL because the current App Router metadata layer is static for these pages. If duplicate-content signals become a practical issue after indexing is opened, add a separate patch for query-aware robots handling.
 
 ## Canonical rules
 
@@ -126,18 +148,27 @@ It must include:
 - `/`
 - `/session/start`
 - `/guide`
+- `/guides/dough`
+- `/guide/pizza-troubleshooting`
+- `/sauce`
+- `/calculator/quick`
 - `/updates`
-- `/plan`
-- `/doctor`
 
 It must exclude:
 
 - query-param URLs
+- `/start`
+- `/plan`
+- `/doctor`
+- `/gear`
+- `/history`
+- `/coach`
+- downstream session routes
 - `/account`
 - auth routes
 - private routes
+- dynamic guest order routes
 - draft or debug routes
-- public bake pages that do not exist yet
 
 ## Robots rules
 
@@ -155,7 +186,7 @@ app/robots.ts
 
 While `ALLOW_INDEXING=false`, robots blocks crawling broadly as part of the temporary launch protection. This is not the only protection layer; pages also use noindex metadata and response headers.
 
-When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes.
+When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes. Legacy predecessor routes remain noindexed by page metadata even when global indexing is enabled.
 
 Robots includes a Sitemap line so crawlers can find the sitemap when the owner is ready to submit it.
 
@@ -171,19 +202,23 @@ When DoughTools is ready for public indexing:
    - `/`
    - `/session/start`
    - `/guide`
-   - `/plan`
-   - `/doctor`
-4. Inspect representative query-param URLs:
+   - `/guides/dough`
+   - `/guide/pizza-troubleshooting`
+   - `/sauce`
+   - `/calculator/quick`
+4. Confirm `/plan`, `/doctor`, `/gear`, `/history` and `/coach` are not submitted through the sitemap and report noindex metadata.
+5. Inspect representative query-param URLs:
    - `/?balls=6&ballWeight=260`
+   - `/calculator/quick?quick=...`
    - `/plan?hydration=64`
    - `/doctor?hydration=64`
-5. Confirm clean canonical URLs.
-6. Confirm private/account routes are not submitted.
-7. Monitor duplicate URL patterns.
+6. Confirm clean canonical URLs.
+7. Confirm private/account routes are not submitted.
+8. Monitor duplicate URL patterns.
 
 ## Intentionally not implemented yet
 
-Patch 23 does not add:
+Patch 387 does not add:
 
 - Google Search Console verification
 - analytics or tracking
@@ -191,6 +226,8 @@ Patch 23 does not add:
 - structured data for recipes, FAQ or how-to content
 - public bake pages
 - share-card metadata
+- redirects for `/plan`, `/doctor`, `/gear`, `/history` or `/coach`
+- route removal
 - query-aware route-level noindex for every stateful tool URL
 - Core Web Vitals or route-level performance baseline
 

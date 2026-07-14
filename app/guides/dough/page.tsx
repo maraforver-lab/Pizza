@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import DoughGuidePageClient from "@/components/guide/DoughGuidePageClient";
+import { metadataForRoute } from "@/lib/seo-config";
 
-export const metadata: Metadata = {
-  title: "Pizza Dough Guide | DoughTools",
-  description:
-    "Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.",
-};
+export const metadata: Metadata = metadataForRoute("/guides/dough");
 
 export default function PizzaDoughGuidePage() {
   return (

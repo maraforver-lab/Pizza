@@ -16,6 +16,7 @@ export type SeoRoutePolicy = {
   publicIndexableRoutes: readonly string[];
   publicToolBaseRoutes: readonly string[];
   statefulQueryParamRoutes: readonly string[];
+  legacyNoindexRoutes: readonly string[];
   privateNoindexRoutes: readonly string[];
 };
 
@@ -75,6 +76,28 @@ export const publicSeoRoutes = [
     priority: 0.7,
   },
   {
+    path: "/session/start",
+    title: "Plan My Next Pizza | DoughTools",
+    description: "Create a guided Pizza Session with dough, shopping, timeline, Kitchen Mode and review steps.",
+    changeFrequency: "weekly",
+    priority: 0.9,
+  },
+  {
+    path: "/guides/dough",
+    title: "Pizza Dough Guide | DoughTools",
+    description: "Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
+    path: "/guide/pizza-troubleshooting",
+    title: "Pizza Troubleshooting Guide: Dough, Stretching, Baking and Toppings | DoughTools",
+    description:
+      "Diagnose common pizza problems by symptom, find immediate fixes, understand likely causes, and learn what to change on your next bake.",
+    changeFrequency: "monthly",
+    priority: 0.8,
+  },
+  {
     path: "/styles",
     title: "Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools",
     description: "Compare major pizza styles by crust, texture, dough, oven, sauce and baking method, and learn which style DoughTools currently supports for planning.",
@@ -82,23 +105,9 @@ export const publicSeoRoutes = [
     priority: 0.7,
   },
   {
-    path: "/doctor",
-    title: "Dough Doctor | DoughTools",
-    description: "Troubleshoot common pizza dough problems using the current recipe, flour, hydration and fermentation context.",
-    changeFrequency: "monthly",
-    priority: 0.7,
-  },
-  {
     path: "/ovens",
     title: "Home Oven vs Pizza Oven: Heat, Baking and Pizza Results | DoughTools",
     description: "Compare Home oven and Pizza oven baking paths, including heat, bake time, topping moisture, dough behavior, preheating and common mistakes.",
-    changeFrequency: "monthly",
-    priority: 0.6,
-  },
-  {
-    path: "/gear",
-    title: "Pizza Gear Guide | DoughTools",
-    description: "Choose useful pizza-making tools for dough handling, launching, baking, slicing and safer oven work.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
@@ -119,6 +128,13 @@ export const publicSeoRoutes = [
     priority: 0.7,
   },
   {
+    path: "/calculator/quick",
+    title: "Quick Dough Calculator | DoughTools",
+    description: "Calculate pizza dough ingredient amounts without creating a full Pizza Session.",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
     path: "/timer",
     title: "Pizza Bake Timer | DoughTools",
     description: "Use a simple pizza baking timer designed for fast bakes and clear over-time feedback.",
@@ -126,32 +142,11 @@ export const publicSeoRoutes = [
     priority: 0.5,
   },
   {
-    path: "/plan",
-    title: "Pizza Fermentation Planner | DoughTools",
-    description: "Plan mixing, balling, cold fermentation, warm-up and baking steps around your pizza schedule.",
-    changeFrequency: "monthly",
-    priority: 0.7,
-  },
-  {
     path: "/costs",
     title: "Home Pizza vs Restaurant Pizza Cost Calculator | DoughTools",
     description: "Compare the estimated cost of making pizza at home with buying the same number of pizzas from a restaurant, including cost per pizza and total difference.",
     changeFrequency: "monthly",
     priority: 0.5,
-  },
-  {
-    path: "/history",
-    title: "Pizza History | DoughTools",
-    description: "Read a practical story of how pizza, tomato sauce and pizza-making culture developed over time.",
-    changeFrequency: "monthly",
-    priority: 0.5,
-  },
-  {
-    path: "/coach",
-    title: "Pizza Coach | DoughTools",
-    description: "Get structured pizza-making guidance from the current recipe settings and practical troubleshooting rules.",
-    changeFrequency: "monthly",
-    priority: 0.6,
   },
   {
     path: "/updates",
@@ -172,11 +167,38 @@ export const privateSeoRoutes = [
   "/debug",
 ] as const;
 
+export const legacyNoindexRoutes = [
+  {
+    path: "/plan",
+    title: "Pizza Fermentation Planner | DoughTools",
+    description: "Legacy pizza schedule planner retained temporarily while canonical Pizza Session routing is finalized.",
+  },
+  {
+    path: "/doctor",
+    title: "Dough Doctor | DoughTools",
+    description: "Legacy dough diagnosis route retained temporarily while troubleshooting guidance is consolidated.",
+  },
+  {
+    path: "/gear",
+    title: "Pizza Gear Guide | DoughTools",
+    description: "Legacy pizza gear guide retained temporarily while practical setup guidance is consolidated.",
+  },
+  {
+    path: "/history",
+    title: "Pizza History | DoughTools",
+    description: "Legacy pizza history route retained temporarily for direct-link compatibility.",
+  },
+  {
+    path: "/coach",
+    title: "Pizza Coach | DoughTools",
+    description: "Legacy pizza coach route retained temporarily while guidance rules are inventoried.",
+  },
+] as const satisfies readonly SeoRoute[];
+
 export const publicToolBaseRoutes = [
   "/",
-  "/plan",
-  "/doctor",
   "/sauce",
+  "/calculator/quick",
   "/toppings",
   "/timer",
   "/costs",
@@ -187,6 +209,7 @@ export const statefulQueryParamRoutes = [
   "/plan",
   "/doctor",
   "/sauce",
+  "/calculator/quick",
   "/toppings",
   "/timer",
 ] as const;
@@ -195,12 +218,17 @@ export const seoRoutePolicy: SeoRoutePolicy = {
   publicIndexableRoutes: publicSeoRoutes.map((route) => route.path),
   publicToolBaseRoutes,
   statefulQueryParamRoutes,
+  legacyNoindexRoutes: legacyNoindexRoutes.map((route) => route.path),
   privateNoindexRoutes: privateSeoRoutes,
 };
 
 export const routeMetadataByPath = Object.fromEntries(
   publicSeoRoutes.map((route) => [route.path, route]),
 ) as Record<(typeof publicSeoRoutes)[number]["path"], SeoRoute>;
+
+export const legacyRouteMetadataByPath = Object.fromEntries(
+  legacyNoindexRoutes.map((route) => [route.path, route]),
+) as Record<(typeof legacyNoindexRoutes)[number]["path"], SeoRoute>;
 
 export function normalizeSiteUrl(value?: string | null): string | undefined {
   const trimmed = value?.trim();
@@ -325,6 +353,30 @@ export function metadataForRoute(path: keyof typeof routeMetadataByPath, env: En
   if (hasConfiguredProductionSiteUrl(env)) {
     metadata.alternates = { canonical: canonicalUrl(path, env) };
     metadata.openGraph = { ...metadata.openGraph, url: canonicalUrl(path, env) };
+  }
+
+  return metadata;
+}
+
+export function metadataForLegacyRoute(path: keyof typeof legacyRouteMetadataByPath, env: EnvLike = process.env): Metadata {
+  const route = legacyRouteMetadataByPath[path];
+
+  if (!route) {
+    throw new Error(`Missing legacy SEO metadata for route: ${path}`);
+  }
+
+  const metadata = noindexMetadata(route.title, route.description);
+
+  if (hasConfiguredProductionSiteUrl(env)) {
+    metadata.alternates = { canonical: canonicalUrl(path, env) };
+    metadata.openGraph = {
+      title: route.title,
+      description: route.description,
+      type: "website",
+      siteName: "DoughTools",
+      url: canonicalUrl(path, env),
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "DoughTools pizza planning workspace" }],
+    };
   }
 
   return metadata;

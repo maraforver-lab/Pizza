@@ -8,6 +8,8 @@ import {
   getSiteUrl,
   hasConfiguredProductionSiteUrl,
   isIndexingAllowed,
+  legacyNoindexRoutes,
+  metadataForLegacyRoute,
   metadataForRoute,
   normalizeSiteUrl,
   privateSeoRoutes,
@@ -34,18 +36,25 @@ const requiredPublicRoutes = [
   "/terms",
   "/methodology",
   "/guide",
+  "/session/start",
+  "/guides/dough",
+  "/guide/pizza-troubleshooting",
   "/styles",
-  "/doctor",
   "/ovens",
-  "/gear",
   "/sauce",
   "/toppings",
+  "/calculator/quick",
   "/timer",
-  "/plan",
   "/costs",
+  "/updates",
+];
+
+const legacyNoindexRoutePaths = [
+  "/plan",
+  "/doctor",
+  "/gear",
   "/history",
   "/coach",
-  "/updates",
 ];
 
 const trustPageText = (id: TrustPageId) => [
@@ -114,9 +123,8 @@ describe("SEO launch configuration", () => {
     expect(seoRoutePolicy.publicIndexableRoutes).toEqual(requiredPublicRoutes);
     expect(seoRoutePolicy.publicToolBaseRoutes).toEqual([
       "/",
-      "/plan",
-      "/doctor",
       "/sauce",
+      "/calculator/quick",
       "/toppings",
       "/timer",
       "/costs",
@@ -126,20 +134,55 @@ describe("SEO launch configuration", () => {
       "/plan",
       "/doctor",
       "/sauce",
+      "/calculator/quick",
       "/toppings",
       "/timer",
     ]);
+    expect(seoRoutePolicy.legacyNoindexRoutes).toEqual(legacyNoindexRoutePaths);
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/account");
   });
 
-  it("excludes private account and auth routes from indexable route definitions and sitemap", () => {
+  it("includes canonical public product, learning and supporting utility routes in the sitemap", () => {
+    const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);
+
+    for (const route of [
+      "/session/start",
+      "/guides/dough",
+      "/guide/pizza-troubleshooting",
+      "/calculator/quick",
+    ]) {
+      expect(sitemapUrls).toContain(`https://doughtools.app${route}`);
+    }
+  });
+
+  it("excludes private, dynamic, downstream session and legacy routes from indexable route definitions and sitemap", () => {
     expect(privateSeoRoutes).toContain("/account");
     expect(privateSeoRoutes).toContain("/auth/callback");
     expect(publicSeoRoutes.map((route) => route.path)).not.toContain("/account");
 
     const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);
+    const sitemapPaths = sitemapUrls.map((url) => new URL(url).pathname);
 
-    expect(sitemapUrls.some((url) => url.includes("/account"))).toBe(false);
+    for (const route of [
+      "/start",
+      "/plan",
+      "/doctor",
+      "/gear",
+      "/history",
+      "/coach",
+      "/session/recipe",
+      "/session/shopping",
+      "/session/timeline",
+      "/session/kitchen",
+      "/session/review",
+      "/account",
+      "/account/party-orders",
+      "/order/",
+      "/api/",
+    ]) {
+      expect(sitemapPaths.some((path) => path === route || path.startsWith(route))).toBe(false);
+    }
+
     expect(sitemapUrls.some((url) => url.includes("/journal"))).toBe(false);
     expect(sitemapUrls.some((url) => url.includes("/community"))).toBe(false);
     expect(sitemapUrls.some((url) => url.includes("?"))).toBe(false);
@@ -208,7 +251,34 @@ describe("SEO launch configuration", () => {
       NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
     }).robots).toMatchObject({ index: true, follow: true });
 
+    expect(metadataForRoute("/session/start", {
+      ALLOW_INDEXING: "true",
+      NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+    })).toMatchObject({
+      robots: { index: true, follow: true },
+      alternates: { canonical: "https://www.doughtools.app/session/start" },
+    });
+
     expect(privateSeoRoutes).toContain("/account");
+  });
+
+  it("keeps obsolete predecessor routes accessible but explicitly noindexed", () => {
+    expect(legacyNoindexRoutes.map((route) => route.path)).toEqual(legacyNoindexRoutePaths);
+
+    for (const route of legacyNoindexRoutePaths) {
+      expect(() => metadataForRoute(route as Parameters<typeof metadataForRoute>[0])).toThrow(
+        `Missing SEO metadata for route: ${route}`,
+      );
+
+      const metadata = metadataForLegacyRoute(route as Parameters<typeof metadataForLegacyRoute>[0], {
+        NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+      });
+
+      expect(metadata.robots).toMatchObject({ index: false, follow: false, nocache: true });
+      expect(metadata.alternates).toMatchObject({
+        canonical: `https://www.doughtools.app${route}`,
+      });
+    }
   });
 
   it("does not include old Vercel URL fallback or unsupported claims in active SEO copy", () => {
@@ -220,8 +290,8 @@ describe("SEO launch configuration", () => {
     expect(seoText).not.toMatch(/\b(Laskuri|Pizzatyylit|Aikataulu|Kalkylator|Pizzastilar|Tidsplan)\b|[äöåÄÖÅ]/);
   });
 
-  it("keeps Pizza Coach metadata practical without unsupported AI claims", () => {
-    const coach = metadataForRoute("/coach");
+  it("keeps legacy Pizza Coach metadata noindexed without unsupported AI claims", () => {
+    const coach = metadataForLegacyRoute("/coach");
     const coachText = `${coach.title} ${coach.description}`;
 
     expect(coachText).toContain("Pizza Coach");
@@ -300,7 +370,8 @@ describe("SEO launch configuration", () => {
 
     expect(indexationDoc).toContain("https://www.doughtools.app");
     expect(indexationDoc).toContain("/session/start");
-    expect(indexationDoc).not.toContain("- `/start`");
+    expect(indexationDoc).toContain("- `/start`");
+    expect(indexationDoc).toContain("It must exclude:");
     expect(indexationDoc).toContain("/sitemap.xml");
     expect(indexationDoc).toContain("/robots.txt");
     expect(indexationDoc).toContain("Search Console");
