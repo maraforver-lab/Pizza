@@ -135,8 +135,9 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain("This step is scheduled later");
     expect(kitchen).toContain("Continue anyway");
     expect(kitchen).toContain("Current step");
-    expect(kitchen).toContain("Planned for");
-    expect(kitchen).toContain("Next action");
+    expect(kitchen).toContain("Planned ${plannedClock}");
+    expect(kitchen).not.toContain("Next action");
+    expect(kitchen).toContain("Next:");
     expect(kitchen).toContain("More guidance");
     expect(kitchen).toContain("Change pizza menu");
     expect(kitchen).toContain("buildContextualReturnHref(doughGuideLink.href)");

@@ -181,10 +181,11 @@ describe("Pizza Session desktop refinement components", () => {
 
     expect(badge).toContain("Pizza Session guidance level: ${config.label}");
     expect(badge).toContain("Guidance: {config.label}");
+    expect(badge).toContain("compact");
     expect(badge).toContain("data-session-experience-level={config.id}");
     expect(hero).toContain("{level && <SessionExperienceLevelBadge level={level} />}");
     expect(startPage).toContain("<SessionExperienceLevelBadge level={experienceLevel}");
-    expect(kitchenPage).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} />");
+    expect(kitchenPage).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} compact />");
     expect(kitchenPage).toContain("getKitchenExperienceGuidance(currentStep, session.experienceLevel, session)");
   });
 });

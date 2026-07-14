@@ -326,6 +326,10 @@ describe("Pizza Session Kitchen Mode", () => {
       "Yeast — Dry yeast",
       "Dough balls",
     ]);
+    expect(lines).toContainEqual({ label: "Flour", value: "623 g" });
+    expect(lines).toContainEqual({ label: "Water", value: "399 g" });
+    expect(lines).toContainEqual({ label: "Salt", value: "17 g" });
+    expect(lines).toContainEqual({ label: "Yeast — Dry yeast", value: "0.5 g" });
     expect(lines.map((line) => line.value).join(" ")).toContain("4 × 260 g");
     expect(recipeSnapshotIngredientLines(undefined)).toEqual([]);
     expect(isMixDoughStep(sampleTimeline.steps[0])).toBe(true);
@@ -377,24 +381,27 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("activeStep={9}");
     expect(page).toContain("hideLocalSaveNote");
     expect(page).toContain("Needed now");
-    expect(page).toContain("Step {kitchenState.currentIndex + 1}/{kitchenState.totalCount}");
+    expect(page).toContain("role=\"progressbar\"");
+    expect(page).toContain("Kitchen progress: ${progressLabel}");
+    expect(page).toContain("aria-valuenow={kitchenState.currentIndex + 1}");
+    expect(page).toContain("{kitchenState.currentIndex + 1} / {kitchenState.totalCount}");
     expect(page).toContain("formatTimelineLiveTiming");
     expect(page).toContain("currentLiveTiming");
     expect(page).toContain("nextLiveTiming");
-    expect(page).toContain("formatSessionPlannedTime");
-    expect(page).toContain("Planned for");
+    expect(page).toContain("compactKitchenTiming");
+    expect(page).toContain("formatRuntimeClockTime(kitchenState.nextStep.scheduledAt)");
+    expect(page).toContain("Planned ${plannedClock}");
     expect(page).toContain("Current step");
     expect(page).toContain("<h1 id=\"current-kitchen-task\"");
     expect(page).not.toContain("levelModeLabel(experience.label)");
     expect(page).not.toContain("${label} mode");
-    expect(page).toContain("kitchenStepIcon(currentStep)");
-    expect(page).toContain("kitchenStepIconTone(currentStep)");
-    expect(page).toContain("kitchenStepIcon(kitchenState.nextStep)");
-    expect(page).toContain("kitchenStepIconTone(kitchenState.nextStep)");
-    expect(page).toContain("Do this");
-    expect(page).toContain("What is happening now");
-    expect(page).toContain("Step guidance");
-    expect(page).toContain("What to do now");
+    expect(page).not.toContain("kitchenStepIcon(currentStep)");
+    expect(page).not.toContain("kitchenStepIconTone(currentStep)");
+    expect(page).not.toContain("Do this");
+    expect(page).not.toContain("What is happening now");
+    expect(page).toContain("Current task instruction");
+    expect(page).toContain("Ready when:");
+    expect(page).toContain("shouldShowKitchenCompletionCue");
     expect(page).toContain("More guidance");
     expect(page).not.toContain("Need more help?");
     expect(page).not.toContain("id=\"kitchen-do-this-heading\"");
@@ -404,14 +411,13 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("Planned at");
     expect(page).not.toContain("Live timing");
     expect(page).not.toContain("When");
-    expect(page).toContain("You are done when");
+    expect(page).not.toContain("You are done when");
     expect(page).toContain("What this should look like");
     expect(page).toContain("{experience.label} guidance");
     expect(page).toContain("getKitchenExperienceGuidance(currentStep, session.experienceLevel, session)");
     expect(page).toContain("What to look for");
     expect(page).toContain("Why it matters");
     expect(page).toContain("Keep in mind");
-    expect(page).toContain("Next action");
     expect(page).toContain("Next:");
     expect(page).toContain("const nextStepSummary = kitchenState.nextStep");
     expect(page).toContain(": \"Review your pizza session\"");
@@ -490,14 +496,10 @@ describe("Pizza Session Kitchen Mode", () => {
   it("maps small Kitchen Mode visuals to key step types", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("function kitchenStepIcon(step?: { id: string })");
-    expect(page).toContain('step?.id === "mix-dough"');
-    expect(page).toContain('step?.id === "rest-dough"');
-    expect(page).toContain('step?.id === "cold-ferment"');
-    expect(page).toContain('step?.id === "bake-pizza"');
-    expect(page).toContain("function kitchenStepIconTone(step?: { id: string })");
-    expect(page).toContain("bg-leaf/10 text-leaf ring-leaf/15");
-    expect(page).toContain("bg-tomato/10 text-tomato ring-tomato/15");
+    expect(page).toContain("SessionExperienceLevelBadge level={session.experienceLevel} compact");
+    expect(page).toContain("role=\"progressbar\"");
+    expect(page).toContain("bg-ink/65");
+    expect(page).not.toContain("function kitchenStepIcon(step?: { id: string })");
   });
 
   it("renders the Kitchen Mode early-step wait notice and confirmation controls", () => {
@@ -544,17 +546,17 @@ describe("Pizza Session Kitchen Mode", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("import { formatTimelineLiveTiming } from \"@/lib/timeline-live-timing\"");
-    expect(page).toContain("const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, currentTime ?? new Date())");
-    expect(page).toContain("const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date())");
-    expect(page).toContain("formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())");
-    expect(page).toContain("formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())");
-    expect(page).toContain("currentLiveTiming.label");
-    expect(page).toContain("currentLiveTiming.value");
+    expect(page).toContain("const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, now)");
+    expect(page).toContain("const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, now)");
+    expect(page).toContain("compactKitchenTiming(currentRuntimeStep, session, currentLiveTiming, now, currentStepHasStarted)");
+    expect(page).toContain("formatRuntimeClockTime(kitchenState.nextStep.scheduledAt)");
+    expect(page).toContain("liveTiming.label");
+    expect(page).toContain("formatKitchenOverdueValue(liveTiming.value)");
     expect(page).toContain("nextLiveTiming.label");
     expect(page).toContain("nextLiveTiming.value");
     expect(page).toContain("window.setInterval(() => setCurrentTime(new Date()), 15_000)");
     expect(page).toContain("window.clearInterval(timer)");
-    expect(page).not.toContain("aria-live");
+    expect(page).toContain("aria-live=\"polite\"");
   });
 
   it("keeps Kitchen Mode timing states aligned with the Timeline live timing formatter", () => {
@@ -658,7 +660,7 @@ describe("Pizza Session Kitchen Mode", () => {
 
     expect(page).not.toContain("levelModeLabel(experience.label)");
     expect(page).not.toContain("${label} mode");
-    expect(page).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} />");
+    expect(page).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} compact />");
     expect(getExperienceLevelConfig("beginner").label).toBe("Beginner");
     expect(getExperienceLevelConfig("enthusiast").label).toBe("Enthusiast");
     expect(getExperienceLevelConfig("pizza_nerd").label).toBe("Pizza Nerd");
@@ -703,18 +705,17 @@ describe("Pizza Session Kitchen Mode", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("formatKitchenStepTime(currentStep.scheduledAt)");
-    expect(page).toContain("formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())");
-    expect(page).toContain("formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())");
+    expect(page).toContain("compactKitchenTiming(currentRuntimeStep, session, currentLiveTiming, now, currentStepHasStarted)");
+    expect(page).toContain("formatRuntimeClockTime(kitchenState.nextStep.scheduledAt)");
     expect(page).toContain("aria-labelledby=\"kitchen-step-guidance-heading\"");
     expect(page).toContain("rounded-[1.25rem] border border-leaf/10 bg-white/65");
     expect(page).toContain("Quiet-hours warning");
     expect(page).toContain("rounded-2xl bg-tomato/10");
-    expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned for"));
-    expect(page.indexOf("Planned for")).toBeLessThan(page.indexOf("Next action"));
-    expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("Step guidance"));
-    expect(page.indexOf("Step guidance")).toBeLessThan(page.indexOf("Do this"));
-    expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("You are done when"));
-    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("More guidance"));
+    expect(page.indexOf("role=\"progressbar\"")).toBeLessThan(page.indexOf("Current step"));
+    expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("aria-live=\"polite\""));
+    expect(page.indexOf("aria-live=\"polite\"")).toBeLessThan(page.indexOf("Next:"));
+    expect(page.indexOf("Next:")).toBeLessThan(page.indexOf("Current task instruction"));
+    expect(page.indexOf("Current task instruction")).toBeLessThan(page.indexOf("More guidance"));
     expect(page.indexOf("More guidance")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
     expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("What this should look like"));
   });

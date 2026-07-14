@@ -174,6 +174,8 @@ describe("experience levels foundation", () => {
 
     expect(badge).toContain("getExperienceLevelConfig(level)");
     expect(badge).toContain("Guidance: {config.label}");
+    expect(badge).toContain("compact");
+    expect(badge).toContain("sr-only");
     expect(badge).toContain("data-session-experience-level={config.id}");
     expect(badge).toContain("markerClassName");
     expect(badge).not.toContain("{config.marker}");

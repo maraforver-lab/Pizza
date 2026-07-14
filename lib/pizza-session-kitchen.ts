@@ -655,7 +655,8 @@ export function completeKitchenTimelineStep(
 
 function grams(value?: number) {
   if (!Number.isFinite(value)) return undefined;
-  const rounded = Math.round((value ?? 0) * 100) / 100;
+  const safeValue = value ?? 0;
+  const rounded = safeValue >= 1 ? Math.round(safeValue) : Math.round(safeValue * 100) / 100;
   return `${rounded} g`;
 }
 

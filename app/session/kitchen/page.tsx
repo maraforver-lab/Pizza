@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomActionBar, buttonClass } from "@/components/design-system";
-import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { DoughToolsIcon } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
@@ -18,7 +18,6 @@ import {
   type PizzaSessionPizzaMix,
   type PizzaSessionPizzaMixType,
 } from "@/lib/pizza-session";
-import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-troubleshooting-links";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
@@ -63,30 +62,6 @@ function formatKitchenStepTime(value?: string) {
   return `${part("weekday")}, ${part("day")} ${part("month")} · ${part("hour")}:${part("minute")}`;
 }
 
-function kitchenStepIcon(step?: { id: string }): DoughToolsIconName {
-  if (step?.id === "mix-dough") return "mixing-bowl";
-  if (step?.id === "rest-dough") return "timer";
-  if (step?.id === "cold-ferment") return "refrigerator";
-  if (step?.id === "room-ferment" || step?.id === "ferment-dough") return "thermometer";
-  if (step?.id === "ball-dough") return "pizza";
-  if (step?.id === "room-temperature-rest") return "thermometer";
-  if (step?.id === "preheat-oven") return "flame";
-  if (step?.id === "prepare-sauce-toppings") return "chef-hat";
-  if (step?.id === "bake-pizza") return "pizza";
-  if (step?.id === "review-result") return "checklist";
-  return "check";
-}
-
-function kitchenStepIconTone(step?: { id: string }) {
-  if (step?.id === "cold-ferment" || step?.id === "room-ferment" || step?.id === "ferment-dough" || step?.id === "room-temperature-rest") {
-    return "bg-leaf/10 text-leaf ring-leaf/15";
-  }
-  if (step?.id === "preheat-oven" || step?.id === "bake-pizza") {
-    return "bg-tomato/10 text-tomato ring-tomato/15";
-  }
-  return "bg-white text-ink ring-ink/10";
-}
-
 function queueKitchenProgressSync(updated: PizzaSession) {
   void queueCloudActivePizzaSessionSave(updated).catch(() => {
     // The local session remains current; route-level sync can retry on the next render.
@@ -114,6 +89,76 @@ function kitchenBakePhaseStarted(session: PizzaSession, currentStep?: { id: stri
     || currentStep?.id === "bake-pizza"
     || Boolean(bakeRuntime?.actualStartedAt || bakeRuntime?.actualCompletedAt)
     || bakeStep?.status === "done";
+}
+
+function kitchenProgressPercent(currentIndex: number, totalCount: number) {
+  if (!totalCount || totalCount < 1) return 0;
+  return Math.min(100, Math.max(0, ((currentIndex + 1) / totalCount) * 100));
+}
+
+const duplicateDoneCueStepIds = new Set(["mix-dough"]);
+
+function shouldShowKitchenCompletionCue(stepId: string | undefined, instruction: string, doneCondition: string) {
+  if (!doneCondition.trim()) return false;
+  if (stepId && duplicateDoneCueStepIds.has(stepId)) return false;
+  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normalizedInstruction = normalize(instruction);
+  const normalizedCondition = normalize(doneCondition);
+  return normalizedCondition.length > 0 && !normalizedInstruction.includes(normalizedCondition);
+}
+
+function formatKitchenDuration(milliseconds: number) {
+  const totalMinutes = Math.max(0, Math.round(milliseconds / 60_000));
+  if (totalMinutes < 1) return "less than 1 min";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return [hours ? `${hours} h` : "", minutes ? `${minutes} min` : ""].filter(Boolean).join(" ") || "0 min";
+}
+
+function formatKitchenOverdueValue(value?: string) {
+  if (!value) return "Overdue";
+  return `${value.replace("−", "").trim()} overdue`;
+}
+
+function compactKitchenTiming(
+  step: RuntimePizzaSessionTimelineStep | undefined,
+  session: PizzaSession,
+  liveTiming: ReturnType<typeof formatTimelineLiveTiming>,
+  now: Date,
+  hasStarted: boolean,
+) {
+  const plannedClock = formatRuntimeClockTime(step?.scheduledAt);
+  const actualStartedAt = step?.id ? session.stepRuntime?.[step.id]?.actualStartedAt : undefined;
+  if (hasStarted && actualStartedAt) {
+    const started = new Date(actualStartedAt);
+    const elapsed = Number.isFinite(started.getTime()) ? formatKitchenDuration(now.getTime() - started.getTime()) : undefined;
+    return {
+      primary: elapsed ? `Active for ${elapsed}` : "Step active",
+      secondary: `Started ${formatRuntimeClockTime(actualStartedAt)}`,
+    };
+  }
+  if (liveTiming.kind === "overdue") {
+    return {
+      primary: formatKitchenOverdueValue(liveTiming.value),
+      secondary: `Planned ${plannedClock}`,
+    };
+  }
+  if (liveTiming.kind === "future") {
+    return {
+      primary: liveTiming.label,
+      secondary: `Planned ${plannedClock}`,
+    };
+  }
+  if (liveTiming.kind === "ready") {
+    return {
+      primary: "Ready now",
+      secondary: `Planned ${plannedClock}`,
+    };
+  }
+  return {
+    primary: "Timing not set",
+    secondary: "Follow the saved timeline order.",
+  };
 }
 
 function isOvenTroubleshootingStep(step?: { id: string }) {
@@ -264,9 +309,9 @@ export default function SessionKitchenPage() {
   const ingredients = doughKitchenIngredientLines(session.recipeSnapshot);
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
   const waitInfo = currentTime ? getKitchenStepWaitInfo(currentStep, currentTime) : getKitchenStepWaitInfo(undefined);
-  const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, currentTime ?? new Date());
-  const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, currentTime ?? new Date());
-  const currentStepIsWaiting = currentStep?.kind === "passive";
+  const now = currentTime ?? new Date();
+  const currentLiveTiming = formatTimelineLiveTiming(currentStep?.scheduledAt, now);
+  const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, now);
   const currentStepIsRuntimeWork = isRuntimeDoughWorkStep(currentStep);
   const currentStepHasStarted = hasStepActuallyStarted(session, currentStep?.id);
   const doughGuideLink = getDoughGuideLinkForSessionStep(currentStep, "/session/kitchen");
@@ -274,7 +319,7 @@ export default function SessionKitchenPage() {
   const doughGuideHref = doughGuideLink ? buildContextualReturnHref(doughGuideLink.href) : null;
   const ovenTroubleshootingHref = ovenTroubleshootingLink ? buildContextualReturnHref(ovenTroubleshootingLink.href) : null;
   const nextStepSummary = kitchenState.nextStep
-    ? `${nextTaskPresentation.title} · ${formatSessionPlannedTime(kitchenState.nextStep.scheduledAt, currentTime ?? new Date())}`
+    ? `${nextTaskPresentation.title} at ${formatRuntimeClockTime(kitchenState.nextStep.scheduledAt)}`
     : "Review your pizza session";
   const experience = getExperienceLevelConfig(session.experienceLevel);
   const levelGuidance = getKitchenExperienceGuidance(currentStep, session.experienceLevel, session);
@@ -295,6 +340,14 @@ export default function SessionKitchenPage() {
   const draftAllocatedCount = pizzaMixTotal(draftNormalizedMix);
   const menuLocked = kitchenBakePhaseStarted(session, currentStep);
   const menuCanEdit = Boolean(lockedPizzaCount && lockedPizzaCount > 0 && !menuLocked);
+  const progressPercent = kitchenProgressPercent(kitchenState.currentIndex, kitchenState.totalCount);
+  const progressLabel = `Step ${kitchenState.currentIndex + 1} of ${kitchenState.totalCount}`;
+  const timing = compactKitchenTiming(currentRuntimeStep, session, currentLiveTiming, now, currentStepHasStarted);
+  const showCompletionCue = shouldShowKitchenCompletionCue(
+    currentStep?.id,
+    taskPresentation.shortInstruction,
+    taskPresentation.doneCondition,
+  );
 
   const closeMenuEditor = () => {
     setMenuEditorOpen(false);
@@ -394,117 +447,55 @@ export default function SessionKitchenPage() {
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/45">
-                        Kitchen Mode
-                      </span>
-                      <span className="rounded-full bg-leaf/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-leaf">
-                        Step {kitchenState.currentIndex + 1}/{kitchenState.totalCount}
-                      </span>
-                      <SessionExperienceLevelBadge level={session.experienceLevel} />
-                      {waitInfo.isTooEarly && waitInfo.waitLabel && (
-                        <span className="rounded-full bg-tomato/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-tomato">
-                          {waitInfo.waitLabel}
-                        </span>
-                      )}
+                  <div className="min-w-0 space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <SessionExperienceLevelBadge level={session.experienceLevel} compact />
+                      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">{kitchenState.currentIndex + 1} / {kitchenState.totalCount}</p>
                     </div>
-                    <div className="mt-5 flex min-w-0 items-start gap-3">
-                      <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
-                        <DoughToolsIcon name={kitchenStepIcon(currentStep)} size={32} strokeWidth={2.1} />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current step</p>
-                        <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
-                      </div>
-                    </div>
-                  </div>
 
-                  <section className="mt-5 rounded-[1.5rem] border border-leaf/15 bg-cream/70 p-4 shadow-sm sm:p-5" aria-labelledby="kitchen-current-timing-heading">
-                    <p id="kitchen-current-timing-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">
-                      {currentRuntimeStep?.runtimeEndsAt ? "Running until" : "Planned for"}
-                    </p>
-                    <p className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
-                      {formatSessionPlannedTime(currentStep.scheduledAt, currentTime ?? new Date())}
-                    </p>
-                    {currentRuntimeStep?.runtimeStartsAt && (
-                      <p className="mt-2 text-xs font-bold leading-5 text-ink/50">
-                        Planned for {formatRuntimeClockTime(currentRuntimeStep.plannedScheduledAt)}
-                        {" · "}
-                        Actually started at {formatRuntimeClockTime(currentRuntimeStep.runtimeStartsAt)}
-                      </p>
-                    )}
-                    {currentStepIsRuntimeWork && currentStepHasStarted && (
-                      <p className="mt-2 text-xs font-bold leading-5 text-ink/50">
-                        Started at {formatRuntimeClockTime(session.stepRuntime?.[currentStep.id]?.actualStartedAt)}
-                      </p>
-                    )}
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${
-                        currentLiveTiming.kind === "overdue"
-                          ? "bg-tomato/10 text-tomato"
-                          : currentLiveTiming.kind === "unknown"
-                            ? "bg-white text-ink/55"
-                            : "bg-leaf/10 text-leaf"
-                      }`}>
-                        {currentLiveTiming.label}
-                      </span>
-                      {currentLiveTiming.value && (
-                        <span className="rounded-full bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">
-                          {currentLiveTiming.value}
-                        </span>
-                      )}
+                    <div
+                      className="h-1.5 overflow-hidden rounded-full bg-ink/10"
+                      role="progressbar"
+                      aria-label={`Kitchen progress: ${progressLabel}`}
+                      aria-valuemin={1}
+                      aria-valuemax={kitchenState.totalCount}
+                      aria-valuenow={kitchenState.currentIndex + 1}
+                    >
+                      <div className="h-full rounded-full bg-ink/65" style={{ width: `${progressPercent}%` }} />
                     </div>
-                    <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65" aria-label="Compact next-step preview">
-                      {kitchenState.nextStep && (
-                        <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 ${kitchenStepIconTone(kitchenState.nextStep)}`} aria-hidden="true">
-                          <DoughToolsIcon name={kitchenStepIcon(kitchenState.nextStep)} size={16} strokeWidth={2.1} />
-                        </span>
-                      )}
-                      <p className="min-w-0">
-                        <span className="uppercase tracking-[.14em] text-ink/40">{currentStepIsWaiting ? "Next action:" : "Next:"}</span>{" "}
-                        {nextStepSummary}
+
+                    <div className="min-w-0">
+                      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Current step</p>
+                      <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
+                    </div>
+
+                    <div className="grid gap-2 border-y border-ink/10 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
+                      <div aria-live="polite">
+                        <p className={`text-lg font-extrabold leading-7 sm:text-xl ${
+                          currentLiveTiming.kind === "overdue" ? "text-tomato" : "text-ink"
+                        }`}>
+                          {timing.primary}
+                        </p>
+                        <p className="text-xs font-bold leading-5 text-ink/50">{timing.secondary}</p>
+                      </div>
+                      <p className="text-sm font-extrabold leading-6 text-ink/60 sm:text-right" aria-label="Compact next-step preview">
+                        <span className="text-ink/40">Next:</span> {nextStepSummary}
                         {kitchenState.nextStep && nextLiveTiming.kind !== "unknown" && (
                           <span className="font-bold text-ink/45"> · {nextLiveTiming.label}{nextLiveTiming.value ? ` ${nextLiveTiming.value}` : ""}</span>
                         )}
                       </p>
                     </div>
-                  </section>
 
-                  {waitInfo.isTooEarly && waitInfo.waitLabel && (
-                    <div className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
-                      <p className="text-sm font-extrabold leading-6 text-tomato">
-                        {waitInfo.waitLabel} before this step.
-                      </p>
-                      <p className="mt-1 text-sm font-bold leading-6 text-ink/65">
-                        This step is scheduled for {formatKitchenStepTime(currentStep.scheduledAt)}.
-                      </p>
-                    </div>
-                  )}
+                    <section className="rounded-[1.25rem] bg-cream/80 p-4" aria-labelledby="kitchen-step-guidance-heading">
+                      <p id="kitchen-step-guidance-heading" className="sr-only">Current task instruction</p>
+                      <p className="text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
+                      {showCompletionCue && (
+                        <p className="mt-2 text-sm font-bold leading-6 text-ink/65">
+                          <span className="font-extrabold text-ink">Ready when:</span> {taskPresentation.doneCondition}
+                        </p>
+                      )}
 
-                  <section className="mt-5 rounded-[1.5rem] border border-white/80 bg-cream/75 p-4 shadow-sm sm:p-5" aria-labelledby="kitchen-step-guidance-heading">
-                    <div className="flex min-w-0 items-start gap-3">
-                      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
-                        <DoughToolsIcon name={kitchenStepIcon(currentStep)} size={24} strokeWidth={2.1} />
-                      </span>
-                      <div className="min-w-0">
-                        <p id="kitchen-step-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Step guidance</p>
-                        <h2 className="mt-2 font-display text-3xl font-semibold leading-none">What to do now</h2>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-3">
-                      <div className="rounded-[1.25rem] border border-tomato/15 bg-white/80 p-4">
-                        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{currentStepIsWaiting ? "What is happening now" : "Do this"}</p>
-                        <p className="mt-2 text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
-                      </div>
-
-                      <div className="rounded-[1.25rem] bg-white/70 p-4">
-                        <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">You are done when</p>
-                        <p className="mt-2 text-sm font-bold leading-6 text-ink/70 sm:text-base">{taskPresentation.doneCondition}</p>
-                      </div>
-
-                      <details className="rounded-[1.25rem] border border-ink/10 bg-white/70 p-4">
+                      <details className="mt-4 rounded-[1.25rem] border border-ink/10 bg-white/70 p-4">
                         <summary className="cursor-pointer text-sm font-extrabold text-ink/65 marker:text-tomato">
                           More guidance
                         </summary>
@@ -554,22 +545,33 @@ export default function SessionKitchenPage() {
                           </div>
                         </div>
                       </details>
+                    </section>
+                  </div>
+
+                  {waitInfo.isTooEarly && waitInfo.waitLabel && (
+                    <div className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
+                      <p className="text-sm font-extrabold leading-6 text-tomato">
+                        {waitInfo.waitLabel} before this step.
+                      </p>
+                      <p className="mt-1 text-sm font-bold leading-6 text-ink/65">
+                        This step is scheduled for {formatKitchenStepTime(currentStep.scheduledAt)}.
+                      </p>
                     </div>
-                  </section>
+                  )}
                 </section>
 
                 {kitchenMode === "dough" && isMixDoughStep(currentStep) && ingredients.length > 0 && (
-                   <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
+                   <section className="mt-5 rounded-[1.25rem] bg-cream/80 p-4 sm:mt-6 sm:p-5" aria-labelledby="kitchen-needed-now-heading">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
-                    <h3 className="mt-2 font-display text-2xl font-semibold">Dough ingredients</h3>
-                     <div className="mt-3 grid gap-2 sm:mt-4 sm:grid-cols-2 sm:gap-3">
+                    <h3 id="kitchen-needed-now-heading" className="mt-1 font-display text-2xl font-semibold">Dough ingredients</h3>
+                     <dl className="mt-3 grid gap-2">
                        {ingredients.map((line) => (
-                         <div key={line.label} className="rounded-2xl bg-white p-3.5 sm:p-4">
-                          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/35">{line.label}</p>
-                          <p className="mt-1 text-2xl font-extrabold">{line.value}</p>
+                         <div key={line.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-4 border-b border-ink/10 pb-2 last:border-b-0 last:pb-0">
+                          <dt className="min-w-0 text-sm font-extrabold text-ink/65">{line.label}</dt>
+                          <dd className="text-right text-lg font-extrabold tabular-nums text-ink">{line.value}</dd>
                         </div>
                       ))}
-                    </div>
+                    </dl>
                   </section>
                 )}
 
@@ -582,33 +584,12 @@ export default function SessionKitchenPage() {
                 )}
 
                 {kitchenMode === "service" && (
-                   <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
+                   <section className="mt-5 rounded-[1.25rem] bg-cream/80 p-4 sm:mt-6 sm:p-5">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
-                    <h3 className="mt-2 font-display text-2xl font-semibold">Service reminders</h3>
+                    <h3 className="mt-1 font-display text-2xl font-semibold">Service reminders</h3>
                     <p className="mt-2 text-sm leading-6 text-ink/60">Keep sauce, cheese and toppings ready, then follow the current task.</p>
                   </section>
                 )}
-
-                <section className="mt-5 rounded-[1.25rem] border border-ink/10 bg-white/70 p-4" aria-labelledby="kitchen-menu-summary-heading">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p id="kitchen-menu-summary-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Pizza menu</p>
-                      <p className="mt-1 text-sm font-extrabold leading-6 text-ink">{currentPizzaMixSummary}</p>
-                      <p className="mt-1 text-xs font-bold leading-5 text-ink/50">
-                        {menuLocked
-                          ? "Menu is locked once baking starts."
-                          : lockedPizzaCount
-                            ? "Total pizzas are locked for this session."
-                            : "Pizza menu needs a saved pizza count before it can be changed."}
-                      </p>
-                    </div>
-                    {menuError && !menuEditorOpen && (
-                      <p className="rounded-2xl bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato" role="status">
-                        {menuError}
-                      </p>
-                    )}
-                  </div>
-                </section>
 
                 {currentStep.quietHoursWarning && (
                   <p className="mt-5 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
@@ -618,19 +599,38 @@ export default function SessionKitchenPage() {
 
                 <BottomActionBar
                   back={(
-                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                      <button
-                        ref={menuTriggerRef}
-                        type="button"
-                        onClick={openMenuEditor}
-                        disabled={!menuCanEdit}
-                        className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
-                      >
-                        Change pizza menu
-                      </button>
-                      <Link href="/session/timeline" className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}>
-                        View full schedule
-                      </Link>
+                    <div className="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_auto] sm:items-center">
+                      <div className="min-w-0 rounded-2xl border border-ink/10 bg-white/70 px-3 py-2">
+                        <p id="kitchen-menu-summary-heading" className="sr-only">Pizza menu</p>
+                        <p className="truncate text-xs font-extrabold leading-5 text-ink">{currentPizzaMixSummary}</p>
+                        <p className="text-[11px] font-bold leading-4 text-ink/45">
+                          {menuLocked
+                            ? "Menu locked once baking starts."
+                            : lockedPizzaCount
+                              ? "Locked total."
+                              : "Needs saved pizza count."}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <button
+                          ref={menuTriggerRef}
+                          type="button"
+                          onClick={openMenuEditor}
+                          disabled={!menuCanEdit}
+                          aria-describedby="kitchen-menu-summary-heading"
+                          className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+                        >
+                          Change pizza menu
+                        </button>
+                        <Link href="/session/timeline" className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}>
+                          View full schedule
+                        </Link>
+                      </div>
+                      {menuError && !menuEditorOpen && (
+                        <p className="rounded-2xl bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato sm:col-span-2" role="status">
+                          {menuError}
+                        </p>
+                      )}
                     </div>
                   )}
                   primary={(
