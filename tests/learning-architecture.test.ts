@@ -68,10 +68,10 @@ describe("learning architecture", () => {
       source("components", "guide", "DoughGuidePageClient.tsx"),
       source("components", "guide", "PizzaTroubleshootingGuideClient.tsx"),
       source("app", "ovens", "page.tsx"),
-      source("app", "gear", "page.tsx"),
       source("app", "styles", "page.tsx"),
       source("components", "toppings", "ToppingBalanceLab.tsx"),
     ];
+    const retiredGear = source("app", "gear", "page.tsx");
 
     for (const page of educationalSources) {
       expect(page).toContain("LearningBreadcrumbs");
@@ -80,5 +80,7 @@ describe("learning architecture", () => {
 
     expect(educationalSources.join("\n")).toContain("RelatedLearning");
     expect(educationalSources.join("\n")).toContain("/session/start");
+    expect(retiredGear).toContain('permanentRedirect("/ovens#other-equipment")');
+    expect(retiredGear).not.toContain("LearningBreadcrumbs");
   });
 });

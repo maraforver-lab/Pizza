@@ -111,6 +111,131 @@ const safetyItems = [
   "Let stone, steel and oven parts cool before handling.",
 ] as const;
 
+const equipmentGroups = [
+  {
+    title: "Essential",
+    intro: "Start with the tools that protect the dough, confirm heat and keep the launch controlled.",
+    items: [
+      {
+        name: "Digital scale",
+        use: "Measures flour, water, salt and dough-ball weight repeatably.",
+        priority: "Essential",
+        ovenFit: "Both",
+        beginner: "Yes. Use it from the first batch.",
+        tip: "Use at least 1 g resolution for dough and a 0.01 g scale when yeast amounts are tiny.",
+      },
+      {
+        name: "Lidded proofing box",
+        use: "Keeps dough balls covered so they do not dry out before stretching.",
+        priority: "Essential",
+        ovenFit: "Both",
+        beginner: "Yes, or use food-safe lidded containers.",
+        tip: "Leave room between dough balls so they do not merge during proofing.",
+      },
+      {
+        name: "Dough scraper",
+        use: "Releases dough from the box and helps move sticky dough without tearing it.",
+        priority: "Essential",
+        ovenFit: "Both",
+        beginner: "Yes. It prevents rough handling.",
+        tip: "Scrape under the dough instead of pulling the dough upward by force.",
+      },
+      {
+        name: "Launching peel",
+        use: "Moves a topped pizza from the station to the hot surface.",
+        priority: "Essential",
+        ovenFit: "Both",
+        beginner: "Yes for stone, steel and pizza-oven baking.",
+        tip: "Do a short shake test before launch; if it sticks, lift the edge and add a tiny amount of flour.",
+      },
+      {
+        name: "Infrared thermometer",
+        use: "Checks whether the stone, steel or oven floor is actually ready.",
+        priority: "Essential",
+        ovenFit: "Pizza oven; useful for home oven surfaces too",
+        beginner: "Yes for pizza ovens. Useful for home ovens with stone or steel.",
+        tip: "Measure the same floor spot each time instead of trusting only the top heat or air temperature.",
+      },
+      {
+        name: "Fire blanket and heat gloves",
+        use: "Basic protection around flame, hot metal, stones and trays.",
+        priority: "Essential",
+        ovenFit: "Both",
+        beginner: "Yes when working with high heat.",
+        tip: "Keep the blanket reachable and never use gas pizza ovens indoors or in enclosed spaces.",
+      },
+    ],
+  },
+  {
+    title: "Useful",
+    intro: "Add these when you want smoother turns, cleaner prep and better serving flow.",
+    items: [
+      {
+        name: "Turning peel",
+        use: "Turns fast-baking pizza without pulling the whole pizza out of the oven.",
+        priority: "Useful",
+        ovenFit: "Pizza oven",
+        beginner: "Not required immediately, but it helps once bakes get faster.",
+        tip: "Lift slightly before turning so the peel does not push through toppings.",
+      },
+      {
+        name: "Stable prep table",
+        use: "Gives a clean, steady surface for opening, topping and peel movement.",
+        priority: "Useful",
+        ovenFit: "Both",
+        beginner: "Useful if your current surface is cramped or wobbly.",
+        tip: "Keep raw dough, flour, hot tools and finished pizza in separate zones.",
+      },
+      {
+        name: "Opening-flour tray",
+        use: "Coats the dough ball evenly before stretching.",
+        priority: "Useful",
+        ovenFit: "Both",
+        beginner: "Useful, but a shallow bowl or tray can work at first.",
+        tip: "Use flour sparingly; too much loose flour can burn on hot stone or steel.",
+      },
+      {
+        name: "Cooling rack and cutting board",
+        use: "Lets steam escape briefly before slicing and serving.",
+        priority: "Useful",
+        ovenFit: "Both",
+        beginner: "Useful once the base is baking well.",
+        tip: "Rest the pizza 30-60 seconds on a rack, then cut on a separate board.",
+      },
+      {
+        name: "Wheel or pizza scissors",
+        use: "Slices pizza without crushing the rim or dragging toppings.",
+        priority: "Useful",
+        ovenFit: "Both",
+        beginner: "Useful but not a launch blocker.",
+        tip: "Keep the blade sharp and avoid cutting on the peel.",
+      },
+    ],
+  },
+  {
+    title: "Optional",
+    intro: "These are convenience or maintenance upgrades, not things you need before the first bake.",
+    items: [
+      {
+        name: "Stone brush or scraper",
+        use: "Removes burned flour from the hot surface between pizzas.",
+        priority: "Optional",
+        ovenFit: "Pizza oven; useful for stone or steel home setups",
+        beginner: "No. Add it when you bake often.",
+        tip: "Use maker-approved tools and avoid shedding wire bristles. Never pour water on a hot stone.",
+      },
+      {
+        name: "Cover and storage",
+        use: "Protects outdoor oven parts from weather between uses.",
+        priority: "Optional",
+        ovenFit: "Pizza oven",
+        beginner: "No, unless the oven lives outdoors.",
+        tip: "Cover only when the oven is fully cool and dry so moisture is not trapped.",
+      },
+    ],
+  },
+] as const;
+
 function metricValue(setup: (typeof ovenSetups)[number], label: (typeof comparisonRows)[number][0]) {
   if (label === "Heat") return setup.heat;
   if (label === "Preheat") return setup.preheat;
@@ -260,6 +385,91 @@ export default function OvensPage() {
               ))}
             </ul>
           </aside>
+        </section>
+
+        <section id="other-equipment" className="mt-8 scroll-mt-24" aria-labelledby="other-equipment-title">
+          <div className="rounded-[1.5rem] border border-ink/10 bg-white/[.78] p-5 shadow-card sm:p-6">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,.72fr)_minmax(18rem,.28fr)] lg:items-start">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Other equipment</p>
+                <h2 id="other-equipment-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+                  Start with a small working station, not a full gear wall.
+                </h2>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/64">
+                  Most pizza nights need a scale, covered dough storage, a scraper, a safe way to launch, and heat awareness. Everything else should support the oven path you actually use.
+                </p>
+              </div>
+
+              <dl className="grid gap-2 rounded-[1rem] bg-cream/80 p-4 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-bold text-ink/58">Essential</dt>
+                  <dd className="font-extrabold">6 tools</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-bold text-ink/58">Useful</dt>
+                  <dd className="font-extrabold">5 tools</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-bold text-ink/58">Optional</dt>
+                  <dd className="font-extrabold">2 tools</dd>
+                </div>
+              </dl>
+            </div>
+
+            <details className="group mt-5 rounded-[1.2rem] border border-ink/10 bg-flour/70">
+              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-flour sm:px-5">
+                <span>Show more equipment</span>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-white transition group-open:rotate-45" aria-hidden="true">
+                  +
+                </span>
+              </summary>
+
+              <div className="border-t border-ink/10 p-4 sm:p-5">
+                <div className="grid gap-4">
+                  {equipmentGroups.map((group) => (
+                    <section key={group.title} className="rounded-[1rem] bg-white p-4" aria-labelledby={`equipment-${group.title.toLowerCase()}-title`}>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
+                        <h3 id={`equipment-${group.title.toLowerCase()}-title`} className="font-display text-2xl font-semibold">
+                          {group.title}
+                        </h3>
+                        <p className="max-w-2xl text-sm leading-6 text-ink/58">{group.intro}</p>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                        {group.items.map((item) => (
+                          <article key={item.name} className="rounded-[1rem] border border-ink/10 bg-cream/70 p-4">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div>
+                                <h4 className="text-base font-extrabold">{item.name}</h4>
+                                <p className="mt-1 text-sm leading-6 text-ink/64">{item.use}</p>
+                              </div>
+                              <span className="w-fit rounded-full bg-tomato/10 px-3 py-1 text-[0.65rem] font-black uppercase tracking-[.12em] text-tomato">
+                                {item.priority}
+                              </span>
+                            </div>
+                            <dl className="mt-3 grid gap-2 text-xs leading-5 text-ink/62 sm:grid-cols-2">
+                              <div>
+                                <dt className="font-extrabold text-ink">Oven fit</dt>
+                                <dd>{item.ovenFit}</dd>
+                              </div>
+                              <div>
+                                <dt className="font-extrabold text-ink">Beginner need</dt>
+                                <dd>{item.beginner}</dd>
+                              </div>
+                              <div className="sm:col-span-2">
+                                <dt className="font-extrabold text-ink">Use or safety note</dt>
+                                <dd>{item.tip}</dd>
+                              </div>
+                            </dl>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </div>
+            </details>
+          </div>
         </section>
 
         <section className="mt-8 rounded-[2rem] bg-forest-dark p-6 text-white shadow-raised sm:p-8" aria-labelledby="oven-final-cta-title">

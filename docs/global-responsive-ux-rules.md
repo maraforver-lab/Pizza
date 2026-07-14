@@ -36,7 +36,6 @@ These rules apply to all current and future DoughTools pages, including but not 
 - `/toppings`
 - `/costs`
 - `/timer`
-- `/gear`
 - `/ovens`
 - `/guide`
 - `/account`
@@ -309,7 +308,6 @@ Purpose: user reads educational content.
 Examples:
 
 - `/guide`
-- `/gear`
 - `/ovens`
 - future `/learn/*` pages
 

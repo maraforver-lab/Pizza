@@ -62,7 +62,6 @@ Examples:
 - `/sauce`
 - `/ovens`
 - `/styles`
-- `/gear`
 
 Characteristics:
 

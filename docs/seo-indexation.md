@@ -1,6 +1,6 @@
 # DoughTools SEO indexation policy
 
-Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect.
+Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect. Patch 389 retires the old `/gear` page as a compatibility redirect to the equipment section on `/ovens`.
 
 The goal is still not to open indexing automatically. The goal is to keep the public sitemap, canonical URLs, explicit noindex routes and robots behavior aligned with the current product architecture.
 
@@ -45,7 +45,7 @@ These routes should have stable page metadata and clean canonical URLs.
 
 ## Legacy noindex and redirect routes
 
-Patch 387 kept predecessor routes accessible but removed them from the public sitemap and assigned explicit noindex metadata. Patch 388 retires `/history` further as a server-side redirect to `/about`.
+Patch 387 kept predecessor routes accessible but removed them from the public sitemap and assigned explicit noindex metadata. Patch 388 retires `/history` further as a server-side redirect to `/about`. Patch 389 retires `/gear` further as a server-side redirect to `/ovens#other-equipment`.
 
 The central source of truth is `legacyNoindexRoutes` in `lib/seo-config.ts`.
 
@@ -53,7 +53,6 @@ Current legacy noindex routes are:
 
 - `/plan`
 - `/doctor`
-- `/gear`
 - `/coach`
 
 These routes remain reachable from existing links until a later migration patch decides whether to redirect, merge, remove or preserve their unique logic. They must not appear in `/sitemap.xml`.
@@ -62,6 +61,7 @@ Current redirect-only legacy routes are:
 
 - `/start` -> `/session/start`
 - `/history` -> `/about`
+- `/gear` -> `/ovens#other-equipment`
 
 Redirect-only legacy routes must not appear in `/sitemap.xml` and must not be linked as normal product destinations.
 
@@ -214,8 +214,8 @@ When DoughTools is ready for public indexing:
    - `/guide/pizza-troubleshooting`
    - `/sauce`
    - `/calculator/quick`
-4. Confirm `/plan`, `/doctor`, `/gear` and `/coach` are not submitted through the sitemap and report noindex metadata.
-5. Confirm `/history` redirects to `/about` and is not submitted through the sitemap.
+4. Confirm `/plan`, `/doctor` and `/coach` are not submitted through the sitemap and report noindex metadata.
+5. Confirm `/history` redirects to `/about`, `/gear` redirects to `/ovens#other-equipment` and neither route is submitted through the sitemap.
 6. Inspect representative query-param URLs:
    - `/?balls=6&ballWeight=260`
    - `/calculator/quick?quick=...`
@@ -235,7 +235,7 @@ The current SEO policy does not add:
 - structured data for recipes, FAQ or how-to content
 - public bake pages
 - share-card metadata
-- redirects for `/plan`, `/doctor`, `/gear` or `/coach`
+- redirects for `/plan`, `/doctor` or `/coach`
 - route removal
 - query-aware route-level noindex for every stateful tool URL
 - Core Web Vitals or route-level performance baseline

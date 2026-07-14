@@ -77,7 +77,7 @@ const sharedRelated = {
   flour: { href: "/guide#flour-strength", title: "Flour strength", description: "Learn how flour strength affects structure.", icon: "wheat" as const },
   hydration: { href: "/guide#hydration", title: "Hydration", description: "See how water changes handling and texture.", icon: "water" as const },
   troubleshooting: { href: "/guide/pizza-troubleshooting", title: "Troubleshooting", description: "Diagnose sticky dough, dense crust or soft base.", icon: "warning" as const },
-  gear: { href: "/gear", title: "Gear", description: "Choose pans, stones, steels and launching tools.", icon: "shopping-basket" as const },
+  gear: { href: "/ovens#other-equipment", title: "Other equipment", description: "Choose the few tools your oven setup actually needs.", icon: "shopping-basket" as const },
 };
 
 export const pizzaStyleEducation: readonly PizzaStyleEducation[] = [

@@ -52,7 +52,6 @@ const requiredPublicRoutes = [
 const legacyNoindexRoutePaths = [
   "/plan",
   "/doctor",
-  "/gear",
   "/coach",
 ];
 
@@ -265,6 +264,9 @@ describe("SEO launch configuration", () => {
     expect(legacyNoindexRoutes.map((route) => route.path)).toEqual(legacyNoindexRoutePaths);
     expect(() => metadataForLegacyRoute("/history" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
       "Missing legacy SEO metadata for route: /history",
+    );
+    expect(() => metadataForLegacyRoute("/gear" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
+      "Missing legacy SEO metadata for route: /gear",
     );
 
     for (const route of legacyNoindexRoutePaths) {

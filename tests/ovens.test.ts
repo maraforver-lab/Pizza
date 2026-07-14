@@ -141,6 +141,32 @@ describe("Oven Guide", () => {
     expect(page).not.toContain("infrared thermometer guide");
   });
 
+  it("adds compact disclosed equipment guidance without reviving the retired gear page", () => {
+    const page = source("app", "ovens", "page.tsx");
+    const otherEquipmentIndex = page.indexOf('id="other-equipment"');
+    const finalCtaIndex = page.indexOf("Plan with the oven you actually have.");
+    const footerIndex = page.indexOf("<SiteFooter />");
+
+    expect(otherEquipmentIndex).toBeGreaterThan(-1);
+    expect(otherEquipmentIndex).toBeGreaterThan(page.indexOf("Pizza Session effect"));
+    expect(otherEquipmentIndex).toBeLessThan(finalCtaIndex);
+    expect(finalCtaIndex).toBeLessThan(footerIndex);
+    expect(page.match(/<details/g)).toHaveLength(1);
+    expect(page.match(/<summary/g)).toHaveLength(1);
+    expect(page).toContain("Show more equipment");
+    expect(page).toContain("Essential");
+    expect(page).toContain("Useful");
+    expect(page).toContain("Optional");
+    expect(page).toContain("Oven fit");
+    expect(page).toContain("Beginner need");
+    expect(page).toContain("Use or safety note");
+    expect(page).toContain("Digital scale");
+    expect(page).toContain("Launching peel");
+    expect(page).toContain("Fire blanket and heat gloves");
+    expect(page).not.toContain("doughtools-gear-v1");
+    expect(page).not.toContain("gearItems");
+  });
+
   it("uses one final route primary CTA and keeps related links secondary", () => {
     const page = source("app", "ovens", "page.tsx");
     const routeContentBeforeFooter = page.slice(0, page.indexOf("<SiteFooter />"));

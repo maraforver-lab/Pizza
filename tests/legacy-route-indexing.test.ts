@@ -7,7 +7,6 @@ const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts
 const legacyRoutes = [
   { route: "/plan", dir: "plan", marker: "doughtools-active-plan-v1" },
   { route: "/doctor", dir: "doctor", marker: "diagnoseDough" },
-  { route: "/gear", dir: "gear", marker: "doughtools-gear-v1" },
   { route: "/coach", dir: "coach", marker: "buildCoachAdvice" },
 ] as const;
 
@@ -40,6 +39,18 @@ describe("legacy predecessor route indexing", () => {
     expect(page).not.toContain("metadataForLegacyRoute");
   });
 
+  it("keeps retired gear as a server-side redirect without the old equipment page or metadata layout", () => {
+    const page = source("app", "gear", "page.tsx");
+
+    expect(existsSync(join(process.cwd(), "app", "gear", "page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app", "gear", "layout.tsx"))).toBe(false);
+    expect(page).toContain('permanentRedirect("/ovens#other-equipment")');
+    expect(page).not.toContain("doughtools-gear-v1");
+    expect(page).not.toContain("gearItems");
+    expect(page).not.toContain("SiteFooter");
+    expect(page).not.toContain("metadataForLegacyRoute");
+  });
+
   it("removes normal product links to the retired history route", () => {
     const linkedSurfaces = [
       source("lib", "navigation.ts"),
@@ -50,5 +61,20 @@ describe("legacy predecessor route indexing", () => {
 
     expect(linkedSurfaces).not.toContain('href="/history"');
     expect(linkedSurfaces).not.toContain('href: "/history"');
+  });
+
+  it("removes normal product links to the retired gear route", () => {
+    const linkedSurfaces = [
+      source("lib", "navigation.ts"),
+      source("lib", "homepage.ts"),
+      source("components", "HomeCalculatorWorkspace.tsx"),
+      source("components", "SiteFooter.tsx"),
+      source("components", "guide", "PizzaTroubleshootingGuideClient.tsx"),
+      source("lib", "pizza-style-education.ts"),
+    ].join("\n");
+
+    expect(linkedSurfaces).not.toContain('href="/gear"');
+    expect(linkedSurfaces).not.toContain('href: "/gear"');
+    expect(linkedSurfaces).toContain("/ovens#other-equipment");
   });
 });

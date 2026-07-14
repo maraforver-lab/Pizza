@@ -32,7 +32,6 @@ const existingRoutes = new Set([
   "/styles",
   "/guide",
   "/ovens",
-  "/gear",
   "/coach",
   "/costs",
   "/account",
@@ -113,6 +112,7 @@ describe("homepage content model", () => {
 
     expect(new Set(hrefs).size).toBe(hrefs.length);
     expect(hrefs).not.toContain("/history");
+    expect(hrefs).not.toContain("/gear");
     for (const href of hrefs) expect(existingRoutes.has(href)).toBe(true);
   });
 

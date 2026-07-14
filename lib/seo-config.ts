@@ -179,11 +179,6 @@ export const legacyNoindexRoutes = [
     description: "Legacy dough diagnosis route retained temporarily while troubleshooting guidance is consolidated.",
   },
   {
-    path: "/gear",
-    title: "Pizza Gear Guide | DoughTools",
-    description: "Legacy pizza gear guide retained temporarily while practical setup guidance is consolidated.",
-  },
-  {
     path: "/coach",
     title: "Pizza Coach | DoughTools",
     description: "Legacy pizza coach route retained temporarily while guidance rules are inventoried.",

@@ -57,7 +57,6 @@ export const homepageContent = {
     { name: "Pizza Styles", href: "/styles" },
     { name: "Dough Guide", href: "/guide" },
     { name: "Oven Guide", href: "/ovens" },
-    { name: "Equipment Guide", href: "/gear" },
     { name: "Pizza Coach", href: "/coach" },
     { name: "Cost Calculator", href: "/costs" },
   ],

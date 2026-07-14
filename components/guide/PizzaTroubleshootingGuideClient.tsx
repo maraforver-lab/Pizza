@@ -47,7 +47,7 @@ const categoryLearningLinks: Record<PizzaTroubleshootingCategoryId, LearningLink
     { href: "/styles", title: "Pizza Style Atlas", description: "Match shaping expectations to the style.", icon: "pizza" },
   ],
   launching: [
-    { href: "/gear", title: "Gear", description: "Understand peels, flour, semolina and work surfaces.", icon: "shopping-basket" },
+    { href: "/ovens#other-equipment", title: "Other equipment", description: "Check peels, flour, heat tools and safe station setup.", icon: "shopping-basket" },
     { href: "/guides/dough", title: "Dough Guide", description: "Check release, handling and topping timing.", icon: "mixing-bowl" },
     { href: "/ovens", title: "Oven Guide", description: "Connect launch speed with oven heat and recovery.", icon: "oven" },
   ],
