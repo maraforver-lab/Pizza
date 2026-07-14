@@ -23,7 +23,6 @@ const requiredRoutes = [
   "/guides/dough",
   "/ovens",
   "/gear",
-  "/history",
   "/account",
   "/coach",
   "/costs",

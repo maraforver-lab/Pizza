@@ -13,7 +13,6 @@ export type NavigationItemId =
   | "dough-guide"
   | "ovens"
   | "gear"
-  | "history"
   | "saved-recipes"
   | "account"
   | "coach"
@@ -63,7 +62,6 @@ export const navigationGroups = [
       { id: "dough-guide", label: "Dough Guide", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
       { id: "ovens", label: "Oven Guide", href: "/ovens", description: "Compare oven types and understand trade-offs." },
       { id: "gear", label: "Equipment Guide", href: "/gear", description: "Build a practical pizza station around the oven." },
-      { id: "history", label: "Pizza History", href: "/history", description: "Read the story and culture behind pizza." },
     ],
   },
   {

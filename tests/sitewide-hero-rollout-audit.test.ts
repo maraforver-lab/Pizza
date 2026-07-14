@@ -81,7 +81,6 @@ describe("Patch 351 sitewide hero rollout audit", () => {
       "app/guide/page.tsx",
       "app/guide/pizza-troubleshooting/page.tsx",
       "app/guides/dough/page.tsx",
-      "app/history/page.tsx",
       "app/methodology/page.tsx",
       "app/order/[publicToken]/page.tsx",
       "app/order/[publicToken]/edit/[submissionToken]/page.tsx",

@@ -17,7 +17,6 @@ const expectedRoutes = [
   "/sauce",
   "/ovens",
   "/styles",
-  "/history",
   "/gear",
   "/toppings",
   "/costs",

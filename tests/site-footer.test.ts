@@ -14,7 +14,6 @@ const footerBearingSources = [
   ["doctor", source("app", "doctor", "page.tsx")],
   ["gear", source("app", "gear", "page.tsx")],
   ["guide", source("app", "guide", "page.tsx")],
-  ["history", source("app", "history", "page.tsx")],
   ["ovens", source("app", "ovens", "page.tsx")],
   ["plan", source("app", "plan", "page.tsx")],
   ["sauce", source("app", "sauce", "page.tsx")],
@@ -40,6 +39,7 @@ const noFooterSources = [
   ["session start", source("app", "session", "start", "page.tsx")],
   ["session timeline", source("app", "session", "timeline", "page.tsx")],
   ["legacy start redirect", source("app", "start", "page.tsx")],
+  ["legacy history redirect", source("app", "history", "page.tsx")],
 ] as const;
 
 describe("canonical site footer", () => {
@@ -106,11 +106,9 @@ describe("canonical site footer", () => {
   it("keeps route-specific content before the footer", () => {
     const sauce = source("app", "sauce", "page.tsx");
     const gear = source("app", "gear", "page.tsx");
-    const history = source("app", "history", "page.tsx");
 
     expect(sauce.indexOf("Sources and methodology")).toBeLessThan(sauce.indexOf("<SiteFooter />"));
     expect(gear.indexOf("{t.sources}")).toBeLessThan(gear.indexOf("<SiteFooter />"));
-    expect(history.indexOf("{t.sources}")).toBeLessThan(history.indexOf("<SiteFooter />"));
   });
 
   it("keeps the canonical footer as the final visible element on footer-bearing pages", () => {

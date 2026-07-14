@@ -40,7 +40,6 @@ These rules apply to all current and future DoughTools pages, including but not 
 - `/ovens`
 - `/guide`
 - `/account`
-- `/history`
 - future `/learn/*`
 - future `/tools/*`
 - future `/my-pizzas/*`
@@ -312,7 +311,6 @@ Examples:
 - `/guide`
 - `/gear`
 - `/ovens`
-- `/history`
 - future `/learn/*` pages
 
 Desktop:

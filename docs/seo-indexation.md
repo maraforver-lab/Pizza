@@ -1,6 +1,6 @@
 # DoughTools SEO indexation policy
 
-Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updates that baseline after the Pizza Session and Learning Center simplification work.
+Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect.
 
 The goal is still not to open indexing automatically. The goal is to keep the public sitemap, canonical URLs, explicit noindex routes and robots behavior aligned with the current product architecture.
 
@@ -43,9 +43,9 @@ Current public indexable routes are:
 
 These routes should have stable page metadata and clean canonical URLs.
 
-## Legacy noindex routes
+## Legacy noindex and redirect routes
 
-Patch 387 keeps predecessor routes accessible but removes them from the public sitemap and assigns explicit noindex metadata.
+Patch 387 kept predecessor routes accessible but removed them from the public sitemap and assigned explicit noindex metadata. Patch 388 retires `/history` further as a server-side redirect to `/about`.
 
 The central source of truth is `legacyNoindexRoutes` in `lib/seo-config.ts`.
 
@@ -54,10 +54,16 @@ Current legacy noindex routes are:
 - `/plan`
 - `/doctor`
 - `/gear`
-- `/history`
 - `/coach`
 
 These routes remain reachable from existing links until a later migration patch decides whether to redirect, merge, remove or preserve their unique logic. They must not appear in `/sitemap.xml`.
+
+Current redirect-only legacy routes are:
+
+- `/start` -> `/session/start`
+- `/history` -> `/about`
+
+Redirect-only legacy routes must not appear in `/sitemap.xml` and must not be linked as normal product destinations.
 
 ## Private and noindex routes
 
@@ -188,6 +194,8 @@ While `ALLOW_INDEXING=false`, robots blocks crawling broadly as part of the temp
 
 When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes. Legacy predecessor routes remain noindexed by page metadata even when global indexing is enabled.
 
+Redirect-only compatibility routes are handled by server-side redirects rather than page-level noindex metadata.
+
 Robots includes a Sitemap line so crawlers can find the sitemap when the owner is ready to submit it.
 
 ## Google Search Console manual checklist
@@ -206,19 +214,20 @@ When DoughTools is ready for public indexing:
    - `/guide/pizza-troubleshooting`
    - `/sauce`
    - `/calculator/quick`
-4. Confirm `/plan`, `/doctor`, `/gear`, `/history` and `/coach` are not submitted through the sitemap and report noindex metadata.
-5. Inspect representative query-param URLs:
+4. Confirm `/plan`, `/doctor`, `/gear` and `/coach` are not submitted through the sitemap and report noindex metadata.
+5. Confirm `/history` redirects to `/about` and is not submitted through the sitemap.
+6. Inspect representative query-param URLs:
    - `/?balls=6&ballWeight=260`
    - `/calculator/quick?quick=...`
    - `/plan?hydration=64`
    - `/doctor?hydration=64`
-6. Confirm clean canonical URLs.
-7. Confirm private/account routes are not submitted.
-8. Monitor duplicate URL patterns.
+7. Confirm clean canonical URLs.
+8. Confirm private/account routes are not submitted.
+9. Monitor duplicate URL patterns.
 
 ## Intentionally not implemented yet
 
-Patch 387 does not add:
+The current SEO policy does not add:
 
 - Google Search Console verification
 - analytics or tracking
@@ -226,7 +235,7 @@ Patch 387 does not add:
 - structured data for recipes, FAQ or how-to content
 - public bake pages
 - share-card metadata
-- redirects for `/plan`, `/doctor`, `/gear`, `/history` or `/coach`
+- redirects for `/plan`, `/doctor`, `/gear` or `/coach`
 - route removal
 - query-aware route-level noindex for every stateful tool URL
 - Core Web Vitals or route-level performance baseline

@@ -8,7 +8,6 @@ const legacyRoutes = [
   { route: "/plan", dir: "plan", marker: "doughtools-active-plan-v1" },
   { route: "/doctor", dir: "doctor", marker: "diagnoseDough" },
   { route: "/gear", dir: "gear", marker: "doughtools-gear-v1" },
-  { route: "/history", dir: "history", marker: "pizza-history" },
   { route: "/coach", dir: "coach", marker: "buildCoachAdvice" },
 ] as const;
 
@@ -28,5 +27,28 @@ describe("legacy predecessor route indexing", () => {
       expect(layout, legacy.route).toContain("metadataForLegacyRoute");
       expect(layout, legacy.route).toContain(`"${legacy.route}"`);
     }
+  });
+
+  it("keeps retired history as a server-side redirect without the old editorial page or metadata layout", () => {
+    const page = source("app", "history", "page.tsx");
+
+    expect(existsSync(join(process.cwd(), "app", "history", "page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app", "history", "layout.tsx"))).toBe(false);
+    expect(page).toContain('permanentRedirect("/about")');
+    expect(page).not.toContain("pizza-history");
+    expect(page).not.toContain("SiteFooter");
+    expect(page).not.toContain("metadataForLegacyRoute");
+  });
+
+  it("removes normal product links to the retired history route", () => {
+    const linkedSurfaces = [
+      source("lib", "navigation.ts"),
+      source("lib", "homepage.ts"),
+      source("components", "HomeCalculatorWorkspace.tsx"),
+      source("components", "SiteFooter.tsx"),
+    ].join("\n");
+
+    expect(linkedSurfaces).not.toContain('href="/history"');
+    expect(linkedSurfaces).not.toContain('href: "/history"');
   });
 });

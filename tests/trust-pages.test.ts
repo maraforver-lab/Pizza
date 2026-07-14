@@ -19,7 +19,6 @@ const existingAndNewRoutes = new Set([
   "/doctor",
   "/gear",
   "/guide",
-  "/history",
   "/ovens",
   "/plan",
   "/sauce",
