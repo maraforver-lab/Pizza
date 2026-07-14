@@ -1424,6 +1424,50 @@ describe("Pizza Session timeline", () => {
     expect(getActivePizzaSession(storage)?.id).toBe(session.id);
   });
 
+  it("does not rebase Kitchen progress to Timeline when Back opens an older timeline snapshot", () => {
+    const storage = new MemoryStorage();
+    const kitchenSession = createAndSavePizzaSession({
+      id: "timeline-back-kitchen-progress",
+      status: "preparing",
+      currentStep: "prep",
+      targetEatTime: "2026-07-04T20:00:00.000Z",
+      targetBakeTime: "2026-07-04T20:00:00.000Z",
+      pizzaCount: 2,
+      doughBallWeight: 260,
+      recipeSnapshot: {
+        balls: 2,
+        ballWeight: 260,
+        fermentation: "24h-cold",
+      },
+      timeline: {
+        generatedAt: "2026-07-04T09:30:00.000Z",
+        targetEatTime: "2026-07-04T20:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done", kind: "active", scheduledAt: "2026-07-04T10:05:00.000Z" },
+          { id: "ball-dough", label: "Ball dough", status: "todo", kind: "active", scheduledAt: "2026-07-04T11:00:00.000Z" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-04T10:05:00.000Z",
+          actualCompletedAt: "2026-07-04T10:15:00.000Z",
+        },
+      },
+      updatedAt: "2026-07-04T10:15:00.000Z",
+      lastSavedAt: "2026-07-04T10:15:00.000Z",
+    }, storage, new Date("2026-07-04T10:15:00.000Z"));
+    setActivePizzaSession(kitchenSession.id, storage);
+
+    const { session: afterBack, result } = generateAndSaveActivePizzaSessionTimeline(storage, new Date("2026-07-04T10:30:00.000Z"));
+
+    expect(result.ok).toBe(true);
+    expect(afterBack?.currentStep).toBe("prep");
+    expect(afterBack?.updatedAt).toBe("2026-07-04T10:15:00.000Z");
+    expect(afterBack?.timeline?.steps.find((step) => step.id === "mix-dough")?.status).toBe("done");
+    expect(afterBack?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
+    expect(getActivePizzaSession(storage)?.currentStep).toBe("prep");
+  });
+
   it("keeps a start-now room-temperature Timeline stable after Kitchen Mode and Back", () => {
     const storage = new MemoryStorage();
     const firstOpen = new Date("2026-07-08T16:20:00.000Z");

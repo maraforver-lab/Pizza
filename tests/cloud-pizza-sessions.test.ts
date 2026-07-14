@@ -8,6 +8,7 @@ import {
   CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY,
   completeCloudBackedPizzaSession,
   isCloudBackedPizzaSession,
+  latestActivePizzaSessionForCloudSync,
   markCloudBackedPizzaSession,
   queueCloudActivePizzaSessionSave,
   syncCloudBackedPizzaSession,
@@ -1167,6 +1168,173 @@ describe("cloud pizza session foundation", () => {
     expect(restored?.timeline?.steps[0].status).toBe("done");
     expect(restored?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
     expect(getActivePizzaSession(storage)?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
+  });
+
+  it("does not let a Back-restored route snapshot overwrite newer Kitchen progress in the cloud queue", async () => {
+    const storage = new MemoryStorage();
+    const staleTimelineSnapshot = createPizzaSession({
+      id: "back-navigation-session",
+      currentStep: "timeline",
+      status: "planning",
+      lastRoute: "/session/timeline",
+      updatedAt: "2026-07-04T10:00:00.000Z",
+      lastSavedAt: "2026-07-04T10:00:00.000Z",
+      timeline: {
+        generatedAt: "2026-07-04T09:30:00.000Z",
+        targetEatTime: "2026-07-04T20:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "todo", kind: "active" },
+          { id: "ball-dough", label: "Ball dough", status: "todo", kind: "active" },
+        ],
+      },
+    }, new Date("2026-07-04T09:30:00.000Z"));
+    const newerKitchenSnapshot = createPizzaSession({
+      ...staleTimelineSnapshot,
+      currentStep: "prep",
+      status: "preparing",
+      lastRoute: "/session/kitchen",
+      updatedAt: "2026-07-04T10:15:00.000Z",
+      lastSavedAt: "2026-07-04T10:15:00.000Z",
+      timeline: {
+        ...staleTimelineSnapshot.timeline,
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done", kind: "active" },
+          { id: "ball-dough", label: "Ball dough", status: "todo", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-04T10:05:00.000Z",
+          actualCompletedAt: "2026-07-04T10:15:00.000Z",
+        },
+      },
+    }, new Date("2026-07-04T09:30:00.000Z"));
+    storage.setItem(PIZZA_SESSIONS_STORAGE_KEY, JSON.stringify([newerKitchenSnapshot]));
+    setActivePizzaSession(newerKitchenSnapshot.id, storage);
+    markCloudBackedPizzaSession(newerKitchenSnapshot.id, "cloud-row-back-navigation", storage);
+    const windowDescriptor = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const originalFetch = globalThis.fetch;
+    Object.defineProperty(globalThis, "window", {
+      value: { localStorage: storage },
+      configurable: true,
+    });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body));
+      return new Response(JSON.stringify({
+        session: {
+          id: "cloud-row-back-navigation",
+          user_id: "user-1",
+          status: "in_progress",
+          title: "Active pizza session",
+          current_step: body.sessionData.currentStep,
+          session_data: body.sessionData,
+          created_at: "2026-07-04T09:30:00.000Z",
+          updated_at: "2026-07-04T10:15:00.000Z",
+          completed_at: null,
+        },
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      await queueCloudActivePizzaSessionSave(staleTimelineSnapshot, { storage });
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (windowDescriptor) Object.defineProperty(globalThis, "window", windowDescriptor);
+      else Reflect.deleteProperty(globalThis, "window");
+    }
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse(String(init?.body));
+    expect(body.sessionData).toMatchObject({
+      id: "back-navigation-session",
+      currentStep: "prep",
+      status: "preparing",
+      lastRoute: "/session/kitchen",
+      updatedAt: "2026-07-04T10:15:00.000Z",
+      stepRuntime: {
+        "mix-dough": {
+          actualCompletedAt: "2026-07-04T10:15:00.000Z",
+        },
+      },
+    });
+    expect(body.sessionData.timeline.steps.find((step: { id: string }) => step.id === "mix-dough")?.status).toBe("done");
+  });
+
+  it("chooses the canonical active session for equal-timestamp route snapshots", () => {
+    const storage = new MemoryStorage();
+    const staleTimelineSnapshot = createPizzaSession({
+      id: "equal-timestamp-session",
+      currentStep: "timeline",
+      status: "planning",
+      lastRoute: "/session/timeline",
+      updatedAt: "2026-07-04T10:15:00.000Z",
+      lastSavedAt: "2026-07-04T10:15:00.000Z",
+      timeline: {
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "todo", kind: "active" },
+        ],
+      },
+    });
+    const canonicalKitchenSnapshot = createPizzaSession({
+      ...staleTimelineSnapshot,
+      currentStep: "prep",
+      status: "preparing",
+      lastRoute: "/session/kitchen",
+      timeline: {
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualCompletedAt: "2026-07-04T10:15:00.000Z",
+        },
+      },
+    });
+    storage.setItem(PIZZA_SESSIONS_STORAGE_KEY, JSON.stringify([canonicalKitchenSnapshot]));
+    setActivePizzaSession(canonicalKitchenSnapshot.id, storage);
+
+    const selected = latestActivePizzaSessionForCloudSync(staleTimelineSnapshot, storage);
+
+    expect(selected.currentStep).toBe("prep");
+    expect(selected.lastRoute).toBe("/session/kitchen");
+    expect(selected.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
+  });
+
+  it("does not replace a newer incoming Kitchen snapshot with older active storage", () => {
+    const storage = new MemoryStorage();
+    const olderStoredSession = createPizzaSession({
+      id: "newer-incoming-session",
+      currentStep: "timeline",
+      status: "planning",
+      updatedAt: "2026-07-04T10:00:00.000Z",
+      lastSavedAt: "2026-07-04T10:00:00.000Z",
+    });
+    const newerIncomingKitchenSession = createPizzaSession({
+      ...olderStoredSession,
+      currentStep: "prep",
+      status: "preparing",
+      updatedAt: "2026-07-04T10:15:00.000Z",
+      lastSavedAt: "2026-07-04T10:15:00.000Z",
+      stepRuntime: {
+        "mix-dough": {
+          actualCompletedAt: "2026-07-04T10:15:00.000Z",
+        },
+      },
+    });
+    storage.setItem(PIZZA_SESSIONS_STORAGE_KEY, JSON.stringify([olderStoredSession]));
+    setActivePizzaSession(olderStoredSession.id, storage);
+
+    const selected = latestActivePizzaSessionForCloudSync(newerIncomingKitchenSession, storage);
+
+    expect(selected.currentStep).toBe("prep");
+    expect(selected.updatedAt).toBe("2026-07-04T10:15:00.000Z");
+    expect(selected.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
   });
 
   it("sorts completed cloud history newest first with updated_at fallback", () => {

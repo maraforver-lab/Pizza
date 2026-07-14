@@ -185,6 +185,18 @@ function hasUsableTimelineSnapshot(session?: PizzaSession, inputSignature?: stri
   return timeline.steps.every((step) => step.id && step.label && step.scheduledAt);
 }
 
+function hasKitchenProgressTimelineSnapshot(session?: PizzaSession) {
+  const timeline = session?.timeline;
+  if (!session || !timeline?.steps.length) return false;
+  const hasRuntimeProgress = Object.values(session.stepRuntime ?? {}).some((runtime) => (
+    Boolean(runtime.actualStartedAt || runtime.actualCompletedAt)
+  ));
+  const hasStepProgress = timeline.steps.some((step) => step.status === "done" || step.status === "skipped");
+  const isKitchenStage = session.currentStep === "prep" || session.currentStep === "bake";
+  if (!isKitchenStage && !hasRuntimeProgress && !hasStepProgress) return false;
+  return timeline.steps.every((step) => step.id && step.label && step.scheduledAt);
+}
+
 function scheduledAt(target: Date, offsetMinutes: number) {
   return new Date(target.getTime() + offsetMinutes * 60_000);
 }
@@ -406,7 +418,7 @@ export function generateAndSaveActivePizzaSessionTimeline(storage?: Storage, now
   const session = getActivePizzaSession(storage);
   const anchorTime = session ? timelineAnchorTimeForSession(session, now) : undefined;
   const inputSignature = session ? buildPizzaSessionTimelineInputSignature(session, anchorTime) : undefined;
-  if (hasUsableTimelineSnapshot(session, inputSignature)) {
+  if (hasUsableTimelineSnapshot(session, inputSignature) || hasKitchenProgressTimelineSnapshot(session)) {
     const timeline = session!.timeline!;
     return {
       session,

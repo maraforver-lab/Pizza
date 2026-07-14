@@ -11,6 +11,14 @@ export const CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY = "doughtools:cloud-backed-p
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
+type CloudSyncOptions = {
+  complete?: boolean;
+};
+
+type QueueCloudSyncOptions = CloudSyncOptions & {
+  storage?: StorageLike;
+};
+
 type CloudBackedPizzaSessionMarker = {
   sessionId: string;
   cloudSessionId?: string;
@@ -84,6 +92,24 @@ function cloudActivePizzaSessionSaveKey(session: PizzaSession) {
   ].join(":");
 }
 
+function pizzaSessionTimestamp(value?: string) {
+  if (!value) return undefined;
+  const time = new Date(value).getTime();
+  return Number.isFinite(time) ? time : undefined;
+}
+
+export function latestActivePizzaSessionForCloudSync(
+  session: PizzaSession,
+  storage?: StorageLike,
+) {
+  const activeSession = getActivePizzaSession(storage);
+  if (!activeSession || activeSession.id !== session.id) return session;
+  const activeTime = pizzaSessionTimestamp(activeSession.updatedAt);
+  const incomingTime = pizzaSessionTimestamp(session.updatedAt);
+  if (activeTime === undefined || incomingTime === undefined) return activeSession;
+  return activeTime >= incomingTime ? activeSession : session;
+}
+
 export function clearCloudBackedActivePizzaSessionPointer(storage?: StorageLike) {
   const localSession = getActivePizzaSession(storage);
   if (localSession && isCloudBackedPizzaSession(localSession, storage)) {
@@ -120,7 +146,7 @@ export async function saveCloudActivePizzaSession(session: PizzaSession) {
 
 export async function syncCloudBackedPizzaSession(
   session: PizzaSession,
-  options: { complete?: boolean } = {},
+  options: CloudSyncOptions = {},
 ) {
   if (!isCloudBackedPizzaSession(session)) {
     if (options.complete) return { skipped: true };
@@ -187,9 +213,13 @@ function startCloudSaveDrain() {
 
 export function queueCloudActivePizzaSessionSave(
   session: PizzaSession,
-  options: { complete?: boolean } = {},
+  options: QueueCloudSyncOptions = {},
 ) {
-  const key = `${cloudActivePizzaSessionSaveKey(session)}:${options.complete === true ? "complete" : "active"}`;
+  const { storage, ...syncOptions } = options;
+  const sessionForSync = syncOptions.complete === true
+    ? session
+    : latestActivePizzaSessionForCloudSync(session, storage);
+  const key = `${cloudActivePizzaSessionSaveKey(sessionForSync)}:${syncOptions.complete === true ? "complete" : "active"}`;
 
   return new Promise<Awaited<ReturnType<typeof syncCloudBackedPizzaSession>>>((resolve, reject) => {
     if (queuedCloudSave?.key === key) {
@@ -198,10 +228,10 @@ export function queueCloudActivePizzaSessionSave(
     } else {
       queuedCloudSave = {
         key,
-        options,
+        options: syncOptions,
         reject: queuedCloudSave ? [...queuedCloudSave.reject, reject] : [reject],
         resolve: queuedCloudSave ? [...queuedCloudSave.resolve, resolve] : [resolve],
-        session,
+        session: sessionForSync,
       };
     }
 
