@@ -1169,13 +1169,48 @@ describe("Pizza Session timeline", () => {
 
   it("keeps Back and Next navigation aligned with the next action", () => {
     const page = source("app/session/timeline/page.tsx");
+    const actionBlock = page.slice(page.indexOf("<BottomActionBar"), page.indexOf("{earlyStartStep"));
 
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("startCurrentRuntimeStepAndGoToKitchen");
     expect(page).toContain("router.push(nextAction.href)");
     expect(page).toContain("{nextAction.cta}");
     expect(page).toContain("BottomActionBar");
+    expect(actionBlock).toContain("href=\"/session/shopping\"");
+    expect(actionBlock).toContain("Back");
+    expect(actionBlock).toContain("type=\"button\"");
+    expect(actionBlock).toContain("onClick={handleNextAction}");
+    expect(actionBlock).toContain("{nextAction.cta}");
+    expect(actionBlock.indexOf("Back")).toBeLessThan(actionBlock.indexOf("{nextAction.cta}"));
+    expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("<BottomActionBar"));
     expect(page).not.toContain("Review dough plan →");
+  });
+
+  it("simplifies the Timeline page ending without changing the action row", () => {
+    const page = source("app/session/timeline/page.tsx");
+    const helper = source("lib/pizza-session-timeline.ts");
+    const actionBlock = page.slice(page.indexOf("<BottomActionBar"), page.indexOf("{earlyStartStep"));
+
+    expect(page).not.toContain("Timing assumptions");
+    expect(page).not.toContain("timeline.assumptions");
+    expect(page).not.toContain("The target time is treated as the planned eating or baking moment saved in the Pizza Session.");
+    expect(page).not.toContain("Timing is a practical guide, not a guarantee.");
+    expect(page).not.toContain("User-facing times are rounded to practical 15-minute increments.");
+    expect(page).not.toContain("Active tasks try to avoid the 22:00–07:00 quiet window");
+    expect(page).not.toContain("SessionLocalOnlyNote");
+    expect(page).not.toContain("No cloud sync, push notifications or email reminders are active yet.");
+    expect(page).not.toContain("rounded-[1.5rem] border border-ink/10 bg-white/60");
+    expect(page).toContain("overflow-x-clip");
+    expect(actionBlock).toContain("href=\"/session/shopping\"");
+    expect(actionBlock).toContain("Back");
+    expect(actionBlock).toContain("onClick={handleNextAction}");
+    expect(actionBlock).toContain("{nextAction.cta}");
+    expect(actionBlock).toContain("buttonClass({ className: \"w-full sm:w-auto\" })");
+    expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("<BottomActionBar"));
+    expect(helper).toContain("DEFAULT_TIMELINE_ASSUMPTIONS");
+    expect(helper).toContain("TIMELINE_ROUNDING_MINUTES = 15");
+    expect(helper).toContain("QUIET_HOURS_START = 22");
+    expect(helper).toContain("QUIET_HOURS_END = 7");
   });
 
   it("warns before starting a scheduled dough step more than 60 minutes early", () => {

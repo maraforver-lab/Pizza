@@ -8,7 +8,6 @@ import { BottomActionBar, buttonClass, cardClass, statusPillClass } from "@/comp
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
-import { SessionLocalOnlyNote } from "@/components/session/SessionLocalOnlyNote";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
@@ -769,30 +768,6 @@ export default function SessionTimelinePage() {
           </section>
         </section>
 
-        <details className="mt-5 rounded-[1.5rem] border border-ink/10 bg-white/60 p-4 lg:hidden">
-          <summary className="cursor-pointer font-display text-2xl font-semibold">Timing assumptions</summary>
-          <ul className="mt-3 grid gap-2 text-sm leading-6 text-ink/60">
-            {(timeline.assumptions ?? []).map((assumption) => (
-              <li key={assumption} className="flex gap-2">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" />
-                <span>{assumption}</span>
-              </li>
-            ))}
-          </ul>
-        </details>
-
-        <section className="mt-6 hidden rounded-[1.5rem] border border-ink/10 bg-white/60 p-4 lg:block lg:p-5">
-          <h2 className="font-display text-2xl font-semibold">Timing assumptions</h2>
-          <ul className="mt-3 grid gap-2 text-sm leading-6 text-ink/60">
-            {(timeline.assumptions ?? []).map((assumption) => (
-              <li key={assumption} className="flex gap-2">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-tomato" aria-hidden="true" />
-                <span>{assumption}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
         <BottomActionBar
           back={(
             <Link
@@ -851,10 +826,6 @@ export default function SessionTimelinePage() {
             </section>
           </div>
         )}
-
-        <SessionLocalOnlyNote>
-          {PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, push notifications or email reminders are active yet.
-        </SessionLocalOnlyNote>
       </SessionWorkspaceLayout>
     </main>
   );
