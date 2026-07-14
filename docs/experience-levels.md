@@ -117,14 +117,14 @@ Patch 16 created the original experience-level foundation.
 
 Patch 17 applied the selected level to the homepage and calculator guidance copy.
 
-Patch 18 applied the selected level to Planner, Guide and Dough Doctor guidance copy.
+Patch 18 applied the selected level to Planner, Guide and the former Dough Doctor guidance copy.
 
 Patch 19 added a reusable visible selector and placed it on:
 
 - Homepage
 - Planner
 - Guide/Help
-- Dough Doctor
+- Troubleshooting
 
 Patch 20 refined the homepage onboarding around the level-aware workflow.
 

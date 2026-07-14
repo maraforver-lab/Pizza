@@ -7,7 +7,7 @@ export type NavigationItemId =
   | "sauce"
   | "toppings"
   | "timer"
-  | "doctor"
+  | "troubleshooting"
   | "styles"
   | "guide"
   | "dough-guide"
@@ -55,7 +55,7 @@ export const navigationGroups = [
     shortLabel: "Learn",
     description: "Understand styles, ovens and dough problems.",
     items: [
-      { id: "doctor", label: "Dough Doctor", href: "/doctor", description: "Diagnose dough problems using the current recipe." },
+      { id: "troubleshooting", label: "Troubleshooting", href: "/guide/pizza-troubleshooting", description: "Diagnose dough, shaping, launching, baking and topping problems." },
       { id: "styles", label: "Pizza Styles", href: "/styles", description: "Pick a practical starting style and apply it to the calculator." },
       { id: "guide", label: "Learning Center", href: "/guide", description: "Find the dough, sauce, oven, style and troubleshooting guides." },
       { id: "dough-guide", label: "Dough Guide", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },

@@ -14,7 +14,7 @@ Calculator / recipe result
 → Sauce
 → Toppings
 → Timer
-→ Dough Doctor
+→ Troubleshooting
 → Save / Account
 ```
 
@@ -34,7 +34,7 @@ The section links to:
 - Sauce
 - Toppings
 - Timer
-- Dough Doctor
+- Troubleshooting
 
 It also reminds the user that the recipe can be saved locally with the existing Save recipe behavior.
 
@@ -46,7 +46,7 @@ The following tool links preserve the existing recipe query context:
 - `/sauce`
 - `/toppings`
 - `/timer`
-- `/doctor`
+- `/guide/pizza-troubleshooting`
 
 The query is built from the existing `recipeParams(settings)` convention. Patch 28 does not rename query parameters and does not invent unsupported parameters.
 
@@ -97,7 +97,7 @@ Patch 28 does not change:
 - yeast calculations
 - recipe URL parsing
 - planner timing logic
-- Dough Doctor diagnosis logic
+- Troubleshooting guide content
 - sauce, toppings or timer formulas
 - saved recipe persistence
 - BakeResult storage

@@ -16,18 +16,9 @@ export type GuideExperienceCopy = {
   technicalDetails: string[];
 };
 
-export type DoctorExperienceCopy = {
-  intro: string;
-  verifyBody: string;
-  note: string;
-  diagnosisDetailTitle: string;
-  diagnosisDetails: string[];
-};
-
 export type EducationExperienceCopy = {
   planner: PlannerExperienceCopy;
   guide: GuideExperienceCopy;
-  doctor: DoctorExperienceCopy;
 };
 
 export const educationExperienceCopy: Record<ExperienceLevel, EducationExperienceCopy> = {
@@ -58,19 +49,6 @@ export const educationExperienceCopy: Record<ExperienceLevel, EducationExperienc
         "Record one observation after baking so the next pizza is easier to improve.",
       ],
     },
-    doctor: {
-      intro:
-        "Choose the picture that looks closest to your dough. The Doctor will explain the likely cause and one simple next step.",
-      verifyBody:
-        "First check that the recipe below matches the dough you made. If not, edit the calculator before using the diagnosis.",
-      note:
-        "The diagnosis is a practical comparison, not a laboratory result. Start with the simplest fix first.",
-      diagnosisDetailTitle: "Simple next check",
-      diagnosisDetails: [
-        "Check whether the dough was too cold, too warm, too wet or handled too roughly.",
-        "Change one variable next time and write down what happened.",
-      ],
-    },
   },
   enthusiast: {
     planner: {
@@ -97,19 +75,6 @@ export const educationExperienceCopy: Record<ExperienceLevel, EducationExperienc
       technicalDetails: [
         "Longer fermentation usually needs stronger flour or less yeast.",
         "Higher hydration can create a softer crumb only if gluten development and handling preserve the gas.",
-      ],
-    },
-    doctor: {
-      intro:
-        "Choose the closest dough state. The Doctor connects the symptom to fermentation, hydration, flour strength and handling.",
-      verifyBody:
-        "Confirm the recipe first because the advice changes with pizza style, flour range, hydration and fermentation environment.",
-      note:
-        "Use the diagnosis as a process clue. Compare the symptom with your actual dough temperature, rest time and handling.",
-      diagnosisDetailTitle: "Process clues",
-      diagnosisDetails: [
-        "Sticky, tight or collapsed dough can come from more than one variable.",
-        "Compare flour strength, hydration, rest time and the actual temperature of the dough.",
       ],
     },
   },
@@ -139,20 +104,6 @@ export const educationExperienceCopy: Record<ExperienceLevel, EducationExperienc
         "W strength and protein are useful constraints, but batch behavior still depends on milling, absorption and P/L balance.",
         "A recipe becomes repeatable only when dough temperature, fermentation endpoint and bake environment are recorded.",
         "Edge cases such as high hydration, long cold fermentation and sourdough need more observation than a fixed clock time.",
-      ],
-    },
-    doctor: {
-      intro:
-        "Choose the visual symptom, then interpret it as an interaction between gluten development, enzymatic activity, hydration, temperature and handling.",
-      verifyBody:
-        "Confirm the exact setup first. Diagnostic advice assumes the shown flour, hydration, fermentation, pizza style and temperature inputs.",
-      note:
-        "The Doctor is a structured hypothesis, not an absolute measurement. Treat the result as a variable map for your next controlled bake.",
-      diagnosisDetailTitle: "Technical interpretation",
-      diagnosisDetails: [
-        "Multiple variables can create the same symptom, so avoid changing hydration, yeast and time all at once.",
-        "Dough temperature and flour tolerance often explain why the same recipe behaves differently between kitchens.",
-        "For sourdough, starter maturity and acidity can change gluten strength even when baker's percentages are unchanged.",
       ],
     },
   },

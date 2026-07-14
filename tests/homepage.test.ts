@@ -28,7 +28,7 @@ const existingRoutes = new Set([
   "/sauce",
   "/toppings",
   "/timer",
-  "/doctor",
+  "/guide/pizza-troubleshooting",
   "/styles",
   "/guide",
   "/ovens",

@@ -92,6 +92,10 @@ const bakeTargetDateTime = (dateValue: string, timeValue: string) => {
   return Number.isFinite(candidate.getTime()) ? candidate : new Date(Date.now() + 24 * 3_600_000);
 };
 
+const fallbackCalculatorNowForBakeTarget = (dateValue: string, timeValue: string) => (
+  new Date(bakeTargetDateTime(dateValue, timeValue).getTime() - 24 * 3_600_000)
+);
+
 const flourSuitabilityNote = (flour: ReturnType<typeof flourById>) => {
   const summary = `${flour.brand} ${flour.name} · ${flour.type} · ${flour.strength}`;
   if (flour.hydration[1] >= 74) return `${summary}. Stronger flour is useful for longer fermentation or higher hydration, but can become chewy if pushed too hard.`;
@@ -193,7 +197,7 @@ const presetFor = (goal: PizzaGoal, ovenTemperature: number, schedule: Fermentat
 
 const copy = {
   en: {
-    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", doctor: "Dough Doctor", styles: "Pizza styles", eyebrow: "Dough recipe builder", title: "Build the dough recipe.",
+    toolkit: "Baker's toolkit", guide: "Guide & glossary", calculator: "Calculator", planner: "Planner", troubleshooting: "Troubleshooting", styles: "Pizza styles", eyebrow: "Dough recipe builder", title: "Build the dough recipe.",
     intro: "Choose a pizza style, oven and fermentation. DoughTools calculates the batch with baker's percentages.", build: "Fine-tune your batch",
     quickTitle: "What kind of pizza do you want?", quickIntro: "Choose the result, fermentation time and environment, and oven. The calculator builds a sensible medium-size starting recipe.", schedule: "Fermentation time and environment",
     oven: "Which oven do you use?", homeOven: "Electric oven", homeOvenNote: "Stone or steel", gasOven: "Gas pizza oven", gasOvenNote: "Ooni, Chef Matteo, etc.", bakeGuide: "Baking recommendation", bakeTemperature: "Temperature", bakeTime: "Baking time", homePreheat: "Preheat the stone or steel thoroughly, usually 45–60 minutes.", gasPreheat: "Heat the stone fully and adjust the flame while turning the pizza.", panGasNote: "For pan pizza, verify that the pan is rated for this temperature and gas flame.", recommendation: "Recommended setup", flourStrength: "Flour strength", mediumSize: "Medium size", tune: "Fine-tune recipe", hideTune: "Hide fine-tuning", flourChoice: "Choose your pizza flour", flourIntro: "The flour profile suggests a suitable hydration and fermentation range.", protein: "Protein", suggestedHydration: "Hydration", suggestedTime: "Fermentation", bestFor: "Best for", applyFlour: "Use flour suggestion", flourApplied: "Flour suggestion applied", estimatedData: "Approximate profile — check the current values printed on your bag.", makerInfo: "Manufacturer information",
@@ -209,13 +213,13 @@ const copy = {
       "24h-cold": ["24 h in the fridge", "About 4 °C"], "48h-cold": ["48 h in the fridge", "About 4 °C"],
     },
     yourRecipe: "Your recipe", ready: "Ready to mix", total: "total", flour: "Flour", water: "Water",
-    saveRecipe: "Save recipe", saveRecipeValueTitle: "Save the setup that worked", saveRecipeValueIntro: "A saved recipe keeps the exact calculator settings so you can repeat it, plan it again, troubleshoot it later or compare the next bake.", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Use again", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", savedRecipeLocal: "Saved locally in this browser. Use it again or send the same setup into another DoughTools step.", savedRecipeNextActions: "Next actions", savedRecipePlanner: "Planner", savedRecipeSauce: "Sauce", savedRecipeToppings: "Toppings", savedRecipeTimer: "Timer", savedRecipeDoctor: "Dough Doctor", saveBake: "Save this bake", bakeSaved: "Bake result saved locally", bakeRating: "Overall rating", bakeTimeSeconds: "Bake time", bakeOvenTemp: "Oven temperature", privateBakeNote: "Private note", privateBakePlaceholder: "What happened in the oven?", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
+    saveRecipe: "Save recipe", saveRecipeValueTitle: "Save the setup that worked", saveRecipeValueIntro: "A saved recipe keeps the exact calculator settings so you can repeat it, plan it again, troubleshoot it later or compare the next bake.", recipeName: "Recipe name", recipeNamePlaceholder: "Friday pizza", save: "Save", cancel: "Cancel", saved: "Recipe saved", myRecipes: "My recipes", noRecipes: "No saved recipes yet.", openRecipe: "Use again", deleteRecipe: "Delete", deleteConfirm: "Delete this saved recipe?", savedOn: "Saved", recipeOpened: "Recipe opened", savedRecipeLocal: "Saved locally in this browser. Use it again or send the same setup into another DoughTools step.", savedRecipeNextActions: "Next actions", savedRecipePlanner: "Planner", savedRecipeSauce: "Sauce", savedRecipeToppings: "Toppings", savedRecipeTimer: "Timer", savedRecipeTroubleshooting: "Troubleshooting", saveBake: "Save this bake", bakeSaved: "Bake result saved locally", bakeRating: "Overall rating", bakeTimeSeconds: "Bake time", bakeOvenTemp: "Oven temperature", privateBakeNote: "Private note", privateBakePlaceholder: "What happened in the oven?", shareTitle: "Share your pizza", shareIntro: "Send a pizza card and recipe link to Instagram, WhatsApp or another app.", shareRecipe: "Share image", shareWhatsApp: "WhatsApp link", copyLink: "Copy recipe link", linkCopied: "Recipe link copied", shareText: "I’m making {style} pizza with DoughTools. Make your own pizza recipe:", shareFallback: "The recipe link was copied. You can paste it into Instagram or another app.",
     note: "Leavening is estimated from time and temperature. Flour strength, starter activity and actual dough temperature may require adjustment.",
     instructionsTitle: "Plan fermentation next", instructionsIntro: "Your dough numbers are ready. Open the planner for step-by-step instructions and exact clock times.", openPlan: "Open Fermentation Planner", startClock: "Start now or choose your desired baking time.",
     footer: "Made for better pizza nights.", bakers: "Baker's percentages are based on flour weight.", decrease: "Decrease number of pizzas", increase: "Increase number of pizzas",
   },
   fi: {
-    toolkit: "Leipurin työkalut", guide: "Ohjeet ja terminologia", calculator: "Laskuri", planner: "Aikataulu", doctor: "Taikinalääkäri", styles: "Pizzatyylit", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
+    toolkit: "Leipurin työkalut", guide: "Ohjeet ja terminologia", calculator: "Laskuri", planner: "Aikataulu", troubleshooting: "Vianetsintä", styles: "Pizzatyylit", eyebrow: "Pizzataikinalaskuri", title: "Seuraava loistava pizzasi alkaa oikeista luvuista.",
     intro: "Valitse erän koko, tyyli ja kohotus. Me hoidamme leipurin laskut.", build: "Hienosäädä taikina",
     quickTitle: "Millaista pizzaa haluat?", quickIntro: "Valitse lopputulos, fermentaation kesto ja ympäristö sekä uuni. Laskuri rakentaa järkevän lähtöreseptin keskikokoiselle pizzalle.", schedule: "Fermentaation kesto ja ympäristö",
     oven: "Mitä uunia käytät?", homeOven: "Sähköuuni", homeOvenNote: "Kivi tai teräs", gasOven: "Kaasupizzauuni", gasOvenNote: "Ooni, Chef Matteo jne.", bakeGuide: "Paistosuositus", bakeTemperature: "Lämpötila", bakeTime: "Paistoaika", homePreheat: "Esilämmitä kiveä tai terästä kunnolla, yleensä 45–60 minuuttia.", gasPreheat: "Kuumenna kivi täysin ja säädä liekkiä pizzaa kääntäessäsi.", panGasNote: "Varmista pannupizzassa, että pannu kestää tämän lämpötilan ja kaasuliekin.", recommendation: "Suositeltu kokonaisuus", flourStrength: "Jauhon vahvuus", mediumSize: "Keskikoko", tune: "Hienosäädä reseptiä", hideTune: "Piilota hienosäätö", flourChoice: "Valitse pizzajauho", flourIntro: "Jauhoprofiili ehdottaa sille sopivaa hydraatiota ja kohotusaikaa.", protein: "Proteiini", suggestedHydration: "Hydraatio", suggestedTime: "Kohotus", bestFor: "Sopii parhaiten", applyFlour: "Käytä jauhosuositusta", flourApplied: "Jauhosuositus otettu käyttöön", estimatedData: "Arvioitu profiili – tarkista ajantasaiset arvot omasta jauhopussista.", makerInfo: "Valmistajan tiedot",
@@ -237,7 +241,7 @@ const copy = {
     footer: "Parempia pizzailtoja varten.", bakers: "Leipurin prosentit lasketaan jauhojen painosta.", decrease: "Vähennä pizzojen määrää", increase: "Lisää pizzojen määrää",
   },
   sv: {
-    toolkit: "Bagarens verktyg", guide: "Guide och terminologi", calculator: "Kalkylator", planner: "Tidsplan", doctor: "Degläkaren", styles: "Pizzastilar", eyebrow: "Pizzadegskalkylator", title: "Din nästa fantastiska pizza börjar med rätt siffror.",
+    toolkit: "Bagarens verktyg", guide: "Guide och terminologi", calculator: "Kalkylator", planner: "Tidsplan", troubleshooting: "Felsökning", styles: "Pizzastilar", eyebrow: "Pizzadegskalkylator", title: "Din nästa fantastiska pizza börjar med rätt siffror.",
     intro: "Välj satsstorlek, stil och jäsning. Vi sköter bagarens matematik.", build: "Finjustera degen",
     quickTitle: "Vilken pizza vill du baka?", quickIntro: "Välj resultat, jästid och temperatur samt ugn. Kalkylatorn skapar ett vettigt startrecept för en mellanstor pizza.", schedule: "Jäsningstid och temperatur",
     oven: "Vilken ugn använder du?", homeOven: "Elektrisk ugn", homeOvenNote: "Sten eller stål", gasOven: "Gaseldad pizzaugn", gasOvenNote: "Ooni, Chef Matteo m.fl.", bakeGuide: "Bakrekommendation", bakeTemperature: "Temperatur", bakeTime: "Baktid", homePreheat: "Förvärm stenen eller stålet ordentligt, vanligtvis 45–60 minuter.", gasPreheat: "Värm stenen helt och justera lågan medan du roterar pizzan.", panGasNote: "Kontrollera att formen tål temperaturen och gaslågan.", recommendation: "Rekommenderad inställning", flourStrength: "Mjölets styrka", mediumSize: "Mellanstor", tune: "Finjustera receptet", hideTune: "Dölj finjustering", flourChoice: "Välj pizzamjöl", flourIntro: "Mjölprofilen föreslår lämplig hydrering och jästid.", protein: "Protein", suggestedHydration: "Hydrering", suggestedTime: "Jäsning", bestFor: "Passar bäst för", applyFlour: "Använd mjölförslaget", flourApplied: "Mjölförslaget har använts", estimatedData: "Ungefärlig profil – kontrollera aktuella värden på din mjölpåse.", makerInfo: "Tillverkarens information",
@@ -832,6 +836,7 @@ function AdvancedCalculatorStandaloneControls({
   onWValueChange,
   activeFlour,
   totalDough,
+  currentDateTime,
   locale,
   t,
 }: {
@@ -875,11 +880,12 @@ function AdvancedCalculatorStandaloneControls({
   onWValueChange: (value: string) => void;
   activeFlour: ReturnType<typeof flourById>;
   totalDough: number;
+  currentDateTime: Date;
   locale: Locale;
   t: typeof copy.en;
 }) {
   const selectedDoughType = advancedDoughTypes.find((type) => type.value === doughType) ?? advancedDoughTypes[0];
-  const availableHours = Math.max(0, (bakeTargetDateTime(bakeDate, bakeTime).getTime() - Date.now()) / 3_600_000);
+  const availableHours = Math.max(0, (bakeTargetDateTime(bakeDate, bakeTime).getTime() - currentDateTime.getTime()) / 3_600_000);
 
   return (
     <div className="grid gap-5" aria-labelledby="advanced-calculator-title">
@@ -1612,6 +1618,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [advancedBakeDate, setAdvancedBakeDate] = useState(defaultBakeDateValue);
   const [advancedBakeTime, setAdvancedBakeTime] = useState("18:00");
+  const [calculatorNow, setCalculatorNow] = useState<Date | null>(null);
   const [advancedDoughType, setAdvancedDoughType] = useState<AdvancedDoughType>("cold_neapolitan");
   const [planningMixingMethod, setPlanningMixingMethod] = useState<PlanningMixingMethod>("hand_mixing");
   const [planningRoomTemperature, setPlanningRoomTemperature] = useState(22);
@@ -1642,6 +1649,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   useEffect(() => {
     document.documentElement.lang = "en";
     setExperienceLevel(readExperienceLevelPreference());
+    setCalculatorNow(new Date());
   }, []);
 
   useEffect(() => {
@@ -1700,8 +1708,12 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId,
   }), [pizzas, ballWeight, waste, hydration, salt, yeastType, fermentation, temperature, goal, ovenType, flourId, pizzaStyleId]);
   const recipe = useMemo(() => calculateDoughIngredients(currentSettings), [currentSettings]);
+  const calculatorCurrentDateTime = useMemo(
+    () => calculatorNow ?? fallbackCalculatorNowForBakeTarget(advancedBakeDate, advancedBakeTime),
+    [advancedBakeDate, advancedBakeTime, calculatorNow],
+  );
   const planningResult = useMemo(() => buildPlanningResult(planningInputFromCalculator({
-    currentDateTime: new Date(),
+    currentDateTime: calculatorCurrentDateTime,
     desiredBakeDateTime: bakeTargetDateTime(advancedBakeDate, advancedBakeTime),
     ovenType,
     fermentation,
@@ -1744,12 +1756,13 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
     mixerFrictionHeat,
     advancedBakeDate,
     advancedBakeTime,
+    calculatorCurrentDateTime,
   ]);
 
   const recipeQuery = recipeParams(currentSettings).toString();
   const toolHref = (tool: HomepageTool) => tool.preserveRecipe ? `${tool.href}?${recipeQuery}` : tool.href;
   const planHref = `/plan?${recipeQuery}`;
-  const doctorHref = `/doctor?${recipeQuery}`;
+  const troubleshootingHref = "/guide/pizza-troubleshooting";
   const sauceHref = `/sauce?${recipeQuery}`;
   const toppingsHref = `/toppings?${recipeQuery}`;
   const timerHref = `/timer?${recipeQuery}`;
@@ -1898,7 +1911,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           <nav className="hidden items-center gap-1 rounded-full border border-ink/10 bg-white/70 p-1 xl:flex" aria-label={t.toolkit}>
             <a href="#top" className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.calculator}</a>
             <Link href={planHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.planner}</Link>
-            <Link href={doctorHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.doctor}</Link>
+            <Link href={troubleshootingHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.troubleshooting}</Link>
             <Link href={stylesHref} className="rounded-full px-4 py-2 text-xs font-bold text-ink/55 transition hover:bg-white hover:text-ink">{t.styles}</Link>
           </nav>
           <div className="flex items-center gap-2">
@@ -1914,7 +1927,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
         <nav className="legacy-tool-nav mb-7 flex gap-2 overflow-x-auto pb-1 xl:hidden" aria-label={t.toolkit}>
           <a href="#top" className="shrink-0 rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">{t.calculator}</a>
           <Link href={planHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.planner}</Link>
-          <Link href={doctorHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.doctor}</Link>
+          <Link href={troubleshootingHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.troubleshooting}</Link>
           <Link href={stylesHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">{t.styles}</Link>
           <Link href="/ovens" className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Oven guide</Link>
           <Link href={sauceHref} className="shrink-0 rounded-full border border-ink/10 bg-white/70 px-4 py-2 text-xs font-bold text-ink/60">Sauce</Link>
@@ -1983,7 +1996,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
           <h2 id="calculator-intro" className="font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl">{t.title}</h2>
           <p className="mt-4 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">{levelCopy.calculatorIntro}</p>
           <p className="mt-3 max-w-xl text-sm leading-6 text-ink/55">
-            The calculator gives the numbers. The guidance explains what they mean, then Planner and Dough Doctor help with timing and troubleshooting.
+            The calculator gives the numbers. The guidance explains what they mean, then Planner and Troubleshooting help with timing and problem-solving.
           </p>
         </section>
         </>
@@ -2189,6 +2202,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
                 onWValueChange={setWValue}
                 activeFlour={activeFlour}
                 totalDough={recipe.total}
+                currentDateTime={calculatorCurrentDateTime}
                 locale={locale}
                 t={t}
               />
@@ -2447,7 +2461,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
                   { label: t.savedRecipeSauce, href: recipeWorkflowQueryHref("/sauce", savedRecipeQuery) },
                   { label: t.savedRecipeToppings, href: recipeWorkflowQueryHref("/toppings", savedRecipeQuery) },
                   { label: t.savedRecipeTimer, href: recipeWorkflowQueryHref("/timer", savedRecipeQuery) },
-                  { label: t.savedRecipeDoctor, href: recipeWorkflowQueryHref("/doctor", savedRecipeQuery) },
+                  { label: t.savedRecipeTroubleshooting, href: "/guide/pizza-troubleshooting" },
                 ];
 
                 return (

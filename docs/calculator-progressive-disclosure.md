@@ -2,7 +2,7 @@
 
 Patch 26 makes the DoughTools calculator calmer for Beginner users while keeping the full dough setup available for Enthusiast and Pizza Nerd users.
 
-This patch changes presentation and guidance only. It does not change dough formulas, yeast calculations, saved recipes, shared recipe URLs, planner timing, Dough Doctor diagnosis, indexing, analytics or tracking.
+This patch changes presentation and guidance only. It does not change dough formulas, yeast calculations, saved recipes, shared recipe URLs, planner timing, troubleshooting content, indexing, analytics or tracking.
 
 ## Why this exists
 
@@ -75,7 +75,7 @@ Advanced values are not discarded when the Beginner view is collapsed. If techni
 Existing route/query conventions are preserved for:
 
 - Planner
-- Dough Doctor
+- Troubleshooting
 - Sauce
 - Toppings
 - Timer

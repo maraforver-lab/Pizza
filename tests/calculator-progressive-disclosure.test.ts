@@ -123,7 +123,7 @@ describe("calculator progressive disclosure", () => {
     expect(calculatorWorkspace).toContain("recipeWorkflow.heading");
     expect(calculatorWorkspace).toContain("Workflow handoff");
     expect(calculatorWorkspace).toContain("Recipe context included");
-    expect(workflow).toContain("Open Dough Doctor");
+    expect(workflow).toContain("Open troubleshooting");
     expect(workflow).toContain("Calculate sauce");
     expect(workflow).toContain("Calculate toppings");
     expect(workflow).toContain("Start baking timer");

@@ -5,7 +5,7 @@ export type RecipeWorkflowActionId =
   | "sauce"
   | "toppings"
   | "timer"
-  | "doctor"
+  | "troubleshooting"
   | "save";
 
 export type RecipeWorkflowAction = {
@@ -65,12 +65,12 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
       preservesQuery: true,
     },
     {
-      id: "doctor",
-      label: "Open Dough Doctor",
-      description: "If the dough feels wrong later, troubleshoot it with this recipe context.",
-      href: recipeWorkflowQueryHref("/doctor", recipeQuery),
+      id: "troubleshooting",
+      label: "Open troubleshooting",
+      description: "If the dough or bake feels wrong later, compare it with the troubleshooting guide.",
+      href: "/guide/pizza-troubleshooting",
       priority: "support",
-      preservesQuery: true,
+      preservesQuery: false,
     },
     {
       id: "save",
@@ -86,7 +86,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
       heading: "Next steps for this recipe",
       intro: "You have the dough numbers. Next, plan when to mix, rest and bake.",
       primaryActionId: "planner",
-      detail: "Start with the planner first. Sauce, toppings, timer and Dough Doctor are ready when you need them.",
+      detail: "Start with the planner first. Sauce, toppings, timer and troubleshooting are ready when you need them.",
       actions,
     };
   }
@@ -105,7 +105,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
     heading: "Next steps for this recipe",
     intro: "Carry this recipe context through the workflow so variables stay comparable from dough numbers to bake notes.",
     primaryActionId: "planner",
-    detail: "Planner, Sauce, Toppings, Timer and Dough Doctor receive the current recipe query where supported.",
+    detail: "Planner, Sauce, Toppings and Timer receive the current recipe query where supported. Troubleshooting stays recipe-neutral.",
     actions,
   };
 }

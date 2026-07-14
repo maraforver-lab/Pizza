@@ -11,7 +11,7 @@ Patch 29 clarifies why saving recipes matters in DoughTools.
   - Sauce
   - Toppings
   - Timer
-  - Dough Doctor
+  - Troubleshooting
 - The Account page now explains the current local-first product model more clearly.
 
 ## Storage behavior

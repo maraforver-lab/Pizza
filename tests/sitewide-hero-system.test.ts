@@ -19,7 +19,6 @@ const expectedRoutes = [
   "/styles",
   "/toppings",
   "/costs",
-  "/doctor",
   "/timer",
   "/calculator/quick",
   "/plan",

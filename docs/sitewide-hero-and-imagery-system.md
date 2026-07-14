@@ -84,7 +84,6 @@ Examples:
 
 - `/toppings`
 - `/costs`
-- `/doctor`
 - `/timer` when used as an active timing utility
 
 Characteristics:

@@ -63,7 +63,7 @@ Important user journeys:
 3. calculator settings
 4. recipe result
 5. planner
-6. Dough Doctor
+6. Troubleshooting
 
 ## Color-not-alone rule
 
@@ -76,7 +76,7 @@ For experience levels:
 - expose selected state with `aria-pressed` or another appropriate semantic state
 - show a visible “Selected” style or text where practical
 
-For Dough Doctor:
+For Troubleshooting:
 
 - use text labels for each dough situation
 - do not rely only on green checkmarks or red X marks
@@ -100,7 +100,7 @@ Prefer:
 
 - `Calculate your dough`
 - `Plan this bake`
-- `Open Dough Doctor`
+- `Open troubleshooting`
 - `Start with home oven pizza`
 
 Avoid:
@@ -129,7 +129,7 @@ Patch 24 did not change:
 - dough formulas
 - yeast calculations
 - planner timing logic
-- Dough Doctor diagnostic logic
+- Troubleshooting guide content
 - saved recipe behavior
 - shared recipe URL behavior
 - BakeResult storage

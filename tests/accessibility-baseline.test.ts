@@ -93,15 +93,13 @@ describe("core accessibility baseline", () => {
     expect(planSource).toContain("focus-visible:ring");
   });
 
-  it("keeps Dough Doctor image choices named beyond checkmark and X markers", () => {
+  it("keeps retired Doctor as a server-side redirect without diagnostic UI", () => {
     const doctorSource = source("app/doctor/page.tsx");
 
-    expect(doctorSource).toContain("<h1");
-    expect(doctorSource).toContain("aria-label={`Choose dough situation: ${labels[0]}");
-    expect(doctorSource).toContain("aria-pressed={active}");
-    expect(doctorSource).toContain("Selected dough situation");
-    expect(doctorSource).toContain("aria-hidden=\"true\"");
-    expect(doctorSource).toContain("focus-visible:ring");
+    expect(doctorSource).toContain("permanentRedirect");
+    expect(doctorSource).toContain('"/guide/pizza-troubleshooting"');
+    expect(doctorSource).not.toContain("<h1");
+    expect(doctorSource).not.toContain("aria-pressed={active}");
   });
 
   it("keeps account guidance compact while preserving Pizza Session experience controls", () => {

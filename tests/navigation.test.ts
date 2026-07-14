@@ -17,7 +17,7 @@ const requiredRoutes = [
   "/sauce",
   "/toppings",
   "/timer",
-  "/doctor",
+  "/guide/pizza-troubleshooting",
   "/styles",
   "/guide",
   "/guides/dough",

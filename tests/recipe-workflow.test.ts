@@ -17,7 +17,7 @@ describe("core recipe workflow handoff", () => {
     expect(handoff.heading).toBe("Next steps for this recipe");
     expect(handoff.primaryActionId).toBe("planner");
 
-    for (const id of ["planner", "sauce", "toppings", "timer", "doctor"] as const) {
+    for (const id of ["planner", "sauce", "toppings", "timer"] as const) {
       const action = handoff.actions.find((item) => item.id === id);
 
       expect(action).toBeDefined();
@@ -26,6 +26,12 @@ describe("core recipe workflow handoff", () => {
       expect(action?.href).not.toContain("undefined");
       expect(settingsFromUrl(action?.href?.split("?")[1] ?? "")).toMatchObject(baseSettings);
     }
+
+    const troubleshooting = handoff.actions.find((item) => item.id === "troubleshooting");
+    expect(troubleshooting).toMatchObject({
+      href: "/guide/pizza-troubleshooting",
+      preservesQuery: false,
+    });
   });
 
   it("keeps Save as a local/general handoff without inventing query support", () => {
@@ -48,7 +54,7 @@ describe("core recipe workflow handoff", () => {
     expect(enthusiast.intro).toContain("timing controls fermentation");
     expect(enthusiast.detail).toContain("sauce, toppings and oven timing");
     expect(nerd.intro).toContain("recipe context");
-    expect(nerd.detail).toContain("receive the current recipe query");
+    expect(nerd.detail).toContain("Troubleshooting stays recipe-neutral");
   });
 
   it("wires the calculator workspace recipe result to a semantic next-step section with accessible link text", () => {
@@ -75,7 +81,7 @@ describe("core recipe workflow handoff", () => {
     expect(source("docs/core-recipe-workflow.md")).toContain("/sauce");
     expect(source("docs/core-recipe-workflow.md")).toContain("/toppings");
     expect(source("docs/core-recipe-workflow.md")).toContain("/timer");
-    expect(source("docs/core-recipe-workflow.md")).toContain("/doctor");
+    expect(source("docs/core-recipe-workflow.md")).toContain("/guide/pizza-troubleshooting");
     expect(source("docs/core-recipe-workflow.md")).toContain("does not change");
 
     expect(ingredients.total).toBeCloseTo(1606.8, 3);

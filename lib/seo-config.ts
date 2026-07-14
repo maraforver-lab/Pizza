@@ -174,11 +174,6 @@ export const legacyNoindexRoutes = [
     description: "Legacy pizza schedule planner retained temporarily while canonical Pizza Session routing is finalized.",
   },
   {
-    path: "/doctor",
-    title: "Dough Doctor | DoughTools",
-    description: "Legacy dough diagnosis route retained temporarily while troubleshooting guidance is consolidated.",
-  },
-  {
     path: "/coach",
     title: "Pizza Coach | DoughTools",
     description: "Legacy pizza coach route retained temporarily while guidance rules are inventoried.",
@@ -197,7 +192,6 @@ export const publicToolBaseRoutes = [
 export const statefulQueryParamRoutes = [
   "/",
   "/plan",
-  "/doctor",
   "/sauce",
   "/calculator/quick",
   "/toppings",

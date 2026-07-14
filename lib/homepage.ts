@@ -29,7 +29,7 @@ export const homepageContent = {
   coreTools: [
     { name: "Dough Calculator", description: "Direct recipe control.", href: "/?calculator=1", action: "Calculate my dough" },
     { name: "Planner", description: "Fermentation and bake timing.", href: "/plan", action: "Plan fermentation timing", preserveRecipe: true },
-    { name: "Dough Doctor", description: "Troubleshoot dough problems.", href: "/doctor", action: "Diagnose my dough", preserveRecipe: true },
+    { name: "Troubleshooting", description: "Solve dough, shaping, launch and bake problems.", href: "/guide/pizza-troubleshooting", action: "Open troubleshooting" },
     { name: "Sauce", description: "Match sauce to pizza count.", href: "/sauce", action: "Calculate my sauce", preserveRecipe: true },
     { name: "Toppings", description: "Balance cheese and toppings.", href: "/toppings", action: "Build my topping balance", preserveRecipe: true },
     { name: "Timer", description: "Keep bake timing focused.", href: "/timer", action: "Start the timer", preserveRecipe: true },

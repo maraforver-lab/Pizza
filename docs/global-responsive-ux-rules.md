@@ -31,7 +31,6 @@ These rules apply to all current and future DoughTools pages, including but not 
 - `/`
 - `/session/*`
 - `/plan`
-- `/doctor`
 - `/sauce`
 - `/toppings`
 - `/costs`
@@ -330,7 +329,6 @@ Purpose: user uses a calculator, planner, doctor, timer or decision tool.
 Examples:
 
 - `/plan`
-- `/doctor`
 - `/costs`
 - `/timer`
 - `/sauce`

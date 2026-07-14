@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { bakeFor } from "@/lib/baking";
 import { buildDoughInstructions } from "@/lib/dough-instructions";
-import { doctorIssues } from "@/lib/dough-doctor";
 import { educationExperienceCopy, getEducationExperienceCopy } from "@/lib/education-experience-copy";
 import { getExperienceLevelOrder } from "@/lib/experience-levels";
 import { flourById } from "@/lib/flours";
@@ -16,13 +15,12 @@ const textFor = (value: unknown): string => {
 };
 
 describe("education experience copy", () => {
-  it("provides planner, guide and Dough Doctor copy for every experience level", () => {
+  it("provides planner and guide copy for every experience level", () => {
     for (const level of getExperienceLevelOrder()) {
       const copy = getEducationExperienceCopy(level);
 
       expect(copy.planner.intro.trim()).toBeTruthy();
       expect(copy.guide.intro.trim()).toBeTruthy();
-      expect(copy.doctor.intro.trim()).toBeTruthy();
     }
   });
 
@@ -31,7 +29,6 @@ describe("education experience copy", () => {
     const pizzaNerd = getEducationExperienceCopy("pizza_nerd");
 
     expect(beginner.guide.technicalDetails.length).toBeLessThan(pizzaNerd.guide.technicalDetails.length);
-    expect(beginner.doctor.diagnosisDetails.length).toBeLessThan(pizzaNerd.doctor.diagnosisDetails.length);
   });
 
   it("adds technical detail for Pizza Nerd guidance", () => {
@@ -40,7 +37,6 @@ describe("education experience copy", () => {
     expect(text).toContain("dough temperature");
     expect(text).toContain("baker's percentages");
     expect(text).toContain("gluten development");
-    expect(text).toContain("enzymatic activity");
   });
 
   it("keeps education copy English and avoids unavailable feature claims", () => {
@@ -69,16 +65,5 @@ describe("education experience copy", () => {
         .map((step) => [step.id, step.at.toISOString()]);
       expect(times).toEqual(baselineTimes);
     }
-  });
-
-  it("does not remove Dough Doctor diagnostic categories", () => {
-    expect(doctorIssues.map((issue) => issue.id)).toEqual([
-      "sticky",
-      "torn",
-      "tight",
-      "underproofed",
-      "overproofed",
-      "ready",
-    ]);
   });
 });

@@ -68,7 +68,6 @@ describe("saved recipe account value UX", () => {
     expect(recipeWorkflowQueryHref("/sauce", query)).toBe(`/sauce?${query}`);
     expect(recipeWorkflowQueryHref("/toppings", query)).toBe(`/toppings?${query}`);
     expect(recipeWorkflowQueryHref("/timer", query)).toBe(`/timer?${query}`);
-    expect(recipeWorkflowQueryHref("/doctor", query)).toBe(`/doctor?${query}`);
   });
 
   it("explains the value of saving recipes by experience level on the calculator", () => {
@@ -89,8 +88,9 @@ describe("saved recipe account value UX", () => {
     expect(page).toContain('recipeWorkflowQueryHref("/sauce", savedRecipeQuery)');
     expect(page).toContain('recipeWorkflowQueryHref("/toppings", savedRecipeQuery)');
     expect(page).toContain('recipeWorkflowQueryHref("/timer", savedRecipeQuery)');
-    expect(page).toContain('recipeWorkflowQueryHref("/doctor", savedRecipeQuery)');
+    expect(page).toContain('href: "/guide/pizza-troubleshooting"');
     expect(page).not.toContain('recipeWorkflowQueryHref("/journal", savedRecipeQuery)');
+    expect(page).not.toContain('recipeWorkflowQueryHref("/doctor", savedRecipeQuery)');
     expect(page).not.toMatch(/publish saved recipe|copy public recipe link|upload recipe to account/i);
   });
 

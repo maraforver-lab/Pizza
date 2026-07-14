@@ -6,7 +6,6 @@ const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts
 
 const legacyRoutes = [
   { route: "/plan", dir: "plan", marker: "doughtools-active-plan-v1" },
-  { route: "/doctor", dir: "doctor", marker: "diagnoseDough" },
   { route: "/coach", dir: "coach", marker: "buildCoachAdvice" },
 ] as const;
 
@@ -51,6 +50,18 @@ describe("legacy predecessor route indexing", () => {
     expect(page).not.toContain("metadataForLegacyRoute");
   });
 
+  it("keeps retired doctor as a server-side redirect without the old diagnostic page or metadata layout", () => {
+    const page = source("app", "doctor", "page.tsx");
+
+    expect(existsSync(join(process.cwd(), "app", "doctor", "page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app", "doctor", "layout.tsx"))).toBe(false);
+    expect(page).toContain('permanentRedirect("/guide/pizza-troubleshooting")');
+    expect(page).not.toContain("diagnoseDough");
+    expect(page).not.toContain("dough-doctor");
+    expect(page).not.toContain("SiteFooter");
+    expect(page).not.toContain("metadataForLegacyRoute");
+  });
+
   it("removes normal product links to the retired history route", () => {
     const linkedSurfaces = [
       source("lib", "navigation.ts"),
@@ -76,5 +87,21 @@ describe("legacy predecessor route indexing", () => {
     expect(linkedSurfaces).not.toContain('href="/gear"');
     expect(linkedSurfaces).not.toContain('href: "/gear"');
     expect(linkedSurfaces).toContain("/ovens#other-equipment");
+  });
+
+  it("removes normal product links to the retired doctor route", () => {
+    const linkedSurfaces = [
+      source("lib", "navigation.ts"),
+      source("lib", "homepage.ts"),
+      source("components", "HomeCalculatorWorkspace.tsx"),
+      source("components", "SiteFooter.tsx"),
+      source("lib", "recipe-workflow.ts"),
+    ].join("\n");
+
+    expect(linkedSurfaces).not.toContain('href="/doctor"');
+    expect(linkedSurfaces).not.toContain('href: "/doctor"');
+    expect(linkedSurfaces).not.toContain("/doctor?");
+    expect(linkedSurfaces).not.toContain("Dough Doctor");
+    expect(linkedSurfaces).toContain("/guide/pizza-troubleshooting");
   });
 });

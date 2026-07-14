@@ -39,7 +39,7 @@ describe("performance and rendering baseline", () => {
   it("records the core route scope and production-mode smoke-test targets", () => {
     const doc = source("docs/performance-baseline.md");
 
-    for (const route of ["/", "/session/start", "/plan", "/doctor", "/guide", "/updates", "/account", "/robots.txt", "/sitemap.xml"]) {
+    for (const route of ["/", "/session/start", "/plan", "/guide", "/guide/pizza-troubleshooting", "/updates", "/account", "/robots.txt", "/sitemap.xml"]) {
       expect(doc).toContain(route);
     }
 
