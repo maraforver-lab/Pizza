@@ -3,14 +3,10 @@ import { EditorialLearningHero } from "@/components/page-hero/PageHeroSystem";
 export default function PizzaStyleHero() {
   return (
     <EditorialLearningHero
-      actions={[
-        { href: "#style-gallery", label: "Compare pizza styles" },
-        { href: "#planner-support", label: "See what DoughTools supports", variant: "secondary" },
-      ]}
-      body="Explore realistic examples and compare crust, structure, sauce, cheese, heat and baking method without treating every pizza as a variation of the same recipe."
-      eyebrow="Pizza Style Atlas"
+      body="Compare pizza styles by crust, oven fit, dough character, bake behavior and topping load before you choose what to make."
+      eyebrow="Pizza Styles"
       icon="pizza"
-      title="Why every pizza style behaves differently."
+      title="Choose the pizza style you want to make."
     />
   );
 }

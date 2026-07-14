@@ -1,14 +1,13 @@
-import Link from "next/link";
 import PizzaStyleSupportBadge from "@/components/styles/PizzaStyleSupportBadge";
 import { pizzaStyleEducationById, pizzaStyleGoalGuide } from "@/lib/pizza-style-education";
 
 export default function PizzaStyleGoalGuide() {
   return (
-    <section className="rounded-[2rem] border border-ink/10 bg-flour/70 p-5 sm:p-7" aria-labelledby="goal-guide-title">
+    <section className="mt-8 rounded-[2rem] border border-ink/10 bg-flour/70 p-5 sm:p-7" aria-labelledby="goal-guide-title">
       <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Choose by goal</p>
       <h2 id="goal-guide-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">Which style fits your goal?</h2>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">
-        This is a learning guide, not a selector. It helps you recognize the style family before you decide what to bake.
+        These links jump back to the comparison above. They help you choose a direction without creating a separate style-selection engine.
       </p>
       <div className="mt-6 grid gap-3 lg:grid-cols-2">
         {pizzaStyleGoalGuide.map((item) => {
@@ -27,14 +26,6 @@ export default function PizzaStyleGoalGuide() {
             </a>
           );
         })}
-      </div>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-card transition hover:bg-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-          Plan my next pizza →
-        </Link>
-        <Link href="/guide" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 py-3 text-sm font-extrabold text-ink transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-          Return to the Learning Center
-        </Link>
       </div>
     </section>
   );

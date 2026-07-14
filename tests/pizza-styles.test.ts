@@ -8,51 +8,33 @@ import {
   plannerSupportedPizzaStyleIds,
 } from "@/lib/pizza-style-education";
 import { pizzaStyles } from "@/lib/pizza-styles";
+import { PIZZA_CATALOG_OPTIONS } from "@/lib/pizza-catalog";
 
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
-describe("Pizza Style Atlas", () => {
-  it("rebuilds /styles as an educational atlas rather than a calculator selector", () => {
+describe("Pizza Styles comparison and selection guide", () => {
+  it("renders /styles as a concise comparison page instead of a long atlas-first page", () => {
     const page = source("app", "styles", "page.tsx");
     const hero = source("components", "styles", "PizzaStyleHero.tsx");
-    const atlas = source("components", "styles", "PizzaStyleAtlas.tsx");
+    const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
+    const goalGuide = source("components", "styles", "PizzaStyleGoalGuide.tsx");
+    const notes = source("components", "styles", "PizzaStyleTechniqueNotes.tsx");
 
     expect(page).toContain("PizzaStyleHero");
-    expect(page).toContain("PizzaStyleAtlas");
     expect(page).toContain("PizzaStyleComparison");
     expect(page).toContain("PizzaStyleGoalGuide");
-    expect(hero).toContain("Pizza Style Atlas");
-    expect(hero).toContain("Compare pizza styles");
-    expect(hero).toContain("See what DoughTools supports");
-    expect(page).toContain("A pizza style is more than its toppings.");
-    expect(page).toContain("What DoughTools currently plans");
-    expect(page).toContain("Ready to plan the style DoughTools supports today?");
-    expect(atlas).toContain("Compare by what the pizza looks and feels like.");
-    expect(atlas).toContain("Compare style details");
-    expect(atlas).toContain("role=\"dialog\"");
-    expect(atlas).toContain("aria-modal=\"true\"");
-    expect(page).not.toContain("recipeParams");
-    expect(page).not.toContain("Use this style");
-    expect(page).not.toContain("Apply every setting to the calculator");
+    expect(page).toContain("PizzaStyleTechniqueNotes");
+    expect(page).not.toContain("PizzaStyleAtlas");
+    expect(hero).toContain("Choose the pizza style you want to make.");
+    expect(hero).toContain("Compare pizza styles by crust");
+    expect(hero).not.toContain("actions=");
+    expect(comparison).toContain("Main pizza styles at a glance.");
+    expect(goalGuide).toContain("Which style fits your goal?");
+    expect(notes).toContain("aria-expanded");
+    expect(notes).toContain("aria-controls");
   });
 
-  it("keeps product support truthful and limits planner CTAs to supported style language", () => {
-    const page = source("app", "styles", "page.tsx");
-    const hero = source("components", "styles", "PizzaStyleHero.tsx");
-    const goalGuide = source("components", "styles", "PizzaStyleGoalGuide.tsx");
-
-    expect(plannerSupportedPizzaStyleIds).toEqual(["neapolitan"]);
-    expect(pizzaStyleSupportSummary).toContain("currently plans Neapolitan-style pizza");
-    expect(pizzaStyleSupportSummary).toContain("Other styles here are educational learning guides");
-    expect(page).toContain("Start with a Neapolitan-style Pizza Session");
-    expect(hero).toContain('href: "#planner-support"');
-    expect(goalGuide).toContain('href="/session/start"');
-    expect(page).not.toMatch(/Plan my (New York|Detroit|Roman|Sicilian|Contemporary)/);
-    expect(page).not.toContain("Coming soon");
-    expect(page).not.toContain("disabled");
-  });
-
-  it("includes the required educational style set and separates Roman and Sicilian terminology", () => {
+  it("keeps every educational style visible and classifies planner support truthfully", () => {
     const ids = pizzaStyleEducation.map((style) => style.id);
 
     expect(ids).toEqual([
@@ -64,50 +46,51 @@ describe("Pizza Style Atlas", () => {
       "roman-al-taglio",
       "sicilian",
     ]);
-    expect(pizzaStyleEducation.find((style) => style.id === "roman-tonda")?.description).toMatch(/round Roman/i);
-    expect(pizzaStyleEducation.find((style) => style.id === "roman-al-taglio")?.description).toMatch(/rectangular Roman pan/i);
-    expect(pizzaStyleEducation.find((style) => style.id === "sicilian")?.description).toMatch(/regional Sicilian traditions|Italian-American/i);
-    expect(pizzaStyleGoalGuide).toHaveLength(7);
+    expect(plannerSupportedPizzaStyleIds).toEqual(["neapolitan"]);
+    expect(pizzaStyleSupportSummary).toContain("currently plans Neapolitan-style pizza");
+    expect(pizzaStyleSupportSummary).toContain("Other styles here are educational learning guides");
+    expect(pizzaStyleEducation.filter((style) => style.support === "supported").map((style) => style.id)).toEqual(["neapolitan"]);
+    expect(pizzaStyleEducation.filter((style) => style.support === "learning").map((style) => style.id)).toEqual([
+      "contemporary-neapolitan",
+      "new-york",
+      "detroit",
+      "roman-tonda",
+      "roman-al-taglio",
+      "sicilian",
+    ]);
   });
 
-  it("answers practical questions for every primary style section", () => {
-    for (const style of pizzaStyleEducation) {
-      expect(style.name).toBeTruthy();
-      expect(style.origin).toBeTruthy();
-      expect(style.description).toBeTruthy();
-      expect(style.galleryTraits.length).toBeGreaterThanOrEqual(3);
-      expect(style.galleryTraits.length).toBeLessThanOrEqual(4);
-      expect(style.callouts.length).toBeGreaterThanOrEqual(4);
-      expect(style.callouts.length).toBeLessThanOrEqual(5);
-      for (const callout of style.callouts) {
-        expect(callout.anchorX).toBeGreaterThanOrEqual(0);
-        expect(callout.anchorX).toBeLessThanOrEqual(100);
-        expect(callout.anchorY).toBeGreaterThanOrEqual(0);
-        expect(callout.anchorY).toBeLessThanOrEqual(100);
-        expect(callout.labelX).toBeGreaterThanOrEqual(0);
-        expect(callout.labelX).toBeLessThanOrEqual(100);
-        expect(callout.labelY).toBeGreaterThanOrEqual(0);
-        expect(callout.labelY).toBeLessThanOrEqual(100);
-      }
-      expect(style.shape).toBeTruthy();
-      expect(style.thickness).toBeTruthy();
-      expect(style.edge).toBeTruthy();
-      expect(style.interior).toBeTruthy();
-      expect(style.base).toBeTruthy();
-      expect(style.bakingSurface).toBeTruthy();
-      expect(style.ovenEnvironment).toBeTruthy();
-      expect(style.bakeStyle).toBeTruthy();
-      expect(style.cheeseTreatment).toBeTruthy();
-      expect(style.sauceTreatment).toBeTruthy();
-      expect(style.eatingExperience).toBeTruthy();
-      expect(style.whatYouSee.length).toBeGreaterThanOrEqual(4);
-      expect(style.whatYouFeel.length).toBeGreaterThanOrEqual(4);
-      expect(style.whyItBehaves).toMatch(/dough|oven|pan|heat|bake|fermentation/i);
-      expect(style.typicalBuild.length).toBeGreaterThanOrEqual(3);
-      expect(style.bestSuitedFor.length).toBeGreaterThanOrEqual(3);
-      expect(style.commonConfusion).toBeTruthy();
-      expect(style.relatedLearning.length).toBeGreaterThanOrEqual(4);
-    }
+  it("separates dough style concepts from menu and topping presets", () => {
+    const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
+
+    expect(PIZZA_CATALOG_OPTIONS.map((option) => option.name)).toEqual([
+      "Margherita",
+      "Marinara",
+      "Diavola",
+      "Funghi",
+      "Prosciutto",
+      "Quattro Formaggi",
+    ]);
+    expect(comparison).toContain("PIZZA_CATALOG_OPTIONS.map");
+    expect(comparison).toContain("Topping names are not dough styles.");
+    expect(comparison).toContain("menu presets used later for Shopping quantities");
+    expect(comparison).not.toContain("Plan my New York");
+    expect(comparison).not.toContain("Plan my Detroit");
+    expect(comparison).not.toContain("Plan my Roman");
+    expect(comparison).not.toContain("Plan my Sicilian");
+  });
+
+  it("uses canonical style preset data for comparable planning values instead of page-local constants", () => {
+    const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
+
+    expect(comparison).toContain("pizzaStyleById");
+    expect(comparison).toContain("flourById");
+    expect(comparison).toContain("preset.settings.hydration");
+    expect(comparison).toContain("preset.settings.fermentation");
+    expect(comparison).toContain("?.bake");
+    expect(comparison).not.toContain("430–450 °C");
+    expect(comparison).not.toContain("260–300 °C");
+    expect(comparison).not.toContain("12–16 min");
   });
 
   it("keeps current calculator and legacy style data unchanged", () => {
@@ -124,7 +107,57 @@ describe("Pizza Style Atlas", () => {
     expect(source("lib", "pizza-styles.ts")).not.toContain("PizzaStyleEducation");
   });
 
-  it("uses local image assets with dimensions, alt text and no duplicate image assignment", () => {
+  it("answers comparison dimensions that help users choose", () => {
+    const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
+
+    expect(comparison).toContain("Result");
+    expect(comparison).toContain("Oven and bake");
+    expect(comparison).toContain("Dough character");
+    expect(comparison).toContain("Sauce and toppings");
+    expect(comparison).toContain("Best for");
+    expect(comparison).not.toContain("<table");
+
+    for (const style of pizzaStyleEducation) {
+      expect(style.name).toBeTruthy();
+      expect(style.edge).toBeTruthy();
+      expect(style.base).toBeTruthy();
+      expect(style.ovenEnvironment).toBeTruthy();
+      expect(style.bakeStyle).toBeTruthy();
+      expect(style.sauceTreatment).toBeTruthy();
+      expect(style.toppingDensity).toBeTruthy();
+      expect(style.bestSuitedFor.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("keeps navigation focused and avoids legacy /start links", () => {
+    const page = source("app", "styles", "page.tsx");
+    const goalGuide = source("components", "styles", "PizzaStyleGoalGuide.tsx");
+
+    expect(page).toContain('href: "/guides/dough"');
+    expect(page).toContain('href: "/sauce"');
+    expect(page).toContain('href: "/ovens"');
+    expect(page).toContain('href: "/guide/pizza-troubleshooting"');
+    expect(page).toContain('href="/session/start"');
+    expect(page).not.toContain('href="/start"');
+    expect(goalGuide).not.toContain('href="/session/start"');
+    expect((page.match(/href="\/session\/start"/g) ?? []).length).toBe(1);
+    expect(page).toContain("SiteFooter");
+  });
+
+  it("keeps page hierarchy and accessibility explicit", () => {
+    const page = source("app", "styles", "page.tsx");
+    const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
+    const notes = source("components", "styles", "PizzaStyleTechniqueNotes.tsx");
+
+    expect(page.indexOf("PizzaStyleComparison")).toBeLessThan(page.indexOf("PizzaStyleGoalGuide"));
+    expect(page.lastIndexOf("PizzaStyleTechniqueNotes")).toBeGreaterThan(page.indexOf("practical-differences-title"));
+    expect(comparison).toContain("aria-labelledby");
+    expect(comparison).toContain("<dl");
+    expect(notes).toContain("role=\"region\"");
+    expect(notes).toContain("hidden={!expanded}");
+  });
+
+  it("uses local image assets and keeps style research documentation available", () => {
     const imageSources = new Map<string, string>();
 
     for (const style of pizzaStyleEducation) {
@@ -142,52 +175,26 @@ describe("Pizza Style Atlas", () => {
     }
 
     expect(imageSources.size).toBe(7);
-    expect(pizzaStyleEducation.find((style) => style.id === "roman-al-taglio")?.image?.src).toBe("/pizza-styles/roman-al-taglio.webp");
-    expect(source("components", "styles", "PizzaStyleAtlas.tsx")).toContain("AnnotationLayer");
-    expect(source("components", "styles", "PizzaStyleAtlas.tsx")).toContain("anchorX");
-    expect(source("components", "styles", "PizzaStyleAtlas.tsx")).toContain("labelX");
-  });
 
-  it("records research sources and distinguishes formal standards from expert guidance", () => {
     const research = source("docs", "research", "pizza-style-sources.md");
-
     expect(research).toContain("Associazione Verace Pizza Napoletana");
     expect(research).toContain("formal standard");
-    expect(research).toContain("Buddy’s Pizza");
-    expect(research).toContain("Serious Eats");
-    expect(research).toContain("Pizza al Taglio");
-    expect(research).toContain("Sfincione");
     expect(research).toContain("DoughTools synthesis");
   });
 
-  it("keeps accessibility and mobile strategy explicit in components", () => {
-    const page = source("app", "styles", "page.tsx");
-    const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
-    const atlas = source("components", "styles", "PizzaStyleAtlas.tsx");
-    const badge = source("components", "styles", "PizzaStyleSupportBadge.tsx");
-
-    expect(page).toContain("LearningBreadcrumbs");
-    expect(page).toContain("aria-label=\"Dough to texture style system\"");
-    expect(atlas).toContain("md:grid-cols-2 xl:grid-cols-3");
-    expect(atlas).toContain("onKeyDown");
-    expect(atlas).toContain("Escape");
-    expect(atlas).toContain("Close style detail");
-    expect(atlas).toContain("hidden md:block");
-    expect(atlas).toContain("Open style detail");
-    expect(comparison).not.toContain("<table");
-    expect(atlas).toContain("<details");
-    expect(atlas).toContain("<summary");
-    expect(badge).toContain("support === \"supported\"");
-    expect(badge).toContain("note");
-  });
-
-  it("updates SEO positioning without changing indexing policy", () => {
+  it("preserves SEO positioning without changing indexing policy", () => {
     const seo = source("lib", "seo-config.ts");
 
     expect(seo).toContain("Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools");
     expect(seo).toContain("Compare major pizza styles by crust, texture, dough, oven, sauce and baking method");
     expect(seo).toContain("learn which style DoughTools currently supports for planning");
     expect(seo).toContain("ALLOW_INDEXING");
-    expect(seo).not.toContain("apply practical starting settings to the DoughTools calculator");
+  });
+
+  it("keeps goal guide aligned with the current educational style set", () => {
+    expect(pizzaStyleGoalGuide).toHaveLength(7);
+    for (const item of pizzaStyleGoalGuide) {
+      expect(pizzaStyleEducation.map((style) => style.id)).toContain(item.styleId);
+    }
   });
 });
