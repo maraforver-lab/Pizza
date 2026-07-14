@@ -347,6 +347,7 @@ Desktop:
 Mobile:
 
 - prioritize the main input and output
+- for food calculators, show the unit amount, total amount and key assumption before secondary education or troubleshooting content
 - hide or collapse advanced details
 - keep primary output visible
 - for numeric/reference tools, consider screen-awake if used during cooking

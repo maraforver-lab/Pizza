@@ -104,9 +104,9 @@ export const publicSeoRoutes = [
   },
   {
     path: "/sauce",
-    title: "Pizza Sauce Guide and Calculator | DoughTools",
+    title: "Pizza Sauce Recipe and Calculator | DoughTools",
     description:
-      "Calculate how much pizza sauce you need, choose raw, cooked or reduced sauce, and adjust tomato moisture for your pizza style and oven.",
+      "Calculate sauce per pizza, total pizza sauce, and a simple pizza sauce recipe for raw, Marinara or home-oven cooked sauce.",
     changeFrequency: "monthly",
     priority: 0.7,
   },
