@@ -22,7 +22,13 @@ Before this patch, Shopping rendered in this order:
 4. `Before Timeline` explanatory section
 5. shopping image export section
 6. bottom action bar
-7. canonical site footer was visible through the route state observed in Patch 377
+7. hidden export-card render target
+
+Important footer clarification:
+
+- The pre-Patch 378 `/session/shopping` route did not import or render the canonical `SiteFooter` component.
+- Patch 377's footer finding came from a footer landmark exposed by the hidden `ShoppingListExportCard` render target, not from the public canonical site footer.
+- The pre-Patch 378 source at `6a2eae1d` rendered `ShoppingListExportCard` inside a visually hidden fixed container, and that component used a semantic `<footer>` element for export-card branding.
 
 Patch 377 measured the previous active Shopping page at:
 
@@ -43,7 +49,7 @@ The main friction points were:
 - export appeared as a full visible section
 - the `Before Timeline` section repeated the next-step instruction
 - the primary next step was later than necessary
-- footer/footer-like landmarks were inappropriate inside this focused session step
+- the hidden export-rendering component created a semantic footer landmark inside this focused session step
 
 ## What changed
 
@@ -102,9 +108,9 @@ Both disclosures are closed by default. Opening or closing them does not reset a
 
 ## Footer governance
 
-`/session/shopping` still does not import or render `SiteFooter`.
+`/session/shopping` did not import or render the canonical `SiteFooter` before this patch, and it still does not after this patch.
 
-This patch also removed the semantic `<footer>` landmark from the hidden `ShoppingListExportCard` render target and replaced it with a branded `div` marked with `data-export-footer`. This keeps export branding visually intact for generated images while avoiding a footer landmark inside the active Shopping page.
+Patch 378 did not remove a canonical `SiteFooter` from the production Shopping route. Instead, it removed the semantic `<footer>` landmark from the hidden `ShoppingListExportCard` render target and replaced it with a branded `div` marked with `data-export-footer`. This keeps export branding visually intact for generated images while avoiding a footer landmark inside the active Shopping page.
 
 Public pages that should retain `SiteFooter` are still covered by `tests/site-footer.test.ts`.
 
@@ -201,7 +207,7 @@ Patch 378 meets the implementation intent:
 - `/session/shopping` is checklist-first.
 - Ingredient calculations and quantities are unchanged.
 - Checklist persistence still works.
-- The canonical site footer does not render.
+- The canonical site footer still does not render on Shopping.
 - Footer landmarks are absent from the active Shopping page.
 - Menu adjustment remains available but secondary.
 - Export remains available but secondary.
