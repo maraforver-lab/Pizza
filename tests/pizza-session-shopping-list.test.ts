@@ -20,6 +20,7 @@ import {
   generatePizzaSessionShoppingList,
   normalizePizzaMixForCount,
   PIZZA_MIX_OPTIONS,
+  savePizzaSessionMenuMix,
   SHOPPING_LIST_LOCAL_ONLY_COPY,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
@@ -412,6 +413,81 @@ describe("Pizza Session shopping list presets", () => {
     expect(refreshed?.shoppingList?.presetId).toBe("pizza-mix");
     expect(refreshed?.shoppingList?.groups.flatMap((group) => group.items).find((entry) => entry.label === "Tomato sauce or crushed tomatoes")?.amount)
       .toBe("285 g to use · buy 1 x 400 g can · estimate for 4 selected pizzas");
+  });
+
+  it("saves a Kitchen-safe menu mix without moving the session back to Shopping", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-safe-menu-save",
+      currentStep: "prep",
+      status: "preparing",
+      pizzaCount: 4,
+      pizzaMix: { margherita: 4 },
+      timeline: {
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done" },
+          { id: "ball-dough", label: "Ball dough", status: "todo" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-04T10:05:00.000Z",
+          actualCompletedAt: "2026-07-04T10:15:00.000Z",
+        },
+      },
+    }, storage, new Date("2026-07-04T10:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+
+    const { session: updatedSession, result } = savePizzaSessionMenuMix(
+      session,
+      { margherita: 2, diavola: 2 },
+      storage,
+      new Date("2026-07-04T10:30:00.000Z"),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(updatedSession?.currentStep).toBe("prep");
+    expect(updatedSession?.status).toBe("preparing");
+    expect(updatedSession?.timeline).toEqual(session.timeline);
+    expect(updatedSession?.stepRuntime).toEqual(session.stepRuntime);
+    expect(updatedSession?.pizzaCount).toBe(4);
+    expect(updatedSession?.pizzaMix).toMatchObject({ margherita: 2, diavola: 2 });
+    expect(updatedSession?.pizzaPreset).toBe("margherita");
+    expect(updatedSession?.shoppingList?.presetId).toBe("pizza-mix");
+    expect(updatedSession?.updatedAt).toBe("2026-07-04T10:30:00.000Z");
+    expect(getActivePizzaSession(storage)?.currentStep).toBe("prep");
+  });
+
+  it("preserves Shopping item statuses by stable ingredient identity when menu mix changes", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-menu-status-preserve",
+      currentStep: "prep",
+      status: "preparing",
+      pizzaCount: 4,
+    }, storage);
+    setActivePizzaSession(session.id, storage);
+    const margherita = generateAndSaveActiveShoppingList("margherita", storage).session!;
+    const tomato = margherita.shoppingList!.groups.flatMap((group) => group.items).find((item) => item.id.endsWith(":tomato-sauce"))!;
+    const mozzarella = margherita.shoppingList!.groups.flatMap((group) => group.items).find((item) => item.id.endsWith(":mozzarella"))!;
+    updateShoppingItemStatus(margherita, tomato.id, "already_have", storage);
+    const withTomato = getActivePizzaSession(storage)!;
+    updateShoppingItemStatus(withTomato, mozzarella.id, "bought", storage);
+    const checkedSession = getActivePizzaSession(storage)!;
+
+    const { session: mixed } = savePizzaSessionMenuMix(
+      checkedSession,
+      { diavola: 2, funghi: 2 },
+      storage,
+      new Date("2026-07-04T11:00:00.000Z"),
+    );
+
+    const items = mixed?.shoppingList?.groups.flatMap((group) => group.items) ?? [];
+    expect(items.find((item) => item.id === "pizza-mix:sauce:tomato-sauce")?.status).toBe("already_have");
+    expect(items.find((item) => item.id === "pizza-mix:cheese:mozzarella")?.status).toBe("bought");
+    expect(items.find((item) => item.id === "pizza-mix:toppings:spicy-salami")?.status).toBe("need_to_buy");
+    expect(items.find((item) => item.id === "pizza-mix:toppings:mushrooms")?.status).toBe("need_to_buy");
+    expect(items.find((item) => item.id === "pizza-mix:toppings:basil")).toBeUndefined();
   });
 
   it("formats a plain-text copy without public sharing or cloud claims", () => {

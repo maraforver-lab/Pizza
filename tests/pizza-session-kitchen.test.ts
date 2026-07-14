@@ -87,7 +87,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Ingredient amounts unavailable");
     expect(page).not.toContain("PIZZA_SESSION_LOCAL_ONLY_COPY");
     expect(page).not.toContain("Saved as you go.");
-    expect(page).toContain("kitchenBackHrefFromSource");
+    expect(page).not.toContain("kitchenBackHrefFromSource");
     expect(page).not.toMatch(/Cloud sync is active|push notifications enabled|Google indexing enabled/i);
   });
 
@@ -355,8 +355,8 @@ describe("Pizza Session Kitchen Mode", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("Service reminders");
-    expect(page).toContain("Pizza count:");
     expect(page).toContain("Keep sauce, cheese and toppings ready, then follow the current task.");
+    expect(page).toContain("Pizza menu");
     expect(page).not.toMatch(/order board|ticket rail|table service/i);
   });
 
@@ -377,16 +377,16 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("activeStep={9}");
     expect(page).toContain("hideLocalSaveNote");
     expect(page).toContain("Needed now");
-    expect(page).toContain("Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount}");
+    expect(page).toContain("Step {kitchenState.currentIndex + 1}/{kitchenState.totalCount}");
     expect(page).toContain("formatTimelineLiveTiming");
     expect(page).toContain("currentLiveTiming");
     expect(page).toContain("nextLiveTiming");
     expect(page).toContain("formatSessionPlannedTime");
     expect(page).toContain("Planned for");
-    expect(page).toContain("Now");
+    expect(page).toContain("Current step");
     expect(page).toContain("<h1 id=\"current-kitchen-task\"");
-    expect(page).toContain("levelModeLabel(experience.label)");
-    expect(page).toContain("${label} mode");
+    expect(page).not.toContain("levelModeLabel(experience.label)");
+    expect(page).not.toContain("${label} mode");
     expect(page).toContain("kitchenStepIcon(currentStep)");
     expect(page).toContain("kitchenStepIconTone(currentStep)");
     expect(page).toContain("kitchenStepIcon(kitchenState.nextStep)");
@@ -395,7 +395,8 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("What is happening now");
     expect(page).toContain("Step guidance");
     expect(page).toContain("What to do now");
-    expect(page).toContain("Need more help?");
+    expect(page).toContain("More guidance");
+    expect(page).not.toContain("Need more help?");
     expect(page).not.toContain("id=\"kitchen-do-this-heading\"");
     expect(page).not.toContain("id=\"kitchen-done-heading\"");
     expect(page).not.toContain("id=\"kitchen-technique-heading\"");
@@ -415,14 +416,14 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("const nextStepSummary = kitchenState.nextStep");
     expect(page).toContain(": \"Review your pizza session\"");
     expect(page).toContain("BottomActionBar");
-    expect(page).toContain("href={backHref}");
+    expect(page).not.toContain("href={backHref}");
+    expect(page).toContain("Change pizza menu");
+    expect(page).toContain("View full schedule");
+    expect(page).toContain("href=\"/session/timeline\"");
     expect(page).toContain("Mark step as done →");
-    expect(page).toContain("kitchenBackHrefFromSource(source)");
-    expect(page).toContain("kitchenBackHrefFromReferrer(document.referrer)");
     expect(page).toContain("setSession(updated)");
-    expect(page).toContain("if (value === \"timeline\") return \"/session/timeline\"");
-    expect(page).toContain("if (value === \"review\") return \"/session/review\"");
-    expect(page).toContain("return \"/session/shopping\"");
+    expect(page).not.toContain("kitchenBackHrefFromSource(source)");
+    expect(page).not.toContain("kitchenBackHrefFromReferrer(document.referrer)");
     expect(page).not.toContain("<StatusPill");
     expect(page).not.toContain("Step 9: Kitchen Mode");
     expect(page).not.toContain("Do this now");
@@ -435,6 +436,55 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("Open baking timer");
     expect(page).not.toContain("Review dough plan");
     expect(page).not.toContain("Back to timeline");
+  });
+
+  it("implements Patch 397B focused execution actions without normal application Back", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("More guidance");
+    expect(page).toContain("Change pizza menu");
+    expect(page).toContain("View full schedule");
+    expect(page).toContain('href="/session/timeline"');
+    expect(page).toContain("Total pizzas are locked for this session.");
+    expect(page).toContain("Menu is locked once baking starts.");
+    expect(page).not.toContain("Desktop keeps the extra technique context nearby");
+    expect(page).not.toContain("kitchenBackHrefFromSource");
+    expect(page).not.toContain("kitchenBackHrefFromReferrer");
+    expect(page).not.toContain("href={backHref}");
+  });
+
+  it("adds a compact locked-count Kitchen menu editor with atomic save semantics", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("menuEditorOpen");
+    expect(page).toContain('role="dialog"');
+    expect(page).toContain('aria-modal="true"');
+    expect(page).toContain('aria-labelledby="kitchen-menu-editor-heading"');
+    expect(page).toContain("draftPizzaMix");
+    expect(page).toContain("adjustPizzaMixAllocation(draftNormalizedMix, pizzaType, delta, lockedPizzaCount)");
+    expect(page).toContain("normalizePizzaMixForCount(lockedPizzaCount, session.pizzaMix, session.pizzaPreset)");
+    expect(page).toContain("const latestSession = getActivePizzaSession()");
+    expect(page).toContain("latestSession.id !== session.id");
+    expect(page).toContain("savePizzaSessionMenuMix(latestSession, draftNormalizedMix, undefined, now)");
+    expect(page).toContain("queueKitchenProgressSync(updatedSession)");
+    expect(page).toContain("setSession(updatedSession)");
+    expect(page).toContain("Close pizza menu editor");
+    expect(page).toContain("Cancel");
+    expect(page).toContain("Save changes");
+    expect(page).toContain("Decrease ${option.name} count");
+    expect(page).toContain("Increase ${option.name} count");
+  });
+
+  it("locks Kitchen menu editing when bake phase has started", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("function kitchenBakePhaseStarted");
+    expect(page).toContain('session.currentStep === "bake"');
+    expect(page).toContain('currentStep?.id === "bake-pizza"');
+    expect(page).toContain('session.stepRuntime?.["bake-pizza"]');
+    expect(page).toContain('bakeStep?.status === "done"');
+    expect(page).toContain("disabled={!menuCanEdit}");
+    expect(page).toContain("Menu is locked once baking starts.");
   });
 
   it("maps small Kitchen Mode visuals to key step types", () => {
@@ -606,8 +656,8 @@ describe("Pizza Session Kitchen Mode", () => {
   it("renders selected experience level as a compact mode badge", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("levelModeLabel(experience.label)");
-    expect(page).toContain("${label} mode");
+    expect(page).not.toContain("levelModeLabel(experience.label)");
+    expect(page).not.toContain("${label} mode");
     expect(page).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} />");
     expect(getExperienceLevelConfig("beginner").label).toBe("Beginner");
     expect(getExperienceLevelConfig("enthusiast").label).toBe("Enthusiast");
@@ -659,13 +709,13 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("rounded-[1.25rem] border border-leaf/10 bg-white/65");
     expect(page).toContain("Quiet-hours warning");
     expect(page).toContain("rounded-2xl bg-tomato/10");
-    expect(page.indexOf("Now")).toBeLessThan(page.indexOf("Planned for"));
+    expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("Planned for"));
     expect(page.indexOf("Planned for")).toBeLessThan(page.indexOf("Next action"));
     expect(page.indexOf("Next action")).toBeLessThan(page.indexOf("Step guidance"));
     expect(page.indexOf("Step guidance")).toBeLessThan(page.indexOf("Do this"));
     expect(page.indexOf("Do this")).toBeLessThan(page.indexOf("You are done when"));
-    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("Need more help?"));
-    expect(page.indexOf("Need more help?")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
+    expect(page.indexOf("You are done when")).toBeLessThan(page.indexOf("More guidance"));
+    expect(page.indexOf("More guidance")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
     expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("What this should look like"));
   });
 

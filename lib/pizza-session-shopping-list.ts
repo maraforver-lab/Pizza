@@ -186,7 +186,7 @@ export function adjustPizzaMixAllocation(
   return normalizePizzaMixForCount(pizzaCount, next);
 }
 
-function primaryPizzaTypeFromMix(mix: PizzaMixAllocation): PizzaSessionPizzaMixType {
+export function primaryPizzaTypeFromMix(mix: PizzaMixAllocation): PizzaSessionPizzaMixType {
   const active = PIZZA_MIX_TYPES
     .filter((type) => mix[type] > 0)
     .sort((a, b) => mix[b] - mix[a]);
@@ -306,12 +306,18 @@ function toppingIngredientsForMix(mix: PizzaMixAllocation): QuantifiedShoppingIn
   }));
 }
 
-function existingStatusMap(session: PizzaSession | undefined, presetId: string) {
+function shoppingItemStableKey(itemId: string) {
+  const parts = itemId.split(":");
+  return parts.length >= 3 ? parts.slice(1).join(":") : itemId;
+}
+
+function existingStatusMap(session: PizzaSession | undefined) {
   const map = new Map<string, ShoppingItemStatus>();
-  if (session?.shoppingList?.presetId !== presetId) return map;
+  if (!session?.shoppingList) return map;
   for (const group of session.shoppingList.groups) {
     for (const item of group.items) {
       map.set(item.id, item.status);
+      map.set(shoppingItemStableKey(item.id), item.status);
     }
   }
   return map;
@@ -338,7 +344,7 @@ export function generatePizzaSessionShoppingList(
     presetId ?? session.shoppingList?.presetId ?? session.pizzaPreset ?? pizzaSessionPresets[0].id,
   );
   const listId = shoppingListIdFromMix(pizzaMix);
-  const statuses = existingStatusMap(session, listId);
+  const statuses = existingStatusMap(session);
   const quantifiedIngredients = [
     ...doughIngredients(session),
     ...sauceIngredientForMix(pizzaMix, session),
@@ -346,12 +352,15 @@ export function generatePizzaSessionShoppingList(
   ];
   const groupOrder: PizzaSessionShoppingGroup[] = ["Dough", "Sauce", "Cheese", "Toppings", "Gear"];
   const groups = groupOrder.flatMap((group) => {
-    const items = quantifiedIngredients.filter((item) => item.group === group).map((item) => ({
-      id: `${listId}:${group.toLowerCase()}:${item.id}`,
-      label: item.label,
-      amount: item.amount(pizzaCount),
-      status: statuses.get(`${listId}:${group.toLowerCase()}:${item.id}`) ?? "need_to_buy" as const,
-    }));
+    const items = quantifiedIngredients.filter((item) => item.group === group).map((item) => {
+      const id = `${listId}:${group.toLowerCase()}:${item.id}`;
+      return {
+        id,
+        label: item.label,
+        amount: item.amount(pizzaCount),
+        status: statuses.get(id) ?? statuses.get(`${group.toLowerCase()}:${item.id}`) ?? "need_to_buy" as const,
+      };
+    });
 
     return items.length ? [{ group, items }] : [];
   });
@@ -367,6 +376,29 @@ export function generatePizzaSessionShoppingList(
       groups,
     },
   };
+}
+
+export function savePizzaSessionMenuMix(
+  session: PizzaSession,
+  pizzaMixOverride: PizzaSessionPizzaMix,
+  storage?: StorageLike,
+  now = new Date(),
+) {
+  const result = generatePizzaSessionShoppingList(session, undefined, now, pizzaMixOverride);
+  if (!result.ok) return { session, result };
+
+  const updatedSession = updatePizzaSession(
+    session.id,
+    {
+      pizzaMix: result.pizzaMix,
+      pizzaPreset: primaryPizzaTypeFromMix(result.pizzaMix),
+      shoppingList: result.shoppingList,
+    },
+    storage,
+    now,
+  );
+
+  return { session: updatedSession, result };
 }
 
 export function generateAndSaveActiveShoppingList(

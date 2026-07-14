@@ -133,6 +133,8 @@ Desktop Kitchen Mode may show richer context, but the current action remains dom
 Educational links that leave an active cooking workflow must provide an explicit validated return path. Browser Back alone is not enough navigation design for active workflows. Return URLs must be same-product internal paths and must not expose session data.
 
 Active-session routes must prioritize current state and the next required action. Desktop may show more context, but it must not repeat actions or explanations merely because more space is available.
+
+Kitchen Mode is an execution panel. It shows the current action first, keeps detailed guidance optional, and exposes schedule or menu changes only through named secondary actions.
 - no repeated summaries
 - no unnecessary footer inside focused task flows
 - no advanced links unless behind a clear “More” or “Advanced” disclosure

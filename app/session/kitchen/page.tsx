@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { BottomActionBar } from "@/components/design-system";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BottomActionBar, buttonClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
@@ -15,6 +15,8 @@ import { buildContextualReturnHref } from "@/lib/contextual-return";
 import { getDoughGuideLinkForSessionStep } from "@/lib/dough-guide-links";
 import {
   type PizzaSession,
+  type PizzaSessionPizzaMix,
+  type PizzaSessionPizzaMixType,
 } from "@/lib/pizza-session";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-troubleshooting-links";
@@ -38,6 +40,12 @@ import {
   shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
 import { getActivePizzaSession } from "@/lib/pizza-session-storage";
+import {
+  adjustPizzaMixAllocation,
+  normalizePizzaMixForCount,
+  PIZZA_MIX_OPTIONS,
+  savePizzaSessionMenuMix,
+} from "@/lib/pizza-session-shopping-list";
 
 function formatKitchenStepTime(value?: string) {
   if (!value) return "Time not set";
@@ -53,26 +61,6 @@ function formatKitchenStepTime(value?: string) {
   }).formatToParts(date);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
   return `${part("weekday")}, ${part("day")} ${part("month")} · ${part("hour")}:${part("minute")}`;
-}
-
-function kitchenBackHrefFromSource(value?: string | null) {
-  if (value === "timeline") return "/session/timeline";
-  if (value === "review") return "/session/review";
-  return "/session/shopping";
-}
-
-function kitchenBackHrefFromReferrer(value?: string) {
-  if (!value || typeof window === "undefined") return "/session/shopping";
-  try {
-    const url = new URL(value);
-    if (url.origin !== window.location.origin) return "/session/shopping";
-    if (url.pathname === "/session/timeline") return "/session/timeline";
-    if (url.pathname === "/session/review") return "/session/review";
-    if (url.pathname === "/session/shopping") return "/session/shopping";
-  } catch {
-    return "/session/shopping";
-  }
-  return "/session/shopping";
 }
 
 function kitchenStepIcon(step?: { id: string }): DoughToolsIconName {
@@ -99,14 +87,33 @@ function kitchenStepIconTone(step?: { id: string }) {
   return "bg-white text-ink ring-ink/10";
 }
 
-function levelModeLabel(label: string) {
-  return `${label} mode`;
-}
-
 function queueKitchenProgressSync(updated: PizzaSession) {
   void queueCloudActivePizzaSessionSave(updated).catch(() => {
     // The local session remains current; route-level sync can retry on the next render.
   });
+}
+
+function pizzaMixTotal(mix?: PizzaSessionPizzaMix) {
+  return Object.values(mix ?? {}).reduce((total, value) => total + Math.max(0, Math.floor(Number(value) || 0)), 0);
+}
+
+function pizzaMixSummary(pizzaCount: number | undefined, mix?: PizzaSessionPizzaMix) {
+  if (!pizzaCount || pizzaCount < 1 || !mix) return "Pizza menu not ready";
+  const normalized = normalizePizzaMixForCount(pizzaCount, mix);
+  const selected = PIZZA_MIX_OPTIONS
+    .filter((option) => (normalized[option.id] ?? 0) > 0)
+    .map((option) => `${normalized[option.id]} ${option.name}`)
+    .join(" · ");
+  return `${pizzaCount} pizzas: ${selected || "Pizza mix not ready"}`;
+}
+
+function kitchenBakePhaseStarted(session: PizzaSession, currentStep?: { id: string }) {
+  const bakeRuntime = session.stepRuntime?.["bake-pizza"];
+  const bakeStep = session.timeline?.steps.find((step) => step.id === "bake-pizza");
+  return session.currentStep === "bake"
+    || currentStep?.id === "bake-pizza"
+    || Boolean(bakeRuntime?.actualStartedAt || bakeRuntime?.actualCompletedAt)
+    || bakeStep?.status === "done";
 }
 
 function isOvenTroubleshootingStep(step?: { id: string }) {
@@ -131,16 +138,18 @@ export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [routeError, setRouteError] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
-  const [backHref, setBackHref] = useState("/session/shopping");
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [confirmEarlyCompletion, setConfirmEarlyCompletion] = useState(false);
+  const [menuEditorOpen, setMenuEditorOpen] = useState(false);
+  const [draftPizzaMix, setDraftPizzaMix] = useState<PizzaSessionPizzaMix | null>(null);
+  const [menuError, setMenuError] = useState<string | null>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuDialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
     try {
       setSession(getActivePizzaSession() ?? null);
-      const source = new URLSearchParams(window.location.search).get("from");
-      setBackHref(source ? kitchenBackHrefFromSource(source) : kitchenBackHrefFromReferrer(document.referrer));
       setCurrentTime(new Date());
     } catch {
       setRouteError(true);
@@ -154,6 +163,35 @@ export default function SessionKitchenPage() {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 15_000);
     return () => window.clearInterval(timer);
   }, [ready]);
+
+  useEffect(() => {
+    if (!menuEditorOpen) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMenuEditor();
+        return;
+      }
+      if (event.key === "Tab" && menuDialogRef.current) {
+        const focusable = Array.from(menuDialogRef.current.querySelectorAll<HTMLElement>(
+          "a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex='-1'])",
+        ));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.setTimeout(() => menuDialogRef.current?.focus(), 0);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuEditorOpen]);
 
   const kitchenState = useMemo(() => getKitchenModeState(session ?? undefined), [session]);
 
@@ -246,6 +284,72 @@ export default function SessionKitchenPage() {
     levelGuidance.technicalNote && { label: "Technical note", value: levelGuidance.technicalNote },
     levelGuidance.reassuranceTip && { label: "Keep in mind", value: levelGuidance.reassuranceTip },
   ].filter(Boolean) as { label: string; value: string }[];
+  const lockedPizzaCount = pizzaCount && pizzaCount > 0 ? Math.floor(pizzaCount) : undefined;
+  const confirmedPizzaMix = lockedPizzaCount
+    ? normalizePizzaMixForCount(lockedPizzaCount, session.pizzaMix, session.pizzaPreset)
+    : undefined;
+  const currentPizzaMixSummary = pizzaMixSummary(lockedPizzaCount, confirmedPizzaMix);
+  const draftNormalizedMix = lockedPizzaCount && draftPizzaMix
+    ? normalizePizzaMixForCount(lockedPizzaCount, draftPizzaMix)
+    : undefined;
+  const draftAllocatedCount = pizzaMixTotal(draftNormalizedMix);
+  const menuLocked = kitchenBakePhaseStarted(session, currentStep);
+  const menuCanEdit = Boolean(lockedPizzaCount && lockedPizzaCount > 0 && !menuLocked);
+
+  const closeMenuEditor = () => {
+    setMenuEditorOpen(false);
+    setDraftPizzaMix(null);
+    setMenuError(null);
+    window.setTimeout(() => menuTriggerRef.current?.focus(), 0);
+  };
+
+  const openMenuEditor = () => {
+    if (!lockedPizzaCount || lockedPizzaCount < 1) {
+      setMenuError("Pizza menu needs a saved pizza count before it can be changed.");
+      return;
+    }
+    setDraftPizzaMix(normalizePizzaMixForCount(lockedPizzaCount, session.pizzaMix, session.pizzaPreset));
+    setMenuError(null);
+    setMenuEditorOpen(true);
+  };
+
+  const adjustDraftPizzaMix = (pizzaType: PizzaSessionPizzaMixType, delta: number) => {
+    if (!lockedPizzaCount || !draftNormalizedMix) return;
+    setDraftPizzaMix(adjustPizzaMixAllocation(draftNormalizedMix, pizzaType, delta, lockedPizzaCount));
+  };
+
+  const saveMenuChanges = () => {
+    if (!lockedPizzaCount || !draftNormalizedMix) {
+      setMenuError("Pizza menu needs a valid locked pizza count before it can be saved.");
+      return;
+    }
+    if (draftAllocatedCount !== lockedPizzaCount) {
+      setMenuError("The selected pizza mix must match the locked total.");
+      return;
+    }
+    const latestSession = getActivePizzaSession();
+    if (!latestSession || latestSession.id !== session.id) {
+      setMenuError("This pizza session changed in another tab. Reload Kitchen Mode before changing the menu.");
+      return;
+    }
+    if (kitchenBakePhaseStarted(latestSession, currentStep)) {
+      setMenuError("Menu is locked once baking starts.");
+      return;
+    }
+    const now = new Date();
+    const { session: updatedSession, result } = savePizzaSessionMenuMix(latestSession, draftNormalizedMix, undefined, now);
+    if (!updatedSession || !result.ok) {
+      setMenuError("Could not update the pizza menu. Check the pizza count and try again.");
+      return;
+    }
+    queueKitchenProgressSync(updatedSession);
+    setCurrentTime(now);
+    setSession(updatedSession);
+    setMenuEditorOpen(false);
+    setDraftPizzaMix(null);
+    setMenuError(null);
+    window.setTimeout(() => menuTriggerRef.current?.focus(), 0);
+  };
 
   const completeCurrentStep = () => {
     if (!session || !currentStep) return;
@@ -290,35 +394,29 @@ export default function SessionKitchenPage() {
             {currentStep ? (
               <>
                 <section aria-labelledby="current-kitchen-task">
-                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-leaf/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-leaf">
-                          Step {kitchenState.currentIndex + 1} of {kitchenState.totalCount}
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/45">
+                        Kitchen Mode
+                      </span>
+                      <span className="rounded-full bg-leaf/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-leaf">
+                        Step {kitchenState.currentIndex + 1}/{kitchenState.totalCount}
+                      </span>
+                      <SessionExperienceLevelBadge level={session.experienceLevel} />
+                      {waitInfo.isTooEarly && waitInfo.waitLabel && (
+                        <span className="rounded-full bg-tomato/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-tomato">
+                          {waitInfo.waitLabel}
                         </span>
-                        <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/45">
-                          Kitchen Mode
-                        </span>
-                        <SessionExperienceLevelBadge level={session.experienceLevel} />
-                        {waitInfo.isTooEarly && waitInfo.waitLabel && (
-                          <span className="rounded-full bg-tomato/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[.16em] text-tomato">
-                            {waitInfo.waitLabel}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-5 flex min-w-0 items-start gap-3">
-                        <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
-                          <DoughToolsIcon name={kitchenStepIcon(currentStep)} size={32} strokeWidth={2.1} />
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Now</p>
-                          <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                    <div className={`hidden rounded-[1.5rem] border p-4 shadow-sm lg:block ${experience.cardClassName}`}>
-                      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{levelModeLabel(experience.label)}</p>
-                      <p className="mt-2 text-sm font-bold leading-6 text-ink/60">Desktop keeps the extra technique context nearby while the current action stays first.</p>
+                    <div className="mt-5 flex min-w-0 items-start gap-3">
+                      <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1 ${kitchenStepIconTone(currentStep)}`} aria-hidden="true">
+                        <DoughToolsIcon name={kitchenStepIcon(currentStep)} size={32} strokeWidth={2.1} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Current step</p>
+                        <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
+                      </div>
                     </div>
                   </div>
 
@@ -408,7 +506,7 @@ export default function SessionKitchenPage() {
 
                       <details className="rounded-[1.25rem] border border-ink/10 bg-white/70 p-4">
                         <summary className="cursor-pointer text-sm font-extrabold text-ink/65 marker:text-tomato">
-                          Need more help?
+                          More guidance
                         </summary>
                         <div className="mt-4 grid gap-3">
                           <div className={`rounded-[1.25rem] border p-4 ${experience.cardClassName}`}>
@@ -487,10 +585,30 @@ export default function SessionKitchenPage() {
                    <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
                     <h3 className="mt-2 font-display text-2xl font-semibold">Service reminders</h3>
-                    {pizzaCount && <p className="mt-2 text-sm font-extrabold text-ink/70">Pizza count: {pizzaCount} pizzas</p>}
                     <p className="mt-2 text-sm leading-6 text-ink/60">Keep sauce, cheese and toppings ready, then follow the current task.</p>
                   </section>
                 )}
+
+                <section className="mt-5 rounded-[1.25rem] border border-ink/10 bg-white/70 p-4" aria-labelledby="kitchen-menu-summary-heading">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p id="kitchen-menu-summary-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Pizza menu</p>
+                      <p className="mt-1 text-sm font-extrabold leading-6 text-ink">{currentPizzaMixSummary}</p>
+                      <p className="mt-1 text-xs font-bold leading-5 text-ink/50">
+                        {menuLocked
+                          ? "Menu is locked once baking starts."
+                          : lockedPizzaCount
+                            ? "Total pizzas are locked for this session."
+                            : "Pizza menu needs a saved pizza count before it can be changed."}
+                      </p>
+                    </div>
+                    {menuError && !menuEditorOpen && (
+                      <p className="rounded-2xl bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato" role="status">
+                        {menuError}
+                      </p>
+                    )}
+                  </div>
+                </section>
 
                 {currentStep.quietHoursWarning && (
                   <p className="mt-5 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
@@ -500,9 +618,20 @@ export default function SessionKitchenPage() {
 
                 <BottomActionBar
                   back={(
-                    <Link href={backHref} className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
-                      Back
-                    </Link>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      <button
+                        ref={menuTriggerRef}
+                        type="button"
+                        onClick={openMenuEditor}
+                        disabled={!menuCanEdit}
+                        className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+                      >
+                        Change pizza menu
+                      </button>
+                      <Link href="/session/timeline" className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}>
+                        View full schedule
+                      </Link>
+                    </div>
                   )}
                   primary={(
                     <button
@@ -516,6 +645,99 @@ export default function SessionKitchenPage() {
                     </button>
                   )}
                 />
+
+                {menuEditorOpen && draftNormalizedMix && lockedPizzaCount && (
+                  <div className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="kitchen-menu-editor-heading">
+                    <div
+                      ref={menuDialogRef}
+                      tabIndex={-1}
+                      className="max-h-[calc(100vh-3rem)] w-full max-w-lg overflow-y-auto rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card focus:outline-none"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza menu</p>
+                          <h2 id="kitchen-menu-editor-heading" className="mt-2 font-display text-3xl font-semibold leading-none">Change pizza menu</h2>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={closeMenuEditor}
+                          aria-label="Close pizza menu editor"
+                          className={buttonClass({ className: "min-h-10 min-w-10 px-3", variant: "icon" })}
+                        >
+                          <DoughToolsIcon name="close" size={20} strokeWidth={2.1} />
+                        </button>
+                      </div>
+                      <p className="mt-3 text-sm font-bold leading-6 text-ink/60">
+                        Total pizzas: {lockedPizzaCount} — locked. Total pizzas are locked for this session.
+                      </p>
+                      <div className="mt-4 grid gap-2">
+                        {PIZZA_MIX_OPTIONS.map((option) => {
+                          const quantity = draftNormalizedMix[option.id] ?? 0;
+                          const canDecrease = option.id !== "margherita" && quantity > 0;
+                          const canIncrease = option.id === "margherita"
+                            ? PIZZA_MIX_OPTIONS.some((entry) => entry.id !== "margherita" && (draftNormalizedMix[entry.id] ?? 0) > 0)
+                            : (draftNormalizedMix.margherita ?? 0) > 0;
+
+                          return (
+                            <div key={option.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-ink/10 bg-cream/60 p-3">
+                              <div className="min-w-0">
+                                <p className="text-sm font-extrabold text-ink">{option.name}</p>
+                              </div>
+                              <div className="grid grid-cols-[2.75rem_2.25rem_2.75rem] items-center gap-2" aria-label={`${option.name}: ${quantity} selected`}>
+                                <button
+                                  type="button"
+                                  onClick={() => adjustDraftPizzaMix(option.id, -1)}
+                                  disabled={!canDecrease}
+                                  aria-label={`Decrease ${option.name} count`}
+                                  className={buttonClass({ className: "min-h-11 min-w-11 px-0", variant: "icon" })}
+                                >
+                                  <DoughToolsIcon name="remove" size={20} strokeWidth={2.1} />
+                                </button>
+                                <span className="text-center text-lg font-extrabold tabular-nums">{quantity}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => adjustDraftPizzaMix(option.id, 1)}
+                                  disabled={!canIncrease}
+                                  aria-label={`Increase ${option.name} count`}
+                                  className={buttonClass({ className: "min-h-11 min-w-11 px-0", variant: "icon" })}
+                                >
+                                  <DoughToolsIcon name="add" size={20} strokeWidth={2.1} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p className={`mt-3 rounded-2xl px-3 py-2 text-xs font-extrabold ${
+                        draftAllocatedCount === lockedPizzaCount ? "bg-leaf/10 text-leaf" : "bg-tomato/10 text-tomato"
+                      }`} role="status">
+                        Selected {draftAllocatedCount}/{lockedPizzaCount} pizzas.
+                      </p>
+                      {menuError && (
+                        <p className="mt-3 rounded-2xl bg-tomato/10 px-3 py-2 text-sm font-bold leading-6 text-tomato" role="alert">
+                          {menuError}
+                        </p>
+                      )}
+                      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={closeMenuEditor}
+                          className={buttonClass({ variant: "secondary" })}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={saveMenuChanges}
+                          disabled={draftAllocatedCount !== lockedPizzaCount}
+                          className={buttonClass()}
+                        >
+                          Save changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {confirmEarlyCompletion && waitInfo.waitLabel && (
                   <div className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="early-kitchen-step-heading">
@@ -553,8 +775,8 @@ export default function SessionKitchenPage() {
                 </p>
                 <BottomActionBar
                   back={(
-                    <Link href={backHref} className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto">
-                      Back
+                    <Link href="/session/timeline" className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}>
+                      View full schedule
                     </Link>
                   )}
                   primary={(

@@ -95,7 +95,8 @@ describe("Pizza Session desktop refinement components", () => {
 
     expect(startPage).toContain("<SessionViewportReset watchKey={step} />");
     expect(kitchenPage).toContain("<SessionViewportReset />");
-    expect(kitchenPage).toContain("new URLSearchParams(window.location.search).get(\"from\")");
+    expect(kitchenPage).not.toContain("new URLSearchParams(window.location.search).get(\"from\")");
+    expect(kitchenPage).toContain("View full schedule");
     expect(sidebar).toContain('href: "/session/kitchen"');
   });
 
