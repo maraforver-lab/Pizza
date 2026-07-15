@@ -399,6 +399,11 @@ function isFermentationTimelineStep(step?: PizzaSessionTimelineStep) {
   );
 }
 
+export function isKitchenFermentationStep(step?: Pick<PizzaSessionTimelineStep, "id" | "label">) {
+  if (!step) return false;
+  return isFermentationTimelineStep({ ...step, status: "todo" });
+}
+
 export function resolveKitchenFermentationMode(
   session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
   step?: PizzaSessionTimelineStep,
@@ -414,6 +419,43 @@ export function resolveKitchenFermentationMode(
   }
 
   return "unknown";
+}
+
+function validFermentationTemperatureC(
+  value: number | undefined,
+  mode: KitchenFermentationMode,
+) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return mode === "cold" ? 4 : 22;
+  if (mode === "cold") return value >= 2 && value <= 8 ? value : 4;
+  if (mode === "room") return value >= 18 && value <= 26 ? value : 22;
+  return value;
+}
+
+export function getKitchenFermentationMobileSummary(
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "fermentationTemperatureCOverride"> | null,
+  step?: PizzaSessionTimelineStep,
+) {
+  const mode = resolveKitchenFermentationMode(session, step);
+  if (mode === "room") {
+    return {
+      title: "Room-temperature fermentation",
+      location: "Keep the covered dough at room temperature.",
+      prepInstruction: "Cover the dough and leave it to ferment at room temperature.",
+    };
+  }
+  if (mode === "cold") {
+    const temperature = validFermentationTemperatureC(session?.fermentationTemperatureCOverride, "cold");
+    return {
+      title: "Cold fermentation",
+      location: `Keep the covered dough in the fridge at ${temperature} °C.`,
+      prepInstruction: "Cover the dough and place it in the fridge for cold fermentation.",
+    };
+  }
+  return {
+    title: "Fermentation",
+    location: "Keep the covered dough in the planned fermentation place.",
+    prepInstruction: "Cover the dough and follow the planned fermentation timing.",
+  };
 }
 
 export function getKitchenFermentationStepCopy(
@@ -620,6 +662,23 @@ export function formatKitchenRestCountdown(readyAt?: string, now = new Date()) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${String(seconds).padStart(2, "0")} remaining`;
+}
+
+export function formatKitchenFermentationCountdown(readyAt?: string, now = new Date()) {
+  if (!readyAt) return "Fermentation timing not set";
+  const ready = new Date(readyAt);
+  if (!Number.isFinite(ready.getTime()) || !Number.isFinite(now.getTime())) return "Fermentation timing not set";
+  const remainingMilliseconds = ready.getTime() - now.getTime();
+  if (remainingMilliseconds <= -60_000) return "Fermentation ready";
+  if (remainingMilliseconds <= 0) return "Fermentation complete";
+  if (remainingMilliseconds < 60_000) return "less than 1 min remaining";
+  const totalMinutes = Math.ceil(remainingMilliseconds / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) {
+    return `${hours} h${minutes ? ` ${String(minutes).padStart(2, "0")} min` : ""} remaining`;
+  }
+  return `${totalMinutes} min remaining`;
 }
 
 export function formatKitchenMixingWindowStatus(actualStartedAt?: string, now = new Date()) {

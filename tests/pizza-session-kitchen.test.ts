@@ -8,11 +8,13 @@ import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
+  formatKitchenFermentationCountdown,
   formatKitchenMixingWindowStatus,
   formatKitchenPlannedDuration,
   formatKitchenRestCountdown,
   formatKitchenStepWaitLabel,
   getEarlyTimedKitchenCompletionWarning,
+  getKitchenFermentationMobileSummary,
   getKitchenExperienceGuidance,
   getKitchenModeForStep,
   getKitchenModeState,
@@ -21,6 +23,7 @@ import {
   getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
   getKitchenTaskInstruction,
+  isKitchenFermentationStep,
   isMixDoughStep,
   recipeSnapshotIngredientLines,
   shouldConfirmEarlyKitchenStepCompletion,
@@ -910,6 +913,42 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(formatKitchenMixingWindowStatus(startedAt, new Date("2026-07-10T17:16:00.000Z"))).toBe("2 min overdue");
   });
 
+  it("formats the mobile Fermentation countdown without changing readiness logic", () => {
+    const readyAt = "2026-07-10T12:03:00.000Z";
+
+    expect(formatKitchenFermentationCountdown(readyAt, new Date("2026-07-09T20:00:00.000Z"))).toBe("16 h 03 min remaining");
+    expect(formatKitchenFermentationCountdown(readyAt, new Date("2026-07-10T12:02:30.000Z"))).toBe("less than 1 min remaining");
+    expect(formatKitchenFermentationCountdown(readyAt, new Date("2026-07-10T12:03:00.000Z"))).toBe("Fermentation complete");
+    expect(formatKitchenFermentationCountdown(readyAt, new Date("2026-07-10T12:05:00.000Z"))).toBe("Fermentation ready");
+  });
+
+  it("summarizes mobile Fermentation type and location from canonical session data", () => {
+    const roomStep = { id: "room-ferment", label: "Room temperature ferment", status: "todo" as const };
+    const coldStep = { id: "cold-ferment", label: "Cold fermentation", status: "todo" as const };
+    const roomSession = createPizzaSession({
+      id: "kitchen-mobile-room-fermentation-summary",
+      recipeSnapshot: { fermentation: "12h-room" },
+      fermentationTemperatureCOverride: 23,
+    });
+    const coldSession = createPizzaSession({
+      id: "kitchen-mobile-cold-fermentation-summary",
+      recipeSnapshot: { fermentation: "24h-cold" },
+      fermentationTemperatureCOverride: 6,
+    });
+
+    expect(isKitchenFermentationStep(roomStep)).toBe(true);
+    expect(getKitchenFermentationMobileSummary(roomSession, roomStep)).toEqual({
+      title: "Room-temperature fermentation",
+      location: "Keep the covered dough at room temperature.",
+      prepInstruction: "Cover the dough and leave it to ferment at room temperature.",
+    });
+    expect(getKitchenFermentationMobileSummary(coldSession, coldStep)).toEqual({
+      title: "Cold fermentation",
+      location: "Keep the covered dough in the fridge at 6 °C.",
+      prepInstruction: "Cover the dough and place it in the fridge for cold fermentation.",
+    });
+  });
+
   it("summarizes the next fermentation type and planned duration from the saved plan", () => {
     const roomSession = createPizzaSession({
       id: "kitchen-rest-room-summary",
@@ -1070,8 +1109,30 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Planned duration:");
     expect(page).toContain("Keep the dough covered until the timer reaches zero.");
     expect(page).toContain("className={`${compactMobileStatusHiddenClass}grid gap-2 border-y");
-    expect(page).toContain("className={`${restMobileHiddenClass}mt-5 rounded-[1.25rem]");
+    expect(page).toContain("className={`${timedWaitMobileHiddenClass}mt-5 rounded-[1.25rem]");
     expect(page).toContain("Rest complete");
+  });
+
+  it("adds a mobile-only Fermentation status hierarchy while preserving desktop timing detail", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("currentStepIsFermentation");
+    expect(page).toContain("getKitchenFermentationMobileSummary(session, currentStep)");
+    expect(page).toContain("formatKitchenFermentationCountdown(currentStep?.scheduledAt, now)");
+    expect(page).toContain("id=\"kitchen-fermentation-mobile-status\"");
+    expect(page).toContain("{fermentationMobileSummary.title}");
+    expect(page).toContain("{fermentationMobileSummary.location}");
+    expect(page).toContain("{fermentationCountdown}");
+    expect(page).toContain("Before leaving the dough to ferment, develop it briefly as instructed by folding, stretching or kneading.");
+    expect(page).toContain("{fermentationMobileSummary.prepInstruction}");
+    expect(page).toContain("Next:</span> Divide and shape the dough into balls");
+    expect(page).toContain("currentStepIsMixDough || currentStepIsRestDough || currentStepIsFermentation");
+    expect(page).toContain("currentStepIsRestDough || currentStepIsFermentation");
+    expect(page).toContain("currentStepIsFermentation ? \"max-sm:hidden \" : \"\"");
+    expect(page).toContain("Fermentation complete");
+    expect(page).toContain("getEarlyTimedKitchenCompletionWarning(currentStep, waitInfo.remainingMinutes)");
+    expect(page).toContain("Mark complete early");
+    expect(page).not.toContain("Knead the dough before fermentation");
   });
 
   it("adds a mobile-only Mix dough guidance hierarchy while preserving desktop timing detail", () => {
