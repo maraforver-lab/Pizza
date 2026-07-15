@@ -195,17 +195,25 @@ describe("Quick Dough Calculator isolated core UI", () => {
     }
   });
 
-  it("does not create workflow handoff actions or session navigation", () => {
+  it("keeps the only Pizza Session action secondary and avoids unsupported handoff behavior", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).not.toContain("/session/");
-    expect(component).not.toContain("Timeline");
-    expect(component).not.toContain("Kitchen Mode");
-    expect(component).not.toContain("Review");
-    expect(component).not.toContain("Shopping");
+    expect(component).toContain('href="/session/start"');
+    expect(component.match(/href="\/session\/start"/g)).toHaveLength(1);
+    expect(component).toContain("Need the full process?");
+    expect(component).toContain("Plan a Pizza Session");
+    expect(component).toContain("Open the guided setup from scratch.");
+    expect(component).toContain("does not automatically import this calculator preset");
+    expect(component).not.toContain('href="/start"');
+    expect(component).not.toContain("Create my pizza plan");
+    expect(component).not.toContain("Continue to Shopping");
+    expect(component).not.toContain("Start Kitchen Mode");
+    expect(component).not.toContain("Review my pizza");
     expect(component).not.toContain("Account");
     expect(component).not.toContain("Save to");
     expect(component).not.toContain("Continue to");
+    expect(component).not.toContain("createAndSavePizzaSession");
+    expect(component).not.toContain("quickCalculatorInputToRecipeSettings(result.input)");
   });
 
   it("builds the core PizzApp-style UI for entering values and viewing ingredient results", () => {
@@ -694,8 +702,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
   it("renders local recipe management and share controls without workflow actions", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain("Save, reload or share this quick recipe");
-    expect(component).toContain("Saved quick recipes");
+    expect(component).toContain("Save, reload or share this calculator preset");
+    expect(component).toContain("Saved calculator presets");
     expect(component).toContain("Save recipe");
     expect(component).toContain("Copy share link");
     expect(component).toContain("Load");
@@ -704,7 +712,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("quickCalculatorInputFromSearch(window.location.search)");
     expect(component).toContain("buildQuickCalculatorShareUrl(result.input)");
     expect(component).not.toContain("Start Pizza Session");
-    expect(component).not.toContain("/session/");
+    expect(component).not.toContain("Saved quick recipes");
+    expect(component).not.toContain("Quick recipe saved locally.");
   });
 
   it("defines isolated Quick Calculator pizza style presets and sizing math", () => {

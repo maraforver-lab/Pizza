@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import Link from "next/link";
 import EditableNumberInput from "@/components/EditableNumberInput";
 import SiteFooter from "@/components/SiteFooter";
 import {
@@ -974,7 +975,7 @@ export default function QuickDoughCalculator() {
                 Quick Dough Calculator
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/65 sm:text-base">
-                Enter dough values, get ingredient amounts, then leave with the recipe. This tool does not save or start a pizza workflow.
+                Get dough amounts fast. Use Pizza Session when you also need shopping, scheduling, Kitchen Mode and Review.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${selectedGuidance.badgeClassName}`}>
@@ -1181,7 +1182,7 @@ export default function QuickDoughCalculator() {
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Dough formula</p>
                 <h2 className="mt-2 font-display text-3xl font-semibold">How should the dough feel?</h2>
                 <p className="mt-2 text-sm leading-6 text-ink/55">
-                  Adjust hydration, salt and extra dough without changing any Pizza Session workflow.
+                  Adjust hydration, salt and extra dough without changing the quick calculation contract.
                 </p>
                 <div className="mt-5">{formulaControls}</div>
               </div>
@@ -1393,18 +1394,18 @@ export default function QuickDoughCalculator() {
             <div className="grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(18rem,0.55fr)] xl:items-start">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Local recipes</p>
-                <h2 id="quick-recipe-management-heading" className="mt-2 font-display text-3xl font-semibold">Save, reload or share this quick recipe</h2>
+                <h2 id="quick-recipe-management-heading" className="mt-2 font-display text-3xl font-semibold">Save, reload or share this calculator preset</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">
-                  Saved quick recipes stay only in this browser. Shared links restore these calculator inputs without creating a Pizza Session.
+                  Saved calculator presets stay only in this browser. Shared links restore these calculator inputs without creating a Pizza Session.
                 </p>
                 {recipeNotice !== "idle" && (
                   <p className="mt-3 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs font-extrabold text-leaf" role="status">
-                    {recipeNotice === "saved" && "Quick recipe saved locally."}
-                    {recipeNotice === "loaded" && "Quick recipe loaded into the calculator."}
-                    {recipeNotice === "deleted" && "Quick recipe deleted."}
-                    {recipeNotice === "duplicated" && "Quick recipe duplicated."}
-                    {recipeNotice === "renamed" && "Quick recipe renamed."}
-                    {recipeNotice === "storage-error" && "This browser could not update local quick recipes."}
+                    {recipeNotice === "saved" && "Calculator preset saved locally."}
+                    {recipeNotice === "loaded" && "Calculator preset loaded into the calculator."}
+                    {recipeNotice === "deleted" && "Calculator preset deleted."}
+                    {recipeNotice === "duplicated" && "Calculator preset duplicated."}
+                    {recipeNotice === "renamed" && "Calculator preset renamed."}
+                    {recipeNotice === "storage-error" && "This browser could not update local calculator presets."}
                   </p>
                 )}
               </div>
@@ -1437,10 +1438,10 @@ export default function QuickDoughCalculator() {
             </div>
 
             <div className="mt-5">
-              <h3 className="text-sm font-extrabold text-ink">Saved quick recipes</h3>
+              <h3 className="text-sm font-extrabold text-ink">Saved calculator presets</h3>
               {savedRecipes.length === 0 ? (
                 <p className="mt-3 rounded-2xl border border-dashed border-ink/15 bg-cream/45 px-4 py-6 text-sm leading-6 text-ink/48">
-                  No saved recipes yet. Name the current calculator setup and save it here.
+                  No saved calculator presets yet. Name the current setup and save it here.
                 </p>
               ) : (
                 <div className="mt-3 grid gap-3">
@@ -1448,7 +1449,7 @@ export default function QuickDoughCalculator() {
                     <article key={recipe.id} className="grid gap-3 rounded-2xl border border-ink/10 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                       <div className="min-w-0">
                         <label className="text-[10px] font-extrabold uppercase tracking-[.16em] text-ink/38" htmlFor={`quick-saved-recipe-${recipe.id}`}>
-                          Saved recipe
+                          Saved calculator preset
                         </label>
                         <input
                           id={`quick-saved-recipe-${recipe.id}`}
@@ -1470,6 +1471,20 @@ export default function QuickDoughCalculator() {
                 </div>
               )}
             </div>
+
+            <aside className="mt-5 rounded-[1.5rem] border border-ink/10 bg-cream/55 p-4" aria-labelledby="quick-session-cta-heading" data-quick-session-cta>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/42">Need the full process?</p>
+              <h3 id="quick-session-cta-heading" className="mt-2 text-xl font-extrabold text-ink">Plan a Pizza Session</h3>
+              <p className="mt-2 text-sm leading-6 text-ink/58">
+                Open the guided setup from scratch. It does not automatically import this calculator preset.
+              </p>
+              <Link
+                href="/session/start"
+                className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
+              >
+                Plan a Pizza Session
+              </Link>
+            </aside>
           </section>
         </div>
 
