@@ -804,7 +804,7 @@ export default function SessionKitchenPage() {
                 </p>
                 <BottomActionBar
                   back={(
-                    <Link href="/session/timeline" className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}>
+                    <Link href="/session/timeline" className={buttonClass({ className: "max-sm:hidden w-full sm:w-auto", variant: "tertiary" })}>
                       View full schedule
                     </Link>
                   )}

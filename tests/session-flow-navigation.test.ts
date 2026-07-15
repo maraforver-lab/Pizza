@@ -132,6 +132,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(kitchen).toContain('href="/session/review"');
     expect(kitchen).not.toContain("href={backHref}");
     expectTextLink(kitchen, "View full schedule", "/session/timeline");
+    expect(kitchen).toContain("max-sm:hidden w-full sm:w-auto");
     expect(kitchen).toContain("This step is scheduled later");
     expect(kitchen).toContain("Continue anyway");
     expect(kitchen).toContain("Current step");
