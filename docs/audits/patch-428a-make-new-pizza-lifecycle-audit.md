@@ -20,6 +20,10 @@ The Make New Pizza lifecycle still has three product-contract gaps:
 
 The active-session conflict UI on `/session/start` is safer than the homepage copy: it accurately says the confirmed action replaces the active pizza session in the account. However, this still means unfinished active work can be lost from cloud storage.
 
+## Patch 428B Implementation Reference
+
+Patch 428B implements the recommended archive-before-create lifecycle. It changes the destructive `replaceActiveSession: true` server behavior into an atomic archive-and-create operation, adds database-level one-active-session uniqueness, adds archived unfinished sessions to Account as a separate read-only section, and aligns Party Order handoff with the same active-session conflict contract.
+
 ## Current Creation Entry Points
 
 | Entry point | Source | Current path | Uses canonical creation path? | Finding |

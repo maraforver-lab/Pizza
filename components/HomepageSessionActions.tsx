@@ -127,7 +127,7 @@ export default function HomepageSessionActions({
 
   const startNewPizza = () => {
     setConfirmOpen(false);
-    router.push("/session/start");
+    router.push("/session/start?new=1&replace=1");
   };
 
   return (
@@ -228,7 +228,7 @@ export default function HomepageSessionActions({
               </button>
             </div>
             <p id="homepage-start-new-pizza-copy" className="mt-4 text-sm font-bold leading-6 text-ink/66">
-              You already have an active pizza session. Your current session will remain available in your account.
+              Your current pizza session will be archived so you can return to its details later. A new active session will be created from these choices.
             </p>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" onClick={closeConfirm} className={dialogButtonClass("secondary")}>

@@ -2,10 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { clearCloudBackedPizzaSession, saveCloudActivePizzaSession } from "@/lib/cloud-pizza-session-client";
+import { buttonClass } from "@/components/design-system";
+import {
+  isActiveCloudPizzaSessionConflictError,
+  saveCloudActivePizzaSession,
+  type ActiveCloudPizzaSessionConflict,
+} from "@/lib/cloud-pizza-session-client";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import { isPizzaCatalogId } from "@/lib/pizza-catalog";
-import type { PizzaSessionPizzaMix } from "@/lib/pizza-session";
-import { createAndSavePizzaSession, setActivePizzaSession } from "@/lib/pizza-session-storage";
+import { createPizzaSession, type PizzaSession, type PizzaSessionPizzaMix } from "@/lib/pizza-session";
+import { savePizzaSession, setActivePizzaSession } from "@/lib/pizza-session-storage";
 import {
   partyOrderDateTimeLabel,
   type PartyOrderActivity,
@@ -69,14 +75,31 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [activeConflict, setActiveConflict] = useState<ActiveCloudPizzaSessionConflict | null>(null);
+  const [confirmingStartNew, setConfirmingStartNew] = useState(false);
+  const [pendingSession, setPendingSession] = useState<PizzaSession | null>(null);
   const hasGuestOrders = activity.totalPizzaCount > 0;
   const unsupportedPizzaNames = activity.pizzaMix
     .filter((pizza) => !isPizzaCatalogId(pizza.pizza_id))
     .map((pizza) => pizza.pizza_name_snapshot);
 
+  const persistSessionFromOrder = async (session: PizzaSession, archiveActiveAndCreateNew = false) => {
+    const saved = savePizzaSession(session);
+    setPendingSession(saved);
+    const result = await saveCloudActivePizzaSession(saved, {
+      archiveActiveAndCreateNew,
+      replaceActiveSession: archiveActiveAndCreateNew,
+    });
+    if ("skipped" in result) throw new Error("Sign in to create a Pizza Session from this Party Order.");
+    setActivePizzaSession(saved.id);
+    router.push("/session/start?handoff=1");
+  };
+
   const createSessionFromOrder = async () => {
     setSubmitting(true);
     setError("");
+    setActiveConflict(null);
+    setConfirmingStartNew(false);
     try {
       const response = await fetch(`/api/party-orders/${event.id}/session-handoff`, {
         method: "POST",
@@ -86,24 +109,66 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
       const handoff = normalizeHandoffPayload(payload.handoff);
       if (!handoff) throw new Error("Pizza Session handoff data could not be verified.");
 
-      const session = createAndSavePizzaSession({
+      const session = createPizzaSession({
         status: "planning",
         currentStep: "style",
         targetEatTime: handoff.pizzaTime,
         pizzaCount: handoff.pizzaCount,
         pizzaMix: handoff.pizzaMix,
       });
-      setActivePizzaSession(session.id);
-      clearCloudBackedPizzaSession();
-      await saveCloudActivePizzaSession(session).catch(() => {
-        // Keep the Party Order handoff local and active if account sync is temporarily unavailable.
-      });
-      router.push("/session/start?handoff=1");
+      setPendingSession(session);
+      await persistSessionFromOrder(session);
+    } catch (caught) {
+      if (isActiveCloudPizzaSessionConflictError(caught)) {
+        setActiveConflict(caught.conflict);
+        setError("");
+        return;
+      }
+      setError(caught instanceof Error ? caught.message : "Pizza Session could not be created from this order.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const continueExistingSession = async () => {
+    if (!activeConflict || submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const canonical = await resolveCanonicalActivePizzaSession();
+      if (canonical.state === "active") {
+        router.push(canonical.href);
+        return;
+      }
+      if (activeConflict.resumeRoute) {
+        router.push(activeConflict.resumeRoute);
+        return;
+      }
+      setError("We could not open the existing active pizza session. Try again from Account.");
+    } catch {
+      setError("We could not open the existing active pizza session. Try again from Account.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const confirmCreateFromOrder = async () => {
+    if (!pendingSession || submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await persistSessionFromOrder(pendingSession, true);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Pizza Session could not be created from this order.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const keepPartyOrderSetup = () => {
+    setActiveConflict(null);
+    setConfirmingStartNew(false);
+    setError("");
   };
 
   return (
@@ -157,6 +222,44 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
       )}
 
       {error && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{error}</p>}
+      {activeConflict && (
+        <div className="mt-4 rounded-[1.25rem] border border-tomato/20 bg-white/85 p-4" aria-labelledby="party-order-active-session-conflict-heading">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Active account session</p>
+          <h3 id="party-order-active-session-conflict-heading" className="mt-2 font-display text-2xl font-semibold leading-tight">
+            Start a new pizza?
+          </h3>
+          <p className="mt-2 text-sm font-bold leading-6 text-ink/62">
+            Your current pizza session will be archived so you can return to its details later. A new active session will be created from this Party Order.
+          </p>
+          {!confirmingStartNew ? (
+            <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+              <button type="button" onClick={continueExistingSession} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5" })}>
+                Continue existing session
+              </button>
+              <button type="button" onClick={keepPartyOrderSetup} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
+                Keep Party Order setup
+              </button>
+              <button type="button" onClick={() => setConfirmingStartNew(true)} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
+                Start new pizza
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 rounded-[1rem] border border-ink/10 bg-cream/65 p-4">
+              <p className="text-sm font-bold leading-6 text-ink/62">
+                This archives the current active Pizza Session and creates a new active session from the Party Order totals.
+              </p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <button type="button" onClick={keepPartyOrderSetup} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
+                  Keep Party Order setup
+                </button>
+                <button type="button" onClick={confirmCreateFromOrder} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5" })}>
+                  {submitting ? "Creating Pizza Session…" : "Start new pizza"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

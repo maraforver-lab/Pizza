@@ -19,9 +19,10 @@ export type CloudPizzaSessionRow = {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  archived_at: string | null;
 };
 
-export const CLOUD_PIZZA_SESSION_SELECT = "id,user_id,status,title,current_step,session_data,created_at,updated_at,completed_at";
+export const CLOUD_PIZZA_SESSION_SELECT = "id,user_id,status,title,current_step,session_data,created_at,updated_at,completed_at,archived_at";
 
 const stepLabels: Record<PizzaSession["currentStep"], string> = {
   style: "Setup",
@@ -159,6 +160,10 @@ export function normalizeCloudPizzaSessionHistoryRow(value: unknown): CloudPizza
   return normalizeCloudPizzaSessionRowForStatus(value, "completed");
 }
 
+export function normalizeCloudPizzaSessionArchivedRow(value: unknown): CloudPizzaSessionRow | undefined {
+  return normalizeCloudPizzaSessionRowForStatus(value, "archived");
+}
+
 function normalizeCloudPizzaSessionRowForStatus(
   value: unknown,
   expectedStatus: CloudPizzaSessionStatus,
@@ -182,6 +187,7 @@ function normalizeCloudPizzaSessionRowForStatus(
     created_at: createdAt,
     updated_at: updatedAt,
     completed_at: stringField(value, "completed_at", "completedAt") ?? null,
+    archived_at: stringField(value, "archived_at", "archivedAt") ?? null,
   };
 }
 
@@ -246,6 +252,14 @@ export function sortCloudPizzaSessionHistoryRows(rows: CloudPizzaSessionRow[]) {
   });
 }
 
+export function sortCloudPizzaSessionArchivedRows(rows: CloudPizzaSessionRow[]) {
+  return [...rows].sort((a, b) => {
+    const left = new Date(a.archived_at ?? a.updated_at).getTime();
+    const right = new Date(b.archived_at ?? b.updated_at).getTime();
+    return (Number.isFinite(right) ? right : 0) - (Number.isFinite(left) ? left : 0);
+  });
+}
+
 export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Date()) {
   const session = migratePizzaSession(row.session_data);
   if (!session) {
@@ -306,6 +320,36 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
       : undefined,
     fermentationLine,
     reviewLine,
+  };
+}
+
+export function cloudPizzaSessionArchivedSummary(row: CloudPizzaSessionRow, now = new Date()) {
+  const session = migratePizzaSession(row.session_data);
+  const archivedValue = row.archived_at ?? row.updated_at;
+  const archivedDate = new Date(archivedValue);
+  const archivedLine = Number.isFinite(archivedDate.getTime())
+    ? `Archived ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(archivedDate)}`
+    : "Archived session";
+
+  if (!session) {
+    return {
+      title: row.title ?? "Archived pizza session",
+      archivedLine,
+      doughLine: "Dough plan not complete",
+      pizzaMenuLine: "Pizza menu not ready",
+      bakeLine: "Bake time not set",
+      stepLine: "Last stage not set",
+    };
+  }
+
+  const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
+  return {
+    title: row.title ?? "Archived pizza session",
+    archivedLine,
+    doughLine: cloudPizzaSessionDoughSummary(session),
+    pizzaMenuLine: `Pizza menu: ${formatPizzaMixSummary(pizzaCount, session.pizzaMix, session.pizzaPreset)}`,
+    bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,
+    stepLine: `Last stage: ${cloudPizzaSessionCurrentStepLabel(session)}`,
   };
 }
 

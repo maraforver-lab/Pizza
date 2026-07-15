@@ -518,7 +518,7 @@ function ReplaceActiveSessionChoice({
         <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Active pizza plan found</p>
         <h1 className="mt-3 font-display text-4xl font-semibold leading-none">Start a new pizza plan?</h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
-          You already have an in-progress plan from {lastSaved}. Continue it, or explicitly replace it with a fresh plan on this device.
+          You already have an in-progress plan from {lastSaved}. Continue it, or start a fresh setup. Signed-in account sessions are archived only after you create the new pizza plan.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <button type="button" onClick={onContinueExisting} className={buttonClass({ className: "min-h-12 px-6" })}>
@@ -590,7 +590,7 @@ function ActiveCloudSessionConflictChoice({
             Start a new pizza session?
           </h3>
           <p className="mt-2 text-sm font-bold leading-6 text-ink/62">
-            This will replace the active pizza session in your account with this setup. Continue the existing session instead if you want to keep it active.
+            Your current pizza session will be archived so you can return to its details later. A new active session will be created from these choices.
           </p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <button type="button" onClick={onCancel} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
@@ -873,6 +873,7 @@ function StartPizzaSessionContent() {
     setSession(saved);
     try {
       const materialized = await materializeCloudBackedPizzaSession(saved, {
+        archiveActiveAndCreateNew: options.replaceActiveCloudSession === true,
         replaceActiveSession: options.replaceActiveCloudSession === true,
       });
       if (materialized.status === "cloud-backed") {
