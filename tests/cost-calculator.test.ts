@@ -90,34 +90,43 @@ describe("pizza cost calculator", () => {
     expect(page).not.toContain("currency conversion");
   });
 
-  it("renders the playful home-versus-restaurant information architecture", () => {
+  it("renders the simplified playful home-versus-takeaway information architecture", () => {
     const page = source("components/costs/PizzaCostsPlayfulClient.tsx");
     const appPage = source("app/costs/page.tsx");
 
     expect(appPage).toContain("<PizzaCostsPlayfulClient />");
-    expect(page).toContain("Pizza Night Economics");
-    expect(page).toContain("What does pizza night really cost?");
+    expect(page).toContain("Pizza cost insight");
+    expect(page).toContain("What does your pizza night cost?");
+    expect(page).toContain("Compare homemade pizza with takeaway and see where the money goes.");
     expect(page).toContain("Estimate my pizza cost");
-    expect(page).toContain("Made at home");
-    expect(page).toContain("Restaurant order");
-    expect(page).toContain("Home cost breakdown");
-    expect(page).toContain("The useful bit");
-    expect(page).toContain("The real bonus is the pizza night.");
-    expect(page).toContain("Ready to turn the estimate into pizza?");
+    expect(page).toContain("Start with three numbers. Everything else is tucked into assumptions.");
+    expect(page).toContain("Homemade total");
+    expect(page).toContain("Homemade / pizza");
+    expect(page).toContain("Takeaway total");
+    expect(page).toContain("Playful insight");
+    expect(page).toContain("Where the homemade cost goes");
+    expect(page).toContain("How these estimates work");
+    expect(page).toContain("Turn the estimate into pizza.");
     expect(page).toContain("Plan my next pizza");
     expect(page).toContain("<SiteFooter />");
+    expect(page).not.toContain("Ready to turn the estimate into pizza?");
+    expect(page).not.toContain("Related learning");
+    expect(page).not.toContain("Topping Balance Lab");
   });
 
   it("keeps result copy neutral when home is not cheaper", () => {
     const page = source("components/costs/PizzaCostsPlayfulClient.tsx");
 
-    expect(page).toContain("The restaurant option is");
+    expect(page).toContain("Takeaway is about");
     expect(page).toContain("That can happen too.");
     expect(page).toContain("These pizza nights cost almost the same.");
-    expect(page).toContain("Choose based on the evening you want");
+    expect(page).toContain("The money is close enough");
+    expect(page).toContain("not a promise");
     expect(page).not.toContain("guaranteed saving");
     expect(page).not.toContain("overpriced");
     expect(page).not.toContain("annualized");
+    expect(page).not.toContain("profit");
+    expect(page).not.toContain("margin");
   });
 
   it("uses accessible controls and non-color-only comparison output", () => {
@@ -126,10 +135,30 @@ describe("pizza cost calculator", () => {
     expect(page).toContain("aria-label={`Decrease ${label}`}");
     expect(page).toContain("aria-label={`Increase ${label}`}");
     expect(page).toContain("htmlFor={id}");
-    expect(page).toContain("Difference is calculated from the home total and restaurant order total.");
+    expect(page).toContain("Difference is calculated from the home total and takeaway order total.");
     expect(page).toContain("The bars are only a visual hint.");
+    expect(page).toContain("aria-label=\"Homemade and takeaway total comparison\"");
+    expect(page).toContain("aria-live=\"polite\"");
+    expect(page).toContain("<details");
+    expect(page).toContain("<summary");
     expect(page).toContain("grid gap-5 lg:grid-cols");
     expect(page).not.toContain("overflow-x-auto");
+  });
+
+  it("keeps Costs standalone without Shopping, Party Order or session persistence integration", () => {
+    const page = source("components/costs/PizzaCostsPlayfulClient.tsx");
+
+    expect(page).not.toContain("/session/shopping");
+    expect(page).not.toContain("Party Orders");
+    expect(page).not.toContain("party-orders");
+    expect(page).not.toContain("getActivePizzaSession");
+    expect(page).not.toContain("queueCloudActivePizzaSessionSave");
+    expect(page).not.toContain("supabase");
+    expect(page).not.toContain("Save to account");
+    expect(page).not.toContain("Send to Shopping");
+    expect(page).not.toContain("Add to Party Order");
+    expect(page).toContain('href="/session/start"');
+    expect(page.match(/href="\/session\/start"/g)).toHaveLength(1);
   });
 
   it("updates the SEO positioning for home versus restaurant comparison", () => {
