@@ -290,7 +290,7 @@ describe("homepage content model", () => {
 
     expect(getActivePizzaSession(storage)).toBeUndefined();
     expect(homepageContent.hero.primaryCta.label).toBe("Plan my new pizza");
-    expect(source("components/HomepageSessionActions.tsx")).toContain("resolveHomepageActiveSession(localSession, null)");
+    expect(source("components/HomepageSessionActions.tsx")).toContain("resolveCanonicalActivePizzaSession()");
     expect(source("components/ContinuePizzaSessionCard.tsx")).toContain("if (!ready || (!session && !cloudSession)) return null");
   });
 

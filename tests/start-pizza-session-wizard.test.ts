@@ -424,10 +424,9 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("if (shouldStartNewSession && shouldReplaceExistingSession)");
     expect(page).toContain("let active = shouldStartNewSession ? undefined : existingBeforeNew");
     expect(page).toContain("if (!shouldStartNewSession && !shouldPreserveLocalHandoff)");
-    expect(page).toContain("const { data } = await supabase.auth.getSession()");
-    expect(page).toContain("fetch(\"/api/pizza-sessions/active\"");
-    expect(page).toContain("normalizeCloudPizzaSessionRow(payload.session)");
-    expect(page).toContain("active = restoreCloudPizzaSessionToLocal(row)");
+    expect(page).toContain("const canonical = await resolveCanonicalActivePizzaSession()");
+    expect(page).toContain("active = canonical.state === \"active\" ? canonical.session : undefined");
+    expect(page).toContain("setLoadError(canonical.error)");
     expect(page).toContain("clearCloudBackedActivePizzaSessionPointer()");
     expect(page).toContain("void queueCloudActivePizzaSessionSave(session).then");
     expect(page).toContain("status: \"planning\"");
@@ -817,18 +816,17 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("setReplaceCandidate(existingBeforeNew)");
   });
 
-  it("requires an explicit choice when local and cloud active sessions differ", () => {
+  it("uses cloud authority instead of asking users to choose between local and cloud sessions", () => {
     const page = source("app/session/start/page.tsx");
     const docs = source("docs/pizza-session-autosave-and-resume.md");
 
-    expect(page).toContain("function SessionConflictChoice");
-    expect(page).toContain("You have two active pizza plans.");
-    expect(page).toContain("Continue this device’s plan");
-    expect(page).toContain("Continue saved plan");
-    expect(page).toContain("cloudPizzaSession.id !== active.id");
-    expect(page).toContain("setConflictCloudRow(row)");
-    expect(page).toContain("DoughTools will not silently replace this device’s plan");
-    expect(docs).toContain("DoughTools does not silently choose or overwrite either plan.");
+    expect(page).toContain("resolveCanonicalActivePizzaSession");
+    expect(page).not.toContain("function SessionConflictChoice");
+    expect(page).not.toContain("You have two active pizza plans.");
+    expect(page).not.toContain("Continue this device’s plan");
+    expect(page).not.toContain("Continue saved plan");
+    expect(page).not.toContain("setConflictCloudRow");
+    expect(docs).toContain("the cloud active session wins");
   });
 
   it("keeps one shared wizard with Beginner, Enthusiast and Pizza Nerd guidance", () => {

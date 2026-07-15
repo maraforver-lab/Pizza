@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomActionBar } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSessionToAccount";
@@ -177,15 +178,28 @@ export default function SessionRecipePage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    try {
+    let mounted = true;
+    async function openRecipe() {
+      try {
+        const canonical = await resolveCanonicalActivePizzaSession();
+        if (!mounted) return;
+        if (canonical.state === "error") {
+          setRouteError(true);
+          return;
+        }
       const saved = generateAndSaveActiveSessionRecipe();
       setSession(saved.session ?? null);
       setResult(saved.result);
-    } catch {
-      setRouteError(true);
-    } finally {
-      setReady(true);
+      } catch {
+        if (mounted) setRouteError(true);
+      } finally {
+        if (mounted) setReady(true);
+      }
     }
+    void openRecipe();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (routeError) {

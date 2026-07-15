@@ -315,7 +315,7 @@ describe("Pizza Session local storage", () => {
     const account = source("app/account/page.tsx");
 
     expect(component).toContain("\"use client\"");
-    expect(component).toContain("getActivePizzaSession");
+    expect(component).toContain("resolveCanonicalActivePizzaSession");
     expect(component).toContain("if (!ready || (!session && !cloudSession)) return null");
     expect(component).toContain("Continue Pizza Session");
     expect(component).toContain("Signed-in users can save an in-progress copy");

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomActionBar, buttonClass, cardClass, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
@@ -108,16 +109,29 @@ export default function SessionShoppingPage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    try {
+    let mounted = true;
+    async function openShopping() {
+      try {
+        const canonical = await resolveCanonicalActivePizzaSession();
+        if (!mounted) return;
+        if (canonical.state === "error") {
+          setRouteError(true);
+          return;
+        }
       const initialSession = getActivePizzaSession();
       const { session: updatedSession, result } = generateAndSaveActiveShoppingList();
       setSession(updatedSession ?? initialSession ?? null);
       setMissingReason(result.ok ? null : result.missingReason);
-    } catch {
-      setRouteError(true);
-    } finally {
-      setReady(true);
+      } catch {
+        if (mounted) setRouteError(true);
+      } finally {
+        if (mounted) setReady(true);
+      }
     }
+    void openShopping();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const generationResult = useMemo(

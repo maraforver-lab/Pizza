@@ -58,7 +58,7 @@ describe("Pizza Session desktop refinement components", () => {
     expect(routeState).toContain("SessionViewportReset");
   });
 
-  it("uses one shared downstream route state model without guarding /session/start", () => {
+  it("uses one shared route state model while keeping /session/start form-first", () => {
     const routeState = source("components/session/SessionRouteState.tsx");
     const startPage = source("app/session/start/page.tsx");
     const downstreamPages = [
@@ -83,7 +83,8 @@ describe("Pizza Session desktop refinement components", () => {
     expect(downstreamPages).toContain("variant=\"no-session\"");
     expect(downstreamPages).toContain("variant=\"step-unavailable\"");
     expect(downstreamPages).toContain("variant=\"error\"");
-    expect(startPage).not.toContain("SessionRouteState");
+    expect(startPage).toContain("SessionRouteState");
+    expect(startPage).toContain("We could not verify your active account pizza session.");
     expect(startPage).toContain("createPlanningDraftSession");
     expect(startPage).toContain("Create my pizza plan");
   });

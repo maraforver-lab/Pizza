@@ -65,7 +65,8 @@ describe("Pizza Session flow navigation integrity", () => {
 
     expect(start).toContain("createPlanningDraftSession");
     expect(start).toContain("const baseSession = active ?? createPlanningDraftSession(preferredLevel, requestedStep)");
-    expect(start).not.toContain("SessionRouteState");
+    expect(start).toContain("resolveCanonicalActivePizzaSession");
+    expect(start).toContain("We could not verify your active account pizza session.");
     expect(start).not.toContain("SessionEmptyState");
     expect(recipe).toContain("SessionRouteState");
     expect(recipe).toContain("No active pizza plan");

@@ -78,8 +78,9 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("bakingTroubleshootingLink.href");
     expect(page).toContain("toppingsTroubleshootingLink.href");
     expect(page).toContain("completeSessionReview");
-    expect(page).toContain("saveCloudActivePizzaSession(completed)");
+    expect(page).toContain("resolveCanonicalActivePizzaSession");
     expect(page).toContain("completeCloudBackedPizzaSession(completed)");
+    expect(page).not.toContain("saveCloudActivePizzaSession(completed)");
     expect(page).toContain("router.push(\"/\")");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain("href=\"/session/kitchen\"");
@@ -136,7 +137,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("{bakingTroubleshootingLink.label}");
     expect(page).toContain("{toppingsTroubleshootingLink.label}");
     expect(page).toContain("onClick={saveReview}");
-    expect(page).toContain("completeSessionReview(session, reviewInput)");
+    expect(page).toContain("completeSessionReview(sessionForCompletion, reviewInput)");
   });
 
   it("replaces large review textareas with optional multi-select feedback chips", () => {
@@ -180,9 +181,10 @@ describe("Pizza Session review and bake notes", () => {
 
     expect(page).toContain("const saveReview = async () =>");
     expect(page).toContain("onClick={saveReview}");
-    expect(page).toContain("completeSessionReview(session, reviewInput)");
-    expect(page).toContain("saveCloudActivePizzaSession(completed)");
+    expect(page).toContain("completeSessionReview(sessionForCompletion, reviewInput)");
+    expect(page).toContain("mustCompleteCloud");
     expect(page).toContain("completeCloudBackedPizzaSession(completed)");
+    expect(page).not.toContain("saveCloudActivePizzaSession(completed)");
     expect(page).toContain("router.push(\"/\")");
     expect(page).toContain("Finishing session…");
     expect(page).toContain("Finish session");

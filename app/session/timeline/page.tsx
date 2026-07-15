@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { buttonClass, cardClass, statusPillClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionStepHero } from "@/components/session/SessionStepHero";
@@ -258,15 +259,28 @@ export default function SessionTimelinePage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    try {
+    let mounted = true;
+    async function openTimeline() {
+      try {
+        const canonical = await resolveCanonicalActivePizzaSession();
+        if (!mounted) return;
+        if (canonical.state === "error") {
+          setRouteError(true);
+          return;
+        }
       const { session: updatedSession, result } = generateAndSaveActivePizzaSessionTimeline();
       setSession(updatedSession ?? null);
       setMissingReason(result.ok ? null : result.missingReason ?? "unknown");
-    } catch {
-      setRouteError(true);
-    } finally {
-      setReady(true);
+      } catch {
+        if (mounted) setRouteError(true);
+      } finally {
+        if (mounted) setReady(true);
+      }
     }
+    void openTimeline();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {

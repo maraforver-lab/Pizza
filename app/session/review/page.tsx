@@ -12,8 +12,8 @@ import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLay
 import type { PizzaSession } from "@/lib/pizza-session";
 import {
   completeCloudBackedPizzaSession,
-  saveCloudActivePizzaSession,
 } from "@/lib/cloud-pizza-session-client";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import {
   getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
@@ -156,12 +156,22 @@ export default function SessionReviewPage() {
   const [legacyNextTimeTry, setLegacyNextTimeTry] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [cloudCompletionRequired, setCloudCompletionRequired] = useState(false);
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    try {
-      const active = getActivePizzaSession() ?? null;
+    let mounted = true;
+    async function openReview() {
+      try {
+        const canonical = await resolveCanonicalActivePizzaSession();
+        if (!mounted) return;
+        if (canonical.state === "error") {
+          setRouteError(true);
+          return;
+        }
+        const active = canonical.state === "active" ? canonical.session : getActivePizzaSession() ?? null;
       setSession(active);
+      setCloudCompletionRequired(canonical.state === "active" && canonical.signedIn);
       setRating(active?.rating ?? 0);
       setNotes(active?.notes ?? "");
       setLegacyWhatWorked(active?.review?.whatWorked ?? "");
@@ -169,11 +179,16 @@ export default function SessionReviewPage() {
       setLegacyNextTimeTry(active?.review?.nextTimeTry ?? "");
       setWhatWorked(selectionsFromSavedText(active?.review?.whatWorked, workedWellOptions));
       setImproveNextTime(selectionsFromSavedText(active?.review?.improveNextTime, improveOptions));
-    } catch {
-      setRouteError(true);
-    } finally {
-      setReady(true);
+      } catch {
+        if (mounted) setRouteError(true);
+      } finally {
+        if (mounted) setReady(true);
+      }
     }
+    void openReview();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (routeError) {
@@ -228,7 +243,33 @@ export default function SessionReviewPage() {
   const saveReview = async () => {
     if (saving) return;
     setSaving(true);
-    const completed = completeSessionReview(session, reviewInput);
+    let sessionForCompletion = session;
+    let mustCompleteCloud = cloudCompletionRequired;
+    if (session.status !== "completed") {
+      const canonical = await resolveCanonicalActivePizzaSession();
+      if (canonical.state === "error") {
+        setSaving(false);
+        setMessage("Could not verify your account session. Please try again before finishing.");
+        return;
+      }
+      if (canonical.state === "active" && canonical.session.id !== session.id) {
+        setSession(canonical.session);
+        setCloudCompletionRequired(canonical.signedIn);
+        setSaving(false);
+        setMessage("Your account active session changed. Review the current session before finishing.");
+        return;
+      }
+      if (canonical.state !== "active") {
+        setSaving(false);
+        setMessage("Could not find the active pizza session to finish.");
+        return;
+      }
+      sessionForCompletion = canonical.session;
+      mustCompleteCloud = canonical.signedIn;
+      setCloudCompletionRequired(mustCompleteCloud);
+    }
+
+    const completed = completeSessionReview(sessionForCompletion, reviewInput);
     if (!completed) {
       setSaving(false);
       setMessage("Could not save this review. Please refresh and try again.");
@@ -236,11 +277,17 @@ export default function SessionReviewPage() {
     }
     setSession(completed);
     setMessage(null);
-    const accountSave = await saveCloudActivePizzaSession(completed).catch(() => ({ skipped: true as const }));
-    if (!("skipped" in accountSave)) {
-      await completeCloudBackedPizzaSession(completed).catch(() => {
-        // Finishing the local session should not be blocked by temporary account sync issues.
-      });
+    if (mustCompleteCloud) {
+      try {
+        const cloudResult = await completeCloudBackedPizzaSession(completed);
+        if ("skipped" in cloudResult) {
+          throw new Error("Account session completion was skipped.");
+        }
+      } catch {
+        setSaving(false);
+        setMessage("Your review is saved in this browser, but account history could not be updated yet. Try finishing again.");
+        return;
+      }
     }
     router.push("/");
   };
@@ -248,7 +295,7 @@ export default function SessionReviewPage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-6 pb-28 text-ink sm:px-6 sm:py-9">
       <SessionViewportReset />
-      <CloudPizzaSessionSync session={session} />
+      {session.status !== "completed" && <CloudPizzaSessionSync session={session} />}
       <SessionWorkspaceLayout activeStep={10} hideLocalSaveNote>
         <SessionStepHero
           step={10}

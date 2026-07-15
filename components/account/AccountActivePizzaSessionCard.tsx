@@ -11,12 +11,12 @@ import {
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
 import {
-  clearCloudBackedActivePizzaSessionPointer,
   clearCloudBackedPizzaSession,
   cloudBackedPizzaSessionRowId,
   queueCloudActivePizzaSessionSave,
 } from "@/lib/cloud-pizza-session-client";
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import {
   migratePizzaSession,
   pizzaSessionContinueHref,
@@ -74,16 +74,9 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
 
     let mounted = true;
     async function loadActiveSession() {
-      try {
-        const response = await fetch("/api/pizza-sessions/active", { method: "GET" });
-        if (!response.ok) return;
-        const payload = await response.json().catch(() => ({}));
-        const row = normalizeCloudPizzaSessionRow(payload.session);
-        if (!row) clearCloudBackedActivePizzaSessionPointer();
-        if (mounted) setCloudSession(row ?? null);
-      } catch {
-        if (mounted) setCloudSession(null);
-      } finally {
+      const resolution = await resolveCanonicalActivePizzaSession();
+      if (mounted) {
+        setCloudSession(resolution.state === "active" ? resolution.cloudRow : null);
         if (mounted) setReady(true);
       }
     }

@@ -11,6 +11,7 @@ import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
 import { normalizeAccountPreferencesRow } from "@/lib/account-preferences";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import { getExperienceLevelConfig } from "@/lib/experience-levels";
 import { queueCloudActivePizzaSessionSave } from "@/lib/cloud-pizza-session-client";
 import { buildContextualReturnHref } from "@/lib/contextual-return";
@@ -229,14 +230,27 @@ export default function SessionKitchenPage() {
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    try {
-      setSession(getActivePizzaSession() ?? null);
-      setCurrentTime(new Date());
-    } catch {
-      setRouteError(true);
-    } finally {
-      setReady(true);
+    let mounted = true;
+    async function openKitchen() {
+      try {
+        const canonical = await resolveCanonicalActivePizzaSession();
+        if (!mounted) return;
+        if (canonical.state === "error") {
+          setRouteError(true);
+          return;
+        }
+        setSession(canonical.state === "active" ? canonical.session : null);
+        setCurrentTime(new Date());
+      } catch {
+        if (mounted) setRouteError(true);
+      } finally {
+        if (mounted) setReady(true);
+      }
     }
+    void openKitchen();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {

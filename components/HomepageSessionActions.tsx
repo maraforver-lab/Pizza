@@ -5,21 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DoughToolsIcon } from "@/components/icons";
 import {
-  clearCloudBackedPizzaSession,
-  cloudBackedPizzaSessionRowId,
-} from "@/lib/cloud-pizza-session-client";
-import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
-import {
-  normalizeCloudPizzaSessionRow,
-  type CloudPizzaSessionRow,
-} from "@/lib/cloud-pizza-sessions";
-import {
-  deriveActiveSessionResumeRoute,
-  resolveHomepageActiveSession,
-  type ActiveSessionResumeDecision,
-} from "@/lib/homepage-active-session";
-import { getActivePizzaSession } from "@/lib/pizza-session-storage";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+  resolveCanonicalActivePizzaSession,
+  type CanonicalActivePizzaSessionResolution,
+} from "@/lib/canonical-active-pizza-session";
 
 type HomepageSessionActionsProps = {
   className?: string;
@@ -30,10 +18,12 @@ type HomepageSessionActionsProps = {
   workflowLabel?: string;
 };
 
-const emptyDecision: ActiveSessionResumeDecision = {
+const emptyDecision: CanonicalActivePizzaSessionResolution = {
   state: "empty",
+  signedIn: false,
   session: null,
-  source: null,
+  source: "none",
+  cloudRow: null,
   href: "/session/start",
 };
 
@@ -75,7 +65,7 @@ export default function HomepageSessionActions({
   workflowLabel = "See how it works",
 }: HomepageSessionActionsProps) {
   const router = useRouter();
-  const [decision, setDecision] = useState<ActiveSessionResumeDecision>(emptyDecision);
+  const [decision, setDecision] = useState<CanonicalActivePizzaSessionResolution>(emptyDecision);
   const [checking, setChecking] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const startNewButtonRef = useRef<HTMLButtonElement>(null);
@@ -85,42 +75,9 @@ export default function HomepageSessionActions({
     let mounted = true;
 
     async function resolveActiveSession() {
-      const localSession = getActivePizzaSession() ?? null;
-      if (localSession && mounted) {
-        setDecision(resolveHomepageActiveSession(localSession, null));
-      }
-
-      try {
-        const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase.auth.getSession();
-        if (!data.session?.user) {
-          if (mounted) {
-            setDecision(resolveHomepageActiveSession(localSession, null));
-          }
-          return;
-        }
-
-        const response = await fetch("/api/pizza-sessions/active", { method: "GET" });
-        if (!response.ok) {
-          if (mounted) {
-            setDecision(resolveHomepageActiveSession(localSession, null));
-          }
-          return;
-        }
-
-        const payload = await response.json().catch(() => ({}));
-        const cloudRow: CloudPizzaSessionRow | undefined = normalizeCloudPizzaSessionRow(payload.session);
-        if (!cloudRow && localSession && cloudBackedPizzaSessionRowId(localSession)) {
-          clearCloudBackedPizzaSession();
-        }
-        if (mounted) {
-          setDecision(resolveHomepageActiveSession(localSession, cloudRow));
-        }
-      } catch {
-        if (mounted) {
-          setDecision(resolveHomepageActiveSession(localSession, null));
-        }
-      } finally {
+      const resolution = await resolveCanonicalActivePizzaSession();
+      if (mounted) {
+        setDecision(resolution);
         if (mounted) setChecking(false);
       }
     }
@@ -151,20 +108,18 @@ export default function HomepageSessionActions({
   }, [confirmOpen]);
 
   const hasActiveSession = decision.state === "active";
+  const hasError = decision.state === "error";
   const showChecking = checking;
   const label = showChecking
     ? "Checking your pizza..."
+    : hasError
+      ? "Could not check your pizza"
     : hasActiveSession
       ? "Continue my pizza"
       : "Plan my new pizza";
 
   const continueActiveSession = () => {
     if (decision.state !== "active") return;
-    if (decision.source === "cloud" && decision.cloudRow) {
-      const restored = restoreCloudPizzaSessionToLocal(decision.cloudRow);
-      router.push(deriveActiveSessionResumeRoute(restored ?? decision.session));
-      return;
-    }
     router.push(decision.href);
   };
 
@@ -188,6 +143,16 @@ export default function HomepageSessionActions({
           aria-busy="true"
           className={primaryClass(tone, variant)}
           data-homepage-primary-session-action="checking"
+        >
+          {label}
+        </button>
+      ) : hasError ? (
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className={primaryClass(tone, variant)}
+          data-homepage-primary-session-action="error"
         >
           {label}
         </button>

@@ -1463,26 +1463,24 @@ describe("cloud pizza session foundation", () => {
 
   it("prioritizes cloud Active Pizza Sessions for signed-in continuation", () => {
     const continueCard = source("components/ContinuePizzaSessionCard.tsx");
+    const resolver = source("lib/canonical-active-pizza-session.ts");
     const restore = source("lib/cloud-pizza-session-restore.ts");
 
-    expect(continueCard).toContain("const localSession = getActivePizzaSession() ?? null");
-    expect(continueCard).toContain("if (!data.session?.user)");
-    expect(continueCard).toContain("fetch(\"/api/pizza-sessions/active\"");
-    expect(continueCard.indexOf("if (!data.session?.user)")).toBeLessThan(continueCard.indexOf("setSession(localSession)"));
-    expect(continueCard.indexOf("setSession(localSession)")).toBeLessThan(continueCard.indexOf("fetch(\"/api/pizza-sessions/active\""));
-    expect(continueCard).toContain("resolveHomepageActiveSession(localSession, row)");
-    expect(continueCard).toContain("setCloudSession(decision.cloudRow)");
-    expect(continueCard).toContain("setSession(null)");
-    expect(continueCard).toContain("clearCloudBackedPizzaSession()");
-    expect(continueCard).toContain("cloudBackedPizzaSessionRowId(localSession)");
+    expect(continueCard).toContain("resolveCanonicalActivePizzaSession()");
+    expect(continueCard).toContain("setSession(decision.state === \"active\" ? decision.session : null)");
+    expect(continueCard).toContain("setCloudSession(decision.state === \"active\" ? decision.cloudRow : null)");
+    expect(resolver).toContain("fetchActiveCloudPizzaSession");
+    expect(resolver).toContain("chooseCanonicalActivePizzaSession");
+    expect(resolver).toContain("local?.id === cloud.id");
+    expect(resolver).toContain("restoreCloudPizzaSessionToLocal");
+    expect(resolver).toContain("promoteLocalPizzaSessionToCloud");
     expect(continueCard).toContain("Active pizza session");
     expect(continueCard).toContain("summary.statusLine");
     expect(continueCard).toContain("Continue Pizza Session");
-    expect(continueCard).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
     expect(restore).toContain("savePizzaSession(session, storage)");
     expect(restore).toContain("setActivePizzaSession(restored.id, storage)");
     expect(restore).toContain("markCloudBackedPizzaSession(restored.id, row.id, storage)");
-    expect(continueCard).toContain("router.push(deriveActiveSessionResumeRoute(restored))");
+    expect(continueCard).toContain("router.push(deriveActiveSessionResumeRoute(session))");
   });
 
   it("promotes signed-in Start Pizza Session changes to cloud without changing guest-local storage", () => {
@@ -1527,11 +1525,15 @@ describe("cloud pizza session foundation", () => {
     expect(syncComponent).toContain("lastSyncedKey");
     expect(syncComponent).toContain("session.updatedAt");
     expect(syncComponent).toContain("session.lastSavedAt");
-    [recipePage, shoppingPage, timelinePage, kitchenPage, reviewPage].forEach((page) => {
+    [recipePage, shoppingPage, timelinePage, kitchenPage].forEach((page) => {
+      expect(page).toContain("resolveCanonicalActivePizzaSession");
       expect(page).toContain("CloudPizzaSessionSync");
       expect(page).toContain("<CloudPizzaSessionSync session={session} />");
     });
-    expect(reviewPage).toContain("saveCloudActivePizzaSession(completed)");
+    expect(reviewPage).toContain("resolveCanonicalActivePizzaSession");
+    expect(reviewPage).toContain('session.status !== "completed" && <CloudPizzaSessionSync session={session} />');
+    expect(reviewPage).not.toContain("saveCloudActivePizzaSession(completed)");
+    expect(reviewPage).toContain("mustCompleteCloud");
     expect(reviewPage).toContain("completeCloudBackedPizzaSession(completed)");
   });
 
@@ -1582,8 +1584,7 @@ describe("cloud pizza session foundation", () => {
     expect(accountPage).toContain("user.email");
     expect(accountPage).toContain("t.signOut");
     expect(accountPage).not.toContain("Your password is handled by Supabase and is not stored in DoughTools code.");
-    expect(accountCard).toContain("fetch(\"/api/pizza-sessions/active\"");
-    expect(accountCard).toContain("if (!row) clearCloudBackedActivePizzaSessionPointer()");
+    expect(accountCard).toContain("resolveCanonicalActivePizzaSession()");
     expect(accountCard).toContain("summary.title");
     expect(accountCard).toContain("summary.doughLine");
     expect(accountCard).toContain("summary.bakeLine");

@@ -5,14 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { buttonClass, focusRingClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
+import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import {
   clearCloudBackedActivePizzaSessionPointer,
   queueCloudActivePizzaSessionSave,
 } from "@/lib/cloud-pizza-session-client";
-import { normalizeCloudPizzaSessionRow, type CloudPizzaSessionRow } from "@/lib/cloud-pizza-sessions";
-import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
 import {
   getExperienceLevelCornerAccentStyle,
   readExperienceLevelPreference,
@@ -42,7 +42,6 @@ import {
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DEFAULT_SESSION_YEAST_TYPE, normalizeSessionYeastType, sessionYeastTypeOptions } from "@/lib/yeast-types";
 
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
@@ -487,52 +486,6 @@ function StartPizzaSessionLoading() {
   );
 }
 
-function SessionConflictChoice({
-  localSession,
-  cloudRow,
-  onContinueLocal,
-  onContinueCloud,
-}: {
-  localSession: PizzaSession;
-  cloudRow: CloudPizzaSessionRow;
-  onContinueLocal: () => void;
-  onContinueCloud: (row: CloudPizzaSessionRow) => void;
-}) {
-  const cloudSession = cloudRow.session_data as PizzaSession;
-  const formatUpdated = (value: string) => new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-
-  return (
-    <main className="min-h-screen bg-cream px-4 py-8 text-ink sm:px-6 sm:py-12">
-      <div className="mx-auto max-w-4xl rounded-[2rem] border border-ink/10 bg-white p-6 shadow-card sm:p-8">
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Choose pizza plan</p>
-        <h1 className="mt-3 font-display text-4xl font-semibold leading-none">You have two active pizza plans.</h1>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
-          Pick which plan to continue. DoughTools will not silently replace this device’s plan or the plan saved to your account.
-        </p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <button type="button" onClick={onContinueLocal} className="rounded-[1.5rem] border border-leaf/25 bg-leaf/[.07] p-5 text-left transition hover:border-leaf/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
-            <span className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">This device</span>
-            <span className="mt-2 block font-display text-2xl font-semibold">Continue this device’s plan</span>
-            <span className="mt-3 block text-sm leading-6 text-ink/60">
-              Last saved {formatUpdated(localSession.lastSavedAt)} · {localSession.pizzaCount ?? "No"} pizzas · {localSession.targetEatTime ? formatTargetTime(localSession.targetEatTime) : "time not set"}
-            </span>
-          </button>
-          <button type="button" onClick={() => onContinueCloud(cloudRow)} className="rounded-[1.5rem] border border-tomato/25 bg-tomato/[.06] p-5 text-left transition hover:border-tomato/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-            <span className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Account</span>
-            <span className="mt-2 block font-display text-2xl font-semibold">Continue saved plan</span>
-            <span className="mt-3 block text-sm leading-6 text-ink/60">
-              Last saved {formatUpdated(cloudSession.lastSavedAt)} · {cloudSession.pizzaCount ?? "No"} pizzas · {cloudSession.targetEatTime ? formatTargetTime(cloudSession.targetEatTime) : "time not set"}
-            </span>
-          </button>
-        </div>
-      </div>
-    </main>
-  );
-}
-
 function ReplaceActiveSessionChoice({
   existingSession,
   onContinueExisting,
@@ -571,8 +524,8 @@ function StartPizzaSessionContent() {
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<PizzaSession | null>(null);
-  const [conflictCloudRow, setConflictCloudRow] = useState<CloudPizzaSessionRow | null>(null);
   const [replaceCandidate, setReplaceCandidate] = useState<PizzaSession | null>(null);
+  const [loadError, setLoadError] = useState("");
   const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
@@ -610,34 +563,15 @@ function StartPizzaSessionContent() {
 
       let active = shouldStartNewSession ? undefined : existingBeforeNew;
       if (!shouldStartNewSession && !shouldPreserveLocalHandoff) {
-        try {
-          const supabase = getSupabaseBrowserClient();
-          const { data } = await supabase.auth.getSession();
-          if (data.session?.user) {
-            const response = await fetch("/api/pizza-sessions/active", { method: "GET" });
-            if (response.ok) {
-              const payload = await response.json().catch(() => ({}));
-              const row = normalizeCloudPizzaSessionRow(payload.session);
-              if (row) {
-                const cloudPizzaSession = row.session_data as PizzaSession;
-                if (active && cloudPizzaSession.id !== active.id) {
-                  if (!mounted) return;
-                  setExperienceLevel(preferredLevel);
-                  setSession(active);
-                  setConflictCloudRow(row);
-                  setReady(true);
-                  return;
-                }
-                active = restoreCloudPizzaSessionToLocal(row);
-              } else {
-                clearCloudBackedActivePizzaSessionPointer();
-                active = undefined;
-              }
-            }
-          }
-        } catch {
-          // Fall back to the browser-local guest flow if account lookup is unavailable.
+        const canonical = await resolveCanonicalActivePizzaSession();
+        if (!mounted) return;
+        if (canonical.state === "error") {
+          setExperienceLevel(preferredLevel);
+          setLoadError(canonical.error);
+          setReady(true);
+          return;
         }
+        active = canonical.state === "active" ? canonical.session : undefined;
       }
 
       const shouldPersistInitialSession = Boolean(active);
@@ -695,7 +629,7 @@ function StartPizzaSessionContent() {
   }, [ready, searchParams]);
 
   useEffect(() => {
-    if (!ready || !session || conflictCloudRow) return;
+    if (!ready || !session) return;
     if (getActivePizzaSession()?.id !== session.id) return;
     const cloudSaveKey = [
       session.id,
@@ -713,7 +647,7 @@ function StartPizzaSessionContent() {
     }).catch(() => {
       // Keep the local guest/session flow usable if account sync is unavailable.
     });
-  }, [ready, session, conflictCloudRow]);
+  }, [ready, session]);
 
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);
@@ -877,6 +811,19 @@ function StartPizzaSessionContent() {
     || (step === "flour" && Boolean(session?.flour || session?.flourSituation || session?.availableFlourWRanges?.length))
     || step === "summary";
 
+  if (loadError) {
+    return (
+      <SessionRouteState
+        action={{ href: "/", label: "Back to homepage" }}
+        body="We could not verify your active account pizza session. Try again before starting or changing a plan."
+        eyebrow="Pizza Session"
+        onRetry={() => window.location.reload()}
+        title="We couldn’t open setup."
+        variant="error"
+      />
+    );
+  }
+
   if (!ready || !session) {
     if (ready && replaceCandidate) {
       return (
@@ -891,24 +838,6 @@ function StartPizzaSessionContent() {
       );
     }
     return <StartPizzaSessionLoading />;
-  }
-
-  if (conflictCloudRow) {
-    return (
-      <SessionConflictChoice
-        localSession={session}
-        cloudRow={conflictCloudRow}
-        onContinueLocal={() => {
-          setConflictCloudRow(null);
-          router.replace(pizzaSessionContinueHref(session));
-        }}
-        onContinueCloud={(row) => {
-          const restored = restoreCloudPizzaSessionToLocal(row);
-          setConflictCloudRow(null);
-          if (restored) router.push(pizzaSessionContinueHref(restored));
-        }}
-      />
-    );
   }
 
   const selectedOvenLabel = session.pizzaStyle ? sessionStyleLabels[session.pizzaStyle] : undefined;

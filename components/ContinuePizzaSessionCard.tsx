@@ -5,24 +5,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   cloudPizzaSessionSummary,
-  normalizeCloudPizzaSessionRow,
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
 import {
-  clearCloudBackedPizzaSession,
-  cloudBackedPizzaSessionRowId,
-} from "@/lib/cloud-pizza-session-client";
-import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
-import {
   deriveActiveSessionResumeRoute,
-  resolveHomepageActiveSession,
-} from "@/lib/homepage-active-session";
+  resolveCanonicalActivePizzaSession,
+} from "@/lib/canonical-active-pizza-session";
 import { pizzaSessionContinueHref, type PizzaSession } from "@/lib/pizza-session";
 import {
-  getActivePizzaSession,
   PIZZA_SESSION_LOCAL_ONLY_COPY,
 } from "@/lib/pizza-session-storage";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type ContinuePizzaSessionCardProps = {
   className?: string;
@@ -53,51 +45,10 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
     let mounted = true;
 
     async function loadCloudSession() {
-      const localSession = getActivePizzaSession() ?? null;
-      try {
-        const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase.auth.getSession();
-        if (!data.session?.user) {
-          if (mounted) {
-            setSession(localSession);
-            setCloudSession(null);
-          }
-          return;
-        }
-
-        const response = await fetch("/api/pizza-sessions/active", { method: "GET" });
-        if (!response.ok) {
-          if (mounted) {
-            setSession(localSession);
-            setCloudSession(null);
-          }
-          return;
-        }
-        const payload = await response.json().catch(() => ({}));
-        const row = normalizeCloudPizzaSessionRow(payload.session);
-        const decision = resolveHomepageActiveSession(localSession, row);
-        if (decision.state === "active" && decision.source === "cloud" && decision.cloudRow) {
-          if (mounted) {
-            setCloudSession(decision.cloudRow);
-            setSession(null);
-          }
-          return;
-        }
-
-        if (!row && localSession && cloudBackedPizzaSessionRowId(localSession)) {
-          clearCloudBackedPizzaSession();
-        }
-
-        if (mounted) {
-          setSession(decision.state === "active" ? decision.session : null);
-          setCloudSession(null);
-        }
-      } catch {
-        if (mounted) {
-          setSession(localSession);
-          setCloudSession(null);
-        }
-      } finally {
+      const decision = await resolveCanonicalActivePizzaSession();
+      if (mounted) {
+        setSession(decision.state === "active" ? decision.session : null);
+        setCloudSession(decision.state === "active" ? decision.cloudRow : null);
         if (mounted) setReady(true);
       }
     }
@@ -111,10 +62,8 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
   if (!ready || (!session && !cloudSession)) return null;
 
   const continueCloudSession = () => {
-    if (!cloudSession) return;
-    const restored = restoreCloudPizzaSessionToLocal(cloudSession);
-    if (!restored) return;
-    router.push(deriveActiveSessionResumeRoute(restored));
+    if (!session) return;
+    router.push(deriveActiveSessionResumeRoute(session));
   };
 
   if (cloudSession) {

@@ -192,7 +192,7 @@ Canonical examples:
 - Public planning entry: `Plan my next pizza`
 - Plan creation inside the start flow: `Create my pizza plan`
 - Known active plan continuation: `Continue my plan`
-- Saved-plan recovery: `Continue saved plan`
+- Account-backed active session continuation: `Continue my pizza`
 - Workflow progression: `Continue to Shopping`, `Continue to Timeline`, `Start Kitchen Mode`, `Review my pizza`, `Finish session`
 - Tool actions: `Calculate my dough`, `Calculate my sauce`, `Estimate my pizza cost`, `Diagnose my dough`, `Build my topping balance`, `Start the timer`
 
