@@ -401,7 +401,7 @@ export default function SessionTimelinePage() {
     <div className={cardClass({ className: "p-4 shadow-sm sm:p-5", variant: "success" })} data-testid="timeline-current-action-card">
       <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
         <dl className="mb-4 grid gap-2 rounded-[1.25rem] border border-leaf/15 bg-white/80 p-3 sm:grid-cols-3">
-          <div className="min-w-0">
+          <div className="hidden min-w-0 sm:block">
             <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Target</dt>
             <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{formatShortDateTime(targetTime)}</dd>
           </div>
@@ -411,7 +411,7 @@ export default function SessionTimelinePage() {
               {currentLiveTiming.label}{currentLiveTiming.value ? ` ${currentLiveTiming.value}` : ""}
             </dd>
           </div>
-          <div className="min-w-0">
+          <div className="hidden min-w-0 sm:block">
             <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Kitchen Mode</dt>
             <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{kitchenModeAvailability}</dd>
           </div>
@@ -453,7 +453,7 @@ export default function SessionTimelinePage() {
             {stepProgressLabel}
           </span>
         </div>
-        <div className="mt-4 flex items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65">
+        <div className="mt-4 hidden items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65 sm:flex">
           {followingActionStep && (
             <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ring-1 ${timelineStepIconTone(followingActionStep)}`} aria-hidden="true">
               <DoughToolsIcon name={timelineStepIcon(followingActionStep)} size={16} strokeWidth={2.1} />

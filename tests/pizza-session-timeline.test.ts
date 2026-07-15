@@ -1012,6 +1012,8 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("Now");
     expect(page).toContain("Planned for");
     expect(page).toContain("Next:");
+    expect(page).toContain('<div className="hidden min-w-0 sm:block">');
+    expect(page).toContain('<div className="mt-4 hidden items-start gap-2 border-t border-ink/10 pt-3 text-sm font-extrabold leading-6 text-ink/65 sm:flex">');
     expect(page).toContain("formatTimelineLiveTiming(currentActionTime, currentTime)");
     expect(page).toContain("formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime)");
     expect(page).toContain("const nextStepSummary = followingActionStep");
