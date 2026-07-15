@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SiteFooter from "@/components/SiteFooter";
+import { formatBakeTimerClock, normalizeBakeTimerDuration, type BakeTimerStatus } from "@/lib/bake-timer";
 import { pizzaStyleById } from "@/lib/pizza-styles";
 import { settingsFromUrl } from "@/lib/recipe-url";
 import type { PizzaStyleId, RecipeSettings } from "@/lib/saved-recipes";
 
-type TimerStatus = "idle" | "running" | "paused" | "overtime" | "expired";
 type WakeStatus = "idle" | "active" | "unsupported" | "failed";
 type LightMode = "off" | "torch" | "screen";
 type WakeLockLike = { release: () => Promise<void>; addEventListener: (type: "release", listener: () => void) => void; released?: boolean };
@@ -29,7 +29,7 @@ const copy = {
   },
 } as const;
 
-const clock = (seconds: number) => `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${Math.floor(seconds % 60).toString().padStart(2, "0")}`;
+const clock = formatBakeTimerClock;
 
 export default function TimerPage() {
   const [ready, setReady] = useState(false);
@@ -37,7 +37,7 @@ export default function TimerPage() {
   const [duration, setDuration] = useState(90);
   const [remaining, setRemaining] = useState(90);
   const [overtime, setOvertime] = useState(0);
-  const [status, setStatus] = useState<TimerStatus>("idle");
+  const [status, setStatus] = useState<BakeTimerStatus>("idle");
   const [wakeStatus, setWakeStatus] = useState<WakeStatus>("idle");
   const [muted, setMuted] = useState(false);
   const [lightMode, setLightMode] = useState<LightMode>("off");
@@ -53,7 +53,7 @@ export default function TimerPage() {
     const shared = settingsFromUrl(location.search);
     const nextSettings = { ...defaults, ...Object.fromEntries(Object.entries(shared).filter(([, value]) => value !== undefined)) } as RecipeSettings;
     const styleId = pizzaStyleById(nextSettings.pizzaStyleId, nextSettings.goal).id;
-    const initial = Math.max(10, Math.min(1800, Number(new URLSearchParams(location.search).get("timer")) || styleSeconds[styleId]));
+    const initial = normalizeBakeTimerDuration(Number(new URLSearchParams(location.search).get("timer")) || styleSeconds[styleId], styleSeconds[styleId]);
     setSettings(nextSettings); setDuration(initial); setRemaining(initial); document.documentElement.lang = "en"; setReady(true);
   }, []);
 
@@ -145,7 +145,7 @@ export default function TimerPage() {
   const pause = () => { const seconds = Math.max(0, Math.ceil((endAt.current - Date.now()) / 1000)); setRemaining(seconds); setStatus("paused"); void releaseWakeLock(); setWakeStatus("idle"); };
   const reset = () => { setStatus("idle"); setRemaining(duration); setOvertime(0); lastBeep.current = null; void releaseWakeLock(); setWakeStatus("idle"); };
   const chooseDuration = (seconds: number) => { if (status === "running" || status === "overtime") return; setDuration(seconds); setRemaining(seconds); setOvertime(0); setStatus("idle"); };
-  const adjust = (change: number) => chooseDuration(Math.max(10, Math.min(1800, duration + change)));
+  const adjust = (change: number) => chooseDuration(normalizeBakeTimerDuration(duration + change, duration));
   const timerValue = status === "overtime" || status === "expired" ? `+${clock(overtime)}` : clock(remaining);
   const statusText = status === "idle" ? t.ready : status === "running" ? remaining <= 10 ? `${remaining} ${t.secondsLeft}` : t.running : status === "paused" ? t.paused : status === "overtime" ? t.overtime : t.expired;
   const wakeText = wakeStatus === "active" ? t.wakeActive : wakeStatus === "unsupported" ? t.wakeUnsupported : wakeStatus === "failed" ? t.wakeFailed : t.wakeIdle;

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomActionBar, buttonClass } from "@/components/design-system";
 import { DoughToolsIcon } from "@/components/icons";
 import { CloudPizzaSessionSync } from "@/components/session/CloudPizzaSessionSync";
+import { clearKitchenBakeTimerState, KitchenBakeTimerPanel } from "@/components/session/KitchenBakeTimerPanel";
 import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
 import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
@@ -20,6 +21,7 @@ import {
 } from "@/lib/pizza-session";
 import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-troubleshooting-links";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
+import { getPizzaSessionBakeProfileForSession } from "@/lib/pizza-session-bake-profile";
 import {
   formatRuntimeClockTime,
   hasStepActuallyStarted,
@@ -314,6 +316,8 @@ export default function SessionKitchenPage() {
   const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, now);
   const currentStepIsRuntimeWork = isRuntimeDoughWorkStep(currentStep);
   const currentStepHasStarted = hasStepActuallyStarted(session, currentStep?.id);
+  const bakeProfile = getPizzaSessionBakeProfileForSession(session);
+  const showBakeTimer = currentStep?.id === "bake-pizza";
   const doughGuideLink = getDoughGuideLinkForSessionStep(currentStep, "/session/kitchen");
   const ovenTroubleshootingLink = isOvenTroubleshootingStep(currentStep) ? bakingTroubleshootingLink : null;
   const doughGuideHref = doughGuideLink ? buildContextualReturnHref(doughGuideLink.href) : null;
@@ -408,6 +412,7 @@ export default function SessionKitchenPage() {
     if (!session || !currentStep) return;
     const updated = completeKitchenTimelineStep(session, currentStep.id);
     if (!updated) return;
+    if (currentStep.id === "bake-pizza") clearKitchenBakeTimerState(session.id);
     queueKitchenProgressSync(updated);
     setConfirmEarlyCompletion(false);
     setSession(updated);
@@ -547,6 +552,15 @@ export default function SessionKitchenPage() {
                       </details>
                     </section>
                   </div>
+
+                  {showBakeTimer && (
+                    <KitchenBakeTimerPanel
+                      sessionId={session.id}
+                      durationSeconds={bakeProfile.bakeDurationSeconds}
+                      durationLabel={bakeProfile.bakeTimeLabel}
+                      pizzaCount={lockedPizzaCount}
+                    />
+                  )}
 
                   {waitInfo.isTooEarly && waitInfo.waitLabel && (
                     <div className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
