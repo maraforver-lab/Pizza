@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { BottomActionBar, buttonClass, focusRingClass } from "@/components/design-system";
+import { buttonClass, focusRingClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { SessionExperienceLevelBadge } from "@/components/session/SessionExperienceLevelBadge";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
@@ -1002,7 +1002,7 @@ function StartPizzaSessionContent() {
           style={levelMainAccent}
           aria-live="polite"
         >
-          <div className="mb-3 lg:hidden">
+          <div className="hidden">
             <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
               <span>{step === "summary" ? "Setup ready" : `Setup step ${setupProgress} of ${wizardSteps.length}`}</span>
             </div>
@@ -1020,7 +1020,8 @@ function StartPizzaSessionContent() {
 
           <div className="mb-4 flex flex-col gap-3 pb-1 sm:mb-5 sm:flex-row sm:items-start sm:justify-between [@media_(min-width:1024px)_and_(max-height:860px)]:mb-3 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-2">
             <div className="min-w-0">
-              <SessionExperienceLevelBadge level={experienceLevel} className="mb-3" />
+              <SessionExperienceLevelBadge level={experienceLevel} compact className="mb-3 sm:hidden" />
+              <SessionExperienceLevelBadge level={experienceLevel} className="mb-3 hidden sm:inline-flex" />
               <h2 className="font-display text-3xl font-semibold leading-none sm:text-4xl [@media_(min-width:1024px)_and_(max-height:860px)]:text-3xl">
                 {wizardStepQuestions[step]}
               </h2>
@@ -1410,14 +1411,23 @@ function StartPizzaSessionContent() {
             </div>
           )}
 
-          <BottomActionBar
-            back={(
-              <button type="button" onClick={backStep} disabled={step === "path"} className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}>
+          <div className="sticky bottom-0 z-20 -mx-4 mt-5 flex items-center gap-3 border-t border-ink/10 bg-background-page/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:mt-6 sm:justify-between sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4 sm:backdrop-blur-none">
+            <div className={step === "path" ? "hidden shrink-0 sm:block" : "shrink-0"}>
+              {step !== "path" && (
+                <button
+                  type="button"
+                  onClick={backStep}
+                  aria-label="Back"
+                  className={buttonClass({ className: "h-12 w-12 px-0 sm:hidden", variant: "secondary" })}
+                >
+                  <DoughToolsIcon name="back" size={20} />
+                </button>
+              )}
+              <button type="button" onClick={backStep} disabled={step === "path"} className={buttonClass({ className: "hidden sm:inline-flex sm:w-auto", variant: "secondary" })}>
                 Back
               </button>
-            )}
-            primary={(
-              <div className="flex flex-col gap-2 sm:items-end">
+            </div>
+            <div className="min-w-0 flex-1 sm:flex-none">
               {step !== "summary" ? (
                 <button type="button" onClick={continueStep} disabled={!canContinue} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
                   Continue setup
@@ -1428,8 +1438,7 @@ function StartPizzaSessionContent() {
                 </button>
               )}
             </div>
-            )}
-          />
+          </div>
         </section>
       </div>
     </main>

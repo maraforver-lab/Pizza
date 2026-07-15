@@ -259,11 +259,12 @@ describe("Start Pizza Session wizard", () => {
 
     expect(journeyProgressUses).toHaveLength(1);
     expect(page).toContain('<aside className="hidden rounded-[1.75rem]');
-    expect(page).toContain('<div className="mb-3 lg:hidden">');
+    expect(page).toContain('<div className="hidden">');
     expect(page).toContain('aria-label="Pizza Session journey"');
     expect(page).toContain('aria-label="Pizza Session setup progress"');
     expect(page).toContain("setup complete. Dough Plan next.");
-    expect(page).toContain("<SessionExperienceLevelBadge level={experienceLevel}");
+    expect(page).toContain('<SessionExperienceLevelBadge level={experienceLevel} compact className="mb-3 sm:hidden" />');
+    expect(page).toContain('<SessionExperienceLevelBadge level={experienceLevel} className="mb-3 hidden sm:inline-flex" />');
     expect(page).not.toContain("GuidanceModeBadge");
     expect(page).not.toContain("Pizza Session V2");
     expect(page).not.toContain("{experience.marker} Guidance mode: {experience.label}");
@@ -339,6 +340,11 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const continueToRecipe = () =>");
     expect(page).toContain("router.push(\"/session/recipe\")");
     expect(page).toContain("onClick={continueToRecipe}");
+    expect(page).toContain('aria-label="Back"');
+    expect(page).toContain('name="back"');
+    expect(page).toContain('step !== "path" &&');
+    expect(page).toContain('h-12 w-12 px-0 sm:hidden');
+    expect(page).toContain('hidden sm:inline-flex sm:w-auto');
     expect(page).not.toContain("Save and continue later");
     expect(page.match(/Create my pizza plan/g) ?? []).toHaveLength(1);
     expect(page).toContain("Back");
@@ -835,7 +841,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("pizza_nerd");
     expect(page).toContain("getExperienceLevelCornerAccentStyle");
     expect(page).toContain("const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel)");
-    expect(page).toContain("<SessionExperienceLevelBadge level={experienceLevel}");
+    expect(page).toContain('<SessionExperienceLevelBadge level={experienceLevel} compact className="mb-3 sm:hidden" />');
+    expect(page).toContain('<SessionExperienceLevelBadge level={experienceLevel} className="mb-3 hidden sm:inline-flex" />');
     expect(levels).toContain("Beginner");
     expect(levels).toContain("Enthusiast");
     expect(levels).toContain("Pizza Nerd");
