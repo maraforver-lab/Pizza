@@ -52,6 +52,7 @@ import {
   validatePizzaPhotoRelevance,
 } from "@/lib/pizza-photo-relevance";
 import { createPizzaSession } from "@/lib/pizza-session";
+import { getKitchenModeState } from "@/lib/pizza-session-kitchen";
 import {
   getActivePizzaSession,
   PIZZA_SESSIONS_STORAGE_KEY,
@@ -1168,6 +1169,53 @@ describe("cloud pizza session foundation", () => {
     expect(restored?.timeline?.steps[0].status).toBe("done");
     expect(restored?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
     expect(getActivePizzaSession(storage)?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
+  });
+
+  it("restores effective Kitchen countdowns from cloud timeline and stepRuntime without new persisted fields", () => {
+    const kitchenSession = createPizzaSession({
+      id: "kitchen-cloud-effective-countdown",
+      currentStep: "prep",
+      status: "preparing",
+      timeline: {
+        generatedAt: "2026-07-04T10:00:00.000Z",
+        targetEatTime: "2026-07-04T20:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done", kind: "active", scheduledAt: "2026-07-04T10:00:00.000Z" },
+          { id: "rest-dough", label: "Rest dough", status: "todo", kind: "passive", scheduledAt: "2026-07-04T10:30:00.000Z" },
+          { id: "room-ferment", label: "Room temperature ferment", status: "todo", kind: "passive", scheduledAt: "2026-07-04T11:00:00.000Z" },
+          { id: "ball-dough", label: "Ball dough", status: "todo", kind: "active", scheduledAt: "2026-07-04T18:00:00.000Z" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-04T10:05:00.000Z",
+          actualCompletedAt: "2026-07-04T10:20:00.000Z",
+        },
+      },
+      updatedAt: "2026-07-04T10:20:00.000Z",
+      lastSavedAt: "2026-07-04T10:20:00.000Z",
+    });
+    const row = normalizeCloudPizzaSessionRow({
+      id: "cloud-kitchen-effective-countdown",
+      user_id: "user-1",
+      status: "in_progress",
+      title: "Active pizza session",
+      current_step: "prep",
+      session_data: kitchenSession,
+      created_at: "2026-07-04T10:00:00.000Z",
+      updated_at: "2026-07-04T10:21:00.000Z",
+      completed_at: null,
+    })!;
+    const storage = new MemoryStorage();
+    const restored = restoreCloudPizzaSessionToLocal(row, storage);
+    const state = getKitchenModeState(restored, new Date("2026-07-04T10:25:00.000Z"));
+
+    expect(state.ok).toBe(true);
+    if (!state.ok || !state.currentStep) throw new Error("Expected restored Kitchen state");
+    expect(state.currentStep.id).toBe("rest-dough");
+    expect(state.currentStep.runtimeStartsAt).toBe("2026-07-04T10:20:00.000Z");
+    expect(state.currentStep.scheduledAt).toBe("2026-07-04T10:50:00.000Z");
+    expect(restored?.timeline?.steps.find((step) => step.id === "rest-dough")?.scheduledAt).toBe("2026-07-04T10:30:00.000Z");
   });
 
   it("does not let a Back-restored route snapshot overwrite newer Kitchen progress in the cloud queue", async () => {

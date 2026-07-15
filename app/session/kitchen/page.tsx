@@ -38,6 +38,7 @@ import {
   getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
   isMixDoughStep,
+  isBiologicalKitchenWaitStep,
   shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
 import { getActivePizzaSession } from "@/lib/pizza-session-storage";
@@ -174,9 +175,15 @@ function kitchenStartActionLabel(step?: { id: string }) {
 }
 
 function kitchenCompleteActionLabel(step?: { id: string }) {
-  if (step?.id === "mix-dough") return "Mark mixing complete →";
-  if (step?.id === "ball-dough") return "Mark balling complete →";
-  return "Mark step as done →";
+  if (step?.id === "mix-dough") return "Mixing complete";
+  if (step?.id === "rest-dough") return "Rest complete";
+  if (step?.id === "cold-ferment" || step?.id === "room-ferment" || step?.id === "ferment-dough") return "Fermentation complete";
+  if (step?.id === "ball-dough") return "Balling complete";
+  if (step?.id === "room-temperature-rest") return "Ball rest complete";
+  if (step?.id === "preheat-oven") return "Oven preheated";
+  if (step?.id === "prepare-sauce-toppings") return "Sauce and toppings ready";
+  if (step?.id === "bake-pizza") return "All pizzas baked";
+  return "Step complete";
 }
 
 const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink("Something looks wrong? Open baking troubleshooting");
@@ -316,6 +323,8 @@ export default function SessionKitchenPage() {
   const nextLiveTiming = formatTimelineLiveTiming(kitchenState.nextStep?.scheduledAt, now);
   const currentStepIsRuntimeWork = isRuntimeDoughWorkStep(currentStep);
   const currentStepHasStarted = hasStepActuallyStarted(session, currentStep?.id);
+  const currentStepIsBiologicalWait = isBiologicalKitchenWaitStep(currentStep);
+  const currentStepCompletionBlocked = currentStepIsBiologicalWait && waitInfo.isTooEarly;
   const bakeProfile = getPizzaSessionBakeProfileForSession(session);
   const showBakeTimer = currentStep?.id === "bake-pizza";
   const showToppingBalanceLink = currentStep?.id === "prepare-sauce-toppings";
@@ -431,6 +440,10 @@ export default function SessionKitchenPage() {
 
   const markDone = () => {
     if (!currentStep) return;
+    if (currentStepCompletionBlocked) {
+      setCurrentTime(new Date());
+      return;
+    }
     if (currentStepIsRuntimeWork && !currentStepHasStarted) {
       startCurrentStep();
       return;
@@ -491,6 +504,17 @@ export default function SessionKitchenPage() {
                         )}
                       </p>
                     </div>
+
+                    {kitchenState.executionConflict && (
+                      <div className="rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
+                        <p className="text-sm font-extrabold leading-6 text-tomato">
+                          This dough process is running {formatKitchenDuration(kitchenState.executionConflict.delayMinutes * 60_000)} late.
+                        </p>
+                        <p className="mt-1 text-sm font-bold leading-6 text-ink/65">
+                          Dough readiness is now {formatKitchenStepTime(kitchenState.executionConflict.readyAt)}. Original target: {formatKitchenStepTime(kitchenState.executionConflict.originalTargetAt)}.
+                        </p>
+                      </div>
+                    )}
 
                     <section className="rounded-[1.25rem] bg-cream/80 p-4" aria-labelledby="kitchen-step-guidance-heading">
                       <p id="kitchen-step-guidance-heading" className="sr-only">Current task instruction</p>
@@ -578,12 +602,12 @@ export default function SessionKitchenPage() {
                   )}
 
                   {waitInfo.isTooEarly && waitInfo.waitLabel && (
-                    <div className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
+                    <div id="kitchen-wait-status" className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
                       <p className="text-sm font-extrabold leading-6 text-tomato">
                         {waitInfo.waitLabel} before this step.
                       </p>
                       <p className="mt-1 text-sm font-bold leading-6 text-ink/65">
-                        This step is scheduled for {formatKitchenStepTime(currentStep.scheduledAt)}.
+                        {currentStepIsBiologicalWait ? "This step is ready at" : "This step is scheduled for"} {formatKitchenStepTime(currentStep.scheduledAt)}.
                       </p>
                     </div>
                   )}
@@ -667,7 +691,9 @@ export default function SessionKitchenPage() {
                     <button
                       type="button"
                       onClick={markDone}
-                      className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
+                      disabled={currentStepCompletionBlocked}
+                      aria-describedby={currentStepCompletionBlocked ? "kitchen-wait-status" : undefined}
+                      className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto"
                     >
                       {currentStepIsRuntimeWork && !currentStepHasStarted
                         ? kitchenStartActionLabel(currentStep)

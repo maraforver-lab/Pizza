@@ -129,7 +129,7 @@ describe("Pizza Session flow navigation integrity", () => {
     const review = source("app/session/review/page.tsx");
 
     expect(kitchen).toContain("hideLocalSaveNote");
-    expect(kitchen).toContain("Mark step as done →");
+    expect(kitchen).toContain("All pizzas baked");
     expect(kitchen).toContain("Pizza session complete");
     expect(kitchen).toContain("Review my pizza");
     expect(kitchen).toContain('href="/session/review"');

@@ -116,8 +116,8 @@ describe("Pizza Session timeline", () => {
 
     expect(restStep?.plannedScheduledAt).toBe("2026-07-10T06:00:00.000Z");
     expect(restStep?.runtimeStartsAt).toBe("2026-07-10T05:53:00.000Z");
-    expect(restStep?.runtimeEndsAt).toBe("2026-07-10T06:13:00.000Z");
-    expect(restStep?.scheduledAt).toBe("2026-07-10T06:13:00.000Z");
+    expect(restStep?.runtimeEndsAt).toBe("2026-07-10T06:23:00.000Z");
+    expect(restStep?.scheduledAt).toBe("2026-07-10T06:23:00.000Z");
     expect(session.timeline?.steps.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe("2026-07-10T06:20:00.000Z");
   });
 

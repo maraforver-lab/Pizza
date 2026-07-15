@@ -79,7 +79,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("SessionStepHero");
     expect(page).not.toContain("Follow one step at a time.");
     expect(page).toContain("hideLocalSaveNote");
-    expect(page).toContain("Mark step as done");
+    expect(page).toContain("Step complete");
     expect(page).toContain("Kitchen Mode is not ready yet");
     expect(page).toContain("Build my timeline");
     expect(page).toContain("variant=\"no-session\"");
@@ -259,7 +259,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("mix-dough");
   });
 
-  it("uses actual work completion to run the following rest for its full planned duration without changing the stored schedule", () => {
+  it("uses actual Mix completion to run the following Rest for exactly 30 minutes without changing the stored schedule", () => {
     const storage = new MemoryStorage();
     const session = createAndSavePizzaSession({
       id: "kitchen-runtime-rest",
@@ -278,20 +278,196 @@ describe("Pizza Session Kitchen Mode", () => {
     if (!updated) throw new Error("Expected updated session");
 
     const originalRest = session.timeline?.steps.find((step) => step.id === "rest-dough");
-    const originalNext = session.timeline?.steps.find((step) => step.id === "bake-pizza");
     const state = getKitchenModeState(updated, new Date("2026-06-25T10:46:00.000Z"));
     if (!state.ok || !state.currentStep) throw new Error("Expected kitchen rest state");
 
-    const plannedDurationMinutes = Math.round(
-      (new Date(originalNext!.scheduledAt!).getTime() - new Date(originalRest!.scheduledAt!).getTime()) / 60_000,
-    );
-    const expectedRuntimeEnd = new Date(new Date("2026-06-25T10:45:00.000Z").getTime() + plannedDurationMinutes * 60_000).toISOString();
+    const expectedRuntimeEnd = new Date(new Date("2026-06-25T10:45:00.000Z").getTime() + 30 * 60_000).toISOString();
 
     expect(state.currentStep.id).toBe("rest-dough");
     expect(state.currentStep.scheduledAt).toBe(expectedRuntimeEnd);
     expect(updated.timeline?.steps.find((step) => step.id === "rest-dough")?.scheduledAt).toBe(originalRest?.scheduledAt);
-    expect(updated.timeline?.steps.find((step) => step.id === "bake-pizza")?.scheduledAt).toBe(originalNext?.scheduledAt);
+    expect(updated.timeline?.steps.find((step) => step.id === "bake-pizza")?.scheduledAt).toBe(sampleTimeline.steps[2].scheduledAt);
     expect(updated.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-06-25T10:45:00.000Z");
+  });
+
+  it("keeps older sessions on the planned schedule when runtime completion data is absent", () => {
+    const session = createPizzaSession({
+      id: "kitchen-legacy-no-runtime",
+      status: "preparing",
+      currentStep: "prep",
+      timeline: {
+        ...sampleTimeline,
+        steps: [
+          { ...sampleTimeline.steps[0], status: "done" },
+          sampleTimeline.steps[1],
+          sampleTimeline.steps[2],
+        ],
+      },
+    });
+
+    const state = getKitchenModeState(session, new Date("2026-06-25T10:46:00.000Z"));
+    if (!state.ok || !state.currentStep) throw new Error("Expected planned fallback state");
+
+    expect(state.currentStep.id).toBe("rest-dough");
+    expect(state.currentStep.scheduledAt).toBe(sampleTimeline.steps[1].scheduledAt);
+    expect(state.currentStep.runtimeStartsAt).toBeUndefined();
+  });
+
+  it("preserves the original room fermentation duration after the mandatory Rest runtime", () => {
+    const session = createPizzaSession({
+      id: "kitchen-room-fermentation-runtime",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "12h-room" },
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        targetEatTime: "2026-07-11T08:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-10T15:26:00.000Z", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T15:56:00.000Z", status: "done", kind: "passive" },
+          { id: "room-ferment", label: "Room temperature ferment", scheduledAt: "2026-07-10T16:26:00.000Z", status: "todo", kind: "passive" },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T02:26:00.000Z", status: "todo", kind: "active" },
+          { id: "room-temperature-rest", label: "Room temperature rest", scheduledAt: "2026-07-11T03:26:00.000Z", status: "todo", kind: "passive" },
+          { id: "preheat-oven", label: "Preheat oven", scheduledAt: "2026-07-11T05:26:00.000Z", status: "todo", kind: "active" },
+          { id: "bake-pizza", label: "Bake pizza", scheduledAt: "2026-07-11T08:00:00.000Z", status: "todo", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-10T15:26:00.000Z",
+          actualCompletedAt: "2026-07-10T15:46:00.000Z",
+        },
+        "rest-dough": {
+          actualStartedAt: "2026-07-10T15:46:00.000Z",
+          actualCompletedAt: "2026-07-10T16:16:00.000Z",
+        },
+      },
+    });
+
+    const state = getKitchenModeState(session, new Date("2026-07-10T16:20:00.000Z"));
+    if (!state.ok || !state.currentStep) throw new Error("Expected fermentation state");
+
+    expect(state.currentStep.id).toBe("room-ferment");
+    expect(state.currentStep.scheduledAt).toBe("2026-07-11T02:16:00.000Z");
+    expect(state.currentStep.runtimeStartsAt).toBe("2026-07-10T16:16:00.000Z");
+    expect(session.timeline?.steps.find((step) => step.id === "room-ferment")?.scheduledAt).toBe("2026-07-10T16:26:00.000Z");
+  });
+
+  it("preserves 24 hour cold fermentation from the effective Rest completion", () => {
+    const session = createPizzaSession({
+      id: "kitchen-cold-fermentation-runtime",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "24h-cold" },
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        targetEatTime: "2026-07-12T08:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-10T15:26:00.000Z", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T15:56:00.000Z", status: "done", kind: "passive" },
+          { id: "cold-ferment", label: "Cold fermentation", scheduledAt: "2026-07-10T16:26:00.000Z", status: "todo", kind: "passive" },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T16:26:00.000Z", status: "todo", kind: "active" },
+          { id: "room-temperature-rest", label: "Room temperature rest", scheduledAt: "2026-07-11T17:26:00.000Z", status: "todo", kind: "passive" },
+          { id: "preheat-oven", label: "Preheat oven", scheduledAt: "2026-07-11T19:26:00.000Z", status: "todo", kind: "active" },
+          { id: "bake-pizza", label: "Bake pizza", scheduledAt: "2026-07-12T08:00:00.000Z", status: "todo", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualStartedAt: "2026-07-10T15:26:00.000Z",
+          actualCompletedAt: "2026-07-10T16:10:00.000Z",
+        },
+        "rest-dough": {
+          actualStartedAt: "2026-07-10T16:10:00.000Z",
+          actualCompletedAt: "2026-07-10T16:40:00.000Z",
+        },
+      },
+    });
+
+    const state = getKitchenModeState(session, new Date("2026-07-10T16:45:00.000Z"));
+    if (!state.ok || !state.currentStep) throw new Error("Expected cold fermentation state");
+
+    expect(state.currentStep.id).toBe("cold-ferment");
+    expect(state.currentStep.scheduledAt).toBe("2026-07-11T16:40:00.000Z");
+    expect(state.currentStep.runtimeStartsAt).toBe("2026-07-10T16:40:00.000Z");
+    expect(state.executionConflict).toBeUndefined();
+  });
+
+  it("starts warm ball rest from actual Ball completion and preserves the planned rest window", () => {
+    const session = createPizzaSession({
+      id: "kitchen-ball-rest-runtime",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "24h-cold" },
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        targetEatTime: "2026-07-12T08:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-10T15:26:00.000Z", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T15:56:00.000Z", status: "done", kind: "passive" },
+          { id: "cold-ferment", label: "Cold fermentation", scheduledAt: "2026-07-10T16:26:00.000Z", status: "done", kind: "passive" },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T16:26:00.000Z", status: "done", kind: "active" },
+          { id: "room-temperature-rest", label: "Room temperature rest", scheduledAt: "2026-07-11T17:26:00.000Z", status: "todo", kind: "passive" },
+          { id: "preheat-oven", label: "Preheat oven", scheduledAt: "2026-07-11T19:26:00.000Z", status: "todo", kind: "active" },
+          { id: "bake-pizza", label: "Bake pizza", scheduledAt: "2026-07-12T08:00:00.000Z", status: "todo", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "ball-dough": {
+          actualStartedAt: "2026-07-11T16:26:00.000Z",
+          actualCompletedAt: "2026-07-11T16:40:00.000Z",
+        },
+      },
+    });
+
+    const state = getKitchenModeState(session, new Date("2026-07-11T16:45:00.000Z"));
+    if (!state.ok || !state.currentStep) throw new Error("Expected ball rest state");
+
+    expect(state.currentStep.id).toBe("room-temperature-rest");
+    expect(state.currentStep.scheduledAt).toBe("2026-07-11T18:40:00.000Z");
+    expect(state.currentStep.runtimeStartsAt).toBe("2026-07-11T16:40:00.000Z");
+  });
+
+  it("reports a target conflict instead of shortening biological phases", () => {
+    const session = createPizzaSession({
+      id: "kitchen-target-conflict",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "12h-room" },
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        targetEatTime: "2026-07-11T20:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-11T08:00:00.000Z", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-11T08:30:00.000Z", status: "done", kind: "passive" },
+          { id: "room-ferment", label: "Room temperature ferment", scheduledAt: "2026-07-11T09:00:00.000Z", status: "todo", kind: "passive" },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T19:00:00.000Z", status: "todo", kind: "active" },
+          { id: "room-temperature-rest", label: "Room temperature rest", scheduledAt: "2026-07-11T19:15:00.000Z", status: "todo", kind: "passive" },
+          { id: "preheat-oven", label: "Preheat oven", scheduledAt: "2026-07-11T19:45:00.000Z", status: "todo", kind: "active" },
+          { id: "bake-pizza", label: "Bake pizza", scheduledAt: "2026-07-11T20:00:00.000Z", status: "todo", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualCompletedAt: "2026-07-11T10:00:00.000Z",
+        },
+        "rest-dough": {
+          actualCompletedAt: "2026-07-11T10:30:00.000Z",
+        },
+      },
+    });
+
+    const state = getKitchenModeState(session, new Date("2026-07-11T10:35:00.000Z"));
+    if (!state.ok || !state.currentStep) throw new Error("Expected target conflict state");
+
+    expect(state.currentStep.id).toBe("room-ferment");
+    expect(state.currentStep.scheduledAt).toBe("2026-07-11T20:30:00.000Z");
+    expect(state.executionConflict).toEqual({
+      delayMinutes: 75,
+      originalTargetAt: "2026-07-11T20:00:00.000Z",
+      readyAt: "2026-07-11T21:15:00.000Z",
+    });
+    expect(session.timeline?.targetEatTime).toBe("2026-07-11T20:00:00.000Z");
   });
 
   it("moves to bake and review steps without creating public or cloud behavior", () => {
@@ -444,7 +620,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Change pizza menu");
     expect(page).toContain("View full schedule");
     expect(page).toContain("href=\"/session/timeline\"");
-    expect(page).toContain("Mark step as done →");
+    expect(page).toContain("All pizzas baked");
     expect(page).toContain("setSession(updated)");
     expect(page).not.toContain("kitchenBackHrefFromSource(source)");
     expect(page).not.toContain("kitchenBackHrefFromReferrer(document.referrer)");
@@ -527,7 +703,10 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("getKitchenStepWaitInfo(currentStep, currentTime)");
     expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
     expect(page).toContain("{waitInfo.waitLabel} before this step.");
-    expect(page).toContain("This step is scheduled for {formatKitchenStepTime(currentStep.scheduledAt)}.");
+    expect(page).toContain("currentStepCompletionBlocked");
+    expect(page).toContain("This step is ready at");
+    expect(page).toContain("disabled={currentStepCompletionBlocked}");
+    expect(page).toContain("aria-describedby={currentStepCompletionBlocked ? \"kitchen-wait-status\" : undefined}");
     expect(page).toContain("This step is scheduled later");
     expect(page).toContain("Do you still want to continue?");
     expect(page).toContain("Go back");
@@ -543,7 +722,8 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("doughGuideLink.href");
     expect(page).toContain("doughGuideLink.ariaLabel");
     expect(page).toContain("{doughGuideLink.label}");
-    expect(page).toContain("Mark step as done →");
+    expect(page).toContain("kitchenCompleteActionLabel(currentStep)");
+    expect(page).toContain("Rest complete");
     expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
   });
 
@@ -557,7 +737,8 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("ovenTroubleshootingLink.href");
     expect(page).toContain("ovenTroubleshootingLink.ariaLabel");
     expect(page).toContain("{ovenTroubleshootingLink.label}");
-    expect(page).toContain("Mark step as done →");
+    expect(page).toContain("Oven preheated");
+    expect(page).toContain("All pizzas baked");
     expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
   });
 

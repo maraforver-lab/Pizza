@@ -11,7 +11,9 @@ import { timelineStepsForPlanningSummaryDisplay } from "@/lib/pizza-session-time
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { updatePizzaSession } from "@/lib/pizza-session-storage";
 import {
-  applyPizzaSessionStepRuntime,
+  deriveEffectiveKitchenSchedule,
+  type EffectiveKitchenScheduleConflict,
+  type RuntimePizzaSessionTimelineStep,
   runtimeMapWithStepCompletion,
 } from "@/lib/pizza-session-step-runtime";
 import { yeastTypeLabel } from "@/lib/yeast-types";
@@ -20,10 +22,11 @@ export type KitchenModeState =
   | { ok: false; missingReason: "no-session" | "missing-timeline" }
   | {
     ok: true;
-    currentStep?: PizzaSessionTimelineStep;
+    currentStep?: RuntimePizzaSessionTimelineStep;
     currentIndex: number;
-    nextStep?: PizzaSessionTimelineStep;
+    nextStep?: RuntimePizzaSessionTimelineStep;
     doneCount: number;
+    executionConflict?: EffectiveKitchenScheduleConflict;
     totalCount: number;
   };
 
@@ -75,7 +78,7 @@ const defaultInstruction: KitchenTaskInstruction = {
 
 export const kitchenTaskInstructions: Record<string, KitchenTaskInstruction> = {
   "mix-dough": {
-    shortInstruction: "Weigh the ingredients, mix until no dry flour remains, then cover the dough.",
+    shortInstruction: "Weigh the ingredients, mix until no dry flour remains, then cover the dough. Up to 30 minutes is reserved; the rest starts after completion.",
     beginnerWhy: "This creates the dough you will ferment, ball and bake later.",
     enthusiastWhy: "Careful weighing and complete mixing make the dough easier to repeat and diagnose.",
     pizzaNerdWhy: "Use the stored recipe snapshot here. Kitchen Mode shows saved dough numbers and does not change formulas.",
@@ -506,7 +509,12 @@ export function getKitchenModeState(session?: PizzaSession, now = new Date()): K
     anchorTime: session.timeline.anchorTime,
   });
 
-  const runtimeSteps = applyPizzaSessionStepRuntime(displaySteps, session.stepRuntime);
+  const effectiveSchedule = deriveEffectiveKitchenSchedule(
+    displaySteps,
+    session.stepRuntime,
+    session.timeline.targetEatTime ?? session.targetEatTime ?? session.targetBakeTime,
+  );
+  const runtimeSteps = effectiveSchedule.steps;
   const currentStep = runtimeSteps.find((step) => step.status === "todo" && step.id !== "review-result");
   const currentIndex = currentStep
     ? runtimeSteps.findIndex((step) => step.id === currentStep.id)
@@ -520,6 +528,7 @@ export function getKitchenModeState(session?: PizzaSession, now = new Date()): K
     currentIndex,
     nextStep,
     doneCount,
+    executionConflict: effectiveSchedule.conflict,
     totalCount: runtimeSteps.length,
   };
 }
@@ -621,6 +630,16 @@ export function shouldConfirmEarlyKitchenStepCompletion(
   now = new Date(),
 ) {
   return getKitchenStepWaitInfo(step, now).isTooEarly;
+}
+
+export function isBiologicalKitchenWaitStep(step?: Pick<PizzaSessionTimelineStep, "id">) {
+  return Boolean(step && (
+    step.id === "rest-dough"
+    || step.id === "cold-ferment"
+    || step.id === "room-ferment"
+    || step.id === "ferment-dough"
+    || step.id === "room-temperature-rest"
+  ));
 }
 
 export function completeKitchenTimelineStep(
