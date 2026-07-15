@@ -1489,12 +1489,14 @@ describe("cloud pizza session foundation", () => {
     const activeRoute = source("app/api/pizza-sessions/active/route.ts");
 
     expect(startPage).toContain("queueCloudActivePizzaSessionSave");
+    expect(startPage).toContain("materializeCloudBackedPizzaSession");
     expect(startPage).toContain("lastCloudSaveKey");
     expect(startPage).toContain("void queueCloudActivePizzaSessionSave(session).then");
     expect(startPage).toContain('result.reason !== "unauthenticated"');
-    expect(startPage).toContain("void queueCloudActivePizzaSessionSave(saved).catch");
-    expect(startPage.indexOf("const saved = savePizzaSession(readyForRecipe)")).toBeLessThan(startPage.indexOf("void queueCloudActivePizzaSessionSave(saved).catch"));
-    expect(startPage.indexOf("void queueCloudActivePizzaSessionSave(saved).catch")).toBeLessThan(startPage.indexOf("router.push(\"/session/recipe\")"));
+    expect(startPage).toContain("await materializeCloudBackedPizzaSession(saved)");
+    expect(startPage.indexOf("const saved = savePizzaSession(readyForRecipe)")).toBeLessThan(startPage.indexOf("await materializeCloudBackedPizzaSession(saved)"));
+    expect(startPage.indexOf("await materializeCloudBackedPizzaSession(saved)")).toBeLessThan(startPage.indexOf("router.push(\"/session/recipe\")"));
+    expect(startPage).toContain("setCreationError(\"We could not save this pizza plan to your account yet.");
     expect(startPage).toContain("if (getActivePizzaSession()?.id !== session.id) return");
     expect(client).toContain("const { data } = await supabase.auth.getSession()");
     expect(client).toContain("if (!hasSignedInUser) return { skipped: true, reason: \"unauthenticated\" as const }");
@@ -1502,6 +1504,9 @@ describe("cloud pizza session foundation", () => {
     expect(client).toContain("method: \"POST\"");
     expect(client).toContain("return saveCloudActivePizzaSession(session)");
     expect(client).toContain("queueCloudActivePizzaSessionSave");
+    expect(client).toContain("export async function materializeCloudBackedPizzaSession");
+    expect(client).toContain("status: \"cloud-backed\"");
+    expect(client).toContain("status: \"local-only\"");
     expect(client).toContain("drainCloudSaveQueue");
     expect(client).toContain("markCloudBackedPizzaSession(session.id, savedSession.id)");
     expect(activeRoute).toContain('.select("id,session_data,updated_at")');

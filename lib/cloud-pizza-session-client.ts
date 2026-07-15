@@ -1,4 +1,7 @@
-import { normalizeCloudPizzaSessionRow } from "@/lib/cloud-pizza-sessions";
+import {
+  normalizeCloudPizzaSessionRow,
+  type CloudPizzaSessionRow,
+} from "@/lib/cloud-pizza-sessions";
 import type { PizzaSession } from "@/lib/pizza-session";
 import {
   archivePizzaSession,
@@ -237,4 +240,24 @@ export function queueCloudActivePizzaSessionSave(
 
     startCloudSaveDrain();
   });
+}
+
+export async function materializeCloudBackedPizzaSession(
+  session: PizzaSession,
+  options: QueueCloudSyncOptions = {},
+): Promise<
+  | { status: "cloud-backed"; session: CloudPizzaSessionRow }
+  | { status: "local-only"; reason: "unauthenticated" }
+> {
+  const result = await queueCloudActivePizzaSessionSave(session, options);
+  if ("skipped" in result && "reason" in result && result.reason === "unauthenticated") {
+    return { status: "local-only", reason: "unauthenticated" };
+  }
+
+  const cloudSession = normalizeCloudPizzaSessionRow("session" in result ? result.session : null);
+  if (!cloudSession) {
+    throw new Error("Saved pizza session could not be verified in your account.");
+  }
+
+  return { status: "cloud-backed", session: cloudSession };
 }

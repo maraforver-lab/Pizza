@@ -337,7 +337,8 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("You’re ready for your Dough Plan.");
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
     expect(page).toContain("Create my pizza plan");
-    expect(page).toContain("const continueToRecipe = () =>");
+    expect(page).toContain("const continueToRecipe = async () =>");
+    expect(page).toContain("await materializeCloudBackedPizzaSession(saved)");
     expect(page).toContain("router.push(\"/session/recipe\")");
     expect(page).toContain("onClick={continueToRecipe}");
     expect(page).toContain('aria-label="Back"');
@@ -794,7 +795,9 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: \"/session/recipe\" }, \"summary\", experienceLevel, \"/session/recipe\")");
     expect(page).toContain("const saved = savePizzaSession(readyForRecipe)");
     expect(page).toContain("setActivePizzaSession(saved.id)");
-    expect(page).toContain("void queueCloudActivePizzaSessionSave(saved).catch");
+    expect(page).toContain("await materializeCloudBackedPizzaSession(saved)");
+    expect(page).toContain("Creating pizza plan...");
+    expect(page).toContain("We could not save this pizza plan to your account yet.");
     expect(page).not.toContain("function StartPizzaSessionEntry()");
     expect(page).not.toContain("setNeedsExplicitStart");
     expect(page).not.toContain("const baseSession = active ?? createAndSavePizzaSession");

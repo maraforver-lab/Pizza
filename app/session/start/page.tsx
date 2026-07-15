@@ -11,6 +11,7 @@ import { SessionViewportReset } from "@/components/session/SessionViewportReset"
 import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import {
   clearCloudBackedActivePizzaSessionPointer,
+  materializeCloudBackedPizzaSession,
   queueCloudActivePizzaSessionSave,
 } from "@/lib/cloud-pizza-session-client";
 import {
@@ -476,6 +477,17 @@ function applyLoadSessionPatch(session: PizzaSession, patch: PizzaSessionPatch, 
   });
 }
 
+function cloudSaveKeyForSession(session: PizzaSession) {
+  return [
+    session.id,
+    session.currentStep,
+    session.status,
+    session.lastRoute,
+    session.updatedAt,
+    session.lastSavedAt,
+  ].join(":");
+}
+
 function StartPizzaSessionLoading() {
   return (
     <main className="min-h-screen bg-cream px-4 py-10 text-ink">
@@ -526,6 +538,8 @@ function StartPizzaSessionContent() {
   const [session, setSession] = useState<PizzaSession | null>(null);
   const [replaceCandidate, setReplaceCandidate] = useState<PizzaSession | null>(null);
   const [loadError, setLoadError] = useState("");
+  const [creationError, setCreationError] = useState("");
+  const [creatingPlan, setCreatingPlan] = useState(false);
   const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
@@ -557,8 +571,8 @@ function StartPizzaSessionContent() {
         return;
       }
       if (shouldStartNewSession && shouldReplaceExistingSession) {
-        clearActivePizzaSession();
         clearCloudBackedActivePizzaSessionPointer();
+        clearActivePizzaSession();
       }
 
       let active = shouldStartNewSession ? undefined : existingBeforeNew;
@@ -631,14 +645,7 @@ function StartPizzaSessionContent() {
   useEffect(() => {
     if (!ready || !session) return;
     if (getActivePizzaSession()?.id !== session.id) return;
-    const cloudSaveKey = [
-      session.id,
-      session.currentStep,
-      session.status,
-      session.lastRoute,
-      session.updatedAt,
-      session.lastSavedAt,
-    ].join(":");
+    const cloudSaveKey = cloudSaveKeyForSession(session);
     if (lastCloudSaveKey.current === cloudSaveKey) return;
     void queueCloudActivePizzaSessionSave(session).then((result) => {
       if (!("skipped" in result) || !("reason" in result) || result.reason !== "unauthenticated") {
@@ -660,6 +667,7 @@ function StartPizzaSessionContent() {
     nextStep: WizardStep = step,
   ) => {
     if (!session) return;
+    if (creationError) setCreationError("");
     const persistedActiveSession = getActivePizzaSession()?.id === session.id;
     const lastRoute = patch.lastRoute ?? wizardStepHref(nextStep);
     const updated = persistedActiveSession ? updatePizzaSession(session.id, {
@@ -772,16 +780,24 @@ function StartPizzaSessionContent() {
     router.replace(wizardStepHref(nextStep), { scroll: false });
   };
 
-  const continueToRecipe = () => {
-    if (!session) return;
+  const continueToRecipe = async () => {
+    if (!session || creatingPlan) return;
+    setCreatingPlan(true);
+    setCreationError("");
     const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: "/session/recipe" }, "summary", experienceLevel, "/session/recipe");
     const saved = savePizzaSession(readyForRecipe);
     setActivePizzaSession(saved.id);
     setSession(saved);
-    void queueCloudActivePizzaSessionSave(saved).catch(() => {
-      // Local creation is the source of truth; cloud sync can retry from the next Session route.
-    });
-    router.push("/session/recipe");
+    try {
+      const materialized = await materializeCloudBackedPizzaSession(saved);
+      if (materialized.status === "cloud-backed") {
+        lastCloudSaveKey.current = cloudSaveKeyForSession(saved);
+      }
+      router.push("/session/recipe");
+    } catch {
+      setCreatingPlan(false);
+      setCreationError("We could not save this pizza plan to your account yet. Try again before opening the Dough Plan.");
+    }
   };
 
   const continueStep = () => {
@@ -1340,6 +1356,12 @@ function StartPizzaSessionContent() {
             </div>
           )}
 
+          {creationError && (
+            <p className="rounded-2xl border border-tomato/20 bg-tomato/[.06] p-3 text-sm font-bold leading-6 text-tomato" role="alert">
+              {creationError}
+            </p>
+          )}
+
           <div className="sticky bottom-0 z-20 -mx-4 mt-5 flex items-center gap-3 border-t border-ink/10 bg-background-page/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:mt-6 sm:justify-between sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4 sm:backdrop-blur-none">
             <div className={step === "path" ? "hidden shrink-0 sm:block" : "shrink-0"}>
               {step !== "path" && (
@@ -1362,8 +1384,8 @@ function StartPizzaSessionContent() {
                   Continue setup
                 </button>
               ) : (
-                <button type="button" onClick={continueToRecipe} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
-                  Create my pizza plan
+                <button type="button" onClick={continueToRecipe} disabled={creatingPlan} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
+                  {creatingPlan ? "Creating pizza plan..." : "Create my pizza plan"}
                 </button>
               )}
             </div>

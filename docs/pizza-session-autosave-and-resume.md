@@ -8,6 +8,8 @@ A Pizza Session draft is stored only after an explicit creation action, currentl
 
 Opening `/session/start` without an active session renders the normal planning form with an in-memory draft. It must not create an empty ghost session, active session ID or cloud record.
 
+For signed-in users, `Create my pizza plan` must materialize the newly created active session in cloud before navigating to `/session/recipe`. Background autosave may be fire-and-forget, but explicit session creation is not.
+
 ## Local and cloud authority
 
 The browser-local session is the operational source only while the user is signed out.

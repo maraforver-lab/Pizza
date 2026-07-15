@@ -37,7 +37,8 @@ describe("Pizza Session flow navigation integrity", () => {
     const review = source("app/session/review/page.tsx");
 
     expect(start).toContain("Create my pizza plan");
-    expect(start).toContain("const continueToRecipe = () =>");
+    expect(start).toContain("const continueToRecipe = async () =>");
+    expect(start).toContain("await materializeCloudBackedPizzaSession(saved)");
     expect(start).toContain("router.push(\"/session/recipe\")");
     expectTextLink(recipe, "Continue to Shopping →", "/session/shopping");
     expectTextLink(shopping, "Continue to Timeline →", "/session/timeline");
