@@ -204,6 +204,46 @@ describe("homepage active Pizza Session resume", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
+  it("uses the authenticated browser token for cloud lookup and local promotion", async () => {
+    const storage = new MemoryStorage();
+    const local = createAndSavePizzaSession({
+      id: "local-promote-with-token",
+      currentStep: "recipe",
+      updatedAt: "2026-07-15T10:00:00.000Z",
+      createdAt: "2026-07-15T09:00:00.000Z",
+    }, storage, new Date("2026-07-15T10:00:00.000Z"));
+    setActivePizzaSession(local.id, storage);
+    const row = cloudRowFor(local)!;
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const headers = new Headers(init?.headers);
+      expect(headers.get("Authorization")).toBe("Bearer signed-in-token");
+      if (init?.method === "POST") {
+        expect(headers.get("Content-Type")).toBe("application/json");
+        return new Response(JSON.stringify({ session: row }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ session: null }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as unknown as typeof fetch;
+
+    const decision = await resolveCanonicalActivePizzaSession({
+      fetcher,
+      getSignedInUser: async () => ({
+        headers: { Authorization: "Bearer signed-in-token" },
+        signedIn: true,
+      }),
+      storage,
+    });
+
+    expect(decision.state).toBe("active");
+    expect(decision.source).toBe("promoted-local");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   it("lets a fresher cloud active session replace the homepage resume target", () => {
     const local = createPizzaSession({
       id: "older-local-homepage",

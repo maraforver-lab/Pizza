@@ -27,6 +27,11 @@ type CloudBackedPizzaSessionMarker = {
   cloudSessionId?: string;
 };
 
+export type CloudActivePizzaSessionAuthState = {
+  headers: Headers;
+  signedIn: boolean;
+};
+
 function getBrowserStorage(storage?: StorageLike): StorageLike | undefined {
   if (storage) return storage;
   if (typeof window === "undefined") return undefined;
@@ -95,6 +100,32 @@ function cloudActivePizzaSessionSaveKey(session: PizzaSession) {
   ].join(":");
 }
 
+export async function getCloudActivePizzaSessionAuthState(options: { json?: boolean } = {}): Promise<CloudActivePizzaSessionAuthState> {
+  const headers = new Headers();
+  if (options.json) headers.set("Content-Type", "application/json");
+
+  try {
+    const supabase = getSupabaseBrowserClient();
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    return {
+      headers,
+      signedIn: Boolean(data.session?.user),
+    };
+  } catch {
+    return {
+      headers,
+      signedIn: false,
+    };
+  }
+}
+
+export async function cloudActivePizzaSessionRequestHeaders(options: { json?: boolean } = {}) {
+  const { headers } = await getCloudActivePizzaSessionAuthState(options);
+  return headers;
+}
+
 function pizzaSessionTimestamp(value?: string) {
   if (!value) return undefined;
   const time = new Date(value).getTime();
@@ -123,20 +154,12 @@ export function clearCloudBackedActivePizzaSessionPointer(storage?: StorageLike)
 }
 
 export async function saveCloudActivePizzaSession(session: PizzaSession) {
-  let hasSignedInUser = false;
-  try {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = await supabase.auth.getSession();
-    hasSignedInUser = Boolean(data.session?.user);
-  } catch {
-    hasSignedInUser = false;
-  }
-
-  if (!hasSignedInUser) return { skipped: true, reason: "unauthenticated" as const };
+  const auth = await getCloudActivePizzaSessionAuthState({ json: true });
+  if (!auth.signedIn) return { skipped: true, reason: "unauthenticated" as const };
 
   const response = await fetch("/api/pizza-sessions/active", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: auth.headers,
     body: JSON.stringify({ sessionData: session }),
   });
   const payload = await response.json().catch(() => ({}));
@@ -156,10 +179,11 @@ export async function syncCloudBackedPizzaSession(
     return saveCloudActivePizzaSession(session);
   }
   const cloudSessionId = cloudBackedPizzaSessionRowId(session);
+  const headers = await cloudActivePizzaSessionRequestHeaders({ json: true });
 
   const response = await fetch("/api/pizza-sessions/active", {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       sessionData: session,
       complete: options.complete === true,

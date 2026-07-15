@@ -5,7 +5,7 @@ import {
   normalizeCloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
 import { migratePizzaSession } from "@/lib/pizza-session";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseRouteClient } from "@/lib/supabase/server";
 
 function pizzaSessionUpdatedAtTime(session: ReturnType<typeof migratePizzaSession>) {
   if (!session?.updatedAt) return undefined;
@@ -19,11 +19,9 @@ function cloudSessionIsNewer(existingSession: ReturnType<typeof migratePizzaSess
   return existingTime !== undefined && incomingTime !== undefined && existingTime > incomingTime;
 }
 
-export async function GET() {
-  const supabase = await getSupabaseServerClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  const user = userData.user;
-  if (userError || !user) {
+export async function GET(request: Request) {
+  const { supabase, user } = await getSupabaseRouteClient(request);
+  if (!user) {
     return NextResponse.json({ error: "Sign in to load saved pizza sessions." }, { status: 401 });
   }
 
@@ -41,10 +39,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = await getSupabaseServerClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  const user = userData.user;
-  if (userError || !user) {
+  const { supabase, user } = await getSupabaseRouteClient(request);
+  if (!user) {
     return NextResponse.json({ error: "Sign in to save this session across devices." }, { status: 401 });
   }
 
@@ -110,10 +106,8 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const supabase = await getSupabaseServerClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  const user = userData.user;
-  if (userError || !user) {
+  const { supabase, user } = await getSupabaseRouteClient(request);
+  if (!user) {
     return NextResponse.json({ error: "Sign in to sync saved pizza sessions." }, { status: 401 });
   }
 
@@ -196,11 +190,9 @@ export async function PATCH(request: Request) {
   });
 }
 
-export async function DELETE() {
-  const supabase = await getSupabaseServerClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  const user = userData.user;
-  if (userError || !user) {
+export async function DELETE(request: Request) {
+  const { supabase, user } = await getSupabaseRouteClient(request);
+  if (!user) {
     return NextResponse.json({ error: "Sign in to delete this saved pizza session." }, { status: 401 });
   }
 

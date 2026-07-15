@@ -11,6 +11,7 @@ import {
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
 import {
+  cloudActivePizzaSessionRequestHeaders,
   clearCloudBackedPizzaSession,
   cloudBackedPizzaSessionRowId,
   queueCloudActivePizzaSessionSave,
@@ -267,7 +268,8 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
     setDeleteError("");
 
     try {
-      const response = await fetch("/api/pizza-sessions/active", { method: "DELETE" });
+      const headers = await cloudActivePizzaSessionRequestHeaders();
+      const response = await fetch("/api/pizza-sessions/active", { method: "DELETE", headers });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Could not delete this pizza session.");
       clearMatchingLocalActiveSession(cloudSession);

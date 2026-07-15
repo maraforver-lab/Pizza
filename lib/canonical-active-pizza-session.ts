@@ -1,5 +1,6 @@
 import {
   clearCloudBackedActivePizzaSessionPointer,
+  getCloudActivePizzaSessionAuthState,
   isCloudBackedPizzaSession,
   markCloudBackedPizzaSession,
 } from "@/lib/cloud-pizza-session-client";
@@ -14,7 +15,6 @@ import {
   type PizzaSession,
 } from "@/lib/pizza-session";
 import { getActivePizzaSession } from "@/lib/pizza-session-storage";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type Fetcher = typeof fetch;
@@ -54,8 +54,13 @@ export type CanonicalActivePizzaSessionResolution =
 
 type ResolveCanonicalActivePizzaSessionOptions = {
   fetcher?: Fetcher;
-  getSignedInUser?: () => Promise<boolean>;
+  getSignedInUser?: () => Promise<boolean | SignedInUserState>;
   storage?: StorageLike;
+};
+
+type SignedInUserState = {
+  headers?: HeadersInit;
+  signedIn: boolean;
 };
 
 function sessionTimestamp(session: Pick<PizzaSession, "updatedAt"> | undefined | null) {
@@ -74,13 +79,30 @@ function errorMessage(error: unknown) {
 }
 
 async function defaultSignedInUser() {
-  const supabase = getSupabaseBrowserClient();
-  const { data } = await supabase.auth.getSession();
-  return Boolean(data.session?.user);
+  return getCloudActivePizzaSessionAuthState();
 }
 
-async function fetchActiveCloudPizzaSession(fetcher: Fetcher) {
-  const response = await fetcher("/api/pizza-sessions/active", { method: "GET" });
+function normalizeSignedInUserState(value: boolean | SignedInUserState): SignedInUserState {
+  return typeof value === "boolean" ? { signedIn: value } : value;
+}
+
+function requestHeaders(headers?: HeadersInit) {
+  if (!headers) return undefined;
+  const requestHeaders = new Headers(headers);
+  return Array.from(requestHeaders.keys()).length ? requestHeaders : undefined;
+}
+
+function jsonRequestHeaders(headers?: HeadersInit) {
+  const requestHeaders = new Headers(headers);
+  requestHeaders.set("Content-Type", "application/json");
+  return requestHeaders;
+}
+
+async function fetchActiveCloudPizzaSession(fetcher: Fetcher, headers?: HeadersInit) {
+  const response = await fetcher("/api/pizza-sessions/active", {
+    method: "GET",
+    headers: requestHeaders(headers),
+  });
   if (response.status === 401) return { signedOut: true as const, row: null };
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error || "Could not load the active account pizza session.");
@@ -90,10 +112,10 @@ async function fetchActiveCloudPizzaSession(fetcher: Fetcher) {
   };
 }
 
-async function promoteLocalPizzaSessionToCloud(session: PizzaSession, fetcher: Fetcher) {
+async function promoteLocalPizzaSessionToCloud(session: PizzaSession, fetcher: Fetcher, headers?: HeadersInit) {
   const response = await fetcher("/api/pizza-sessions/active", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: jsonRequestHeaders(headers),
     body: JSON.stringify({ sessionData: session }),
   });
   const payload = await response.json().catch(() => ({}));
@@ -147,10 +169,14 @@ export async function resolveCanonicalActivePizzaSession(
   const localSession = getActivePizzaSession(storage) ?? null;
 
   let signedIn = false;
+  let authHeaders: HeadersInit | undefined;
   try {
-    signedIn = await getSignedInUser();
+    const signedInState = normalizeSignedInUserState(await getSignedInUser());
+    signedIn = signedInState.signedIn;
+    authHeaders = signedInState.headers;
   } catch {
     signedIn = false;
+    authHeaders = undefined;
   }
 
   if (!signedIn) {
@@ -176,7 +202,7 @@ export async function resolveCanonicalActivePizzaSession(
   }
 
   try {
-    const cloudLookup = await fetchActiveCloudPizzaSession(fetcher);
+    const cloudLookup = await fetchActiveCloudPizzaSession(fetcher, authHeaders);
     if (cloudLookup.signedOut) {
       const decision = chooseCanonicalActivePizzaSession(localSession, null, false);
       if (decision.state === "active") {
@@ -224,8 +250,8 @@ export async function resolveCanonicalActivePizzaSession(
         };
       }
 
-      const promotedRow = await promoteLocalPizzaSessionToCloud(decision.session, fetcher).catch(async (error) => {
-        const latest = await fetchActiveCloudPizzaSession(fetcher).catch(() => ({ row: null }));
+      const promotedRow = await promoteLocalPizzaSessionToCloud(decision.session, fetcher, authHeaders).catch(async (error) => {
+        const latest = await fetchActiveCloudPizzaSession(fetcher, authHeaders).catch(() => ({ row: null }));
         if (latest.row) return latest.row;
         throw error;
       });

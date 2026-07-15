@@ -251,8 +251,13 @@ describe("cloud pizza session foundation", () => {
 
   it("uses the signed-in Supabase user for save and fetch API access", () => {
     const route = source("app/api/pizza-sessions/active/route.ts");
+    const server = source("lib/supabase/server.ts");
 
-    expect(route).toContain("supabase.auth.getUser()");
+    expect(route).toContain("getSupabaseRouteClient(request)");
+    expect(server).toContain("getSupabaseBearerClient(request)");
+    expect(server).toContain("Authorization: `Bearer ${token}`");
+    expect(server).toContain("cookieClient.auth.getUser()");
+    expect(server).toContain("bearerClient.auth.getUser()");
     expect(route).toContain("status\", \"in_progress\"");
     expect(route).toContain(".eq(\"user_id\", user.id)");
     expect(route).toContain("migratePizzaSession(record.sessionData ?? record.session_data)");
@@ -1498,10 +1503,13 @@ describe("cloud pizza session foundation", () => {
     expect(startPage.indexOf("await materializeCloudBackedPizzaSession(saved)")).toBeLessThan(startPage.indexOf("router.push(\"/session/recipe\")"));
     expect(startPage).toContain("setCreationError(\"We could not save this pizza plan to your account yet.");
     expect(startPage).toContain("if (getActivePizzaSession()?.id !== session.id) return");
-    expect(client).toContain("const { data } = await supabase.auth.getSession()");
-    expect(client).toContain("if (!hasSignedInUser) return { skipped: true, reason: \"unauthenticated\" as const }");
+    expect(client).toContain("getCloudActivePizzaSessionAuthState");
+    expect(client).toContain("headers.set(\"Authorization\", `Bearer ${token}`)");
+    expect(client).toContain("if (!auth.signedIn) return { skipped: true, reason: \"unauthenticated\" as const }");
     expect(client).toContain('fetch("/api/pizza-sessions/active"');
     expect(client).toContain("method: \"POST\"");
+    expect(client).toContain("headers: auth.headers");
+    expect(client).toContain("headers,");
     expect(client).toContain("return saveCloudActivePizzaSession(session)");
     expect(client).toContain("queueCloudActivePizzaSessionSave");
     expect(client).toContain("export async function materializeCloudBackedPizzaSession");
@@ -1515,6 +1523,22 @@ describe("cloud pizza session foundation", () => {
     expect(activeRoute).toContain("{ status: 409 }");
     expect(activeRoute).toContain("cloudSessionIsNewer(existingSession, session)");
     expect(activeRoute).toContain('reason: "stale-session"');
+  });
+
+  it("keeps canonical active-session requests on the authenticated browser token path", () => {
+    const resolver = source("lib/canonical-active-pizza-session.ts");
+    const client = source("lib/cloud-pizza-session-client.ts");
+    const accountCard = source("components/account/AccountActivePizzaSessionCard.tsx");
+
+    expect(resolver).toContain("getCloudActivePizzaSessionAuthState");
+    expect(resolver).toContain("headers: requestHeaders(headers)");
+    expect(resolver).toContain("headers: jsonRequestHeaders(headers)");
+    expect(resolver).toContain("fetchActiveCloudPizzaSession(fetcher, authHeaders)");
+    expect(resolver).toContain("promoteLocalPizzaSessionToCloud(decision.session, fetcher, authHeaders)");
+    expect(client).toContain("export async function cloudActivePizzaSessionRequestHeaders");
+    expect(client).toContain("Authorization");
+    expect(accountCard).toContain("cloudActivePizzaSessionRequestHeaders");
+    expect(accountCard).toContain("fetch(\"/api/pizza-sessions/active\", { method: \"DELETE\", headers })");
   });
 
   it("syncs cloud-backed sessions from the major Pizza Session step pages", () => {
@@ -1602,7 +1626,7 @@ describe("cloud pizza session foundation", () => {
     expect(accountCard).toContain("This will remove your active in-progress Pizza Session. This cannot be undone.");
     expect(accountCard).toContain("Delete session");
     expect(accountCard).toContain("Cancel");
-    expect(accountCard).toContain('fetch("/api/pizza-sessions/active", { method: "DELETE" })');
+    expect(accountCard).toContain('fetch("/api/pizza-sessions/active", { method: "DELETE", headers })');
     expect(accountCard).toContain("clearMatchingLocalActiveSession(cloudSession)");
     expect(accountCard).toContain("setCloudSession(null)");
     expect(accountCard).toContain("archivePizzaSession(localSession.id)");
