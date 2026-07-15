@@ -1387,7 +1387,7 @@ function StartPizzaSessionContent() {
                   })}
                 </div>
               </div>
-              <p className="rounded-2xl border border-ink/10 bg-cream/60 p-3 text-xs font-bold leading-5 text-ink/55">
+              <p className="hidden rounded-2xl border border-ink/10 bg-cream/60 p-3 text-xs font-bold leading-5 text-ink/55 sm:block">
                 Ingredient amounts still use the current safe flour default in this patch. W-value ranges are saved as planning context for later recommendations.
               </p>
             </div>

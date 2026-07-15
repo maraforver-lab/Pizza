@@ -852,6 +852,17 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toMatch(/Home Pizza Maker|intermediate|advanced/);
   });
 
+  it("hides the flour default planning note on mobile without removing flour choices", () => {
+    const page = source("app/session/start/page.tsx");
+
+    expect(page).toContain("flourSituationOptions.map");
+    expect(page).toContain("flourWRangeOptions.map");
+    expect(page).toContain("toggleFlourWRange");
+    expect(page).toContain("Continue setup");
+    expect(page).toContain("Ingredient amounts still use the current safe flour default in this patch.");
+    expect(page).toContain('className="hidden rounded-2xl border border-ink/10 bg-cream/60 p-3 text-xs font-bold leading-5 text-ink/55 sm:block"');
+  });
+
   it("keeps the global brand in the header without duplicating it inside the desktop session sidebar", () => {
     const page = source("app/session/start/page.tsx");
     const headerLogoIndex = page.indexOf('aria-label="DoughTools home"');

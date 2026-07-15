@@ -60,6 +60,8 @@ describe("Session recipe build step", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={6}");
     expect(page).toContain("hideMeta");
+    expect(page).toContain("levelCompactOnMobile");
+    expect(page).toContain("hideBodyOnMobile");
     expect(page).toContain("Your Dough Plan is ready.");
     expect(page).toContain("Get your dough ingredients and amounts ready before you start.");
     expect(page).toContain("doughPlanHeroBody");
@@ -235,6 +237,8 @@ describe("Session recipe build step", () => {
     const page = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("Sauce for this plan");
+    expect(page).toContain('<details className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:hidden">');
+    expect(page).toContain('<section aria-labelledby="session-recipe-sauce-heading" className="hidden min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:block sm:p-4">');
     expect(page).toContain("Use on pizzas");
     expect(page).toContain("Prepare");
     expect(page).toContain("Shopping");
@@ -242,6 +246,15 @@ describe("Session recipe build step", () => {
     expect(page).toContain("calculateSessionPizzaSauce");
     expect(page).toContain("normalizePizzaMixForCount(result.settings.pizzas, session.pizzaMix, session.pizzaPreset)");
     expect(page.indexOf("doughIngredientRows")).toBeLessThan(page.indexOf("sauceSummary"));
+  });
+
+  it("moves account save below the main recipe information on mobile without duplicating save behavior", () => {
+    const page = source("app/session/recipe/page.tsx");
+
+    expect(page.match(/<SavePizzaSessionToAccount session={session} \/>/g)).toHaveLength(1);
+    expect(page).toContain('<div className="order-2 mt-4 sm:order-1 sm:mt-0">');
+    expect(page).toContain('<section className="order-1 sm:order-2 sm:mt-6" aria-label="Dough plan details">');
+    expect(page.indexOf("<SavePizzaSessionToAccount session={session} />")).toBeLessThan(page.indexOf("Ingredients & amounts"));
   });
 
   it("uses the same Sauce helper for Recipe and Shopping sauce quantities", () => {
