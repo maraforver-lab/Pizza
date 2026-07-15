@@ -622,6 +622,29 @@ export function formatKitchenRestCountdown(readyAt?: string, now = new Date()) {
   return `${minutes}:${String(seconds).padStart(2, "0")} remaining`;
 }
 
+export function formatKitchenMixingWindowStatus(actualStartedAt?: string, now = new Date()) {
+  const reservedMilliseconds = 30 * 60_000;
+  const started = actualStartedAt ? new Date(actualStartedAt) : undefined;
+  const startedAt = started && Number.isFinite(started.getTime()) ? started.getTime() : now.getTime();
+  const remainingMilliseconds = startedAt + reservedMilliseconds - now.getTime();
+  const durationLabel = (milliseconds: number) => {
+    const safeMilliseconds = Math.max(0, milliseconds);
+    if (safeMilliseconds > 0 && safeMilliseconds < 60_000) return "less than 1 min";
+    const totalMinutes = Math.max(0, Math.ceil(safeMilliseconds / 60_000));
+    if (totalMinutes < 60) return `${totalMinutes} min`;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return [hours ? `${hours} h` : "", minutes ? `${minutes} min` : ""].filter(Boolean).join(" ") || "0 min";
+  };
+
+  if (remainingMilliseconds <= 0) {
+    const overdueMilliseconds = Math.abs(remainingMilliseconds);
+    return overdueMilliseconds > 0 ? `${durationLabel(overdueMilliseconds)} overdue` : "0 min remaining";
+  }
+
+  return `${durationLabel(remainingMilliseconds)} remaining`;
+}
+
 export function formatKitchenPlannedDuration(totalMinutes?: number) {
   if (typeof totalMinutes !== "number" || !Number.isFinite(totalMinutes) || totalMinutes <= 0) return undefined;
   const safeMinutes = Math.round(totalMinutes);

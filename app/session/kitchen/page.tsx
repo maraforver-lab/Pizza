@@ -33,6 +33,7 @@ import {
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
+  formatKitchenMixingWindowStatus,
   formatKitchenPlannedDuration,
   formatKitchenRestCountdown,
   getKitchenExperienceGuidance,
@@ -414,6 +415,7 @@ export default function SessionKitchenPage() {
   const currentStepIsRuntimeWork = isRuntimeDoughWorkStep(currentStep);
   const currentStepHasStarted = hasStepActuallyStarted(session, currentStep?.id);
   const currentStepIsBiologicalWait = isBiologicalKitchenWaitStep(currentStep);
+  const currentStepIsMixDough = isMixDoughStep(currentStep);
   const currentStepIsRestDough = isRestDoughStep(currentStep);
   const currentStepCompletionBlocked = currentStepIsBiologicalWait && waitInfo.isTooEarly;
   const accountAllowsEarlyTimedCompletion = !EARLY_COMPLETION_PREFERENCE_ENFORCED
@@ -455,7 +457,13 @@ export default function SessionKitchenPage() {
   const progressPercent = kitchenProgressPercent(kitchenState.currentIndex, kitchenState.totalCount);
   const progressLabel = `Step ${kitchenState.currentIndex + 1} of ${kitchenState.totalCount}`;
   const timing = compactKitchenTiming(currentRuntimeStep, session, currentLiveTiming, now, currentStepHasStarted);
+  const compactMobileStatusHiddenClass = currentStepIsMixDough || currentStepIsRestDough ? "max-sm:hidden " : "";
   const restMobileHiddenClass = currentStepIsRestDough ? "max-sm:hidden " : "";
+  const mixMobileHiddenClass = currentStepIsMixDough ? "max-sm:hidden " : "";
+  const mixWindowStatus = formatKitchenMixingWindowStatus(
+    currentStepIsMixDough ? session.stepRuntime?.[currentStep?.id ?? ""]?.actualStartedAt : undefined,
+    now,
+  );
   const restCountdown = formatKitchenRestCountdown(currentStep?.scheduledAt, now);
   const restReadyClock = formatRuntimeClockTime(currentStep?.scheduledAt);
   const restNextFermentationLabel = getKitchenRestNextFermentationLabel(session, kitchenState.nextStep);
@@ -577,7 +585,7 @@ export default function SessionKitchenPage() {
                   <div className="min-w-0 space-y-4">
                     <div className="flex items-center justify-between gap-3">
                       <SessionExperienceLevelBadge level={session.experienceLevel} compact />
-                      <p className={`${restMobileHiddenClass}text-xs font-extrabold uppercase tracking-[.16em] text-ink/45`}>{kitchenState.currentIndex + 1} / {kitchenState.totalCount}</p>
+                      <p className={`${compactMobileStatusHiddenClass}text-xs font-extrabold uppercase tracking-[.16em] text-ink/45`}>{kitchenState.currentIndex + 1} / {kitchenState.totalCount}</p>
                     </div>
 
                     <div
@@ -592,16 +600,39 @@ export default function SessionKitchenPage() {
                     </div>
 
                     <div className="min-w-0">
-                      <p className={`${restMobileHiddenClass}text-xs font-extrabold uppercase tracking-[.18em] text-tomato`}>Current step</p>
+                      <p className={`${compactMobileStatusHiddenClass}text-xs font-extrabold uppercase tracking-[.18em] text-tomato`}>Current step</p>
                       <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">
                         {currentStepIsRestDough ? (
                           <>
                             <span className="sm:hidden">Dough is resting</span>
                             <span className="max-sm:hidden">{taskPresentation.title}</span>
                           </>
+                        ) : currentStepIsMixDough ? (
+                          <>
+                            <span className="sm:hidden">Mix the dough</span>
+                            <span className="max-sm:hidden">{taskPresentation.title}</span>
+                          </>
                         ) : taskPresentation.title}
                       </h1>
                     </div>
+
+                    {currentStepIsMixDough && (
+                      <div id="kitchen-mix-mobile-status" className="grid gap-3 border-y border-ink/10 py-3 sm:hidden" aria-label="Mix dough status" aria-live="polite">
+                        <div className="flex items-start gap-3">
+                          <span className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-tomato/10 text-tomato" aria-hidden="true">
+                            <DoughToolsIcon name="mixing-bowl" size={20} strokeWidth={2.1} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-base font-extrabold leading-6 text-ink">Start mixing now</p>
+                            <p className="mt-1 font-display text-4xl font-semibold leading-none tabular-nums text-ink">{mixWindowStatus}</p>
+                            <p className="mt-2 text-sm font-bold leading-6 text-ink/65">You have up to 30 minutes to mix the dough.</p>
+                          </div>
+                        </div>
+                        <p className="text-sm font-extrabold leading-6 text-ink/65">
+                          <span className="text-ink">Next:</span> Dough rest for 30 min
+                        </p>
+                      </div>
+                    )}
 
                     {currentStepIsRestDough && (
                       <div id="kitchen-rest-mobile-status" className="grid gap-3 border-y border-ink/10 py-3 sm:hidden" aria-label="Dough rest status" aria-live="polite">
@@ -618,7 +649,7 @@ export default function SessionKitchenPage() {
                       </div>
                     )}
 
-                    <div className={`${restMobileHiddenClass}grid gap-2 border-y border-ink/10 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center`}>
+                    <div className={`${compactMobileStatusHiddenClass}grid gap-2 border-y border-ink/10 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center`}>
                       <div aria-live="polite">
                         <p className={`text-lg font-extrabold leading-7 sm:text-xl ${
                           currentLiveTiming.kind === "overdue" ? "text-tomato" : "text-ink"
@@ -648,7 +679,13 @@ export default function SessionKitchenPage() {
 
                     <section className="rounded-[1.25rem] bg-cream/80 p-4" aria-labelledby="kitchen-step-guidance-heading">
                       <p id="kitchen-step-guidance-heading" className="sr-only">Current task instruction</p>
-                      <p className="text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
+                      {currentStepIsMixDough && (
+                        <div className="grid gap-3 sm:hidden">
+                          <p className="text-lg font-extrabold leading-7 text-ink">Weigh the ingredients and mix until no dry flour remains. Cover the dough when finished.</p>
+                          <p className="text-sm font-bold leading-6 text-ink/65">When the dough is mixed, press Mixing complete. The 30-minute dough rest starts from that moment.</p>
+                        </div>
+                      )}
+                      <p className={`${mixMobileHiddenClass}text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8`}>{taskPresentation.shortInstruction}</p>
                       {currentStepIsRestDough && (
                         <p className="mt-2 text-sm font-bold leading-6 text-ink/65 sm:hidden">
                           Keep the dough covered until the timer reaches zero.

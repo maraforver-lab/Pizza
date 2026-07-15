@@ -8,6 +8,7 @@ import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
+  formatKitchenMixingWindowStatus,
   formatKitchenPlannedDuration,
   formatKitchenRestCountdown,
   formatKitchenStepWaitLabel,
@@ -662,7 +663,6 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toContain("function formatKitchenClockTime");
     expect(page).not.toContain("Planned at");
     expect(page).not.toContain("Live timing");
-    expect(page).not.toContain("When");
     expect(page).not.toContain("You are done when");
     expect(page).toContain("What this should look like");
     expect(page).toContain("{experience.label} guidance");
@@ -899,6 +899,17 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(formatKitchenRestCountdown("2026-07-10T16:46:30.000Z", now)).toBe("0:00 remaining");
   });
 
+  it("formats the mobile Mix dough reserved window from actual runtime start", () => {
+    const startedAt = "2026-07-10T16:44:00.000Z";
+
+    expect(formatKitchenMixingWindowStatus(undefined, new Date("2026-07-10T16:44:00.000Z"))).toBe("30 min remaining");
+    expect(formatKitchenMixingWindowStatus(startedAt, new Date("2026-07-10T16:44:30.000Z"))).toBe("30 min remaining");
+    expect(formatKitchenMixingWindowStatus(startedAt, new Date("2026-07-10T17:04:00.000Z"))).toBe("10 min remaining");
+    expect(formatKitchenMixingWindowStatus(startedAt, new Date("2026-07-10T17:13:30.000Z"))).toBe("less than 1 min remaining");
+    expect(formatKitchenMixingWindowStatus(startedAt, new Date("2026-07-10T17:14:00.000Z"))).toBe("0 min remaining");
+    expect(formatKitchenMixingWindowStatus(startedAt, new Date("2026-07-10T17:16:00.000Z"))).toBe("2 min overdue");
+  });
+
   it("summarizes the next fermentation type and planned duration from the saved plan", () => {
     const roomSession = createPizzaSession({
       id: "kitchen-rest-room-summary",
@@ -1058,9 +1069,31 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("getKitchenRestNextFermentationLabel(session, kitchenState.nextStep)");
     expect(page).toContain("Planned duration:");
     expect(page).toContain("Keep the dough covered until the timer reaches zero.");
-    expect(page).toContain("className={`${restMobileHiddenClass}grid gap-2 border-y");
+    expect(page).toContain("className={`${compactMobileStatusHiddenClass}grid gap-2 border-y");
     expect(page).toContain("className={`${restMobileHiddenClass}mt-5 rounded-[1.25rem]");
     expect(page).toContain("Rest complete");
+  });
+
+  it("adds a mobile-only Mix dough guidance hierarchy while preserving desktop timing detail", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("currentStepIsMixDough");
+    expect(page).toContain("formatKitchenMixingWindowStatus(");
+    expect(page).toContain("id=\"kitchen-mix-mobile-status\"");
+    expect(page).toContain("Mix the dough");
+    expect(page).toContain("Start mixing now");
+    expect(page).toContain("You have up to 30 minutes to mix the dough.");
+    expect(page).toContain("Weigh the ingredients and mix until no dry flour remains. Cover the dough when finished.");
+    expect(page).toContain("When the dough is mixed, press Mixing complete. The 30-minute dough rest starts from that moment.");
+    expect(page).toContain("Next:</span> Dough rest for 30 min");
+    expect(page).toContain("<DoughToolsIcon name=\"mixing-bowl\"");
+    expect(page).toContain("compactMobileStatusHiddenClass");
+    expect(page).toContain("mixMobileHiddenClass");
+    expect(page).toContain("Current step");
+    expect(page).toContain("compactKitchenTiming(currentRuntimeStep, session, currentLiveTiming, now, currentStepHasStarted)");
+    expect(page).toContain("Mixing complete");
+    expect(page).toContain("Needed now");
+    expect(page).not.toContain("function kitchenMixCountdown");
   });
 
   it("uses a clearer ball-dough action and done condition when dough-ball amounts are available", () => {
