@@ -375,6 +375,10 @@ Each flow page should have one primary forward action and one clear secondary ba
 
 Do not create button menus with many equal-weight actions.
 
+### Global product navigation
+
+Global navigation exposes the core Pizza Session, canonical learning entry, one clearly secondary Quick Calculator utility, About and Account. Supporting utilities appear contextually or in demoted footer positions rather than as equal product pillars.
+
 ### Primary action
 
 - Desktop: may sit in the main card, hero action, or bottom action row depending on page type

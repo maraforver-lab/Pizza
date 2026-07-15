@@ -1,20 +1,16 @@
-export type NavigationGroupId = "make" | "learn" | "my" | "support";
+export type NavigationGroupId = "primary" | "learning" | "secondary" | "account";
 
 export type NavigationItemId =
   | "start"
-  | "calculator"
-  | "sauce"
-  | "toppings"
-  | "timer"
-  | "troubleshooting"
-  | "styles"
   | "guide"
   | "dough-guide"
+  | "sauce"
   | "ovens"
-  | "saved-recipes"
-  | "account"
-  | "costs"
-  | "updates";
+  | "styles"
+  | "troubleshooting"
+  | "quick-calculator"
+  | "about"
+  | "account";
 
 export type NavigationItem = {
   id: NavigationItemId;
@@ -34,54 +30,50 @@ export type NavigationGroup = {
 
 export const navigationGroups = [
   {
-    id: "make",
-    label: "Make pizza",
-    shortLabel: "Make",
-    description: "Choose a style, calculate dough, plan fermentation, prepare toppings and bake.",
+    id: "primary",
+    label: "Primary product",
+    shortLabel: "Product",
+    description: "The main DoughTools entry points for planning a pizza night.",
     items: [
-      { id: "start", label: "Plan my next pizza", href: "/session/start", description: "Create a guided pizza plan before moving into recipe, shopping, timeline and kitchen steps." },
-      { id: "calculator", label: "Dough Calculator", href: "/?calculator=1", description: "Start with dough weight, hydration, salt, yeast and fermentation." },
-      { id: "sauce", label: "Sauce Calculator", href: "/sauce", description: "Calculate tomato sauce for the number of pizzas." },
-      { id: "toppings", label: "Topping Balance Lab", href: "/toppings", description: "See how sauce, cheese, pizza size and moisture change topping balance." },
-      { id: "timer", label: "Baking Timer", href: "/timer", description: "Use a pizza-oven timer while baking." },
+      { id: "start", label: "Plan my next pizza", href: "/session/start", description: "Create the guided Pizza Session for recipe, shopping, timeline, Kitchen Mode and review." },
+      { id: "guide", label: "Learning Center", href: "/guide", description: "Start with the canonical learning hub for dough, sauce, ovens, styles and troubleshooting." },
     ],
   },
   {
-    id: "learn",
-    label: "Learn & troubleshoot",
-    shortLabel: "Learn",
-    description: "Understand styles, ovens and dough problems.",
+    id: "learning",
+    label: "Learning Center",
+    shortLabel: "Learning",
+    description: "Canonical learning pages for current pizza-making guidance.",
     items: [
-      { id: "troubleshooting", label: "Troubleshooting", href: "/guide/pizza-troubleshooting", description: "Diagnose dough, shaping, launching, baking and topping problems." },
-      { id: "styles", label: "Pizza Styles", href: "/styles", description: "Pick a practical starting style and apply it to the calculator." },
-      { id: "guide", label: "Learning Center", href: "/guide", description: "Find the dough, sauce, oven, style and troubleshooting guides." },
       { id: "dough-guide", label: "Dough Guide", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
-      { id: "ovens", label: "Oven Guide", href: "/ovens", description: "Compare oven types and understand trade-offs." },
+      { id: "sauce", label: "Pizza Sauce", href: "/sauce", description: "Learn sauce methods, tomato choices and sauce quantities." },
+      { id: "ovens", label: "Ovens", href: "/ovens", description: "Compare oven types and understand practical bake trade-offs." },
+      { id: "styles", label: "Pizza Styles", href: "/styles", description: "Compare pizza styles and choose the style you want to make." },
+      { id: "troubleshooting", label: "Troubleshooting", href: "/guide/pizza-troubleshooting", description: "Fix common dough, topping and baking problems." },
     ],
   },
   {
-    id: "my",
-    label: "My DoughTools",
-    shortLabel: "My",
-    description: "Return to saved recipes and your account.",
+    id: "secondary",
+    label: "Secondary utility",
+    shortLabel: "Utility",
+    description: "The one globally exposed standalone utility that supports, but does not replace, Pizza Session.",
     items: [
-      { id: "saved-recipes", label: "Saved Recipes", href: "/?calculator=1#my-recipes", description: "Open the saved recipe section on the calculator." },
+      { id: "quick-calculator", label: "Quick Calculator", href: "/calculator/quick", description: "Calculate dough amounts quickly without creating a full Pizza Session." },
+    ],
+  },
+  {
+    id: "account",
+    label: "Account and company",
+    shortLabel: "Account",
+    description: "Account access and the product story.",
+    items: [
+      { id: "about", label: "About", href: "/about", description: "Read why DoughTools exists and how it is shaped by real pizza nights." },
       { id: "account", label: "Account", href: "/account", description: "Sign in and manage your DoughTools account.", preserveQuery: false },
-    ],
-  },
-  {
-    id: "support",
-    label: "More tools",
-    shortLabel: "More",
-    description: "Helpful secondary tools and project information.",
-    items: [
-      { id: "costs", label: "Cost Calculator", href: "/costs", description: "Estimate the total cost of a pizza night." },
-      { id: "updates", label: "Updates", href: "/updates", description: "See what changed and why DoughTools exists.", preserveQuery: false },
     ],
   },
 ] as const satisfies readonly NavigationGroup[];
 
-export const primaryNavigationItemId = "calculator" as const;
+export const primaryNavigationItemId = "start" as const;
 
 export const navigationItems: readonly NavigationItem[] = navigationGroups.flatMap((group) => [...group.items]);
 

@@ -10,291 +10,181 @@ import {
   splitNavigationHref,
 } from "@/lib/navigation";
 
-const requiredRoutes = [
-  "/",
+const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
+
+const globalNavigationRoutes = [
   "/session/start",
-  "/sauce",
-  "/toppings",
-  "/timer",
-  "/guide/pizza-troubleshooting",
-  "/styles",
   "/guide",
   "/guides/dough",
+  "/sauce",
   "/ovens",
+  "/styles",
+  "/guide/pizza-troubleshooting",
+  "/calculator/quick",
+  "/about",
   "/account",
-  "/costs",
-  "/updates",
 ] as const;
 
-describe("shared navigation model", () => {
-  it("keeps group identifiers unique", () => {
-    const ids = navigationGroups.map((group) => group.id);
+const contextualOrFooterUtilityRoutes = [
+  "/toppings",
+  "/timer",
+  "/costs",
+] as const;
 
-    expect(new Set(ids).size).toBe(ids.length);
-  });
+const retiredRoutes = [
+  "/start",
+  "/history",
+  "/gear",
+  "/doctor",
+  "/plan",
+  "/coach",
+] as const;
 
-  it("keeps route entries unique while still allowing hash destinations", () => {
+describe("final product navigation model", () => {
+  it("keeps group and route identifiers unique", () => {
+    const groupIds = navigationGroups.map((group) => group.id);
     const hrefs = navigationItems.map((item) => item.href);
 
+    expect(new Set(groupIds).size).toBe(groupIds.length);
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 
-  it("uses valid internal URLs only", () => {
-    for (const item of navigationItems) {
-      expect(item.href.startsWith("/")).toBe(true);
-      expect(item.href).not.toContain("http");
-      expect(item.href).not.toContain("//");
-    }
-  });
+  it("uses valid internal URLs and English labels only", () => {
+    const forbidden = /\b(Laskuri|Suunnittele|Opi|Omat|Kaikki työkalut|Kalkylator|Planera|Lär|Mina)\b|[äöåÄÖÅ]/;
 
-  it("has required English labels and descriptions", () => {
     for (const group of navigationGroups) {
       expect(group.label.trim()).toBeTruthy();
       expect(group.shortLabel.trim()).toBeTruthy();
       expect(group.description.trim()).toBeTruthy();
+      expect(group.label).not.toMatch(forbidden);
+      expect(group.shortLabel).not.toMatch(forbidden);
+
       for (const item of group.items) {
+        expect(item.href.startsWith("/")).toBe(true);
+        expect(item.href).not.toContain("http");
+        expect(item.href).not.toContain("//");
         expect(item.label.trim()).toBeTruthy();
         expect(item.description.trim()).toBeTruthy();
+        expect(item.label).not.toMatch(forbidden);
       }
     }
   });
 
-  it("does not reintroduce Finnish or Swedish active navigation labels", () => {
-    const forbidden = /\b(Laskuri|Suunnittele|Opi|Omat|Kaikki työkalut|Kalkylator|Planera|Lär|Mina)\b|[äöåÄÖÅ]/;
-    const labels = navigationGroups.flatMap((group) => [group.label, group.shortLabel, ...group.items.map((item) => item.label)]);
-
-    for (const label of labels) {
-      expect(label).not.toMatch(forbidden);
-    }
-  });
-
-  it("includes every required existing route without renaming route URLs", () => {
+  it("exposes the final canonical global navigation routes", () => {
     const paths = new Set(navigationItems.map((item) => splitNavigationHref(item.href).pathname));
 
-    for (const route of requiredRoutes) {
+    for (const route of globalNavigationRoutes) {
       expect(paths.has(route)).toBe(true);
     }
   });
 
-  it("does not expose the retired Plan route in shared navigation", () => {
-    const hrefs = navigationItems.map((item) => item.href);
+  it("does not expose contextual utilities as global navigation pillars", () => {
+    const paths = new Set(navigationItems.map((item) => splitNavigationHref(item.href).pathname));
     const labels = navigationItems.map((item) => item.label).join("\n");
 
-    expect(hrefs).not.toContain("/plan");
-    expect(hrefs.some((href) => href.startsWith("/plan?"))).toBe(false);
-    expect(labels).not.toContain("Fermentation Planner");
+    for (const route of contextualOrFooterUtilityRoutes) {
+      expect(paths.has(route)).toBe(false);
+    }
+
+    expect(labels).not.toMatch(/Topping Balance Lab|Baking Timer|Cost Calculator|Pizza costs/);
   });
 
-  it("does not expose the retired Coach route in shared navigation", () => {
+  it("does not expose retired compatibility routes", () => {
     const hrefs = navigationItems.map((item) => item.href);
     const labels = navigationItems.map((item) => item.label).join("\n");
 
-    expect(hrefs).not.toContain("/coach");
-    expect(hrefs.some((href) => href.startsWith("/coach?"))).toBe(false);
-    expect(labels).not.toContain("Pizza Coach");
-    expect(hrefs).toContain("/guide/pizza-troubleshooting");
-  });
+    for (const route of retiredRoutes) {
+      expect(hrefs).not.toContain(route);
+      expect(hrefs.some((href) => href.startsWith(`${route}?`))).toBe(false);
+    }
 
-  it("does not expose removed Journal or Community destinations", () => {
-    const hrefs = navigationItems.map((item) => item.href);
-    const labels = navigationItems.map((item) => item.label).join("\n");
-
-    expect(hrefs).not.toContain("/journal");
-    expect(hrefs).not.toContain("/community");
-    expect(labels).not.toMatch(/\b(Pizza Journal|Recipe Library)\b/);
+    expect(labels).not.toMatch(/Fermentation Planner|Dough Doctor|Pizza Coach|History|Gear/);
     expect(existsSync(join(process.cwd(), "app", "journal", "page.tsx"))).toBe(false);
     expect(existsSync(join(process.cwd(), "app", "community", "page.tsx"))).toBe(false);
   });
 
-  it("keeps Dough Calculator as the primary entry inside the Make pizza group", () => {
-    const makeGroup = navigationGroups.find((group) => group.id === "make");
+  it("uses Plan my next pizza as the primary global navigation action", () => {
     const primaryItem = navigationItems.find((item) => item.id === primaryNavigationItemId);
+    const primaryGroup = navigationGroups.find((group) => group.id === "primary");
 
-    expect(primaryItem?.href).toBe("/?calculator=1");
-    expect(primaryItem?.label).toBe("Dough Calculator");
-    expect(makeGroup?.items.some((item) => item.id === primaryNavigationItemId)).toBe(true);
+    expect(primaryNavigationItemId).toBe("start");
+    expect(primaryItem?.href).toBe("/session/start");
+    expect(primaryItem?.label).toBe("Plan my next pizza");
+    expect(primaryGroup?.items.some((item) => item.id === primaryNavigationItemId)).toBe(true);
   });
 
-  it("keeps desktop and mobile navigation on the same underlying groups", () => {
-    expect(navigationGroups.map((group) => group.id)).toEqual(["make", "learn", "my", "support"]);
+  it("keeps the shared navigation model aligned with the final product tree", () => {
+    expect(navigationGroups.map((group) => group.id)).toEqual(["primary", "learning", "secondary", "account"]);
+    expect(navigationGroups.find((group) => group.id === "secondary")?.items.map((item) => item.href)).toEqual(["/calculator/quick"]);
   });
 
-  it("keeps the visible global header minimal for the homepage UX lockdown", () => {
-    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+  it("renders desktop navigation without the generic Tools product pillar", () => {
+    const header = source("components", "GlobalToolNavigation.tsx");
 
-    expect(header).toContain('href="/"');
-    expect(header).toContain("max-sm:sr-only");
-    expect(header).toContain("Tools");
-    expect(header).toContain('type OpenNavigationMenu = "guide" | "tools" | null');
-    expect(header).toContain("const [openMenu, setOpenMenu] = useState<OpenNavigationMenu>(null)");
-    expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
-    expect(header).toContain("setOpenMenu(null)");
-    expect(header).toContain("aria-expanded={toolsMenuOpen}");
-    expect(header).toContain('aria-label="Tools menu"');
-    expect(header).toContain("Guide");
-    expect(header).toContain('aria-label="Guide menu"');
-    expect(header).toContain('const aboutActive = pathname === "/about"');
-    expect(header).toContain('const accountActive = pathname === "/account"');
-    expect(header).toContain('const doughGuideActive = pathname === "/guides/dough"');
-    expect(header).toContain('const guideGlossaryActive = pathname === "/guide"');
-    expect(header).toContain('const sauceGuideActive = pathname === "/sauce"');
-    expect(header).toContain('const pizzaStylesActive = pathname === "/styles"');
-    expect(header).toContain('const ovenGuideActive = pathname === "/ovens"');
-    expect(header).toContain('const troubleshootingGuideActive = pathname === "/guide/pizza-troubleshooting"');
-    expect(header).toContain('href="/account"');
-    expect(header).toContain("Sign in");
-    expect(header).toContain("Your account");
-    expect(header).toContain("max-sm:sr-only");
-    expect(header).not.toContain("Start Pizza Session");
-    expect(header).not.toContain('href="/session/start"');
-    expect(header).not.toMatch(/Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
-    expect(header).not.toContain('label: "Dough Calculator"');
-  });
-
-  it("removes the legacy Lab entry from the global header without deleting calculator routes", () => {
-    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
-    const homepage = readFileSync(join(process.cwd(), "app", "page.tsx"), "utf8");
-
-    expect(header).not.toContain("copy.lab");
-    expect(header).not.toContain('href="/?calculator=1"');
+    expect(header).toContain('href="/session/start"');
+    expect(header).toContain("Plan my next pizza");
+    expect(header).toContain("Learning Center");
+    expect(header).toContain('aria-label="Learning Center menu"');
+    expect(header).toContain("Quick Calculator");
+    expect(header).toContain('href="/calculator/quick"');
     expect(header).toContain("About");
     expect(header).toContain('href="/about"');
-    expect(header).toContain("Guide");
-    expect(header).toContain("Tools");
+    expect(header).toContain("Account");
     expect(header).toContain('href="/account"');
-    expect(homepage).toContain("calculatorViewFor");
-    expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
+    expect(header).toContain('aria-label="Primary"');
+    expect(header).not.toContain('copy.tools');
+    expect(header).not.toContain('type OpenNavigationMenu = "guide" | "tools" | null');
+    expect(header).not.toContain("Tools menu");
+    expect(header).not.toContain('href="/toppings"');
+    expect(header).not.toContain('href: "/toppings"');
+    expect(header).not.toContain('href="/timer"');
+    expect(header).not.toContain('href="/costs"');
+    expect(header).not.toMatch(/Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
   });
 
-  it("closes the Tools dropdown on navigation, item click, outside click and Escape", () => {
-    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+  it("renders a mobile navigation menu with the same product priorities", () => {
+    const header = source("components", "GlobalToolNavigation.tsx");
 
-    expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
-    expect(header).toContain("const toolsMenuRef = useRef<HTMLDivElement>(null)");
-    expect(header).toContain("setOpenMenu(null)");
-    expect(header).toContain("}, [pathname]);");
-    expect(header).toContain("const navigationRootRef = useRef<HTMLDivElement>(null)");
-    expect(header).toContain("!navigationRootRef.current?.contains(target)");
-    expect(header).toContain("event.key === \"Escape\"");
-    expect(header).toContain("trigger?.focus()");
-    expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}');
-    expect(header).toContain('onKeyDown={openMenuFromKeyboard("tools")}');
-    expect(header).toContain("aria-expanded={toolsMenuOpen}");
-    expect(header).toContain('aria-controls="global-tools-menu"');
-    expect(header).toContain('role="menu" aria-label="Tools menu"');
+    expect(header).toContain('aria-label="Open DoughTools navigation menu"');
+    expect(header).toContain('aria-controls="global-mobile-menu"');
+    expect(header).toContain('role="menu" aria-label="Mobile navigation menu"');
+    expect(header).toContain('const mobileMenuOpen = openMenu === "mobile"');
+    expect(header).toContain('type OpenNavigationMenu = "learning" | "mobile" | null');
+    expect(header).toContain("Create the guided recipe, shopping, timeline, Kitchen Mode and review flow.");
+    expect(header).toContain("max-h-[calc(100vh-4.5rem)]");
+    expect(header).toContain("overflow-y-auto");
     expect(header).toContain('role="menuitem"');
-    expect(header).not.toContain("<details");
-    expect(header).not.toContain("<summary");
+    expect(header).not.toContain("Topping Balance Lab");
+    expect(header).not.toContain("Pizza Bake Timer");
+    expect(header).not.toContain("Pizza costs");
   });
 
-  it("keeps the Tools dropdown focused on standalone tools including the Topping Balance Lab", () => {
-    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
+  it("keeps dropdown accessibility behavior for desktop and mobile menus", () => {
+    const header = source("components", "GlobalToolNavigation.tsx");
 
-    expect(header).toContain("const toolsMenuItems = [");
-    expect(header).toContain("toolsMenuItems.map");
-    expect(header).toContain("Quick Dough Calculator");
-    expect(header).toContain("Standalone dough amounts, preferments, sizing and advanced tools.");
-    expect(header).toContain('href: "/calculator/quick"');
-    expect(header.split('href: "/calculator/quick"')).toHaveLength(2);
-    expect(header).toContain("Topping Balance Lab");
-    expect(header).toContain("See how sauce, cheese, pizza size and moisture change the bake.");
-    expect(header).toContain('href: "/toppings"');
-    expect(header.split('href: "/toppings"')).toHaveLength(2);
-    expect(header).toContain('const quickCalculatorActive = pathname === "/calculator/quick"');
-    expect(header).toContain('const toppingBalanceLabActive = pathname === "/toppings"');
-    expect(header).toContain('aria-current={active ? "page" : undefined}');
-    expect(header).toContain("guideMenuItemClass(active)");
-    expect(header).not.toContain("Calculator v2");
-    expect(header).not.toContain("Pizza dough calculator");
-    expect(header).not.toContain("Calculator v1");
-    expect(header).not.toContain("Calculate flour, water, salt and yeast.");
-    expect(header).not.toContain("Full-control planning lab for dough variables and risk.");
-  });
-
-  it("uses one controlled menu state for Guide and Tools dropdowns on desktop and mobile", () => {
-    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
-
-    expect(header).toContain('const guideMenuOpen = openMenu === "guide"');
-    expect(header).toContain('const toolsMenuOpen = openMenu === "tools"');
-    expect(header).toContain("const guideButtonRef = useRef<HTMLButtonElement>(null)");
-    expect(header).toContain("const toolsButtonRef = useRef<HTMLButtonElement>(null)");
-    expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "guide" ? null : "guide")}');
-    expect(header).toContain('onClick={() => setOpenMenu((menu) => menu === "tools" ? null : "tools")}');
-    expect(header).toContain('onKeyDown={openMenuFromKeyboard("guide")}');
+    expect(header).toContain('const learningMenuOpen = openMenu === "learning"');
+    expect(header).toContain('const mobileMenuOpen = openMenu === "mobile"');
+    expect(header).toContain("const learningButtonRef = useRef<HTMLButtonElement>(null)");
+    expect(header).toContain("const mobileButtonRef = useRef<HTMLButtonElement>(null)");
+    expect(header).toContain('onKeyDown={openMenuFromKeyboard("learning")}');
+    expect(header).toContain('onKeyDown={openMenuFromKeyboard("mobile")}');
     expect(header).toContain('event.key === "ArrowDown"');
-    expect(header).toContain('aria-controls="global-guide-menu"');
-    expect(header).toContain('id="global-guide-menu"');
-    expect(header).toContain('role="menu" aria-label="Guide menu"');
-    expect(header).toContain('href="/guides/dough"');
-    expect(header).toContain('href="/sauce"');
-    expect(header).toContain('href="/guide/pizza-troubleshooting"');
-    expect(header).toContain('href="/styles"');
-    expect(header).toContain('href="/ovens"');
-    expect(header).toContain('aria-current={doughGuideActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={guideGlossaryActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={sauceGuideActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={pizzaStylesActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={ovenGuideActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={troubleshootingGuideActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={aboutActive ? "page" : undefined}');
-    expect(header).toContain("guideMenuItemClass(doughGuideActive)");
-    expect(header).toContain("guideMenuItemClass(guideGlossaryActive)");
-    expect(header).toContain("guideMenuItemClass(sauceGuideActive)");
-    expect(header).toContain("guideMenuItemClass(pizzaStylesActive)");
-    expect(header).toContain("guideMenuItemClass(ovenGuideActive)");
-    expect(header).toContain("guideMenuItemClass(troubleshootingGuideActive)");
-    expect(header).toContain("guideMenuItemClass(aboutActive)");
+    expect(header).toContain('event.key === "Escape"');
+    expect(header).toContain("trigger?.focus()");
     expect(header).toContain("!navigationRootRef.current?.contains(target)");
-    expect(header).toContain("overflow-visible");
-    expect(header).toContain("z-[60]");
-    expect(header).toContain("z-[70]");
-    expect(header).toContain("w-[min(21rem,calc(100vw-1.5rem))]");
-    expect(header).toContain("max-sm:max-h-[calc(100vh-4.5rem)]");
-    expect(header).toContain("max-sm:overflow-y-auto");
-  });
-
-  it("makes About available in compact mobile navigation without duplicating the header control", () => {
-    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
-
-    expect(header).toContain('const aboutActive = pathname === "/about"');
-    expect(header).toContain('<nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">');
-    expect(header).toContain('href="/about"');
-    expect(header.split('href="/about"')).toHaveLength(3);
-    expect(header).toContain('aria-current={aboutActive ? "page" : undefined}');
-    expect(header).toContain('className={`${guideMenuItemClass(aboutActive)} lg:hidden`}');
-    expect(header).toContain("onClick={() => setOpenMenu(null)}");
-    expect(header).toContain("max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto");
-    expect(header).toContain('aria-label="Guide menu"');
-    expect(header).toContain("Tools");
-    expect(header).toContain('href="/account"');
-    expect(header).not.toContain("overflow-x-hidden");
-  });
-
-  it("keeps compact header controls usable at narrow mobile widths", () => {
-    const header = readFileSync(join(process.cwd(), "components", "GlobalToolNavigation.tsx"), "utf8");
-
-    expect(header).toContain('aria-label="DoughTools home"');
-    expect(header).toContain("max-sm:sr-only");
-    expect(header).toContain('className={`${guideMenuItemClass(aboutActive)} lg:hidden`}');
-    expect(header).toContain('aria-label={signedIn ? copy.accountActive : copy.account}');
-    expect(header).toContain("h-10");
-    expect(header).toContain("min-w-0");
-    expect(header).toContain("w-[min(21rem,calc(100vw-1.5rem))]");
-    expect(header).toContain("max-sm:max-h-[calc(100vh-4.5rem)]");
-    expect(header).toContain("max-sm:overflow-y-auto");
-    expect(header).toContain("w-64");
-    expect(header).toContain("max-sm:fixed max-sm:left-3 max-sm:right-3 max-sm:top-14 max-sm:w-auto");
-    expect(header).not.toContain("overflow-x-hidden");
+    expect(header).toContain("aria-expanded={learningMenuOpen}");
+    expect(header).toContain("aria-expanded={mobileMenuOpen}");
+    expect(header).toContain('aria-current={active ? "page" : undefined}');
   });
 
   it("detects active pages and hash destinations without query strings", () => {
-    const calculator = navigationItems.find((item) => item.id === "calculator")!;
-    const savedRecipes = navigationItems.find((item) => item.id === "saved-recipes")!;
-    const myGroup = navigationGroups.find((group) => group.id === "my")!;
+    const start = navigationItems.find((item) => item.id === "start")!;
+    const guide = navigationItems.find((item) => item.id === "guide")!;
+    const learningGroup = navigationGroups.find((group) => group.id === "learning")!;
 
-    expect(isNavigationItemActive(calculator, "/", "")).toBe(true);
-    expect(isNavigationItemActive(calculator, "/", "my-recipes")).toBe(false);
-    expect(isNavigationItemActive(savedRecipes, "/", "my-recipes")).toBe(true);
-    expect(isNavigationGroupActive(myGroup, "/", "my-recipes")).toBe(true);
+    expect(isNavigationItemActive(start, "/session/start", "")).toBe(true);
+    expect(isNavigationItemActive(start, "/session/start", "anything")).toBe(false);
+    expect(isNavigationItemActive(guide, "/guide", "")).toBe(true);
+    expect(isNavigationGroupActive(learningGroup, "/sauce", "")).toBe(true);
   });
 });

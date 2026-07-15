@@ -827,9 +827,9 @@ describe("Pizza Dough Guide foundation", () => {
     const navigation = source("lib/navigation.ts");
 
     expect(header).toContain("Dough Guide");
-    expect(header).toContain('href="/guides/dough"');
-    expect(header).toContain("Pizza Troubleshooting Guide");
-    expect(header).toContain('href="/guide/pizza-troubleshooting"');
+    expect(header).toContain('href: "/guides/dough"');
+    expect(header).toContain("Troubleshooting");
+    expect(header).toContain('href: "/guide/pizza-troubleshooting"');
     expect(guideIndex).toContain("How to make pizza dough");
     expect(guideIndex).toContain('href: "/guides/dough"');
     expect(navigation).toContain('id: "dough-guide"');
@@ -844,8 +844,8 @@ describe("Pizza Dough Guide foundation", () => {
     expect(header).toContain("}, [pathname]);");
     expect(header).toContain("navigationRootRef.current?.contains(target)");
     expect(header).toContain("event.key === \"Escape\"");
-    expect(header).toContain('aria-controls="global-guide-menu"');
-    expect(header).toContain('role="menu" aria-label="Guide menu"');
+    expect(header).toContain('aria-controls="global-learning-menu"');
+    expect(header).toContain('role="menu" aria-label="Learning Center menu"');
     expect(page).toContain("aria-expanded={open}");
     expect(page).toContain("aria-controls={panelId}");
     expect(page).toContain("focus-visible:ring");

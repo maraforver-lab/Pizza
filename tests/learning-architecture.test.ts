@@ -23,20 +23,25 @@ describe("learning architecture", () => {
     expect(pageEnding).toContain("cannot repeat the same destination");
   });
 
-  it("makes important learning pages discoverable from the Guide dropdown", () => {
+  it("makes important learning pages discoverable from the Learning Center dropdown", () => {
     const header = source("components", "GlobalToolNavigation.tsx");
 
-    expect(header).toContain("Pizza Sauce Guide");
-    expect(header).toContain('href="/sauce"');
+    expect(header).toContain("Learning Center");
+    expect(header).toContain("Dough Guide");
+    expect(header).toContain('href: "/guides/dough"');
+    expect(header).toContain("Pizza Sauce");
+    expect(header).toContain('href: "/sauce"');
     expect(header).toContain("Pizza Styles");
-    expect(header).toContain('href="/styles"');
-    expect(header).toContain("Oven Guide");
-    expect(header).toContain('href="/ovens"');
-    expect(header).toContain('aria-current={sauceGuideActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={pizzaStylesActive ? "page" : undefined}');
-    expect(header).toContain('aria-current={ovenGuideActive ? "page" : undefined}');
-    expect(header).toContain("max-sm:max-h-[calc(100vh-4.5rem)]");
-    expect(header).toContain("max-sm:overflow-y-auto");
+    expect(header).toContain('href: "/styles"');
+    expect(header).toContain("Ovens");
+    expect(header).toContain('href: "/ovens"');
+    expect(header).toContain("Troubleshooting");
+    expect(header).toContain('href: "/guide/pizza-troubleshooting"');
+    expect(header).toContain('aria-current={active ? "page" : undefined}');
+    expect(header).toContain('aria-label="Learning Center menu"');
+    expect(header).toContain('aria-label="Mobile navigation menu"');
+    expect(header).toContain("max-h-[calc(100vh-4.5rem)]");
+    expect(header).toContain("overflow-y-auto");
   });
 
   it("turns the homepage footer into a concise learning and product map", () => {

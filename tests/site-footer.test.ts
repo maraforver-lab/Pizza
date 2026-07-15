@@ -76,11 +76,18 @@ describe("canonical site footer", () => {
       "/costs",
       "/about",
       "/updates",
+      "/contact",
+      "/methodology",
       "/privacy",
       "/terms",
     ]) {
       expect(footer).toContain(`href: "${href}"`);
     }
+
+    expect(footer).toContain('label: "Quick Calculator", href: "/calculator/quick"');
+    expect(footer).toContain('label: "Pizza costs", href: "/costs"');
+    expect(footer).not.toContain('href: "/toppings"');
+    expect(footer).not.toContain('href: "/timer"');
 
     expect(footer).not.toMatch(/localhost|C:\\|C:\/|\/Users\//);
     expect(footer).not.toContain('href: "/journal"');

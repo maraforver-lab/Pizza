@@ -5,20 +5,20 @@ const footerGroups = [
     title: "Learn",
     links: [
       { label: "Learning Center", href: "/guide" },
-      { label: "Pizza Sauce", href: "/sauce" },
       { label: "Dough Guide", href: "/guides/dough" },
-      { label: "Troubleshooting", href: "/guide/pizza-troubleshooting" },
-      { label: "Pizza Styles", href: "/styles" },
+      { label: "Pizza Sauce", href: "/sauce" },
       { label: "Ovens", href: "/ovens" },
+      { label: "Pizza Styles", href: "/styles" },
+      { label: "Troubleshooting", href: "/guide/pizza-troubleshooting" },
     ],
   },
   {
     title: "Product",
     links: [
       { label: "Plan my next pizza", href: "/session/start" },
-      { label: "Quick Dough Calculator", href: "/calculator/quick" },
+      { label: "Quick Calculator", href: "/calculator/quick" },
       { label: "Party Orders", href: "/account/party-orders" },
-      { label: "Costs", href: "/costs" },
+      { label: "Pizza costs", href: "/costs" },
     ],
   },
   {
@@ -26,6 +26,8 @@ const footerGroups = [
     links: [
       { label: "About", href: "/about" },
       { label: "Updates", href: "/updates" },
+      { label: "Contact", href: "/contact" },
+      { label: "Methodology", href: "/methodology" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
     ],
