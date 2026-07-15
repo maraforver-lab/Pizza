@@ -256,6 +256,7 @@ export default function SessionReviewPage() {
           pageType="Learning page"
           title="Review your pizza"
           level={session.experienceLevel}
+          levelCompactOnMobile
           hideMeta
         />
 
@@ -268,7 +269,7 @@ export default function SessionReviewPage() {
         <section className="mt-4 sm:mt-6">
           <section className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-card sm:rounded-[2rem] sm:p-7" aria-labelledby="review-form-heading">
             <h2 id="review-form-heading" className="sr-only">Review form</h2>
-            <section className="mb-5 rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:mb-6" aria-labelledby="review-photo-sharing-heading">
+            <section className="mb-5 hidden rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:mb-6 sm:block" aria-labelledby="review-photo-sharing-heading">
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">After saving</p>
               <h3 id="review-photo-sharing-heading" className="mt-2 font-display text-2xl font-semibold">Add a pizza photo and share your bake</h3>
               <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
@@ -276,7 +277,7 @@ export default function SessionReviewPage() {
               </p>
             </section>
 
-            <section className="mb-5 rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:mb-6" aria-labelledby="review-troubleshooting-heading">
+            <section className="mb-5 hidden rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:mb-6 sm:block" aria-labelledby="review-troubleshooting-heading">
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Did something go wrong?</p>
               <h3 id="review-troubleshooting-heading" className="mt-2 font-display text-2xl font-semibold">Diagnose your pizza</h3>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -343,6 +344,18 @@ export default function SessionReviewPage() {
                 />
               </label>
             </div>
+
+            <details className="mt-5 rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:hidden">
+              <summary className="cursor-pointer list-none text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                Add a photo and share
+              </summary>
+              <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
+                Save and share your finished pizza after the review.
+              </p>
+              <p className="mt-2 text-xs font-bold leading-5 text-ink/50">
+                If you’re signed in, your finished pizza photo can be saved as a memory after this review, and DoughTools can create a share image with your bake details.
+              </p>
+            </details>
 
             <BottomActionBar
               back={(

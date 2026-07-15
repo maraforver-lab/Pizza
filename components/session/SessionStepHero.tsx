@@ -15,6 +15,7 @@ type SessionStepHeroProps = {
   hideMeta?: boolean;
   label: string;
   level?: ExperienceLevel;
+  levelCompactOnMobile?: boolean;
   pageType: string;
   step: number;
   title: ReactNode;
@@ -27,6 +28,7 @@ export function SessionStepHero({
   hideMeta = false,
   label,
   level,
+  levelCompactOnMobile = false,
   pageType,
   step,
   title,
@@ -51,7 +53,14 @@ export function SessionStepHero({
                   <StatusPill className="hidden sm:inline-flex">{pageType}</StatusPill>
                 </>
               )}
-              {level && <SessionExperienceLevelBadge level={level} />}
+              {level && levelCompactOnMobile ? (
+                <>
+                  <SessionExperienceLevelBadge level={level} compact className="sm:hidden" />
+                  <SessionExperienceLevelBadge level={level} className="hidden sm:inline-flex" />
+                </>
+              ) : (
+                level && <SessionExperienceLevelBadge level={level} />
+              )}
             </div>
           )}
           <h1 id="session-step-heading" className={`${showMetaRow ? "mt-4" : ""} max-w-3xl font-display text-3xl font-semibold leading-none sm:text-6xl`}>

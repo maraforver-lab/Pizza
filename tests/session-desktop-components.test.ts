@@ -183,7 +183,10 @@ describe("Pizza Session desktop refinement components", () => {
     expect(badge).toContain("Guidance: {config.label}");
     expect(badge).toContain("compact");
     expect(badge).toContain("data-session-experience-level={config.id}");
-    expect(hero).toContain("{level && <SessionExperienceLevelBadge level={level} />}");
+    expect(hero).toContain("levelCompactOnMobile?: boolean");
+    expect(hero).toContain("level && <SessionExperienceLevelBadge level={level} />");
+    expect(hero).toContain('<SessionExperienceLevelBadge level={level} compact className="sm:hidden" />');
+    expect(hero).toContain('<SessionExperienceLevelBadge level={level} className="hidden sm:inline-flex" />');
     expect(startPage).toContain("<SessionExperienceLevelBadge level={experienceLevel}");
     expect(kitchenPage).toContain("<SessionExperienceLevelBadge level={session.experienceLevel} compact />");
     expect(kitchenPage).toContain("getKitchenExperienceGuidance(currentStep, session.experienceLevel, session)");

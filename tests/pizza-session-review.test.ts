@@ -45,6 +45,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={10}");
     expect(page).toContain("Review your pizza");
+    expect(page).toContain("levelCompactOnMobile");
     expect(page).toContain("hideMeta");
     expect(page).toContain("hideLocalSaveNote");
     expect(page).not.toContain("desktopAside");
@@ -66,6 +67,8 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("Finish session");
     expect(page).toContain("Finishing session…");
     expect(page).toContain("Add a pizza photo and share your bake");
+    expect(page).toContain("Add a photo and share");
+    expect(page).toContain("Save and share your finished pizza after the review.");
     expect(page).toContain("If you’re signed in, you can also save a finished pizza photo as a memory after this review.");
     expect(page).toContain("share image with your bake and preparation parameters");
     expect(page).toContain("Did something go wrong?");
@@ -91,6 +94,33 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).not.toContain("Photos and sharing");
     expect(page).not.toContain("<AppSignature");
     expect(page).not.toMatch(/upload photo|share result card|copy public link|cloud sync is active|Google indexing enabled/i);
+  });
+
+  it("keeps the mobile Review task focused while preserving desktop diagnosis and sharing context", () => {
+    const page = source("app/session/review/page.tsx");
+    const hero = source("components/session/SessionStepHero.tsx");
+
+    expect(hero).toContain("levelCompactOnMobile?: boolean");
+    expect(hero).toContain("<SessionExperienceLevelBadge level={level} compact className=\"sm:hidden\" />");
+    expect(hero).toContain("<SessionExperienceLevelBadge level={level} className=\"hidden sm:inline-flex\" />");
+    expect(page).toContain("levelCompactOnMobile");
+
+    expect(page).toContain("mb-5 hidden rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:mb-6 sm:block");
+    expect(page).toContain("mb-5 hidden rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4 sm:mb-6 sm:block");
+    expect(page).toContain("<details className=\"mt-5 rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-4 sm:hidden\">");
+    expect(page).toContain("Add a photo and share");
+
+    expect(page.indexOf("Overall result")).toBeLessThan(page.indexOf("What worked well?"));
+    expect(page.indexOf("What worked well?")).toBeLessThan(page.indexOf("What would you improve?"));
+    expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Free notes"));
+    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Add a photo and share"));
+    expect(page.indexOf("Add a photo and share")).toBeLessThan(page.indexOf("Finish session"));
+
+    expect(page).toContain("Did something go wrong?");
+    expect(page).toContain("{toppingsTroubleshootingLink.label}");
+    expect(page).toContain("bakingTroubleshootingLink.href");
+    expect(page).toContain("toppingsTroubleshootingLink.href");
+    expect(page).toContain("onClick={saveReview}");
   });
 
   it("links Review troubleshooting help to existing baking and toppings anchors without changing save behavior", () => {
