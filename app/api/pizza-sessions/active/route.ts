@@ -4,7 +4,7 @@ import {
   cloudPizzaSessionPayload,
   normalizeCloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
-import { migratePizzaSession } from "@/lib/pizza-session";
+import { migratePizzaSession, pizzaSessionContinueHref } from "@/lib/pizza-session";
 import { getSupabaseRouteClient } from "@/lib/supabase/server";
 
 function pizzaSessionUpdatedAtTime(session: ReturnType<typeof migratePizzaSession>) {
@@ -17,6 +17,24 @@ function cloudSessionIsNewer(existingSession: ReturnType<typeof migratePizzaSess
   const existingTime = pizzaSessionUpdatedAtTime(existingSession);
   const incomingTime = pizzaSessionUpdatedAtTime(incomingSession);
   return existingTime !== undefined && incomingTime !== undefined && existingTime > incomingTime;
+}
+
+function activeSessionConflictResponse(
+  existing: { id: string },
+  existingSession: NonNullable<ReturnType<typeof migratePizzaSession>>,
+  incomingSession: NonNullable<ReturnType<typeof migratePizzaSession>>,
+) {
+  return NextResponse.json({
+    error: "active_session_exists",
+    message: "A different active pizza session is already saved to this account.",
+    conflict: true,
+    activeSessionId: existingSession.id,
+    activeCloudRowId: existing.id,
+    cloudRowId: existing.id,
+    cloudSessionId: existingSession.id,
+    localSessionId: incomingSession.id,
+    resumeRoute: pizzaSessionContinueHref(existingSession),
+  }, { status: 409 });
 }
 
 export async function GET(request: Request) {
@@ -54,6 +72,7 @@ export async function POST(request: Request) {
   const record = body && typeof body === "object" ? body as Record<string, unknown> : {};
   const session = migratePizzaSession(record.sessionData ?? record.session_data);
   if (!session) return NextResponse.json({ error: "Invalid pizza session data." }, { status: 400 });
+  const replaceActiveSession = record.replaceActiveSession === true || record.replace_active_session === true;
 
   const payload = cloudPizzaSessionPayload(session);
   const updatedAt = new Date().toISOString();
@@ -68,25 +87,21 @@ export async function POST(request: Request) {
 
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
   const existingSession = existing?.session_data ? migratePizzaSession(existing.session_data) : undefined;
+  let targetExisting = existing;
   if (existing?.id && existingSession && existingSession.id !== session.id) {
-    return NextResponse.json({
-      error: "A different active pizza session is already saved to this account.",
-      conflict: true,
-      localSessionId: session.id,
-      cloudSessionId: existingSession.id,
-      cloudRowId: existing.id,
-    }, { status: 409 });
+    if (!replaceActiveSession) return activeSessionConflictResponse(existing, existingSession, session);
+    targetExisting = existing;
   }
-  if (existing?.id && existingSession && cloudSessionIsNewer(existingSession, session)) {
+  if (!replaceActiveSession && targetExisting?.id && existingSession && cloudSessionIsNewer(existingSession, session)) {
     const normalizedExisting = normalizeCloudPizzaSessionRow(existing);
     if (normalizedExisting) return NextResponse.json({ session: normalizedExisting, skipped: true, reason: "stale-session" });
   }
 
-  const query = existing?.id
+  const query = targetExisting?.id
     ? supabase
       .from("pizza_sessions")
       .update({ ...payload, updated_at: updatedAt })
-      .eq("id", existing.id)
+      .eq("id", targetExisting.id)
       .eq("user_id", user.id)
       .select(CLOUD_PIZZA_SESSION_SELECT)
       .single()
@@ -149,13 +164,7 @@ export async function PATCH(request: Request) {
   if (!existing?.id) return NextResponse.json({ session: null, skipped: true });
   const existingSession = existing.session_data ? migratePizzaSession(existing.session_data) : undefined;
   if (existingSession && existingSession.id !== session.id) {
-    return NextResponse.json({
-      error: "A different active pizza session is already saved to this account.",
-      conflict: true,
-      localSessionId: session.id,
-      cloudSessionId: existingSession.id,
-      cloudRowId: existing.id,
-    }, { status: 409 });
+    return activeSessionConflictResponse(existing, existingSession, session);
   }
   if (existingSession && cloudSessionIsNewer(existingSession, session)) {
     const normalizedExisting = normalizeCloudPizzaSessionRow(existing);

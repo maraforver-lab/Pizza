@@ -1498,9 +1498,9 @@ describe("cloud pizza session foundation", () => {
     expect(startPage).toContain("lastCloudSaveKey");
     expect(startPage).toContain("void queueCloudActivePizzaSessionSave(session).then");
     expect(startPage).toContain('result.reason !== "unauthenticated"');
-    expect(startPage).toContain("await materializeCloudBackedPizzaSession(saved)");
-    expect(startPage.indexOf("const saved = savePizzaSession(readyForRecipe)")).toBeLessThan(startPage.indexOf("await materializeCloudBackedPizzaSession(saved)"));
-    expect(startPage.indexOf("await materializeCloudBackedPizzaSession(saved)")).toBeLessThan(startPage.indexOf("router.push(\"/session/recipe\")"));
+    expect(startPage).toContain("await materializeCloudBackedPizzaSession(saved,");
+    expect(startPage.indexOf("const saved = savePizzaSession(readyForRecipe)")).toBeLessThan(startPage.indexOf("await materializeCloudBackedPizzaSession(saved,"));
+    expect(startPage.indexOf("await materializeCloudBackedPizzaSession(saved,")).toBeLessThan(startPage.indexOf("router.push(\"/session/recipe\")"));
     expect(startPage).toContain("setCreationError(\"We could not save this pizza plan to your account yet.");
     expect(startPage).toContain("if (getActivePizzaSession()?.id !== session.id) return");
     expect(client).toContain("getCloudActivePizzaSessionAuthState");
@@ -1510,7 +1510,10 @@ describe("cloud pizza session foundation", () => {
     expect(client).toContain("method: \"POST\"");
     expect(client).toContain("headers: auth.headers");
     expect(client).toContain("headers,");
-    expect(client).toContain("return saveCloudActivePizzaSession(session)");
+    expect(client).toContain("ActiveCloudPizzaSessionConflictError");
+    expect(client).toContain("active_session_exists");
+    expect(client).toContain("replaceActiveSession: options.replaceActiveSession === true");
+    expect(client).toContain("return saveCloudActivePizzaSession(session, options)");
     expect(client).toContain("queueCloudActivePizzaSessionSave");
     expect(client).toContain("export async function materializeCloudBackedPizzaSession");
     expect(client).toContain("status: \"cloud-backed\"");
@@ -1519,10 +1522,32 @@ describe("cloud pizza session foundation", () => {
     expect(client).toContain("markCloudBackedPizzaSession(session.id, savedSession.id)");
     expect(activeRoute).toContain('.select("id,session_data,updated_at")');
     expect(activeRoute).toContain("existingSession.id !== session.id");
+    expect(activeRoute).toContain("activeSessionConflictResponse");
+    expect(activeRoute).toContain('error: "active_session_exists"');
+    expect(activeRoute).toContain("resumeRoute: pizzaSessionContinueHref(existingSession)");
     expect(activeRoute).toContain("conflict: true");
     expect(activeRoute).toContain("{ status: 409 }");
+    expect(activeRoute).toContain("const replaceActiveSession = record.replaceActiveSession === true || record.replace_active_session === true");
+    expect(activeRoute).toContain("if (!replaceActiveSession) return activeSessionConflictResponse(existing, existingSession, session)");
+    expect(activeRoute).toContain("!replaceActiveSession && targetExisting?.id");
     expect(activeRoute).toContain("cloudSessionIsNewer(existingSession, session)");
     expect(activeRoute).toContain('reason: "stale-session"');
+  });
+
+  it("shows a safe Session Start choice for existing active cloud-session conflicts", () => {
+    const startPage = source("app/session/start/page.tsx");
+
+    expect(startPage).toContain("isActiveCloudPizzaSessionConflictError");
+    expect(startPage).toContain("setActiveCloudConflict(error.conflict)");
+    expect(startPage).toContain("You already have an active pizza session.");
+    expect(startPage).toContain("ActiveCloudSessionConflictChoice");
+    expect(startPage).toContain("Continue existing session");
+    expect(startPage).toContain("Keep setup");
+    expect(startPage).toContain("Start new pizza");
+    expect(startPage).toContain("This will replace the active pizza session in your account with this setup.");
+    expect(startPage).toContain("continueToRecipe({ replaceActiveCloudSession: true })");
+    expect(startPage).toContain("resolveCanonicalActivePizzaSession()");
+    expect(startPage).toContain("clearActivePizzaSession()");
   });
 
   it("keeps canonical active-session requests on the authenticated browser token path", () => {

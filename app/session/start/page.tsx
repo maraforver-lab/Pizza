@@ -11,8 +11,10 @@ import { SessionViewportReset } from "@/components/session/SessionViewportReset"
 import { resolveCanonicalActivePizzaSession } from "@/lib/canonical-active-pizza-session";
 import {
   clearCloudBackedActivePizzaSessionPointer,
+  isActiveCloudPizzaSessionConflictError,
   materializeCloudBackedPizzaSession,
   queueCloudActivePizzaSessionSave,
+  type ActiveCloudPizzaSessionConflict,
 } from "@/lib/cloud-pizza-session-client";
 import {
   getExperienceLevelCornerAccentStyle,
@@ -531,6 +533,79 @@ function ReplaceActiveSessionChoice({
   );
 }
 
+function ActiveCloudSessionConflictChoice({
+  conflict,
+  confirmingStartNew,
+  disabled,
+  onCancel,
+  onConfirmStartNew,
+  onContinueExisting,
+  onStartNew,
+}: {
+  conflict: ActiveCloudPizzaSessionConflict;
+  confirmingStartNew: boolean;
+  disabled: boolean;
+  onCancel: () => void;
+  onConfirmStartNew: () => void;
+  onContinueExisting: () => void;
+  onStartNew: () => void;
+}) {
+  return (
+    <section
+      aria-labelledby="cloud-active-session-conflict-heading"
+      className="rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 text-ink sm:p-5"
+    >
+      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Active account session</p>
+      <h2 id="cloud-active-session-conflict-heading" className="mt-2 font-display text-2xl font-semibold leading-tight">
+        You already have an active pizza session.
+      </h2>
+      <p className="mt-3 text-sm font-bold leading-6 text-ink/62">
+        Continue the saved session, keep editing this setup, or explicitly start a new active pizza session.
+      </p>
+      {conflict.resumeRoute && (
+        <p className="mt-2 text-xs font-bold leading-5 text-ink/45">
+          Existing session opens at {conflict.resumeRoute}.
+        </p>
+      )}
+
+      {!confirmingStartNew ? (
+        <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+          <button type="button" onClick={onContinueExisting} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5" })}>
+            Continue existing session
+          </button>
+          <button type="button" onClick={onCancel} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
+            Keep setup
+          </button>
+          <button type="button" onClick={onStartNew} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
+            Start new pizza
+          </button>
+        </div>
+      ) : (
+        <div
+          role="group"
+          aria-labelledby="cloud-start-new-confirm-heading"
+          className="mt-4 rounded-[1.25rem] border border-ink/10 bg-white p-4"
+        >
+          <h3 id="cloud-start-new-confirm-heading" className="font-display text-2xl font-semibold leading-tight">
+            Start a new pizza session?
+          </h3>
+          <p className="mt-2 text-sm font-bold leading-6 text-ink/62">
+            This will replace the active pizza session in your account with this setup. Continue the existing session instead if you want to keep it active.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <button type="button" onClick={onCancel} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
+              Keep setup
+            </button>
+            <button type="button" onClick={onConfirmStartNew} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5" })}>
+              {disabled ? "Starting new pizza..." : "Start new pizza"}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function StartPizzaSessionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -540,6 +615,8 @@ function StartPizzaSessionContent() {
   const [loadError, setLoadError] = useState("");
   const [creationError, setCreationError] = useState("");
   const [creatingPlan, setCreatingPlan] = useState(false);
+  const [activeCloudConflict, setActiveCloudConflict] = useState<ActiveCloudPizzaSessionConflict | null>(null);
+  const [confirmingCloudStartNew, setConfirmingCloudStartNew] = useState(false);
   const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
@@ -644,6 +721,7 @@ function StartPizzaSessionContent() {
 
   useEffect(() => {
     if (!ready || !session) return;
+    if (activeCloudConflict) return;
     if (getActivePizzaSession()?.id !== session.id) return;
     const cloudSaveKey = cloudSaveKeyForSession(session);
     if (lastCloudSaveKey.current === cloudSaveKey) return;
@@ -654,7 +732,7 @@ function StartPizzaSessionContent() {
     }).catch(() => {
       // Keep the local guest/session flow usable if account sync is unavailable.
     });
-  }, [ready, session]);
+  }, [activeCloudConflict, ready, session]);
 
   const progress = stepIndex(step) + 1;
   const journeyProgress = journeyProgressForStep(step);
@@ -668,6 +746,10 @@ function StartPizzaSessionContent() {
   ) => {
     if (!session) return;
     if (creationError) setCreationError("");
+    if (activeCloudConflict) {
+      setActiveCloudConflict(null);
+      setConfirmingCloudStartNew(false);
+    }
     const persistedActiveSession = getActivePizzaSession()?.id === session.id;
     const lastRoute = patch.lastRoute ?? wizardStepHref(nextStep);
     const updated = persistedActiveSession ? updatePizzaSession(session.id, {
@@ -780,24 +862,66 @@ function StartPizzaSessionContent() {
     router.replace(wizardStepHref(nextStep), { scroll: false });
   };
 
-  const continueToRecipe = async () => {
+  const continueToRecipe = async (options: { replaceActiveCloudSession?: boolean } = {}) => {
     if (!session || creatingPlan) return;
     setCreatingPlan(true);
     setCreationError("");
+    setActiveCloudConflict(null);
     const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: "/session/recipe" }, "summary", experienceLevel, "/session/recipe");
     const saved = savePizzaSession(readyForRecipe);
     setActivePizzaSession(saved.id);
     setSession(saved);
     try {
-      const materialized = await materializeCloudBackedPizzaSession(saved);
+      const materialized = await materializeCloudBackedPizzaSession(saved, {
+        replaceActiveSession: options.replaceActiveCloudSession === true,
+      });
       if (materialized.status === "cloud-backed") {
         lastCloudSaveKey.current = cloudSaveKeyForSession(saved);
       }
       router.push("/session/recipe");
-    } catch {
+    } catch (error) {
       setCreatingPlan(false);
+      if (isActiveCloudPizzaSessionConflictError(error)) {
+        if (getActivePizzaSession()?.id === saved.id) clearActivePizzaSession();
+        setActiveCloudConflict(error.conflict);
+        setConfirmingCloudStartNew(false);
+        setCreationError("");
+        return;
+      }
       setCreationError("We could not save this pizza plan to your account yet. Try again before opening the Dough Plan.");
     }
+  };
+
+  const continueExistingCloudSession = async () => {
+    if (!activeCloudConflict || creatingPlan) return;
+    setCreatingPlan(true);
+    setCreationError("");
+    try {
+      const canonical = await resolveCanonicalActivePizzaSession();
+      if (canonical.state === "active") {
+        setActiveCloudConflict(null);
+        setConfirmingCloudStartNew(false);
+        setSession(canonical.session);
+        router.push(canonical.href);
+        return;
+      }
+      if (activeCloudConflict.resumeRoute) {
+        router.push(activeCloudConflict.resumeRoute);
+        return;
+      }
+      setCreationError("We could not open the existing active pizza session. Try again from Account.");
+    } catch {
+      setCreationError("We could not open the existing active pizza session. Try again from Account.");
+    } finally {
+      setCreatingPlan(false);
+    }
+  };
+
+  const cancelActiveCloudConflict = () => {
+    setActiveCloudConflict(null);
+    setConfirmingCloudStartNew(false);
+    setCreationError("");
+    setCreatingPlan(false);
   };
 
   const continueStep = () => {
@@ -1362,6 +1486,18 @@ function StartPizzaSessionContent() {
             </p>
           )}
 
+          {activeCloudConflict && (
+            <ActiveCloudSessionConflictChoice
+              conflict={activeCloudConflict}
+              confirmingStartNew={confirmingCloudStartNew}
+              disabled={creatingPlan}
+              onCancel={cancelActiveCloudConflict}
+              onConfirmStartNew={() => continueToRecipe({ replaceActiveCloudSession: true })}
+              onContinueExisting={continueExistingCloudSession}
+              onStartNew={() => setConfirmingCloudStartNew(true)}
+            />
+          )}
+
           <div className="sticky bottom-0 z-20 -mx-4 mt-5 flex items-center gap-3 border-t border-ink/10 bg-background-page/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:mt-6 sm:justify-between sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4 sm:backdrop-blur-none">
             <div className={step === "path" ? "hidden shrink-0 sm:block" : "shrink-0"}>
               {step !== "path" && (
@@ -1384,7 +1520,7 @@ function StartPizzaSessionContent() {
                   Continue setup
                 </button>
               ) : (
-                <button type="button" onClick={continueToRecipe} disabled={creatingPlan} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
+                <button type="button" onClick={() => continueToRecipe()} disabled={creatingPlan} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
                   {creatingPlan ? "Creating pizza plan..." : "Create my pizza plan"}
                 </button>
               )}

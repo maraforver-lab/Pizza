@@ -337,10 +337,15 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("You’re ready for your Dough Plan.");
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
     expect(page).toContain("Create my pizza plan");
-    expect(page).toContain("const continueToRecipe = async () =>");
-    expect(page).toContain("await materializeCloudBackedPizzaSession(saved)");
+    expect(page).toContain("const continueToRecipe = async (options: { replaceActiveCloudSession?: boolean } = {})");
+    expect(page).toContain("await materializeCloudBackedPizzaSession(saved,");
     expect(page).toContain("router.push(\"/session/recipe\")");
-    expect(page).toContain("onClick={continueToRecipe}");
+    expect(page).toContain("onClick={() => continueToRecipe()}");
+    expect(page).toContain("ActiveCloudSessionConflictChoice");
+    expect(page).toContain("Continue existing session");
+    expect(page).toContain("Keep setup");
+    expect(page).toContain("Start new pizza");
+    expect(page).toContain("continueToRecipe({ replaceActiveCloudSession: true })");
     expect(page).toContain('aria-label="Back"');
     expect(page).toContain('name="back"');
     expect(page).toContain('step !== "path" &&');
@@ -795,7 +800,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: \"/session/recipe\" }, \"summary\", experienceLevel, \"/session/recipe\")");
     expect(page).toContain("const saved = savePizzaSession(readyForRecipe)");
     expect(page).toContain("setActivePizzaSession(saved.id)");
-    expect(page).toContain("await materializeCloudBackedPizzaSession(saved)");
+    expect(page).toContain("await materializeCloudBackedPizzaSession(saved,");
     expect(page).toContain("Creating pizza plan...");
     expect(page).toContain("We could not save this pizza plan to your account yet.");
     expect(page).not.toContain("function StartPizzaSessionEntry()");

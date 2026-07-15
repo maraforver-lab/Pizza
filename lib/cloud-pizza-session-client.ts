@@ -16,6 +16,7 @@ type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 type CloudSyncOptions = {
   complete?: boolean;
+  replaceActiveSession?: boolean;
 };
 
 type QueueCloudSyncOptions = CloudSyncOptions & {
@@ -31,6 +32,50 @@ export type CloudActivePizzaSessionAuthState = {
   headers: Headers;
   signedIn: boolean;
 };
+
+export type ActiveCloudPizzaSessionConflict = {
+  activeCloudRowId?: string;
+  activeSessionId?: string;
+  cloudRowId?: string;
+  cloudSessionId?: string;
+  localSessionId?: string;
+  message: string;
+  resumeRoute?: string;
+};
+
+export class ActiveCloudPizzaSessionConflictError extends Error {
+  conflict: ActiveCloudPizzaSessionConflict;
+
+  constructor(conflict: ActiveCloudPizzaSessionConflict) {
+    super(conflict.message);
+    this.name = "ActiveCloudPizzaSessionConflictError";
+    this.conflict = conflict;
+  }
+}
+
+function stringField(record: Record<string, unknown>, key: string) {
+  const value = record[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function activeCloudPizzaSessionConflictFromPayload(payload: unknown): ActiveCloudPizzaSessionConflict | undefined {
+  if (!payload || typeof payload !== "object") return undefined;
+  const record = payload as Record<string, unknown>;
+  if (record.error !== "active_session_exists" && record.conflict !== true) return undefined;
+  return {
+    activeCloudRowId: stringField(record, "activeCloudRowId"),
+    activeSessionId: stringField(record, "activeSessionId"),
+    cloudRowId: stringField(record, "cloudRowId"),
+    cloudSessionId: stringField(record, "cloudSessionId"),
+    localSessionId: stringField(record, "localSessionId"),
+    message: stringField(record, "message") ?? "A different active pizza session is already saved to this account.",
+    resumeRoute: stringField(record, "resumeRoute"),
+  };
+}
+
+export function isActiveCloudPizzaSessionConflictError(error: unknown): error is ActiveCloudPizzaSessionConflictError {
+  return error instanceof ActiveCloudPizzaSessionConflictError;
+}
 
 function getBrowserStorage(storage?: StorageLike): StorageLike | undefined {
   if (storage) return storage;
@@ -153,16 +198,21 @@ export function clearCloudBackedActivePizzaSessionPointer(storage?: StorageLike)
   clearCloudBackedPizzaSession(storage);
 }
 
-export async function saveCloudActivePizzaSession(session: PizzaSession) {
+export async function saveCloudActivePizzaSession(session: PizzaSession, options: CloudSyncOptions = {}) {
   const auth = await getCloudActivePizzaSessionAuthState({ json: true });
   if (!auth.signedIn) return { skipped: true, reason: "unauthenticated" as const };
 
   const response = await fetch("/api/pizza-sessions/active", {
     method: "POST",
     headers: auth.headers,
-    body: JSON.stringify({ sessionData: session }),
+    body: JSON.stringify({
+      sessionData: session,
+      replaceActiveSession: options.replaceActiveSession === true,
+    }),
   });
   const payload = await response.json().catch(() => ({}));
+  const conflict = response.status === 409 ? activeCloudPizzaSessionConflictFromPayload(payload) : undefined;
+  if (conflict) throw new ActiveCloudPizzaSessionConflictError(conflict);
   if (!response.ok) throw new Error(payload.error || "Cloud session save failed.");
   const savedSession = normalizeCloudPizzaSessionRow(payload.session);
   if (!savedSession) throw new Error("Saved pizza session could not be verified.");
@@ -176,7 +226,7 @@ export async function syncCloudBackedPizzaSession(
 ) {
   if (!isCloudBackedPizzaSession(session)) {
     if (options.complete) return { skipped: true };
-    return saveCloudActivePizzaSession(session);
+    return saveCloudActivePizzaSession(session, options);
   }
   const cloudSessionId = cloudBackedPizzaSessionRowId(session);
   const headers = await cloudActivePizzaSessionRequestHeaders({ json: true });
@@ -188,9 +238,12 @@ export async function syncCloudBackedPizzaSession(
       sessionData: session,
       complete: options.complete === true,
       cloudSessionId,
+      replaceActiveSession: options.replaceActiveSession === true,
     }),
   });
   const payload = await response.json().catch(() => ({}));
+  const conflict = response.status === 409 ? activeCloudPizzaSessionConflictFromPayload(payload) : undefined;
+  if (conflict) throw new ActiveCloudPizzaSessionConflictError(conflict);
   if (!response.ok) throw new Error(payload.error || "Cloud session sync failed.");
   if (options.complete) clearCloudBackedPizzaSession();
   const syncedSession = normalizeCloudPizzaSessionRow(payload.session);
@@ -208,7 +261,7 @@ export async function completeCloudBackedPizzaSession(session: PizzaSession) {
 
 type QueuedCloudSave = {
   key: string;
-  options: { complete?: boolean };
+  options: CloudSyncOptions;
   reject: Array<(error: unknown) => void>;
   resolve: Array<(value: Awaited<ReturnType<typeof syncCloudBackedPizzaSession>>) => void>;
   session: PizzaSession;
@@ -247,14 +300,15 @@ export function queueCloudActivePizzaSessionSave(
     ? session
     : latestActivePizzaSessionForCloudSync(session, storage);
   const key = `${cloudActivePizzaSessionSaveKey(sessionForSync)}:${syncOptions.complete === true ? "complete" : "active"}`;
+  const queueKey = `${key}:${syncOptions.replaceActiveSession === true ? "replace" : "normal"}`;
 
   return new Promise<Awaited<ReturnType<typeof syncCloudBackedPizzaSession>>>((resolve, reject) => {
-    if (queuedCloudSave?.key === key) {
+    if (queuedCloudSave?.key === queueKey) {
       queuedCloudSave.resolve.push(resolve);
       queuedCloudSave.reject.push(reject);
     } else {
       queuedCloudSave = {
-        key,
+        key: queueKey,
         options: syncOptions,
         reject: queuedCloudSave ? [...queuedCloudSave.reject, reject] : [reject],
         resolve: queuedCloudSave ? [...queuedCloudSave.resolve, resolve] : [resolve],
