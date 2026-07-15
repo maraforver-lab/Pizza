@@ -1025,6 +1025,10 @@ describe("Pizza Session timeline", () => {
     expect(page).toContain("onClick={handleNextAction}");
     expect(page).toContain("{nextAction.title}");
     expect(page).toContain("{nextAction.subtext}");
+    expect(page).toContain('<p className="mt-3 hidden text-sm leading-6 text-ink/60 sm:block">{nextAction.subtext}</p>');
+    expect(page).toContain('levelCompactOnMobile');
+    expect(page).toContain('hideBodyOnMobile');
+    expect(page).toContain('className: "hidden px-3 py-2 sm:inline-flex"');
     expect(page).toContain("const renderNextActionCard");
     expect(page).not.toContain("const nextStep = displayTimelineSteps.find((step) => step.status === \"todo\")");
     expect(page).not.toContain("timeline-next-action-heading");
@@ -1211,6 +1215,7 @@ describe("Pizza Session timeline", () => {
     expect(backBlock).not.toContain("onClick={handleNextAction}");
     expect(backBlock).not.toContain("{nextAction.cta}");
     expect(backBlock).toContain("buttonClass({ className: \"w-full sm:w-auto\", variant: \"secondary\" })");
+    expect(backBlock).toContain('className="mt-5 hidden justify-start border-t border-ink/10 pt-4 sm:mt-6 sm:flex"');
     expect(page.indexOf("aria-label=\"Pizza timeline steps\"")).toBeLessThan(page.indexOf("<nav aria-label=\"Timeline navigation\""));
     expect(helper).toContain("DEFAULT_TIMELINE_ASSUMPTIONS");
     expect(helper).toContain("TIMELINE_ROUNDING_MINUTES = 15");

@@ -425,7 +425,7 @@ export default function SessionTimelinePage() {
             <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
               {nextAction.title}
             </h2>
-            <p className="mt-3 text-sm leading-6 text-ink/60">{nextAction.subtext}</p>
+            <p className="mt-3 hidden text-sm leading-6 text-ink/60 sm:block">{nextAction.subtext}</p>
           </div>
         </div>
         <div className="mt-4">
@@ -449,7 +449,7 @@ export default function SessionTimelinePage() {
           )}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className={statusPillClass({ className: "px-3 py-2", variant: "archived" })}>
+          <span className={statusPillClass({ className: "hidden px-3 py-2 sm:inline-flex", variant: "archived" })}>
             {stepProgressLabel}
           </span>
         </div>
@@ -490,6 +490,8 @@ export default function SessionTimelinePage() {
           title="Timeline"
           body="Use this schedule to see the next required action, its planned time and the path into Kitchen Mode."
           level={session.experienceLevel}
+          levelCompactOnMobile
+          hideBodyOnMobile
           hideMeta
         >
           {renderNextActionCard()}
@@ -563,7 +565,7 @@ export default function SessionTimelinePage() {
           </ol>
         </section>
 
-        <nav aria-label="Timeline navigation" className="mt-5 flex justify-start border-t border-ink/10 pt-4 sm:mt-6">
+        <nav aria-label="Timeline navigation" className="mt-5 hidden justify-start border-t border-ink/10 pt-4 sm:mt-6 sm:flex">
           <Link
             href="/session/shopping"
             className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
