@@ -18,12 +18,15 @@ import {
   formatShoppingListPlainText,
   generateAndSaveActiveShoppingList,
   generatePizzaSessionShoppingList,
+  formatShoppingFlourRecommendation,
+  getShoppingFlourDisplay,
   normalizePizzaMixForCount,
   PIZZA_MIX_OPTIONS,
   savePizzaSessionMenuMix,
   SHOPPING_LIST_LOCAL_ONLY_COPY,
   updateShoppingItemStatus,
 } from "@/lib/pizza-session-shopping-list";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 import { shoppingPizzaImageList } from "@/lib/shopping-pizza-images";
 import { patchHistory } from "@/lib/changelog";
 import { MemoryStorage } from "./helpers";
@@ -163,6 +166,91 @@ describe("Pizza Session shopping list presets", () => {
     expect(doughItems.find((item) => item.label === "Water")?.amount).toBe("411 g · from Dough Plan");
     expect(doughItems.find((item) => item.label === "Salt")?.amount).toBe("18 g · from Dough Plan");
     expect(doughItems.find((item) => item.label === "Yeast — Instant dry yeast")?.amount).toBe("0.38 g · from Dough Plan");
+  });
+
+  it("shows the canonical Dough Plan flour strength in Shopping without changing quantities", () => {
+    const now = new Date("2026-07-02T09:00:00.000Z");
+    const session = createPizzaSession({
+      id: "shopping-flour-strength-session",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      pizzaCount: 4,
+      flour: "tipo-00",
+      flourSituation: "recommend",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+      recipeSnapshot: {
+        flour: "caputo-pizzeria",
+        flourAmount: 642.22,
+      },
+    }, now);
+
+    const recipe = buildSessionRecipe(session, now);
+    const flourDisplay = getShoppingFlourDisplay(session, now);
+    const shopping = generatePizzaSessionShoppingList(session, "margherita", now);
+
+    expect(recipe.ok).toBe(true);
+    if (!recipe.ok || !shopping.ok) throw new Error("Expected recipe and shopping results");
+    expect(flourDisplay.recommendation).toBe(`Recommended strength: ${recipe.flourWGuidance?.recommendationLabel}`);
+    expect(flourDisplay.recommendation).toBe("Recommended strength: W 260–300");
+    expect(flourDisplay.label).toBe("Caputo Pizzeria");
+    expect(shopping.shoppingList.groups.find((group) => group.group === "Dough")?.items.find((item) => item.id.endsWith(":flour"))?.amount).toBe("642 g · from Dough Plan");
+  });
+
+  it("changes the Shopping flour recommendation when the canonical Dough Plan recommendation changes", () => {
+    const now = new Date("2026-07-02T09:00:00.000Z");
+    const shortRoom = createPizzaSession({
+      id: "shopping-short-room-flour-strength",
+      pizzaStyle: "pizza-oven",
+      pizzaPreset: "margherita",
+      ovenType: "gas",
+      pizzaCount: 2,
+      flour: "tipo-00",
+      targetEatTime: "2026-07-02T15:00",
+      doughStartMode: "now",
+    }, now);
+    const longCold = createPizzaSession({
+      id: "shopping-long-cold-flour-strength",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      pizzaCount: 2,
+      flour: "tipo-00",
+      targetEatTime: "2026-07-05T09:00",
+      doughStartMode: "now",
+    }, now);
+
+    const shortRecipe = buildSessionRecipe(shortRoom, now);
+    const longRecipe = buildSessionRecipe(longCold, now);
+    const shortDisplay = getShoppingFlourDisplay(shortRoom, now);
+    const longDisplay = getShoppingFlourDisplay(longCold, now);
+
+    expect(shortRecipe.ok).toBe(true);
+    expect(longRecipe.ok).toBe(true);
+    if (!shortRecipe.ok || !longRecipe.ok) throw new Error("Expected flour recommendations");
+    expect(shortDisplay.recommendation).toBe(`Recommended strength: ${shortRecipe.flourWGuidance?.recommendationLabel}`);
+    expect(longDisplay.recommendation).toBe(`Recommended strength: ${longRecipe.flourWGuidance?.recommendationLabel}`);
+    expect(shortDisplay.recommendation).not.toBe(longDisplay.recommendation);
+  });
+
+  it("formats single W, protein and neutral Shopping flour recommendation fallbacks", () => {
+    expect(formatShoppingFlourRecommendation({ canonicalStrength: "W 300" })).toBe("Recommended strength: W 300");
+    expect(formatShoppingFlourRecommendation({ canonicalStrength: "Add bake timing for W-value guidance", selectedProtein: "12.5%" })).toBe("Recommended protein: 12.5%");
+    expect(formatShoppingFlourRecommendation({})).toBe("Use the flour recommended in your Dough Plan");
+  });
+
+  it("renders the Shopping flour recommendation line for both responsive layouts without hard-coded W text", () => {
+    const page = source("app/session/shopping/page.tsx");
+    const helper = source("lib/pizza-session-shopping-list.ts");
+
+    expect(page).toContain("getShoppingFlourDisplay");
+    expect(page).toContain('item.id.endsWith(":flour")');
+    expect(page).toContain("flourDisplay?.recommendation");
+    expect(page).toContain("{flourDisplay.recommendation}");
+    expect(page).toContain("sm:hidden");
+    expect(page).toContain("sm:block");
+    expect(`${page}\n${helper}`).not.toContain("W 250–280");
   });
 
   it("uses safe dough amount fallback when the recipe snapshot is missing", () => {
@@ -575,7 +663,8 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Toppings");
     expect(page).toContain("function IngredientIcon");
     expect(page).toContain("ingredientIconKind(item)");
-    expect(page).toContain("{item.label}");
+    expect(page).toContain("const itemLabel = flourDisplay?.label ?? item.label");
+    expect(page).toContain("{itemLabel}");
     expect(page).toContain("{item.amount}");
     expect(page).toContain("type=\"checkbox\"");
     expect(page).toContain("checked={readyItem}");

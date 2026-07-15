@@ -26,6 +26,7 @@ import {
   adjustPizzaMixAllocation,
   generateAndSaveActiveShoppingList,
   generatePizzaSessionShoppingList,
+  getShoppingFlourDisplay,
   normalizePizzaMixForCount,
   PIZZA_MIX_OPTIONS,
   updateShoppingItemStatus,
@@ -288,6 +289,8 @@ export default function SessionShoppingPage() {
               <div className="divide-y divide-ink/10">
                 {group.items.map((item) => {
                   const readyItem = isItemReady(item.status);
+                  const flourDisplay = session && (item.id === "flour" || item.id.endsWith(":flour")) ? getShoppingFlourDisplay(session) : undefined;
+                  const itemLabel = flourDisplay?.label ?? item.label;
                   return (
                     <label
                       key={item.id}
@@ -297,7 +300,10 @@ export default function SessionShoppingPage() {
                     >
                       <IngredientIcon item={item} />
                       <span className="min-w-0 [overflow-wrap:anywhere]">
-                        <span className="block text-sm font-extrabold text-ink">{item.label}</span>
+                        <span className="block text-sm font-extrabold text-ink">{itemLabel}</span>
+                        {flourDisplay?.recommendation && (
+                          <span className="mt-1 block text-sm leading-5 text-ink/65">{flourDisplay.recommendation}</span>
+                        )}
                         {item.amount && <span className="mt-1 block text-sm leading-5 text-ink/50 sm:hidden">{item.amount}</span>}
                       </span>
                       {item.amount && <span className="hidden min-w-0 [overflow-wrap:anywhere] text-sm font-bold text-ink/55 sm:block">{item.amount}</span>}
@@ -305,7 +311,7 @@ export default function SessionShoppingPage() {
                         type="checkbox"
                         checked={readyItem}
                         onChange={() => toggleReady(item)}
-                        aria-label={`Mark ${item.label} as ${readyItem ? "needed" : "ready"}`}
+                        aria-label={`Mark ${itemLabel} as ${readyItem ? "needed" : "ready"}`}
                         className="h-7 w-7 rounded-md border-ink/20 text-leaf focus:ring-2 focus:ring-tomato sm:h-6 sm:w-6"
                       />
                     </label>

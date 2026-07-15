@@ -23,6 +23,8 @@ import {
   formatSauceCanPurchase,
   formatGrams as formatSauceGrams,
 } from "@/lib/pizza-sauce-calculator";
+import { flourById, flourIds, type FlourId } from "@/lib/flours";
+import { buildSessionRecipe } from "@/lib/session-recipe";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 export const SHOPPING_LIST_LOCAL_ONLY_COPY = "Shopping lists are saved locally in this browser on this device.";
@@ -39,6 +41,11 @@ export type ShoppingListGenerationResult =
 
 export type ShoppingItemStatus = PizzaSessionShoppingItem["status"];
 
+export type ShoppingFlourDisplay = {
+  label: string;
+  recommendation: string;
+};
+
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type QuantifiedShoppingIngredient = {
   group: PizzaSessionShoppingGroup;
@@ -54,6 +61,12 @@ type ToppingQuantityIngredient = {
   gramsPerPizza?: number;
   tspPerPizza?: number;
   text?: (pizzaTypeCount: number) => string;
+};
+
+const flourChoiceToProfileId: Record<string, FlourId> = {
+  plain: "caputo-classica",
+  bread: "caputo-cuoco",
+  "tipo-00": "caputo-pizzeria",
 };
 
 const statusLabels: Record<ShoppingItemStatus, string> = {
@@ -81,6 +94,69 @@ function doughPlanAmount(value: number | undefined) {
   return typeof value === "number" && Number.isFinite(value) && value > 0
     ? `${formatGrams(value)} · from Dough Plan`
     : "from Dough Plan when available";
+}
+
+function isFlourId(value: string | undefined): value is FlourId {
+  return Boolean(value && flourIds.includes(value as FlourId));
+}
+
+function selectedShoppingFlourLabel(session: PizzaSession) {
+  const value = session.recipeSnapshot?.flour ?? session.flour;
+  if (isFlourId(value)) {
+    const flour = flourById(value);
+    return `${flour.brand} ${flour.name}`;
+  }
+  if (value === "plain") return "All-purpose flour";
+  if (value === "bread") return "Bread flour / strong flour";
+  if (value === "tipo-00") return "Pizza flour / Tipo 00";
+  return "Flour";
+}
+
+function selectedShoppingFlourProfile(session: PizzaSession) {
+  const value = session.recipeSnapshot?.flour ?? session.flour;
+  if (isFlourId(value)) return flourById(value);
+  const profileId = value ? flourChoiceToProfileId[value] : undefined;
+  return profileId ? flourById(profileId) : undefined;
+}
+
+function isDisplayableShoppingWRecommendation(value: string | undefined) {
+  return Boolean(value && /^≈?\s*W\s/i.test(value.trim()));
+}
+
+export function formatShoppingFlourRecommendation({
+  canonicalStrength,
+  selectedStrength,
+  selectedProtein,
+}: {
+  canonicalStrength?: string;
+  selectedStrength?: string;
+  selectedProtein?: string;
+}) {
+  if (isDisplayableShoppingWRecommendation(canonicalStrength)) {
+    return `Recommended strength: ${canonicalStrength}`;
+  }
+  if (isDisplayableShoppingWRecommendation(selectedStrength)) {
+    return `Recommended strength: ${selectedStrength}`;
+  }
+  if (selectedProtein?.trim()) {
+    return `Recommended protein: ${selectedProtein.trim()}`;
+  }
+  return "Use the flour recommended in your Dough Plan";
+}
+
+export function getShoppingFlourDisplay(session: PizzaSession, now = new Date()): ShoppingFlourDisplay {
+  const recipe = buildSessionRecipe(session, now);
+  const profile = selectedShoppingFlourProfile(session);
+  const canonicalStrength = recipe.ok ? recipe.flourWGuidance?.recommendationLabel : undefined;
+
+  return {
+    label: selectedShoppingFlourLabel(session),
+    recommendation: formatShoppingFlourRecommendation({
+      canonicalStrength,
+      selectedStrength: profile?.strength,
+      selectedProtein: profile?.protein,
+    }),
+  };
 }
 
 function doughIngredients(session: PizzaSession): QuantifiedShoppingIngredient[] {
