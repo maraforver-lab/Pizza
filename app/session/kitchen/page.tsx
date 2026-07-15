@@ -627,6 +627,7 @@ export default function SessionKitchenPage() {
                 )}
 
                 <BottomActionBar
+                  className="max-sm:[&>div:first-child]:hidden"
                   back={(
                     <div className="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_auto] sm:items-center">
                       <div className="min-w-0 rounded-2xl border border-ink/10 bg-white/70 px-3 py-2">

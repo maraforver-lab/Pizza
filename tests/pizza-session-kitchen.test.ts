@@ -468,6 +468,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("More guidance");
     expect(page).toContain("Change pizza menu");
     expect(page).toContain("View full schedule");
+    expect(page).toContain('className="max-sm:[&>div:first-child]:hidden"');
     expect(page).toContain('href="/session/timeline"');
     expect(page).toContain("Total pizzas are locked for this session.");
     expect(page).toContain("Menu is locked once baking starts.");
