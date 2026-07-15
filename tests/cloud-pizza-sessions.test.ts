@@ -1518,7 +1518,7 @@ describe("cloud pizza session foundation", () => {
     const syncCalls = [...kitchenPage.matchAll(/queueKitchenProgressSync\(updated\)/g)].map((match) => match.index ?? -1);
     expect(syncCalls).toHaveLength(2);
 
-    const completeMutation = kitchenPage.indexOf("const updated = completeKitchenTimelineStep(session, currentStep.id)");
+    const completeMutation = kitchenPage.indexOf("const updated = completeKitchenTimelineStep(session, currentStep.id, undefined, now)");
     const completeSetSession = kitchenPage.indexOf("setSession(updated)", syncCalls[0]);
     expect(completeMutation).toBeLessThan(syncCalls[0]);
     expect(syncCalls[0]).toBeLessThan(completeSetSession);

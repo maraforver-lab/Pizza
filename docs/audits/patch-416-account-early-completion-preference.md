@@ -57,13 +57,26 @@ The toggle:
 - prevents double saves while a PATCH is in flight
 - rolls back to the last server-confirmed value on failure or stale-write rejection
 
+## Rollout State
+
+Patch 417 keeps the Patch 416 storage, API and Account toggle in place, but temporarily disables enforcement with:
+
+`EARLY_COMPLETION_PREFERENCE_ENFORCED = false`
+
+While enforcement is false, the Account setting is visible and saved for signed-in users, but it does not block Kitchen testing. Every user may attempt early completion of timed dough stages and must confirm the warning dialog before the step is completed.
+
+Enforcement should only be switched to true after:
+
+1. the Supabase migration has been applied in production
+2. `/api/account/preferences` has been verified in production
+3. the Account toggle has been verified cross-device
+
 ## Kitchen Behavior
 
 Before readiness:
 
-- unsigned user: `Rest complete` / timed-stage button remains disabled
-- signed-in user with preference Off: button remains disabled
-- signed-in user with preference On: button is enabled and opens a warning dialog
+- rollout enforcement disabled: every user sees an actionable timed-stage button and receives the warning dialog
+- future enforcement enabled: unsigned users and signed-in users with preference Off are blocked; signed-in users with preference On receive the warning dialog
 
 At or after readiness:
 

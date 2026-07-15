@@ -193,6 +193,7 @@ function kitchenCompleteActionLabel(step?: { id: string }) {
 }
 
 const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink("Something looks wrong? Open baking troubleshooting");
+const EARLY_COMPLETION_PREFERENCE_ENFORCED = false;
 
 type EarlyCompletionPreferenceState = {
   allowEarlyTimedStepCompletion: boolean;
@@ -415,8 +416,11 @@ export default function SessionKitchenPage() {
   const currentStepIsBiologicalWait = isBiologicalKitchenWaitStep(currentStep);
   const currentStepIsRestDough = isRestDoughStep(currentStep);
   const currentStepCompletionBlocked = currentStepIsBiologicalWait && waitInfo.isTooEarly;
-  const accountAllowsEarlyTimedCompletion = earlyCompletionPreference.signedIn
-    && earlyCompletionPreference.allowEarlyTimedStepCompletion;
+  const accountAllowsEarlyTimedCompletion = !EARLY_COMPLETION_PREFERENCE_ENFORCED
+    || (
+      earlyCompletionPreference.signedIn
+      && earlyCompletionPreference.allowEarlyTimedStepCompletion
+    );
   const currentStepCanConfirmEarlyCompletion = currentStepCompletionBlocked && accountAllowsEarlyTimedCompletion;
   const primaryActionDisabled = currentStepCompletionBlocked && !currentStepCanConfirmEarlyCompletion;
   const bakeProfile = getPizzaSessionBakeProfileForSession(session);
@@ -524,11 +528,13 @@ export default function SessionKitchenPage() {
 
   const completeCurrentStep = () => {
     if (!session || !currentStep) return;
-    const updated = completeKitchenTimelineStep(session, currentStep.id);
+    const now = new Date();
+    const updated = completeKitchenTimelineStep(session, currentStep.id, undefined, now);
     if (!updated) return;
     if (currentStep.id === "bake-pizza") clearKitchenBakeTimerState(session.id);
     queueKitchenProgressSync(updated);
     setConfirmEarlyCompletion(false);
+    setCurrentTime(now);
     setSession(updated);
   };
 
@@ -939,7 +945,8 @@ export default function SessionKitchenPage() {
                     <div
                       ref={earlyDialogRef}
                       tabIndex={-1}
-                      className="max-h-[calc(100vh-3rem)] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card focus:outline-none"
+                      onMouseDown={(event) => event.stopPropagation()}
+                      className="relative z-[71] max-h-[calc(100vh-3rem)] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card focus:outline-none"
                     >
                       <h2 id="early-kitchen-step-heading" className="font-display text-3xl font-semibold leading-none">
                         {earlyCompletionWarning.title}

@@ -85,10 +85,12 @@ describe("Account preferences", () => {
     expect(component).not.toMatch(/localStorage|sessionStorage/);
   });
 
-  it("keeps Kitchen early completion gated by signed-in account preference", () => {
+  it("keeps the preference code available while temporary Kitchen rollout enforcement is disabled", () => {
     const kitchen = source("app/session/kitchen/page.tsx");
 
+    expect(kitchen).toContain("const EARLY_COMPLETION_PREFERENCE_ENFORCED = false");
     expect(kitchen).toContain("fetch(\"/api/account/preferences\"");
+    expect(kitchen).toContain("!EARLY_COMPLETION_PREFERENCE_ENFORCED");
     expect(kitchen).toContain("earlyCompletionPreference.signedIn");
     expect(kitchen).toContain("earlyCompletionPreference.allowEarlyTimedStepCompletion");
     expect(kitchen).toContain("currentStepCanConfirmEarlyCompletion");

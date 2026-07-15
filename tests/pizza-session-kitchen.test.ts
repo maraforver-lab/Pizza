@@ -295,6 +295,59 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(updated.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-06-25T10:45:00.000Z");
   });
 
+  it("advances overdue room fermentation to Ball dough and records runtime completion", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-overdue-room-fermentation-complete",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "12h-room" },
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        targetEatTime: "2026-07-11T08:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-10T15:26:00.000Z", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T15:56:00.000Z", status: "done", kind: "passive" },
+          { id: "room-ferment", label: "Room temperature ferment", scheduledAt: "2026-07-10T16:26:00.000Z", status: "todo", kind: "passive" },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T02:26:00.000Z", status: "todo", kind: "active" },
+          { id: "room-temperature-rest", label: "Room temperature rest", scheduledAt: "2026-07-11T03:26:00.000Z", status: "todo", kind: "passive" },
+          { id: "preheat-oven", label: "Preheat oven", scheduledAt: "2026-07-11T05:26:00.000Z", status: "todo", kind: "active" },
+          { id: "bake-pizza", label: "Bake pizza", scheduledAt: "2026-07-11T08:00:00.000Z", status: "todo", kind: "active" },
+        ],
+      },
+      stepRuntime: {
+        "mix-dough": {
+          actualCompletedAt: "2026-07-10T15:46:00.000Z",
+        },
+        "rest-dough": {
+          actualCompletedAt: "2026-07-10T16:16:00.000Z",
+        },
+      },
+    }, storage, new Date("2026-07-10T15:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+
+    const before = getKitchenModeState(session, new Date("2026-07-11T03:00:00.000Z"));
+    if (!before.ok || !before.currentStep) throw new Error("Expected overdue fermentation state");
+    expect(before.currentStep.id).toBe("room-ferment");
+    expect(getKitchenStepWaitInfo(before.currentStep, new Date("2026-07-11T03:00:00.000Z")).isTooEarly).toBe(false);
+
+    const updated = completeKitchenTimelineStep(
+      session,
+      "room-ferment",
+      storage,
+      new Date("2026-07-11T03:00:00.000Z"),
+    );
+    if (!updated) throw new Error("Expected updated session");
+
+    const after = getKitchenModeState(updated, new Date("2026-07-11T03:00:01.000Z"));
+    if (!after.ok || !after.currentStep) throw new Error("Expected next kitchen state");
+    expect(updated.timeline?.steps.find((step) => step.id === "room-ferment")?.status).toBe("done");
+    expect(updated.stepRuntime?.["room-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+    expect(after.currentStep.id).toBe("ball-dough");
+    expect(after.currentStep.scheduledAt).toBe("2026-07-11T03:00:00.000Z");
+    expect(getActivePizzaSession(storage)?.stepRuntime?.["room-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+  });
+
   it("keeps older sessions on the planned schedule when runtime completion data is absent", () => {
     const session = createPizzaSession({
       id: "kitchen-legacy-no-runtime",
@@ -706,7 +759,9 @@ describe("Pizza Session Kitchen Mode", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("getKitchenStepWaitInfo(currentStep, currentTime)");
+    expect(page).toContain("const EARLY_COMPLETION_PREFERENCE_ENFORCED = false");
     expect(page).toContain("fetch(\"/api/account/preferences\"");
+    expect(page).toContain("!EARLY_COMPLETION_PREFERENCE_ENFORCED");
     expect(page).toContain("accountAllowsEarlyTimedCompletion");
     expect(page).toContain("currentStepCanConfirmEarlyCompletion");
     expect(page).toContain("{waitInfo.waitLabel} before this step.");
@@ -720,7 +775,8 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("aria-describedby=\"early-kitchen-step-description\"");
     expect(page).toContain("earlyKeepWaitingRef.current?.focus()");
     expect(page).toContain("setConfirmEarlyCompletion(false)");
-    expect(page).toContain("completeCurrentStep");
+    expect(page).toContain("completeKitchenTimelineStep(session, currentStep.id, undefined, now)");
+    expect(page).toContain("setCurrentTime(now)");
     expect(page).not.toContain("Continue anyway");
   });
 
