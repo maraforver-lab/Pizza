@@ -110,10 +110,34 @@ describe("cloud pizza session foundation", () => {
       title: "Active pizza session",
       statusLine: "In progress · Updated today",
       doughLine: "Dough plan not complete",
+      pizzaMenuLine: "Pizza menu: Pizza menu not ready",
       bakeLine: "Bake time: Bake time not set",
       stepLine: "Current step: Setup",
     });
     expect(cloudPizzaSessionUpdatedLabel("2026-07-03T10:00:00.000Z", new Date("2026-07-04T12:00:00.000Z"))).toContain("Updated");
+  });
+
+  it("summarizes the active-session pizza menu for the Account card", () => {
+    const session = createPizzaSession({
+      id: "active-account-menu-summary",
+      currentStep: "shopping",
+      pizzaCount: 4,
+      pizzaMix: { margherita: 2, diavola: 2 },
+      recipeSnapshot: { balls: 4, ballWeight: 260 },
+    });
+    const row = normalizeCloudPizzaSessionRow({
+      id: "row-active-menu",
+      user_id: "user-1",
+      status: "in_progress",
+      title: "Active pizza session",
+      current_step: "shopping",
+      session_data: session,
+      created_at: "2026-07-04T09:00:00.000Z",
+      updated_at: "2026-07-04T10:00:00.000Z",
+      completed_at: null,
+    })!;
+
+    expect(cloudPizzaSessionSummary(row).pizzaMenuLine).toBe("Pizza menu: 2 Margherita · 2 Diavola");
   });
 
   it("normalizes active API session rows without completed-history parsing assumptions", () => {

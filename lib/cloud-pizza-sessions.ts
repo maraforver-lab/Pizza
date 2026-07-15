@@ -1,6 +1,7 @@
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { migratePizzaSession, type PizzaSession } from "@/lib/pizza-session";
 import { resolvePizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
+import { formatPizzaMixSummary } from "@/lib/pizza-session-shopping-list";
 
 export type CloudPizzaSessionStatus = "in_progress" | "completed" | "archived";
 
@@ -252,14 +253,17 @@ export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Da
       title: row.title ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
       statusLine: `In progress · ${cloudPizzaSessionUpdatedLabel(row.updated_at, now)}`,
       doughLine: "Dough plan not complete",
+      pizzaMenuLine: "Pizza menu not ready",
       bakeLine: "Bake time not set",
       stepLine: "Current step not set",
     };
   }
+  const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
   return {
     title: row.title ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
     statusLine: `In progress · ${cloudPizzaSessionUpdatedLabel(row.updated_at, now)}`,
     doughLine: cloudPizzaSessionDoughSummary(session),
+    pizzaMenuLine: `Pizza menu: ${formatPizzaMixSummary(pizzaCount, session.pizzaMix, session.pizzaPreset)}`,
     bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,
     stepLine: `Current step: ${cloudPizzaSessionCurrentStepLabel(session)}`,
   };

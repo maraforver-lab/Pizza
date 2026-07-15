@@ -75,4 +75,21 @@ describe("Patch 344 account responsive workspace", () => {
     expect(guidance).toContain("It changes explanation depth, not the calculations.");
     expect(guidance).not.toMatch(/localStorage\.setItem|sessionStorage|account-guidance-storage/i);
   });
+
+  it("lets active account sessions edit the locked pizza menu through the canonical shopping path", () => {
+    const card = source("components/account/AccountActivePizzaSessionCard.tsx");
+
+    expect(card).toContain("Change pizza menu");
+    expect(card).toContain("View shopping list");
+    expect(card).toContain("Total pizzas:");
+    expect(card).toContain("Locked for this session");
+    expect(card).toContain("savePizzaSessionMenuMix(restoredSession, draftNormalizedMix");
+    expect(card).toContain("queueCloudActivePizzaSessionSave(updatedSession)");
+    expect(card).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
+    expect(card).toContain("Shopping rows keep their checked state only when the same item and amount remain valid");
+    expect(card).toContain("Pizza menu is locked once baking starts.");
+    expect(card).toContain("Save pizza menu");
+    expect(card).not.toContain("doughBallWeight:");
+    expect(card).not.toContain("plannedFermentationHours:");
+  });
 });

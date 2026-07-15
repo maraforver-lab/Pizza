@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { buttonClass } from "@/components/design-system";
+import { DoughToolsIcon } from "@/components/icons";
 import {
   cloudPizzaSessionSummary,
   normalizeCloudPizzaSessionRow,
@@ -12,19 +14,41 @@ import {
   clearCloudBackedActivePizzaSessionPointer,
   clearCloudBackedPizzaSession,
   cloudBackedPizzaSessionRowId,
+  queueCloudActivePizzaSessionSave,
 } from "@/lib/cloud-pizza-session-client";
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
-import { migratePizzaSession, pizzaSessionContinueHref } from "@/lib/pizza-session";
+import {
+  migratePizzaSession,
+  pizzaSessionContinueHref,
+  type PizzaSessionPizzaMix,
+  type PizzaSessionPizzaMixType,
+} from "@/lib/pizza-session";
 import {
   archivePizzaSession,
   clearActivePizzaSession,
   getActivePizzaSession,
 } from "@/lib/pizza-session-storage";
+import {
+  adjustPizzaMixAllocation,
+  formatPizzaMixSummary,
+  normalizePizzaMixForCount,
+  PIZZA_MIX_OPTIONS,
+  savePizzaSessionMenuMix,
+} from "@/lib/pizza-session-shopping-list";
 
 type AccountActivePizzaSessionCardProps = {
   enabled: boolean;
   className?: string;
 };
+
+function accountPizzaMenuLocked(session: ReturnType<typeof migratePizzaSession>) {
+  if (!session) return false;
+  const bakeRuntime = session.stepRuntime?.["bake-pizza"];
+  const bakeStep = session.timeline?.steps.find((step) => step.id === "bake-pizza");
+  return session.currentStep === "bake"
+    || Boolean(bakeRuntime?.actualStartedAt || bakeRuntime?.actualCompletedAt)
+    || bakeStep?.status === "done";
+}
 
 export function AccountActivePizzaSessionCard({ enabled, className = "" }: AccountActivePizzaSessionCardProps) {
   const router = useRouter();
@@ -33,6 +57,13 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [menuEditorOpen, setMenuEditorOpen] = useState(false);
+  const [draftPizzaMix, setDraftPizzaMix] = useState<PizzaSessionPizzaMix | null>(null);
+  const [menuError, setMenuError] = useState("");
+  const [savingMenu, setSavingMenu] = useState(false);
+  const [menuStatus, setMenuStatus] = useState("");
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuDialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!enabled) {
@@ -63,7 +94,158 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
     };
   }, [enabled]);
 
+  useEffect(() => {
+    if (!menuEditorOpen) return undefined;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const fallbackFocus = menuTriggerRef.current;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMenuEditor();
+        return;
+      }
+      if (event.key === "Tab" && menuDialogRef.current) {
+        const focusable = Array.from(menuDialogRef.current.querySelectorAll<HTMLElement>(
+          "a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex='-1'])",
+        ));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.setTimeout(() => menuDialogRef.current?.focus(), 0);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.setTimeout(() => {
+        if (previousFocus && document.contains(previousFocus)) previousFocus.focus();
+        else fallbackFocus?.focus();
+      }, 0);
+    };
+  }, [menuEditorOpen]);
+
   if (!enabled) return null;
+
+  const activeSession = cloudSession ? migratePizzaSession(cloudSession.session_data) : undefined;
+  const pizzaCount = activeSession?.pizzaCount ?? activeSession?.recipeSnapshot?.balls;
+  const lockedPizzaCount = pizzaCount && pizzaCount > 0 ? Math.floor(pizzaCount) : undefined;
+  const confirmedPizzaMix = lockedPizzaCount && activeSession
+    ? normalizePizzaMixForCount(lockedPizzaCount, activeSession.pizzaMix, activeSession.pizzaPreset)
+    : undefined;
+  const currentPizzaMenuSummary = activeSession
+    ? formatPizzaMixSummary(lockedPizzaCount, activeSession.pizzaMix, activeSession.pizzaPreset)
+    : "Pizza menu not ready";
+  const draftNormalizedMix = lockedPizzaCount && draftPizzaMix
+    ? normalizePizzaMixForCount(lockedPizzaCount, draftPizzaMix, activeSession?.pizzaPreset)
+    : undefined;
+  const draftAllocatedCount = draftNormalizedMix
+    ? Object.values(draftNormalizedMix).reduce((total, value) => total + value, 0)
+    : 0;
+  const menuLocked = accountPizzaMenuLocked(activeSession);
+  const menuCanEdit = Boolean(activeSession && lockedPizzaCount && lockedPizzaCount > 0 && !menuLocked);
+
+  const closeMenuEditor = () => {
+    setMenuEditorOpen(false);
+    setDraftPizzaMix(null);
+    setMenuError("");
+    window.setTimeout(() => menuTriggerRef.current?.focus(), 0);
+  };
+
+  const openMenuEditor = () => {
+    if (!activeSession || !lockedPizzaCount || lockedPizzaCount < 1) {
+      setMenuError("Pizza menu needs a saved pizza count before it can be changed.");
+      return;
+    }
+    if (accountPizzaMenuLocked(activeSession)) {
+      setMenuError("Pizza menu is locked once baking starts.");
+      return;
+    }
+    setDraftPizzaMix(normalizePizzaMixForCount(lockedPizzaCount, activeSession.pizzaMix, activeSession.pizzaPreset));
+    setMenuError("");
+    setMenuStatus("");
+    setMenuEditorOpen(true);
+  };
+
+  const adjustDraftPizzaMix = (pizzaType: PizzaSessionPizzaMixType, delta: number) => {
+    if (!lockedPizzaCount || !draftNormalizedMix) return;
+    setDraftPizzaMix(adjustPizzaMixAllocation(draftNormalizedMix, pizzaType, delta, lockedPizzaCount));
+  };
+
+  const syncEditedSessionToCloud = async (updatedSession: NonNullable<typeof activeSession>) => {
+    const result = await queueCloudActivePizzaSessionSave(updatedSession);
+    const syncedSession = normalizeCloudPizzaSessionRow((result as { session?: unknown }).session);
+    if (syncedSession) {
+      setCloudSession(syncedSession);
+      return syncedSession;
+    }
+    return null;
+  };
+
+  const saveMenuChanges = async () => {
+    if (!cloudSession || !activeSession || !lockedPizzaCount || !draftNormalizedMix || savingMenu) return;
+    if (draftAllocatedCount !== lockedPizzaCount) {
+      setMenuError("The selected pizza mix must match the locked total.");
+      return;
+    }
+
+    setSavingMenu(true);
+    setMenuError("");
+    setMenuStatus("");
+    const restoredSession = restoreCloudPizzaSessionToLocal(cloudSession) ?? activeSession;
+    if (accountPizzaMenuLocked(restoredSession)) {
+      setMenuError("Pizza menu is locked once baking starts.");
+      setSavingMenu(false);
+      return;
+    }
+    const doughBefore = restoredSession.recipeSnapshot;
+    const { session: updatedSession, result } = savePizzaSessionMenuMix(restoredSession, draftNormalizedMix, undefined, new Date());
+    if (!updatedSession || !result.ok) {
+      setMenuError("Could not update the pizza menu. Check the pizza count and try again.");
+      setSavingMenu(false);
+      return;
+    }
+
+    const optimisticRow: CloudPizzaSessionRow = {
+      ...cloudSession,
+      current_step: updatedSession.currentStep,
+      session_data: updatedSession,
+      updated_at: updatedSession.updatedAt,
+    };
+    setCloudSession(optimisticRow);
+
+    try {
+      const syncedSession = await syncEditedSessionToCloud(updatedSession);
+      if (!syncedSession) {
+        setCloudSession(optimisticRow);
+      }
+      setMenuStatus("Pizza menu saved. Shopping list updated.");
+      setMenuEditorOpen(false);
+      setDraftPizzaMix(null);
+    } catch {
+      setMenuError("Pizza menu was saved in this browser, but account sync failed. Try again.");
+    } finally {
+      if (
+        updatedSession.recipeSnapshot?.flourAmount !== doughBefore?.flourAmount
+        || updatedSession.recipeSnapshot?.waterAmount !== doughBefore?.waterAmount
+        || updatedSession.recipeSnapshot?.saltAmount !== doughBefore?.saltAmount
+        || updatedSession.recipeSnapshot?.leavenerAmount !== doughBefore?.leavenerAmount
+      ) {
+        setMenuError("Dough amounts changed unexpectedly. Reload before saving again.");
+      }
+      setSavingMenu(false);
+    }
+  };
+
+  const restoreBeforeShopping = () => {
+    if (cloudSession) restoreCloudPizzaSessionToLocal(cloudSession);
+  };
 
   const continueSession = () => {
     if (!cloudSession) return;
@@ -147,6 +329,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
           </h2>
           <div className="mt-4 grid gap-2 text-sm leading-6 text-ink/65">
             <p>{summary.doughLine}</p>
+            <p>{summary.pizzaMenuLine}</p>
             <p>{summary.bakeLine}</p>
             <p>{summary.stepLine}</p>
           </div>
@@ -158,6 +341,29 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
         >
           Continue Pizza Session →
         </button>
+      </div>
+      <div className="mt-5 flex flex-col gap-2 border-t border-leaf/15 pt-4 sm:flex-row sm:flex-wrap">
+        <button
+          ref={menuTriggerRef}
+          type="button"
+          onClick={openMenuEditor}
+          disabled={!menuCanEdit}
+          className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+        >
+          Change pizza menu
+        </button>
+        <Link
+          href="/session/shopping"
+          onClick={restoreBeforeShopping}
+          className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}
+        >
+          View shopping list
+        </Link>
+        <p className="w-full text-xs font-bold leading-5 text-ink/45">
+          Total pizzas: {lockedPizzaCount ?? "not set"} · {menuLocked ? "Menu locked once baking starts." : "Locked for this session."}
+        </p>
+        {menuStatus && <p role="status" className="w-full rounded-2xl bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">{menuStatus}</p>}
+        {menuError && !menuEditorOpen && <p role="alert" className="w-full rounded-2xl bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">{menuError}</p>}
       </div>
       <div className="mt-5 border-t border-leaf/15 pt-4">
         {confirmingDelete ? (
@@ -201,6 +407,114 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
           </button>
         )}
       </div>
+      {menuEditorOpen && draftNormalizedMix && lockedPizzaCount && (
+        <div
+          className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 py-6 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="account-menu-editor-heading"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeMenuEditor();
+          }}
+        >
+          <div
+            ref={menuDialogRef}
+            tabIndex={-1}
+            onMouseDown={(event) => event.stopPropagation()}
+            className="max-h-[calc(100vh-3rem)] w-full max-w-lg overflow-y-auto rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card focus:outline-none"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza menu</p>
+                <h2 id="account-menu-editor-heading" className="mt-2 font-display text-3xl font-semibold leading-none">Change pizza menu</h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeMenuEditor}
+                aria-label="Close pizza menu editor"
+                className={buttonClass({ className: "min-h-10 min-w-10 px-3", variant: "icon" })}
+              >
+                <DoughToolsIcon name="close" size={20} strokeWidth={2.1} />
+              </button>
+            </div>
+            <p className="mt-3 text-sm font-bold leading-6 text-ink/60">
+              Total pizzas: {lockedPizzaCount}. Locked for this session.
+            </p>
+            <p className="mt-1 text-sm font-bold leading-6 text-ink/50">
+              Change pizza types without changing dough balls, dough weight or fermentation timing.
+            </p>
+            <div className="mt-4 grid gap-2">
+              {PIZZA_MIX_OPTIONS.map((option) => {
+                const quantity = draftNormalizedMix[option.id] ?? 0;
+                const canDecrease = option.id !== "margherita" && quantity > 0;
+                const canIncrease = option.id === "margherita"
+                  ? PIZZA_MIX_OPTIONS.some((entry) => entry.id !== "margherita" && (draftNormalizedMix[entry.id] ?? 0) > 0)
+                  : (draftNormalizedMix.margherita ?? 0) > 0;
+
+                return (
+                  <div key={option.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-ink/10 bg-cream/60 p-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-extrabold text-ink">{option.name}</p>
+                    </div>
+                    <div className="grid grid-cols-[2.75rem_2.25rem_2.75rem] items-center gap-2" aria-label={`${option.name}: ${quantity} selected`}>
+                      <button
+                        type="button"
+                        onClick={() => adjustDraftPizzaMix(option.id, -1)}
+                        disabled={!canDecrease || savingMenu}
+                        aria-label={`Decrease ${option.name} count`}
+                        className={buttonClass({ className: "min-h-11 min-w-11 px-0", variant: "icon" })}
+                      >
+                        <DoughToolsIcon name="remove" size={20} strokeWidth={2.1} />
+                      </button>
+                      <span className="text-center text-lg font-extrabold tabular-nums">{quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => adjustDraftPizzaMix(option.id, 1)}
+                        disabled={!canIncrease || savingMenu}
+                        aria-label={`Increase ${option.name} count`}
+                        className={buttonClass({ className: "min-h-11 min-w-11 px-0", variant: "icon" })}
+                      >
+                        <DoughToolsIcon name="add" size={20} strokeWidth={2.1} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className={`mt-3 rounded-2xl px-3 py-2 text-xs font-extrabold ${
+              draftAllocatedCount === lockedPizzaCount ? "bg-leaf/10 text-leaf" : "bg-tomato/10 text-tomato"
+            }`} role="status">
+              Selected {draftAllocatedCount}/{lockedPizzaCount} pizzas.
+            </p>
+            {menuError && (
+              <p className="mt-3 rounded-2xl bg-tomato/10 px-3 py-2 text-sm font-bold leading-6 text-tomato" role="alert">
+                {menuError}
+              </p>
+            )}
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={closeMenuEditor}
+                disabled={savingMenu}
+                className={buttonClass({ variant: "secondary" })}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveMenuChanges}
+                disabled={savingMenu || draftAllocatedCount !== lockedPizzaCount}
+                className={buttonClass()}
+              >
+                {savingMenu ? "Saving…" : "Save pizza menu"}
+              </button>
+            </div>
+            <p className="mt-4 text-xs font-bold leading-5 text-ink/45">
+              Shopping rows keep their checked state only when the same item and amount remain valid; changed topping or sauce rows return to open.
+            </p>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

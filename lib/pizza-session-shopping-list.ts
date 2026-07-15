@@ -195,6 +195,20 @@ function pizzaMixPresetName(type: PizzaSessionPizzaMixType) {
   return PIZZA_MIX_OPTIONS.find((option) => option.id === type)?.name ?? "Pizza";
 }
 
+export function formatPizzaMixSummary(
+  pizzaCount: number | undefined,
+  mix?: PizzaSessionPizzaMix,
+  legacyPreset?: string,
+) {
+  if (!pizzaCount || pizzaCount < 1) return "Pizza menu not ready";
+  const normalized = normalizePizzaMixForCount(pizzaCount, mix, legacyPreset);
+  const selected = PIZZA_MIX_OPTIONS
+    .filter((option) => (normalized[option.id] ?? 0) > 0)
+    .map((option) => `${normalized[option.id]} ${option.name}`)
+    .join(" · ");
+  return selected || "Pizza menu not ready";
+}
+
 export function normalizePizzaMixForCount(
   pizzaCount: number,
   mix?: PizzaSessionPizzaMix,

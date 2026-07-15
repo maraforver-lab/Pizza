@@ -18,6 +18,7 @@ import {
   formatShoppingListPlainText,
   generateAndSaveActiveShoppingList,
   generatePizzaSessionShoppingList,
+  formatPizzaMixSummary,
   formatShoppingFlourRecommendation,
   getShoppingFlourDisplay,
   normalizePizzaMixForCount,
@@ -105,6 +106,12 @@ describe("Pizza Session shopping list presets", () => {
     expect(withOneAgain).toMatchObject({ margherita: 5, diavola: 1 });
     expect(mixTotal(withTwoDiavola)).toBe(6);
     expect(mixTotal(withOneAgain)).toBe(6);
+  });
+
+  it("formats pizza mix summaries from the canonical shopping allocation", () => {
+    expect(formatPizzaMixSummary(4, { margherita: 2, diavola: 2 })).toBe("2 Margherita · 2 Diavola");
+    expect(formatPizzaMixSummary(4, undefined, "margherita")).toBe("4 Margherita");
+    expect(formatPizzaMixSummary(undefined, { margherita: 2 })).toBe("Pizza menu not ready");
   });
 
   it("allocates multiple pizza types by reducing Margherita as the default filler", () => {
@@ -510,7 +517,16 @@ describe("Pizza Session shopping list presets", () => {
       currentStep: "prep",
       status: "preparing",
       pizzaCount: 4,
+      doughBallWeight: 260,
       pizzaMix: { margherita: 4 },
+      recipeSnapshot: {
+        balls: 4,
+        ballWeight: 260,
+        flourAmount: 642,
+        waterAmount: 411,
+        saltAmount: 18,
+        leavenerAmount: 0.08,
+      },
       timeline: {
         steps: [
           { id: "mix-dough", label: "Mix dough", status: "done" },
@@ -539,9 +555,22 @@ describe("Pizza Session shopping list presets", () => {
     expect(updatedSession?.timeline).toEqual(session.timeline);
     expect(updatedSession?.stepRuntime).toEqual(session.stepRuntime);
     expect(updatedSession?.pizzaCount).toBe(4);
+    expect(updatedSession?.doughBallWeight).toBe(260);
+    expect(updatedSession?.recipeSnapshot).toMatchObject({
+      balls: 4,
+      ballWeight: 260,
+      flourAmount: 642,
+      waterAmount: 411,
+      saltAmount: 18,
+      leavenerAmount: 0.08,
+    });
     expect(updatedSession?.pizzaMix).toMatchObject({ margherita: 2, diavola: 2 });
     expect(updatedSession?.pizzaPreset).toBe("margherita");
     expect(updatedSession?.shoppingList?.presetId).toBe("pizza-mix");
+    expect(updatedSession?.shoppingList?.groups.flatMap((group) => group.items).find((item) => item.label === "Flour")?.amount)
+      .toBe("642 g · from Dough Plan");
+    expect(updatedSession?.shoppingList?.groups.flatMap((group) => group.items).find((item) => item.label === "Spicy salami or pepperoni")?.amount)
+      .toBe("70 g · estimate for 4 selected pizzas");
     expect(updatedSession?.updatedAt).toBe("2026-07-04T10:30:00.000Z");
     expect(getActivePizzaSession(storage)?.currentStep).toBe("prep");
   });
