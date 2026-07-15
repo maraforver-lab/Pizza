@@ -258,17 +258,17 @@ export default function SessionShoppingPage() {
           </p>
         </SessionStepHero>
 
-        <section className={cardClass({ className: "mt-4 overflow-hidden p-0 sm:mt-6", variant: "guidance" })} aria-labelledby="shopping-checklist-heading">
-          <div className="border-b border-ink/10 px-4 py-4 sm:px-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
+        <section className={cardClass({ className: "mt-2 overflow-hidden p-0 sm:mt-6", variant: "guidance" })} aria-labelledby="shopping-checklist-heading">
+          <div className="border-b border-ink/10 px-4 py-2 sm:px-5 sm:py-4">
+            <div className="flex flex-col gap-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="hidden sm:block">
                 <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Shopping Checklist</p>
                 <h2 id="shopping-checklist-heading" className="hidden font-display text-2xl font-semibold sm:mt-1 sm:block">Shopping Checklist</h2>
                 <p className="mt-1 hidden text-sm leading-6 text-ink/60 sm:block">
                   Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.
                 </p>
               </div>
-              <div className={cardClass({ className: "px-4 py-3 shadow-none", variant: "success" })}>
+              <div className={cardClass({ className: "px-0 py-0 shadow-none sm:px-4 sm:py-3", variant: "success" })}>
                 <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Shopping progress</p>
                 <p className="mt-1 text-sm font-extrabold text-ink">{readyShoppingItems} / {shoppingItems.length} ingredients ready</p>
               </div>
@@ -341,6 +341,7 @@ export default function SessionShoppingPage() {
           <section className={cardClass({ className: "p-4 sm:p-5 lg:col-span-2", variant: "guidance" })} aria-label="Pizza mix">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato sm:hidden">Pizza selection</p>
                 <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-tomato sm:block">Pizza Menu</p>
                 <h2 id="pizza-menu-controls-heading" className="mt-1 hidden font-display text-2xl font-semibold sm:block">Pizza mix</h2>
                 <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-ink/60 sm:block">

@@ -517,6 +517,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).not.toContain("Dough style and dough formula stay in the Dough Plan.");
     expect(page).toContain("Optional shopping tools");
     expect(page).toContain("Pizza mix");
+    expect(page).toContain("Pizza selection");
     expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi.");
     expect(page).toContain("Edit pizza mix");
     expect(page).toContain("Hide pizza mix controls");
@@ -552,6 +553,11 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(page).toContain("Dough ingredients");
     expect(page).toContain("Shopping Checklist");
+    expect(page).toContain('className: "mt-2 overflow-hidden p-0 sm:mt-6"');
+    expect(page).toContain('className="border-b border-ink/10 px-4 py-2 sm:px-5 sm:py-4"');
+    expect(page).toContain('className="flex flex-col gap-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4"');
+    expect(page).toContain('className: "px-0 py-0 shadow-none sm:px-4 sm:py-3"');
+    expect(page).toContain('<div className="hidden sm:block">');
     expect(page).toContain("Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.");
     expect(page).toContain('<p className="text-sm font-bold leading-6 text-ink/60 sm:hidden">');
     expect(page).toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Shopping Checklist</p>');
@@ -734,6 +740,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Shopping list");
     expect(page).toContain("hideMeta");
     expect(page).toContain('aria-label="Pizza mix"');
+    expect(page).toContain('<p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato sm:hidden">Pizza selection</p>');
     expect(page).toContain('<h2 id="pizza-menu-controls-heading" className="mt-1 hidden font-display text-2xl font-semibold sm:block">Pizza mix</h2>');
     expect(page).toContain('<p className="mt-1 hidden max-w-2xl text-sm leading-6 text-ink/60 sm:block">');
     expect(page).not.toContain("id=\"choose-pizzas-heading\"");
