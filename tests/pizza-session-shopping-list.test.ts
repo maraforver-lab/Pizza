@@ -553,11 +553,15 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("Dough ingredients");
     expect(page).toContain("Shopping Checklist");
     expect(page).toContain("Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.");
+    expect(page).toContain('<p className="text-sm font-bold leading-6 text-ink/60 sm:hidden">');
+    expect(page).toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Shopping Checklist</p>');
+    expect(page).toContain('<h2 id="shopping-checklist-heading" className="hidden font-display text-2xl font-semibold sm:mt-1 sm:block">Shopping Checklist</h2>');
     expect(page).toContain("selectedPizzaMixSummary");
     expect(page).toContain("Shopping progress");
     expect(page).toContain("{readyShoppingItems} / {shoppingItems.length} ingredients ready");
     expect(page).toContain("shoppingList?.groups.flatMap((group) => group.items) ?? []");
     expect(page).toContain("Fermentation: {fermentationDisplay.fullLabel}");
+    expect(page).toContain('className: "mt-3 hidden px-3 py-2 sm:inline-flex"');
     expect(page).toContain("buildSessionFermentationDisplay");
     expect(page).toContain("buildSessionRecipe(session ?? undefined)");
     expect(page).toContain("Sauce");
@@ -581,6 +585,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain('href="/toppings"');
     expect(page.match(/href="\/toppings"/g)).toHaveLength(1);
     expect(page).toContain("Check topping balance");
+    expect(page).toContain('className={buttonClass({ className: "hidden w-full sm:inline-flex sm:w-auto", variant: "tertiary" })}');
     expect(page.indexOf("Shopping Checklist")).toBeLessThan(page.indexOf("<BottomActionBar"));
     expect(page.indexOf("<BottomActionBar")).toBeLessThan(page.indexOf("Optional shopping tools"));
     expect(page.indexOf("Optional shopping tools")).toBeLessThan(page.indexOf('href="/toppings"'));
@@ -675,9 +680,12 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain("SessionStepHero");
     expect(page).toContain("step={7}");
     expect(page).toContain("level={session.experienceLevel}");
+    expect(page).toContain("levelCompactOnMobile");
+    expect(page).toContain("hideBodyOnMobile");
     expect(page).toContain("BottomActionBar");
     expect(page).toContain('href="/session/recipe"');
     expect(page).toContain('href="/session/timeline"');
+    expect(page).toContain('className={buttonClass({ className: "hidden w-full sm:inline-flex sm:w-auto", variant: "secondary" })}');
     expect(page).toContain("Continue to Timeline →");
     expect(page.match(/Continue to Timeline →/g)).toHaveLength(1);
     expect(page).not.toContain("Before Timeline");
@@ -725,6 +733,9 @@ describe("Pizza Session shopping list presets", () => {
     expect(page.indexOf("Show export")).toBeLessThan(page.indexOf("Download shopping image"));
     expect(page).toContain("Shopping list");
     expect(page).toContain("hideMeta");
+    expect(page).toContain('aria-label="Pizza mix"');
+    expect(page).toContain('<h2 id="pizza-menu-controls-heading" className="mt-1 hidden font-display text-2xl font-semibold sm:block">Pizza mix</h2>');
+    expect(page).toContain('<p className="mt-1 hidden max-w-2xl text-sm leading-6 text-ink/60 sm:block">');
     expect(page).not.toContain("id=\"choose-pizzas-heading\"");
     expect(page).not.toContain("Checklist page</");
     expect(page).not.toMatch(/checkout|cart total|store link|price|ecommerce/i);

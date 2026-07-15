@@ -249,16 +249,22 @@ export default function SessionShoppingPage() {
           title="Your shopping list"
           body="Check ingredients, confirm the pizza mix, then continue to Timeline."
           level={session.experienceLevel}
+          levelCompactOnMobile
+          hideBodyOnMobile
           hideMeta
-        />
+        >
+          <p className="text-sm font-bold leading-6 text-ink/60 sm:hidden">
+            Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.
+          </p>
+        </SessionStepHero>
 
         <section className={cardClass({ className: "mt-4 overflow-hidden p-0 sm:mt-6", variant: "guidance" })} aria-labelledby="shopping-checklist-heading">
           <div className="border-b border-ink/10 px-4 py-4 sm:px-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Shopping Checklist</p>
-                <h2 id="shopping-checklist-heading" className="mt-1 font-display text-2xl font-semibold">Shopping Checklist</h2>
-                <p className="mt-1 text-sm leading-6 text-ink/60">
+                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Shopping Checklist</p>
+                <h2 id="shopping-checklist-heading" className="hidden font-display text-2xl font-semibold sm:mt-1 sm:block">Shopping Checklist</h2>
+                <p className="mt-1 hidden text-sm leading-6 text-ink/60 sm:block">
                   Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.
                 </p>
               </div>
@@ -268,7 +274,7 @@ export default function SessionShoppingPage() {
               </div>
             </div>
             {fermentationDisplay?.mode && (
-              <p className={statusPillClass({ className: "mt-3 px-3 py-2", variant: "success" })}>
+              <p className={statusPillClass({ className: "mt-3 hidden px-3 py-2 sm:inline-flex", variant: "success" })}>
                 Fermentation: {fermentationDisplay.fullLabel}
               </p>
             )}
@@ -314,7 +320,7 @@ export default function SessionShoppingPage() {
           back={(
             <Link
               href="/session/recipe"
-              className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+              className={buttonClass({ className: "hidden w-full sm:inline-flex sm:w-auto", variant: "secondary" })}
             >
               Back
             </Link>
@@ -332,12 +338,12 @@ export default function SessionShoppingPage() {
         <section className="mt-4 grid gap-4 sm:mt-6 lg:grid-cols-2" aria-labelledby="shopping-secondary-tools-heading">
           <h2 id="shopping-secondary-tools-heading" className="sr-only">Optional shopping tools</h2>
 
-          <section className={cardClass({ className: "p-4 sm:p-5 lg:col-span-2", variant: "guidance" })} aria-labelledby="pizza-menu-controls-heading">
+          <section className={cardClass({ className: "p-4 sm:p-5 lg:col-span-2", variant: "guidance" })} aria-label="Pizza mix">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Pizza Menu</p>
-                <h2 id="pizza-menu-controls-heading" className="mt-1 font-display text-2xl font-semibold">Pizza mix</h2>
-                <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60">
+                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-tomato sm:block">Pizza Menu</p>
+                <h2 id="pizza-menu-controls-heading" className="mt-1 hidden font-display text-2xl font-semibold sm:block">Pizza mix</h2>
+                <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-ink/60 sm:block">
                   {selectedPizzaMixSummary}
                 </p>
               </div>
@@ -356,7 +362,7 @@ export default function SessionShoppingPage() {
                 </button>
                 <Link
                   href="/toppings"
-                  className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}
+                  className={buttonClass({ className: "hidden w-full sm:inline-flex sm:w-auto", variant: "tertiary" })}
                 >
                   Check topping balance
                 </Link>

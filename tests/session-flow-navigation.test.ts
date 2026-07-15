@@ -100,6 +100,8 @@ describe("Pizza Session flow navigation integrity", () => {
 
     expect(shopping).toContain("Your shopping list");
     expect(shopping).toContain("Check ingredients, confirm the pizza mix, then continue to Timeline.");
+    expect(shopping).toContain("levelCompactOnMobile");
+    expect(shopping).toContain("hideBodyOnMobile");
     expect(shopping).toContain("Shopping Checklist");
     expect(shopping).not.toContain("Before Timeline");
     expect(shopping.indexOf("Shopping Checklist")).toBeLessThan(shopping.indexOf("<BottomActionBar"));
@@ -118,6 +120,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(shopping).toContain("Optional gear");
     expectTextLink(shopping, "Continue to Timeline →", "/session/timeline");
     expectTextLink(shopping, "Back", "/session/recipe");
+    expect(shopping).toContain('className={buttonClass({ className: "hidden w-full sm:inline-flex sm:w-auto", variant: "secondary" })}');
     expect(shopping).not.toMatch(/Copy shopping list|Review dough plan|Back to timeline|Open Kitchen Mode/i);
   });
 
