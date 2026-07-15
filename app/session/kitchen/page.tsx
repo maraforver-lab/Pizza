@@ -32,13 +32,18 @@ import {
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
+  formatKitchenPlannedDuration,
+  formatKitchenRestCountdown,
   getKitchenExperienceGuidance,
   getKitchenModeForStep,
   getKitchenModeState,
+  getKitchenPlannedFermentationDurationMinutes,
+  getKitchenRestNextFermentationLabel,
   getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
   isMixDoughStep,
   isBiologicalKitchenWaitStep,
+  isRestDoughStep,
   shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
 import { getActivePizzaSession } from "@/lib/pizza-session-storage";
@@ -324,6 +329,7 @@ export default function SessionKitchenPage() {
   const currentStepIsRuntimeWork = isRuntimeDoughWorkStep(currentStep);
   const currentStepHasStarted = hasStepActuallyStarted(session, currentStep?.id);
   const currentStepIsBiologicalWait = isBiologicalKitchenWaitStep(currentStep);
+  const currentStepIsRestDough = isRestDoughStep(currentStep);
   const currentStepCompletionBlocked = currentStepIsBiologicalWait && waitInfo.isTooEarly;
   const bakeProfile = getPizzaSessionBakeProfileForSession(session);
   const showBakeTimer = currentStep?.id === "bake-pizza";
@@ -357,6 +363,13 @@ export default function SessionKitchenPage() {
   const progressPercent = kitchenProgressPercent(kitchenState.currentIndex, kitchenState.totalCount);
   const progressLabel = `Step ${kitchenState.currentIndex + 1} of ${kitchenState.totalCount}`;
   const timing = compactKitchenTiming(currentRuntimeStep, session, currentLiveTiming, now, currentStepHasStarted);
+  const restMobileHiddenClass = currentStepIsRestDough ? "max-sm:hidden " : "";
+  const restCountdown = formatKitchenRestCountdown(currentStep?.scheduledAt, now);
+  const restReadyClock = formatRuntimeClockTime(currentStep?.scheduledAt);
+  const restNextFermentationLabel = getKitchenRestNextFermentationLabel(session, kitchenState.nextStep);
+  const restNextFermentationDuration = formatKitchenPlannedDuration(
+    getKitchenPlannedFermentationDurationMinutes(session.timeline?.steps),
+  );
   const showCompletionCue = shouldShowKitchenCompletionCue(
     currentStep?.id,
     taskPresentation.shortInstruction,
@@ -469,7 +482,7 @@ export default function SessionKitchenPage() {
                   <div className="min-w-0 space-y-4">
                     <div className="flex items-center justify-between gap-3">
                       <SessionExperienceLevelBadge level={session.experienceLevel} compact />
-                      <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">{kitchenState.currentIndex + 1} / {kitchenState.totalCount}</p>
+                      <p className={`${restMobileHiddenClass}text-xs font-extrabold uppercase tracking-[.16em] text-ink/45`}>{kitchenState.currentIndex + 1} / {kitchenState.totalCount}</p>
                     </div>
 
                     <div
@@ -484,11 +497,33 @@ export default function SessionKitchenPage() {
                     </div>
 
                     <div className="min-w-0">
-                      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Current step</p>
-                      <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">{taskPresentation.title}</h1>
+                      <p className={`${restMobileHiddenClass}text-xs font-extrabold uppercase tracking-[.18em] text-tomato`}>Current step</p>
+                      <h1 id="current-kitchen-task" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-6xl">
+                        {currentStepIsRestDough ? (
+                          <>
+                            <span className="sm:hidden">Dough is resting</span>
+                            <span className="max-sm:hidden">{taskPresentation.title}</span>
+                          </>
+                        ) : taskPresentation.title}
+                      </h1>
                     </div>
 
-                    <div className="grid gap-2 border-y border-ink/10 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
+                    {currentStepIsRestDough && (
+                      <div id="kitchen-rest-mobile-status" className="grid gap-3 border-y border-ink/10 py-3 sm:hidden" aria-label="Dough rest status" aria-live="polite">
+                        <div>
+                          <p className="font-display text-4xl font-semibold leading-none tabular-nums text-ink">{restCountdown}</p>
+                          <p className="mt-1 text-sm font-extrabold leading-6 text-ink/55">Ready at {restReadyClock}</p>
+                        </div>
+                        <div className="grid gap-1 text-sm font-bold leading-6 text-ink/65">
+                          <p><span className="font-extrabold text-ink">Next:</span> {restNextFermentationLabel}</p>
+                          {restNextFermentationDuration && (
+                            <p><span className="font-extrabold text-ink">Planned duration:</span> {restNextFermentationDuration}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={`${restMobileHiddenClass}grid gap-2 border-y border-ink/10 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center`}>
                       <div aria-live="polite">
                         <p className={`text-lg font-extrabold leading-7 sm:text-xl ${
                           currentLiveTiming.kind === "overdue" ? "text-tomato" : "text-ink"
@@ -519,8 +554,13 @@ export default function SessionKitchenPage() {
                     <section className="rounded-[1.25rem] bg-cream/80 p-4" aria-labelledby="kitchen-step-guidance-heading">
                       <p id="kitchen-step-guidance-heading" className="sr-only">Current task instruction</p>
                       <p className="text-lg font-extrabold leading-7 text-ink sm:text-2xl sm:leading-8">{taskPresentation.shortInstruction}</p>
+                      {currentStepIsRestDough && (
+                        <p className="mt-2 text-sm font-bold leading-6 text-ink/65 sm:hidden">
+                          Keep the dough covered until the timer reaches zero.
+                        </p>
+                      )}
                       {showCompletionCue && (
-                        <p className="mt-2 text-sm font-bold leading-6 text-ink/65">
+                        <p className={`${restMobileHiddenClass}mt-2 text-sm font-bold leading-6 text-ink/65`}>
                           <span className="font-extrabold text-ink">Ready when:</span> {taskPresentation.doneCondition}
                         </p>
                       )}
@@ -602,7 +642,7 @@ export default function SessionKitchenPage() {
                   )}
 
                   {waitInfo.isTooEarly && waitInfo.waitLabel && (
-                    <div id="kitchen-wait-status" className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="status">
+                    <div id="kitchen-wait-status" className={`${restMobileHiddenClass}mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4`} role="status">
                       <p className="text-sm font-extrabold leading-6 text-tomato">
                         {waitInfo.waitLabel} before this step.
                       </p>

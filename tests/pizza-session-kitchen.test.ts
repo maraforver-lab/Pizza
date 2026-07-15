@@ -8,10 +8,14 @@ import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
 import {
   completeKitchenTimelineStep,
   doughKitchenIngredientLines,
+  formatKitchenPlannedDuration,
+  formatKitchenRestCountdown,
   formatKitchenStepWaitLabel,
   getKitchenExperienceGuidance,
   getKitchenModeForStep,
   getKitchenModeState,
+  getKitchenPlannedFermentationDurationMinutes,
+  getKitchenRestNextFermentationLabel,
   getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
   getKitchenTaskInstruction,
@@ -810,6 +814,52 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(shouldConfirmEarlyKitchenStepCompletion(due, now)).toBe(false);
   });
 
+  it("formats the mobile Rest dough countdown without changing readiness logic", () => {
+    const now = new Date("2026-07-10T16:47:00.000Z");
+
+    expect(formatKitchenRestCountdown("2026-07-10T17:14:00.000Z", now)).toBe("27:00 remaining");
+    expect(formatKitchenRestCountdown("2026-07-10T16:47:45.000Z", now)).toBe("0:45 remaining");
+    expect(formatKitchenRestCountdown("2026-07-10T16:47:00.000Z", now)).toBe("0:00 remaining");
+    expect(formatKitchenRestCountdown("2026-07-10T16:46:30.000Z", now)).toBe("0:00 remaining");
+  });
+
+  it("summarizes the next fermentation type and planned duration from the saved plan", () => {
+    const roomSession = createPizzaSession({
+      id: "kitchen-rest-room-summary",
+      recipeSnapshot: { fermentation: "12h-room" },
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        targetEatTime: "2026-07-11T16:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-10T16:14:00.000Z", status: "done", kind: "active" },
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T17:14:00.000Z", status: "todo", kind: "passive" },
+          { id: "room-ferment", label: "Room temperature ferment", scheduledAt: "2026-07-10T17:14:00.000Z", status: "todo", kind: "passive" },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T13:56:00.000Z", status: "todo", kind: "active" },
+        ],
+      },
+    });
+    const coldSession = createPizzaSession({
+      id: "kitchen-rest-cold-summary",
+      recipeSnapshot: { fermentation: "24h-cold" },
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        targetEatTime: "2026-07-12T16:00:00.000Z",
+        steps: [
+          { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T17:14:00.000Z", status: "todo", kind: "passive" },
+          { id: "cold-ferment", label: "Cold fermentation", scheduledAt: "2026-07-10T17:14:00.000Z", status: "todo", kind: "passive" },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T17:14:00.000Z", status: "todo", kind: "active" },
+        ],
+      },
+    });
+
+    expect(getKitchenRestNextFermentationLabel(roomSession, roomSession.timeline?.steps[2])).toBe("Room-temperature fermentation");
+    expect(getKitchenRestNextFermentationLabel(coldSession, coldSession.timeline?.steps[1])).toBe("Cold fermentation");
+    expect(getKitchenPlannedFermentationDurationMinutes(roomSession.timeline?.steps)).toBe(20 * 60 + 42);
+    expect(formatKitchenPlannedDuration(20 * 60 + 42)).toBe("20 h 42 min");
+    expect(getKitchenPlannedFermentationDurationMinutes(coldSession.timeline?.steps)).toBe(24 * 60);
+    expect(formatKitchenPlannedDuration(24 * 60)).toBe("24 h");
+  });
+
   it("provides task instructions for required timeline labels and level-aware copy", () => {
     const required = [
       "mix-dough",
@@ -918,6 +968,23 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page.indexOf("Current task instruction")).toBeLessThan(page.indexOf("More guidance"));
     expect(page.indexOf("More guidance")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
     expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("What this should look like"));
+  });
+
+  it("adds a mobile-only Rest dough status hierarchy while preserving desktop timing detail", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain("currentStepIsRestDough");
+    expect(page).toContain("restMobileHiddenClass");
+    expect(page).toContain("Dough is resting");
+    expect(page).toContain("formatKitchenRestCountdown(currentStep?.scheduledAt, now)");
+    expect(page).toContain("id=\"kitchen-rest-mobile-status\"");
+    expect(page).toContain("Ready at {restReadyClock}");
+    expect(page).toContain("getKitchenRestNextFermentationLabel(session, kitchenState.nextStep)");
+    expect(page).toContain("Planned duration:");
+    expect(page).toContain("Keep the dough covered until the timer reaches zero.");
+    expect(page).toContain("className={`${restMobileHiddenClass}grid gap-2 border-y");
+    expect(page).toContain("className={`${restMobileHiddenClass}mt-5 rounded-[1.25rem]");
+    expect(page).toContain("Rest complete");
   });
 
   it("uses a clearer ball-dough action and done condition when dough-ball amounts are available", () => {

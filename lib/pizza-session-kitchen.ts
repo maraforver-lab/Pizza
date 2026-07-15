@@ -607,6 +607,59 @@ export function formatKitchenStepWaitLabel(remainingMinutes: number) {
   return `Wait ${hours} h${minutes ? ` ${minutes} min` : ""}`;
 }
 
+export function formatKitchenRestCountdown(readyAt?: string, now = new Date()) {
+  if (!readyAt) return "0:00 remaining";
+  const ready = new Date(readyAt);
+  if (!Number.isFinite(ready.getTime()) || !Number.isFinite(now.getTime())) return "0:00 remaining";
+  const totalSeconds = Math.max(0, Math.ceil((ready.getTime() - now.getTime()) / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")} remaining`;
+}
+
+export function formatKitchenPlannedDuration(totalMinutes?: number) {
+  if (typeof totalMinutes !== "number" || !Number.isFinite(totalMinutes) || totalMinutes <= 0) return undefined;
+  const safeMinutes = Math.round(totalMinutes);
+  if (safeMinutes < 1) return "less than 1 min";
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+  return [hours ? `${hours} h` : "", minutes ? `${minutes} min` : ""].filter(Boolean).join(" ") || "0 min";
+}
+
+export function isRestDoughStep(step?: Pick<PizzaSessionTimelineStep, "id" | "label">) {
+  return step?.id === "rest-dough" || step?.label.toLowerCase() === "rest dough";
+}
+
+function plannedMinutesBetweenSteps(
+  first?: Pick<PizzaSessionTimelineStep, "scheduledAt">,
+  second?: Pick<PizzaSessionTimelineStep, "scheduledAt">,
+) {
+  if (!first?.scheduledAt || !second?.scheduledAt) return undefined;
+  const firstDate = new Date(first.scheduledAt);
+  const secondDate = new Date(second.scheduledAt);
+  if (!Number.isFinite(firstDate.getTime()) || !Number.isFinite(secondDate.getTime())) return undefined;
+  const minutes = Math.round((secondDate.getTime() - firstDate.getTime()) / 60_000);
+  return minutes > 0 ? minutes : undefined;
+}
+
+export function getKitchenPlannedFermentationDurationMinutes(steps?: readonly PizzaSessionTimelineStep[]) {
+  if (!steps?.length) return undefined;
+  const fermentStep = steps.find((step) => isFermentationTimelineStep(step));
+  const ballStep = steps.find((step) => step.id === "ball-dough");
+  return plannedMinutesBetweenSteps(fermentStep, ballStep);
+}
+
+export function getKitchenRestNextFermentationLabel(
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+  step?: PizzaSessionTimelineStep,
+) {
+  if (!isFermentationTimelineStep(step)) return "Fermentation";
+  const mode = resolveKitchenFermentationMode(session, step);
+  if (mode === "room") return "Room-temperature fermentation";
+  if (mode === "cold") return "Cold fermentation";
+  return "Fermentation";
+}
+
 export function getKitchenStepWaitInfo(
   step?: Pick<PizzaSessionTimelineStep, "scheduledAt">,
   now = new Date(),
