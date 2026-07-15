@@ -575,6 +575,23 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).not.toContain("Have</");
   });
 
+  it("adds one secondary contextual Toppings link after the checklist-first Shopping workflow", () => {
+    const page = source("app/session/shopping/page.tsx");
+
+    expect(page).toContain('href="/toppings"');
+    expect(page.match(/href="\/toppings"/g)).toHaveLength(1);
+    expect(page).toContain("Check topping balance");
+    expect(page.indexOf("Shopping Checklist")).toBeLessThan(page.indexOf("<BottomActionBar"));
+    expect(page.indexOf("<BottomActionBar")).toBeLessThan(page.indexOf("Optional shopping tools"));
+    expect(page.indexOf("Optional shopping tools")).toBeLessThan(page.indexOf('href="/toppings"'));
+    expect(page.indexOf("Continue to Timeline →")).toBeLessThan(page.indexOf('href="/toppings"'));
+    expect(page).toContain('variant: "tertiary"');
+    expect(page).not.toContain("Continue to Toppings");
+    expect(page).not.toContain("Required topping setup");
+    expect(page).not.toContain("Complete topping calculation");
+    expect(page).not.toContain('target="_blank"');
+  });
+
   it("renders clear pizza menu cards with local photo assets and chef recommendations", () => {
     const page = source("app/session/shopping/page.tsx");
 

@@ -354,6 +354,12 @@ export default function SessionShoppingPage() {
                 >
                   {menuControlsOpen ? "Hide pizza mix controls" : "Edit pizza mix"}
                 </button>
+                <Link
+                  href="/toppings"
+                  className={buttonClass({ className: "w-full sm:w-auto", variant: "tertiary" })}
+                >
+                  Check topping balance
+                </Link>
               </div>
             </div>
 

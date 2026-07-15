@@ -318,6 +318,7 @@ export default function SessionKitchenPage() {
   const currentStepHasStarted = hasStepActuallyStarted(session, currentStep?.id);
   const bakeProfile = getPizzaSessionBakeProfileForSession(session);
   const showBakeTimer = currentStep?.id === "bake-pizza";
+  const showToppingBalanceLink = currentStep?.id === "prepare-sauce-toppings";
   const doughGuideLink = getDoughGuideLinkForSessionStep(currentStep, "/session/kitchen");
   const ovenTroubleshootingLink = isOvenTroubleshootingStep(currentStep) ? bakingTroubleshootingLink : null;
   const doughGuideHref = doughGuideLink ? buildContextualReturnHref(doughGuideLink.href) : null;
@@ -524,6 +525,20 @@ export default function SessionKitchenPage() {
                             <div className="rounded-[1.25rem] border border-leaf/10 bg-white/65 p-4">
                               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">What this should look like</p>
                               <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:text-base">{taskPresentation.helperCopy}</p>
+                            </div>
+                          )}
+
+                          {showToppingBalanceLink && (
+                            <div className="rounded-[1.25rem] border border-ink/10 bg-white/65 p-4">
+                              <p className="text-sm font-bold leading-6 text-ink/60">
+                                Review sauce, cheese and topping amounts if the pizza may become too wet or heavily loaded.
+                              </p>
+                              <Link
+                                href="/toppings"
+                                className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+                              >
+                                Check topping balance
+                              </Link>
                             </div>
                           )}
 

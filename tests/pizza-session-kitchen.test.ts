@@ -364,6 +364,24 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).not.toMatch(/order board|ticket rail|table service/i);
   });
 
+  it("adds contextual Toppings guidance only inside More guidance for the sauce-and-toppings step", () => {
+    const page = source("app/session/kitchen/page.tsx");
+
+    expect(page).toContain('const showToppingBalanceLink = currentStep?.id === "prepare-sauce-toppings"');
+    expect(page).toContain("{showToppingBalanceLink &&");
+    expect(page).toContain("Review sauce, cheese and topping amounts if the pizza may become too wet or heavily loaded.");
+    expect(page).toContain('href="/toppings"');
+    expect(page.match(/href="\/toppings"/g)).toHaveLength(1);
+    expect(page).toContain("Check topping balance");
+    expect(page.indexOf("<details")).toBeLessThan(page.indexOf("{showToppingBalanceLink &&"));
+    expect(page.indexOf("{showToppingBalanceLink &&")).toBeLessThan(page.indexOf("</details>"));
+    expect(page).not.toContain("Continue to Toppings");
+    expect(page).not.toContain("Required topping setup");
+    expect(page).not.toContain('target="_blank"');
+    expect(page).not.toContain("queueCloudActivePizzaSessionSave(session");
+    expect(page).not.toContain("queueKitchenProgressSync(session");
+  });
+
   it("prepares a completion transition to review and notes", () => {
     const page = source("app/session/kitchen/page.tsx");
 
