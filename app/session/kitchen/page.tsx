@@ -10,6 +10,7 @@ import { SessionExperienceLevelBadge } from "@/components/session/SessionExperie
 import { SessionRouteState } from "@/components/session/SessionRouteState";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
+import { normalizeAccountPreferencesRow } from "@/lib/account-preferences";
 import { getExperienceLevelConfig } from "@/lib/experience-levels";
 import { queueCloudActivePizzaSessionSave } from "@/lib/cloud-pizza-session-client";
 import { buildContextualReturnHref } from "@/lib/contextual-return";
@@ -41,10 +42,10 @@ import {
   getKitchenRestNextFermentationLabel,
   getKitchenStepWaitInfo,
   getKitchenTaskPresentation,
+  getEarlyTimedKitchenCompletionWarning,
   isMixDoughStep,
   isBiologicalKitchenWaitStep,
   isRestDoughStep,
-  shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
 import { getActivePizzaSession } from "@/lib/pizza-session-storage";
 import {
@@ -193,6 +194,18 @@ function kitchenCompleteActionLabel(step?: { id: string }) {
 
 const bakingTroubleshootingLink = getPizzaSessionBakingTroubleshootingLink("Something looks wrong? Open baking troubleshooting");
 
+type EarlyCompletionPreferenceState = {
+  allowEarlyTimedStepCompletion: boolean;
+  loaded: boolean;
+  signedIn: boolean;
+};
+
+const defaultEarlyCompletionPreference: EarlyCompletionPreferenceState = {
+  allowEarlyTimedStepCompletion: false,
+  loaded: false,
+  signedIn: false,
+};
+
 export default function SessionKitchenPage() {
   const [ready, setReady] = useState(false);
   const [routeError, setRouteError] = useState(false);
@@ -202,8 +215,12 @@ export default function SessionKitchenPage() {
   const [menuEditorOpen, setMenuEditorOpen] = useState(false);
   const [draftPizzaMix, setDraftPizzaMix] = useState<PizzaSessionPizzaMix | null>(null);
   const [menuError, setMenuError] = useState<string | null>(null);
+  const [earlyCompletionPreference, setEarlyCompletionPreference] = useState<EarlyCompletionPreferenceState>(defaultEarlyCompletionPreference);
   const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const menuDialogRef = useRef<HTMLDivElement | null>(null);
+  const primaryActionRef = useRef<HTMLButtonElement | null>(null);
+  const earlyDialogRef = useRef<HTMLDivElement | null>(null);
+  const earlyKeepWaitingRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -222,6 +239,36 @@ export default function SessionKitchenPage() {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 15_000);
     return () => window.clearInterval(timer);
   }, [ready]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadEarlyCompletionPreference() {
+      try {
+        const response = await fetch("/api/account/preferences", { method: "GET" });
+        if (response.status === 401) {
+          if (mounted) setEarlyCompletionPreference({ ...defaultEarlyCompletionPreference, loaded: true });
+          return;
+        }
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "Could not load account preferences.");
+        const preferences = normalizeAccountPreferencesRow(payload.preferences);
+        if (mounted) {
+          setEarlyCompletionPreference({
+            allowEarlyTimedStepCompletion: preferences.allowEarlyTimedStepCompletion,
+            loaded: true,
+            signedIn: true,
+          });
+        }
+      } catch {
+        if (mounted) setEarlyCompletionPreference({ ...defaultEarlyCompletionPreference, loaded: true });
+      }
+    }
+
+    loadEarlyCompletionPreference();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!menuEditorOpen) return undefined;
@@ -251,6 +298,43 @@ export default function SessionKitchenPage() {
     window.setTimeout(() => menuDialogRef.current?.focus(), 0);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [menuEditorOpen]);
+
+  useEffect(() => {
+    if (!confirmEarlyCompletion) return undefined;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const fallbackFocus = primaryActionRef.current;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setConfirmEarlyCompletion(false);
+        return;
+      }
+      if (event.key === "Tab" && earlyDialogRef.current) {
+        const focusable = Array.from(earlyDialogRef.current.querySelectorAll<HTMLElement>(
+          "a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex='-1'])",
+        ));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.setTimeout(() => earlyKeepWaitingRef.current?.focus(), 0);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.setTimeout(() => {
+        if (previousFocus && document.contains(previousFocus)) previousFocus.focus();
+        else fallbackFocus?.focus();
+      }, 0);
+    };
+  }, [confirmEarlyCompletion]);
 
   const kitchenState = useMemo(() => getKitchenModeState(session ?? undefined), [session]);
 
@@ -331,6 +415,10 @@ export default function SessionKitchenPage() {
   const currentStepIsBiologicalWait = isBiologicalKitchenWaitStep(currentStep);
   const currentStepIsRestDough = isRestDoughStep(currentStep);
   const currentStepCompletionBlocked = currentStepIsBiologicalWait && waitInfo.isTooEarly;
+  const accountAllowsEarlyTimedCompletion = earlyCompletionPreference.signedIn
+    && earlyCompletionPreference.allowEarlyTimedStepCompletion;
+  const currentStepCanConfirmEarlyCompletion = currentStepCompletionBlocked && accountAllowsEarlyTimedCompletion;
+  const primaryActionDisabled = currentStepCompletionBlocked && !currentStepCanConfirmEarlyCompletion;
   const bakeProfile = getPizzaSessionBakeProfileForSession(session);
   const showBakeTimer = currentStep?.id === "bake-pizza";
   const showToppingBalanceLink = currentStep?.id === "prepare-sauce-toppings";
@@ -370,6 +458,9 @@ export default function SessionKitchenPage() {
   const restNextFermentationDuration = formatKitchenPlannedDuration(
     getKitchenPlannedFermentationDurationMinutes(session.timeline?.steps),
   );
+  const earlyCompletionWarning = currentStepCanConfirmEarlyCompletion
+    ? getEarlyTimedKitchenCompletionWarning(currentStep, waitInfo.remainingMinutes)
+    : undefined;
   const showCompletionCue = shouldShowKitchenCompletionCue(
     currentStep?.id,
     taskPresentation.shortInstruction,
@@ -455,15 +546,13 @@ export default function SessionKitchenPage() {
     if (!currentStep) return;
     if (currentStepCompletionBlocked) {
       setCurrentTime(new Date());
+      if (currentStepCanConfirmEarlyCompletion) {
+        setConfirmEarlyCompletion(true);
+      }
       return;
     }
     if (currentStepIsRuntimeWork && !currentStepHasStarted) {
       startCurrentStep();
-      return;
-    }
-    if (shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())) {
-      setCurrentTime(new Date());
-      setConfirmEarlyCompletion(true);
       return;
     }
     completeCurrentStep();
@@ -729,9 +818,10 @@ export default function SessionKitchenPage() {
                   )}
                   primary={(
                     <button
+                      ref={primaryActionRef}
                       type="button"
                       onClick={markDone}
-                      disabled={currentStepCompletionBlocked}
+                      disabled={primaryActionDisabled}
                       aria-describedby={currentStepCompletionBlocked ? "kitchen-wait-status" : undefined}
                       className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto"
                     >
@@ -835,27 +925,43 @@ export default function SessionKitchenPage() {
                   </div>
                 )}
 
-                {confirmEarlyCompletion && waitInfo.waitLabel && (
-                  <div className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="early-kitchen-step-heading">
-                    <div className="max-h-[calc(100vh-3rem)] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card">
-                      <h2 id="early-kitchen-step-heading" className="font-display text-3xl font-semibold leading-none">This step is scheduled later</h2>
-                      <p className="mt-3 text-sm font-bold leading-6 text-ink/65">
-                        You should {waitInfo.waitLabel.toLowerCase()} before this step. Do you still want to continue?
+                {confirmEarlyCompletion && earlyCompletionWarning && (
+                  <div
+                    className="fixed inset-0 z-[70] grid place-items-center bg-ink/40 px-4 py-6 backdrop-blur-sm"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="early-kitchen-step-heading"
+                    aria-describedby="early-kitchen-step-description"
+                    onMouseDown={(event) => {
+                      if (event.target === event.currentTarget) setConfirmEarlyCompletion(false);
+                    }}
+                  >
+                    <div
+                      ref={earlyDialogRef}
+                      tabIndex={-1}
+                      className="max-h-[calc(100vh-3rem)] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/80 bg-white p-5 text-ink shadow-card focus:outline-none"
+                    >
+                      <h2 id="early-kitchen-step-heading" className="font-display text-3xl font-semibold leading-none">
+                        {earlyCompletionWarning.title}
+                      </h2>
+                      <p id="early-kitchen-step-description" className="mt-3 text-sm font-bold leading-6 text-ink/65">
+                        {earlyCompletionWarning.description}
                       </p>
                       <div className="mt-5 grid gap-3 sm:grid-cols-2">
                         <button
+                          ref={earlyKeepWaitingRef}
                           type="button"
                           onClick={() => setConfirmEarlyCompletion(false)}
-                          className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
                         >
-                          Go back
+                          Keep waiting
                         </button>
                         <button
                           type="button"
                           onClick={completeCurrentStep}
-                          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                          className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-tomato/25 bg-white px-5 text-sm font-extrabold text-tomato transition hover:border-tomato/45 hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
                         >
-                          Continue anyway
+                          Mark complete early
                         </button>
                       </div>
                     </div>

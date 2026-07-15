@@ -11,6 +11,7 @@ import {
   formatKitchenPlannedDuration,
   formatKitchenRestCountdown,
   formatKitchenStepWaitLabel,
+  getEarlyTimedKitchenCompletionWarning,
   getKitchenExperienceGuidance,
   getKitchenModeForStep,
   getKitchenModeState,
@@ -705,18 +706,22 @@ describe("Pizza Session Kitchen Mode", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("getKitchenStepWaitInfo(currentStep, currentTime)");
-    expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
+    expect(page).toContain("fetch(\"/api/account/preferences\"");
+    expect(page).toContain("accountAllowsEarlyTimedCompletion");
+    expect(page).toContain("currentStepCanConfirmEarlyCompletion");
     expect(page).toContain("{waitInfo.waitLabel} before this step.");
     expect(page).toContain("currentStepCompletionBlocked");
     expect(page).toContain("This step is ready at");
-    expect(page).toContain("disabled={currentStepCompletionBlocked}");
+    expect(page).toContain("disabled={primaryActionDisabled}");
     expect(page).toContain("aria-describedby={currentStepCompletionBlocked ? \"kitchen-wait-status\" : undefined}");
-    expect(page).toContain("This step is scheduled later");
-    expect(page).toContain("Do you still want to continue?");
-    expect(page).toContain("Go back");
-    expect(page).toContain("Continue anyway");
+    expect(page).toContain("getEarlyTimedKitchenCompletionWarning(currentStep, waitInfo.remainingMinutes)");
+    expect(page).toContain("Keep waiting");
+    expect(page).toContain("Mark complete early");
+    expect(page).toContain("aria-describedby=\"early-kitchen-step-description\"");
+    expect(page).toContain("earlyKeepWaitingRef.current?.focus()");
     expect(page).toContain("setConfirmEarlyCompletion(false)");
     expect(page).toContain("completeCurrentStep");
+    expect(page).not.toContain("Continue anyway");
   });
 
   it("adds one secondary Dough Guide link for the active Kitchen Mode step", () => {
@@ -728,7 +733,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("{doughGuideLink.label}");
     expect(page).toContain("kitchenCompleteActionLabel(currentStep)");
     expect(page).toContain("Rest complete");
-    expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
+    expect(page).toContain("primaryActionDisabled");
   });
 
   it("adds secondary baking troubleshooting help for Kitchen Mode oven steps only", () => {
@@ -743,7 +748,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("{ovenTroubleshootingLink.label}");
     expect(page).toContain("Oven preheated");
     expect(page).toContain("All pizzas baked");
-    expect(page).toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
+    expect(page).not.toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
   });
 
   it("reuses shared live timing language for Kitchen Mode current and next step timing", () => {
@@ -812,6 +817,21 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(getKitchenStepWaitInfo(overdue, now)).toEqual({ isTooEarly: false, remainingMinutes: 0 });
     expect(shouldConfirmEarlyKitchenStepCompletion(fiveMinutes, now)).toBe(true);
     expect(shouldConfirmEarlyKitchenStepCompletion(due, now)).toBe(false);
+  });
+
+  it("builds exact early-completion warnings for timed biological Kitchen stages", () => {
+    expect(getEarlyTimedKitchenCompletionWarning({ id: "rest-dough" }, 18)).toEqual({
+      title: "The dough still needs 18 minutes of rest",
+      description: "Continuing early may reduce dough relaxation and affect the next stage.",
+    });
+    expect(getEarlyTimedKitchenCompletionWarning({ id: "room-ferment" }, 134)).toEqual({
+      title: "The dough still needs 2 h 14 min of fermentation",
+      description: "Continuing early may affect dough development and the final result.",
+    });
+    expect(getEarlyTimedKitchenCompletionWarning({ id: "room-temperature-rest" }, 24)).toEqual({
+      title: "The dough balls still need 24 minutes of proofing",
+      description: "Continuing early may make the dough harder to stretch.",
+    });
   });
 
   it("formats the mobile Rest dough countdown without changing readiness logic", () => {

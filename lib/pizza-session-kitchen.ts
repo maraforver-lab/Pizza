@@ -60,6 +60,11 @@ export type KitchenStepWaitInfo = {
   waitLabel?: string;
 };
 
+export type EarlyTimedKitchenCompletionWarning = {
+  description: string;
+  title: string;
+};
+
 export type KitchenTaskPresentation = {
   title: string;
   shortInstruction: string;
@@ -693,6 +698,39 @@ export function isBiologicalKitchenWaitStep(step?: Pick<PizzaSessionTimelineStep
     || step.id === "ferment-dough"
     || step.id === "room-temperature-rest"
   ));
+}
+
+function earlyCompletionDurationLabel(remainingMinutes: number) {
+  const safeMinutes = Math.max(0, Math.ceil(remainingMinutes));
+  if (safeMinutes < 60) return `${safeMinutes} ${safeMinutes === 1 ? "minute" : "minutes"}`;
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+  return `${hours} h${minutes ? ` ${minutes} min` : ""}`;
+}
+
+export function getEarlyTimedKitchenCompletionWarning(
+  step: Pick<PizzaSessionTimelineStep, "id"> | undefined,
+  remainingMinutes: number,
+): EarlyTimedKitchenCompletionWarning {
+  const duration = earlyCompletionDurationLabel(remainingMinutes);
+  if (step?.id === "rest-dough") {
+    return {
+      title: `The dough still needs ${duration} of rest`,
+      description: "Continuing early may reduce dough relaxation and affect the next stage.",
+    };
+  }
+
+  if (step?.id === "room-temperature-rest") {
+    return {
+      title: `The dough balls still need ${duration} of proofing`,
+      description: "Continuing early may make the dough harder to stretch.",
+    };
+  }
+
+  return {
+    title: `The dough still needs ${duration} of fermentation`,
+    description: "Continuing early may affect dough development and the final result.",
+  };
 }
 
 export function completeKitchenTimelineStep(

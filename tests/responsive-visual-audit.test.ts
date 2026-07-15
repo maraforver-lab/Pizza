@@ -87,6 +87,6 @@ describe("Patch 311 responsive visual audit protections", () => {
     expect(quickCalculator).toContain("calculateQuickDough(input)");
     expect(quickCalculator).not.toContain("getActivePizzaSession");
     expect(sessionKitchen).toContain("completeCurrentStep");
-    expect(sessionKitchen).toContain("shouldConfirmEarlyKitchenStepCompletion");
+    expect(sessionKitchen).toContain("currentStepCanConfirmEarlyCompletion");
   });
 });

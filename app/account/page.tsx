@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import SiteFooter from "@/components/SiteFooter";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
+import { AccountEarlyCompletionPreference } from "@/components/account/AccountEarlyCompletionPreference";
 import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
 import { PartyOrdersAccountEntryCard } from "@/components/account/PartyOrdersAccountEntryCard";
@@ -169,6 +170,7 @@ export default function AccountPage() {
               <PartyOrdersAccountEntryCard enabled className="mt-0" />
               <InstallAppPrompt compact collapsible className="mt-0" />
               <AccountGuidancePreference />
+              <AccountEarlyCompletionPreference />
               <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-security-heading">
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
                 <h2 id="account-security-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
