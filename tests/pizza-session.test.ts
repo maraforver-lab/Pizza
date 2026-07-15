@@ -320,7 +320,7 @@ describe("Pizza Session local storage", () => {
     expect(component).toContain("Continue Pizza Session");
     expect(component).toContain("Signed-in users can save an in-progress copy");
     expect(component).toContain("focus-visible:ring");
-    expect(homepage).toContain("ContinuePizzaSessionCard");
+    expect(homepage).toContain("HomepageSessionActions");
     expect(account).toContain("AccountActivePizzaSessionCard");
     expect(account).toContain("AccountPizzaSessionHistory");
     expect(account).not.toContain("Save recipes to make progress repeatable.");

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image, { getImageProps } from "next/image";
-import ContinuePizzaSessionCard from "@/components/ContinuePizzaSessionCard";
 import HomeCalculatorWorkspace from "@/components/HomeCalculatorWorkspace";
+import HomepageSessionActions from "@/components/HomepageSessionActions";
 import HomepageGuidanceLevelSection from "@/components/HomepageGuidanceLevelSection";
 import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
@@ -173,20 +173,14 @@ export default async function Home({ searchParams }: HomePageProps) {
                 <p className="mt-4 max-w-xl break-words text-base leading-7 text-white/86 sm:text-xl sm:leading-8 lg:text-lg lg:leading-7 xl:text-xl xl:leading-8">
                   {homepageContent.hero.intro}
                 </p>
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Link
-                    href={homepageContent.hero.primaryCta.href}
-                    className="inline-flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-2xl bg-tomato px-6 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition hover:bg-white hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark sm:w-auto sm:px-7"
-                  >
-                    {homepageContent.hero.primaryCta.label} →
-                  </Link>
-                  <a
-                    href={homepageContent.hero.secondaryCta.href}
-                    className="inline-flex min-h-12 w-full items-center justify-center whitespace-nowrap rounded-2xl border border-white/20 bg-white/12 px-6 py-3 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark sm:w-auto"
-                  >
-                    {homepageContent.hero.secondaryCta.label}
-                  </a>
-                </div>
+                <HomepageSessionActions
+                  className="mt-5"
+                  includeWorkflowLink
+                  tone="dark"
+                  variant="hero"
+                  workflowHref={homepageContent.hero.secondaryCta.href}
+                  workflowLabel={homepageContent.hero.secondaryCta.label}
+                />
                 <ul className="mt-5 grid gap-2 text-sm font-extrabold text-white/86 sm:grid-cols-3" aria-label="DoughTools helps you">
                   {heroValueStatements.map((statement) => (
                     <li key={statement} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2">
@@ -235,7 +229,6 @@ export default async function Home({ searchParams }: HomePageProps) {
               </dl>
             </div>
           </section>
-          <ContinuePizzaSessionCard variant="hero" />
         </div>
       </section>
 
@@ -477,12 +470,7 @@ export default async function Home({ searchParams }: HomePageProps) {
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base sm:leading-7">
             It only takes a few minutes to create your first plan.
           </p>
-          <Link
-            href={homepageContent.hero.primaryCta.href}
-            className="mt-7 inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-tomato px-7 py-3 text-base font-extrabold text-white shadow-lg shadow-tomato/20 transition hover:bg-white hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:w-auto"
-          >
-            {homepageContent.hero.primaryCta.label} →
-          </Link>
+          <HomepageSessionActions className="mt-7" tone="light" variant="final" />
         </div>
       </section>
 

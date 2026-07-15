@@ -73,7 +73,7 @@ describe("install app / add to home screen foundation", () => {
 
     expect(homepage).not.toContain("InstallAppPrompt");
     expect(account).toContain("InstallAppPrompt");
-    expect(homepage).toContain("homepageContent.hero.primaryCta.label");
+    expect(homepage).toContain("HomepageSessionActions");
     expect(homepage).not.toContain("homepageContent.workflow.map");
     expect(account).not.toContain("DoughTools remains local-first for recipes and bake notes");
     expect(account).not.toContain("Save recipes to make progress repeatable.");

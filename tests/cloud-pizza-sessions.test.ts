@@ -1446,9 +1446,10 @@ describe("cloud pizza session foundation", () => {
     expect(continueCard).toContain("fetch(\"/api/pizza-sessions/active\"");
     expect(continueCard.indexOf("if (!data.session?.user)")).toBeLessThan(continueCard.indexOf("setSession(localSession)"));
     expect(continueCard.indexOf("setSession(localSession)")).toBeLessThan(continueCard.indexOf("fetch(\"/api/pizza-sessions/active\""));
-    expect(continueCard).toContain("setCloudSession(row)");
+    expect(continueCard).toContain("resolveHomepageActiveSession(localSession, row)");
+    expect(continueCard).toContain("setCloudSession(decision.cloudRow)");
     expect(continueCard).toContain("setSession(null)");
-    expect(continueCard).toContain("clearCloudBackedActivePizzaSessionPointer()");
+    expect(continueCard).toContain("clearCloudBackedPizzaSession()");
     expect(continueCard).toContain("cloudBackedPizzaSessionRowId(localSession)");
     expect(continueCard).toContain("Active pizza session");
     expect(continueCard).toContain("summary.statusLine");
@@ -1457,7 +1458,7 @@ describe("cloud pizza session foundation", () => {
     expect(restore).toContain("savePizzaSession(session, storage)");
     expect(restore).toContain("setActivePizzaSession(restored.id, storage)");
     expect(restore).toContain("markCloudBackedPizzaSession(restored.id, row.id, storage)");
-    expect(continueCard).toContain("router.push(pizzaSessionContinueHref(restored))");
+    expect(continueCard).toContain("router.push(deriveActiveSessionResumeRoute(restored))");
   });
 
   it("promotes signed-in Start Pizza Session changes to cloud without changing guest-local storage", () => {

@@ -772,8 +772,8 @@ describe("Start Pizza Session wizard", () => {
     const startPage = source("app/start/page.tsx");
     const homepage = source("lib/homepage.ts");
 
-    expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my next pizza", href: "/session/start" });
-    expect(homepage).toContain("Plan my next pizza");
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my new pizza", href: "/session/start" });
+    expect(homepage).toContain("Plan my new pizza");
     expect(homepage).toContain("/session/start");
     expect(startPage).toContain("permanentRedirect");
     expect(startPage).toContain('"/session/start"');

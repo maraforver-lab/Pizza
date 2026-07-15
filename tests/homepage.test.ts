@@ -45,7 +45,7 @@ describe("homepage content model", () => {
   });
 
   it("makes an outcome-first planning action the primary homepage CTA", () => {
-    expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my next pizza", href: "/session/start" });
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my new pizza", href: "/session/start" });
   });
 
   it("uses the hero secondary action to explain the workflow", () => {
@@ -138,18 +138,20 @@ describe("homepage content model", () => {
     const homepage = source("app/page.tsx");
     const content = source("lib/homepage.ts");
     const guidance = source("components/HomepageGuidanceLevelSection.tsx");
+    const sessionActions = source("components/HomepageSessionActions.tsx");
     const continueCard = source("components/ContinuePizzaSessionCard.tsx");
     const header = source("components/GlobalToolNavigation.tsx");
     const updateNotice = source("components/LatestUpdateNotice.tsx");
 
-    expect(content).toContain("Plan my next pizza");
+    expect(content).toContain("Plan my new pizza");
     expect(content).toContain("Your pizza, planned properly.");
     expect(content).toContain("Better pizza starts before the oven.");
     expect(content).toContain("Choose the pizza night you want");
     expect(content).toContain("so you can focus on making the pizza");
     expect(content).toContain("kitchen guidance");
-    expect(homepage).toContain("ContinuePizzaSessionCard");
+    expect(homepage).toContain("HomepageSessionActions");
     expect(homepage).toContain('variant="hero"');
+    expect(homepage).toContain('variant="final"');
     expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("HomeCalculatorWorkspace");
     expect(homepage).toContain("calculatorViewFor");
@@ -199,7 +201,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("/images/homepage/doughtools-hero-mobile.webp");
     expect(homepage).not.toContain("/images/homepage/hero-desktop-bg.png");
     expect(homepage).not.toContain("/images/homepage/hero-mobile-bg.png");
-    expect(homepage).toContain('href={homepageContent.hero.secondaryCta.href}');
+    expect(homepage).toContain("workflowHref={homepageContent.hero.secondaryCta.href}");
     expect(homepage).toContain('id="how-it-works"');
     expect(homepage).toContain("overflow-x-clip");
     expect(homepage).not.toContain("mt-[35vh]");
@@ -208,6 +210,10 @@ describe("homepage content model", () => {
     expect(guidance).toContain("writeExperienceLevelPreference");
     expect(continueCard).toContain('variant = "default"');
     expect(continueCard).toContain('variant === "hero"');
+    expect(sessionActions).toContain("Continue my pizza");
+    expect(sessionActions).toContain("Plan my new pizza");
+    expect(sessionActions).toContain("Start a new pizza");
+    expect(sessionActions).toContain("Checking your pizza");
     expect(continueCard).toContain("Continue Pizza Session");
     expect(continueCard).toContain("pizzaSessionContinueHref(session)");
     expect(continueCard).toContain("Signed-in users can save an in-progress copy");
@@ -283,7 +289,8 @@ describe("homepage content model", () => {
     clearActivePizzaSession(storage);
 
     expect(getActivePizzaSession(storage)).toBeUndefined();
-    expect(homepageContent.hero.primaryCta.label).toBe("Plan my next pizza");
+    expect(homepageContent.hero.primaryCta.label).toBe("Plan my new pizza");
+    expect(source("components/HomepageSessionActions.tsx")).toContain("resolveHomepageActiveSession(localSession, null)");
     expect(source("components/ContinuePizzaSessionCard.tsx")).toContain("if (!ready || (!session && !cloudSession)) return null");
   });
 
@@ -328,8 +335,9 @@ describe("homepage content model", () => {
 
     expect(homepageContent.hero.primaryCta.href).toBe("/session/start");
     expect(homepageContent.hero.secondaryCta.href).toBe("#how-it-works");
-    expect(homepage).toContain("href={homepageContent.hero.primaryCta.href}");
-    expect(homepage).toContain("href={homepageContent.hero.secondaryCta.href}");
+    expect(homepage).toContain("HomepageSessionActions");
+    expect(homepage).not.toContain("href={homepageContent.hero.primaryCta.href}");
+    expect(homepage).toContain("workflowHref={homepageContent.hero.secondaryCta.href}");
     expect(content).toContain("See how it works");
   });
 
@@ -699,11 +707,11 @@ describe("homepage content model", () => {
     expect(homepage).toContain("lg:text-[clamp(4rem,5.2vw,5.1rem)]");
     expect(homepage).not.toContain("xl:min-h-[45rem]");
     expect(homepage).not.toContain("xl:object-[62%_center]");
-    expect(homepage).toContain("sm:w-auto");
+    expect(source("components/HomepageSessionActions.tsx")).toContain("sm:w-auto");
     expect(homepage).toContain("HomepageGuidanceLevelSection");
     expect(homepage).toContain("lg:grid-cols-[0.76fr_1fr]");
     expect(homepage).toContain("sm:grid-cols-3 lg:grid-cols-1");
-    expect(homepage).toContain("ContinuePizzaSessionCard");
+    expect(homepage).toContain("HomepageSessionActions");
     expect(homepage).toContain("absolute inset-0 h-full w-full object-cover");
     expect(homepage).toContain("Finished pizza and prepared dough");
     expect(homepage).toContain("mx-auto mt-5 max-w-7xl space-y-5");
