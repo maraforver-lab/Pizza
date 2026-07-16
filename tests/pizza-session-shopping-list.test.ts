@@ -630,11 +630,13 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(page).toContain('title="Your shopping list"');
     expect(page).toContain("Check ingredients, confirm the pizza mix, then continue to Timeline.");
+    expect(page).toContain("These are the ingredients you need to make your dough and pizza toppings. Check what you already have and what you still need to buy.");
     expect(page).not.toContain("choose-pizzas-heading");
     expect(page).not.toContain("Dough style and dough formula stay in the Dough Plan.");
     expect(page).toContain("Optional shopping tools");
     expect(page).toContain("Pizza mix");
     expect(page).toContain("Pizza selection");
+    expect(page).toContain("Choose what kinds of pizzas you want to make. This affects the toppings in your shopping list.");
     expect(page).toContain("V1 shopping supports Margherita, Marinara, Diavola, Funghi, Prosciutto and Quattro Formaggi.");
     expect(page).toContain("Edit pizza mix");
     expect(page).toContain("Hide pizza mix controls");
@@ -675,6 +677,7 @@ describe("Pizza Session shopping list presets", () => {
     expect(page).toContain('className="flex flex-col gap-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4"');
     expect(page).toContain('className: "px-0 py-0 shadow-none sm:px-4 sm:py-3"');
     expect(page).toContain('<div className="hidden sm:block">');
+    expect(page).toContain("These are the ingredients you need to make your dough and pizza toppings.");
     expect(page).toContain("Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.");
     expect(page).toContain('<p className="text-sm font-bold leading-6 text-ink/60 sm:hidden">');
     expect(page).toContain('<p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Shopping Checklist</p>');
@@ -750,9 +753,12 @@ describe("Pizza Session shopping list presets", () => {
 
     expect(page).toContain("Download shopping image");
     expect(page).toContain("Preparing image…");
+    expect(page).toContain("Do you want to download or send your shopping list? Tap the button below.");
     expect(page).toContain("Save a branded DoughTools shopping list to your phone or computer.");
     expect(page).toContain("Show export");
     expect(page).toContain("Hide export");
+    expect(page).toContain("Open shopping list options");
+    expect(page).toContain("Hide shopping list options");
     expect(page).toContain('aria-controls="shopping-image-export-panel"');
     expect(page).toContain("aria-expanded={exportPanelOpen}");
     expect(page).toContain("Export uses the same checklist data shown above.");

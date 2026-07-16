@@ -269,7 +269,7 @@ export default function SessionShoppingPage() {
           hideMeta
         >
           <p className="text-sm font-bold leading-6 text-ink/60 sm:hidden">
-            Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.
+            These are the ingredients you need to make your dough and pizza toppings. Check what you already have and what you still need to buy.
           </p>
         </SessionStepHero>
 
@@ -362,6 +362,9 @@ export default function SessionShoppingPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato sm:hidden">Pizza selection</p>
+                <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:hidden">
+                  Choose what kinds of pizzas you want to make. This affects the toppings in your shopping list.
+                </p>
                 <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-tomato sm:block">Pizza Menu</p>
                 <h2 id="pizza-menu-controls-heading" className="mt-1 hidden font-display text-2xl font-semibold sm:block">Pizza mix</h2>
                 <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-ink/60 sm:block">
@@ -482,7 +485,10 @@ export default function SessionShoppingPage() {
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">Export</p>
                   <h2 id="shopping-image-export-heading" className="mt-1 font-display text-2xl font-semibold">Save your shopping list</h2>
-                  <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60">
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60 sm:hidden">
+                    Do you want to download or send your shopping list? Tap the button below.
+                  </p>
+                  <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-ink/60 sm:block">
                     Save a branded DoughTools shopping list to your phone or computer.
                   </p>
                 </div>
@@ -493,7 +499,17 @@ export default function SessionShoppingPage() {
                   onClick={() => setExportPanelOpen((current) => !current)}
                   className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
                 >
-                  {exportPanelOpen ? "Hide export" : "Show export"}
+                  {exportPanelOpen ? (
+                    <>
+                      <span className="sm:hidden">Hide shopping list options</span>
+                      <span className="hidden sm:inline">Hide export</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sm:hidden">Open shopping list options</span>
+                      <span className="hidden sm:inline">Show export</span>
+                    </>
+                  )}
                 </button>
               </div>
               {exportPanelOpen && (

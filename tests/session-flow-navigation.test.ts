@@ -102,6 +102,7 @@ describe("Pizza Session flow navigation integrity", () => {
 
     expect(shopping).toContain("Your shopping list");
     expect(shopping).toContain("Check ingredients, confirm the pizza mix, then continue to Timeline.");
+    expect(shopping).toContain("These are the ingredients you need to make your dough and pizza toppings. Check what you already have and what you still need to buy.");
     expect(shopping).toContain("levelCompactOnMobile");
     expect(shopping).toContain("hideBodyOnMobile");
     expect(shopping).toContain("Shopping Checklist");
