@@ -20,7 +20,9 @@ import {
   generatePizzaSessionShoppingList,
   formatPizzaMixSummary,
   formatShoppingFlourRecommendation,
+  getShoppingFlourExportDisplay,
   getShoppingFlourDisplay,
+  isShoppingFlourItem,
   normalizePizzaMixForCount,
   PIZZA_MIX_OPTIONS,
   savePizzaSessionMenuMix,
@@ -241,6 +243,49 @@ describe("Pizza Session shopping list presets", () => {
     expect(shortDisplay.recommendation).not.toBe(longDisplay.recommendation);
   });
 
+  it("uses the canonical Shopping flour recommendation in export displays", () => {
+    const now = new Date("2026-07-02T09:00:00.000Z");
+    const session = createPizzaSession({
+      id: "shopping-export-flour-strength",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      pizzaCount: 4,
+      flour: "tipo-00",
+      targetEatTime: "2026-07-04T01:00",
+      doughStartMode: "now",
+      recipeSnapshot: {
+        flour: "caputo-pizzeria",
+        flourAmount: 642.22,
+      },
+    }, now);
+    const recipe = buildSessionRecipe(session, now);
+    const visibleDisplay = getShoppingFlourDisplay(session, now);
+    const shopping = generatePizzaSessionShoppingList(session, "margherita", now);
+
+    expect(recipe.ok).toBe(true);
+    if (!recipe.ok || !shopping.ok) throw new Error("Expected recipe and shopping results");
+    const flourItem = shopping.shoppingList.groups.find((group) => group.group === "Dough")?.items.find(isShoppingFlourItem);
+    if (!flourItem) throw new Error("Expected flour item");
+
+    const exportDisplay = getShoppingFlourExportDisplay(session, flourItem, now);
+
+    expect(exportDisplay.label).toBe("Pizza flour");
+    expect(exportDisplay.recommendation).toBe(visibleDisplay.recommendation);
+    expect(exportDisplay.recommendation).toBe(`Recommended strength: ${recipe.flourWGuidance?.recommendationLabel}`);
+    expect(exportDisplay.amount).toBe("642 g needed");
+    expect(exportDisplay.exampleProduct).toBe("Caputo Pizzeria");
+
+    const text = formatShoppingListPlainText(session, shopping.shoppingList, now);
+    expect(text).toContain("- [Need to buy] Pizza flour");
+    expect(text).toContain("Recommended strength: W 260–300");
+    expect(text).toContain("642 g needed");
+    expect(text).toContain("Example: Caputo Pizzeria");
+    expect(text.indexOf("Pizza flour")).toBeLessThan(text.indexOf("Recommended strength: W 260–300"));
+    expect(text.indexOf("Recommended strength: W 260–300")).toBeLessThan(text.indexOf("642 g needed"));
+    expect(text.indexOf("642 g needed")).toBeLessThan(text.indexOf("Example: Caputo Pizzeria"));
+  });
+
   it("formats single W, protein and neutral Shopping flour recommendation fallbacks", () => {
     expect(formatShoppingFlourRecommendation({ canonicalStrength: "W 300" })).toBe("Recommended strength: W 300");
     expect(formatShoppingFlourRecommendation({ canonicalStrength: "Add bake timing for W-value guidance", selectedProtein: "12.5%" })).toBe("Recommended protein: 12.5%");
@@ -250,14 +295,19 @@ describe("Pizza Session shopping list presets", () => {
   it("renders the Shopping flour recommendation line for both responsive layouts without hard-coded W text", () => {
     const page = source("app/session/shopping/page.tsx");
     const helper = source("lib/pizza-session-shopping-list.ts");
+    const exportCard = source("components/session/ShoppingListExportCard.tsx");
 
     expect(page).toContain("getShoppingFlourDisplay");
     expect(page).toContain('item.id.endsWith(":flour")');
     expect(page).toContain("flourDisplay?.recommendation");
     expect(page).toContain("{flourDisplay.recommendation}");
+    expect(exportCard).toContain("getShoppingFlourExportDisplay(session, item)");
+    expect(exportCard).toContain("isShoppingFlourItem(item)");
+    expect(exportCard).toContain("{flour.recommendation}");
+    expect(exportCard).toContain("Example: {flour.exampleProduct}");
     expect(page).toContain("sm:hidden");
     expect(page).toContain("sm:block");
-    expect(`${page}\n${helper}`).not.toContain("W 250–280");
+    expect(`${page}\n${helper}\n${exportCard}`).not.toContain("W 250–280");
   });
 
   it("uses safe dough amount fallback when the recipe snapshot is missing", () => {
@@ -776,6 +826,12 @@ describe("Pizza Session shopping list presets", () => {
     expect(component).toContain("Make better pizza with better decisions");
     expect(component).toContain("Dough ingredients");
     expect(component).toContain("shoppingList.groups.map");
+    expect(component).toContain("getShoppingFlourExportDisplay");
+    expect(component).toContain("isShoppingFlourItem");
+    expect(component).toContain("{flour.label}");
+    expect(component).toContain("{flour.recommendation}");
+    expect(component).toContain("{flour.amount}");
+    expect(component).toContain("Example: {flour.exampleProduct}");
     expect(component).toContain("{item.label}");
     expect(component).toContain("{item.amount ?? \"as needed\"}");
     expect(component).toContain("yeastTypeLabel");

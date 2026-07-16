@@ -46,6 +46,13 @@ export type ShoppingFlourDisplay = {
   recommendation: string;
 };
 
+export type ShoppingFlourExportDisplay = {
+  label: string;
+  recommendation: string;
+  amount?: string;
+  exampleProduct?: string;
+};
+
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type QuantifiedShoppingIngredient = {
   group: PizzaSessionShoppingGroup;
@@ -119,6 +126,13 @@ function selectedShoppingFlourProfile(session: PizzaSession) {
   return profileId ? flourById(profileId) : undefined;
 }
 
+function selectedShoppingFlourExampleProduct(session: PizzaSession) {
+  const value = session.recipeSnapshot?.flour ?? session.flour;
+  if (!isFlourId(value)) return undefined;
+  const flour = flourById(value);
+  return `${flour.brand} ${flour.name}`;
+}
+
 function isDisplayableShoppingWRecommendation(value: string | undefined) {
   return Boolean(value && /^≈?\s*W\s/i.test(value.trim()));
 }
@@ -156,6 +170,31 @@ export function getShoppingFlourDisplay(session: PizzaSession, now = new Date())
       selectedStrength: profile?.strength,
       selectedProtein: profile?.protein,
     }),
+  };
+}
+
+export function isShoppingFlourItem(item: Pick<PizzaSessionShoppingItem, "id">) {
+  return item.id === "flour" || item.id.endsWith(":flour");
+}
+
+function formatShoppingFlourExportAmount(amount?: string) {
+  if (!amount) return undefined;
+  const doughPlanAmount = amount.replace(/\s*·\s*from Dough Plan$/i, "").trim();
+  if (doughPlanAmount && doughPlanAmount !== amount) return `${doughPlanAmount} needed`;
+  return amount;
+}
+
+export function getShoppingFlourExportDisplay(
+  session: PizzaSession,
+  item: Pick<PizzaSessionShoppingItem, "amount">,
+  now = new Date(),
+): ShoppingFlourExportDisplay {
+  const display = getShoppingFlourDisplay(session, now);
+  return {
+    label: "Pizza flour",
+    recommendation: display.recommendation,
+    amount: formatShoppingFlourExportAmount(item.amount),
+    exampleProduct: selectedShoppingFlourExampleProduct(session),
   };
 }
 
@@ -544,7 +583,7 @@ export function updateShoppingItemStatus(
   );
 }
 
-export function formatShoppingListPlainText(session: PizzaSession, shoppingList: PizzaSessionShoppingList) {
+export function formatShoppingListPlainText(session: PizzaSession, shoppingList: PizzaSessionShoppingList, now = new Date()) {
   const lines = [
     `DoughTools shopping list`,
     `Preset: ${shoppingList.presetName ?? "Pizza"}`,
@@ -555,6 +594,14 @@ export function formatShoppingListPlainText(session: PizzaSession, shoppingList:
   for (const group of shoppingList.groups) {
     lines.push(`${group.group}`);
     for (const item of group.items) {
+      if (isShoppingFlourItem(item)) {
+        const flour = getShoppingFlourExportDisplay(session, item, now);
+        lines.push(`- [${statusLabels[item.status]}] ${flour.label}`);
+        lines.push(`  ${flour.recommendation}`);
+        if (flour.amount) lines.push(`  ${flour.amount}`);
+        if (flour.exampleProduct) lines.push(`  Example: ${flour.exampleProduct}`);
+        continue;
+      }
       lines.push(`- [${statusLabels[item.status]}] ${item.label}${item.amount ? ` — ${item.amount}` : ""}`);
     }
     lines.push("");

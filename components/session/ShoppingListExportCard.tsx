@@ -2,6 +2,10 @@ import { forwardRef } from "react";
 import type { PizzaSession, PizzaSessionShoppingList } from "@/lib/pizza-session";
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import { buildSessionRecipe } from "@/lib/session-recipe";
+import {
+  getShoppingFlourExportDisplay,
+  isShoppingFlourItem,
+} from "@/lib/pizza-session-shopping-list";
 import { yeastTypeLabel } from "@/lib/yeast-types";
 
 type ShoppingListExportCardProps = {
@@ -186,12 +190,25 @@ export const ShoppingListExportCard = forwardRef<HTMLElement, ShoppingListExport
                 </span>
               </div>
               <div className="mt-3 divide-y divide-[#1f1f1f]/10">
-                {group.items.map((item) => (
-                  <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-6 py-4">
-                    <p className="text-[26px] font-extrabold leading-tight text-[#1f1f1f]">{item.label}</p>
-                    <p className="max-w-[360px] text-right text-[24px] font-bold leading-tight text-[#6b645d]">{item.amount ?? "as needed"}</p>
-                  </div>
-                ))}
+                {group.items.map((item) => {
+                  if (isShoppingFlourItem(item)) {
+                    const flour = getShoppingFlourExportDisplay(session, item);
+                    return (
+                      <div key={item.id} className="py-4">
+                        <p className="text-[26px] font-extrabold leading-tight text-[#1f1f1f]">{flour.label}</p>
+                        <p className="mt-1 text-[22px] font-bold leading-tight text-[#0f3d2e]">{flour.recommendation}</p>
+                        {flour.amount && <p className="mt-1 text-[24px] font-bold leading-tight text-[#6b645d]">{flour.amount}</p>}
+                        {flour.exampleProduct && <p className="mt-1 text-[20px] font-bold leading-tight text-[#6b645d]">Example: {flour.exampleProduct}</p>}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-6 py-4">
+                      <p className="text-[26px] font-extrabold leading-tight text-[#1f1f1f]">{item.label}</p>
+                      <p className="max-w-[360px] text-right text-[24px] font-bold leading-tight text-[#6b645d]">{item.amount ?? "as needed"}</p>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           ))}
