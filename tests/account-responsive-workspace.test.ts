@@ -48,8 +48,9 @@ describe("Patch 344 account responsive workspace", () => {
     const history = source("components/account/AccountPizzaSessionHistory.tsx");
 
     expect(history).toContain("const ACCOUNT_HISTORY_COLLAPSED_LIMIT = 2");
-    expect(history).toContain("sortCloudPizzaSessionHistoryRows(rows).slice(0, 5)");
+    expect(history).toContain("sortCloudPizzaSessionHistoryRows(rows)");
     expect(history).toContain("sessions.slice(0, ACCOUNT_HISTORY_COLLAPSED_LIMIT)");
+    expect(history).toContain("retained completed sessions");
     expect(history).toContain("Show ${hiddenSessionCount} more sessions");
     expect(history).toContain("Show fewer sessions");
     expect(history).toContain("aria-expanded={historyExpanded}");
@@ -69,10 +70,13 @@ describe("Patch 344 account responsive workspace", () => {
     expect(archived).toContain("cloudPizzaSessionArchivedSummary");
     expect(archived).toContain("View session details");
     expect(archived).toContain("Show ${hiddenSessionCount} more archived sessions");
-    expect(archived).toContain("Archived sessions are read-only in this version");
+    expect(archived).toContain("You can name them or delete them from Account");
+    expect(archived).toContain("Delete this archived pizza session?");
+    expect(archived).toContain("method: \"PATCH\"");
+    expect(archived).toContain("method: \"DELETE\"");
     expect(route).toContain(".eq(\"status\", \"archived\")");
     expect(route).toContain("sortCloudPizzaSessionArchivedRows");
-    expect(route).toContain("slice(0, 10)");
+    expect(route).toContain("ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT");
   });
 
   it("keeps install guidance compact on account without changing PWA event behavior", () => {

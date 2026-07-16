@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  completedPizzaSessionCustomTitle,
+  cloudPizzaSessionCustomName,
   cloudPizzaSessionHistorySummary,
   normalizeCloudPizzaSessionHistoryRow,
   sortCloudPizzaSessionHistoryRows,
@@ -50,7 +50,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
             return row ? [row] : [];
           })
           : [];
-        if (mounted) setSessions(sortCloudPizzaSessionHistoryRows(rows).slice(0, 5));
+        if (mounted) setSessions(sortCloudPizzaSessionHistoryRows(rows));
       } catch {
         if (mounted) setSessions([]);
       } finally {
@@ -93,7 +93,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
       const response = await fetch(`/api/pizza-sessions/history/${sessionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ name: title }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Could not update pizza session title.");
@@ -101,7 +101,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
       if (!nextSession) throw new Error("Could not update pizza session title.");
       setSessions((current) => current.map((session) => (session.id === sessionId ? nextSession : session)));
       setEditingTitleId(null);
-      setTitleDrafts((current) => ({ ...current, [sessionId]: completedPizzaSessionCustomTitle(nextSession) ?? "" }));
+      setTitleDrafts((current) => ({ ...current, [sessionId]: cloudPizzaSessionCustomName(nextSession) ?? "" }));
     } catch (caught) {
       setTitleError(caught instanceof Error ? caught.message : "Could not update pizza session title.");
     } finally {
@@ -133,8 +133,8 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
         {sessions.length > 0 && (
           <p className="text-xs font-bold leading-5 text-ink/45">
             {hasMoreSessions && !historyExpanded
-              ? `Showing your 2 most recent of ${sessions.length} completed sessions.`
-              : "Showing your latest completed sessions."}
+              ? `Showing your 2 most recent of ${sessions.length} retained completed sessions.`
+              : "Showing your retained completed sessions."}
           </p>
         )}
       </div>
@@ -152,7 +152,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
             const photo = sessionData?.photo?.url;
             const isConfirmingDelete = confirmingDeleteId === session.id;
             const isDeleting = deletingId === session.id;
-            const customTitle = completedPizzaSessionCustomTitle(session);
+            const customTitle = cloudPizzaSessionCustomName(session);
             const isEditingTitle = editingTitleId === session.id;
             const isSavingTitle = savingTitleId === session.id;
             const titleDraft = titleDrafts[session.id] ?? customTitle ?? "";
@@ -178,14 +178,14 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                         }}
                       >
                         <label htmlFor={`pizza-session-title-${session.id}`} className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">
-                          Session title
+                          Session name
                         </label>
                         <input
                           id={`pizza-session-title-${session.id}`}
                           value={titleDraft}
                           onChange={(event) => setTitleDrafts((current) => ({ ...current, [session.id]: event.target.value }))}
                           maxLength={80}
-                          placeholder="Perjantain pizza-ilta"
+                          placeholder="Friday pizza night"
                           className="mt-2 min-h-11 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-bold text-ink outline-none transition placeholder:text-ink/35 focus:border-leaf/35 focus:ring-2 focus:ring-leaf/20"
                         />
                         {titleError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{titleError}</p>}
@@ -195,7 +195,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                             disabled={isSavingTitle}
                             className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            {isSavingTitle ? "Saving…" : "Save title"}
+                            {isSavingTitle ? "Saving…" : "Save name"}
                           </button>
                           <button
                             type="button"
@@ -215,7 +215,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                               disabled={isSavingTitle}
                               className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              Remove title
+                              Remove name
                             </button>
                           )}
                         </div>
@@ -298,7 +298,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                       }}
                       className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                     >
-                      Edit title
+                      Edit name
                     </button>
                   </div>
                 )}

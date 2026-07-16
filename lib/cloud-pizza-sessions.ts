@@ -1,5 +1,10 @@
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
-import { migratePizzaSession, type PizzaSession } from "@/lib/pizza-session";
+import {
+  migratePizzaSession,
+  normalizePizzaSessionNameInput,
+  PIZZA_SESSION_NAME_MAX_LENGTH,
+  type PizzaSession,
+} from "@/lib/pizza-session";
 import { resolvePizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 import { formatPizzaMixSummary } from "@/lib/pizza-session-shopping-list";
 
@@ -7,7 +12,10 @@ export type CloudPizzaSessionStatus = "in_progress" | "completed" | "archived";
 
 export const ACTIVE_PIZZA_SESSION_DEFAULT_TITLE = "Active pizza session";
 export const COMPLETED_PIZZA_SESSION_DEFAULT_TITLE = "Completed pizza session";
-export const COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH = 80;
+export const ARCHIVED_PIZZA_SESSION_DEFAULT_TITLE = "Archived pizza session";
+export const COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH = PIZZA_SESSION_NAME_MAX_LENGTH;
+export const ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT = 3;
+export const COMPLETED_PIZZA_SESSION_RETENTION_LIMIT = 15;
 
 export type CloudPizzaSessionRow = {
   id: string;
@@ -51,21 +59,44 @@ function meaningfulText(value: unknown) {
 }
 
 export function normalizeCompletedPizzaSessionTitleInput(value: unknown) {
-  if (typeof value !== "string") return null;
-  const normalized = value.replace(/\s+/g, " ").trim();
-  if (!normalized) return null;
-  return normalized.slice(0, COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH);
+  return normalizePizzaSessionNameInput(value);
+}
+
+export function normalizeCloudPizzaSessionNameInput(value: unknown) {
+  return normalizePizzaSessionNameInput(value);
+}
+
+function isGenericPizzaSessionTitle(value: string) {
+  return value === ACTIVE_PIZZA_SESSION_DEFAULT_TITLE
+    || value === COMPLETED_PIZZA_SESSION_DEFAULT_TITLE
+    || value === ARCHIVED_PIZZA_SESSION_DEFAULT_TITLE;
 }
 
 export function completedPizzaSessionCustomTitle(row: Pick<CloudPizzaSessionRow, "title">) {
   const title = normalizeCompletedPizzaSessionTitleInput(row.title);
   if (!title) return undefined;
-  if (title === ACTIVE_PIZZA_SESSION_DEFAULT_TITLE || title === COMPLETED_PIZZA_SESSION_DEFAULT_TITLE) return undefined;
+  if (isGenericPizzaSessionTitle(title)) return undefined;
   return title;
 }
 
 export function completedPizzaSessionDisplayTitle(row: Pick<CloudPizzaSessionRow, "title">) {
   return completedPizzaSessionCustomTitle(row) ?? COMPLETED_PIZZA_SESSION_DEFAULT_TITLE;
+}
+
+export function cloudPizzaSessionCustomName(row: Pick<CloudPizzaSessionRow, "title" | "session_data">) {
+  const session = migratePizzaSession(row.session_data);
+  const sessionName = normalizeCloudPizzaSessionNameInput(session?.sessionName);
+  if (sessionName) return sessionName;
+  const title = normalizeCloudPizzaSessionNameInput(row.title);
+  if (!title || isGenericPizzaSessionTitle(title)) return undefined;
+  return title;
+}
+
+export function cloudPizzaSessionDisplayTitle(
+  row: Pick<CloudPizzaSessionRow, "title" | "session_data">,
+  fallbackTitle: string,
+) {
+  return cloudPizzaSessionCustomName(row) ?? fallbackTitle;
 }
 
 function stringField(record: Record<string, unknown>, snakeKey: string, camelKey: string) {
@@ -194,7 +225,7 @@ function normalizeCloudPizzaSessionRowForStatus(
 export function cloudPizzaSessionPayload(session: PizzaSession) {
   return {
     status: "in_progress" as const,
-    title: ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
+    title: normalizeCloudPizzaSessionNameInput(session.sessionName) ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
     current_step: session.currentStep,
     session_data: session,
   };
@@ -264,7 +295,7 @@ export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Da
   const session = migratePizzaSession(row.session_data);
   if (!session) {
     return {
-      title: row.title ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
+      title: cloudPizzaSessionDisplayTitle(row, ACTIVE_PIZZA_SESSION_DEFAULT_TITLE),
       statusLine: `In progress · ${cloudPizzaSessionUpdatedLabel(row.updated_at, now)}`,
       doughLine: "Dough plan not complete",
       pizzaMenuLine: "Pizza menu not ready",
@@ -274,7 +305,7 @@ export function cloudPizzaSessionSummary(row: CloudPizzaSessionRow, now = new Da
   }
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
   return {
-    title: row.title ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
+    title: cloudPizzaSessionDisplayTitle(row, ACTIVE_PIZZA_SESSION_DEFAULT_TITLE),
     statusLine: `In progress · ${cloudPizzaSessionUpdatedLabel(row.updated_at, now)}`,
     doughLine: cloudPizzaSessionDoughSummary(session),
     pizzaMenuLine: `Pizza menu: ${formatPizzaMixSummary(pizzaCount, session.pizzaMix, session.pizzaPreset)}`,
@@ -287,7 +318,7 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
   const session = migratePizzaSession(row.session_data);
   if (!session) {
     return {
-      title: completedPizzaSessionDisplayTitle(row),
+      title: cloudPizzaSessionDisplayTitle(row, COMPLETED_PIZZA_SESSION_DEFAULT_TITLE),
       statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
       doughLine: "Dough plan not complete",
       bakeLine: "Bake time: Bake time not set",
@@ -310,7 +341,7 @@ export function cloudPizzaSessionHistorySummary(row: CloudPizzaSessionRow, now =
   const bakeProfile = resolvePizzaSessionBakeProfile(session.recipeSnapshot?.oven ?? session.ovenType);
 
   return {
-    title: completedPizzaSessionDisplayTitle(row),
+    title: cloudPizzaSessionDisplayTitle(row, COMPLETED_PIZZA_SESSION_DEFAULT_TITLE),
     statusLine: cloudPizzaSessionCompletedLabel(row.completed_at ?? row.updated_at, now),
     doughLine: cloudPizzaSessionDoughSummary(session),
     bakeLine: `Bake time: ${cloudPizzaSessionBakeTimeSummary(session)}`,
@@ -333,7 +364,7 @@ export function cloudPizzaSessionArchivedSummary(row: CloudPizzaSessionRow, now 
 
   if (!session) {
     return {
-      title: row.title ?? "Archived pizza session",
+      title: cloudPizzaSessionDisplayTitle(row, ARCHIVED_PIZZA_SESSION_DEFAULT_TITLE),
       archivedLine,
       doughLine: "Dough plan not complete",
       pizzaMenuLine: "Pizza menu not ready",
@@ -344,7 +375,7 @@ export function cloudPizzaSessionArchivedSummary(row: CloudPizzaSessionRow, now 
 
   const pizzaCount = session.pizzaCount ?? session.recipeSnapshot?.balls;
   return {
-    title: row.title ?? "Archived pizza session",
+    title: cloudPizzaSessionDisplayTitle(row, ARCHIVED_PIZZA_SESSION_DEFAULT_TITLE),
     archivedLine,
     doughLine: cloudPizzaSessionDoughSummary(session),
     pizzaMenuLine: `Pizza menu: ${formatPizzaMixSummary(pizzaCount, session.pizzaMix, session.pizzaPreset)}`,

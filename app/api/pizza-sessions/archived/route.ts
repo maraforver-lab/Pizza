@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT,
   CLOUD_PIZZA_SESSION_SELECT,
   normalizeCloudPizzaSessionArchivedRow,
   sortCloudPizzaSessionArchivedRows,
@@ -21,7 +22,7 @@ export async function GET() {
     .eq("status", "archived")
     .order("archived_at", { ascending: false, nullsFirst: false })
     .order("updated_at", { ascending: false })
-    .limit(20);
+    .limit(ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -30,7 +31,7 @@ export async function GET() {
       const normalized = normalizeCloudPizzaSessionArchivedRow(row);
       return normalized ? [normalized] : [];
     }),
-  ).slice(0, 10);
+  ).slice(0, ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT);
 
   return NextResponse.json({ sessions });
 }

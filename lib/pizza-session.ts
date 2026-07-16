@@ -32,6 +32,8 @@ export const PIZZA_SESSION_STEPS = [
   "review",
 ] as const;
 
+export const PIZZA_SESSION_NAME_MAX_LENGTH = 80;
+
 export type PizzaSessionStatus = (typeof PIZZA_SESSION_STATUSES)[number];
 export type PizzaSessionStep = (typeof PIZZA_SESSION_STEPS)[number];
 export type PizzaSessionDoughStartMode = "now" | "later" | "recommend";
@@ -130,6 +132,7 @@ export type PizzaSessionPhoto = {
 export type PizzaSession = {
   id: string;
   schemaVersion: typeof PIZZA_SESSION_SCHEMA_VERSION;
+  sessionName?: string;
   status: PizzaSessionStatus;
   createdAt: string;
   updatedAt: string;
@@ -195,6 +198,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function stringValue(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+export function normalizePizzaSessionNameInput(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) return null;
+  return normalized.slice(0, PIZZA_SESSION_NAME_MAX_LENGTH);
 }
 
 function numberValue(value: unknown): number | undefined {
@@ -395,9 +405,10 @@ export function newPizzaSessionId(now = new Date()) {
 
 export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = new Date()): PizzaSession {
   const timestamp = now.toISOString();
-  return {
+  const session: PizzaSession = {
     id: input.id ?? newPizzaSessionId(now),
     schemaVersion: PIZZA_SESSION_SCHEMA_VERSION,
+    sessionName: normalizePizzaSessionNameInput(input.sessionName) ?? undefined,
     status: normalizeStatus(input.status),
     createdAt: input.createdAt ?? timestamp,
     updatedAt: input.updatedAt ?? timestamp,
@@ -435,6 +446,8 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     photo: normalizePizzaSessionPhoto(input.photo),
     review: cloneReview(input.review),
   };
+  if (!session.sessionName) delete session.sessionName;
+  return session;
 }
 
 export function createSessionFromRecipeParams(

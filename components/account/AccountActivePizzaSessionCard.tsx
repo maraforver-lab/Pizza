@@ -6,8 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { buttonClass } from "@/components/design-system";
 import { DoughToolsIcon } from "@/components/icons";
 import {
+  ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
+  cloudPizzaSessionCustomName,
   cloudPizzaSessionSummary,
   normalizeCloudPizzaSessionRow,
+  normalizeCloudPizzaSessionNameInput,
   type CloudPizzaSessionRow,
 } from "@/lib/cloud-pizza-sessions";
 import {
@@ -28,6 +31,7 @@ import {
   archivePizzaSession,
   clearActivePizzaSession,
   getActivePizzaSession,
+  savePizzaSession,
 } from "@/lib/pizza-session-storage";
 import {
   adjustPizzaMixAllocation,
@@ -63,6 +67,11 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
   const [menuError, setMenuError] = useState("");
   const [savingMenu, setSavingMenu] = useState(false);
   const [menuStatus, setMenuStatus] = useState("");
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [nameStatus, setNameStatus] = useState("");
   const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const menuDialogRef = useRef<HTMLDivElement | null>(null);
 
@@ -237,6 +246,41 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
     }
   };
 
+  const saveSessionName = async (value: string) => {
+    if (!cloudSession || !activeSession || savingName) return;
+    setSavingName(true);
+    setNameError("");
+    setNameStatus("");
+
+    const sessionName = normalizeCloudPizzaSessionNameInput(value);
+    const restoredSession = restoreCloudPizzaSessionToLocal(cloudSession) ?? activeSession;
+    const updatedSession = savePizzaSession({
+      ...restoredSession,
+      sessionName: sessionName ?? undefined,
+    });
+    const optimisticRow: CloudPizzaSessionRow = {
+      ...cloudSession,
+      current_step: updatedSession.currentStep,
+      session_data: updatedSession,
+      title: sessionName ?? ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
+      updated_at: updatedSession.updatedAt,
+    };
+    setCloudSession(optimisticRow);
+
+    try {
+      const syncedSession = await syncEditedSessionToCloud(updatedSession);
+      if (!syncedSession) setCloudSession(optimisticRow);
+      setNameDraft(sessionName ?? "");
+      setNameStatus(sessionName ? "Session name saved." : "Session name removed.");
+      setEditingName(false);
+    } catch {
+      setCloudSession(cloudSession);
+      setNameError("Session name was saved in this browser, but account sync failed. Try again.");
+    } finally {
+      setSavingName(false);
+    }
+  };
+
   const restoreBeforeShopping = () => {
     if (cloudSession) restoreCloudPizzaSessionToLocal(cloudSession);
   };
@@ -313,6 +357,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
   }
 
   const summary = cloudPizzaSessionSummary(cloudSession);
+  const customName = cloudPizzaSessionCustomName(cloudSession);
 
   return (
     <section className={`rounded-[1.75rem] border border-leaf/20 bg-leaf/[.08] p-5 shadow-card sm:p-6 ${className}`} aria-labelledby="account-active-session-heading">
@@ -336,6 +381,81 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
         >
           Continue Pizza Session →
         </button>
+      </div>
+      <div className="mt-5 rounded-[1.25rem] border border-leaf/15 bg-white/65 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">Session name</p>
+            <p className="mt-1 text-sm font-bold leading-6 text-ink/62">
+              {customName ? `Saved as ${customName}` : "Add a short name so this pizza is easier to recognize later."}
+            </p>
+          </div>
+          {!editingName && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingName(true);
+                setNameDraft(customName ?? "");
+                setNameError("");
+                setNameStatus("");
+              }}
+              className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
+            >
+              {customName ? "Edit name" : "Add name"}
+            </button>
+          )}
+        </div>
+        {editingName && (
+          <form
+            className="mt-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              saveSessionName(nameDraft);
+            }}
+          >
+            <label htmlFor="active-session-name-input" className="sr-only">Session name</label>
+            <input
+              id="active-session-name-input"
+              value={nameDraft}
+              onChange={(event) => setNameDraft(event.target.value)}
+              maxLength={80}
+              placeholder="Friday pizza night"
+              className="min-h-11 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-bold text-ink outline-none transition placeholder:text-ink/35 focus:border-leaf/35 focus:ring-2 focus:ring-leaf/20"
+            />
+            {nameError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{nameError}</p>}
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="submit"
+                disabled={savingName}
+                className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {savingName ? "Saving…" : "Save name"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingName(false);
+                  setNameDraft(customName ?? "");
+                  setNameError("");
+                }}
+                className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+              >
+                Cancel
+              </button>
+              {customName && (
+                <button
+                  type="button"
+                  onClick={() => saveSessionName("")}
+                  disabled={savingName}
+                  className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Remove name
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+        {nameStatus && <p role="status" className="mt-3 rounded-2xl bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">{nameStatus}</p>}
       </div>
       <div className="mt-5 flex flex-col gap-2 border-t border-leaf/15 pt-4 sm:flex-row sm:flex-wrap">
         <button

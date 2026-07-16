@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  cloudPizzaSessionCustomName,
   cloudPizzaSessionArchivedSummary,
   normalizeCloudPizzaSessionArchivedRow,
   sortCloudPizzaSessionArchivedRows,
@@ -20,6 +21,13 @@ export function AccountArchivedPizzaSessions({ enabled, className = "" }: Accoun
   const [ready, setReady] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [expandedDetailsId, setExpandedDetailsId] = useState<string | null>(null);
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [nameDrafts, setNameDrafts] = useState<Record<string, string>>({});
+  const [savingNameId, setSavingNameId] = useState<string | null>(null);
+  const [nameError, setNameError] = useState("");
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (!enabled) {
@@ -27,6 +35,8 @@ export function AccountArchivedPizzaSessions({ enabled, className = "" }: Accoun
       setReady(false);
       setExpanded(false);
       setExpandedDetailsId(null);
+      setEditingNameId(null);
+      setConfirmingDeleteId(null);
       return;
     }
 
@@ -62,6 +72,49 @@ export function AccountArchivedPizzaSessions({ enabled, className = "" }: Accoun
 
   if (!enabled || !ready || sessions.length === 0) return null;
 
+  const saveSessionName = async (sessionId: string, name: string) => {
+    setSavingNameId(sessionId);
+    setNameError("");
+    try {
+      const response = await fetch(`/api/pizza-sessions/archived/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Could not update archived pizza session name.");
+      const nextSession = normalizeCloudPizzaSessionArchivedRow(payload.session);
+      if (!nextSession) throw new Error("Could not update archived pizza session name.");
+      setSessions((current) => sortCloudPizzaSessionArchivedRows(current.map((session) => (
+        session.id === sessionId ? nextSession : session
+      ))));
+      setNameDrafts((current) => ({ ...current, [sessionId]: cloudPizzaSessionCustomName(nextSession) ?? "" }));
+      setEditingNameId(null);
+    } catch (caught) {
+      setNameError(caught instanceof Error ? caught.message : "Could not update archived pizza session name.");
+    } finally {
+      setSavingNameId(null);
+    }
+  };
+
+  const deleteArchivedSession = async (sessionId: string) => {
+    setDeletingId(sessionId);
+    setDeleteError("");
+    try {
+      const response = await fetch(`/api/pizza-sessions/archived/${sessionId}`, { method: "DELETE" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Could not delete archived pizza session.");
+      setSessions((current) => current.filter((session) => session.id !== sessionId));
+      setConfirmingDeleteId(null);
+      if (expandedDetailsId === sessionId) setExpandedDetailsId(null);
+      if (editingNameId === sessionId) setEditingNameId(null);
+    } catch (caught) {
+      setDeleteError(caught instanceof Error ? caught.message : "Could not delete archived pizza session.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const visibleSessions = expanded ? sessions : sessions.slice(0, ACCOUNT_ARCHIVED_COLLAPSED_LIMIT);
   const hiddenSessionCount = Math.max(0, sessions.length - ACCOUNT_ARCHIVED_COLLAPSED_LIMIT);
   const hasMoreSessions = hiddenSessionCount > 0;
@@ -84,6 +137,12 @@ export function AccountArchivedPizzaSessions({ enabled, className = "" }: Accoun
         {visibleSessions.map((session) => {
           const summary = cloudPizzaSessionArchivedSummary(session);
           const detailsOpen = expandedDetailsId === session.id;
+          const customName = cloudPizzaSessionCustomName(session);
+          const isEditingName = editingNameId === session.id;
+          const isSavingName = savingNameId === session.id;
+          const isConfirmingDelete = confirmingDeleteId === session.id;
+          const isDeleting = deletingId === session.id;
+          const nameDraft = nameDrafts[session.id] ?? customName ?? "";
           return (
             <article key={session.id} className="rounded-[1.5rem] border border-ink/10 bg-cream/60 p-4">
               <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
@@ -105,6 +164,58 @@ export function AccountArchivedPizzaSessions({ enabled, className = "" }: Accoun
                   View session details
                 </button>
               </div>
+              {isEditingName && (
+                <form
+                  className="mt-4 rounded-[1.25rem] border border-white/80 bg-white/85 p-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    saveSessionName(session.id, nameDraft);
+                  }}
+                >
+                  <label htmlFor={`archived-session-name-${session.id}`} className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">
+                    Session name
+                  </label>
+                  <input
+                    id={`archived-session-name-${session.id}`}
+                    value={nameDraft}
+                    onChange={(event) => setNameDrafts((current) => ({ ...current, [session.id]: event.target.value }))}
+                    maxLength={80}
+                    placeholder="Friday pizza night"
+                    className="mt-2 min-h-11 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-bold text-ink outline-none transition placeholder:text-ink/35 focus:border-leaf/35 focus:ring-2 focus:ring-leaf/20"
+                  />
+                  {nameError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{nameError}</p>}
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                    <button
+                      type="submit"
+                      disabled={isSavingName}
+                      className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isSavingName ? "Saving…" : "Save name"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingNameId(null);
+                        setNameError("");
+                        setNameDrafts((current) => ({ ...current, [session.id]: customName ?? "" }));
+                      }}
+                      className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+                    >
+                      Cancel
+                    </button>
+                    {customName && (
+                      <button
+                        type="button"
+                        onClick={() => saveSessionName(session.id, "")}
+                        disabled={isSavingName}
+                        className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Remove name
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
               {detailsOpen && (
                 <div className="mt-4 rounded-[1.25rem] border border-white/80 bg-white/80 p-4 text-sm leading-6 text-ink/62">
                   <p>{summary.pizzaMenuLine}</p>
@@ -112,8 +223,62 @@ export function AccountArchivedPizzaSessions({ enabled, className = "" }: Accoun
                   <p>{summary.bakeLine}</p>
                   <p>{summary.stepLine}</p>
                   <p className="mt-2 text-xs font-bold leading-5 text-ink/45">
-                    Archived sessions are read-only in this version. Start a new pizza or continue the current active session from Account.
+                    Archived sessions are read-only in this version. You can name them or delete them from Account.
                   </p>
+                </div>
+              )}
+              {isConfirmingDelete && (
+                <div className="mt-4 rounded-[1.25rem] border border-tomato/15 bg-white/85 p-4">
+                  <h4 className="text-sm font-extrabold text-ink">Delete this archived pizza session?</h4>
+                  <p className="mt-2 text-sm leading-6 text-ink/60">
+                    This permanently removes the archived unfinished session from your account. This cannot be undone.
+                  </p>
+                  {deleteError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{deleteError}</p>}
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmingDeleteId(null);
+                        setDeleteError("");
+                      }}
+                      className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteArchivedSession(session.id)}
+                      disabled={isDeleting}
+                      className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-tomato px-4 text-xs font-extrabold text-white transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isDeleting ? "Deleting…" : "Delete archived session"}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {!isConfirmingDelete && (
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingNameId(session.id);
+                      setNameError("");
+                      setNameDrafts((current) => ({ ...current, [session.id]: customName ?? "" }));
+                    }}
+                    className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  >
+                    {customName ? "Edit name" : "Add name"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmingDeleteId(session.id);
+                      setDeleteError("");
+                    }}
+                    className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  >
+                    Delete
+                  </button>
                 </div>
               )}
             </article>

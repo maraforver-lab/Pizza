@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  completedPizzaSessionCustomTitle,
+  cloudPizzaSessionCustomName,
   cloudPizzaSessionDetailSummary,
   normalizeCloudPizzaSessionHistoryRow,
   type CloudPizzaSessionRow,
@@ -54,7 +54,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
         if (!row) throw new Error("Completed pizza session could not be found.");
         if (mounted) {
           setSession(row);
-          setTitleDraft(completedPizzaSessionCustomTitle(row) ?? "");
+          setTitleDraft(cloudPizzaSessionCustomName(row) ?? "");
         }
       } catch (caught) {
         if (mounted) {
@@ -102,7 +102,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   const sessionData = migratePizzaSession(session.session_data);
   const photo = sessionData?.photo;
   const overlayModel = photo?.url ? buildPizzaPhotoOverlayModel(session) : null;
-  const customTitle = completedPizzaSessionCustomTitle(session);
+  const customTitle = cloudPizzaSessionCustomName(session);
 
   const saveTitle = async (title: string) => {
     setSavingTitle(true);
@@ -111,14 +111,14 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
       const response = await fetch(`/api/pizza-sessions/history/${sessionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ name: title }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Could not update pizza session title.");
       const nextSession = normalizeCloudPizzaSessionHistoryRow(payload.session);
       if (!nextSession) throw new Error("Could not update pizza session title.");
       setSession(nextSession);
-      setTitleDraft(completedPizzaSessionCustomTitle(nextSession) ?? "");
+      setTitleDraft(cloudPizzaSessionCustomName(nextSession) ?? "");
       setEditingTitle(false);
     } catch (caught) {
       setTitleError(caught instanceof Error ? caught.message : "Could not update pizza session title.");
@@ -190,9 +190,9 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
       <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 sm:p-5" aria-labelledby="completed-session-title-heading">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Session title</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Session name</p>
             <h2 id="completed-session-title-heading" className="mt-2 font-display text-2xl font-semibold">
-              {customTitle ? "Event name saved" : "Add an event name"}
+              {customTitle ? "Session name saved" : "Add a session name"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink/60">
               Use a short name for this completed bake in your account history.
@@ -208,7 +208,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
               }}
               className="inline-flex min-h-11 w-fit items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
             >
-              Edit title
+              Edit name
             </button>
           )}
         </div>
@@ -220,13 +220,13 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
               saveTitle(titleDraft);
             }}
           >
-            <label htmlFor="completed-session-title-input" className="sr-only">Session title</label>
+            <label htmlFor="completed-session-title-input" className="sr-only">Session name</label>
             <input
               id="completed-session-title-input"
               value={titleDraft}
               onChange={(event) => setTitleDraft(event.target.value)}
               maxLength={80}
-              placeholder="Kesäillan pizzat"
+              placeholder="Friday pizza night"
               className="min-h-11 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-bold text-ink outline-none transition placeholder:text-ink/35 focus:border-leaf/35 focus:ring-2 focus:ring-leaf/20"
             />
             {titleError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{titleError}</p>}
@@ -236,7 +236,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
                 disabled={savingTitle}
                 className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {savingTitle ? "Saving…" : "Save title"}
+                {savingTitle ? "Saving…" : "Save name"}
               </button>
               <button
                 type="button"
@@ -256,7 +256,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
                   disabled={savingTitle}
                   className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Remove title
+                  Remove name
                 </button>
               )}
             </div>

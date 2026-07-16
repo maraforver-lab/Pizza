@@ -5,7 +5,7 @@ import {
   normalizeCloudPizzaSessionHistoryRow,
   normalizeCompletedPizzaSessionTitleInput,
 } from "@/lib/cloud-pizza-sessions";
-import { migratePizzaSession } from "@/lib/pizza-session";
+import { createPizzaSession, migratePizzaSession } from "@/lib/pizza-session";
 import { PIZZA_SESSION_PHOTO_BUCKET } from "@/lib/pizza-session-photo";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -71,13 +71,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Sign in to delete this pizza session." }, { status: 401 });
   }
 
-  const updatedAt = new Date().toISOString();
   const { data, error } = await supabase
     .from("pizza_sessions")
-    .update({
-      status: "archived",
-      updated_at: updatedAt,
-    })
+    .delete()
     .eq("id", id)
     .eq("user_id", user.id)
     .eq("status", "completed")
@@ -87,7 +83,7 @@ export async function DELETE(
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Completed pizza session not found." }, { status: 404 });
 
-  return NextResponse.json({ archived: true, session: data });
+  return NextResponse.json({ deleted: true, session: data });
 }
 
 export async function PATCH(
@@ -110,13 +106,34 @@ export async function PATCH(
   }
 
   const record = body && typeof body === "object" ? body as Record<string, unknown> : {};
-  const customTitle = normalizeCompletedPizzaSessionTitleInput(record.title);
+  const customTitle = normalizeCompletedPizzaSessionTitleInput(record.name ?? record.sessionName ?? record.title);
   const updatedAt = new Date().toISOString();
+
+  const { data: existing, error: existingError } = await supabase
+    .from("pizza_sessions")
+    .select(CLOUD_PIZZA_SESSION_SELECT)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .eq("status", "completed")
+    .maybeSingle();
+
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  const existingSession = normalizeCloudPizzaSessionHistoryRow(existing);
+  if (!existingSession) return NextResponse.json({ error: "Completed pizza session not found." }, { status: 404 });
+  const sessionData = migratePizzaSession(existingSession.session_data);
+  if (!sessionData) return NextResponse.json({ error: "Completed pizza session data could not be verified." }, { status: 500 });
+  const nextSessionData = createPizzaSession({
+    ...sessionData,
+    sessionName: customTitle ?? undefined,
+    updatedAt,
+    lastSavedAt: updatedAt,
+  });
 
   const { data, error } = await supabase
     .from("pizza_sessions")
     .update({
       title: customTitle ?? COMPLETED_PIZZA_SESSION_DEFAULT_TITLE,
+      session_data: nextSessionData,
       updated_at: updatedAt,
     })
     .eq("id", id)
