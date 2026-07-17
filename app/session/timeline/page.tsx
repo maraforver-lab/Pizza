@@ -36,7 +36,6 @@ import { getPizzaSessionBakingTroubleshootingLink } from "@/lib/pizza-session-tr
 import { buildSessionRecipe } from "@/lib/session-recipe";
 import { formatSessionPlannedTime } from "@/lib/session-time-display";
 import {
-  formatEarlyTimelineStartTime,
   shouldWarnBeforeEarlyTimelineStart,
 } from "@/lib/timeline-early-start-warning";
 import { formatTimelineLiveTiming } from "@/lib/timeline-live-timing";
@@ -73,6 +72,39 @@ function formatTimelineTime(value?: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function localDayDistance(from: Date, to: Date) {
+  const startOfDay = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate());
+  return Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86_400_000);
+}
+
+function formatMobileFirstStepStartLine(value?: string, now = new Date()) {
+  if (!value) return "Start time not set";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime()) || !Number.isFinite(now.getTime())) return "Start time not set";
+
+  const clock = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+  const days = localDayDistance(now, date);
+  if (days === 0) return `Start today at ${clock}`;
+  if (days === 1) return `Start tomorrow at ${clock}`;
+  const day = new Intl.DateTimeFormat("en-GB", {
+    weekday: days > 1 && days <= 5 ? "long" : "short",
+    day: days > 5 ? "numeric" : undefined,
+    month: days > 5 ? "short" : undefined,
+  }).format(date);
+  return `Start ${day} at ${clock}`;
+}
+
+function formatTimelineStartRemainingDuration(value?: string, now = new Date()) {
+  const timing = formatTimelineLiveTiming(value, now);
+  if (timing.kind === "future") return timing.label.replace(/^Starts in\s+/, "");
+  if (timing.kind === "ready") return "less than 1 minute";
+  return "0 minutes";
 }
 
 function statusClass(status: "next" | "target" | "checkpoint" | PizzaSessionTimelineStep["status"]) {
@@ -373,6 +405,14 @@ export default function SessionTimelinePage() {
   const currentActionTime = currentActionStep?.scheduledAt ?? targetTime;
   const nextLiveTiming = formatTimelineLiveTiming(followingActionStep?.scheduledAt, currentTime);
   const currentLiveTiming = formatTimelineLiveTiming(currentActionTime, currentTime);
+  const firstMixStepIsWaitingToBegin = Boolean(
+    currentActionStep?.id === "mix-dough"
+    && currentLiveTiming.kind === "future"
+    && !hasStepActuallyStarted(session, currentActionStep.id)
+  );
+  const firstMixStepWaitLabel = firstMixStepIsWaitingToBegin
+    ? `${formatTimelineStartRemainingDuration(currentActionTime, currentTime)} until you begin`
+    : null;
   const stepProgressLabel = currentActionStep && currentActionIndex >= 0
     ? `Step ${currentActionIndex + 1} of ${actionableSteps.length}`
     : allStepsComplete
@@ -414,7 +454,7 @@ export default function SessionTimelinePage() {
   const renderNextActionCard = () => (
     <div className={cardClass({ className: "p-4 shadow-sm sm:p-5", variant: "success" })} data-testid="timeline-current-action-card">
       <section aria-labelledby="timeline-current-step-heading" className="min-w-0">
-        <dl className="mb-4 grid gap-2 rounded-[1.25rem] border border-leaf/15 bg-white/80 p-3 sm:grid-cols-3">
+        <dl className={`mb-4 ${firstMixStepIsWaitingToBegin ? "hidden sm:grid" : "grid"} gap-2 rounded-[1.25rem] border border-leaf/15 bg-white/80 p-3 sm:grid-cols-3`}>
           <div className="hidden min-w-0 sm:block">
             <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Target</dt>
             <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{formatShortDateTime(targetTime)}</dd>
@@ -435,14 +475,34 @@ export default function SessionTimelinePage() {
             <DoughToolsIcon name={timelineStepIcon(currentActionStep)} size={24} strokeWidth={2.1} />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Now</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">
+              {firstMixStepIsWaitingToBegin ? (
+                <>
+                  <span className="sm:hidden">First step</span>
+                  <span className="hidden sm:inline">Now</span>
+                </>
+              ) : "Now"}
+            </p>
             <h2 id="timeline-current-step-heading" className="mt-2 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">
-              {nextAction.title}
+              {firstMixStepIsWaitingToBegin ? (
+                <>
+                  <span className="sm:hidden">Mix the dough</span>
+                  <span className="hidden sm:inline">{nextAction.title}</span>
+                </>
+              ) : nextAction.title}
             </h2>
+            {firstMixStepIsWaitingToBegin && (
+              <div className="mt-4 sm:hidden">
+                <p className="text-base font-extrabold leading-6 text-ink">
+                  {formatMobileFirstStepStartLine(currentActionTime, currentTime)}
+                </p>
+                <p className="mt-1 text-sm font-bold leading-5 text-ink/60">{firstMixStepWaitLabel}</p>
+              </div>
+            )}
             <p className="mt-3 hidden text-sm leading-6 text-ink/60 sm:block">{nextAction.subtext}</p>
           </div>
         </div>
-        <div className="mt-4">
+        <div className={`mt-4 ${firstMixStepIsWaitingToBegin ? "hidden sm:block" : ""}`}>
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">
             {(currentActionStep as RuntimePizzaSessionTimelineStep | undefined)?.runtimeEndsAt ? "Running until" : "Planned for"}
           </p>
@@ -487,7 +547,12 @@ export default function SessionTimelinePage() {
         onClick={handleNextAction}
         className={buttonClass({ className: "mt-4 w-full px-4" })}
       >
-        {nextAction.cta}
+        {firstMixStepIsWaitingToBegin ? (
+          <>
+            <span className="sm:hidden">Start making the dough</span>
+            <span className="hidden sm:inline">{nextAction.cta}</span>
+          </>
+        ) : nextAction.cta}
       </button>
     </div>
   );
@@ -640,25 +705,25 @@ export default function SessionTimelinePage() {
             >
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Timing check</p>
               <h2 id="early-timeline-start-title" className="mt-2 font-display text-3xl font-semibold">
-                This step is scheduled for later
+                Start making the dough early?
               </h2>
               <p id="early-timeline-start-body" className="mt-3 text-sm font-bold leading-6 text-ink/65">
-                This dough step is planned for {formatEarlyTimelineStartTime(earlyStartStep.scheduledAt)}. Starting now may affect the fermentation schedule and final dough quality.
+                Your planned start time is in {formatTimelineStartRemainingDuration(earlyStartStep.scheduledAt, currentTime)}. Starting now will move your dough-making schedule earlier.
               </p>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row-reverse sm:justify-start">
-                <button
-                  type="button"
-                  onClick={continueToKitchenAnyway}
-                  className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
-                >
-                  Start anyway
-                </button>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <button
                   type="button"
                   onClick={() => setEarlyStartStep(null)}
+                  className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
+                >
+                  Keep the planned time
+                </button>
+                <button
+                  type="button"
+                  onClick={continueToKitchenAnyway}
                   className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2"
                 >
-                  Go back
+                  Start making the dough
                 </button>
               </div>
             </section>
