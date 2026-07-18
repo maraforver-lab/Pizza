@@ -8,6 +8,8 @@ This is an audit-only patch. No Party Order application code, tests, API routes,
 
 Patch 435B implementation addendum: the timezone serialization defect described here was addressed in `docs/audits/patch-435b-party-order-browser-timezone.md` by storing an owner browser IANA timezone with each Party Order and converting owner wall-clock input to UTC before API persistence. The QR export readiness defect remains separate and was not changed by Patch 435B.
 
+Patch 435C implementation addendum: the QR export readiness defect described here was addressed in `docs/audits/patch-435c-party-order-qr-export-readiness.md` by waiting for the hidden export QR image to load, decode and report non-zero natural dimensions before `html-to-image` capture. Party Order timezone storage and display behavior from Patch 435B was preserved.
+
 ## 1. Executive Summary
 
 Two independent Party Order defects are present.

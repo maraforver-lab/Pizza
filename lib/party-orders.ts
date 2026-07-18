@@ -93,6 +93,13 @@ export type PartyOrderPizzaSessionHandoff = {
   skippedPizzaNames: string[];
 };
 
+export function getPartyOrderPublicGuestUrl(origin: string, publicToken: string) {
+  const trimmedOrigin = origin.trim();
+  const trimmedToken = publicToken.trim();
+  if (!trimmedOrigin || !trimmedToken) return "";
+  return new URL(`/order/${encodeURIComponent(trimmedToken)}`, trimmedOrigin).toString();
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

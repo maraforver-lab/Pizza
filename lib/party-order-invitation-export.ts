@@ -3,6 +3,141 @@ const INVITATION_EXPORT_HEIGHT = 1350;
 const A4_WIDTH_POINTS = 595.28;
 const A4_HEIGHT_POINTS = 841.89;
 const A4_MARGIN_POINTS = 32;
+export const PARTY_ORDER_EXPORT_QR_IMAGE_SELECTOR = "[data-party-order-export-qr=\"true\"]";
+const IMAGE_READY_TIMEOUT_MS = 2500;
+
+type HtmlToImageOptions = {
+  backgroundColor: string;
+  cacheBust: boolean;
+  height: number;
+  pixelRatio: number;
+  quality?: number;
+  width: number;
+};
+
+type HtmlToImageCapture = (element: HTMLElement, options: HtmlToImageOptions) => Promise<string>;
+
+type ImageReadyErrorCode =
+  | "missing_image"
+  | "image_error"
+  | "image_timeout"
+  | "zero_dimensions";
+
+export class PartyOrderInvitationExportReadinessError extends Error {
+  code: ImageReadyErrorCode;
+
+  constructor(code: ImageReadyErrorCode) {
+    super(code);
+    this.name = "PartyOrderInvitationExportReadinessError";
+    this.code = code;
+  }
+}
+
+function imageHasNaturalDimensions(image: HTMLImageElement) {
+  return image.naturalWidth > 0 && image.naturalHeight > 0;
+}
+
+function remainingTimeout(deadline: number) {
+  return Math.max(1, deadline - Date.now());
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timeoutId = globalThis.setTimeout(() => reject(new PartyOrderInvitationExportReadinessError("image_timeout")), timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId) globalThis.clearTimeout(timeoutId);
+  });
+}
+
+function waitForImageLoad(image: HTMLImageElement, timeoutMs: number) {
+  if (image.complete && imageHasNaturalDimensions(image)) return Promise.resolve();
+  if (image.complete && !imageHasNaturalDimensions(image)) {
+    return Promise.reject(new PartyOrderInvitationExportReadinessError("zero_dimensions"));
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const cleanup = () => {
+      image.removeEventListener("load", handleLoad);
+      image.removeEventListener("error", handleError);
+      if (timeoutId) globalThis.clearTimeout(timeoutId);
+    };
+    const handleLoad = () => {
+      cleanup();
+      if (imageHasNaturalDimensions(image)) {
+        resolve();
+      } else {
+        reject(new PartyOrderInvitationExportReadinessError("zero_dimensions"));
+      }
+    };
+    const handleError = () => {
+      cleanup();
+      reject(new PartyOrderInvitationExportReadinessError("image_error"));
+    };
+
+    timeoutId = globalThis.setTimeout(() => {
+      cleanup();
+      reject(new PartyOrderInvitationExportReadinessError("image_timeout"));
+    }, timeoutMs);
+
+    image.addEventListener("load", handleLoad, { once: true });
+    image.addEventListener("error", handleError, { once: true });
+  });
+}
+
+export async function waitForImageReady(
+  image: HTMLImageElement | null | undefined,
+  timeoutMs = IMAGE_READY_TIMEOUT_MS,
+) {
+  if (!image) throw new PartyOrderInvitationExportReadinessError("missing_image");
+  const deadline = Date.now() + timeoutMs;
+
+  await waitForImageLoad(image, remainingTimeout(deadline));
+
+  if (typeof image.decode === "function") {
+    await withTimeout(
+      image.decode().catch(() => {
+        throw new PartyOrderInvitationExportReadinessError("image_error");
+      }),
+      remainingTimeout(deadline),
+    );
+  }
+
+  if (!imageHasNaturalDimensions(image)) {
+    throw new PartyOrderInvitationExportReadinessError("zero_dimensions");
+  }
+}
+
+function waitForNextFrame() {
+  return new Promise<void>((resolve) => {
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => resolve());
+      return;
+    }
+    globalThis.setTimeout(resolve, 0);
+  });
+}
+
+export async function waitForPartyOrderInvitationExportReady(element: HTMLElement) {
+  const image = element.querySelector<HTMLImageElement>(PARTY_ORDER_EXPORT_QR_IMAGE_SELECTOR);
+  await waitForImageReady(image);
+  if (typeof document !== "undefined" && document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+  await waitForNextFrame();
+}
+
+async function defaultPngCapture(element: HTMLElement, options: HtmlToImageOptions) {
+  const { toPng } = await import("html-to-image");
+  return toPng(element, options);
+}
+
+async function defaultJpegCapture(element: HTMLElement, options: HtmlToImageOptions) {
+  const { toJpeg } = await import("html-to-image");
+  return toJpeg(element, options);
+}
 
 function downloadDataUrl(dataUrl: string, filename: string) {
   const link = document.createElement("a");
@@ -98,27 +233,26 @@ function buildJpegInvitationPdf(jpegBytes: Uint8Array) {
   return new Blob([concatBytes(chunks)], { type: "application/pdf" });
 }
 
-export async function downloadPartyOrderInvitationImage(
+export async function capturePartyOrderInvitationImageDataUrl(
   element: HTMLElement,
-  filename = "doughtools-party-invitation.png",
+  capture: HtmlToImageCapture = defaultPngCapture,
 ) {
-  const { toPng } = await import("html-to-image");
-  const dataUrl = await toPng(element, {
+  await waitForPartyOrderInvitationExportReady(element);
+  return capture(element, {
     backgroundColor: "#20251f",
     cacheBust: true,
     height: INVITATION_EXPORT_HEIGHT,
     pixelRatio: 1,
     width: INVITATION_EXPORT_WIDTH,
   });
-  downloadDataUrl(dataUrl, filename);
 }
 
-export async function downloadPartyOrderInvitationPdf(
+export async function capturePartyOrderInvitationJpegDataUrl(
   element: HTMLElement,
-  filename = "doughtools-party-invitation.pdf",
+  capture: HtmlToImageCapture = defaultJpegCapture,
 ) {
-  const { toJpeg } = await import("html-to-image");
-  const dataUrl = await toJpeg(element, {
+  await waitForPartyOrderInvitationExportReady(element);
+  return capture(element, {
     backgroundColor: "#20251f",
     cacheBust: true,
     height: INVITATION_EXPORT_HEIGHT,
@@ -126,6 +260,21 @@ export async function downloadPartyOrderInvitationPdf(
     quality: 0.94,
     width: INVITATION_EXPORT_WIDTH,
   });
+}
+
+export async function downloadPartyOrderInvitationImage(
+  element: HTMLElement,
+  filename = "doughtools-party-invitation.png",
+) {
+  const dataUrl = await capturePartyOrderInvitationImageDataUrl(element);
+  downloadDataUrl(dataUrl, filename);
+}
+
+export async function downloadPartyOrderInvitationPdf(
+  element: HTMLElement,
+  filename = "doughtools-party-invitation.pdf",
+) {
+  const dataUrl = await capturePartyOrderInvitationJpegDataUrl(element);
   const pdf = buildJpegInvitationPdf(dataUrlToBytes(dataUrl));
   const url = URL.createObjectURL(pdf);
   try {

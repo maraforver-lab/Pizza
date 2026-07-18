@@ -118,6 +118,10 @@ function PartyOrderInvitationExportCard({
               <img
                 src={qrCodeDataUrl}
                 alt="QR code for public pizza order link"
+                width={286}
+                height={286}
+                data-party-order-export-qr="true"
+                data-qr-url={publicGuestUrl}
                 className="h-[286px] w-[286px]"
                 style={{ imageRendering: "pixelated" }}
               />
@@ -135,6 +139,7 @@ function PartyOrderInvitationExportCard({
 
 export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitationCardProps) {
   const exportCardRef = useRef<HTMLDivElement>(null);
+  const exportInFlightRef = useRef(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
   const [copyLinkState, setCopyLinkState] = useState<CopyState>("idle");
   const [copyTextState, setCopyTextState] = useState<CopyState>("idle");
@@ -144,6 +149,7 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
   const publicGuestUrl = useMemo(() => normalizePublicGuestUrl(shareLink), [shareLink]);
   const invitationText = useMemo(() => partyOrderInvitationText(event, publicGuestUrl), [event, publicGuestUrl]);
   const displayedShareLink = useMemo(() => displayShareLink(publicGuestUrl), [publicGuestUrl]);
+  const exportPreparing = imageExportState === "preparing" || pdfExportState === "preparing";
 
   useEffect(() => {
     let cancelled = false;
@@ -174,8 +180,10 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
   }, [publicGuestUrl]);
 
   const exportInvitation = async (type: "image" | "pdf") => {
+    if (exportInFlightRef.current) return;
     const setState = type === "image" ? setImageExportState : setPdfExportState;
     setExportError("");
+    exportInFlightRef.current = true;
     setState("preparing");
     try {
       if (!exportCardRef.current || !qrCodeDataUrl) throw new Error("Invitation export is not ready yet.");
@@ -187,9 +195,11 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
       setState("saved");
       window.setTimeout(() => setState("idle"), 2200);
     } catch {
-      setExportError("Could not export the invitation. Please try again.");
+      setExportError("We couldn’t prepare the QR code for the invitation image. Try again.");
       setState("error");
       window.setTimeout(() => setState("idle"), 2500);
+    } finally {
+      exportInFlightRef.current = false;
     }
   };
 
@@ -267,6 +277,10 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
                   <img
                     src={qrCodeDataUrl}
                     alt="QR code for public pizza order link"
+                    width={192}
+                    height={192}
+                    data-party-order-preview-qr="true"
+                    data-qr-url={publicGuestUrl}
                     className="h-full w-full"
                     style={{ imageRendering: "pixelated" }}
                   />
@@ -303,15 +317,15 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
           <button
             type="button"
             onClick={() => exportInvitation("image")}
-            disabled={!qrCodeDataUrl || imageExportState === "preparing"}
+            disabled={!qrCodeDataUrl || exportPreparing}
             className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-xs font-extrabold text-ink transition hover:border-leaf/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {imageExportState === "preparing" ? "Preparing image…" : imageExportState === "saved" ? "Image downloaded" : "Download invitation image"}
+            {imageExportState === "preparing" ? "Preparing invitation image…" : imageExportState === "saved" ? "Image downloaded" : "Download invitation image"}
           </button>
           <button
             type="button"
             onClick={() => exportInvitation("pdf")}
-            disabled={!qrCodeDataUrl || pdfExportState === "preparing"}
+            disabled={!qrCodeDataUrl || exportPreparing}
             className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-leaf/20 bg-white px-4 text-xs font-extrabold text-ink transition hover:border-leaf/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pdfExportState === "preparing" ? "Preparing PDF…" : pdfExportState === "saved" ? "PDF downloaded" : "Download invitation PDF"}

@@ -1,6 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import {
+  PARTY_ORDER_EXPORT_QR_IMAGE_SELECTOR,
+  PartyOrderInvitationExportReadinessError,
+  capturePartyOrderInvitationImageDataUrl,
+  waitForImageReady,
+  waitForPartyOrderInvitationExportReady,
+} from "@/lib/party-order-invitation-export";
 import {
   PIZZA_CATALOG_IDS,
   PIZZA_CATALOG_OPTIONS,
@@ -8,6 +15,7 @@ import {
 } from "@/lib/pizza-catalog";
 import {
   buildPartyOrderPizzaSessionHandoff,
+  getPartyOrderPublicGuestUrl,
   normalizePublicPartyOrder,
   normalizePublicPartyOrderEditableSubmission,
   normalizePartyOrderRow,
@@ -34,6 +42,63 @@ import { PIZZA_MIX_OPTIONS } from "@/lib/pizza-session-shopping-list";
 
 function source(path: string) {
   return readFileSync(join(process.cwd(), path), "utf8");
+}
+
+class MockImageElement {
+  complete: boolean;
+  naturalWidth: number;
+  naturalHeight: number;
+  decode?: () => Promise<void>;
+  private listeners = new Map<string, Set<EventListenerOrEventListenerObject>>();
+
+  constructor(options: {
+    complete?: boolean;
+    decode?: () => Promise<void>;
+    naturalHeight?: number;
+    naturalWidth?: number;
+  } = {}) {
+    this.complete = options.complete ?? false;
+    this.naturalWidth = options.naturalWidth ?? 0;
+    this.naturalHeight = options.naturalHeight ?? 0;
+    this.decode = options.decode;
+  }
+
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+    const listeners = this.listeners.get(type) ?? new Set<EventListenerOrEventListenerObject>();
+    listeners.add(listener);
+    this.listeners.set(type, listeners);
+  }
+
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+    this.listeners.get(type)?.delete(listener);
+  }
+
+  dispatch(type: string) {
+    const event = { type } as Event;
+    for (const listener of this.listeners.get(type) ?? []) {
+      if (typeof listener === "function") {
+        listener.call(this as unknown as EventTarget, event);
+      } else {
+        listener.handleEvent(event);
+      }
+    }
+  }
+
+  listenerCount(type: string) {
+    return this.listeners.get(type)?.size ?? 0;
+  }
+
+  asImage() {
+    return this as unknown as HTMLImageElement;
+  }
+}
+
+function exportElementWithQr(image: MockImageElement | null) {
+  return {
+    querySelector: vi.fn((selector: string) => (
+      selector === PARTY_ORDER_EXPORT_QR_IMAGE_SELECTOR && image ? image.asImage() : null
+    )),
+  } as unknown as HTMLElement;
 }
 
 describe("Party Orders foundation", () => {
@@ -206,6 +271,120 @@ describe("Party Orders foundation", () => {
     });
   });
 
+  it("waits for Party Order export QR images to load and decode before capture", async () => {
+    const order: string[] = [];
+    const image = new MockImageElement({
+      complete: false,
+      decode: vi.fn(async () => {
+        order.push("decode");
+      }),
+    });
+    const element = exportElementWithQr(image);
+    const capture = vi.fn(async () => {
+      order.push("capture");
+      return "data:image/png;base64,ready";
+    });
+
+    const capturePromise = capturePartyOrderInvitationImageDataUrl(element, capture);
+    await Promise.resolve();
+    expect(capture).not.toHaveBeenCalled();
+    expect(image.listenerCount("load")).toBe(1);
+    expect(image.listenerCount("error")).toBe(1);
+
+    image.complete = true;
+    image.naturalWidth = 286;
+    image.naturalHeight = 286;
+    order.push("load");
+    image.dispatch("load");
+
+    await expect(capturePromise).resolves.toBe("data:image/png;base64,ready");
+    expect(order).toEqual(["load", "decode", "capture"]);
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(capture.mock.calls[0]?.[1]).toMatchObject({
+      backgroundColor: "#20251f",
+      cacheBust: true,
+      height: 1350,
+      pixelRatio: 1,
+      width: 1080,
+    });
+    expect(image.listenerCount("load")).toBe(0);
+    expect(image.listenerCount("error")).toBe(0);
+  });
+
+  it("resolves already-loaded QR images with non-zero dimensions immediately", async () => {
+    const decode = vi.fn(async () => undefined);
+    const image = new MockImageElement({
+      complete: true,
+      naturalWidth: 286,
+      naturalHeight: 286,
+      decode,
+    });
+
+    await expect(waitForImageReady(image.asImage())).resolves.toBeUndefined();
+    expect(decode).toHaveBeenCalledTimes(1);
+    expect(image.listenerCount("load")).toBe(0);
+    expect(image.listenerCount("error")).toBe(0);
+  });
+
+  it("falls back safely when image decode is unavailable", async () => {
+    const image = new MockImageElement({
+      complete: true,
+      naturalWidth: 286,
+      naturalHeight: 286,
+    });
+
+    await expect(waitForImageReady(image.asImage())).resolves.toBeUndefined();
+  });
+
+  it("rejects QR image errors, zero dimensions and timeouts before capture", async () => {
+    const erroredImage = new MockImageElement();
+    const erroredElement = exportElementWithQr(erroredImage);
+    const captureAfterError = vi.fn(async () => "data:image/png;base64,broken");
+    const erroredCapture = capturePartyOrderInvitationImageDataUrl(erroredElement, captureAfterError);
+    await Promise.resolve();
+    erroredImage.dispatch("error");
+    await expect(erroredCapture).rejects.toBeInstanceOf(PartyOrderInvitationExportReadinessError);
+    expect(captureAfterError).not.toHaveBeenCalled();
+    expect(erroredImage.listenerCount("load")).toBe(0);
+    expect(erroredImage.listenerCount("error")).toBe(0);
+
+    const zeroImage = new MockImageElement({ complete: true, naturalWidth: 0, naturalHeight: 0 });
+    await expect(waitForImageReady(zeroImage.asImage())).rejects.toMatchObject({ code: "zero_dimensions" });
+
+    const timeoutImage = new MockImageElement();
+    await expect(waitForImageReady(timeoutImage.asImage(), 5)).rejects.toMatchObject({ code: "image_timeout" });
+    expect(timeoutImage.listenerCount("load")).toBe(0);
+    expect(timeoutImage.listenerCount("error")).toBe(0);
+  });
+
+  it("allows a fresh Party Order export retry after QR readiness failure", async () => {
+    const image = new MockImageElement();
+    const element = exportElementWithQr(image);
+    const failedCapture = vi.fn(async () => "data:image/png;base64,failed");
+    const firstAttempt = capturePartyOrderInvitationImageDataUrl(element, failedCapture);
+    await Promise.resolve();
+    image.dispatch("error");
+    await expect(firstAttempt).rejects.toBeInstanceOf(PartyOrderInvitationExportReadinessError);
+    expect(failedCapture).not.toHaveBeenCalled();
+
+    image.complete = true;
+    image.naturalWidth = 286;
+    image.naturalHeight = 286;
+    image.decode = vi.fn(async () => undefined);
+    const retryCapture = vi.fn(async () => "data:image/png;base64,retry");
+    await expect(capturePartyOrderInvitationImageDataUrl(element, retryCapture)).resolves.toBe("data:image/png;base64,retry");
+    expect(retryCapture).toHaveBeenCalledTimes(1);
+  });
+
+  it("requires the hidden export QR image before invitation capture", async () => {
+    const element = exportElementWithQr(null);
+    const capture = vi.fn(async () => "data:image/png;base64,missing");
+
+    await expect(waitForPartyOrderInvitationExportReady(element)).rejects.toMatchObject({ code: "missing_image" });
+    await expect(capturePartyOrderInvitationImageDataUrl(element, capture)).rejects.toMatchObject({ code: "missing_image" });
+    expect(capture).not.toHaveBeenCalled();
+  });
+
   it("requires a canonical Party Order time zone and falls legacy rows back to Helsinki", () => {
     expect(validatePartyOrderInput({
       title: "Party",
@@ -234,6 +413,13 @@ describe("Party Orders foundation", () => {
       updated_at: "2026-07-05T11:00:00.000Z",
     });
     expect(legacy?.time_zone).toBe(PARTY_ORDER_LEGACY_TIME_ZONE);
+  });
+
+  it("derives a canonical public guest URL for visible and exported QR content", () => {
+    expect(getPartyOrderPublicGuestUrl("https://doughtools.app", "public-token")).toBe("https://doughtools.app/order/public-token");
+    expect(getPartyOrderPublicGuestUrl("https://doughtools.app/app", "token with spaces")).toBe("https://doughtools.app/order/token%20with%20spaces");
+    expect(getPartyOrderPublicGuestUrl("", "public-token")).toBe("");
+    expect(getPartyOrderPublicGuestUrl("https://doughtools.app", "")).toBe("");
   });
 
   it("normalizes event rows and resolves selected allowed pizzas", () => {
@@ -771,6 +957,7 @@ describe("Party Orders foundation", () => {
     expect(detail).toContain("PartyOrderSettingsEditForm");
     expect(detail).toContain("PartyOrderSessionHandoff");
     expect(detail).toContain("PartyOrderPrepSummaryCard");
+    expect(detail).toContain("getPartyOrderPublicGuestUrl(location.origin, event.public_token)");
     expect(editForm).toContain("Event title");
     expect(editForm).toContain("Pizza date/time");
     expect(editForm).toContain("Orders close date/time");
@@ -787,7 +974,6 @@ describe("Party Orders foundation", () => {
     expect(editForm).toContain("method: \"PATCH\"");
     expect(editForm).toContain("allowedPizzaIds");
     expect(detail).toContain("PartyOrderInvitationCard");
-    expect(detail).toContain("/order/${event.public_token}");
     expect(invitation).toContain("Public guest link");
     expect(detail).toContain("Guest orders:");
     expect(detail).toContain("Total pizzas:");
@@ -1020,6 +1206,12 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("const publicGuestUrl = useMemo(() => normalizePublicGuestUrl(shareLink), [shareLink])");
     expect(invitation).toContain("QRCode.toDataURL(publicGuestUrl");
     expect(invitation).toContain("data-qr-url={publicGuestUrl}");
+    expect(invitation).toContain("data-party-order-export-qr=\"true\"");
+    expect(invitation).toContain("data-party-order-preview-qr=\"true\"");
+    expect(invitation).toContain("width={286}");
+    expect(invitation).toContain("height={286}");
+    expect(invitation).toContain("width={192}");
+    expect(invitation).toContain("height={192}");
     expect(invitation).toContain("href={publicGuestUrl || \"#\"}");
     expect(invitation).toContain("copyText(publicGuestUrl, setCopyLinkState)");
     expect(invitation).toContain("QR code for public pizza order link");
@@ -1039,8 +1231,12 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("Copy invitation text");
     expect(invitation).toContain("partyOrderInvitationText(event, publicGuestUrl)");
     expect(invitation).toContain("navigator.clipboard.writeText");
+    expect(invitation).toContain("exportInFlightRef.current");
+    expect(invitation).toContain("exportPreparing");
+    expect(invitation).toContain("We couldn’t prepare the QR code for the invitation image. Try again.");
     expect(invitation).toContain("PartyOrderInvitationExportCard");
     expect(invitation).toContain("Download invitation image");
+    expect(invitation).toContain("Preparing invitation image…");
     expect(invitation).toContain("Download invitation PDF");
     expect(invitation).toContain("downloadPartyOrderInvitationImage(exportCardRef.current)");
     expect(invitation).toContain("downloadPartyOrderInvitationPdf(exportCardRef.current)");
@@ -1057,6 +1253,16 @@ describe("Party Orders foundation", () => {
     expect(invitation).toContain("Guests can open this link to choose pizzas and send their order without signing in.");
     expect(exportHelper).toContain("INVITATION_EXPORT_WIDTH = 1080");
     expect(exportHelper).toContain("INVITATION_EXPORT_HEIGHT = 1350");
+    expect(exportHelper).toContain("PARTY_ORDER_EXPORT_QR_IMAGE_SELECTOR");
+    expect(exportHelper).toContain("waitForImageReady");
+    expect(exportHelper).toContain("waitForPartyOrderInvitationExportReady(element)");
+    expect(exportHelper).toContain("image.complete && !imageHasNaturalDimensions(image)");
+    expect(exportHelper).toContain("image.decode()");
+    expect(exportHelper).toContain("image.addEventListener(\"load\", handleLoad");
+    expect(exportHelper).toContain("image.addEventListener(\"error\", handleError");
+    expect(exportHelper).toContain("PartyOrderInvitationExportReadinessError(\"image_timeout\")");
+    expect(exportHelper).toContain("capturePartyOrderInvitationImageDataUrl");
+    expect(exportHelper).toContain("capturePartyOrderInvitationJpegDataUrl");
     expect(exportHelper).toContain("toPng(element");
     expect(exportHelper).toContain("doughtools-party-invitation.png");
     expect(exportHelper).toContain("toJpeg(element");

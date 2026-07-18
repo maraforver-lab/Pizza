@@ -9,6 +9,7 @@ import { PartyOrderSettingsEditForm } from "@/components/account/PartyOrderSetti
 import {
   normalizePartyOrderActivity,
   normalizePartyOrderRow,
+  getPartyOrderPublicGuestUrl,
   partyOrderEmptyActivity,
   partyOrderAllowedPizzaOptions,
   partyOrderDateTimeLabel,
@@ -49,7 +50,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
   const [deleteMessage, setDeleteMessage] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const shareLink = useMemo(() => (
-    event && typeof location !== "undefined" ? `${location.origin}/order/${event.public_token}` : ""
+    event && typeof location !== "undefined" ? getPartyOrderPublicGuestUrl(location.origin, event.public_token) : ""
   ), [event]);
 
   useEffect(() => {
