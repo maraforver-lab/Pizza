@@ -193,7 +193,7 @@ function kitchenCompleteActionLabel(step?: { id: string }) {
   if (step?.id === "room-temperature-rest") return "Ball rest complete";
   if (step?.id === "preheat-oven") return "Oven preheated";
   if (step?.id === "prepare-sauce-toppings") return "Sauce and toppings ready";
-  if (step?.id === "bake-pizza") return "All pizzas baked";
+  if (step?.id === "bake-pizza") return "Done baking? Review session";
   return "Step complete";
 }
 
@@ -436,6 +436,7 @@ export default function SessionKitchenPage() {
   const currentStepIsMixDough = isMixDoughStep(currentStep);
   const currentStepIsRestDough = isRestDoughStep(currentStep);
   const currentStepIsFermentation = isKitchenFermentationStep(currentStep);
+  const currentStepIsBakePizza = currentStep?.id === "bake-pizza";
   const currentStepCompletionBlocked = currentStepIsBiologicalWait && waitInfo.isTooEarly;
   const accountAllowsEarlyTimedCompletion = !EARLY_COMPLETION_PREFERENCE_ENFORCED
     || (
@@ -476,7 +477,8 @@ export default function SessionKitchenPage() {
   const progressPercent = kitchenProgressPercent(kitchenState.currentIndex, kitchenState.totalCount);
   const progressLabel = `Step ${kitchenState.currentIndex + 1} of ${kitchenState.totalCount}`;
   const timing = compactKitchenTiming(currentRuntimeStep, session, currentLiveTiming, now, currentStepHasStarted);
-  const compactMobileStatusHiddenClass = currentStepIsMixDough || currentStepIsRestDough || currentStepIsFermentation ? "max-sm:hidden " : "";
+  const compactMobileStatusHiddenClass = currentStepIsMixDough || currentStepIsRestDough || currentStepIsFermentation || currentStepIsBakePizza ? "max-sm:hidden " : "";
+  const compactTimingHiddenClass = currentStepIsBakePizza ? "hidden " : compactMobileStatusHiddenClass;
   const timedWaitMobileHiddenClass = currentStepIsRestDough || currentStepIsFermentation ? "max-sm:hidden " : "";
   const restMobileHiddenClass = currentStepIsRestDough ? "max-sm:hidden " : "";
   const mixMobileHiddenClass = currentStepIsMixDough ? "max-sm:hidden " : "";
@@ -699,7 +701,7 @@ export default function SessionKitchenPage() {
                       </div>
                     )}
 
-                    <div className={`${compactMobileStatusHiddenClass}grid gap-2 border-y border-ink/10 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center`}>
+                    <div className={`${compactTimingHiddenClass}grid gap-2 border-y border-ink/10 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center`}>
                       <div aria-live="polite">
                         <p className={`text-lg font-extrabold leading-7 sm:text-xl ${
                           currentLiveTiming.kind === "overdue" ? "text-tomato" : "text-ink"
@@ -819,6 +821,8 @@ export default function SessionKitchenPage() {
                       sessionId={session.id}
                       durationSeconds={bakeProfile.bakeDurationSeconds}
                       durationLabel={bakeProfile.bakeTimeLabel}
+                      ovenType={bakeProfile.ovenType}
+                      ovenLabel={bakeProfile.label}
                       pizzaCount={lockedPizzaCount}
                     />
                   )}

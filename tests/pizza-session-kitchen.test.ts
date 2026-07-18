@@ -888,7 +888,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Change pizza menu");
     expect(page).toContain("View full schedule");
     expect(page).toContain("href=\"/session/timeline\"");
-    expect(page).toContain("All pizzas baked");
+    expect(page).toContain("Done baking? Review session");
     expect(page).toContain("setSession(updated)");
     expect(page).not.toContain("kitchenBackHrefFromSource(source)");
     expect(page).not.toContain("kitchenBackHrefFromReferrer(document.referrer)");
@@ -1015,7 +1015,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("ovenTroubleshootingLink.ariaLabel");
     expect(page).toContain("{ovenTroubleshootingLink.label}");
     expect(page).toContain("Oven preheated");
-    expect(page).toContain("All pizzas baked");
+    expect(page).toContain("Done baking? Review session");
     expect(page).not.toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
   });
 
@@ -1323,7 +1323,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("getKitchenRestNextFermentationLabel(session, kitchenState.nextStep)");
     expect(page).toContain("Planned duration:");
     expect(page).toContain("Keep the dough covered until the timer reaches zero.");
-    expect(page).toContain("className={`${compactMobileStatusHiddenClass}grid gap-2 border-y");
+    expect(page).toContain("className={`${compactTimingHiddenClass}grid gap-2 border-y");
     expect(page).toContain("className={`${timedWaitMobileHiddenClass}mt-5 rounded-[1.25rem]");
     expect(page).toContain("Rest complete");
   });
@@ -1341,7 +1341,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Before leaving the dough to ferment, develop it briefly as instructed by folding, stretching or kneading.");
     expect(page).toContain("{fermentationMobileSummary.prepInstruction}");
     expect(page).toContain("Next:</span> Divide and shape the dough into balls");
-    expect(page).toContain("currentStepIsMixDough || currentStepIsRestDough || currentStepIsFermentation");
+    expect(page).toContain("currentStepIsMixDough || currentStepIsRestDough || currentStepIsFermentation || currentStepIsBakePizza");
     expect(page).toContain("currentStepIsRestDough || currentStepIsFermentation");
     expect(page).toContain("currentStepIsFermentation ? \"max-sm:hidden \" : \"\"");
     expect(page).toContain("Fermentation complete");

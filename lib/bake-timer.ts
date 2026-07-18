@@ -1,4 +1,5 @@
 export type BakeTimerStatus = "idle" | "running" | "paused" | "overtime" | "expired";
+export type BakeTimerPhase = "ready" | "active" | "last20" | "paused" | "overtime" | "expired";
 
 export type BakeTimerSnapshot = {
   status: BakeTimerStatus;
@@ -12,10 +13,17 @@ export type BakeTimerSnapshot = {
 export const BAKE_TIMER_MIN_SECONDS = 10;
 export const BAKE_TIMER_MAX_SECONDS = 1_800;
 export const BAKE_TIMER_MAX_OVERTIME_SECONDS = 90;
+export const BAKE_TIMER_LAST_SECONDS_THRESHOLD = 20;
 
 export function normalizeBakeTimerDuration(value: number, fallback = 90) {
   const numeric = Number.isFinite(value) ? Math.round(value) : fallback;
   return Math.max(BAKE_TIMER_MIN_SECONDS, Math.min(BAKE_TIMER_MAX_SECONDS, numeric));
+}
+
+function normalizeBakeTimerRemaining(value: number, durationSeconds: number) {
+  const duration = normalizeBakeTimerDuration(durationSeconds);
+  const numeric = Number.isFinite(value) ? Math.round(value) : duration;
+  return Math.max(1, Math.min(duration, numeric));
 }
 
 export function createBakeTimerSnapshot(durationSeconds: number): BakeTimerSnapshot {
@@ -77,7 +85,7 @@ export function pauseBakeTimerSnapshot(snapshot: BakeTimerSnapshot, now = Date.n
 }
 
 export function resumeBakeTimerSnapshot(snapshot: BakeTimerSnapshot, now = Date.now()): BakeTimerSnapshot {
-  const remainingSeconds = normalizeBakeTimerDuration(snapshot.remainingSeconds, snapshot.durationSeconds);
+  const remainingSeconds = normalizeBakeTimerRemaining(snapshot.remainingSeconds, snapshot.durationSeconds);
   return {
     ...snapshot,
     status: "running",
@@ -95,6 +103,81 @@ export function resetBakeTimerSnapshot(snapshot: BakeTimerSnapshot): BakeTimerSn
 export function updateBakeTimerDuration(snapshot: BakeTimerSnapshot, durationSeconds: number): BakeTimerSnapshot {
   const duration = normalizeBakeTimerDuration(durationSeconds, snapshot.durationSeconds);
   return createBakeTimerSnapshot(duration);
+}
+
+export function adjustBakeTimerDuration(snapshot: BakeTimerSnapshot, deltaSeconds: number, now = Date.now()): BakeTimerSnapshot {
+  const derived = deriveBakeTimerSnapshot(snapshot, now);
+  const nextDuration = normalizeBakeTimerDuration(derived.durationSeconds + Math.round(deltaSeconds), derived.durationSeconds);
+
+  if (derived.status === "running") {
+    const nextRemaining = normalizeBakeTimerRemaining(derived.remainingSeconds + Math.round(deltaSeconds), nextDuration);
+    return {
+      ...derived,
+      durationSeconds: nextDuration,
+      remainingSeconds: nextRemaining,
+      expiresAt: now + nextRemaining * 1000,
+    };
+  }
+
+  if (derived.status === "paused") {
+    return {
+      ...derived,
+      durationSeconds: nextDuration,
+      remainingSeconds: normalizeBakeTimerRemaining(derived.remainingSeconds + Math.round(deltaSeconds), nextDuration),
+    };
+  }
+
+  if (derived.status === "overtime" || derived.status === "expired") {
+    return {
+      ...derived,
+      durationSeconds: nextDuration,
+    };
+  }
+
+  return createBakeTimerSnapshot(nextDuration);
+}
+
+export function adjustBakeTimerOvertime(snapshot: BakeTimerSnapshot, deltaSeconds: number, now = Date.now()): BakeTimerSnapshot {
+  const derived = deriveBakeTimerSnapshot(snapshot, now);
+  if (derived.status !== "overtime" && derived.status !== "expired") return derived;
+  const nextOvertimeSeconds = Math.max(
+    0,
+    Math.min(BAKE_TIMER_MAX_OVERTIME_SECONDS, derived.overtimeSeconds + Math.round(deltaSeconds)),
+  );
+  return {
+    ...derived,
+    status: nextOvertimeSeconds >= BAKE_TIMER_MAX_OVERTIME_SECONDS ? "expired" : "overtime",
+    remainingSeconds: 0,
+    overtimeSeconds: nextOvertimeSeconds,
+    expiresAt: now - nextOvertimeSeconds * 1000,
+    completedCuePlayed: true,
+  };
+}
+
+export function stopBakeTimerAlarm(snapshot: BakeTimerSnapshot, now = Date.now()): BakeTimerSnapshot {
+  const derived = deriveBakeTimerSnapshot(snapshot, now);
+  if (derived.status !== "overtime" && derived.status !== "expired") return derived;
+  return {
+    ...derived,
+    status: "expired",
+    expiresAt: null,
+    completedCuePlayed: true,
+  };
+}
+
+export function getBakeTimerPhase(snapshot: BakeTimerSnapshot): BakeTimerPhase {
+  if (snapshot.status === "idle") return "ready";
+  if (snapshot.status === "paused") return "paused";
+  if (snapshot.status === "overtime") return "overtime";
+  if (snapshot.status === "expired") return "expired";
+  if (snapshot.remainingSeconds <= BAKE_TIMER_LAST_SECONDS_THRESHOLD) return "last20";
+  return "active";
+}
+
+export function getBakeTimerProgressRatio(snapshot: BakeTimerSnapshot) {
+  if (snapshot.status === "overtime" || snapshot.status === "expired") return 1;
+  const duration = normalizeBakeTimerDuration(snapshot.durationSeconds);
+  return Math.max(0, Math.min(1, snapshot.remainingSeconds / duration));
 }
 
 export function formatBakeTimerClock(seconds: number) {
