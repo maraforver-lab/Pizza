@@ -390,3 +390,11 @@ Patch 436B should be narrow and behavior-focused:
 - Repeated-click handling must avoid completing multiple steps at once.
 
 Multiple interacting Kitchen progression defects
+
+## Implementation Reference
+
+Patch 436B implemented the recommended narrow fix in `lib/pizza-session-kitchen.ts` and `app/session/kitchen/page.tsx`.
+
+The implementation keeps the planned Timeline unchanged, resolves displayed fermentation ids to the correct persisted Timeline step at completion time, records `actualCompletedAt` under the persisted id, and returns a typed completion result instead of silently returning `undefined`.
+
+See `docs/audits/patch-436b-legacy-fermentation-completion-fix.md`.

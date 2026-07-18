@@ -26,6 +26,7 @@ import {
   isKitchenFermentationStep,
   isMixDoughStep,
   recipeSnapshotIngredientLines,
+  resolvePersistedKitchenStepId,
   shouldConfirmEarlyKitchenStepCompletion,
 } from "@/lib/pizza-session-kitchen";
 import {
@@ -77,6 +78,33 @@ const recipeSnapshot = {
   saltAmount: 17.45,
   leavenerAmount: 0.5,
 };
+
+function fermentationTimeline(persistedFermentationId: string, label: string) {
+  return {
+    generatedAt: "2026-07-10T15:00:00.000Z",
+    targetEatTime: "2026-07-11T08:00:00.000Z",
+    steps: [
+      { id: "mix-dough", label: "Mix dough", scheduledAt: "2026-07-10T15:26:00.000Z", status: "done" as const, kind: "active" as const },
+      { id: "rest-dough", label: "Rest dough", scheduledAt: "2026-07-10T15:56:00.000Z", status: "done" as const, kind: "passive" as const },
+      { id: persistedFermentationId, label, scheduledAt: "2026-07-10T16:26:00.000Z", status: "todo" as const, kind: "passive" as const },
+      { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T02:26:00.000Z", status: "todo" as const, kind: "active" as const },
+      { id: "room-temperature-rest", label: "Room temperature rest", scheduledAt: "2026-07-11T03:26:00.000Z", status: "todo" as const, kind: "passive" as const },
+      { id: "preheat-oven", label: "Preheat oven", scheduledAt: "2026-07-11T05:26:00.000Z", status: "todo" as const, kind: "active" as const },
+      { id: "bake-pizza", label: "Bake pizza", scheduledAt: "2026-07-11T08:00:00.000Z", status: "todo" as const, kind: "active" as const },
+    ],
+  };
+}
+
+function completedDoughRuntime() {
+  return {
+    "mix-dough": {
+      actualCompletedAt: "2026-07-10T15:46:00.000Z",
+    },
+    "rest-dough": {
+      actualCompletedAt: "2026-07-10T16:16:00.000Z",
+    },
+  };
+}
 
 describe("Pizza Session Kitchen Mode", () => {
   it("adds the /session/kitchen route with local-first task UI and safe states", () => {
@@ -247,23 +275,28 @@ describe("Pizza Session Kitchen Mode", () => {
     }, storage, new Date("2026-06-25T10:00:00.000Z"));
     setActivePizzaSession(session.id, storage);
 
-    const updated = completeKitchenTimelineStep(
+    const result = completeKitchenTimelineStep(
       session,
       "mix-dough",
       storage,
       new Date("2026-06-25T10:30:00.000Z"),
     );
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected step completion");
+    const updated = result.session;
 
-    expect(updated?.timeline?.steps[0].status).toBe("done");
-    expect(updated?.stepRuntime?.["mix-dough"]?.actualStartedAt).toBe("2026-06-25T10:30:00.000Z");
-    expect(updated?.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-06-25T10:30:00.000Z");
+    expect(result.completedStepId).toBe("mix-dough");
+    expect(result.nextStepId).toBe("rest-dough");
+    expect(updated.timeline?.steps[0].status).toBe("done");
+    expect(updated.stepRuntime?.["mix-dough"]?.actualStartedAt).toBe("2026-06-25T10:30:00.000Z");
+    expect(updated.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-06-25T10:30:00.000Z");
     expect(getKitchenModeState(updated).ok && getKitchenModeState(updated).currentStep?.id).toBe("rest-dough");
-    expect(updated?.currentStep).toBe("prep");
-    expect(updated?.status).toBe("preparing");
-    expect(updated?.updatedAt).toBe("2026-06-25T10:30:00.000Z");
-    expect(updated?.lastSavedAt).toBe("2026-06-25T10:30:00.000Z");
-    expect(updated?.recipeSnapshot?.flourAmount).toBe(623.2);
-    expect(updated?.shoppingList?.presetName).toBe("Margherita");
+    expect(updated.currentStep).toBe("prep");
+    expect(updated.status).toBe("preparing");
+    expect(updated.updatedAt).toBe("2026-06-25T10:30:00.000Z");
+    expect(updated.lastSavedAt).toBe("2026-06-25T10:30:00.000Z");
+    expect(updated.recipeSnapshot?.flourAmount).toBe(623.2);
+    expect(updated.shoppingList?.presetName).toBe("Margherita");
     expect(getActivePizzaSession(storage)?.id).toBe(session.id);
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("mix-dough");
   });
@@ -278,13 +311,14 @@ describe("Pizza Session Kitchen Mode", () => {
     }, storage, new Date("2026-06-25T09:00:00.000Z"));
     setActivePizzaSession(session.id, storage);
 
-    const updated = completeKitchenTimelineStep(
+    const result = completeKitchenTimelineStep(
       session,
       "mix-dough",
       storage,
       new Date("2026-06-25T10:45:00.000Z"),
     );
-    if (!updated) throw new Error("Expected updated session");
+    if (!result.ok) throw new Error("Expected updated session");
+    const updated = result.session;
 
     const originalRest = session.timeline?.steps.find((step) => step.id === "rest-dough");
     const state = getKitchenModeState(updated, new Date("2026-06-25T10:46:00.000Z"));
@@ -335,21 +369,188 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(before.currentStep.id).toBe("room-ferment");
     expect(getKitchenStepWaitInfo(before.currentStep, new Date("2026-07-11T03:00:00.000Z")).isTooEarly).toBe(false);
 
-    const updated = completeKitchenTimelineStep(
+    const result = completeKitchenTimelineStep(
       session,
       "room-ferment",
       storage,
       new Date("2026-07-11T03:00:00.000Z"),
     );
-    if (!updated) throw new Error("Expected updated session");
+    if (!result.ok) throw new Error("Expected updated session");
+    const updated = result.session;
 
     const after = getKitchenModeState(updated, new Date("2026-07-11T03:00:01.000Z"));
     if (!after.ok || !after.currentStep) throw new Error("Expected next kitchen state");
+    expect(result.completedStepId).toBe("room-ferment");
+    expect(result.nextStepId).toBe("ball-dough");
     expect(updated.timeline?.steps.find((step) => step.id === "room-ferment")?.status).toBe("done");
     expect(updated.stepRuntime?.["room-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
     expect(after.currentStep.id).toBe("ball-dough");
     expect(after.currentStep.scheduledAt).toBe("2026-07-11T03:00:00.000Z");
     expect(getActivePizzaSession(storage)?.stepRuntime?.["room-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+  });
+
+  it("advances exact-match cold fermentation to Ball dough and records runtime completion", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-cold-fermentation-complete",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "24h-cold" },
+      timeline: fermentationTimeline("cold-ferment", "Cold fermentation"),
+      stepRuntime: completedDoughRuntime(),
+    }, storage, new Date("2026-07-10T15:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+
+    const before = getKitchenModeState(session, new Date("2026-07-11T03:00:00.000Z"));
+    if (!before.ok || !before.currentStep) throw new Error("Expected cold fermentation state");
+    expect(before.currentStep.id).toBe("cold-ferment");
+
+    const result = completeKitchenTimelineStep(
+      session,
+      before.currentStep,
+      storage,
+      new Date("2026-07-11T03:00:00.000Z"),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected cold fermentation completion");
+
+    expect(result.completedStepId).toBe("cold-ferment");
+    expect(result.nextStepId).toBe("ball-dough");
+    expect(result.session.timeline?.steps.find((step) => step.id === "cold-ferment")?.status).toBe("done");
+    expect(result.session.stepRuntime?.["cold-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+    const after = getKitchenModeState(result.session, new Date("2026-07-11T03:00:01.000Z"));
+    expect(after.ok && after.currentStep?.id).toBe("ball-dough");
+  });
+
+  it("completes the persisted room-ferment step when Kitchen displays cold-ferment for a legacy session", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-displayed-cold-persisted-room",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "24h-cold" },
+      timeline: fermentationTimeline("room-ferment", "Room temperature ferment"),
+      stepRuntime: completedDoughRuntime(),
+    }, storage, new Date("2026-07-10T15:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+
+    const before = getKitchenModeState(session, new Date("2026-07-11T03:00:00.000Z"));
+    if (!before.ok || !before.currentStep) throw new Error("Expected displayed cold fermentation state");
+    expect(before.currentStep.id).toBe("cold-ferment");
+    expect(session.timeline?.steps.some((step) => step.id === "cold-ferment")).toBe(false);
+
+    const resolution = resolvePersistedKitchenStepId(session, before.currentStep, new Date("2026-07-11T03:00:00.000Z"));
+    expect(resolution.ok && resolution.step.id).toBe("room-ferment");
+
+    const result = completeKitchenTimelineStep(
+      session,
+      before.currentStep,
+      storage,
+      new Date("2026-07-11T03:00:00.000Z"),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected legacy mismatch completion");
+
+    expect(result.completedStepId).toBe("room-ferment");
+    expect(result.nextStepId).toBe("ball-dough");
+    expect(result.session.timeline?.steps.find((step) => step.id === "room-ferment")?.status).toBe("done");
+    expect(result.session.timeline?.steps.find((step) => step.id === "room-ferment")?.scheduledAt).toBe("2026-07-10T16:26:00.000Z");
+    expect(result.session.timeline?.steps.some((step) => step.id === "cold-ferment")).toBe(false);
+    expect(result.session.stepRuntime?.["room-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+    expect(result.session.stepRuntime?.["cold-ferment"]).toBeUndefined();
+    expect(getKitchenModeState(result.session, new Date("2026-07-11T03:00:01.000Z")).ok && getKitchenModeState(result.session, new Date("2026-07-11T03:00:01.000Z")).currentStep?.id).toBe("ball-dough");
+    expect(getActivePizzaSession(storage)?.stepRuntime?.["room-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+  });
+
+  it("completes the persisted cold-ferment step when Kitchen displays room-ferment for a legacy session", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-displayed-room-persisted-cold",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "12h-room" },
+      timeline: fermentationTimeline("cold-ferment", "Cold fermentation"),
+      stepRuntime: completedDoughRuntime(),
+    }, storage, new Date("2026-07-10T15:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+
+    const before = getKitchenModeState(session, new Date("2026-07-11T03:00:00.000Z"));
+    if (!before.ok || !before.currentStep) throw new Error("Expected displayed room fermentation state");
+    expect(before.currentStep.id).toBe("room-ferment");
+    expect(session.timeline?.steps.some((step) => step.id === "room-ferment")).toBe(false);
+
+    const result = completeKitchenTimelineStep(
+      session,
+      before.currentStep,
+      storage,
+      new Date("2026-07-11T03:00:00.000Z"),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected legacy mismatch completion");
+
+    expect(result.completedStepId).toBe("cold-ferment");
+    expect(result.nextStepId).toBe("ball-dough");
+    expect(result.session.timeline?.steps.find((step) => step.id === "cold-ferment")?.status).toBe("done");
+    expect(result.session.timeline?.steps.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe("2026-07-10T16:26:00.000Z");
+    expect(result.session.timeline?.steps.some((step) => step.id === "room-ferment")).toBe(false);
+    expect(result.session.stepRuntime?.["cold-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+    expect(result.session.stepRuntime?.["room-ferment"]).toBeUndefined();
+    expect(getKitchenModeState(result.session, new Date("2026-07-11T03:00:01.000Z")).ok && getKitchenModeState(result.session, new Date("2026-07-11T03:00:01.000Z")).currentStep?.id).toBe("ball-dough");
+  });
+
+  it("keeps legacy fermentation completion idempotent across repeated stale clicks", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-legacy-fermentation-repeat",
+      status: "preparing",
+      currentStep: "prep",
+      recipeSnapshot: { fermentation: "24h-cold" },
+      timeline: fermentationTimeline("room-ferment", "Room temperature ferment"),
+      stepRuntime: completedDoughRuntime(),
+    }, storage, new Date("2026-07-10T15:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+    const before = getKitchenModeState(session, new Date("2026-07-11T03:00:00.000Z"));
+    if (!before.ok || !before.currentStep) throw new Error("Expected displayed cold fermentation state");
+
+    const first = completeKitchenTimelineStep(session, before.currentStep, storage, new Date("2026-07-11T03:00:00.000Z"));
+    if (!first.ok) throw new Error("Expected first completion");
+    const second = completeKitchenTimelineStep(first.session, before.currentStep, storage, new Date("2026-07-11T03:05:00.000Z"));
+    if (!second.ok) throw new Error("Expected idempotent second completion");
+
+    expect(second.completedStepId).toBe("room-ferment");
+    expect(second.session.stepRuntime?.["room-ferment"]?.actualCompletedAt).toBe("2026-07-11T03:00:00.000Z");
+    expect(getKitchenModeState(second.session, new Date("2026-07-11T03:05:01.000Z")).ok && getKitchenModeState(second.session, new Date("2026-07-11T03:05:01.000Z")).currentStep?.id).toBe("ball-dough");
+  });
+
+  it("does not complete arbitrary fermentation steps when legacy candidates are ambiguous", () => {
+    const storage = new MemoryStorage();
+    const session = createAndSavePizzaSession({
+      id: "kitchen-ambiguous-fermentation",
+      status: "preparing",
+      currentStep: "prep",
+      timeline: {
+        generatedAt: "2026-07-10T15:00:00.000Z",
+        steps: [
+          { id: "mix-dough", label: "Mix dough", status: "done" as const, kind: "active" as const },
+          { id: "legacy-ferment-a", label: "Ferment dough", scheduledAt: "2026-07-10T16:00:00.000Z", status: "todo" as const, kind: "passive" as const },
+          { id: "legacy-ferment-b", label: "Ferment dough", scheduledAt: "2026-07-10T16:30:00.000Z", status: "todo" as const, kind: "passive" as const },
+          { id: "ball-dough", label: "Ball dough", scheduledAt: "2026-07-11T02:26:00.000Z", status: "todo" as const, kind: "active" as const },
+        ],
+      },
+    }, storage, new Date("2026-07-10T15:00:00.000Z"));
+    setActivePizzaSession(session.id, storage);
+    const beforeStorage = storage.getItem(PIZZA_SESSIONS_STORAGE_KEY);
+
+    const result = completeKitchenTimelineStep(
+      session,
+      { id: "ferment-dough", label: "Ferment dough", status: "todo", scheduledAt: "2026-07-11T03:00:00.000Z" },
+      storage,
+      new Date("2026-07-11T03:00:00.000Z"),
+    );
+
+    expect(result).toEqual({ ok: false, reason: "ambiguous_fermentation_step" });
+    expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toBe(beforeStorage);
+    expect(getActivePizzaSession(storage)?.stepRuntime).toBeUndefined();
   });
 
   it("keeps older sessions on the planned schedule when runtime completion data is absent", () => {
@@ -548,9 +749,13 @@ describe("Pizza Session Kitchen Mode", () => {
       },
     }, storage);
 
-    const updated = completeKitchenTimelineStep(session, "bake-pizza", storage);
-    expect(updated?.currentStep).toBe("review");
-    expect(updated?.status).toBe("reviewing");
+    const result = completeKitchenTimelineStep(session, "bake-pizza", storage);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected bake completion");
+    expect(result.completedStepId).toBe("bake-pizza");
+    expect(result.nextStepId).toBeNull();
+    expect(result.session.currentStep).toBe("review");
+    expect(result.session.status).toBe("reviewing");
   });
 
   it("shows recipe snapshot ingredient lines for Mix dough without recalculating", () => {
@@ -780,7 +985,9 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("aria-describedby=\"early-kitchen-step-description\"");
     expect(page).toContain("earlyKeepWaitingRef.current?.focus()");
     expect(page).toContain("setConfirmEarlyCompletion(false)");
-    expect(page).toContain("completeKitchenTimelineStep(session, currentStep.id, undefined, now)");
+    expect(page).toContain("const result = completeKitchenTimelineStep(session, currentStep, undefined, now)");
+    expect(page).toContain("We couldn’t complete this step. Your progress is still safe. Try again.");
+    expect(page).toContain("Try again");
     expect(page).toContain("setCurrentTime(now)");
     expect(page).not.toContain("Continue anyway");
   });

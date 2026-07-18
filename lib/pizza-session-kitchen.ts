@@ -65,6 +65,23 @@ export type EarlyTimedKitchenCompletionWarning = {
   title: string;
 };
 
+export type KitchenStepCompletionFailureReason =
+  | "step_not_found"
+  | "ambiguous_fermentation_step"
+  | "persistence_failed";
+
+export type KitchenStepCompletionResult =
+  | {
+      ok: true;
+      session: PizzaSession;
+      completedStepId: string;
+      nextStepId: string | null;
+    }
+  | {
+      ok: false;
+      reason: KitchenStepCompletionFailureReason;
+    };
+
 export type KitchenTaskPresentation = {
   title: string;
   shortInstruction: string;
@@ -73,6 +90,16 @@ export type KitchenTaskPresentation = {
 };
 
 type KitchenFermentationMode = "cold" | "room" | "unknown";
+type KitchenDisplayedCompletionStep = Pick<PizzaSessionTimelineStep, "id" | "label" | "scheduledAt" | "status"> & {
+  plannedScheduledAt?: string;
+};
+type KitchenCompletionStepInput = string | KitchenDisplayedCompletionStep;
+
+type PersistedKitchenStepResolution =
+  | { ok: true; step: PizzaSessionTimelineStep }
+  | { ok: false; reason: "step_not_found" | "ambiguous_fermentation_step" };
+
+const fermentationStepIds = new Set(["cold-ferment", "room-ferment", "ferment-dough"]);
 
 const defaultInstruction: KitchenTaskInstruction = {
   shortInstruction: "Follow the timeline step, then mark it done when you are ready to continue.",
@@ -390,9 +417,7 @@ function isFermentationTimelineStep(step?: PizzaSessionTimelineStep) {
   if (!step) return false;
   const label = step.label.toLowerCase();
   return (
-    step.id === "cold-ferment"
-    || step.id === "room-ferment"
-    || step.id === "ferment-dough"
+    fermentationStepIds.has(step.id)
     || label.includes("room fermentation")
     || label.includes("room temperature ferment")
     || label.includes("ferment dough")
@@ -402,6 +427,78 @@ function isFermentationTimelineStep(step?: PizzaSessionTimelineStep) {
 export function isKitchenFermentationStep(step?: Pick<PizzaSessionTimelineStep, "id" | "label">) {
   if (!step) return false;
   return isFermentationTimelineStep({ ...step, status: "todo" });
+}
+
+function completionInputId(input: KitchenCompletionStepInput) {
+  return typeof input === "string" ? input : input.id;
+}
+
+function completionInputStep(input: KitchenCompletionStepInput): KitchenDisplayedCompletionStep {
+  return typeof input === "string"
+    ? { id: input, label: input, status: "todo" as const }
+    : input;
+}
+
+function normalizedFermentationStepId(
+  step: PizzaSessionTimelineStep,
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot"> | null,
+) {
+  if (!isFermentationTimelineStep(step)) return step.id;
+  const mode = resolveKitchenFermentationMode(session, step);
+  if (mode === "cold") return "cold-ferment";
+  if (mode === "room") return "room-ferment";
+  return "ferment-dough";
+}
+
+function onlyCandidate(
+  candidates: PizzaSessionTimelineStep[],
+): PersistedKitchenStepResolution {
+  if (candidates.length === 1) return { ok: true, step: candidates[0] };
+  if (candidates.length > 1) return { ok: false, reason: "ambiguous_fermentation_step" };
+  return { ok: false, reason: "step_not_found" };
+}
+
+function readyOrOverdueStep(step: PizzaSessionTimelineStep, now: Date) {
+  if (!step.scheduledAt) return false;
+  const scheduled = new Date(step.scheduledAt);
+  return Number.isFinite(scheduled.getTime()) && scheduled.getTime() <= now.getTime();
+}
+
+export function resolvePersistedKitchenStepId(
+  session: Pick<PizzaSession, "timeline" | "stepRuntime" | "plannedFermentationHours" | "recipeSnapshot">,
+  displayedStepInput: KitchenCompletionStepInput,
+  now = new Date(),
+): PersistedKitchenStepResolution {
+  const steps = session.timeline?.steps ?? [];
+  const displayedStep = completionInputStep(displayedStepInput);
+  const displayedStepId = completionInputId(displayedStepInput);
+  const exactStep = steps.find((step) => step.id === displayedStepId);
+  if (exactStep) return { ok: true, step: exactStep };
+
+  if (!isKitchenFermentationStep(displayedStep)) return { ok: false, reason: "step_not_found" };
+
+  const familyCandidates = steps.filter((step) => isFermentationTimelineStep(step));
+  if (!familyCandidates.length) return { ok: false, reason: "step_not_found" };
+
+  const normalizedMatches = familyCandidates.filter((step) => (
+    normalizedFermentationStepId(step, session) === displayedStepId
+  ));
+  const incompleteNormalizedMatches = normalizedMatches.filter((step) => step.status === "todo");
+  if (incompleteNormalizedMatches.length === 1) return { ok: true, step: incompleteNormalizedMatches[0] };
+  if (normalizedMatches.length === 1) return { ok: true, step: normalizedMatches[0] };
+  if (normalizedMatches.length > 1) return { ok: false, reason: "ambiguous_fermentation_step" };
+
+  const incompleteFamilyCandidates = familyCandidates.filter((step) => step.status === "todo");
+  if (incompleteFamilyCandidates.length === 1) return { ok: true, step: incompleteFamilyCandidates[0] };
+
+  const readyFamilyCandidates = incompleteFamilyCandidates.filter((step) => readyOrOverdueStep(step, now));
+  if (readyFamilyCandidates.length) return onlyCandidate(readyFamilyCandidates);
+
+  if (familyCandidates.length === 1) return { ok: true, step: familyCandidates[0] };
+
+  return incompleteFamilyCandidates.length > 1
+    ? { ok: false, reason: "ambiguous_fermentation_step" }
+    : { ok: false, reason: "step_not_found" };
 }
 
 export function resolveKitchenFermentationMode(
@@ -817,14 +914,15 @@ export function getEarlyTimedKitchenCompletionWarning(
 
 export function completeKitchenTimelineStep(
   session: PizzaSession,
-  stepId: string,
+  stepInput: KitchenCompletionStepInput,
   storage?: Storage,
   now = new Date(),
-) {
+): KitchenStepCompletionResult {
   const timeline = session.timeline;
-  if (!timeline) return undefined;
-  const targetStep = timeline.steps.find((step) => step.id === stepId);
-  if (!targetStep) return undefined;
+  if (!timeline) return { ok: false, reason: "step_not_found" };
+  const resolved = resolvePersistedKitchenStepId(session, stepInput, now);
+  if (!resolved.ok) return resolved;
+  const stepId = resolved.step.id;
 
   const steps = timeline.steps.map((step) => (
     step.id === stepId ? { ...step, status: "done" as const } : step
@@ -832,7 +930,7 @@ export function completeKitchenTimelineStep(
   const nextStep = steps.find((step) => step.status === "todo");
   const updatedTimeline: PizzaSessionTimeline = { ...timeline, steps };
 
-  return updatePizzaSession(
+  const updated = updatePizzaSession(
     session.id,
     {
       timeline: updatedTimeline,
@@ -843,6 +941,14 @@ export function completeKitchenTimelineStep(
     storage,
     now,
   );
+  if (!updated) return { ok: false, reason: "persistence_failed" };
+
+  return {
+    ok: true,
+    session: updated,
+    completedStepId: stepId,
+    nextStepId: nextStep?.id ?? null,
+  };
 }
 
 function grams(value?: number) {

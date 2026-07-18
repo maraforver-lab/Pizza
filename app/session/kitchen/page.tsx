@@ -221,6 +221,7 @@ export default function SessionKitchenPage() {
   const [menuEditorOpen, setMenuEditorOpen] = useState(false);
   const [draftPizzaMix, setDraftPizzaMix] = useState<PizzaSessionPizzaMix | null>(null);
   const [menuError, setMenuError] = useState<string | null>(null);
+  const [completionError, setCompletionError] = useState<string | null>(null);
   const [earlyCompletionPreference, setEarlyCompletionPreference] = useState<EarlyCompletionPreferenceState>(defaultEarlyCompletionPreference);
   const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const menuDialogRef = useRef<HTMLDivElement | null>(null);
@@ -558,9 +559,16 @@ export default function SessionKitchenPage() {
   const completeCurrentStep = () => {
     if (!session || !currentStep) return;
     const now = new Date();
-    const updated = completeKitchenTimelineStep(session, currentStep.id, undefined, now);
-    if (!updated) return;
-    if (currentStep.id === "bake-pizza") clearKitchenBakeTimerState(session.id);
+    setCompletionError(null);
+    const result = completeKitchenTimelineStep(session, currentStep, undefined, now);
+    if (!result.ok) {
+      setConfirmEarlyCompletion(false);
+      setCurrentTime(now);
+      setCompletionError("We couldn’t complete this step. Your progress is still safe. Try again.");
+      return;
+    }
+    const updated = result.session;
+    if (result.completedStepId === "bake-pizza") clearKitchenBakeTimerState(session.id);
     queueKitchenProgressSync(updated);
     setConfirmEarlyCompletion(false);
     setCurrentTime(now);
@@ -572,6 +580,7 @@ export default function SessionKitchenPage() {
     const now = new Date();
     const updated = startPizzaSessionTimelineStep(session, currentStep.id, undefined, now);
     if (!updated) return;
+    setCompletionError(null);
     queueKitchenProgressSync(updated);
     setCurrentTime(now);
     setSession(updated);
@@ -579,6 +588,7 @@ export default function SessionKitchenPage() {
 
   const markDone = () => {
     if (!currentStep) return;
+    setCompletionError(null);
     if (currentStepCompletionBlocked) {
       setCurrentTime(new Date());
       if (currentStepCanConfirmEarlyCompletion) {
@@ -852,6 +862,19 @@ export default function SessionKitchenPage() {
                   <p className="mt-5 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
                     Quiet-hours warning: {currentStep.quietHoursWarning}
                   </p>
+                )}
+
+                {completionError && (
+                  <div className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4" role="alert">
+                    <p className="text-sm font-extrabold leading-6 text-tomato">{completionError}</p>
+                    <button
+                      type="button"
+                      onClick={completeCurrentStep}
+                      className="mt-3 inline-flex min-h-10 items-center justify-center rounded-2xl border border-tomato/25 bg-white px-4 text-sm font-extrabold text-tomato transition hover:border-tomato/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
+                    >
+                      Try again
+                    </button>
+                  </div>
                 )}
 
                 <BottomActionBar

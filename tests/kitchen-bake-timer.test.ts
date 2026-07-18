@@ -57,7 +57,7 @@ describe("Kitchen bake timer integration", () => {
     expect(page).toContain('const showBakeTimer = currentStep?.id === "bake-pizza"');
     expect(page).toContain("durationSeconds={bakeProfile.bakeDurationSeconds}");
     expect(page).toContain("durationLabel={bakeProfile.bakeTimeLabel}");
-    expect(page).toContain('if (currentStep.id === "bake-pizza") clearKitchenBakeTimerState(session.id)');
+    expect(page).toContain('if (result.completedStepId === "bake-pizza") clearKitchenBakeTimerState(session.id)');
   });
 
   it("keeps Kitchen timer actions local and separate from cloud progress persistence", () => {
