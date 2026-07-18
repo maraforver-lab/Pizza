@@ -198,7 +198,7 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
         <div className="mt-4 rounded-[1.25rem] border border-white/70 bg-white/80 p-4">
           <p className="text-sm font-extrabold text-ink">This will start a normal Pizza Session with:</p>
           <div className="mt-3 grid gap-2 text-sm font-bold leading-6 text-ink/68">
-            <p>Pizza time: <span className="text-ink">{partyOrderDateTimeLabel(event.pizza_datetime)}</span></p>
+            <p>Pizza time: <span className="text-ink">{partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}</span></p>
             <p>Total pizzas: <span className="text-ink">{activity.totalPizzaCount}</span></p>
           </div>
           <div className="mt-3 grid gap-2">

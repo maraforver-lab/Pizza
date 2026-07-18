@@ -26,7 +26,7 @@ export async function GET() {
     .order("updated_at", { ascending: false })
     .limit(20);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Party Orders could not be loaded." }, { status: 500 });
   const events = (Array.isArray(data) ? data : []).flatMap((row) => {
     const event = normalizePartyOrderRow(row);
     return event ? [event] : [];
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     .select(PARTY_ORDER_SELECT)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Party Order could not be created." }, { status: 500 });
   const event = normalizePartyOrderRow(data);
   if (!event) return NextResponse.json({ error: "Party Order could not be verified." }, { status: 500 });
   return NextResponse.json({ event });

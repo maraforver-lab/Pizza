@@ -22,6 +22,14 @@ import {
   validatePublicPartyOrderSubmissionInput,
   validatePartyOrderInput,
 } from "@/lib/party-orders";
+import {
+  PARTY_ORDER_LEGACY_TIME_ZONE,
+  dateTimeLocalToUtc,
+  normalizePartyOrderTimeZone,
+  partyOrderDateTimeLabel,
+  utcToZonedFormValue,
+  zonedWallTimeToUtc,
+} from "@/lib/party-order-time";
 import { PIZZA_MIX_OPTIONS } from "@/lib/pizza-session-shopping-list";
 
 function source(path: string) {
@@ -64,6 +72,7 @@ describe("Party Orders foundation", () => {
       title: "Friday pizza party",
       pizzaDateTime: "2026-07-10T18:00:00.000Z",
       ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
       guestNote: "Choose before Friday afternoon.",
       allowedPizzaIds: ["margherita", "diavola", "invalid"],
     });
@@ -74,6 +83,7 @@ describe("Party Orders foundation", () => {
       title: "Friday pizza party",
       pizza_datetime: "2026-07-10T18:00:00.000Z",
       orders_close_at: "2026-07-10T15:00:00.000Z",
+      time_zone: "Europe/Helsinki",
       guest_note: "Choose before Friday afternoon.",
       allowed_pizza_ids: ["margherita", "diavola"],
     });
@@ -84,6 +94,7 @@ describe("Party Orders foundation", () => {
       title: "",
       pizzaDateTime: "2026-07-10T18:00:00.000Z",
       ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
       allowedPizzaIds: ["margherita"],
     })).toMatchObject({ ok: false, error: "Event title is required." });
 
@@ -91,6 +102,7 @@ describe("Party Orders foundation", () => {
       title: "Party",
       pizzaDateTime: "",
       ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
       allowedPizzaIds: ["margherita"],
     })).toMatchObject({ ok: false, error: "Pizza date and time is required." });
 
@@ -98,6 +110,7 @@ describe("Party Orders foundation", () => {
       title: "Party",
       pizzaDateTime: "2026-07-10T18:00:00.000Z",
       ordersCloseAt: "",
+      timeZone: "Europe/Helsinki",
       allowedPizzaIds: ["margherita"],
     })).toMatchObject({ ok: false, error: "Orders close date and time is required." });
 
@@ -105,6 +118,7 @@ describe("Party Orders foundation", () => {
       title: "Party",
       pizzaDateTime: "2026-07-10T18:00:00.000Z",
       ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
       allowedPizzaIds: [],
     })).toMatchObject({ ok: false, error: "Choose at least one pizza option." });
 
@@ -112,6 +126,7 @@ describe("Party Orders foundation", () => {
       title: "Party",
       pizzaDateTime: "2026-07-10T18:00:00.000Z",
       ordersCloseAt: "2026-07-10T19:00:00.000Z",
+      timeZone: "Europe/Helsinki",
       allowedPizzaIds: ["margherita"],
     })).toMatchObject({ ok: false, error: "Orders must close before or at the pizza date and time." });
 
@@ -119,6 +134,7 @@ describe("Party Orders foundation", () => {
       title: "x".repeat(121),
       pizzaDateTime: "2026-07-10T18:00:00.000Z",
       ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
       allowedPizzaIds: ["margherita"],
     })).toMatchObject({ ok: false, error: "Event title must be 120 characters or fewer." });
 
@@ -126,9 +142,98 @@ describe("Party Orders foundation", () => {
       title: "Party",
       pizzaDateTime: "2026-07-10T18:00:00.000Z",
       ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
       guestNote: "x".repeat(501),
       allowedPizzaIds: ["margherita"],
     })).toMatchObject({ ok: false, error: "Guest note must be 500 characters or fewer." });
+  });
+
+  it("stores Party Order wall-clock times as UTC instants in the owner browser time zone", () => {
+    expect(normalizePartyOrderTimeZone("Europe/Helsinki")).toBe("Europe/Helsinki");
+    expect(zonedWallTimeToUtc({
+      date: "2026-07-10",
+      time: "18:00",
+      timeZone: "Europe/Helsinki",
+    })).toMatchObject({
+      ok: true,
+      instant: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
+    });
+    expect(dateTimeLocalToUtc("2026-01-10T18:00", "Europe/Helsinki")).toMatchObject({
+      ok: true,
+      instant: "2026-01-10T16:00:00.000Z",
+    });
+    expect(dateTimeLocalToUtc("2026-07-10T18:00", "Europe/Warsaw")).toMatchObject({
+      ok: true,
+      instant: "2026-07-10T16:00:00.000Z",
+      timeZone: "Europe/Warsaw",
+    });
+    expect(dateTimeLocalToUtc("2026-07-10T18:00", "America/New_York")).toMatchObject({
+      ok: true,
+      instant: "2026-07-10T22:00:00.000Z",
+      timeZone: "America/New_York",
+    });
+    expect(dateTimeLocalToUtc("2026-07-10T18:00", "Asia/Tokyo")).toMatchObject({
+      ok: true,
+      instant: "2026-07-10T09:00:00.000Z",
+      timeZone: "Asia/Tokyo",
+    });
+  });
+
+  it("preserves stored Party Order time zones for edit forms and labels", () => {
+    expect(utcToZonedFormValue({
+      instant: "2026-07-10T15:00:00.000Z",
+      timeZone: "Europe/Helsinki",
+    })).toBe("2026-07-10T18:00");
+    expect(utcToZonedFormValue({
+      instant: "2026-07-10T22:00:00.000Z",
+      timeZone: "America/New_York",
+    })).toBe("2026-07-10T18:00");
+    expect(partyOrderDateTimeLabel("2026-07-10T15:00:00.000Z", "Europe/Helsinki")).toBe("Fri 10 Jul · 18:00 · Europe/Helsinki");
+    expect(partyOrderDateTimeLabel("2026-07-10T22:00:00.000Z", "America/New_York")).toBe("Fri 10 Jul · 18:00 · America/New_York");
+  });
+
+  it("rejects nonexistent DST wall times and resolves ambiguous wall times deterministically", () => {
+    expect(dateTimeLocalToUtc("2026-03-29T03:30", "Europe/Helsinki")).toMatchObject({
+      ok: false,
+      code: "nonexistent_time",
+      error: "This time does not exist because the clocks change that day. Choose another time.",
+    });
+    expect(dateTimeLocalToUtc("2026-10-25T03:30", "Europe/Helsinki")).toMatchObject({
+      ok: true,
+      ambiguous: true,
+      instant: "2026-10-25T00:30:00.000Z",
+    });
+  });
+
+  it("requires a canonical Party Order time zone and falls legacy rows back to Helsinki", () => {
+    expect(validatePartyOrderInput({
+      title: "Party",
+      pizzaDateTime: "2026-07-10T18:00:00.000Z",
+      ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      allowedPizzaIds: ["margherita"],
+    })).toMatchObject({ ok: false, error: "Time zone is required." });
+    expect(validatePartyOrderInput({
+      title: "Party",
+      pizzaDateTime: "2026-07-10T18:00:00.000Z",
+      ordersCloseAt: "2026-07-10T15:00:00.000Z",
+      timeZone: "Not/AZone",
+      allowedPizzaIds: ["margherita"],
+    })).toMatchObject({ ok: false, error: "Time zone is invalid." });
+    const legacy = normalizePartyOrderRow({
+      id: "legacy-event",
+      user_id: "user-1",
+      public_token: "legacy-token",
+      title: "Legacy party",
+      pizza_datetime: "2026-07-10T18:00:00.000Z",
+      orders_close_at: "2026-07-10T15:00:00.000Z",
+      guest_note: null,
+      allowed_pizza_ids: ["margherita"],
+      status: "open",
+      created_at: "2026-07-05T10:00:00.000Z",
+      updated_at: "2026-07-05T11:00:00.000Z",
+    });
+    expect(legacy?.time_zone).toBe(PARTY_ORDER_LEGACY_TIME_ZONE);
   });
 
   it("normalizes event rows and resolves selected allowed pizzas", () => {
@@ -163,6 +268,7 @@ describe("Party Orders foundation", () => {
       title: "Guest pizza night",
       pizza_datetime: "2026-07-11T18:00:00.000Z",
       orders_close_at: "2026-07-11T15:00:00.000Z",
+      time_zone: "Europe/Helsinki",
       guest_note: "Pick your pizza.",
       allowed_pizza_ids: ["margherita", "funghi", "not-real"],
       status: "open",
@@ -174,6 +280,7 @@ describe("Party Orders foundation", () => {
       title: "Guest pizza night",
       pizza_datetime: "2026-07-11T18:00:00.000Z",
       orders_close_at: "2026-07-11T15:00:00.000Z",
+      time_zone: "Europe/Helsinki",
       guest_note: "Pick your pizza.",
       allowed_pizza_ids: ["margherita", "funghi"],
       status: "open",
@@ -225,6 +332,7 @@ describe("Party Orders foundation", () => {
     title: "Guest pizza night",
     pizza_datetime: "2026-07-11T18:00:00.000Z",
     orders_close_at: "2026-07-11T15:00:00.000Z",
+    time_zone: "Europe/Helsinki",
     guest_note: "Pick your pizza.",
     allowed_pizza_ids: ["margherita", "funghi"],
     status: "open" as const,
@@ -396,13 +504,24 @@ describe("Party Orders foundation", () => {
     const archiveMigration = source("supabase/migrations/20260706093000_allow_archived_party_orders.sql");
     expect(archiveMigration).toContain("drop constraint if exists party_orders_status_check");
     expect(archiveMigration).toContain("check (status in ('open', 'closed', 'archived'))");
+
+    const timeZoneMigration = source("supabase/migrations/20260718123000_add_party_order_time_zone.sql");
+    expect(timeZoneMigration).toContain("add column if not exists time_zone text");
+    expect(timeZoneMigration).toContain("set time_zone = 'Europe/Helsinki'");
+    expect(timeZoneMigration).toContain("alter column time_zone set default 'Europe/Helsinki'");
+    expect(timeZoneMigration).toContain("alter column time_zone set not null");
+    expect(timeZoneMigration).toContain("party_orders_time_zone_check");
+    expect(timeZoneMigration).not.toContain("pizza_datetime =");
+    expect(timeZoneMigration).not.toContain("orders_close_at =");
   });
 
   it("adds a token-only public lookup function without relaxing table RLS", () => {
-    const migration = source("supabase/migrations/20260705203000_create_public_party_order_lookup.sql");
+    const migration = source("supabase/migrations/20260718123000_add_party_order_time_zone.sql");
     expect(migration).toContain("create or replace function public.get_public_party_order(token_value text)");
+    expect(migration).toContain("time_zone text");
     expect(migration).toContain("security definer");
     expect(migration).toContain("where party_orders.public_token = token_value");
+    expect(migration).toContain("party_orders.time_zone");
     expect(migration).toContain("grant execute on function public.get_public_party_order(text) to anon, authenticated");
     expect(migration).not.toContain("user_id");
     expect(migration).not.toContain("alter table public.party_orders disable row level security");
@@ -451,6 +570,11 @@ describe("Party Orders foundation", () => {
     expect(editMigration).toContain("delete from public.party_order_items");
     expect(editMigration).toContain("grant execute on function public.get_public_party_order_submission(text, text) to anon, authenticated");
     expect(editMigration).toContain("grant execute on function public.update_public_party_order_submission(text, text, text, text, jsonb) to anon, authenticated");
+
+    const timeZoneMigration = source("supabase/migrations/20260718123000_add_party_order_time_zone.sql");
+    expect(timeZoneMigration).toContain("create or replace function public.get_public_party_order_submission");
+    expect(timeZoneMigration).toContain("time_zone text");
+    expect(timeZoneMigration).toContain("party_orders.time_zone");
   });
 
   it("wires authenticated list and create API routes with ownership filtering", () => {
@@ -462,6 +586,8 @@ describe("Party Orders foundation", () => {
     expect(route).toContain("validatePartyOrderInput(body)");
     expect(route).toContain("public_token: publicToken()");
     expect(route).toContain("status: \"open\"");
+    expect(route).toContain("Party Order could not be created.");
+    expect(source("lib/party-orders.ts")).toContain("time_zone: timeZone");
   });
 
   it("wires authenticated owner detail fetching by id and user", () => {
@@ -483,6 +609,7 @@ describe("Party Orders foundation", () => {
     expect(route).toContain("title: validation.value.title");
     expect(route).toContain("pizza_datetime: validation.value.pizza_datetime");
     expect(route).toContain("orders_close_at: validation.value.orders_close_at");
+    expect(route).toContain("time_zone: validation.value.time_zone");
     expect(route).toContain("guest_note: validation.value.guest_note");
     expect(route).toContain("allowed_pizza_ids: validation.value.allowed_pizza_ids");
     expect(route).toContain(".update(updateValues)");
@@ -594,6 +721,11 @@ describe("Party Orders foundation", () => {
     expect(form).toContain("Event title");
     expect(form).toContain("Pizza date/time");
     expect(form).toContain("Orders close date/time");
+    expect(form).toContain("detectBrowserPartyOrderTimeZone");
+    expect(form).toContain("dateTimeLocalToUtc(pizzaDateTime, detectedTimeZone)");
+    expect(form).toContain("We couldn’t detect your time zone. Refresh the page and try again.");
+    expect(form).toContain("timeZone: detectedTimeZone");
+    expect(form).toContain("Times use your browser time zone");
     expect(form).toContain("Guest note / instructions");
     expect(form).toContain("Allowed pizzas");
     expect(form).toContain("PIZZA_CATALOG_OPTIONS.map");
@@ -645,6 +777,10 @@ describe("Party Orders foundation", () => {
     expect(editForm).toContain("Guest note / invitation text");
     expect(editForm).toContain("Allowed pizzas");
     expect(editForm).toContain("PIZZA_CATALOG_OPTIONS.map");
+    expect(editForm).toContain("utcToZonedFormValue({ instant: event.pizza_datetime, timeZone: event.time_zone })");
+    expect(editForm).toContain("dateTimeLocalToUtc(pizzaDateTime, event.time_zone)");
+    expect(editForm).toContain("timeZone: event.time_zone");
+    expect(editForm).toContain("Times use this Party Order time zone");
     expect(editForm).toContain("Save changes");
     expect(editForm).toContain("Cancel");
     expect(editForm).toContain("fetch(`/api/party-orders/${event.id}`");
@@ -749,8 +885,9 @@ describe("Party Orders foundation", () => {
       user_id: "user-1",
       public_token: "public-token",
       title: "Friday pizza party",
-      pizza_datetime: "2026-07-10T18:00:00.000Z",
-      orders_close_at: "2026-07-09T20:00:00.000Z",
+      pizza_datetime: "2026-07-10T15:00:00.000Z",
+      orders_close_at: "2026-07-09T17:00:00.000Z",
+      time_zone: "Europe/Helsinki",
       guest_note: "Bring appetite.",
       allowed_pizza_ids: ["margherita"],
       status: "open",
@@ -761,8 +898,8 @@ describe("Party Orders foundation", () => {
     expect(event).toBeTruthy();
     if (!event) return;
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("You're invited to Friday pizza party 🍕");
-    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Pizza time: Fri 10 Jul, 21:00");
-    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Please order by: Thu 9 Jul, 23:00");
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Pizza time: Fri 10 Jul · 18:00 · Europe/Helsinki");
+    expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Please order by: Thu 9 Jul · 20:00 · Europe/Helsinki");
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Bring appetite.");
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("Choose your pizza here:");
     expect(partyOrderInvitationText(event, "https://doughtools.app/order/public-token")).toContain("https://doughtools.app/order/public-token");
@@ -855,8 +992,8 @@ describe("Party Orders foundation", () => {
 
     expect(publicPage).toContain("event.title");
     expect(publicPage).toContain("event.guest_note");
-    expect(publicPage).toContain("partyOrderDateTimeLabel(event.pizza_datetime)");
-    expect(publicPage).toContain("partyOrderDateTimeLabel(event.orders_close_at)");
+    expect(publicPage).toContain("partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)");
+    expect(publicPage).toContain("partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)");
     expect(publicPage).toContain("partyOrderAllowedPizzaOptions(event)");
     expect(publicPage).toContain("order.status === \"closed\" || order.status === \"archived\"");
     expect(publicPage).toContain("const token = publicToken.trim()");
@@ -869,8 +1006,8 @@ describe("Party Orders foundation", () => {
     expect(publicPage).not.toContain("Prep summary");
     expect(invitation).toContain("{event.title}");
     expect(invitation).toContain("event.guest_note");
-    expect(invitation).toContain("partyOrderDateTimeLabel(event.pizza_datetime)");
-    expect(invitation).toContain("partyOrderDateTimeLabel(event.orders_close_at)");
+    expect(invitation).toContain("partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)");
+    expect(invitation).toContain("partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)");
     expect(detail).toContain("setEvent(updatedEvent)");
   });
 

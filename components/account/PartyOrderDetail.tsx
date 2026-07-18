@@ -188,10 +188,10 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2">
         <p className="rounded-[1.25rem] bg-cream/70 p-4 text-sm font-bold leading-6 text-ink/70">
-          Pizza time: {partyOrderDateTimeLabel(event.pizza_datetime)}
+          Pizza time: {partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}
         </p>
         <p className="rounded-[1.25rem] bg-cream/70 p-4 text-sm font-bold leading-6 text-ink/70">
-          Orders close: {partyOrderDateTimeLabel(event.orders_close_at)}
+          Orders close: {partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)}
         </p>
       </section>
 
@@ -291,10 +291,10 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
             Order status: <strong className="capitalize text-ink">{event.status}</strong>
           </p>
           <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70">
-            Pizza time: <strong className="text-ink">{partyOrderDateTimeLabel(event.pizza_datetime)}</strong>
+            Pizza time: <strong className="text-ink">{partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}</strong>
           </p>
           <p className="rounded-[1.25rem] bg-white/80 p-4 text-sm font-bold leading-6 text-ink/70 sm:col-span-2">
-            Orders close: <strong className="text-ink">{partyOrderDateTimeLabel(event.orders_close_at)}</strong>
+            Orders close: <strong className="text-ink">{partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)}</strong>
           </p>
         </div>
       </section>
@@ -346,7 +346,7 @@ export function PartyOrderDetail({ eventId }: PartyOrderDetailProps) {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <h3 className="min-w-0 [overflow-wrap:anywhere] text-base font-extrabold text-ink">{order.guest_name}</h3>
                   <div className="flex flex-col gap-2 sm:items-end">
-                    <p className="text-xs font-bold text-ink/45">Submitted {partyOrderDateTimeLabel(order.created_at)}</p>
+                    <p className="text-xs font-bold text-ink/45">Submitted {partyOrderDateTimeLabel(order.created_at, event.time_zone)}</p>
                     {confirmingDeleteId !== order.id && (
                       <button
                         type="button"

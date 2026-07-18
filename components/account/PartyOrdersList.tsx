@@ -70,7 +70,7 @@ function PartyOrderListCard({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h3 className="font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">{event.title}</h3>
-              <p className="mt-2 text-sm font-bold text-ink/58">Pizza time: {partyOrderDateTimeLabel(event.pizza_datetime)}</p>
+              <p className="mt-2 text-sm font-bold text-ink/58">Pizza time: {partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}</p>
             </div>
             <PartyOrderStatusPill event={event} />
           </div>
@@ -90,7 +90,7 @@ function PartyOrderListCard({
             </div>
             <div className="rounded-[1.1rem] bg-cream/70 p-3">
               <dt className="text-[11px] font-extrabold uppercase tracking-[.14em] text-ink/40">Orders close</dt>
-              <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{partyOrderDateTimeLabel(event.orders_close_at)}</dd>
+              <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)}</dd>
             </div>
           </dl>
 

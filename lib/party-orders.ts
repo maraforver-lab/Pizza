@@ -5,6 +5,14 @@ import {
   normalizePizzaCatalogIds,
   pizzaCatalogOptionsForIds,
 } from "@/lib/pizza-catalog";
+import {
+  PARTY_ORDER_LEGACY_TIME_ZONE,
+  normalizePartyOrderTimeZone,
+  partyOrderDateTimeLabel,
+  validUtcInstant,
+} from "@/lib/party-order-time";
+
+export { partyOrderDateTimeLabel } from "@/lib/party-order-time";
 
 export type PartyOrderStatus = "open" | "closed" | "archived";
 
@@ -15,6 +23,7 @@ export type PartyOrderRow = {
   title: string;
   pizza_datetime: string;
   orders_close_at: string;
+  time_zone: string;
   guest_note: string | null;
   allowed_pizza_ids: PizzaSessionPizzaMixType[];
   status: PartyOrderStatus;
@@ -27,13 +36,14 @@ export type PublicPartyOrder = Pick<PartyOrderRow,
   | "title"
   | "pizza_datetime"
   | "orders_close_at"
+  | "time_zone"
   | "guest_note"
   | "allowed_pizza_ids"
   | "status"
   | "updated_at"
 >;
 
-export const PARTY_ORDER_SELECT = "id,user_id,public_token,title,pizza_datetime,orders_close_at,guest_note,allowed_pizza_ids,status,created_at,updated_at";
+export const PARTY_ORDER_SELECT = "id,user_id,public_token,title,pizza_datetime,orders_close_at,time_zone,guest_note,allowed_pizza_ids,status,created_at,updated_at";
 export const PARTY_ORDER_TITLE_MAX_LENGTH = 120;
 export const PARTY_ORDER_GUEST_NOTE_MAX_LENGTH = 500;
 
@@ -115,6 +125,7 @@ export function normalizePartyOrderRow(value: unknown): PartyOrderRow | undefine
   const title = typeof value.title === "string" && value.title.trim() ? value.title.trim() : undefined;
   const pizzaDateTime = validDateTime(stringField(value, "pizza_datetime", "pizzaDateTime"));
   const ordersCloseAt = validDateTime(stringField(value, "orders_close_at", "ordersCloseAt"));
+  const timeZone = normalizePartyOrderTimeZone(stringField(value, "time_zone", "timeZone")) ?? PARTY_ORDER_LEGACY_TIME_ZONE;
   const createdAt = validDateTime(stringField(value, "created_at", "createdAt"));
   const updatedAt = validDateTime(stringField(value, "updated_at", "updatedAt"));
   const status = normalizeStatus(value.status);
@@ -128,6 +139,7 @@ export function normalizePartyOrderRow(value: unknown): PartyOrderRow | undefine
     title,
     pizza_datetime: pizzaDateTime,
     orders_close_at: ordersCloseAt,
+    time_zone: timeZone,
     guest_note: typeof value.guest_note === "string" ? value.guest_note : null,
     allowed_pizza_ids: allowedPizzaIds,
     status,
@@ -142,6 +154,7 @@ export function normalizePublicPartyOrder(value: unknown): PublicPartyOrder | un
   const title = typeof value.title === "string" && value.title.trim() ? value.title.trim() : undefined;
   const pizzaDateTime = validDateTime(stringField(value, "pizza_datetime", "pizzaDateTime"));
   const ordersCloseAt = validDateTime(stringField(value, "orders_close_at", "ordersCloseAt"));
+  const timeZone = normalizePartyOrderTimeZone(stringField(value, "time_zone", "timeZone")) ?? PARTY_ORDER_LEGACY_TIME_ZONE;
   const updatedAt = validDateTime(stringField(value, "updated_at", "updatedAt"));
   const status = normalizeStatus(value.status);
   const allowedPizzaIds = normalizePizzaCatalogIds(value.allowed_pizza_ids ?? value.allowedPizzaIds);
@@ -152,6 +165,7 @@ export function normalizePublicPartyOrder(value: unknown): PublicPartyOrder | un
     title,
     pizza_datetime: pizzaDateTime,
     orders_close_at: ordersCloseAt,
+    time_zone: timeZone,
     guest_note: typeof value.guest_note === "string" ? value.guest_note : null,
     allowed_pizza_ids: allowedPizzaIds,
     status,
@@ -194,8 +208,10 @@ export function normalizePublicPartyOrderEditableSubmission(value: unknown): Pub
 export function validatePartyOrderInput(value: unknown) {
   const record = isRecord(value) ? value : {};
   const title = typeof record.title === "string" ? record.title.trim() : "";
-  const pizzaDateTime = validDateTime(stringField(record, "pizza_datetime", "pizzaDateTime"));
-  const ordersCloseAt = validDateTime(stringField(record, "orders_close_at", "ordersCloseAt"));
+  const pizzaDateTime = validUtcInstant(stringField(record, "pizza_datetime", "pizzaDateTime"));
+  const ordersCloseAt = validUtcInstant(stringField(record, "orders_close_at", "ordersCloseAt"));
+  const rawTimeZone = stringField(record, "time_zone", "timeZone");
+  const timeZone = normalizePartyOrderTimeZone(rawTimeZone);
   const guestNote = typeof (record.guest_note ?? record.guestNote) === "string"
     ? String(record.guest_note ?? record.guestNote).trim()
     : "";
@@ -205,6 +221,8 @@ export function validatePartyOrderInput(value: unknown) {
   if (title.length > PARTY_ORDER_TITLE_MAX_LENGTH) return { ok: false as const, error: "Event title must be 120 characters or fewer." };
   if (!pizzaDateTime) return { ok: false as const, error: "Pizza date and time is required." };
   if (!ordersCloseAt) return { ok: false as const, error: "Orders close date and time is required." };
+  if (!rawTimeZone) return { ok: false as const, error: "Time zone is required." };
+  if (!timeZone) return { ok: false as const, error: "Time zone is invalid." };
   if (guestNote.length > PARTY_ORDER_GUEST_NOTE_MAX_LENGTH) return { ok: false as const, error: "Guest note must be 500 characters or fewer." };
   if (allowedPizzaIds.length === 0) return { ok: false as const, error: "Choose at least one pizza option." };
   if (new Date(ordersCloseAt).getTime() > new Date(pizzaDateTime).getTime()) {
@@ -217,6 +235,7 @@ export function validatePartyOrderInput(value: unknown) {
       title,
       pizza_datetime: pizzaDateTime,
       orders_close_at: ordersCloseAt,
+      time_zone: timeZone,
       guest_note: guestNote || null,
       allowed_pizza_ids: allowedPizzaIds,
     },
@@ -529,18 +548,6 @@ export function buildPartyOrderPizzaSessionHandoff(
   };
 }
 
-export function partyOrderDateTimeLabel(value: string) {
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Not set";
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
 function partyOrderPrepStatusLabel(
   order: Pick<PartyOrderRow | PublicPartyOrder, "status" | "orders_close_at">,
   now = new Date(),
@@ -550,7 +557,7 @@ function partyOrderPrepStatusLabel(
 }
 
 export function partyOrderPrepSummaryText(
-  order: Pick<PartyOrderRow, "title" | "pizza_datetime" | "orders_close_at" | "status">,
+  order: Pick<PartyOrderRow, "title" | "pizza_datetime" | "orders_close_at" | "time_zone" | "status">,
   activity: PartyOrderActivity,
   publicGuestLink?: string,
   now = new Date(),
@@ -559,10 +566,10 @@ export function partyOrderPrepSummaryText(
     `Pizza Party: ${order.title}`,
     "",
     "Pizza time:",
-    partyOrderDateTimeLabel(order.pizza_datetime),
+    partyOrderDateTimeLabel(order.pizza_datetime, order.time_zone),
     "",
     "Orders close:",
-    partyOrderDateTimeLabel(order.orders_close_at),
+    partyOrderDateTimeLabel(order.orders_close_at, order.time_zone),
     "",
     "Status:",
     partyOrderPrepStatusLabel(order, now),
@@ -603,14 +610,14 @@ export function partyOrderPrepSummaryText(
 }
 
 export function partyOrderInvitationText(
-  order: Pick<PartyOrderRow, "title" | "pizza_datetime" | "orders_close_at" | "guest_note">,
+  order: Pick<PartyOrderRow, "title" | "pizza_datetime" | "orders_close_at" | "time_zone" | "guest_note">,
   publicGuestLink: string,
 ) {
   const lines = [
     `You're invited to ${order.title} 🍕`,
     "",
-    `Pizza time: ${partyOrderDateTimeLabel(order.pizza_datetime)}`,
-    `Please order by: ${partyOrderDateTimeLabel(order.orders_close_at)}`,
+    `Pizza time: ${partyOrderDateTimeLabel(order.pizza_datetime, order.time_zone)}`,
+    `Please order by: ${partyOrderDateTimeLabel(order.orders_close_at, order.time_zone)}`,
   ];
 
   if (order.guest_note?.trim()) {

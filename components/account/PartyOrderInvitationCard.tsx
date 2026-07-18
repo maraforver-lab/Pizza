@@ -86,11 +86,11 @@ function PartyOrderInvitationExportCard({
           <div className="mt-10 grid grid-cols-2 gap-5">
             <p className="rounded-[28px] border border-white/16 bg-white/12 p-6 text-2xl font-bold leading-snug text-white/78">
               Pizza time:<br />
-              <span className="text-3xl text-white">{partyOrderDateTimeLabel(event.pizza_datetime)}</span>
+              <span className="text-3xl text-white">{partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}</span>
             </p>
             <p className="rounded-[28px] border border-white/16 bg-white/12 p-6 text-2xl font-bold leading-snug text-white/78">
               Order by:<br />
-              <span className="text-3xl text-white">{partyOrderDateTimeLabel(event.orders_close_at)}</span>
+              <span className="text-3xl text-white">{partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)}</span>
             </p>
           </div>
           {event.guest_note && (
@@ -231,11 +231,11 @@ export function PartyOrderInvitationCard({ event, shareLink }: PartyOrderInvitat
             <div className="mt-5 grid gap-3 text-sm font-bold leading-6 text-white/82 sm:grid-cols-2">
               <p className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
                 Pizza time:<br />
-                <span className="text-base text-white">{partyOrderDateTimeLabel(event.pizza_datetime)}</span>
+                <span className="text-base text-white">{partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}</span>
               </p>
               <p className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur">
                 Order by:<br />
-                <span className="text-base text-white">{partyOrderDateTimeLabel(event.orders_close_at)}</span>
+                <span className="text-base text-white">{partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)}</span>
               </p>
             </div>
             {event.guest_note && (

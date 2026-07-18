@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { PIZZA_CATALOG_OPTIONS } from "@/lib/pizza-catalog";
+import { dateTimeLocalToUtc, utcToZonedFormValue } from "@/lib/party-order-time";
 import { normalizePartyOrderRow, type PartyOrderRow } from "@/lib/party-orders";
 
 type PartyOrderSettingsEditFormProps = {
@@ -10,28 +11,19 @@ type PartyOrderSettingsEditFormProps = {
   onSaved: (event: PartyOrderRow) => void;
 };
 
-function dateTimeLocalValue(value: string) {
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "";
-  const pad = (item: number) => String(item).padStart(2, "0");
-  return [
-    date.getFullYear(),
-    "-",
-    pad(date.getMonth() + 1),
-    "-",
-    pad(date.getDate()),
-    "T",
-    pad(date.getHours()),
-    ":",
-    pad(date.getMinutes()),
-  ].join("");
-}
-
 export function PartyOrderSettingsEditForm({ event, onCancel, onSaved }: PartyOrderSettingsEditFormProps) {
   const initialPizzaIds = useMemo(() => event.allowed_pizza_ids, [event.allowed_pizza_ids]);
+  const initialPizzaDateTime = useMemo(
+    () => utcToZonedFormValue({ instant: event.pizza_datetime, timeZone: event.time_zone }),
+    [event.pizza_datetime, event.time_zone],
+  );
+  const initialOrdersCloseAt = useMemo(
+    () => utcToZonedFormValue({ instant: event.orders_close_at, timeZone: event.time_zone }),
+    [event.orders_close_at, event.time_zone],
+  );
   const [title, setTitle] = useState(event.title);
-  const [pizzaDateTime, setPizzaDateTime] = useState(() => dateTimeLocalValue(event.pizza_datetime));
-  const [ordersCloseAt, setOrdersCloseAt] = useState(() => dateTimeLocalValue(event.orders_close_at));
+  const [pizzaDateTime, setPizzaDateTime] = useState(() => initialPizzaDateTime);
+  const [ordersCloseAt, setOrdersCloseAt] = useState(() => initialOrdersCloseAt);
   const [guestNote, setGuestNote] = useState(event.guest_note ?? "");
   const [allowedPizzaIds, setAllowedPizzaIds] = useState<string[]>(initialPizzaIds);
   const [error, setError] = useState("");
@@ -52,6 +44,21 @@ export function PartyOrderSettingsEditForm({ event, onCancel, onSaved }: PartyOr
       setError("Choose at least one pizza option.");
       return;
     }
+    const nextPizzaDateTime = pizzaDateTime === initialPizzaDateTime
+      ? event.pizza_datetime
+      : dateTimeLocalToUtc(pizzaDateTime, event.time_zone);
+    if (typeof nextPizzaDateTime !== "string" && !nextPizzaDateTime.ok) {
+      setError(nextPizzaDateTime.error);
+      return;
+    }
+    const nextOrdersCloseAt = ordersCloseAt === initialOrdersCloseAt
+      ? event.orders_close_at
+      : dateTimeLocalToUtc(ordersCloseAt, event.time_zone);
+    if (typeof nextOrdersCloseAt !== "string" && !nextOrdersCloseAt.ok) {
+      setError(nextOrdersCloseAt.error);
+      return;
+    }
+
     setSaving(true);
     try {
       const response = await fetch(`/api/party-orders/${event.id}`, {
@@ -59,8 +66,9 @@ export function PartyOrderSettingsEditForm({ event, onCancel, onSaved }: PartyOr
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          pizzaDateTime,
-          ordersCloseAt,
+          pizzaDateTime: typeof nextPizzaDateTime === "string" ? nextPizzaDateTime : nextPizzaDateTime.instant,
+          ordersCloseAt: typeof nextOrdersCloseAt === "string" ? nextOrdersCloseAt : nextOrdersCloseAt.instant,
+          timeZone: event.time_zone,
           guestNote,
           allowedPizzaIds,
         }),
@@ -130,6 +138,9 @@ export function PartyOrderSettingsEditForm({ event, onCancel, onSaved }: PartyOr
             />
           </label>
         </div>
+        <p className="text-xs font-bold leading-5 text-ink/50">
+          Times use this Party Order time zone: {event.time_zone}.
+        </p>
 
         <label className="block text-sm font-extrabold text-ink/70">
           Guest note / invitation text

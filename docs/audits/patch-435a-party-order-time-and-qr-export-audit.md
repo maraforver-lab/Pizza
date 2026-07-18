@@ -6,6 +6,8 @@ Audit branch: `patch/435a-party-order-time-qr-audit`
 
 This is an audit-only patch. No Party Order application code, tests, API routes, database migrations, QR generation, export code, Pizza Session behavior, auth, SEO, cloud rows or deployment configuration were changed.
 
+Patch 435B implementation addendum: the timezone serialization defect described here was addressed in `docs/audits/patch-435b-party-order-browser-timezone.md` by storing an owner browser IANA timezone with each Party Order and converting owner wall-clock input to UTC before API persistence. The QR export readiness defect remains separate and was not changed by Patch 435B.
+
 ## 1. Executive Summary
 
 Two independent Party Order defects are present.

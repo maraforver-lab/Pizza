@@ -62,11 +62,11 @@ export default async function PublicPartyOrderPage({
         <section className="grid gap-3 p-5 sm:grid-cols-2 sm:p-8">
           <div className="rounded-[1.35rem] bg-cream/70 p-4">
             <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Pizza time</p>
-            <p className="mt-2 text-sm font-extrabold text-ink/75">{partyOrderDateTimeLabel(event.pizza_datetime)}</p>
+            <p className="mt-2 text-sm font-extrabold text-ink/75">{partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}</p>
           </div>
           <div className="rounded-[1.35rem] bg-cream/70 p-4">
             <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/40">Orders close</p>
-            <p className="mt-2 text-sm font-extrabold text-ink/75">{partyOrderDateTimeLabel(event.orders_close_at)}</p>
+            <p className="mt-2 text-sm font-extrabold text-ink/75">{partyOrderDateTimeLabel(event.orders_close_at, event.time_zone)}</p>
           </div>
         </section>
 

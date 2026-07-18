@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PIZZA_CATALOG_OPTIONS } from "@/lib/pizza-catalog";
+import { dateTimeLocalToUtc, detectBrowserPartyOrderTimeZone } from "@/lib/party-order-time";
 import { normalizePartyOrderRow } from "@/lib/party-orders";
 
 export function PartyOrderCreateForm() {
@@ -13,8 +14,13 @@ export function PartyOrderCreateForm() {
   const [ordersCloseAt, setOrdersCloseAt] = useState("");
   const [guestNote, setGuestNote] = useState("");
   const [allowedPizzaIds, setAllowedPizzaIds] = useState<string[]>(["margherita"]);
+  const [timeZone, setTimeZone] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setTimeZone(detectBrowserPartyOrderTimeZone() ?? "");
+  }, []);
 
   const togglePizza = (id: string) => {
     setAllowedPizzaIds((current) => (
@@ -31,6 +37,23 @@ export function PartyOrderCreateForm() {
       setError("Choose at least one pizza option.");
       return;
     }
+    const detectedTimeZone = detectBrowserPartyOrderTimeZone();
+    if (!detectedTimeZone) {
+      setError("We couldn’t detect your time zone. Refresh the page and try again.");
+      return;
+    }
+    setTimeZone(detectedTimeZone);
+    const pizzaTimeResult = dateTimeLocalToUtc(pizzaDateTime, detectedTimeZone);
+    if (!pizzaTimeResult.ok) {
+      setError(pizzaTimeResult.error);
+      return;
+    }
+    const ordersCloseResult = dateTimeLocalToUtc(ordersCloseAt, detectedTimeZone);
+    if (!ordersCloseResult.ok) {
+      setError(ordersCloseResult.error);
+      return;
+    }
+
     setSaving(true);
     try {
       const response = await fetch("/api/party-orders", {
@@ -38,8 +61,9 @@ export function PartyOrderCreateForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          pizzaDateTime,
-          ordersCloseAt,
+          pizzaDateTime: pizzaTimeResult.instant,
+          ordersCloseAt: ordersCloseResult.instant,
+          timeZone: detectedTimeZone,
           guestNote,
           allowedPizzaIds,
         }),
@@ -98,6 +122,9 @@ export function PartyOrderCreateForm() {
             />
           </label>
         </div>
+        <p className="text-xs font-bold leading-5 text-ink/50">
+          {timeZone ? `Times use your browser time zone: ${timeZone}.` : "Detecting your browser time zone…"}
+        </p>
 
         <label className="block text-sm font-extrabold text-ink/70">
           Guest note / instructions
