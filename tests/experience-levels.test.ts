@@ -55,10 +55,17 @@ describe("experience levels foundation", () => {
       beginner: "beginner",
       intermediate: "enthusiast",
       advanced: "pizza_nerd",
+      nerd: "pizza_nerd",
+      "pizza nerd": "pizza_nerd",
+      "pizza-nerd": "pizza_nerd",
     });
     expect(normalizeExperienceLevel("beginner")).toBe("beginner");
     expect(normalizeExperienceLevel("intermediate")).toBe("enthusiast");
     expect(normalizeExperienceLevel("advanced")).toBe("pizza_nerd");
+    expect(normalizeExperienceLevel("Pizza Nerd")).toBe("pizza_nerd");
+    expect(normalizeExperienceLevel("pizza-nerd")).toBe("pizza_nerd");
+    expect(normalizeExperienceLevel("nerd")).toBe("pizza_nerd");
+    expect(normalizeExperienceLevel("Pizza_Nerd")).toBe("pizza_nerd");
   });
 
   it("includes complete English metadata for every level", () => {
@@ -90,6 +97,8 @@ describe("experience levels foundation", () => {
     expect(getExperienceLevelConfig("beginner").accent).toBe("green");
     expect(getExperienceLevelConfig("enthusiast").accent).toBe("orange");
     expect(getExperienceLevelConfig("pizza_nerd").accent).toBe("pink-red");
+    expect(getExperienceLevelConfig("Pizza Nerd").markerClassName).toBe(getExperienceLevelConfig("pizza_nerd").markerClassName);
+    expect(getExperienceLevelConfig("Pizza Nerd").markerClassName).not.toBe(getExperienceLevelConfig("beginner").markerClassName);
   });
 
   it("maps each experience level to a shared subtle corner accent", () => {

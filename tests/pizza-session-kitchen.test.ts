@@ -593,11 +593,13 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(lines.map((line) => line.label)).not.toContain("Toppings");
   });
 
-  it("renders a baseline service mode without a pizza-by-pizza order board", () => {
+  it("removes the generic service reminders fallback without removing service actions", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("Service reminders");
-    expect(page).toContain("Keep sauce, cheese and toppings ready, then follow the current task.");
+    expect(page).not.toContain("Service reminders");
+    expect(page).not.toContain("Keep sauce, cheese and toppings ready, then follow the current task.");
+    expect(page).not.toContain('kitchenMode === "service" && (');
+    expect(page).toContain("Oven preheated");
     expect(page).toContain("Pizza menu");
     expect(page).not.toMatch(/order board|ticket rail|table service/i);
   });
@@ -1040,6 +1042,11 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(getExperienceLevelConfig("beginner").label).toBe("Beginner");
     expect(getExperienceLevelConfig("enthusiast").label).toBe("Enthusiast");
     expect(getExperienceLevelConfig("pizza_nerd").label).toBe("Pizza Nerd");
+    expect(getExperienceLevelConfig("beginner").markerClassName).toBe("bg-leaf");
+    expect(getExperienceLevelConfig("enthusiast").markerClassName).toBe("bg-[#f2a15f]");
+    expect(getExperienceLevelConfig("pizza_nerd").markerClassName).toBe("bg-[#eb577f]");
+    expect(getExperienceLevelConfig("Pizza Nerd").markerClassName).toBe("bg-[#eb577f]");
+    expect(getExperienceLevelConfig("Pizza Nerd").badgeClassName).toBe(getExperienceLevelConfig("pizza_nerd").badgeClassName);
   });
 
   it("uses safe Beginner guidance for missing, unknown or legacy experience levels", () => {
@@ -1049,6 +1056,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(getKitchenExperienceGuidance(bakeStep, "not-a-real-level")).toEqual(getKitchenExperienceGuidance(bakeStep, "beginner"));
     expect(getKitchenExperienceGuidance(bakeStep, "intermediate")).toEqual(getKitchenExperienceGuidance(bakeStep, "enthusiast"));
     expect(getKitchenExperienceGuidance(bakeStep, "advanced")).toEqual(getKitchenExperienceGuidance(bakeStep, "pizza_nerd"));
+    expect(getKitchenExperienceGuidance(bakeStep, "Pizza Nerd")).toEqual(getKitchenExperienceGuidance(bakeStep, "pizza_nerd"));
   });
 
   it("keeps fermentation guidance aligned to room, cold and neutral Kitchen Mode fermentation copy", () => {

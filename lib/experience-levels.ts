@@ -1,6 +1,6 @@
 export type ExperienceLevel = "beginner" | "enthusiast" | "pizza_nerd";
 
-export type LegacyExperienceLevel = "intermediate" | "advanced";
+export type LegacyExperienceLevel = "intermediate" | "advanced" | "nerd" | "pizza nerd" | "pizza-nerd";
 
 export type ExperienceLevelAccent = "green" | "orange" | "pink-red";
 
@@ -92,6 +92,9 @@ export const LEGACY_EXPERIENCE_LEVEL_MIGRATIONS: Record<LegacyExperienceLevel | 
   beginner: "beginner",
   intermediate: "enthusiast",
   advanced: "pizza_nerd",
+  nerd: "pizza_nerd",
+  "pizza nerd": "pizza_nerd",
+  "pizza-nerd": "pizza_nerd",
 };
 
 function getBrowserStorage(storage?: StorageLike): StorageLike | undefined {
@@ -106,8 +109,14 @@ export function isExperienceLevel(value: unknown): value is ExperienceLevel {
 
 export function normalizeExperienceLevel(value: unknown): ExperienceLevel {
   if (isExperienceLevel(value)) return value;
-  if (typeof value === "string" && value in LEGACY_EXPERIENCE_LEVEL_MIGRATIONS) {
-    return LEGACY_EXPERIENCE_LEVEL_MIGRATIONS[value as keyof typeof LEGACY_EXPERIENCE_LEVEL_MIGRATIONS];
+  if (typeof value === "string") {
+    const normalizedKey = value.trim().toLowerCase();
+    if (isExperienceLevel(normalizedKey)) return normalizedKey;
+    if (normalizedKey in LEGACY_EXPERIENCE_LEVEL_MIGRATIONS) {
+      return LEGACY_EXPERIENCE_LEVEL_MIGRATIONS[normalizedKey as keyof typeof LEGACY_EXPERIENCE_LEVEL_MIGRATIONS];
+    }
+    const canonicalizedKey = normalizedKey.replace(/[\s-]+/g, "_");
+    if (isExperienceLevel(canonicalizedKey)) return canonicalizedKey;
   }
   return DEFAULT_EXPERIENCE_LEVEL;
 }

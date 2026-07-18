@@ -848,14 +848,6 @@ export default function SessionKitchenPage() {
                   </section>
                 )}
 
-                {kitchenMode === "service" && (
-                   <section className="mt-5 rounded-[1.25rem] bg-cream/80 p-4 sm:mt-6 sm:p-5">
-                    <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
-                    <h3 className="mt-1 font-display text-2xl font-semibold">Service reminders</h3>
-                    <p className="mt-2 text-sm leading-6 text-ink/60">Keep sauce, cheese and toppings ready, then follow the current task.</p>
-                  </section>
-                )}
-
                 {currentStep.quietHoursWarning && (
                   <p className="mt-5 rounded-2xl bg-tomato/10 p-4 text-sm font-bold leading-6 text-tomato">
                     Quiet-hours warning: {currentStep.quietHoursWarning}
