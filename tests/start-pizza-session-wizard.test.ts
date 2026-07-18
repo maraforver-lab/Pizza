@@ -342,9 +342,11 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("router.push(\"/session/recipe\")");
     expect(page).toContain("onClick={() => continueToRecipe()}");
     expect(page).toContain("ActiveCloudSessionConflictChoice");
-    expect(page).toContain("Continue existing session");
-    expect(page).toContain("Keep setup");
-    expect(page).toContain("Start new pizza");
+    expect(page).toContain("Continue current pizza");
+    expect(page).toContain("Keep editing");
+    expect(page).toContain("Use this new pizza plan");
+    expect(page).toContain("Replace and create new plan");
+    expect(page).toContain("hideStickyActionForConflict");
     expect(page).toContain("continueToRecipe({ replaceActiveCloudSession: true })");
     expect(page).toContain('aria-label="Back"');
     expect(page).toContain('name="back"');

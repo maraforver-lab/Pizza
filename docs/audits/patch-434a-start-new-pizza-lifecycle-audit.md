@@ -512,6 +512,10 @@ Do not remove the old archive RPC or `archived_at` column in the same deployment
 | Account still promises archived recovery | Remove or hide archived UI and replace copy. |
 | Existing archived rows deleted too early | Keep hidden temporarily unless a separate cleanup is approved. |
 
+## Implementation reference
+
+Patch 434B implements the reviewed no-archive lifecycle. It adds `replace_active_pizza_session(...)`, removes the user-facing archived Pizza Session product surface, hides the normal sticky create action during Session Start conflict resolution, and documents the migration/deployment order in `docs/audits/patch-434b-no-archive-session-lifecycle.md`.
+
 ## Final answers
 
 1. Is the current Start New Pizza flow functionally broken? Yes, for the user-facing signed-in conflict flow. The server replacement path exists, but the UI exposes competing actions and can retrigger the conflict.

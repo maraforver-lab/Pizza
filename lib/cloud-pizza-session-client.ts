@@ -4,9 +4,9 @@ import {
 } from "@/lib/cloud-pizza-sessions";
 import type { PizzaSession } from "@/lib/pizza-session";
 import {
-  archivePizzaSession,
   clearActivePizzaSession,
   getActivePizzaSession,
+  removePizzaSession,
 } from "@/lib/pizza-session-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -15,8 +15,9 @@ export const CLOUD_BACKED_PIZZA_SESSION_STORAGE_KEY = "doughtools:cloud-backed-p
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 type CloudSyncOptions = {
-  archiveActiveAndCreateNew?: boolean;
   complete?: boolean;
+  expectedActiveCloudRowId?: string;
+  expectedActiveSessionId?: string;
   replaceActiveSession?: boolean;
 };
 
@@ -193,7 +194,7 @@ export function latestActivePizzaSessionForCloudSync(
 export function clearCloudBackedActivePizzaSessionPointer(storage?: StorageLike) {
   const localSession = getActivePizzaSession(storage);
   if (localSession && isCloudBackedPizzaSession(localSession, storage)) {
-    archivePizzaSession(localSession.id, storage);
+    removePizzaSession(localSession.id, storage);
     clearActivePizzaSession(storage);
   }
   clearCloudBackedPizzaSession(storage);
@@ -202,15 +203,17 @@ export function clearCloudBackedActivePizzaSessionPointer(storage?: StorageLike)
 export async function saveCloudActivePizzaSession(session: PizzaSession, options: CloudSyncOptions = {}) {
   const auth = await getCloudActivePizzaSessionAuthState({ json: true });
   if (!auth.signedIn) return { skipped: true, reason: "unauthenticated" as const };
-  const archiveActiveAndCreateNew = options.archiveActiveAndCreateNew === true || options.replaceActiveSession === true;
+  const replaceActiveSession = options.replaceActiveSession === true;
 
   const response = await fetch("/api/pizza-sessions/active", {
     method: "POST",
     headers: auth.headers,
     body: JSON.stringify({
-      archiveActiveAndCreateNew,
+      expectedActiveCloudRowId: options.expectedActiveCloudRowId,
+      expectedActiveSessionId: options.expectedActiveSessionId,
+      operation: replaceActiveSession ? "replace_active" : "save_active",
       sessionData: session,
-      replaceActiveSession: archiveActiveAndCreateNew,
+      replaceActiveSession,
     }),
   });
   const payload = await response.json().catch(() => ({}));
@@ -231,19 +234,17 @@ export async function syncCloudBackedPizzaSession(
     if (options.complete) return { skipped: true };
     return saveCloudActivePizzaSession(session, options);
   }
+  if (options.replaceActiveSession) return saveCloudActivePizzaSession(session, options);
   const cloudSessionId = cloudBackedPizzaSessionRowId(session);
   const headers = await cloudActivePizzaSessionRequestHeaders({ json: true });
-  const archiveActiveAndCreateNew = options.archiveActiveAndCreateNew === true || options.replaceActiveSession === true;
 
   const response = await fetch("/api/pizza-sessions/active", {
     method: "PATCH",
     headers,
     body: JSON.stringify({
-      archiveActiveAndCreateNew,
       sessionData: session,
       complete: options.complete === true,
       cloudSessionId,
-      replaceActiveSession: archiveActiveAndCreateNew,
     }),
   });
   const payload = await response.json().catch(() => ({}));
@@ -301,12 +302,12 @@ export function queueCloudActivePizzaSessionSave(
   options: QueueCloudSyncOptions = {},
 ) {
   const { storage, ...syncOptions } = options;
-  const archiveActiveAndCreateNew = syncOptions.archiveActiveAndCreateNew === true || syncOptions.replaceActiveSession === true;
+  const replaceActiveSession = syncOptions.replaceActiveSession === true;
   const sessionForSync = syncOptions.complete === true
     ? session
     : latestActivePizzaSessionForCloudSync(session, storage);
   const key = `${cloudActivePizzaSessionSaveKey(sessionForSync)}:${syncOptions.complete === true ? "complete" : "active"}`;
-  const queueKey = `${key}:${archiveActiveAndCreateNew ? "archive-create" : "normal"}`;
+  const queueKey = `${key}:${replaceActiveSession ? "replace-active" : "normal"}`;
 
   return new Promise<Awaited<ReturnType<typeof syncCloudBackedPizzaSession>>>((resolve, reject) => {
     if (queuedCloudSave?.key === queueKey) {
@@ -315,7 +316,7 @@ export function queueCloudActivePizzaSessionSave(
     } else {
       queuedCloudSave = {
         key: queueKey,
-        options: { ...syncOptions, archiveActiveAndCreateNew },
+        options: { ...syncOptions, replaceActiveSession },
         reject: queuedCloudSave ? [...queuedCloudSave.reject, reject] : [reject],
         resolve: queuedCloudSave ? [...queuedCloudSave.resolve, resolve] : [resolve],
         session: sessionForSync,

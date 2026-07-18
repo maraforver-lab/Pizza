@@ -228,14 +228,14 @@ export default function HomepageSessionActions({
               </button>
             </div>
             <p id="homepage-start-new-pizza-copy" className="mt-4 text-sm font-bold leading-6 text-ink/66">
-              Your current pizza session will be archived so you can return to its details later. A new active session will be created from these choices.
+              You already have an unfinished pizza. You can keep it, or set up a new pizza and choose whether to replace the current one before anything changes.
             </p>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" onClick={closeConfirm} className={dialogButtonClass("secondary")}>
                 Keep current session
               </button>
               <button type="button" onClick={startNewPizza} className={dialogButtonClass("primary")}>
-                Start new pizza
+                Set up a new pizza
               </button>
             </div>
           </div>

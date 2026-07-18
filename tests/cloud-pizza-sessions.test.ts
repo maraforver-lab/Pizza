@@ -16,8 +16,6 @@ import {
 import { restoreCloudPizzaSessionToLocal } from "@/lib/cloud-pizza-session-restore";
 import {
   ACTIVE_PIZZA_SESSION_DEFAULT_TITLE,
-  ARCHIVED_PIZZA_SESSION_DEFAULT_TITLE,
-  ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT,
   COMPLETED_PIZZA_SESSION_RETENTION_LIMIT,
   COMPLETED_PIZZA_SESSION_DEFAULT_TITLE,
   COMPLETED_PIZZA_SESSION_TITLE_MAX_LENGTH,
@@ -27,17 +25,14 @@ import {
   completedPizzaSessionDisplayTitle,
   cloudPizzaSessionDetailSummary,
   cloudPizzaSessionDoughSummary,
-  cloudPizzaSessionArchivedSummary,
   cloudPizzaSessionHistorySummary,
   cloudPizzaSessionPayload,
   cloudPizzaSessionSummary,
   cloudPizzaSessionUpdatedLabel,
-  normalizeCloudPizzaSessionArchivedRow,
   normalizeCloudPizzaSessionNameInput,
   normalizeCloudPizzaSessionHistoryRow,
   normalizeCompletedPizzaSessionTitleInput,
   normalizeCloudPizzaSessionRow,
-  sortCloudPizzaSessionArchivedRows,
   sortCloudPizzaSessionHistoryRows,
 } from "@/lib/cloud-pizza-sessions";
 import {
@@ -67,6 +62,21 @@ import {
   setActivePizzaSession,
 } from "@/lib/pizza-session-storage";
 import { EXPERIENCE_LEVEL_STORAGE_KEY } from "@/lib/experience-levels";
+
+vi.mock("@/lib/supabase/client", () => ({
+  getSupabaseBrowserClient: () => ({
+    auth: {
+      getSession: async () => ({
+        data: {
+          session: {
+            access_token: "test-token",
+            user: { id: "user-1" },
+          },
+        },
+      }),
+    },
+  }),
+}));
 import {
   PIZZA_SESSION_PHOTO_HEIC_ERROR,
   PIZZA_SESSION_PHOTO_TYPE_ERROR,
@@ -275,9 +285,9 @@ describe("cloud pizza session foundation", () => {
     expect(route).toContain("Saved pizza session could not be verified.");
     expect(route).toContain("export async function DELETE");
     expect(route).toContain("Sign in to delete this saved pizza session.");
-    expect(route).toContain(".update({ archived_at: updatedAt, status: \"archived\", updated_at: updatedAt })");
+    expect(route).toContain(".delete()");
     expect(route).toContain(".eq(\"status\", \"in_progress\")");
-    expect(route).toContain("return NextResponse.json({ archived: true");
+    expect(route).toContain("return NextResponse.json({ deleted: true");
   });
 
   it("syncs saved cloud sessions without creating cloud rows for local-only sessions", () => {
@@ -336,7 +346,7 @@ describe("cloud pizza session foundation", () => {
     expect(getActivePizzaSession(storage)).toBeUndefined();
     expect(isCloudBackedPizzaSession(cloudBacked, storage)).toBe(false);
     const savedSessions = JSON.parse(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY) ?? "[]") as Array<{ id: string; status: string }>;
-    expect(savedSessions.find((session) => session.id === cloudBacked.id)?.status).toBe("archived");
+    expect(savedSessions.find((session) => session.id === cloudBacked.id)).toBeUndefined();
     expect(savedSessions.find((session) => session.id === localOnly.id)?.status).toBe(localOnly.status);
   });
 
@@ -415,7 +425,6 @@ describe("cloud pizza session foundation", () => {
 
     const activeTitleRow = { ...row, title: ACTIVE_PIZZA_SESSION_DEFAULT_TITLE };
     const completedTitleRow = { ...row, title: COMPLETED_PIZZA_SESSION_DEFAULT_TITLE };
-    const archivedTitleRow = { ...row, title: ARCHIVED_PIZZA_SESSION_DEFAULT_TITLE };
     const namedSessionRow = normalizeCloudPizzaSessionHistoryRow({
       ...row,
       title: "Older title",
@@ -437,7 +446,7 @@ describe("cloud pizza session foundation", () => {
     expect(cloudPizzaSessionHistorySummary(namedSessionRow).title).toBe("Friday pizza night");
     expect(completedPizzaSessionCustomTitle(activeTitleRow)).toBeUndefined();
     expect(completedPizzaSessionCustomTitle(completedTitleRow)).toBeUndefined();
-    expect(cloudPizzaSessionCustomName(archivedTitleRow)).toBeUndefined();
+    expect(cloudPizzaSessionCustomName(completedTitleRow)).toBeUndefined();
     expect(cloudPizzaSessionHistorySummary(activeTitleRow).title).toBe(COMPLETED_PIZZA_SESSION_DEFAULT_TITLE);
     expect(normalizeCompletedPizzaSessionTitleInput("   ")).toBeNull();
     expect(normalizeCloudPizzaSessionNameInput("  Friday   pizza night  ")).toBe("Friday pizza night");
@@ -1183,7 +1192,7 @@ describe("cloud pizza session foundation", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("treats legacy replacement sync as archive-before-create in the cloud request body", async () => {
+  it("sends confirmed replacement sync as no-archive active replacement", async () => {
     const storage = new MemoryStorage();
     const replacement = createPizzaSession({
       id: "archive-create-request-session",
@@ -1235,11 +1244,12 @@ describe("cloud pizza session foundation", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/pizza-sessions/active");
-    expect(init?.method).toBe("PATCH");
+    expect(init?.method).toBe("POST");
     const body = JSON.parse(String(init?.body));
-    expect(body.archiveActiveAndCreateNew).toBe(true);
     expect(body.replaceActiveSession).toBe(true);
-    expect(body.cloudSessionId).toBe("cloud-row-archive-create");
+    expect(body.operation).toBe("replace_active");
+    expect(body.archiveActiveAndCreateNew).toBeUndefined();
+    expect(body.cloudSessionId).toBeUndefined();
     expect(body.sessionData.id).toBe("archive-create-request-session");
   });
 
@@ -1578,7 +1588,7 @@ describe("cloud pizza session foundation", () => {
     const startPage = source("app/session/start/page.tsx");
     const client = source("lib/cloud-pizza-session-client.ts");
     const activeRoute = source("app/api/pizza-sessions/active/route.ts");
-    const migration = source("supabase/migrations/20260716120000_archive_active_pizza_session_replacements.sql");
+    const migration = source("supabase/migrations/20260718120000_no_archive_active_session_replacement.sql");
 
     expect(startPage).toContain("queueCloudActivePizzaSessionSave");
     expect(startPage).toContain("materializeCloudBackedPizzaSession");
@@ -1588,7 +1598,8 @@ describe("cloud pizza session foundation", () => {
     expect(startPage).toContain("await materializeCloudBackedPizzaSession(saved,");
     expect(startPage.indexOf("const saved = savePizzaSession(readyForRecipe)")).toBeLessThan(startPage.indexOf("await materializeCloudBackedPizzaSession(saved,"));
     expect(startPage.indexOf("await materializeCloudBackedPizzaSession(saved,")).toBeLessThan(startPage.indexOf("router.push(\"/session/recipe\")"));
-    expect(startPage).toContain("setCreationError(\"We could not save this pizza plan to your account yet.");
+    expect(startPage).toContain("We could not save this pizza plan to your account yet.");
+    expect(startPage).toContain("We couldn't replace your pizza plan.");
     expect(startPage).toContain("if (getActivePizzaSession()?.id !== session.id) return");
     expect(client).toContain("getCloudActivePizzaSessionAuthState");
     expect(client).toContain("headers.set(\"Authorization\", `Bearer ${token}`)");
@@ -1599,10 +1610,10 @@ describe("cloud pizza session foundation", () => {
     expect(client).toContain("headers,");
     expect(client).toContain("ActiveCloudPizzaSessionConflictError");
     expect(client).toContain("active_session_exists");
-    expect(client).toContain("archiveActiveAndCreateNew?: boolean");
-    expect(client).toContain("const archiveActiveAndCreateNew = options.archiveActiveAndCreateNew === true || options.replaceActiveSession === true");
-    expect(client).toContain("archiveActiveAndCreateNew,");
-    expect(client).toContain("replaceActiveSession: archiveActiveAndCreateNew");
+    expect(client).toContain("replaceActiveSession?: boolean");
+    expect(client).toContain("operation: replaceActiveSession ? \"replace_active\" : \"save_active\"");
+    expect(client).toContain("replaceActiveSession,");
+    expect(client).not.toContain("archiveActiveAndCreateNew?: boolean");
     expect(client).toContain("return saveCloudActivePizzaSession(session, options)");
     expect(client).toContain("queueCloudActivePizzaSessionSave");
     expect(client).toContain("export async function materializeCloudBackedPizzaSession");
@@ -1617,23 +1628,22 @@ describe("cloud pizza session foundation", () => {
     expect(activeRoute).toContain("resumeRoute: pizzaSessionContinueHref(existingSession)");
     expect(activeRoute).toContain("conflict: true");
     expect(activeRoute).toContain("{ status: 409 }");
-    expect(activeRoute).toContain("const archiveActiveAndCreateNew = record.archiveActiveAndCreateNew === true");
+    expect(activeRoute).toContain("const replaceActiveSession = record.operation === \"replace_active\"");
     expect(activeRoute).toContain("|| record.replaceActiveSession === true");
-    expect(activeRoute).toContain("if (!archiveActiveAndCreateNew) return activeSessionConflictResponse(existing, existingSession, session)");
-    expect(activeRoute).toContain(".rpc(\"archive_active_and_create_pizza_session\"");
-    expect(activeRoute).toContain("rpcArchiveCreatePayload");
-    expect(activeRoute).toContain("!archiveActiveAndCreateNew && targetExisting?.id");
+    expect(activeRoute).toContain("return activeSessionConflictResponse(existing, existingSession, session)");
+    expect(activeRoute).toContain(".rpc(\"replace_active_pizza_session\"");
+    expect(activeRoute).toContain("rpcReplaceActivePayload");
+    expect(activeRoute).not.toContain("archive_active_and_create_pizza_session");
     expect(activeRoute).toContain("cloudSessionIsNewer(existingSession, session)");
     expect(activeRoute).toContain('reason: "stale-session"');
-    expect(migration).toContain("add column if not exists archived_at");
-    expect(migration).toContain("row_number() over");
-    expect(migration).toContain("where active_rank > 1");
+    expect(migration).toContain("create or replace function public.replace_active_pizza_session");
+    expect(migration).toContain("delete from public.pizza_sessions");
+    expect(migration).toContain("where status = 'archived'");
+    expect(migration).toContain("drop function if exists public.archive_active_and_create_pizza_session");
     expect(migration).toContain("create unique index if not exists pizza_sessions_one_active_per_user_idx");
     expect(migration).toContain("where status = 'in_progress'");
-    expect(migration).toContain("create or replace function public.archive_active_and_create_pizza_session");
     expect(migration).toContain("security definer");
     expect(migration).toContain("for update");
-    expect(migration).toContain("status = 'archived'");
     expect(migration).toContain("insert into public.pizza_sessions");
   });
 
@@ -1641,96 +1651,60 @@ describe("cloud pizza session foundation", () => {
     const startPage = source("app/session/start/page.tsx");
 
     expect(startPage).toContain("isActiveCloudPizzaSessionConflictError");
-    expect(startPage).toContain("setActiveCloudConflict(error.conflict)");
-    expect(startPage).toContain("You already have an active pizza session.");
+    expect(startPage).toContain("setCloudConflictState({ conflict: error.conflict, stage: \"decision\" })");
+    expect(startPage).toContain("type CloudConflictState");
+    expect(startPage).toContain("You already have an unfinished pizza");
     expect(startPage).toContain("ActiveCloudSessionConflictChoice");
-    expect(startPage).toContain("Continue existing session");
-    expect(startPage).toContain("Keep setup");
-    expect(startPage).toContain("Start new pizza");
-    expect(startPage).toContain("Your current pizza session will be archived so you can return to its details later.");
+    expect(startPage).toContain("Continue current pizza");
+    expect(startPage).toContain("Keep editing");
+    expect(startPage).toContain("Use this new pizza plan");
+    expect(startPage).toContain("Replace your unfinished pizza?");
+    expect(startPage).toContain("Replace and create new plan");
+    expect(startPage).not.toContain("Existing session opens at");
+    expect(startPage).not.toContain("will be archived");
     expect(startPage).toContain("continueToRecipe({ replaceActiveCloudSession: true })");
     expect(startPage).toContain("resolveCanonicalActivePizzaSession()");
     expect(startPage).toContain("clearActivePizzaSession()");
+    expect(startPage).toContain("hideStickyActionForConflict");
   });
 
-  it("preserves unfinished replacements as archived rows with separate summaries", () => {
-    const archivedSession = createPizzaSession({
-      id: "archived-unfinished-session",
-      currentStep: "prep",
-      sessionName: "Saturday test bake",
-      pizzaCount: 4,
-      targetEatTime: "2026-07-18T18:00:00.000Z",
-      updatedAt: "2026-07-17T10:00:00.000Z",
-    });
-    const archived = normalizeCloudPizzaSessionArchivedRow({
-      id: "archived-row",
-      user_id: "user-1",
-      status: "archived",
-      title: "Active pizza session",
-      current_step: "prep",
-      session_data: archivedSession,
-      created_at: "2026-07-17T09:00:00.000Z",
-      updated_at: "2026-07-17T10:00:00.000Z",
-      completed_at: null,
-      archived_at: "2026-07-17T10:15:00.000Z",
-    })!;
-    const completed = normalizeCloudPizzaSessionHistoryRow({
-      ...archived,
-      id: "completed-row",
-      status: "completed",
-      session_data: createPizzaSession({ id: "completed-session", status: "completed", currentStep: "review" }),
-      completed_at: "2026-07-17T11:00:00.000Z",
-      archived_at: null,
-    });
+  it("does not expose archived unfinished sessions as a product lifecycle", () => {
+    const cloud = source("lib/cloud-pizza-sessions.ts");
+    const accountPage = source("app/account/page.tsx");
+    const activeRoute = source("app/api/pizza-sessions/active/route.ts");
+    const migration = source("supabase/migrations/20260718120000_no_archive_active_session_replacement.sql");
 
-    expect(archived.status).toBe("archived");
-    expect(completed?.status).toBe("completed");
-    expect(cloudPizzaSessionArchivedSummary(archived).archivedLine).toContain("Archived");
-    expect(cloudPizzaSessionArchivedSummary(archived).stepLine).toContain("Last stage: Kitchen Mode");
-    expect(cloudPizzaSessionArchivedSummary(archived).title).toBe("Saturday test bake");
-    expect(cloudPizzaSessionCustomName(archived)).toBe("Saturday test bake");
-    expect(sortCloudPizzaSessionArchivedRows([archived]).map((row) => row.id)).toEqual(["archived-row"]);
+    expect(cloud).not.toContain("normalizeCloudPizzaSessionArchivedRow");
+    expect(cloud).not.toContain("cloudPizzaSessionArchivedSummary");
+    expect(cloud).not.toContain("ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT");
+    expect(accountPage).not.toContain("AccountArchivedPizzaSessions");
+    expect(activeRoute).not.toContain("archive_active_and_create_pizza_session");
+    expect(activeRoute).not.toContain("archiveActiveAndCreateNew");
+    expect(migration).toContain("delete from public.pizza_sessions");
+    expect(migration).toContain("where status = 'archived'");
+    expect(migration).toContain("check (status in ('in_progress', 'completed'))");
   });
 
-  it("adds session names, archived deletion and category retention limits", () => {
+  it("keeps session names and completed retention without archived-session UI", () => {
     const cloud = source("lib/cloud-pizza-sessions.ts");
     const pizzaSession = source("lib/pizza-session.ts");
     const historyRoute = source("app/api/pizza-sessions/history/route.ts");
     const historyDetailRoute = source("app/api/pizza-sessions/history/[id]/route.ts");
-    const archivedRoute = source("app/api/pizza-sessions/archived/route.ts");
-    const archivedDetailRoute = source("app/api/pizza-sessions/archived/[id]/route.ts");
-    const archivedComponent = source("components/account/AccountArchivedPizzaSessions.tsx");
-    const migration = source("supabase/migrations/20260716130000_session_names_and_retention_limits.sql");
+    const migration = source("supabase/migrations/20260718120000_no_archive_active_session_replacement.sql");
 
-    expect(ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT).toBe(3);
     expect(COMPLETED_PIZZA_SESSION_RETENTION_LIMIT).toBe(15);
     expect(pizzaSession).toContain("sessionName?: string");
     expect(pizzaSession).toContain("PIZZA_SESSION_NAME_MAX_LENGTH = 80");
     expect(pizzaSession).toContain("normalizePizzaSessionNameInput");
-    expect(cloud).toContain("ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT = 3");
     expect(cloud).toContain("COMPLETED_PIZZA_SESSION_RETENTION_LIMIT = 15");
     expect(cloud).toContain("cloudPizzaSessionCustomName");
     expect(historyRoute).toContain(".limit(COMPLETED_PIZZA_SESSION_RETENTION_LIMIT)");
     expect(historyRoute).toContain("slice(0, COMPLETED_PIZZA_SESSION_RETENTION_LIMIT)");
-    expect(archivedRoute).toContain(".limit(ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT)");
-    expect(archivedRoute).toContain("slice(0, ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT)");
     expect(historyDetailRoute).toContain(".delete()");
     expect(historyDetailRoute).toContain("sessionName: customTitle ?? undefined");
-    expect(archivedDetailRoute).toContain("export async function PATCH");
-    expect(archivedDetailRoute).toContain("export async function DELETE");
-    expect(archivedDetailRoute).toContain("normalizeCloudPizzaSessionNameInput(record.name ?? record.sessionName ?? record.title)");
-    expect(archivedDetailRoute).toContain("sessionName: sessionName ?? undefined");
-    expect(archivedDetailRoute).toContain(".eq(\"status\", \"archived\")");
-    expect(archivedDetailRoute).toContain(".delete()");
-    expect(archivedDetailRoute).toContain("deleted: true");
-    expect(archivedComponent).toContain("Delete this archived pizza session?");
-    expect(archivedComponent).toContain("Delete archived session");
-    expect(archivedComponent).toContain("Save name");
-    expect(archivedComponent).toContain("Remove name");
-    expect(migration).toContain("status in ('archived', 'completed')");
+    expect(migration).toContain("status in ('in_progress', 'completed')");
     expect(migration).toContain("create or replace function public.trim_pizza_session_retention_for_user");
     expect(migration).toContain("create trigger pizza_session_retention_after_write");
-    expect(migration).toContain("where retained_rank > 3");
     expect(migration).toContain("where retained_rank > 15");
     expect(migration).toContain("where user_id = target_user_id");
     expect(migration).toContain("grant execute on function public.trim_pizza_session_retention_for_user(uuid) to authenticated");
@@ -1847,7 +1821,7 @@ describe("cloud pizza session foundation", () => {
     expect(accountCard).toContain('fetch("/api/pizza-sessions/active", { method: "DELETE", headers })');
     expect(accountCard).toContain("clearMatchingLocalActiveSession(cloudSession)");
     expect(accountCard).toContain("setCloudSession(null)");
-    expect(accountCard).toContain("archivePizzaSession(localSession.id)");
+    expect(accountCard).toContain("removePizzaSession(localSession.id)");
     expect(accountCard).toContain("clearActivePizzaSession()");
     expect(accountCard).toContain("clearCloudBackedPizzaSession()");
     expect(accountCard).toContain("No active pizza session");

@@ -5,7 +5,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import SiteFooter from "@/components/SiteFooter";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
-import { AccountArchivedPizzaSessions } from "@/components/account/AccountArchivedPizzaSessions";
 import { AccountEarlyCompletionPreference } from "@/components/account/AccountEarlyCompletionPreference";
 import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
@@ -165,7 +164,6 @@ export default function AccountPage() {
           <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.75fr)] lg:items-start">
             <div className="min-w-0 space-y-6">
               <AccountActivePizzaSessionCard enabled className="mt-0" />
-              <AccountArchivedPizzaSessions enabled className="mt-0" />
               <AccountPizzaSessionHistory enabled className="mt-0" />
             </div>
             <aside className="min-w-0 space-y-6 lg:sticky lg:top-24" aria-label="Account support tools">

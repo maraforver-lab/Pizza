@@ -50,6 +50,10 @@ import { DEFAULT_SESSION_YEAST_TYPE, normalizeSessionYeastType, sessionYeastType
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
 type PizzaSessionPatch = Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">>;
+type CloudConflictState = {
+  conflict: ActiveCloudPizzaSessionConflict;
+  stage: "decision" | "replacement-confirmation";
+} | null;
 
 const wizardSteps: WizardStep[] = ["path", "preset", "time", "quantity", "flour", "summary"];
 const DEFAULT_SESSION_TOPPING_PRESET = "margherita";
@@ -518,7 +522,7 @@ function ReplaceActiveSessionChoice({
         <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Active pizza plan found</p>
         <h1 className="mt-3 font-display text-4xl font-semibold leading-none">Start a new pizza plan?</h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
-          You already have an in-progress plan from {lastSaved}. Continue it, or start a fresh setup. Signed-in account sessions are archived only after you create the new pizza plan.
+          You already have an in-progress plan from {lastSaved}. Continue it, or start a fresh setup. The current plan is only replaced after you explicitly create the new pizza plan.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <button type="button" onClick={onContinueExisting} className={buttonClass({ className: "min-h-12 px-6" })}>
@@ -534,7 +538,6 @@ function ReplaceActiveSessionChoice({
 }
 
 function ActiveCloudSessionConflictChoice({
-  conflict,
   confirmingStartNew,
   disabled,
   onCancel,
@@ -542,7 +545,6 @@ function ActiveCloudSessionConflictChoice({
   onContinueExisting,
   onStartNew,
 }: {
-  conflict: ActiveCloudPizzaSessionConflict;
   confirmingStartNew: boolean;
   disabled: boolean;
   onCancel: () => void;
@@ -557,27 +559,22 @@ function ActiveCloudSessionConflictChoice({
     >
       <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Active account session</p>
       <h2 id="cloud-active-session-conflict-heading" className="mt-2 font-display text-2xl font-semibold leading-tight">
-        You already have an active pizza session.
+        You already have an unfinished pizza
       </h2>
       <p className="mt-3 text-sm font-bold leading-6 text-ink/62">
-        Continue the saved session, keep editing this setup, or explicitly start a new active pizza session.
+        Continue it, or replace it with this new pizza plan.
       </p>
-      {conflict.resumeRoute && (
-        <p className="mt-2 text-xs font-bold leading-5 text-ink/45">
-          Existing session opens at {conflict.resumeRoute}.
-        </p>
-      )}
 
       {!confirmingStartNew ? (
         <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
           <button type="button" onClick={onContinueExisting} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5" })}>
-            Continue existing session
+            Continue current pizza
           </button>
           <button type="button" onClick={onCancel} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
-            Keep setup
+            Keep editing
           </button>
           <button type="button" onClick={onStartNew} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
-            Start new pizza
+            Use this new pizza plan
           </button>
         </div>
       ) : (
@@ -587,17 +584,17 @@ function ActiveCloudSessionConflictChoice({
           className="mt-4 rounded-[1.25rem] border border-ink/10 bg-white p-4"
         >
           <h3 id="cloud-start-new-confirm-heading" className="font-display text-2xl font-semibold leading-tight">
-            Start a new pizza session?
+            Replace your unfinished pizza?
           </h3>
           <p className="mt-2 text-sm font-bold leading-6 text-ink/62">
-            Your current pizza session will be archived so you can return to its details later. A new active session will be created from these choices.
+            Your current unfinished pizza plan will be permanently removed. This new setup will become your active pizza plan.
           </p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <button type="button" onClick={onCancel} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
-              Keep setup
+              Keep current pizza
             </button>
             <button type="button" onClick={onConfirmStartNew} disabled={disabled} className={buttonClass({ className: "min-h-12 px-5" })}>
-              {disabled ? "Starting new pizza..." : "Start new pizza"}
+              {disabled ? "Replacing pizza plan..." : "Replace and create new plan"}
             </button>
           </div>
         </div>
@@ -615,8 +612,7 @@ function StartPizzaSessionContent() {
   const [loadError, setLoadError] = useState("");
   const [creationError, setCreationError] = useState("");
   const [creatingPlan, setCreatingPlan] = useState(false);
-  const [activeCloudConflict, setActiveCloudConflict] = useState<ActiveCloudPizzaSessionConflict | null>(null);
-  const [confirmingCloudStartNew, setConfirmingCloudStartNew] = useState(false);
+  const [cloudConflictState, setCloudConflictState] = useState<CloudConflictState>(null);
   const [step, setStep] = useState<WizardStep>("path");
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
@@ -626,6 +622,8 @@ function StartPizzaSessionContent() {
   const targetTimeInputRef = useRef<HTMLInputElement>(null);
   const doughStartTimeInputRef = useRef<HTMLInputElement>(null);
   const lastCloudSaveKey = useRef("");
+  const activeCloudConflict = cloudConflictState?.conflict ?? null;
+  const confirmingCloudStartNew = cloudConflictState?.stage === "replacement-confirmation";
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -747,8 +745,7 @@ function StartPizzaSessionContent() {
     if (!session) return;
     if (creationError) setCreationError("");
     if (activeCloudConflict) {
-      setActiveCloudConflict(null);
-      setConfirmingCloudStartNew(false);
+      setCloudConflictState(null);
     }
     const persistedActiveSession = getActivePizzaSession()?.id === session.id;
     const lastRoute = patch.lastRoute ?? wizardStepHref(nextStep);
@@ -866,14 +863,15 @@ function StartPizzaSessionContent() {
     if (!session || creatingPlan) return;
     setCreatingPlan(true);
     setCreationError("");
-    setActiveCloudConflict(null);
+    setCloudConflictState(null);
     const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: "/session/recipe" }, "summary", experienceLevel, "/session/recipe");
     const saved = savePizzaSession(readyForRecipe);
     setActivePizzaSession(saved.id);
     setSession(saved);
     try {
       const materialized = await materializeCloudBackedPizzaSession(saved, {
-        archiveActiveAndCreateNew: options.replaceActiveCloudSession === true,
+        expectedActiveCloudRowId: activeCloudConflict?.activeCloudRowId ?? activeCloudConflict?.cloudRowId,
+        expectedActiveSessionId: activeCloudConflict?.activeSessionId ?? activeCloudConflict?.cloudSessionId,
         replaceActiveSession: options.replaceActiveCloudSession === true,
       });
       if (materialized.status === "cloud-backed") {
@@ -884,12 +882,13 @@ function StartPizzaSessionContent() {
       setCreatingPlan(false);
       if (isActiveCloudPizzaSessionConflictError(error)) {
         if (getActivePizzaSession()?.id === saved.id) clearActivePizzaSession();
-        setActiveCloudConflict(error.conflict);
-        setConfirmingCloudStartNew(false);
+        setCloudConflictState({ conflict: error.conflict, stage: "decision" });
         setCreationError("");
         return;
       }
-      setCreationError("We could not save this pizza plan to your account yet. Try again before opening the Dough Plan.");
+      setCreationError(options.replaceActiveCloudSession
+        ? "We couldn't replace your pizza plan. Your current account pizza and this new setup are still safe. Try again."
+        : "We could not save this pizza plan to your account yet. Try again before opening the Dough Plan.");
     }
   };
 
@@ -900,8 +899,7 @@ function StartPizzaSessionContent() {
     try {
       const canonical = await resolveCanonicalActivePizzaSession();
       if (canonical.state === "active") {
-        setActiveCloudConflict(null);
-        setConfirmingCloudStartNew(false);
+        setCloudConflictState(null);
         setSession(canonical.session);
         router.push(canonical.href);
         return;
@@ -919,10 +917,19 @@ function StartPizzaSessionContent() {
   };
 
   const cancelActiveCloudConflict = () => {
-    setActiveCloudConflict(null);
-    setConfirmingCloudStartNew(false);
+    setCloudConflictState(null);
     setCreationError("");
     setCreatingPlan(false);
+  };
+
+  const confirmActiveCloudReplacement = () => {
+    if (!activeCloudConflict) return;
+    setCloudConflictState({ conflict: activeCloudConflict, stage: "replacement-confirmation" });
+  };
+
+  const closeActiveCloudReplacementConfirmation = () => {
+    if (!activeCloudConflict) return;
+    setCloudConflictState({ conflict: activeCloudConflict, stage: "decision" });
   };
 
   const continueStep = () => {
@@ -951,6 +958,7 @@ function StartPizzaSessionContent() {
     || (step === "quantity" && Boolean(session?.pizzaCount) && Boolean(session && validSessionDoughBallWeight(session)) && !customDoughBallWeightInvalid)
     || (step === "flour" && Boolean(session?.flour || session?.flourSituation || session?.availableFlourWRanges?.length))
     || step === "summary";
+  const hideStickyActionForConflict = step === "summary" && Boolean(activeCloudConflict);
 
   if (loadError) {
     return (
@@ -1489,16 +1497,16 @@ function StartPizzaSessionContent() {
 
           {activeCloudConflict && (
             <ActiveCloudSessionConflictChoice
-              conflict={activeCloudConflict}
               confirmingStartNew={confirmingCloudStartNew}
               disabled={creatingPlan}
-              onCancel={cancelActiveCloudConflict}
+              onCancel={confirmingCloudStartNew ? closeActiveCloudReplacementConfirmation : cancelActiveCloudConflict}
               onConfirmStartNew={() => continueToRecipe({ replaceActiveCloudSession: true })}
               onContinueExisting={continueExistingCloudSession}
-              onStartNew={() => setConfirmingCloudStartNew(true)}
+              onStartNew={confirmActiveCloudReplacement}
             />
           )}
 
+          {!hideStickyActionForConflict && (
           <div className="sticky bottom-0 z-20 -mx-4 mt-5 flex items-center gap-3 border-t border-ink/10 bg-background-page/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:mt-6 sm:justify-between sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-4 sm:backdrop-blur-none">
             <div className={step === "path" ? "hidden shrink-0 sm:block" : "shrink-0"}>
               {step !== "path" && (
@@ -1527,6 +1535,7 @@ function StartPizzaSessionContent() {
               )}
             </div>
           </div>
+          )}
         </section>
       </div>
     </main>

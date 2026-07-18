@@ -83,12 +83,13 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
     .filter((pizza) => !isPizzaCatalogId(pizza.pizza_id))
     .map((pizza) => pizza.pizza_name_snapshot);
 
-  const persistSessionFromOrder = async (session: PizzaSession, archiveActiveAndCreateNew = false) => {
+  const persistSessionFromOrder = async (session: PizzaSession, replaceActiveSession = false) => {
     const saved = savePizzaSession(session);
     setPendingSession(saved);
     const result = await saveCloudActivePizzaSession(saved, {
-      archiveActiveAndCreateNew,
-      replaceActiveSession: archiveActiveAndCreateNew,
+      expectedActiveCloudRowId: activeConflict?.activeCloudRowId ?? activeConflict?.cloudRowId,
+      expectedActiveSessionId: activeConflict?.activeSessionId ?? activeConflict?.cloudSessionId,
+      replaceActiveSession,
     });
     if ("skipped" in result) throw new Error("Sign in to create a Pizza Session from this Party Order.");
     setActivePizzaSession(saved.id);
@@ -226,34 +227,34 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
         <div className="mt-4 rounded-[1.25rem] border border-tomato/20 bg-white/85 p-4" aria-labelledby="party-order-active-session-conflict-heading">
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Active account session</p>
           <h3 id="party-order-active-session-conflict-heading" className="mt-2 font-display text-2xl font-semibold leading-tight">
-            Start a new pizza?
+            You already have an unfinished pizza
           </h3>
           <p className="mt-2 text-sm font-bold leading-6 text-ink/62">
-            Your current pizza session will be archived so you can return to its details later. A new active session will be created from this Party Order.
+            Continue it, or replace it with this Party Order plan.
           </p>
           {!confirmingStartNew ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
               <button type="button" onClick={continueExistingSession} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5" })}>
-                Continue existing session
+                Continue current pizza
               </button>
               <button type="button" onClick={keepPartyOrderSetup} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
                 Keep Party Order setup
               </button>
               <button type="button" onClick={() => setConfirmingStartNew(true)} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
-                Start new pizza
+                Use this Party Order plan
               </button>
             </div>
           ) : (
             <div className="mt-4 rounded-[1rem] border border-ink/10 bg-cream/65 p-4">
               <p className="text-sm font-bold leading-6 text-ink/62">
-                This archives the current active Pizza Session and creates a new active session from the Party Order totals.
+                Your current unfinished pizza plan will be permanently removed. This Party Order plan will become your active pizza plan.
               </p>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <button type="button" onClick={keepPartyOrderSetup} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
-                  Keep Party Order setup
+                  Keep current pizza
                 </button>
                 <button type="button" onClick={confirmCreateFromOrder} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5" })}>
-                  {submitting ? "Creating Pizza Session…" : "Start new pizza"}
+                  {submitting ? "Creating Pizza Session…" : "Replace and create Party Order plan"}
                 </button>
               </div>
             </div>

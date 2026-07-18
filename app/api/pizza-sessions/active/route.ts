@@ -37,15 +37,9 @@ function activeSessionConflictResponse(
   }, { status: 409 });
 }
 
-function rpcArchiveCreatePayload(value: unknown) {
+function rpcReplaceActivePayload(value: unknown) {
   const normalized = normalizeCloudPizzaSessionRow(value);
-  if (!normalized || !value || typeof value !== "object") return undefined;
-  const record = value as Record<string, unknown>;
-  return {
-    archivedSessionDataId: typeof record.archived_session_data_id === "string" ? record.archived_session_data_id : undefined,
-    archivedSessionId: typeof record.archived_session_row_id === "string" ? record.archived_session_row_id : undefined,
-    session: normalized,
-  };
+  return normalized ? { session: normalized } : undefined;
 }
 
 export async function GET(request: Request) {
@@ -83,10 +77,15 @@ export async function POST(request: Request) {
   const record = body && typeof body === "object" ? body as Record<string, unknown> : {};
   const session = migratePizzaSession(record.sessionData ?? record.session_data);
   if (!session) return NextResponse.json({ error: "Invalid pizza session data." }, { status: 400 });
-  const archiveActiveAndCreateNew = record.archiveActiveAndCreateNew === true
-    || record.archive_active_and_create_new === true
+  const replaceActiveSession = record.operation === "replace_active"
     || record.replaceActiveSession === true
     || record.replace_active_session === true;
+  const expectedActiveCloudRowId = typeof (record.expectedActiveCloudRowId ?? record.expected_active_cloud_row_id) === "string"
+    ? String(record.expectedActiveCloudRowId ?? record.expected_active_cloud_row_id)
+    : null;
+  const expectedActiveSessionId = typeof (record.expectedActiveSessionId ?? record.expected_active_session_id) === "string"
+    ? String(record.expectedActiveSessionId ?? record.expected_active_session_id)
+    : null;
 
   const payload = cloudPizzaSessionPayload(session);
   const updatedAt = new Date().toISOString();
@@ -102,10 +101,11 @@ export async function POST(request: Request) {
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
   const existingSession = existing?.session_data ? migratePizzaSession(existing.session_data) : undefined;
   let targetExisting = existing;
-  if (existing?.id && existingSession && existingSession.id !== session.id) {
-    if (!archiveActiveAndCreateNew) return activeSessionConflictResponse(existing, existingSession, session);
+  if (replaceActiveSession) {
     const { data: replacement, error: replacementError } = await supabase
-      .rpc("archive_active_and_create_pizza_session", {
+      .rpc("replace_active_pizza_session", {
+        expected_active_row_id: expectedActiveCloudRowId,
+        expected_active_session_id: expectedActiveSessionId,
         new_current_step: payload.current_step,
         new_session_data: payload.session_data,
         new_title: payload.title,
@@ -125,33 +125,21 @@ export async function POST(request: Request) {
       if (latest?.id && latestSession && latestSession.id !== session.id) {
         return activeSessionConflictResponse(latest, latestSession, session);
       }
-      return NextResponse.json({ error: replacementError.message }, { status: 500 });
+      return NextResponse.json({ error: "We could not replace your active pizza session. Try again." }, { status: 500 });
     }
 
-    const savedSession = rpcArchiveCreatePayload(replacement);
+    const savedSession = rpcReplaceActivePayload(replacement);
     if (!savedSession) {
       return NextResponse.json({ error: "Saved pizza session could not be verified." }, { status: 500 });
     }
     return NextResponse.json(savedSession);
   }
 
-  if (archiveActiveAndCreateNew && !targetExisting?.id) {
-    const { data: replacement, error: replacementError } = await supabase
-      .rpc("archive_active_and_create_pizza_session", {
-        new_current_step: payload.current_step,
-        new_session_data: payload.session_data,
-        new_title: payload.title,
-      })
-      .single();
-    if (replacementError) return NextResponse.json({ error: replacementError.message }, { status: 500 });
-    const savedSession = rpcArchiveCreatePayload(replacement);
-    if (!savedSession) {
-      return NextResponse.json({ error: "Saved pizza session could not be verified." }, { status: 500 });
-    }
-    return NextResponse.json(savedSession);
+  if (existing?.id && existingSession && existingSession.id !== session.id) {
+    return activeSessionConflictResponse(existing, existingSession, session);
   }
 
-  if (!archiveActiveAndCreateNew && targetExisting?.id && existingSession && cloudSessionIsNewer(existingSession, session)) {
+  if (targetExisting?.id && existingSession && cloudSessionIsNewer(existingSession, session)) {
     const normalizedExisting = normalizeCloudPizzaSessionRow(existing);
     if (normalizedExisting) return NextResponse.json({ session: normalizedExisting, skipped: true, reason: "stale-session" });
   }
@@ -274,18 +262,15 @@ export async function DELETE(request: Request) {
     .maybeSingle();
 
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
-  if (!existing?.id) return NextResponse.json({ archived: false, session: null });
+  if (!existing?.id) return NextResponse.json({ deleted: false, session: null });
 
-  const updatedAt = new Date().toISOString();
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("pizza_sessions")
-    .update({ archived_at: updatedAt, status: "archived", updated_at: updatedAt })
+    .delete()
     .eq("id", existing.id)
     .eq("user_id", user.id)
-    .eq("status", "in_progress")
-    .select(CLOUD_PIZZA_SESSION_SELECT)
-    .single();
+    .eq("status", "in_progress");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ archived: true, session: data ? normalizeCloudPizzaSessionRow(data) : null });
+  return NextResponse.json({ deleted: true, session: null });
 }

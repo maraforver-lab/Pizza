@@ -28,9 +28,9 @@ import {
   type PizzaSessionPizzaMixType,
 } from "@/lib/pizza-session";
 import {
-  archivePizzaSession,
   clearActivePizzaSession,
   getActivePizzaSession,
+  removePizzaSession,
   savePizzaSession,
 } from "@/lib/pizza-session-storage";
 import {
@@ -301,7 +301,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
     const localUsesDeletedSessionData = cloudSessionData?.id === localSession.id;
     if (!localUsesDeletedCloudRow && !localUsesDeletedSessionData) return;
 
-    archivePizzaSession(localSession.id);
+    removePizzaSession(localSession.id);
     clearActivePizzaSession();
     clearCloudBackedPizzaSession();
   };

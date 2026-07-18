@@ -283,7 +283,8 @@ describe("homepage active Pizza Session resume", () => {
     expect(actions).toContain("Start a new pizza");
     expect(actions).toContain("Start a new pizza?");
     expect(actions).toContain("Keep current session");
-    expect(actions).toContain("Start new pizza");
+    expect(actions).toContain("Set up a new pizza");
+    expect(actions).not.toContain("will be archived");
     expect(actions).toContain("data-homepage-session-source");
     expect(actions).not.toMatch(/matchMedia|innerWidth|innerHeight/);
   });

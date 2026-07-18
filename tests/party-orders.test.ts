@@ -732,9 +732,13 @@ describe("Party Orders foundation", () => {
     expect(handoff).toContain("setActivePizzaSession(saved.id)");
     expect(handoff).toContain("isActiveCloudPizzaSessionConflictError");
     expect(handoff).toContain("setActiveConflict(caught.conflict)");
-    expect(handoff).toContain("Continue existing session");
+    expect(handoff).toContain("Continue current pizza");
     expect(handoff).toContain("Keep Party Order setup");
-    expect(handoff).toContain("archiveActiveAndCreateNew");
+    expect(handoff).toContain("Use this Party Order plan");
+    expect(handoff).toContain("Replace and create Party Order plan");
+    expect(handoff).toContain("replaceActiveSession");
+    expect(handoff).not.toContain("archiveActiveAndCreateNew");
+    expect(handoff).not.toContain("will be archived");
     expect(handoff).toContain("saveCloudActivePizzaSession(saved,");
     expect(handoff).toContain("router.push(\"/session/start?handoff=1\")");
   });

@@ -12,12 +12,13 @@ describe("Patch 344 account responsive workspace", () => {
     expect(page).toContain("Loading your DoughTools workspace…");
     expect(page).toContain("lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.75fr)]");
     expect(page).toContain("AccountActivePizzaSessionCard enabled");
-    expect(page).toContain("AccountArchivedPizzaSessions enabled");
     expect(page).toContain("AccountPizzaSessionHistory enabled");
     expect(page).toContain("PartyOrdersAccountEntryCard enabled");
     expect(page).toContain("InstallAppPrompt compact collapsible");
     expect(page).toContain("AccountGuidancePreference");
     expect(page).toContain("Account and security");
+    expect(page).not.toContain("AccountArchivedPizzaSessions");
+    expect(page).not.toContain("Archived pizza sessions");
     expect(page).toContain("supabase.auth.getUser()");
     expect(page).toContain("supabase.auth.signInWithPassword");
     expect(page).toContain("supabase.auth.signUp");
@@ -28,7 +29,6 @@ describe("Patch 344 account responsive workspace", () => {
     const page = source("app/account/page.tsx");
 
     const activeIndex = page.indexOf("AccountActivePizzaSessionCard enabled");
-    const archivedIndex = page.indexOf("AccountArchivedPizzaSessions enabled");
     const historyIndex = page.indexOf("AccountPizzaSessionHistory enabled");
     const partyIndex = page.indexOf("PartyOrdersAccountEntryCard enabled");
     const installIndex = page.indexOf("InstallAppPrompt compact collapsible");
@@ -36,8 +36,7 @@ describe("Patch 344 account responsive workspace", () => {
     const securityIndex = page.indexOf("Account and security");
 
     expect(activeIndex).toBeGreaterThan(-1);
-    expect(archivedIndex).toBeGreaterThan(activeIndex);
-    expect(historyIndex).toBeGreaterThan(archivedIndex);
+    expect(historyIndex).toBeGreaterThan(activeIndex);
     expect(partyIndex).toBeGreaterThan(historyIndex);
     expect(installIndex).toBeGreaterThan(partyIndex);
     expect(guidanceIndex).toBeGreaterThan(installIndex);
@@ -57,26 +56,11 @@ describe("Patch 344 account responsive workspace", () => {
     expect(history).toContain("aria-controls=\"account-pizza-session-history-list\"");
   });
 
-  it("shows archived unfinished sessions separately from completed history", () => {
+  it("removes the archived unfinished-session product surface", () => {
     const page = source("app/account/page.tsx");
-    const archived = source("components/account/AccountArchivedPizzaSessions.tsx");
-    const route = source("app/api/pizza-sessions/archived/route.ts");
 
-    expect(page).toContain("AccountArchivedPizzaSessions enabled");
-    expect(archived).toContain("Archived pizza sessions");
-    expect(archived).toContain("const ACCOUNT_ARCHIVED_COLLAPSED_LIMIT = 2");
-    expect(archived).toContain("fetch(\"/api/pizza-sessions/archived\"");
-    expect(archived).toContain("normalizeCloudPizzaSessionArchivedRow");
-    expect(archived).toContain("cloudPizzaSessionArchivedSummary");
-    expect(archived).toContain("View session details");
-    expect(archived).toContain("Show ${hiddenSessionCount} more archived sessions");
-    expect(archived).toContain("You can name them or delete them from Account");
-    expect(archived).toContain("Delete this archived pizza session?");
-    expect(archived).toContain("method: \"PATCH\"");
-    expect(archived).toContain("method: \"DELETE\"");
-    expect(route).toContain(".eq(\"status\", \"archived\")");
-    expect(route).toContain("sortCloudPizzaSessionArchivedRows");
-    expect(route).toContain("ARCHIVED_PIZZA_SESSION_RETENTION_LIMIT");
+    expect(page).not.toContain("AccountArchivedPizzaSessions");
+    expect(page).not.toContain("/api/pizza-sessions/archived");
   });
 
   it("keeps install guidance compact on account without changing PWA event behavior", () => {

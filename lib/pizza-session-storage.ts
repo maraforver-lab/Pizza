@@ -88,6 +88,15 @@ export function clearActivePizzaSession(storage?: StorageLike) {
   getBrowserStorage(storage)?.removeItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY);
 }
 
+export function removePizzaSession(id: string, storage?: StorageLike) {
+  const sessions = getPizzaSessions(storage).filter((session) => session.id !== id);
+  writePizzaSessions(sessions, storage);
+  const target = getBrowserStorage(storage);
+  if (target?.getItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY) === id) {
+    target.removeItem(ACTIVE_PIZZA_SESSION_STORAGE_KEY);
+  }
+}
+
 export function updatePizzaSession(
   id: string,
   patch: Partial<Omit<PizzaSession, "id" | "schemaVersion" | "createdAt">>,
