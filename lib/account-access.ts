@@ -45,9 +45,29 @@ export function validateAccountPasswordUpdate(password: string, confirmation: st
 export function safeInternalAuthPath(value: string | null | undefined, fallback = "/account") {
   const candidate = value?.trim();
   if (!candidate) return fallback;
-  if (!candidate.startsWith("/") || candidate.startsWith("//") || candidate.startsWith("/\\")) return fallback;
   if (/[\u0000-\u001f\u007f]/.test(candidate)) return fallback;
-  return candidate;
+
+  let decoded = candidate;
+  for (let index = 0; index < 3; index += 1) {
+    try {
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    } catch {
+      return fallback;
+    }
+  }
+
+  if (!decoded.startsWith("/") || decoded.startsWith("//") || decoded.startsWith("/\\")) return fallback;
+  if (decoded.includes("\\")) return fallback;
+
+  try {
+    const parsed = new URL(decoded, "https://doughtools.invalid");
+    if (parsed.origin !== "https://doughtools.invalid") return fallback;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return fallback;
+  }
 }
 
 export function authCallbackRedirectTo(origin: string, nextPath: string) {

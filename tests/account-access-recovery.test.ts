@@ -19,9 +19,14 @@ describe("Patch 442 account access and recovery", () => {
   it("uses one safe internal redirect helper for auth callback URLs", () => {
     expect(safeInternalAuthPath("/account")).toBe("/account");
     expect(safeInternalAuthPath("/auth/update-password")).toBe(ACCOUNT_RECOVERY_NEXT_PATH);
+    expect(safeInternalAuthPath("/account?confirmed=1")).toBe("/account?confirmed=1");
     expect(safeInternalAuthPath("https://example.com")).toBe("/account");
     expect(safeInternalAuthPath("//example.com")).toBe("/account");
     expect(safeInternalAuthPath("/\\evil")).toBe("/account");
+    expect(safeInternalAuthPath("/%2f%2fevil.com")).toBe("/account");
+    expect(safeInternalAuthPath("/%5c%5cevil.com")).toBe("/account");
+    expect(safeInternalAuthPath("%2F%2Fevil.com")).toBe("/account");
+    expect(safeInternalAuthPath("/%E0%A4%A")).toBe("/account");
     expect(authCallbackRedirectTo("https://www.doughtools.app", ACCOUNT_RECOVERY_NEXT_PATH)).toBe(
       "https://www.doughtools.app/auth/callback?next=%2Fauth%2Fupdate-password",
     );
@@ -62,6 +67,7 @@ describe("Patch 442 account access and recovery", () => {
     expect(callbackRoute).toContain("exchangeCodeForSession(code)");
     expect(callbackRoute).toContain("safeInternalAuthPath(requestedNext, \"/account\")");
     expect(callbackRoute).toContain("ACCOUNT_RECOVERY_NEXT_PATH");
+    expect(callbackRoute).not.toContain("requestUrl.searchParams.get(\"redirectTo\")");
     expect(callbackRoute).not.toMatch(/verifyOtp|token_hash/);
   });
 
@@ -105,5 +111,14 @@ describe("Patch 442 account access and recovery", () => {
     expect(historyRoute).toContain('.eq("user_id", user.id)');
     expect(partyRoute).toContain("user_id: user.id");
     expect(accountPreferencesRoute).toContain(".insert({ ...payload, user_id: user.id, created_at: updatedAt })");
+  });
+
+  it("ignores only generated Supabase CLI temp state", () => {
+    const gitignore = source(".gitignore");
+
+    expect(gitignore).toContain("/supabase/.temp/");
+    expect(gitignore).not.toMatch(/^supabase\/?$/m);
+    expect(gitignore).not.toContain("/supabase/migrations/");
+    expect(gitignore).not.toContain("/supabase/functions/");
   });
 });
