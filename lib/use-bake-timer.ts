@@ -8,11 +8,12 @@ import {
   type BakeTimerSnapshot,
   type BakeTimerStatus,
   BAKE_TIMER_MAX_OVERTIME_SECONDS,
-  BAKE_TIMER_LAST_SECONDS_THRESHOLD,
   createBakeTimerSnapshot,
   deriveBakeTimerSnapshot,
   getBakeTimerPhase,
   getBakeTimerProgressRatio,
+  getBakeTimerSoundCues,
+  getBakeTimerSoundPattern,
   pauseBakeTimerSnapshot,
   resetBakeTimerSnapshot,
   resumeBakeTimerSnapshot,
@@ -22,8 +23,6 @@ import {
 } from "@/lib/bake-timer";
 
 export type BakeTimerWakeStatus = "idle" | "active" | "unsupported" | "failed";
-export type BakeTimerSoundMilestone = "normal" | "last20" | "expired" | "overtime";
-
 type WakeLockLike = {
   release: () => Promise<void>;
   addEventListener: (type: "release", listener: () => void) => void;
@@ -70,24 +69,27 @@ function safeLoadSnapshot(storageKey: string | undefined, durationSeconds: numbe
   }
 }
 
-function playBeep(audioRef: MutableRefObject<AudioContext | null>, enabled: boolean, frequency = 940, length = 0.18) {
+function playBakeTimerCue(audioRef: MutableRefObject<AudioContext | null>, enabled: boolean, cue: Parameters<typeof getBakeTimerSoundPattern>[0]) {
   if (!enabled || typeof window === "undefined") return;
   const AudioCtor = window.AudioContext ?? (window as WindowWithAudio).webkitAudioContext;
   if (!AudioCtor) return;
   const context = audioRef.current ?? new AudioCtor();
   audioRef.current = context;
   void context.resume?.();
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = "sine";
-  oscillator.frequency.value = frequency;
-  gain.gain.setValueAtTime(0.0001, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.18, context.currentTime + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + length);
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start();
-  oscillator.stop(context.currentTime + length + 0.02);
+  for (const tone of getBakeTimerSoundPattern(cue)) {
+    const startAt = context.currentTime + tone.offset;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(tone.frequency, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(tone.gain, startAt + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + tone.length);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(startAt);
+    oscillator.stop(startAt + tone.length + 0.03);
+  }
 }
 
 function loadSoundPreference(fallback: boolean) {
@@ -171,34 +173,20 @@ export function useBakeTimer({
     const update = () => {
       setSnapshot((current) => {
         const previousStatus = current.status;
-        const previousRemaining = current.remainingSeconds;
         const derived = deriveBakeTimerSnapshot(current);
+        const cues = getBakeTimerSoundCues({
+          previousStatus,
+          previousRemainingSeconds: current.remainingSeconds,
+          snapshot: derived,
+        });
         const marker = `${derived.status}:${derived.remainingSeconds}:${derived.overtimeSeconds}`;
-        const emitMilestone = (milestone: BakeTimerSoundMilestone, frequency: number, length: number) => {
-          const milestoneMarker = `${milestone}:${marker}`;
-          if (soundMilestones.current.has(milestoneMarker)) return;
+        for (const cue of cues) {
+          const milestoneMarker = `${cue}:${marker}`;
+          if (soundMilestones.current.has(milestoneMarker)) continue;
           soundMilestones.current.add(milestoneMarker);
-          playBeep(audio, soundEnabled, frequency, length);
-        };
-        if (derived.status === "running" && derived.remainingSeconds > BAKE_TIMER_LAST_SECONDS_THRESHOLD && derived.remainingSeconds % 10 === 0) {
-          emitMilestone("normal", 820, 0.12);
+          playBakeTimerCue(audio, soundEnabled, cue);
         }
-        if (derived.status === "running" && derived.remainingSeconds <= BAKE_TIMER_LAST_SECONDS_THRESHOLD && derived.remainingSeconds > 0 && derived.remainingSeconds % 5 === 0) {
-          emitMilestone("last20", 980, 0.16);
-        }
-        if (derived.status === "running" && previousRemaining > BAKE_TIMER_LAST_SECONDS_THRESHOLD && derived.remainingSeconds <= BAKE_TIMER_LAST_SECONDS_THRESHOLD) {
-          emitMilestone("last20", 1_020, 0.18);
-          if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.([60]);
-        }
-        if ((derived.status === "overtime" || derived.status === "expired") && previousStatus === "running" && !derived.completedCuePlayed) {
-          emitMilestone("expired", 1_080, 0.32);
-          if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.([80, 40, 160]);
-          return { ...derived, completedCuePlayed: true };
-        }
-        if (derived.status === "overtime" && derived.overtimeSeconds > 0 && derived.overtimeSeconds % 5 === 0) {
-          emitMilestone("overtime", 1_040, 0.22);
-        }
-        return derived;
+        return cues.includes("expired") ? { ...derived, completedCuePlayed: true } : derived;
       });
     };
     update();
@@ -245,9 +233,10 @@ export function useBakeTimer({
 
   const pause = useCallback(() => {
     setSnapshot((current) => pauseBakeTimerSnapshot(current));
+    closeAudio();
     void releaseWakeLock();
     setWakeStatus("idle");
-  }, [releaseWakeLock]);
+  }, [closeAudio, releaseWakeLock]);
 
   const resume = useCallback(() => {
     soundMilestones.current.clear();
@@ -258,10 +247,11 @@ export function useBakeTimer({
   const reset = useCallback(() => {
     soundMilestones.current.clear();
     setSnapshot((current) => resetBakeTimerSnapshot(current));
+    closeAudio();
     void releaseWakeLock();
     setWakeStatus("idle");
     if (storageKey && typeof window !== "undefined") window.localStorage.removeItem(storageKey);
-  }, [releaseWakeLock, storageKey]);
+  }, [closeAudio, releaseWakeLock, storageKey]);
 
   const restart = useCallback(() => {
     soundMilestones.current.clear();
@@ -270,10 +260,12 @@ export function useBakeTimer({
   }, [requestWakeLock]);
 
   const adjustDuration = useCallback((deltaSeconds: number) => {
+    soundMilestones.current.clear();
     setSnapshot((current) => adjustBakeTimerDuration(current, deltaSeconds));
   }, []);
 
   const adjustOvertime = useCallback((deltaSeconds: number) => {
+    soundMilestones.current.clear();
     setSnapshot((current) => adjustBakeTimerOvertime(current, deltaSeconds));
   }, []);
 

@@ -1,5 +1,20 @@
 export type BakeTimerStatus = "idle" | "running" | "paused" | "overtime" | "expired";
-export type BakeTimerPhase = "ready" | "active" | "last20" | "paused" | "overtime" | "expired";
+export type BakeTimerPhase = "ready" | "active" | "almost_there" | "final_ten" | "paused" | "overtime" | "expired";
+export type BakeTimerSoundCue =
+  | "normal"
+  | "almost_there"
+  | "final_ten_transition"
+  | "final_ten"
+  | "final_three"
+  | "expired"
+  | "overtime";
+
+export type BakeTimerSoundTone = {
+  frequency: number;
+  length: number;
+  gain: number;
+  offset: number;
+};
 
 export type BakeTimerSnapshot = {
   status: BakeTimerStatus;
@@ -14,6 +29,9 @@ export const BAKE_TIMER_MIN_SECONDS = 10;
 export const BAKE_TIMER_MAX_SECONDS = 1_800;
 export const BAKE_TIMER_MAX_OVERTIME_SECONDS = 90;
 export const BAKE_TIMER_LAST_SECONDS_THRESHOLD = 20;
+export const BAKE_TIMER_FINAL_SECONDS_THRESHOLD = 10;
+export const BAKE_TIMER_FINAL_THREE_SECONDS_THRESHOLD = 3;
+export const BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS = 10;
 
 export function normalizeBakeTimerDuration(value: number, fallback = 90) {
   const numeric = Number.isFinite(value) ? Math.round(value) : fallback;
@@ -170,8 +188,82 @@ export function getBakeTimerPhase(snapshot: BakeTimerSnapshot): BakeTimerPhase {
   if (snapshot.status === "paused") return "paused";
   if (snapshot.status === "overtime") return "overtime";
   if (snapshot.status === "expired") return "expired";
-  if (snapshot.remainingSeconds <= BAKE_TIMER_LAST_SECONDS_THRESHOLD) return "last20";
+  if (snapshot.remainingSeconds <= BAKE_TIMER_FINAL_SECONDS_THRESHOLD) return "final_ten";
+  if (snapshot.remainingSeconds <= BAKE_TIMER_LAST_SECONDS_THRESHOLD) return "almost_there";
   return "active";
+}
+
+export function getBakeTimerSoundCues({
+  previousStatus,
+  previousRemainingSeconds,
+  snapshot,
+}: {
+  previousStatus: BakeTimerStatus;
+  previousRemainingSeconds: number;
+  snapshot: BakeTimerSnapshot;
+}): BakeTimerSoundCue[] {
+  if (snapshot.status === "paused" || snapshot.status === "idle") return [];
+
+  const cues: BakeTimerSoundCue[] = [];
+
+  if (snapshot.status === "running") {
+    if (snapshot.remainingSeconds > BAKE_TIMER_LAST_SECONDS_THRESHOLD && snapshot.remainingSeconds % 10 === 0) {
+      cues.push("normal");
+    }
+    if (
+      snapshot.remainingSeconds <= BAKE_TIMER_LAST_SECONDS_THRESHOLD
+      && snapshot.remainingSeconds > BAKE_TIMER_FINAL_SECONDS_THRESHOLD
+      && snapshot.remainingSeconds % 5 === 0
+    ) {
+      cues.push("almost_there");
+    }
+    if (
+      previousRemainingSeconds > BAKE_TIMER_FINAL_SECONDS_THRESHOLD
+      && snapshot.remainingSeconds <= BAKE_TIMER_FINAL_SECONDS_THRESHOLD
+      && snapshot.remainingSeconds > 0
+    ) {
+      cues.push("final_ten_transition");
+    }
+    if (snapshot.remainingSeconds <= BAKE_TIMER_FINAL_SECONDS_THRESHOLD && snapshot.remainingSeconds > 0) {
+      cues.push(snapshot.remainingSeconds <= BAKE_TIMER_FINAL_THREE_SECONDS_THRESHOLD ? "final_three" : "final_ten");
+    }
+  }
+
+  if ((snapshot.status === "overtime" || snapshot.status === "expired") && previousStatus === "running" && !snapshot.completedCuePlayed) {
+    cues.push("expired");
+  }
+  if (snapshot.status === "expired") return cues;
+  if (snapshot.status === "overtime" && snapshot.overtimeSeconds > 0 && snapshot.overtimeSeconds % 5 === 0) {
+    cues.push("overtime");
+  }
+
+  return cues;
+}
+
+export function getBakeTimerSoundPattern(cue: BakeTimerSoundCue): BakeTimerSoundTone[] {
+  if (cue === "normal") {
+    return [{ frequency: 820, gain: 0.13, length: 0.1, offset: 0 }];
+  }
+  if (cue === "almost_there") {
+    return [{ frequency: 960, gain: 0.15, length: 0.12, offset: 0 }];
+  }
+  if (cue === "final_ten_transition") {
+    return [
+      { frequency: 1_060, gain: 0.16, length: 0.09, offset: 0 },
+      { frequency: 1_180, gain: 0.17, length: 0.1, offset: 0.13 },
+    ];
+  }
+  if (cue === "final_ten") {
+    return [{ frequency: 1_120, gain: 0.17, length: 0.09, offset: 0 }];
+  }
+  if (cue === "final_three") {
+    return [{ frequency: 1_360, gain: 0.2, length: 0.11, offset: 0 }];
+  }
+  return [
+    { frequency: 1_120, gain: 0.2, length: 0.12, offset: 0 },
+    { frequency: 1_260, gain: 0.22, length: 0.12, offset: 0.18 },
+    { frequency: 1_420, gain: 0.24, length: 0.18, offset: 0.36 },
+  ];
 }
 
 export function getBakeTimerProgressRatio(snapshot: BakeTimerSnapshot) {

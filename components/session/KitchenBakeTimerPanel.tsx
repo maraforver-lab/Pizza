@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { buttonClass, cx } from "@/components/design-system";
 import { DoughToolsIcon } from "@/components/icons";
-import { BAKE_TIMER_MAX_OVERTIME_SECONDS, formatBakeTimerClock } from "@/lib/bake-timer";
+import { BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS, BAKE_TIMER_MAX_OVERTIME_SECONDS } from "@/lib/bake-timer";
 import type { PizzaSessionOvenType } from "@/lib/pizza-session-bake-profile";
 import { useBakeTimer } from "@/lib/use-bake-timer";
 
@@ -45,43 +45,39 @@ function formatOvenEyebrow(ovenType: PizzaSessionOvenType) {
 }
 
 function phaseCopy(phase: ReturnType<typeof useBakeTimer>["phase"]) {
-  if (phase === "last20") {
+  if (phase === "almost_there") {
     return {
       status: "ALMOST THERE",
-      instruction: "Last 20 seconds — watch the color closely.",
-      cardTitle: "Last 20 seconds",
-      cardBody: "The sound cue becomes more frequent. Watch the rim, bottom and cheese.",
+      instruction: "Watch the color closely",
+    };
+  }
+  if (phase === "final_ten") {
+    return {
+      status: "FINAL 10 SECONDS",
+      instruction: "Watch the rim and bottom",
     };
   }
   if (phase === "overtime" || phase === "expired") {
     return {
-      status: "OVERTIME",
+      status: "TIME'S UP",
       instruction: "Take the pizza out",
-      cardTitle: "Time's up",
-      cardBody: "Alarm every 5 sec. Overtime counts up to +90 sec.",
     };
   }
   if (phase === "paused") {
     return {
       status: "PAUSED",
       instruction: "Resume when this pizza is back in the oven.",
-      cardTitle: "Timer paused",
-      cardBody: "The timer keeps the selected per-pizza duration for the next start.",
     };
   }
   if (phase === "ready") {
     return {
       status: "READY",
       instruction: "Start when a pizza goes into the oven.",
-      cardTitle: "Timer guide",
-      cardBody: "Use the timer as a guide. Visual doneness is still authoritative.",
     };
   }
   return {
     status: "BAKING",
     instruction: "Rotate if needed",
-    cardTitle: "Tip",
-    cardBody: "Keep an eye on the rim color. Aim for brown spotting.",
   };
 }
 
@@ -89,29 +85,45 @@ function BakeTimerProgressRing({
   displayValue,
   phase,
   progressRatio,
+  remainingSeconds,
+  overtimeSeconds,
 }: {
   displayValue: string;
   phase: ReturnType<typeof useBakeTimer>["phase"];
   progressRatio: number;
+  remainingSeconds: number;
+  overtimeSeconds: number;
 }) {
   const activeDegrees = phase === "overtime" || phase === "expired" || phase === "ready"
     ? 360
     : Math.max(0, Math.min(360, progressRatio * 360));
-  const ringColor = phase === "last20"
+  const ringColor = phase === "almost_there"
     ? "var(--dt-oven-gold)"
-    : phase === "overtime" || phase === "expired"
+    : phase === "final_ten" || phase === "overtime" || phase === "expired"
       ? "var(--dt-tomato)"
       : "var(--dt-tomato)";
   const style = {
     background: `conic-gradient(${ringColor} ${activeDegrees}deg, rgba(31,31,31,.10) 0deg)`,
   } satisfies CSSProperties;
+  const finalThree = phase === "final_ten" && remainingSeconds <= 3;
+  const expiryPulse = phase === "overtime" && overtimeSeconds <= BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS;
   return (
-    <div className="mx-auto grid aspect-square w-full max-w-[min(18rem,32dvh)] rounded-full p-2.5 shadow-sm sm:max-w-[21rem] sm:p-3" style={style} aria-hidden="true">
+    <div
+      className={cx(
+        "mx-auto grid aspect-square w-full max-w-[min(18rem,32dvh)] rounded-full p-2.5 shadow-sm sm:max-w-[21rem] sm:p-3",
+        phase === "almost_there" && "dt-bake-timer-warning-ring",
+        phase === "final_ten" && "dt-bake-timer-final-pulse",
+        finalThree && "dt-bake-timer-final-pulse-strong",
+        expiryPulse && "dt-bake-timer-expiry-pulse",
+      )}
+      style={style}
+      aria-hidden="true"
+    >
       <div className="grid place-items-center rounded-full bg-white">
         <p
           className={cx(
             "font-mono text-[clamp(3.25rem,15vw,4.5rem)] font-black leading-none tabular-nums sm:text-8xl",
-            phase === "last20" || phase === "overtime" || phase === "expired" ? "text-tomato" : "text-ink",
+            phase === "almost_there" ? "text-tomato" : phase === "final_ten" || phase === "overtime" || phase === "expired" ? "text-tomato" : "text-ink",
           )}
         >
           {displayValue}
@@ -127,7 +139,6 @@ export function KitchenBakeTimerPanel({
   durationLabel,
   ovenType,
   ovenLabel,
-  pizzaCount,
 }: KitchenBakeTimerPanelProps) {
   const [open, setOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
@@ -153,6 +164,7 @@ export function KitchenBakeTimerPanel({
   const timerActive = timerStatus === "running" || timerStatus === "paused" || timerStatus === "overtime";
   const overtimeCanDecrease = timer.snapshot.overtimeSeconds > 0 || timerStatus === "expired";
   const overtimeCanIncrease = timer.snapshot.overtimeSeconds < BAKE_TIMER_MAX_OVERTIME_SECONDS && timerStatus !== "expired";
+  const expiryPulse = phase === "overtime" && timer.snapshot.overtimeSeconds <= BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS;
 
   const closeTimer = useCallback(() => {
     if (timerStatus === "running") pauseTimer();
@@ -209,7 +221,8 @@ export function KitchenBakeTimerPanel({
     if (previousPhaseRef.current === phase) return;
     previousPhaseRef.current = phase;
     if (phase === "active") setAnnouncement("Bake timer started.");
-    if (phase === "last20") setAnnouncement("20 seconds remaining.");
+    if (phase === "almost_there") setAnnouncement("20 seconds remaining.");
+    if (phase === "final_ten") setAnnouncement("10 seconds remaining.");
     if (phase === "paused") setAnnouncement("Bake timer paused.");
     if (phase === "overtime") setAnnouncement("Time expired. Overtime started.");
     if (phase === "expired") setAnnouncement("Alarm stopped or maximum overtime reached.");
@@ -254,7 +267,11 @@ export function KitchenBakeTimerPanel({
             aria-modal="true"
             aria-labelledby="full-screen-bake-timer-heading"
             aria-describedby="full-screen-bake-timer-description"
-            className="mx-auto grid h-[100dvh] w-full max-w-xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-background-page px-4 pb-[calc(.75rem+env(safe-area-inset-bottom))] pt-[calc(.75rem+env(safe-area-inset-top))] shadow-overlay outline-none sm:h-auto sm:min-h-0 sm:rounded-[2rem] sm:p-6"
+            className={cx(
+              "mx-auto grid h-[100dvh] w-full max-w-xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-background-page px-4 pb-[calc(.75rem+env(safe-area-inset-bottom))] pt-[calc(.75rem+env(safe-area-inset-top))] shadow-overlay outline-none sm:h-auto sm:min-h-0 sm:rounded-[2rem] sm:p-6",
+              phase === "final_ten" && "dt-bake-timer-final-surface",
+              expiryPulse && "dt-bake-timer-expiry-surface",
+            )}
           >
             <div className="flex items-center justify-between gap-3">
               <button
@@ -292,14 +309,20 @@ export function KitchenBakeTimerPanel({
                 </p>
 
                 <div className="mt-3 sm:mt-5">
-                  <BakeTimerProgressRing displayValue={timer.displayValue} phase={phase} progressRatio={timer.progressRatio} />
+                  <BakeTimerProgressRing
+                    displayValue={timer.displayValue}
+                    phase={phase}
+                    progressRatio={timer.progressRatio}
+                    remainingSeconds={timer.snapshot.remainingSeconds}
+                    overtimeSeconds={timer.snapshot.overtimeSeconds}
+                  />
                   <p className="sr-only" aria-live="polite">{announcement}</p>
                 </div>
 
                 <p
                   className={cx(
                     "mt-3 text-xs font-extrabold uppercase tracking-[.2em] sm:mt-5",
-                    phase === "last20" || phase === "overtime" || phase === "expired" ? "text-tomato" : "text-ink/55",
+                    phase === "almost_there" || phase === "final_ten" || phase === "overtime" || phase === "expired" ? "text-tomato" : "text-ink/55",
                   )}
                 >
                   {copy.status}
@@ -362,25 +385,6 @@ export function KitchenBakeTimerPanel({
                 )}
               </div>
             </div>
-
-            <aside
-              className={cx(
-                "rounded-[1.25rem] border p-3 text-left sm:p-4",
-                phase === "last20"
-                  ? "border-oven-gold/40 bg-oven-gold/20"
-                  : phase === "overtime" || phase === "expired"
-                    ? "border-tomato/25 bg-tomato/[.08]"
-                    : "border-ink/10 bg-white/75",
-              )}
-              role={phase === "last20" || phase === "overtime" || phase === "expired" ? "status" : undefined}
-            >
-              <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">{copy.cardTitle}</p>
-              <p className="mt-2 text-sm font-bold leading-6 text-ink/70">{copy.cardBody}</p>
-              <p className="mt-2 text-xs font-bold leading-5 text-ink/45">
-                {pizzaCount ? `${pizzaCount} pizzas planned. ` : ""}
-                Runtime timer state is local to this device and does not change Kitchen progress.
-              </p>
-            </aside>
           </div>
         </div>
       )}

@@ -92,6 +92,69 @@ input[type="number"]::-webkit-outer-spin-button { margin: 0; appearance: none; -
 
 ::selection { background: var(--dt-tomato); color: white; }
 
+@keyframes dt-bake-timer-final-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(233, 75, 46, 0);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 2.5rem rgba(233, 75, 46, .24);
+    transform: scale(1.015);
+  }
+}
+
+@keyframes dt-bake-timer-expiry-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(233, 75, 46, 0);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 3rem rgba(233, 75, 46, .32);
+    transform: scale(1.022);
+  }
+}
+
+@keyframes dt-bake-timer-expiry-surface {
+  0%, 100% { background-color: var(--dt-background-page); }
+  50% { background-color: rgba(233, 75, 46, .08); }
+}
+
+.dt-bake-timer-warning-ring {
+  box-shadow: 0 0 2rem rgba(232, 201, 138, .26);
+}
+
+.dt-bake-timer-final-pulse {
+  animation: dt-bake-timer-final-pulse 1s ease-in-out infinite;
+}
+
+.dt-bake-timer-final-pulse-strong {
+  animation-name: dt-bake-timer-expiry-pulse;
+}
+
+.dt-bake-timer-expiry-pulse {
+  animation: dt-bake-timer-expiry-pulse 1s ease-in-out 10;
+}
+
+.dt-bake-timer-final-surface {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(233, 75, 46, .08), transparent 18rem),
+    var(--dt-background-page);
+}
+
+.dt-bake-timer-expiry-surface {
+  animation: dt-bake-timer-expiry-surface 1s ease-in-out 10;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dt-bake-timer-final-pulse,
+  .dt-bake-timer-final-pulse-strong,
+  .dt-bake-timer-expiry-pulse,
+  .dt-bake-timer-expiry-surface {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 .guide-page::before {
   content: "";
   position: fixed;

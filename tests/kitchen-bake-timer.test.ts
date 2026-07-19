@@ -5,12 +5,17 @@ import {
   adjustBakeTimerDuration,
   adjustBakeTimerOvertime,
   bakeTimerDisplayValue,
+  BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS,
+  BAKE_TIMER_FINAL_SECONDS_THRESHOLD,
+  BAKE_TIMER_FINAL_THREE_SECONDS_THRESHOLD,
   BAKE_TIMER_MAX_OVERTIME_SECONDS,
   createBakeTimerSnapshot,
   deriveBakeTimerSnapshot,
   formatBakeTimerClock,
   getBakeTimerPhase,
   getBakeTimerProgressRatio,
+  getBakeTimerSoundCues,
+  getBakeTimerSoundPattern,
   normalizeBakeTimerDuration,
   pauseBakeTimerSnapshot,
   resumeBakeTimerSnapshot,
@@ -21,6 +26,11 @@ import { getPizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 
 function source(path: string) {
   return readFileSync(join(process.cwd(), path), "utf8");
+}
+
+function snapshotWithRemaining(remainingSeconds: number) {
+  const started = startBakeTimerSnapshot(createBakeTimerSnapshot(90), 1_000);
+  return deriveBakeTimerSnapshot(started, 91_000 - remainingSeconds * 1_000);
 }
 
 describe("Kitchen bake timer integration", () => {
@@ -47,8 +57,15 @@ describe("Kitchen bake timer integration", () => {
 
     const almostThere = deriveBakeTimerSnapshot(started, 71_000);
     expect(almostThere.remainingSeconds).toBe(20);
-    expect(getBakeTimerPhase(almostThere)).toBe("last20");
+    expect(getBakeTimerPhase(almostThere)).toBe("almost_there");
     expect(getBakeTimerProgressRatio(almostThere)).toBeCloseTo(20 / 90);
+
+    const finalTen = deriveBakeTimerSnapshot(started, 81_000);
+    expect(finalTen.remainingSeconds).toBe(10);
+    expect(getBakeTimerPhase(finalTen)).toBe("final_ten");
+    expect(BAKE_TIMER_FINAL_SECONDS_THRESHOLD).toBe(10);
+    expect(BAKE_TIMER_FINAL_THREE_SECONDS_THRESHOLD).toBe(3);
+    expect(BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS).toBe(10);
 
     const cappedOvertime = deriveBakeTimerSnapshot(started, 181_000);
     expect(cappedOvertime.status).toBe("expired");
@@ -98,6 +115,78 @@ describe("Kitchen bake timer integration", () => {
     expect(stopped.completedCuePlayed).toBe(true);
   });
 
+  it("derives a deterministic sound cadence for the final countdown and overtime", () => {
+    expect(getBakeTimerSoundCues({
+      previousStatus: "running",
+      previousRemainingSeconds: 31,
+      snapshot: snapshotWithRemaining(30),
+    })).toEqual(["normal"]);
+
+    expect(getBakeTimerSoundCues({
+      previousStatus: "running",
+      previousRemainingSeconds: 21,
+      snapshot: snapshotWithRemaining(20),
+    })).toEqual(["almost_there"]);
+
+    expect(getBakeTimerSoundCues({
+      previousStatus: "running",
+      previousRemainingSeconds: 11,
+      snapshot: snapshotWithRemaining(10),
+    })).toEqual(["final_ten_transition", "final_ten"]);
+
+    expect(getBakeTimerSoundCues({
+      previousStatus: "running",
+      previousRemainingSeconds: 4,
+      snapshot: snapshotWithRemaining(3),
+    })).toEqual(["final_three"]);
+
+    const overtimeStart = deriveBakeTimerSnapshot(startBakeTimerSnapshot(createBakeTimerSnapshot(90), 1_000), 91_000);
+    expect(getBakeTimerSoundCues({
+      previousStatus: "running",
+      previousRemainingSeconds: 1,
+      snapshot: overtimeStart,
+    })).toEqual(["expired"]);
+
+    const overtimeRepeat = { ...overtimeStart, completedCuePlayed: true, overtimeSeconds: 5 };
+    expect(getBakeTimerSoundCues({
+      previousStatus: "overtime",
+      previousRemainingSeconds: 0,
+      snapshot: overtimeRepeat,
+    })).toEqual(["overtime"]);
+
+    expect(getBakeTimerSoundCues({
+      previousStatus: "running",
+      previousRemainingSeconds: 1,
+      snapshot: { ...overtimeStart, status: "expired", overtimeSeconds: 90, completedCuePlayed: false },
+    })).toEqual(["expired"]);
+
+    expect(getBakeTimerSoundCues({
+      previousStatus: "overtime",
+      previousRemainingSeconds: 0,
+      snapshot: { ...overtimeStart, status: "expired", overtimeSeconds: 90, completedCuePlayed: true },
+    })).toEqual([]);
+
+    const paused = pauseBakeTimerSnapshot(snapshotWithRemaining(12), 79_000);
+    expect(getBakeTimerSoundCues({
+      previousStatus: "running",
+      previousRemainingSeconds: 12,
+      snapshot: paused,
+    })).toEqual([]);
+  });
+
+  it("uses stronger final-three and expiry sound patterns without external audio assets", () => {
+    const finalTen = getBakeTimerSoundPattern("final_ten");
+    const finalThree = getBakeTimerSoundPattern("final_three");
+    const expiry = getBakeTimerSoundPattern("expired");
+    const overtime = getBakeTimerSoundPattern("overtime");
+
+    expect(finalThree[0].frequency).toBeGreaterThan(finalTen[0].frequency);
+    expect(finalThree[0].gain).toBeGreaterThan(finalTen[0].gain);
+    expect(expiry).toHaveLength(3);
+    expect(overtime).toHaveLength(3);
+    expect(expiry[2].frequency).toBeGreaterThan(expiry[0].frequency);
+  });
+
   it("uses the canonical Pizza Session bake profile durations", () => {
     expect(getPizzaSessionBakeProfile("home")).toMatchObject({
       bakeDurationSeconds: 300,
@@ -140,10 +229,15 @@ describe("Kitchen bake timer integration", () => {
     expect(component).toContain("Pause");
     expect(component).toContain("Resume");
     expect(component).toContain("ALMOST THERE");
-    expect(component).toContain("OVERTIME");
+    expect(component).toContain("FINAL 10 SECONDS");
+    expect(component).toContain("TIME'S UP");
     expect(component).toContain("Stop alarm");
     expect(component).toContain("Start next pizza");
-    expect(component).toContain("does not change Kitchen progress");
+    expect(component).not.toContain("<aside");
+    expect(component).not.toContain("Keep an eye on the rim color. Aim for brown spotting.");
+    expect(component).not.toContain("The sound cue becomes more frequent. Watch the rim, bottom and cheese.");
+    expect(component).not.toContain("Alarm every 5 sec. Overtime counts up to +90 sec.");
+    expect(component).not.toContain("Runtime timer state is local to this device and does not change Kitchen progress.");
     expect(component).not.toContain("Optional timer");
     expect(component).not.toContain("Open bake timer");
     expect(component).not.toContain("queueCloudActivePizzaSessionSave");
@@ -152,13 +246,30 @@ describe("Kitchen bake timer integration", () => {
     expect(component).not.toContain("startPizzaSessionTimelineStep");
     expect(component).not.toContain("setSession(");
     expect(hook).toContain("BAKE_TIMER_SOUND_STORAGE_KEY");
-    expect(hook).toContain("BakeTimerSoundMilestone");
+    expect(hook).toContain("getBakeTimerSoundCues");
+    expect(hook).toContain("getBakeTimerSoundPattern");
     expect(hook).toContain("adjustDuration");
     expect(hook).toContain("adjustOvertime");
     expect(hook).toContain("stopAlarm");
     expect(hook).not.toContain("queueCloudActivePizzaSessionSave");
     expect(hook).not.toContain("PizzaSession");
     expect(hook).not.toContain("stepRuntime");
+  });
+
+  it("uses accessible safe visual urgency classes with reduced-motion protection", () => {
+    const component = source("components/session/KitchenBakeTimerPanel.tsx");
+    const styles = source("app/globals.css");
+
+    expect(component).toContain("dt-bake-timer-warning-ring");
+    expect(component).toContain("dt-bake-timer-final-pulse");
+    expect(component).toContain("dt-bake-timer-final-pulse-strong");
+    expect(component).toContain("dt-bake-timer-expiry-pulse");
+    expect(component).toContain("dt-bake-timer-expiry-surface");
+    expect(styles).toContain("@keyframes dt-bake-timer-final-pulse");
+    expect(styles).toContain("@keyframes dt-bake-timer-expiry-pulse");
+    expect(styles).toContain("1s ease-in-out");
+    expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(styles).toContain("animation: none !important");
   });
 
   it("keeps the standalone Timer route while sharing timer formatting and normalization", () => {
