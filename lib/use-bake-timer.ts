@@ -14,9 +14,11 @@ import {
   getBakeTimerProgressRatio,
   getBakeTimerSoundCues,
   getBakeTimerSoundPattern,
+  isBakeTimerOvertimeAlarmActive,
   pauseBakeTimerSnapshot,
   resetBakeTimerSnapshot,
   resumeBakeTimerSnapshot,
+  restartBakeTimerSnapshot,
   startBakeTimerSnapshot,
   stopBakeTimerAlarm,
   updateBakeTimerDuration,
@@ -123,13 +125,22 @@ export function useBakeTimer({
   const [soundEnabled, setSoundEnabled] = useState(() => loadSoundPreference(soundEnabledByDefault));
   const wakeLock = useRef<WakeLockLike | null>(null);
   const audio = useRef<AudioContext | null>(null);
+  const overtimeAlarmInterval = useRef<number | null>(null);
+  const previousSoundEnabled = useRef(soundEnabled);
   const soundMilestones = useRef<Set<string>>(new Set());
 
+  const clearOvertimeAlarmLoop = useCallback(() => {
+    if (overtimeAlarmInterval.current === null || typeof window === "undefined") return;
+    window.clearInterval(overtimeAlarmInterval.current);
+    overtimeAlarmInterval.current = null;
+  }, []);
+
   const closeAudio = useCallback(() => {
+    clearOvertimeAlarmLoop();
     const currentAudio = audio.current;
     audio.current = null;
     void currentAudio?.close();
-  }, []);
+  }, [clearOvertimeAlarmLoop]);
 
   const releaseWakeLock = useCallback(async () => {
     try {
@@ -181,6 +192,7 @@ export function useBakeTimer({
         });
         const marker = `${derived.status}:${derived.remainingSeconds}:${derived.overtimeSeconds}`;
         for (const cue of cues) {
+          if (cue === "overtime") continue;
           const milestoneMarker = `${cue}:${marker}`;
           if (soundMilestones.current.has(milestoneMarker)) continue;
           soundMilestones.current.add(milestoneMarker);
@@ -193,6 +205,25 @@ export function useBakeTimer({
     const interval = window.setInterval(update, 250);
     return () => window.clearInterval(interval);
   }, [snapshot.status, soundEnabled]);
+
+  const overtimeAlarmActive = isBakeTimerOvertimeAlarmActive(snapshot);
+
+  useEffect(() => {
+    const soundWasEnabled = previousSoundEnabled.current;
+    previousSoundEnabled.current = soundEnabled;
+
+    if (!overtimeAlarmActive || !soundEnabled) {
+      clearOvertimeAlarmLoop();
+      if (!soundEnabled) closeAudio();
+      return;
+    }
+
+    if (overtimeAlarmInterval.current !== null || typeof window === "undefined") return;
+    if (!soundWasEnabled) playBakeTimerCue(audio, true, "overtime");
+    overtimeAlarmInterval.current = window.setInterval(() => {
+      playBakeTimerCue(audio, true, "overtime");
+    }, 5_000);
+  }, [clearOvertimeAlarmLoop, closeAudio, overtimeAlarmActive, soundEnabled]);
 
   useEffect(() => {
     persistSoundPreference(soundEnabled);
@@ -222,8 +253,9 @@ export function useBakeTimer({
     return () => {
       void releaseWakeLock();
       closeAudio();
+      clearOvertimeAlarmLoop();
     };
-  }, [closeAudio, releaseWakeLock]);
+  }, [clearOvertimeAlarmLoop, closeAudio, releaseWakeLock]);
 
   const start = useCallback(() => {
     soundMilestones.current.clear();
@@ -255,9 +287,9 @@ export function useBakeTimer({
 
   const restart = useCallback(() => {
     soundMilestones.current.clear();
-    setSnapshot((current) => startBakeTimerSnapshot(resetBakeTimerSnapshot(current)));
+    setSnapshot(() => restartBakeTimerSnapshot(durationSeconds));
     void requestWakeLock();
-  }, [requestWakeLock]);
+  }, [durationSeconds, requestWakeLock]);
 
   const adjustDuration = useCallback((deltaSeconds: number) => {
     soundMilestones.current.clear();
@@ -279,7 +311,7 @@ export function useBakeTimer({
 
   const displayValue = useMemo(() => bakeTimerDisplayValue(snapshot), [snapshot]);
   const status = snapshot.status as BakeTimerStatus;
-  const isActive = status === "running" || status === "overtime";
+  const isActive = status === "running" || status === "overtime" || overtimeAlarmActive;
   const maxOvertimeReached = snapshot.overtimeSeconds >= BAKE_TIMER_MAX_OVERTIME_SECONDS || status === "expired";
   const phase = useMemo(() => getBakeTimerPhase(snapshot), [snapshot]);
   const progressRatio = useMemo(() => getBakeTimerProgressRatio(snapshot), [snapshot]);
@@ -292,6 +324,7 @@ export function useBakeTimer({
     progressRatio,
     wakeStatus,
     soundEnabled,
+    overtimeAlarmActive,
     setSoundEnabled,
     isActive,
     maxOvertimeReached,

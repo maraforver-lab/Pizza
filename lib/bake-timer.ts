@@ -1,5 +1,6 @@
 export type BakeTimerStatus = "idle" | "running" | "paused" | "overtime" | "expired";
 export type BakeTimerPhase = "ready" | "active" | "almost_there" | "final_ten" | "paused" | "overtime" | "expired";
+export type BakeTimerOvertimeAlarmState = "inactive" | "active" | "stopped";
 export type BakeTimerSoundCue =
   | "normal"
   | "almost_there"
@@ -23,6 +24,7 @@ export type BakeTimerSnapshot = {
   overtimeSeconds: number;
   expiresAt: number | null;
   completedCuePlayed: boolean;
+  overtimeAlarmState: BakeTimerOvertimeAlarmState;
 };
 
 export const BAKE_TIMER_MIN_SECONDS = 10;
@@ -31,7 +33,6 @@ export const BAKE_TIMER_MAX_OVERTIME_SECONDS = 90;
 export const BAKE_TIMER_LAST_SECONDS_THRESHOLD = 20;
 export const BAKE_TIMER_FINAL_SECONDS_THRESHOLD = 10;
 export const BAKE_TIMER_FINAL_THREE_SECONDS_THRESHOLD = 3;
-export const BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS = 10;
 
 export function normalizeBakeTimerDuration(value: number, fallback = 90) {
   const numeric = Number.isFinite(value) ? Math.round(value) : fallback;
@@ -53,6 +54,7 @@ export function createBakeTimerSnapshot(durationSeconds: number): BakeTimerSnaps
     overtimeSeconds: 0,
     expiresAt: null,
     completedCuePlayed: false,
+    overtimeAlarmState: "inactive",
   };
 }
 
@@ -67,6 +69,7 @@ export function deriveBakeTimerSnapshot(snapshot: BakeTimerSnapshot, now = Date.
       status: "running",
       remainingSeconds: Math.ceil(difference / 1000),
       overtimeSeconds: 0,
+      overtimeAlarmState: "inactive",
     };
   }
 
@@ -76,6 +79,7 @@ export function deriveBakeTimerSnapshot(snapshot: BakeTimerSnapshot, now = Date.
     status: overtimeSeconds >= BAKE_TIMER_MAX_OVERTIME_SECONDS ? "expired" : "overtime",
     remainingSeconds: 0,
     overtimeSeconds,
+    overtimeAlarmState: snapshot.overtimeAlarmState === "stopped" ? "stopped" : "active",
   };
 }
 
@@ -89,6 +93,7 @@ export function startBakeTimerSnapshot(snapshot: BakeTimerSnapshot, now = Date.n
     overtimeSeconds: 0,
     expiresAt: now + durationSeconds * 1000,
     completedCuePlayed: false,
+    overtimeAlarmState: "inactive",
   };
 }
 
@@ -111,11 +116,16 @@ export function resumeBakeTimerSnapshot(snapshot: BakeTimerSnapshot, now = Date.
     overtimeSeconds: 0,
     expiresAt: now + remainingSeconds * 1000,
     completedCuePlayed: false,
+    overtimeAlarmState: "inactive",
   };
 }
 
 export function resetBakeTimerSnapshot(snapshot: BakeTimerSnapshot): BakeTimerSnapshot {
   return createBakeTimerSnapshot(snapshot.durationSeconds);
+}
+
+export function restartBakeTimerSnapshot(defaultDurationSeconds: number, now = Date.now()): BakeTimerSnapshot {
+  return startBakeTimerSnapshot(createBakeTimerSnapshot(defaultDurationSeconds), now);
 }
 
 export function updateBakeTimerDuration(snapshot: BakeTimerSnapshot, durationSeconds: number): BakeTimerSnapshot {
@@ -158,10 +168,22 @@ export function adjustBakeTimerDuration(snapshot: BakeTimerSnapshot, deltaSecond
 export function adjustBakeTimerOvertime(snapshot: BakeTimerSnapshot, deltaSeconds: number, now = Date.now()): BakeTimerSnapshot {
   const derived = deriveBakeTimerSnapshot(snapshot, now);
   if (derived.status !== "overtime" && derived.status !== "expired") return derived;
-  const nextOvertimeSeconds = Math.max(
-    0,
-    Math.min(BAKE_TIMER_MAX_OVERTIME_SECONDS, derived.overtimeSeconds + Math.round(deltaSeconds)),
-  );
+  const nextRawOvertimeSeconds = derived.overtimeSeconds + Math.round(deltaSeconds);
+
+  if (nextRawOvertimeSeconds <= 0) {
+    const remainingSeconds = normalizeBakeTimerRemaining(Math.abs(nextRawOvertimeSeconds) || 1, derived.durationSeconds);
+    return {
+      ...derived,
+      status: "running",
+      remainingSeconds,
+      overtimeSeconds: 0,
+      expiresAt: now + remainingSeconds * 1000,
+      completedCuePlayed: false,
+      overtimeAlarmState: "inactive",
+    };
+  }
+
+  const nextOvertimeSeconds = Math.min(BAKE_TIMER_MAX_OVERTIME_SECONDS, nextRawOvertimeSeconds);
   return {
     ...derived,
     status: nextOvertimeSeconds >= BAKE_TIMER_MAX_OVERTIME_SECONDS ? "expired" : "overtime",
@@ -169,6 +191,7 @@ export function adjustBakeTimerOvertime(snapshot: BakeTimerSnapshot, deltaSecond
     overtimeSeconds: nextOvertimeSeconds,
     expiresAt: now - nextOvertimeSeconds * 1000,
     completedCuePlayed: true,
+    overtimeAlarmState: derived.overtimeAlarmState === "stopped" ? "stopped" : "active",
   };
 }
 
@@ -180,7 +203,16 @@ export function stopBakeTimerAlarm(snapshot: BakeTimerSnapshot, now = Date.now()
     status: "expired",
     expiresAt: null,
     completedCuePlayed: true,
+    overtimeAlarmState: "stopped",
   };
+}
+
+export function isBakeTimerOvertimeState(snapshot: BakeTimerSnapshot) {
+  return snapshot.status === "overtime" || snapshot.status === "expired";
+}
+
+export function isBakeTimerOvertimeAlarmActive(snapshot: BakeTimerSnapshot) {
+  return isBakeTimerOvertimeState(snapshot) && snapshot.overtimeAlarmState === "active";
 }
 
 export function getBakeTimerPhase(snapshot: BakeTimerSnapshot): BakeTimerPhase {

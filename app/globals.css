@@ -131,18 +131,24 @@ input[type="number"]::-webkit-outer-spin-button { margin: 0; appearance: none; -
   animation-name: dt-bake-timer-expiry-pulse;
 }
 
-.dt-bake-timer-expiry-pulse {
-  animation: dt-bake-timer-expiry-pulse 1s ease-in-out 10;
-}
-
 .dt-bake-timer-final-surface {
   background:
     radial-gradient(circle at 50% 44%, rgba(233, 75, 46, .08), transparent 18rem),
     var(--dt-background-page);
 }
 
+.dt-bake-timer-overtime-surface {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(233, 75, 46, .10), transparent 19rem),
+    var(--dt-background-page);
+}
+
+.dt-bake-timer-expiry-pulse {
+  animation: dt-bake-timer-expiry-pulse 1s ease-in-out infinite;
+}
+
 .dt-bake-timer-expiry-surface {
-  animation: dt-bake-timer-expiry-surface 1s ease-in-out 10;
+  animation: dt-bake-timer-expiry-surface 1s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -5,7 +5,6 @@ import {
   adjustBakeTimerDuration,
   adjustBakeTimerOvertime,
   bakeTimerDisplayValue,
-  BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS,
   BAKE_TIMER_FINAL_SECONDS_THRESHOLD,
   BAKE_TIMER_FINAL_THREE_SECONDS_THRESHOLD,
   BAKE_TIMER_MAX_OVERTIME_SECONDS,
@@ -16,9 +15,11 @@ import {
   getBakeTimerProgressRatio,
   getBakeTimerSoundCues,
   getBakeTimerSoundPattern,
+  isBakeTimerOvertimeAlarmActive,
   normalizeBakeTimerDuration,
   pauseBakeTimerSnapshot,
   resumeBakeTimerSnapshot,
+  restartBakeTimerSnapshot,
   startBakeTimerSnapshot,
   stopBakeTimerAlarm,
 } from "@/lib/bake-timer";
@@ -65,11 +66,12 @@ describe("Kitchen bake timer integration", () => {
     expect(getBakeTimerPhase(finalTen)).toBe("final_ten");
     expect(BAKE_TIMER_FINAL_SECONDS_THRESHOLD).toBe(10);
     expect(BAKE_TIMER_FINAL_THREE_SECONDS_THRESHOLD).toBe(3);
-    expect(BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS).toBe(10);
 
     const cappedOvertime = deriveBakeTimerSnapshot(started, 181_000);
     expect(cappedOvertime.status).toBe("expired");
     expect(cappedOvertime.overtimeSeconds).toBe(BAKE_TIMER_MAX_OVERTIME_SECONDS);
+    expect(cappedOvertime.overtimeAlarmState).toBe("active");
+    expect(isBakeTimerOvertimeAlarmActive(cappedOvertime)).toBe(true);
     expect(bakeTimerDisplayValue(cappedOvertime)).toBe("+01:30");
   });
 
@@ -92,6 +94,12 @@ describe("Kitchen bake timer integration", () => {
     const resumed = resumeBakeTimerSnapshot(paused, 60_000);
     expect(resumed.status).toBe("running");
     expect(resumed.expiresAt).toBe(105_000);
+
+    const restartedFromDefault = restartBakeTimerSnapshot(300, 10_000);
+    expect(restartedFromDefault.status).toBe("running");
+    expect(restartedFromDefault.durationSeconds).toBe(300);
+    expect(restartedFromDefault.remainingSeconds).toBe(300);
+    expect(restartedFromDefault.expiresAt).toBe(310_000);
   });
 
   it("supports bounded overtime adjustments and alarm stop state", () => {
@@ -104,15 +112,56 @@ describe("Kitchen bake timer integration", () => {
     expect(increased.status).toBe("overtime");
     expect(increased.overtimeSeconds).toBe(35);
     expect(increased.expiresAt).toBe(61_000);
+    expect(increased.overtimeAlarmState).toBe("active");
+    expect(isBakeTimerOvertimeAlarmActive(increased)).toBe(true);
 
     const capped = adjustBakeTimerOvertime(overtime, 120, 96_000);
     expect(capped.status).toBe("expired");
     expect(capped.overtimeSeconds).toBe(90);
+    expect(capped.overtimeAlarmState).toBe("active");
+    expect(isBakeTimerOvertimeAlarmActive(capped)).toBe(true);
 
     const stopped = stopBakeTimerAlarm(increased, 96_000);
     expect(stopped.status).toBe("expired");
     expect(stopped.expiresAt).toBeNull();
     expect(stopped.completedCuePlayed).toBe(true);
+    expect(stopped.overtimeAlarmState).toBe("stopped");
+    expect(isBakeTimerOvertimeAlarmActive(stopped)).toBe(false);
+  });
+
+  it("keeps overtime alarm state stable through overtime adjustments", () => {
+    const overtime = deriveBakeTimerSnapshot(
+      startBakeTimerSnapshot(createBakeTimerSnapshot(90), 1_000),
+      121_000,
+    );
+    expect(overtime).toMatchObject({
+      status: "overtime",
+      overtimeSeconds: 30,
+      overtimeAlarmState: "active",
+    });
+
+    const reducedButStillOvertime = adjustBakeTimerOvertime(overtime, -20, 121_000);
+    expect(reducedButStillOvertime).toMatchObject({
+      status: "overtime",
+      overtimeSeconds: 10,
+      overtimeAlarmState: "active",
+    });
+    expect(isBakeTimerOvertimeAlarmActive(reducedButStillOvertime)).toBe(true);
+
+    const backToCountdown = adjustBakeTimerOvertime(reducedButStillOvertime, -30, 121_000);
+    expect(backToCountdown).toMatchObject({
+      status: "running",
+      remainingSeconds: 20,
+      overtimeSeconds: 0,
+      overtimeAlarmState: "inactive",
+      completedCuePlayed: false,
+    });
+    expect(isBakeTimerOvertimeAlarmActive(backToCountdown)).toBe(false);
+
+    const stopped = stopBakeTimerAlarm(overtime, 121_000);
+    const adjustedAfterStop = adjustBakeTimerOvertime(stopped, 30, 121_000);
+    expect(adjustedAfterStop.overtimeAlarmState).toBe("stopped");
+    expect(isBakeTimerOvertimeAlarmActive(adjustedAfterStop)).toBe(false);
   });
 
   it("derives a deterministic sound cadence for the final countdown and overtime", () => {
@@ -231,6 +280,8 @@ describe("Kitchen bake timer integration", () => {
     expect(component).toContain("ALMOST THERE");
     expect(component).toContain("FINAL 10 SECONDS");
     expect(component).toContain("TIME'S UP");
+    expect(component).toContain("Pizza still baking");
+    expect(component).toContain('DoughToolsIcon name="flame"');
     expect(component).toContain("Stop alarm");
     expect(component).toContain("Start next pizza");
     expect(component).not.toContain("<aside");
@@ -248,9 +299,13 @@ describe("Kitchen bake timer integration", () => {
     expect(hook).toContain("BAKE_TIMER_SOUND_STORAGE_KEY");
     expect(hook).toContain("getBakeTimerSoundCues");
     expect(hook).toContain("getBakeTimerSoundPattern");
+    expect(hook).toContain("overtimeAlarmInterval");
+    expect(hook).toContain("isBakeTimerOvertimeAlarmActive");
+    expect(hook).toContain('if (cue === "overtime") continue');
     expect(hook).toContain("adjustDuration");
     expect(hook).toContain("adjustOvertime");
     expect(hook).toContain("stopAlarm");
+    expect(hook).toContain("restartBakeTimerSnapshot(durationSeconds)");
     expect(hook).not.toContain("queueCloudActivePizzaSessionSave");
     expect(hook).not.toContain("PizzaSession");
     expect(hook).not.toContain("stepRuntime");
@@ -264,10 +319,12 @@ describe("Kitchen bake timer integration", () => {
     expect(component).toContain("dt-bake-timer-final-pulse");
     expect(component).toContain("dt-bake-timer-final-pulse-strong");
     expect(component).toContain("dt-bake-timer-expiry-pulse");
+    expect(component).toContain("dt-bake-timer-overtime-surface");
     expect(component).toContain("dt-bake-timer-expiry-surface");
     expect(styles).toContain("@keyframes dt-bake-timer-final-pulse");
     expect(styles).toContain("@keyframes dt-bake-timer-expiry-pulse");
-    expect(styles).toContain("1s ease-in-out");
+    expect(styles).toContain("dt-bake-timer-expiry-pulse 1s ease-in-out infinite");
+    expect(styles).toContain("dt-bake-timer-expiry-surface 1s ease-in-out infinite");
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
     expect(styles).toContain("animation: none !important");
   });

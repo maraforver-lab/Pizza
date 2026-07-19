@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { buttonClass, cx } from "@/components/design-system";
 import { DoughToolsIcon } from "@/components/icons";
-import { BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS, BAKE_TIMER_MAX_OVERTIME_SECONDS } from "@/lib/bake-timer";
+import { BAKE_TIMER_MAX_OVERTIME_SECONDS } from "@/lib/bake-timer";
 import type { PizzaSessionOvenType } from "@/lib/pizza-session-bake-profile";
 import { useBakeTimer } from "@/lib/use-bake-timer";
 
@@ -83,16 +83,16 @@ function phaseCopy(phase: ReturnType<typeof useBakeTimer>["phase"]) {
 
 function BakeTimerProgressRing({
   displayValue,
+  overtimeAlarmActive,
   phase,
   progressRatio,
   remainingSeconds,
-  overtimeSeconds,
 }: {
   displayValue: string;
+  overtimeAlarmActive: boolean;
   phase: ReturnType<typeof useBakeTimer>["phase"];
   progressRatio: number;
   remainingSeconds: number;
-  overtimeSeconds: number;
 }) {
   const activeDegrees = phase === "overtime" || phase === "expired" || phase === "ready"
     ? 360
@@ -106,7 +106,7 @@ function BakeTimerProgressRing({
     background: `conic-gradient(${ringColor} ${activeDegrees}deg, rgba(31,31,31,.10) 0deg)`,
   } satisfies CSSProperties;
   const finalThree = phase === "final_ten" && remainingSeconds <= 3;
-  const expiryPulse = phase === "overtime" && overtimeSeconds <= BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS;
+  const expiryPulse = (phase === "overtime" || phase === "expired") && overtimeAlarmActive;
   return (
     <div
       className={cx(
@@ -161,16 +161,17 @@ export function KitchenBakeTimerPanel({
   const timerStatus = timer.status;
   const pauseTimer = timer.pause;
   const stopTimerAlarm = timer.stopAlarm;
-  const timerActive = timerStatus === "running" || timerStatus === "paused" || timerStatus === "overtime";
+  const timerActive = timerStatus === "running" || timerStatus === "paused" || timer.overtimeAlarmActive;
   const overtimeCanDecrease = timer.snapshot.overtimeSeconds > 0 || timerStatus === "expired";
   const overtimeCanIncrease = timer.snapshot.overtimeSeconds < BAKE_TIMER_MAX_OVERTIME_SECONDS && timerStatus !== "expired";
-  const expiryPulse = phase === "overtime" && timer.snapshot.overtimeSeconds <= BAKE_TIMER_EXPIRY_STRONG_PULSE_SECONDS;
+  const overtimeVisual = phase === "overtime" || phase === "expired";
+  const overtimePulse = overtimeVisual && timer.overtimeAlarmActive;
 
   const closeTimer = useCallback(() => {
     if (timerStatus === "running") pauseTimer();
-    if (timerStatus === "overtime") stopTimerAlarm();
+    if (timer.overtimeAlarmActive) stopTimerAlarm();
     setOpen(false);
-  }, [pauseTimer, stopTimerAlarm, timerStatus]);
+  }, [pauseTimer, stopTimerAlarm, timer.overtimeAlarmActive, timerStatus]);
 
   useEffect(() => {
     if (timerActive) setOpen(true);
@@ -220,6 +221,7 @@ export function KitchenBakeTimerPanel({
     if (!open) return;
     if (previousPhaseRef.current === phase) return;
     previousPhaseRef.current = phase;
+    if (phase === "ready") setAnnouncement("Bake timer ready.");
     if (phase === "active") setAnnouncement("Bake timer started.");
     if (phase === "almost_there") setAnnouncement("20 seconds remaining.");
     if (phase === "final_ten") setAnnouncement("10 seconds remaining.");
@@ -270,7 +272,8 @@ export function KitchenBakeTimerPanel({
             className={cx(
               "mx-auto grid h-[100dvh] w-full max-w-xl grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-background-page px-4 pb-[calc(.75rem+env(safe-area-inset-bottom))] pt-[calc(.75rem+env(safe-area-inset-top))] shadow-overlay outline-none sm:h-auto sm:min-h-0 sm:rounded-[2rem] sm:p-6",
               phase === "final_ten" && "dt-bake-timer-final-surface",
-              expiryPulse && "dt-bake-timer-expiry-surface",
+              overtimeVisual && "dt-bake-timer-overtime-surface",
+              overtimePulse && "dt-bake-timer-expiry-surface",
             )}
           >
             <div className="flex items-center justify-between gap-3">
@@ -311,13 +314,21 @@ export function KitchenBakeTimerPanel({
                 <div className="mt-3 sm:mt-5">
                   <BakeTimerProgressRing
                     displayValue={timer.displayValue}
+                    overtimeAlarmActive={timer.overtimeAlarmActive}
                     phase={phase}
                     progressRatio={timer.progressRatio}
                     remainingSeconds={timer.snapshot.remainingSeconds}
-                    overtimeSeconds={timer.snapshot.overtimeSeconds}
                   />
                   <p className="sr-only" aria-live="polite">{announcement}</p>
                 </div>
+
+                {overtimeVisual && (
+                  <div className="mt-3 flex justify-center sm:mt-4">
+                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-tomato/10 text-tomato ring-1 ring-tomato/25" aria-label="Pizza still baking" role="img">
+                      <DoughToolsIcon name="flame" size={24} strokeWidth={2.2} />
+                    </span>
+                  </div>
+                )}
 
                 <p
                   className={cx(
