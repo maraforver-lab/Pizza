@@ -22,7 +22,7 @@ describe("Patch 344 account responsive workspace", () => {
     expect(page).toContain("supabase.auth.getUser()");
     expect(page).toContain("supabase.auth.signInWithPassword");
     expect(page).toContain("supabase.auth.signUp");
-    expect(page).toContain("supabase.auth.signOut()");
+    expect(page).toContain('supabase.auth.signOut({ scope: "local" })');
   });
 
   it("keeps the mobile reading order focused on session work before support settings", () => {

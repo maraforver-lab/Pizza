@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import SiteFooter from "@/components/SiteFooter";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
 import { AccountEarlyCompletionPreference } from "@/components/account/AccountEarlyCompletionPreference";
+import { AccountEmailAddressSettings } from "@/components/account/AccountEmailAddressSettings";
 import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
 import { PartyOrdersAccountEntryCard } from "@/components/account/PartyOrdersAccountEntryCard";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
+import { authCallbackRedirectTo, validateAccountEmail } from "@/lib/account-access";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "signup";
@@ -32,6 +35,7 @@ export default function AccountPage() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const router = useRouter();
   const t = copy.en;
 
   useEffect(() => {
@@ -48,9 +52,13 @@ export default function AccountPage() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true); setMessage(""); setIsError(false);
+    const emailValidation = validateAccountEmail(email);
+    if (!emailValidation.ok) {
+      setLoading(false); setMessage(emailValidation.error); setIsError(true); return;
+    }
     const result = mode === "signup"
-      ? await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${location.origin}/auth/callback?next=/account` } })
-      : await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      ? await supabase.auth.signUp({ email: emailValidation.email, password, options: { emailRedirectTo: authCallbackRedirectTo(location.origin, "/account") } })
+      : await supabase.auth.signInWithPassword({ email: emailValidation.email, password });
     setLoading(false);
     if (result.error) { setMessage(result.error.message || t.error); setIsError(true); return; }
     if (mode === "signup" && !result.data.session) { setMessage(t.confirm); setPassword(""); return; }
@@ -58,9 +66,20 @@ export default function AccountPage() {
   };
 
   const signOut = async () => {
+    if (loading) return;
     setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    setLoading(false); setUser(null); setMessage(error ? error.message : t.signedOut); setIsError(Boolean(error));
+    setMessage(""); setIsError(false);
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    setLoading(false);
+    if (error) {
+      setMessage("We could not sign you out. Try again.");
+      setIsError(true);
+      return;
+    }
+    setUser(null);
+    setMessage(t.signedOut);
+    setIsError(false);
+    router.refresh();
   };
 
   return (
@@ -153,6 +172,14 @@ export default function AccountPage() {
                   <button type="submit" disabled={loading} className="min-h-12 w-full rounded-xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg disabled:opacity-50">
                     {loading ? t.working : mode === "login" ? t.login : t.signup}
                   </button>
+                  {mode === "login" && (
+                    <Link
+                      href="/auth/forgot-password"
+                      className="inline-flex min-h-10 items-center rounded-full px-1 text-sm font-extrabold text-tomato transition hover:text-forest focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                    >
+                      Forgot password?
+                    </Link>
+                  )}
                 </form>
               </>
             )}
@@ -171,6 +198,7 @@ export default function AccountPage() {
               <InstallAppPrompt compact collapsible className="mt-0" />
               <AccountGuidancePreference />
               <AccountEarlyCompletionPreference />
+              <AccountEmailAddressSettings user={user} />
               <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-security-heading">
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
                 <h2 id="account-security-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
