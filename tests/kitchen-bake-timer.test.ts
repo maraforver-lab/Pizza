@@ -264,6 +264,27 @@ describe("Kitchen bake timer integration", () => {
     expect(page).toContain('if (result.completedStepId === "bake-pizza") clearKitchenBakeTimerState(session.id)');
   });
 
+  it("orders the Bake Timer before guidance and suppresses only the Bake wait card", () => {
+    const page = source("app/session/kitchen/page.tsx");
+    const timerRenderIndex = page.indexOf("<KitchenBakeTimerPanel");
+    const bakeGuidanceRenderIndex = page.indexOf("{currentStepIsBakePizza && moreGuidanceDisclosure}");
+    const nonBakeGuidanceRenderIndex = page.indexOf("{!currentStepIsBakePizza && moreGuidanceDisclosure}");
+
+    expect(timerRenderIndex).toBeGreaterThan(-1);
+    expect(bakeGuidanceRenderIndex).toBeGreaterThan(-1);
+    expect(nonBakeGuidanceRenderIndex).toBeGreaterThan(-1);
+    expect(nonBakeGuidanceRenderIndex).toBeLessThan(timerRenderIndex);
+    expect(timerRenderIndex).toBeLessThan(bakeGuidanceRenderIndex);
+    expect(page.match(/>\s*More guidance\s*</g) ?? []).toHaveLength(1);
+    expect(page).toContain("{!currentStepIsBakePizza && waitInfo.isTooEarly && waitInfo.waitLabel && (");
+    expect(page).not.toContain("{waitInfo.isTooEarly && waitInfo.waitLabel && (");
+    expect(page).toContain("id=\"kitchen-wait-status\"");
+    expect(page).toContain("{waitInfo.waitLabel} before this step.");
+    expect(page).toContain("This step is scheduled for");
+    expect(page).toContain("aria-describedby={currentStepCompletionBlocked ? \"kitchen-wait-status\" : undefined}");
+    expect(page).toContain("Done baking? Review session");
+  });
+
   it("renders a launcher and full-screen timer dialog separate from Kitchen progress persistence", () => {
     const component = source("components/session/KitchenBakeTimerPanel.tsx");
     const hook = source("lib/use-bake-timer.ts");

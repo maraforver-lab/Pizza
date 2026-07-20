@@ -1306,9 +1306,12 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page.indexOf("Current step")).toBeLessThan(page.indexOf("aria-live=\"polite\""));
     expect(page.indexOf("aria-live=\"polite\"")).toBeLessThan(page.indexOf("Next:"));
     expect(page.indexOf("Next:")).toBeLessThan(page.indexOf("Current task instruction"));
-    expect(page.indexOf("Current task instruction")).toBeLessThan(page.indexOf("More guidance"));
-    expect(page.indexOf("More guidance")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
+    expect(page).toContain("const moreGuidanceDisclosure = (");
+    expect(page).toContain("{!currentStepIsBakePizza && moreGuidanceDisclosure}");
+    expect(page).toContain("{currentStepIsBakePizza && moreGuidanceDisclosure}");
+    expect(page.indexOf("const moreGuidanceDisclosure = (")).toBeLessThan(page.indexOf("id=\"kitchen-level-guidance-heading\""));
     expect(page.indexOf("id=\"kitchen-level-guidance-heading\"")).toBeLessThan(page.indexOf("What this should look like"));
+    expect(page.indexOf("Current task instruction")).toBeLessThan(page.indexOf("{!currentStepIsBakePizza && moreGuidanceDisclosure}"));
   });
 
   it("adds a mobile-only Rest dough status hierarchy while preserving desktop timing detail", () => {

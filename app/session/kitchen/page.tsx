@@ -502,6 +502,72 @@ export default function SessionKitchenPage() {
     taskPresentation.shortInstruction,
     taskPresentation.doneCondition,
   );
+  const moreGuidanceDisclosure = (
+    <details className="mt-4 rounded-[1.25rem] border border-ink/10 bg-white/70 p-4">
+      <summary className="cursor-pointer text-sm font-extrabold text-ink/65 marker:text-tomato">
+        More guidance
+      </summary>
+      <div className="mt-4 grid gap-3">
+        <div className={`rounded-[1.25rem] border p-4 ${experience.cardClassName}`}>
+          <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
+          <p className="mt-2 text-base font-extrabold leading-7 text-ink sm:text-lg">{levelGuidance.instruction}</p>
+          {levelGuidanceDetails.length > 0 && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {levelGuidanceDetails.map((item) => (
+                <div key={item.label} className="rounded-2xl bg-white/70 p-3.5">
+                  <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/40">{item.label}</p>
+                  <p className="mt-1 text-sm font-bold leading-6 text-ink/70">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {taskPresentation.helperCopy && (
+          <div className="rounded-[1.25rem] border border-leaf/10 bg-white/65 p-4">
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">What this should look like</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:text-base">{taskPresentation.helperCopy}</p>
+          </div>
+        )}
+
+        {showToppingBalanceLink && (
+          <div className="rounded-[1.25rem] border border-ink/10 bg-white/65 p-4">
+            <p className="text-sm font-bold leading-6 text-ink/60">
+              Review sauce, cheese and topping amounts if the pizza may become too wet or heavily loaded.
+            </p>
+            <Link
+              href="/toppings"
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+            >
+              Check topping balance
+            </Link>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {doughGuideLink && doughGuideHref && (
+            <Link
+              href={doughGuideHref}
+              aria-label={doughGuideLink.ariaLabel}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+            >
+              {doughGuideLink.label}
+            </Link>
+          )}
+
+          {ovenTroubleshootingLink && ovenTroubleshootingHref && (
+            <Link
+              href={ovenTroubleshootingHref}
+              aria-label={ovenTroubleshootingLink.ariaLabel}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
+            >
+              {ovenTroubleshootingLink.label}
+            </Link>
+          )}
+        </div>
+      </div>
+    </details>
+  );
 
   const closeMenuEditor = () => {
     setMenuEditorOpen(false);
@@ -749,70 +815,7 @@ export default function SessionKitchenPage() {
                         </p>
                       )}
 
-                      <details className="mt-4 rounded-[1.25rem] border border-ink/10 bg-white/70 p-4">
-                        <summary className="cursor-pointer text-sm font-extrabold text-ink/65 marker:text-tomato">
-                          More guidance
-                        </summary>
-                        <div className="mt-4 grid gap-3">
-                          <div className={`rounded-[1.25rem] border p-4 ${experience.cardClassName}`}>
-                            <p id="kitchen-level-guidance-heading" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{experience.label} guidance</p>
-                            <p className="mt-2 text-base font-extrabold leading-7 text-ink sm:text-lg">{levelGuidance.instruction}</p>
-                            {levelGuidanceDetails.length > 0 && (
-                              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                                {levelGuidanceDetails.map((item) => (
-                                  <div key={item.label} className="rounded-2xl bg-white/70 p-3.5">
-                                    <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-ink/40">{item.label}</p>
-                                    <p className="mt-1 text-sm font-bold leading-6 text-ink/70">{item.value}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {taskPresentation.helperCopy && (
-                            <div className="rounded-[1.25rem] border border-leaf/10 bg-white/65 p-4">
-                              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">What this should look like</p>
-                              <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:text-base">{taskPresentation.helperCopy}</p>
-                            </div>
-                          )}
-
-                          {showToppingBalanceLink && (
-                            <div className="rounded-[1.25rem] border border-ink/10 bg-white/65 p-4">
-                              <p className="text-sm font-bold leading-6 text-ink/60">
-                                Review sauce, cheese and topping amounts if the pizza may become too wet or heavily loaded.
-                              </p>
-                              <Link
-                                href="/toppings"
-                                className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
-                              >
-                                Check topping balance
-                              </Link>
-                            </div>
-                          )}
-
-                          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                            {doughGuideLink && doughGuideHref && (
-                              <Link
-                                href={doughGuideHref}
-                                aria-label={doughGuideLink.ariaLabel}
-                                className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
-                              >
-                                {doughGuideLink.label}
-                              </Link>
-                            )}
-
-                            {ovenTroubleshootingLink && ovenTroubleshootingHref && (
-                              <Link
-                                href={ovenTroubleshootingHref}
-                                aria-label={ovenTroubleshootingLink.ariaLabel}
-                                className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/60 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-fit"
-                              >
-                                {ovenTroubleshootingLink.label}
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      </details>
+                      {!currentStepIsBakePizza && moreGuidanceDisclosure}
                     </section>
                   </div>
 
@@ -827,7 +830,9 @@ export default function SessionKitchenPage() {
                     />
                   )}
 
-                  {waitInfo.isTooEarly && waitInfo.waitLabel && (
+                  {currentStepIsBakePizza && moreGuidanceDisclosure}
+
+                  {!currentStepIsBakePizza && waitInfo.isTooEarly && waitInfo.waitLabel && (
                     <div id="kitchen-wait-status" className={`${timedWaitMobileHiddenClass}mt-5 rounded-[1.25rem] border border-tomato/20 bg-tomato/[.08] p-4`} role="status">
                       <p className="text-sm font-extrabold leading-6 text-tomato">
                         {waitInfo.waitLabel} before this step.
