@@ -48,13 +48,23 @@
 
   /* Public seasonal theme foundation. Detailed theme artistry is intentionally deferred. */
   --theme-page-background: var(--dt-warm-background);
+  --theme-page-background-secondary: var(--dt-flour);
   --theme-surface: var(--dt-card);
   --theme-surface-muted: var(--dt-flour);
+  --theme-surface-elevated: var(--dt-card);
   --theme-border: var(--dt-flour);
+  --theme-border-strong: color-mix(in srgb, var(--dt-muted) 24%, var(--dt-flour));
+  --theme-text: var(--dt-ink);
+  --theme-text-muted: var(--dt-muted);
   --theme-accent: var(--dt-tomato);
+  --theme-accent-hover: var(--dt-forest);
+  --theme-accent-soft: rgba(233, 75, 46, .08);
   --theme-accent-secondary: var(--dt-forest);
   --theme-decorative: rgba(233, 75, 46, .10);
+  --theme-decorative-secondary: rgba(15, 61, 46, .09);
   --theme-header-surface: rgba(255, 248, 241, .92);
+  --theme-header-border: rgba(31, 31, 31, .10);
+  --theme-focus: var(--dt-tomato);
 
   --dt-radius-control: .75rem;
   --dt-radius-card: 1.5rem;
@@ -75,14 +85,31 @@
 }
 
 html[data-public-theme="valentine"] {
-  --theme-page-background: #fff2f2;
-  --theme-surface: #fffafa;
-  --theme-surface-muted: #f8dcdc;
-  --theme-border: #f0c4c4;
-  --theme-accent: #d93e34;
-  --theme-accent-secondary: #7a2c2c;
-  --theme-decorative: rgba(217, 62, 52, .12);
-  --theme-header-surface: rgba(255, 242, 242, .94);
+  --theme-page-background: #fff3f1;
+  --theme-page-background-secondary: #f7e1dd;
+  --theme-surface: #fffbfa;
+  --theme-surface-muted: #f7e1dd;
+  --theme-surface-elevated: #fffbfa;
+  --theme-border: #ebc8c1;
+  --theme-border-strong: #d9aaa0;
+  --theme-text: var(--dt-ink);
+  --theme-text-muted: var(--dt-muted);
+  --theme-accent: #d94238;
+  --theme-accent-hover: #c7352e;
+  --theme-accent-soft: rgba(217, 66, 56, .09);
+  --theme-accent-secondary: #7a2d2c;
+  --theme-decorative: rgba(217, 66, 56, .11);
+  --theme-decorative-secondary: rgba(122, 45, 44, .08);
+  --theme-header-surface: rgba(255, 243, 241, .96);
+  --theme-header-border: rgba(122, 45, 44, .14);
+}
+
+html[data-public-theme="valentine"] body {
+  background:
+    radial-gradient(circle at 10% 0%, var(--theme-decorative), transparent 24rem),
+    radial-gradient(circle at 18% 7%, rgba(122, 45, 44, .06), transparent 16rem),
+    radial-gradient(circle at 92% 44%, var(--theme-decorative-secondary), transparent 29rem),
+    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 44%, var(--theme-page-background)) 46%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="easter"] {

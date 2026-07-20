@@ -13,6 +13,27 @@ import {
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
+function channelToLinear(value: number) {
+  const normalized = value / 255;
+  return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(hex: string) {
+  const [red, green, blue] = hex
+    .replace("#", "")
+    .match(/../g)!
+    .map((part) => channelToLinear(Number.parseInt(part, 16)));
+  return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+}
+
+function contrastRatio(foreground: string, background: string) {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 describe("Patch 445A public theme architecture", () => {
   it("defines exactly the approved seven public theme IDs", () => {
     expect(PUBLIC_THEME_IDS).toEqual([
@@ -47,7 +68,30 @@ describe("Patch 445A public theme architecture", () => {
       expect(JSON.stringify(theme)).not.toMatch(/<[^>]+>|javascript:|https?:\/\//i);
     }
     expect(publicThemeDefinitionFor("default").designStatus).toBe("final");
-    expect(PUBLIC_THEME_DEFINITIONS.filter((theme) => theme.id !== "default").every((theme) => theme.designStatus === "foundation")).toBe(true);
+    expect(publicThemeDefinitionFor("valentine").designStatus).toBe("final");
+    expect(PUBLIC_THEME_DEFINITIONS
+      .filter((theme) => theme.id !== "default" && theme.id !== "valentine")
+      .every((theme) => theme.designStatus === "foundation")).toBe(true);
+  });
+
+  it("finalizes only the Valentine registry values approved by Patch 445B", () => {
+    const valentine = publicThemeDefinitionFor("valentine");
+
+    expect(valentine).toMatchObject({
+      id: "valentine",
+      rootClassName: "theme-valentine",
+      themeColor: "#FFF3F1",
+      designStatus: "final",
+      shortDescription: "Warm rose cream for shared pizza nights.",
+    });
+    expect(valentine.description).toContain("sharing pizza");
+    expect(valentine.description).not.toMatch(/romantic|couple|dating|heart/i);
+    expect(valentine.previewSwatches).toEqual(["#FFF3F1", "#FFFBFA", "#D94238", "#7A2D2C"]);
+    expect(publicThemeDefinitionFor("easter").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("summer").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("harvest").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
   });
 
   it("derives campaign status with inclusive start and exclusive end semantics", () => {
@@ -145,6 +189,36 @@ describe("Patch 445A public theme architecture", () => {
     expect(css).toContain("--theme-border");
     expect(css).not.toMatch(/animation:\s*.*theme|@keyframes\s+.*theme/i);
     expect(css).not.toContain("html[data-public-theme]:not([data-public-theme=\"default\"]) .text-tomato");
+  });
+
+  it("implements the final Valentine CSS tokens without changing semantic or timer urgency colors", () => {
+    const css = source("app/globals.css");
+    const valentineBlock = css.match(/html\[data-public-theme="valentine"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+
+    expect(valentineBlock).toContain("--theme-page-background: #fff3f1");
+    expect(valentineBlock).toContain("--theme-page-background-secondary: #f7e1dd");
+    expect(valentineBlock).toContain("--theme-surface: #fffbfa");
+    expect(valentineBlock).toContain("--theme-surface-muted: #f7e1dd");
+    expect(valentineBlock).toContain("--theme-surface-elevated: #fffbfa");
+    expect(valentineBlock).toContain("--theme-border: #ebc8c1");
+    expect(valentineBlock).toContain("--theme-border-strong: #d9aaa0");
+    expect(valentineBlock).toContain("--theme-accent: #d94238");
+    expect(valentineBlock).toContain("--theme-accent-hover: #c7352e");
+    expect(valentineBlock).toContain("--theme-accent-secondary: #7a2d2c");
+    expect(valentineBlock).toContain("--theme-header-surface: rgba(255, 243, 241, .96)");
+    expect(valentineBlock).toContain("--theme-header-border: rgba(122, 45, 44, .14)");
+    expect(css).toContain('html[data-public-theme="valentine"] body');
+    expect(css).toContain("radial-gradient(circle at 10% 0%, var(--theme-decorative), transparent 24rem)");
+    expect(css).not.toMatch(/html\[data-public-theme="valentine"\][^{]*(?:\.text-tomato|\.bg-tomato|dt-bake-timer)/);
+    expect(css).not.toMatch(/html\[data-public-theme="valentine"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="valentine"\][\s\S]*--dt-action-danger/);
+  });
+
+  it("keeps Valentine readable by using Ink and muted text over final surfaces", () => {
+    for (const surface of ["#FFF3F1", "#FFFBFA", "#F7E1DD"]) {
+      expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrastRatio("#6B645D", "#FFFBFA")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#7A2D2C", "#FFF3F1")).toBeGreaterThanOrEqual(4.5);
   });
 
   it("documents the Patch 445B visual audit boundary and later theme roadmap", () => {

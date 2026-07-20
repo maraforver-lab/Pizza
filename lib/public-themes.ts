@@ -53,12 +53,12 @@ export const PUBLIC_THEME_DEFINITIONS = [
   {
     id: "valentine",
     name: "Valentine",
-    description: "A restrained warm-red and rose foundation for a seasonal appearance that stays practical.",
-    shortDescription: "Warm red with a restrained rose tint.",
+    description: "A warm, restrained rose appearance built around sharing pizza without changing DoughTools into a greeting-card experience.",
+    shortDescription: "Warm rose cream for shared pizza nights.",
     rootClassName: "theme-valentine",
-    themeColor: "#FFF2F2",
-    previewSwatches: ["#FFF2F2", "#F8DCDC", "#D93E34", "#7A2C2C"],
-    designStatus: "foundation",
+    themeColor: "#FFF3F1",
+    previewSwatches: ["#FFF3F1", "#FFFBFA", "#D94238", "#7A2D2C"],
+    designStatus: "final",
   },
   {
     id: "easter",
