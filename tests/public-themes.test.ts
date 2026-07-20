@@ -69,12 +69,13 @@ describe("Patch 445A public theme architecture", () => {
     }
     expect(publicThemeDefinitionFor("default").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("valentine").designStatus).toBe("final");
+    expect(publicThemeDefinitionFor("easter").designStatus).toBe("final");
     expect(PUBLIC_THEME_DEFINITIONS
-      .filter((theme) => theme.id !== "default" && theme.id !== "valentine")
+      .filter((theme) => theme.id !== "default" && theme.id !== "valentine" && theme.id !== "easter")
       .every((theme) => theme.designStatus === "foundation")).toBe(true);
   });
 
-  it("finalizes only the Valentine registry values approved by Patch 445B", () => {
+  it("keeps the Valentine registry values approved by Patch 445B and Patch 445C", () => {
     const valentine = publicThemeDefinitionFor("valentine");
 
     expect(valentine).toMatchObject({
@@ -87,7 +88,22 @@ describe("Patch 445A public theme architecture", () => {
     expect(valentine.description).toContain("sharing pizza");
     expect(valentine.description).not.toMatch(/romantic|couple|dating|heart/i);
     expect(valentine.previewSwatches).toEqual(["#FFF3F1", "#FFFBFA", "#D94238", "#7A2D2C"]);
-    expect(publicThemeDefinitionFor("easter").designStatus).toBe("foundation");
+  });
+
+  it("finalizes only the Easter registry values approved by Patch 445B", () => {
+    const easter = publicThemeDefinitionFor("easter");
+
+    expect(easter).toMatchObject({
+      id: "easter",
+      rootClassName: "theme-easter",
+      themeColor: "#FFF9DE",
+      designStatus: "final",
+      shortDescription: "Fresh spring warmth with clean green accents.",
+    });
+    expect(easter.description).toContain("non-religious");
+    expect(easter.description).toContain("practical");
+    expect(easter.description).not.toMatch(/church|cross|religious symbol|egg hunt|cartoon/i);
+    expect(easter.previewSwatches).toEqual(["#FFF9DE", "#FFFDF5", "#5F8F3A", "#E0B84A"]);
     expect(publicThemeDefinitionFor("summer").designStatus).toBe("foundation");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("foundation");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
@@ -213,12 +229,42 @@ describe("Patch 445A public theme architecture", () => {
     expect(css).not.toMatch(/html\[data-public-theme="valentine"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="valentine"\][\s\S]*--dt-action-danger/);
   });
 
+  it("implements the final Easter CSS tokens without low-contrast pastel text or semantic color replacement", () => {
+    const css = source("app/globals.css");
+    const easterBlock = css.match(/html\[data-public-theme="easter"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+
+    expect(easterBlock).toContain("--theme-page-background: #fff9de");
+    expect(easterBlock).toContain("--theme-page-background-secondary: #eef5dc");
+    expect(easterBlock).toContain("--theme-surface: #fffdf5");
+    expect(easterBlock).toContain("--theme-surface-muted: #eef5dc");
+    expect(easterBlock).toContain("--theme-surface-elevated: #fffdf5");
+    expect(easterBlock).toContain("--theme-border: #d8e4b8");
+    expect(easterBlock).toContain("--theme-border-strong: #b7c98a");
+    expect(easterBlock).toContain("--theme-accent: #5f8f3a");
+    expect(easterBlock).toContain("--theme-accent-hover: #4f7c30");
+    expect(easterBlock).toContain("--theme-accent-secondary: #e0b84a");
+    expect(easterBlock).toContain("--theme-header-surface: rgba(255, 249, 222, .96)");
+    expect(easterBlock).toContain("--theme-header-border: rgba(95, 143, 58, .16)");
+    expect(css).toContain('html[data-public-theme="easter"] body');
+    expect(css).toContain("radial-gradient(ellipse at 12% 0%, var(--theme-decorative), transparent 24rem)");
+    expect(css).not.toMatch(/html\[data-public-theme="easter"\][^{]*(?:\.text-leaf|\.bg-leaf|dt-bake-timer)/);
+    expect(css).not.toMatch(/html\[data-public-theme="easter"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="easter"\][\s\S]*--dt-action-danger/);
+  });
+
   it("keeps Valentine readable by using Ink and muted text over final surfaces", () => {
     for (const surface of ["#FFF3F1", "#FFFBFA", "#F7E1DD"]) {
       expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
     }
     expect(contrastRatio("#6B645D", "#FFFBFA")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#7A2D2C", "#FFF3F1")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps Easter readable by using Ink and muted text over final surfaces", () => {
+    for (const surface of ["#FFF9DE", "#FFFDF5", "#EEF5DC"]) {
+      expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrastRatio("#6B645D", "#FFFDF5")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#4F7C30", "#FFF9DE")).toBeGreaterThanOrEqual(4.5);
   });
 
   it("documents the Patch 445B visual audit boundary and later theme roadmap", () => {

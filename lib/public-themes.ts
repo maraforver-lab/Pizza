@@ -63,12 +63,12 @@ export const PUBLIC_THEME_DEFINITIONS = [
   {
     id: "easter",
     name: "Easter",
-    description: "A light spring foundation using soft yellow, fresh green and broad non-religious seasonal cues.",
-    shortDescription: "Light spring yellow and fresh green.",
+    description: "A fresh, light spring appearance with broad non-religious oval and leaf cues that keeps DoughTools practical.",
+    shortDescription: "Fresh spring warmth with clean green accents.",
     rootClassName: "theme-easter",
-    themeColor: "#FFF9D9",
-    previewSwatches: ["#FFF9D9", "#EEF6D8", "#8DBB55", "#F2C94C"],
-    designStatus: "foundation",
+    themeColor: "#FFF9DE",
+    previewSwatches: ["#FFF9DE", "#FFFDF5", "#5F8F3A", "#E0B84A"],
+    designStatus: "final",
   },
   {
     id: "summer",
