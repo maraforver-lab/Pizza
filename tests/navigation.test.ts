@@ -172,9 +172,13 @@ describe("final product navigation model", () => {
     expect(header).toContain("Checking your pizza...");
     expect(header).toContain("resolveCanonicalActivePizzaSession");
     expect(header).toContain("href={sessionDecision.href}");
+    expect(header).toContain("Bake timer");
+    expect(header).toContain("Time one pizza without starting a Pizza Session.");
+    expect(header).toContain('href: "/tools/bake-timer"');
     expect(header).toContain("Quick dough calculator");
     expect(header).toContain("Calculate dough amounts without starting a full pizza plan.");
     expect(header).toContain('data-mobile-tools-extension-point="before-quick-dough-calculator"');
+    expect(header.indexOf('href: "/tools/bake-timer"')).toBeLessThan(header.indexOf('href: "/calculator/quick"'));
     expect(header).toContain("Learn to make better pizza");
     expect(header).toContain("Practical guides for dough, sauce, ovens and common problems.");
     expect(header).toContain("How to make pizza dough");
@@ -186,7 +190,6 @@ describe("final product navigation model", () => {
     expect(header).toContain("About DoughTools");
     expect(header).toContain("Close menu");
     expect(header).not.toContain("Topping Balance Lab");
-    expect(header).not.toContain("Bake Timer");
     expect(header).not.toContain("Pizza costs");
   });
 

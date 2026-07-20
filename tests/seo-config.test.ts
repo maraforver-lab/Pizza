@@ -45,6 +45,7 @@ const requiredPublicRoutes = [
   "/toppings",
   "/calculator/quick",
   "/timer",
+  "/tools/bake-timer",
   "/costs",
   "/updates",
 ];
@@ -118,6 +119,7 @@ describe("SEO launch configuration", () => {
     expect(seoRoutePolicy.publicToolBaseRoutes).toEqual([
       "/",
       "/sauce",
+      "/tools/bake-timer",
       "/calculator/quick",
       "/toppings",
       "/timer",
@@ -142,6 +144,7 @@ describe("SEO launch configuration", () => {
       "/guides/dough",
       "/guide/pizza-troubleshooting",
       "/calculator/quick",
+      "/tools/bake-timer",
     ]) {
       expect(sitemapUrls).toContain(`https://doughtools.app${route}`);
     }

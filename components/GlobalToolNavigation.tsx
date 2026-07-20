@@ -30,6 +30,8 @@ const copy = {
   learningDescription: "Dough, sauce, ovens, styles and troubleshooting.",
   quickCalculator: "Quick Calculator",
   quickCalculatorDescription: "Fast standalone dough amounts without a Pizza Session.",
+  mobileBakeTimer: "Bake timer",
+  mobileBakeTimerDescription: "Time one pizza without starting a Pizza Session.",
   mobileQuickCalculator: "Quick dough calculator",
   mobileQuickCalculatorDescription: "Calculate dough amounts without starting a full pizza plan.",
   mobileLearn: "Learn to make better pizza",
@@ -119,6 +121,12 @@ const mobileLearningItems = [
 ] as const;
 
 const mobileToolItems = [
+  {
+    href: "/tools/bake-timer",
+    label: copy.mobileBakeTimer,
+    description: copy.mobileBakeTimerDescription,
+    icon: "timer" satisfies DoughToolsIconName,
+  },
   {
     href: "/calculator/quick",
     label: copy.mobileQuickCalculator,

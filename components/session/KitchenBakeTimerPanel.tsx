@@ -27,6 +27,15 @@ export type KitchenBakeTimerPanelProps = {
   pizzaCount?: number;
 };
 
+export type BakeTimerPanelProps = Omit<KitchenBakeTimerPanelProps, "sessionId"> & {
+  storageKey?: string;
+  launcherActionLabel?: string;
+  launcherEyebrow?: string;
+  openOnMount?: boolean;
+  showLauncher?: boolean;
+  onClose?: () => void;
+};
+
 function formatCompactDuration(seconds: number) {
   const safeSeconds = Math.max(1, Math.round(seconds));
   if (safeSeconds < 60) return `${safeSeconds} sec`;
@@ -133,22 +142,28 @@ function BakeTimerProgressRing({
   );
 }
 
-export function KitchenBakeTimerPanel({
-  sessionId,
+export function BakeTimerPanel({
   durationSeconds,
   durationLabel,
   ovenType,
   ovenLabel,
-}: KitchenBakeTimerPanelProps) {
+  storageKey,
+  launcherActionLabel = "Open full-screen bake timer",
+  launcherEyebrow = "Bake timer",
+  openOnMount = false,
+  showLauncher = true,
+  onClose,
+}: BakeTimerPanelProps) {
   const [open, setOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const launcherRef = useRef<HTMLButtonElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousPhaseRef = useRef<string | null>(null);
+  const autoOpenedRef = useRef(false);
   const timer = useBakeTimer({
     durationSeconds,
-    storageKey: kitchenBakeTimerStorageKey(sessionId),
+    storageKey,
   });
   const phase = timer.phase;
   const copy = useMemo(() => phaseCopy(phase), [phase]);
@@ -171,11 +186,18 @@ export function KitchenBakeTimerPanel({
     if (timerStatus === "running") pauseTimer();
     if (timer.overtimeAlarmActive) stopTimerAlarm();
     setOpen(false);
-  }, [pauseTimer, stopTimerAlarm, timer.overtimeAlarmActive, timerStatus]);
+    onClose?.();
+  }, [onClose, pauseTimer, stopTimerAlarm, timer.overtimeAlarmActive, timerStatus]);
 
   useEffect(() => {
     if (timerActive) setOpen(true);
   }, [timerActive]);
+
+  useEffect(() => {
+    if (!openOnMount || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    setOpen(true);
+  }, [openOnMount]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -237,28 +259,30 @@ export function KitchenBakeTimerPanel({
 
   return (
     <>
-      <section className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-gradient-to-br from-white via-white to-tomato/[.06] p-4 shadow-card sm:mt-6 sm:p-5" aria-label="Bake timer">
-        <div className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-tomato text-white shadow-sm" aria-hidden="true">
-            <DoughToolsIcon name="timer" size={24} strokeWidth={2.2} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Bake timer</p>
-            <h3 className="mt-1 font-display text-3xl font-semibold leading-none text-ink">{durationValue} per pizza</h3>
-            <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
-              {formatOvenContext(ovenType)}. {durationSupport}. Use it as a guide; color, bottom and cheese still decide doneness.
-            </p>
+      {showLauncher && (
+        <section className="mt-5 rounded-[1.25rem] border border-tomato/20 bg-gradient-to-br from-white via-white to-tomato/[.06] p-4 shadow-card sm:mt-6 sm:p-5" aria-label="Bake timer">
+          <div className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-tomato text-white shadow-sm" aria-hidden="true">
+              <DoughToolsIcon name="timer" size={24} strokeWidth={2.2} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">{launcherEyebrow}</p>
+              <h3 className="mt-1 font-display text-3xl font-semibold leading-none text-ink">{durationValue} per pizza</h3>
+              <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
+                {formatOvenContext(ovenType)}. {durationSupport}. Use it as a guide; color, bottom and cheese still decide doneness.
+              </p>
+            </div>
           </div>
-        </div>
-        <button
-          ref={launcherRef}
-          type="button"
-          onClick={() => setOpen(true)}
-          className={buttonClass({ className: "mt-4 w-full", variant: "primary" })}
-        >
-          Open full-screen bake timer
-        </button>
-      </section>
+          <button
+            ref={launcherRef}
+            type="button"
+            onClick={() => setOpen(true)}
+            className={buttonClass({ className: "mt-4 w-full", variant: "primary" })}
+          >
+            {launcherActionLabel}
+          </button>
+        </section>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-[80] overflow-y-auto bg-background-page text-ink sm:bg-ink/50 sm:p-6 sm:backdrop-blur-sm" role="presentation">
@@ -400,5 +424,25 @@ export function KitchenBakeTimerPanel({
         </div>
       )}
     </>
+  );
+}
+
+export function KitchenBakeTimerPanel({
+  sessionId,
+  durationSeconds,
+  durationLabel,
+  ovenType,
+  ovenLabel,
+  pizzaCount,
+}: KitchenBakeTimerPanelProps) {
+  return (
+    <BakeTimerPanel
+      durationSeconds={durationSeconds}
+      durationLabel={durationLabel}
+      ovenType={ovenType}
+      ovenLabel={ovenLabel}
+      pizzaCount={pizzaCount}
+      storageKey={kitchenBakeTimerStorageKey(sessionId)}
+    />
   );
 }

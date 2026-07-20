@@ -142,6 +142,13 @@ export const publicSeoRoutes = [
     priority: 0.5,
   },
   {
+    path: "/tools/bake-timer",
+    title: "Bake Timer | DoughTools",
+    description: "Use a standalone pizza bake timer for pizza ovens or home ovens without starting a Pizza Session.",
+    changeFrequency: "monthly",
+    priority: 0.5,
+  },
+  {
     path: "/costs",
     title: "Home Pizza vs Restaurant Pizza Cost Calculator | DoughTools",
     description: "Compare the estimated cost of making pizza at home with buying the same number of pizzas from a restaurant, including cost per pizza and total difference.",
@@ -172,6 +179,7 @@ export const legacyNoindexRoutes: readonly SeoRoute[] = [];
 export const publicToolBaseRoutes = [
   "/",
   "/sauce",
+  "/tools/bake-timer",
   "/calculator/quick",
   "/toppings",
   "/timer",
