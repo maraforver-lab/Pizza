@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import GlobalToolNavigation from "@/components/GlobalToolNavigation";
 import LatestUpdateNotice from "@/components/LatestUpdateNotice";
+import { getActivePublicTheme } from "@/lib/public-theme-campaigns";
 import { getSiteUrl, metadataForRoute } from "@/lib/seo-config";
 import "./globals.css";
 
@@ -17,16 +18,26 @@ export const metadata: Metadata = {
   icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#FFF8F1",
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const { theme } = await getActivePublicTheme();
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return {
+    themeColor: theme.themeColor,
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  };
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { theme } = await getActivePublicTheme();
+
   return (
-    <html lang="en" className={`${inter.variable} ${newsreader.variable}`}>
+    <html
+      lang="en"
+      data-public-theme={theme.id}
+      className={`${inter.variable} ${newsreader.variable} ${theme.rootClassName}`}
+    >
       <body className="font-sans"><GlobalToolNavigation/><LatestUpdateNotice/>{children}</body>
     </html>
   );

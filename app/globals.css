@@ -46,6 +46,16 @@
   --dt-status-info: var(--dt-forest);
   --dt-focus-ring: var(--dt-tomato);
 
+  /* Public seasonal theme foundation. Detailed theme artistry is intentionally deferred. */
+  --theme-page-background: var(--dt-warm-background);
+  --theme-surface: var(--dt-card);
+  --theme-surface-muted: var(--dt-flour);
+  --theme-border: var(--dt-flour);
+  --theme-accent: var(--dt-tomato);
+  --theme-accent-secondary: var(--dt-forest);
+  --theme-decorative: rgba(233, 75, 46, .10);
+  --theme-header-surface: rgba(255, 248, 241, .92);
+
   --dt-radius-control: .75rem;
   --dt-radius-card: 1.5rem;
   --dt-radius-panel: 1.75rem;
@@ -64,9 +74,75 @@
   --dt-text-muted: var(--dt-muted);
 }
 
+html[data-public-theme="valentine"] {
+  --theme-page-background: #fff2f2;
+  --theme-surface: #fffafa;
+  --theme-surface-muted: #f8dcdc;
+  --theme-border: #f0c4c4;
+  --theme-accent: #d93e34;
+  --theme-accent-secondary: #7a2c2c;
+  --theme-decorative: rgba(217, 62, 52, .12);
+  --theme-header-surface: rgba(255, 242, 242, .94);
+}
+
+html[data-public-theme="easter"] {
+  --theme-page-background: #fff9d9;
+  --theme-surface: #fffdf0;
+  --theme-surface-muted: #eef6d8;
+  --theme-border: #dbe8b8;
+  --theme-accent: #8dbb55;
+  --theme-accent-secondary: #0f3d2e;
+  --theme-decorative: rgba(141, 187, 85, .13);
+  --theme-header-surface: rgba(255, 249, 217, .94);
+}
+
+html[data-public-theme="summer"] {
+  --theme-page-background: #fff4d6;
+  --theme-surface: #fffaf0;
+  --theme-surface-muted: #dff1f5;
+  --theme-border: #c8e4ea;
+  --theme-accent: #e9a83a;
+  --theme-accent-secondary: #187c8c;
+  --theme-decorative: rgba(24, 124, 140, .12);
+  --theme-header-surface: rgba(255, 244, 214, .94);
+}
+
+html[data-public-theme="harvest"] {
+  --theme-page-background: #fff1df;
+  --theme-surface: #fffaf4;
+  --theme-surface-muted: #f1dfc3;
+  --theme-border: #e8c99c;
+  --theme-accent: #c46a28;
+  --theme-accent-secondary: #6d7a3a;
+  --theme-decorative: rgba(122, 74, 36, .12);
+  --theme-header-surface: rgba(255, 241, 223, .94);
+}
+
+html[data-public-theme="halloween"] {
+  --theme-page-background: #211915;
+  --theme-surface: #fff8ef;
+  --theme-surface-muted: #39261d;
+  --theme-border: #65402d;
+  --theme-accent: #f0782a;
+  --theme-accent-secondary: #5c3a72;
+  --theme-decorative: rgba(240, 120, 42, .18);
+  --theme-header-surface: rgba(33, 25, 21, .95);
+}
+
+html[data-public-theme="christmas"] {
+  --theme-page-background: #f8f1e6;
+  --theme-surface: #fffaf2;
+  --theme-surface-muted: #eadfce;
+  --theme-border: #d9c8ad;
+  --theme-accent: #8f2626;
+  --theme-accent-secondary: #0f3d2e;
+  --theme-decorative: rgba(143, 38, 38, .12);
+  --theme-header-surface: rgba(248, 241, 230, .94);
+}
+
 * { box-sizing: border-box; }
 
-html { max-width: 100%; overflow-x: clip; background: var(--dt-background-page); }
+html { max-width: 100%; overflow-x: clip; background: var(--theme-page-background); }
 
 body {
   margin: 0;
@@ -74,10 +150,18 @@ body {
   overflow-x: clip;
   color: var(--dt-text-primary);
   background:
-    radial-gradient(circle at 8% 0%, rgba(233, 75, 46, .10), transparent 26rem),
-    radial-gradient(circle at 100% 55%, rgba(59, 166, 107, .09), transparent 30rem),
-    var(--dt-background-page);
+    radial-gradient(circle at 8% 0%, var(--theme-decorative), transparent 26rem),
+    radial-gradient(circle at 100% 55%, color-mix(in srgb, var(--theme-accent-secondary) 9%, transparent), transparent 30rem),
+    var(--theme-page-background);
   -webkit-font-smoothing: antialiased;
+}
+
+html[data-public-theme]:not([data-public-theme="default"]) .bg-cream {
+  background-color: var(--theme-page-background);
+}
+
+html[data-public-theme]:not([data-public-theme="default"]) .border-flour {
+  border-color: var(--theme-border);
 }
 
 /* The shared site header replaces the older page-specific header links. */

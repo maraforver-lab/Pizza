@@ -4,15 +4,18 @@ import { DoughToolsIcon } from "@/components/icons";
 const upcomingCapabilities = [
   {
     title: "Seasonal appearance",
-    description: "Patch 445 will add prebuilt theme campaigns such as Default, Halloween and Christmas.",
+    description: "Manage seven prebuilt public theme foundations and seasonal schedules.",
+    href: "/admin/appearance",
   },
   {
     title: "Bake Timer sounds",
     description: "Patch 446 will add prebuilt sound-theme availability controls.",
+    href: null,
   },
   {
     title: "Public statistics",
     description: "Patch 447 will add privacy-safe aggregate registered-user counts.",
+    href: null,
   },
 ] as const;
 
@@ -44,9 +47,20 @@ export default function AdminPage() {
         <section className="mt-6 grid gap-4 md:grid-cols-3" aria-label="Upcoming admin capabilities">
           {upcomingCapabilities.map((capability) => (
             <article key={capability.title} className="rounded-[1.5rem] border border-ink/10 bg-white/78 p-4 shadow-sm">
-              <p className="text-[0.68rem] font-extrabold uppercase tracking-[.2em] text-ink/42">Not enabled yet</p>
+              <p className="text-[0.68rem] font-extrabold uppercase tracking-[.2em] text-ink/42">
+                {capability.href ? "Available" : "Not enabled yet"}
+              </p>
               <h2 className="mt-2 font-display text-2xl font-semibold text-ink">{capability.title}</h2>
               <p className="mt-2 text-sm font-bold leading-6 text-ink/58">{capability.description}</p>
+              {capability.href ? (
+                <Link
+                  href={capability.href}
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white transition hover:bg-forest focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                >
+                  Open appearance
+                  <DoughToolsIcon name="forward" size={20} />
+                </Link>
+              ) : null}
             </article>
           ))}
         </section>
