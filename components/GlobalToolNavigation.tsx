@@ -3,18 +3,37 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from "react";
-import { DoughToolsIcon } from "@/components/icons";
+import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import {
+  resolveCanonicalActivePizzaSession,
+  type CanonicalActivePizzaSessionResolution,
+} from "@/lib/canonical-active-pizza-session";
+import type { PizzaSession } from "@/lib/pizza-session";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const copy = {
   account: "Account",
   accountActive: "Account",
+  signIn: "Sign in",
+  signInDescription: "Save your pizza plans and continue on another device.",
+  myAccount: "My account",
+  myAccountDescription: "Manage your pizza plans and preferences.",
+  checkingAccount: "Checking account...",
   menu: "Menu",
   plan: "Plan my next pizza",
+  mobileStartPizza: "Start making a pizza",
+  mobileContinuePizza: "Continue making your pizza",
+  mobileCheckingPizza: "Checking your pizza...",
+  mobilePizzaFallback: "Continue your pizza plan",
+  mobileStartPizzaDescription: "Create a guided plan for recipe, shopping, timeline, Kitchen Mode and review.",
   learning: "Learning Center",
   learningDescription: "Dough, sauce, ovens, styles and troubleshooting.",
   quickCalculator: "Quick Calculator",
   quickCalculatorDescription: "Fast standalone dough amounts without a Pizza Session.",
+  mobileQuickCalculator: "Quick dough calculator",
+  mobileQuickCalculatorDescription: "Calculate dough amounts without starting a full pizza plan.",
+  mobileLearn: "Learn to make better pizza",
+  mobileLearnDescription: "Practical guides for dough, sauce, ovens and common problems.",
   doughGuide: "Dough Guide",
   doughGuideDescription: "Step-by-step dough preparation from mixing to a ball ready to stretch.",
   sauceGuide: "Pizza Sauce",
@@ -26,7 +45,17 @@ const copy = {
   troubleshooting: "Troubleshooting",
   troubleshootingDescription: "Fix common dough, topping and baking problems.",
   about: "About",
+  aboutDoughTools: "About DoughTools",
 } as const;
+
+const emptyDecision: CanonicalActivePizzaSessionResolution = {
+  state: "empty",
+  signedIn: false,
+  source: "none",
+  session: null,
+  cloudRow: null,
+  href: "/session/start",
+};
 
 const learningMenuItems = [
   {
@@ -61,7 +90,45 @@ const learningMenuItems = [
   },
 ] as const;
 
+const mobileLearningItems = [
+  {
+    href: "/guides/dough",
+    label: "How to make pizza dough",
+  },
+  {
+    href: "/sauce",
+    label: "How to make pizza sauce",
+  },
+  {
+    href: "/ovens",
+    label: "Choose and use your oven",
+  },
+  {
+    href: "/styles",
+    label: "Choose your pizza style",
+  },
+  {
+    href: "/guide/pizza-troubleshooting",
+    label: "Fix common pizza problems",
+  },
+  {
+    href: "/guide",
+    label: "View all pizza guides",
+    secondary: true,
+  },
+] as const;
+
+const mobileToolItems = [
+  {
+    href: "/calculator/quick",
+    label: copy.mobileQuickCalculator,
+    description: copy.mobileQuickCalculatorDescription,
+    icon: "scale" satisfies DoughToolsIconName,
+  },
+] as const;
+
 type OpenNavigationMenu = "learning" | "mobile" | null;
+type AuthStatus = "loading" | "signed-in" | "signed-out";
 
 function menuItemClass(active: boolean, emphasis: "normal" | "primary" = "normal") {
   if (emphasis === "primary") {
@@ -95,16 +162,55 @@ function navLinkClass(active: boolean, emphasis: "normal" | "primary" = "normal"
   }`;
 }
 
+function mobileSectionLabelClass() {
+  return "text-[0.68rem] font-extrabold uppercase tracking-[.22em] text-ink/42";
+}
+
+function mobileActionClass(active: boolean, emphasis: "normal" | "primary" | "account" = "normal") {
+  if (emphasis === "primary") {
+    return `flex min-h-[4.75rem] w-full items-center gap-3 rounded-[1.35rem] px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+      active
+        ? "bg-ink text-white"
+        : "bg-tomato text-white shadow-sm shadow-tomato/15 hover:bg-forest"
+    }`;
+  }
+
+  if (emphasis === "account") {
+    return `flex min-h-[4.25rem] w-full items-center gap-3 rounded-[1.25rem] px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+      active
+        ? "bg-ink text-white"
+        : "border border-leaf/20 bg-leaf/[.08] text-ink hover:border-leaf/35"
+    }`;
+  }
+
+  return `flex min-h-[4rem] w-full items-center gap-3 rounded-[1.15rem] border border-ink/10 bg-white px-4 py-3 text-left text-ink transition hover:border-ink/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
+    active ? "ring-1 ring-tomato/25" : ""
+  }`;
+}
+
+function mobileStepDescription(step: PizzaSession["currentStep"] | undefined) {
+  if (step === "recipe") return "Continue from Dough Plan";
+  if (step === "shopping") return "Continue from Shopping";
+  if (step === "timeline") return "Continue from Timeline";
+  if (step === "prep" || step === "bake") return "Continue from Kitchen";
+  if (step === "review") return "Continue from Review";
+  return copy.mobilePizzaFallback;
+}
+
 export default function GlobalToolNavigation() {
   const pathname = usePathname();
-  const [signedIn, setSignedIn] = useState(false);
+  const [authStatus, setAuthStatus] = useState<AuthStatus>("loading");
   const [authPulse, setAuthPulse] = useState(false);
   const [openMenu, setOpenMenu] = useState<OpenNavigationMenu>(null);
+  const [mobileLearnOpen, setMobileLearnOpen] = useState(false);
+  const [sessionDecision, setSessionDecision] = useState<CanonicalActivePizzaSessionResolution>(emptyDecision);
+  const [sessionChecking, setSessionChecking] = useState(true);
   const learningMenuOpen = openMenu === "learning";
   const mobileMenuOpen = openMenu === "mobile";
   const navigationRootRef = useRef<HTMLDivElement>(null);
   const learningButtonRef = useRef<HTMLButtonElement>(null);
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
   const learningMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const startActive = pathname === "/session/start";
@@ -121,7 +227,12 @@ export default function GlobalToolNavigation() {
   useEffect(() => {
     document.documentElement.lang = "en";
     setOpenMenu(null);
+    setMobileLearnOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (mobileMenuOpen) setMobileLearnOpen(false);
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     if (!learningMenuOpen && !mobileMenuOpen) return;
@@ -137,18 +248,59 @@ export default function GlobalToolNavigation() {
       if (event.key === "Escape") {
         const trigger = openMenu === "learning" ? learningButtonRef.current : openMenu === "mobile" ? mobileButtonRef.current : null;
         setOpenMenu(null);
+        setMobileLearnOpen(false);
         trigger?.focus();
+      }
+    };
+
+    const trapMobileFocus = (event: globalThis.KeyboardEvent) => {
+      if (!mobileMenuOpen || event.key !== "Tab") return;
+      const focusable = mobileMenuRef.current
+        ? Array.from(mobileMenuRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+          .filter((item) => !item.hasAttribute("disabled") && item.getClientRects().length > 0)
+        : [];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
     document.addEventListener("pointerdown", closeOnPointerDown);
     document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("keydown", trapMobileFocus);
 
     return () => {
       document.removeEventListener("pointerdown", closeOnPointerDown);
       document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("keydown", trapMobileFocus);
     };
   }, [learningMenuOpen, mobileMenuOpen, openMenu]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const scrollY = window.scrollY;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.documentElement.style.overflow = "hidden";
+    window.requestAnimationFrame(() => mobileCloseButtonRef.current?.focus());
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [mobileMenuOpen]);
 
   const openMenuFromKeyboard = (menu: Exclude<OpenNavigationMenu, null>) => (event: ReactKeyboardEvent<HTMLButtonElement>) => {
     if (event.key === "ArrowDown") {
@@ -156,7 +308,7 @@ export default function GlobalToolNavigation() {
       setOpenMenu(menu);
       window.requestAnimationFrame(() => {
         const menuElement = menu === "learning" ? learningMenuRef.current : mobileMenuRef.current;
-        const firstMenuItem = menuElement?.querySelector<HTMLElement>('[role="menuitem"]');
+        const firstMenuItem = menuElement?.querySelector<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
         firstMenuItem?.focus();
       });
     }
@@ -166,9 +318,9 @@ export default function GlobalToolNavigation() {
     let pulseTimer: number | undefined;
     try {
       const supabase = getSupabaseBrowserClient();
-      supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session?.user)));
+      supabase.auth.getSession().then(({ data }) => setAuthStatus(data.session?.user ? "signed-in" : "signed-out"));
       const { data } = supabase.auth.onAuthStateChange((event, session) => {
-        setSignedIn(Boolean(session?.user));
+        setAuthStatus(session?.user ? "signed-in" : "signed-out");
         if (event === "SIGNED_IN") {
           setAuthPulse(true);
           window.clearTimeout(pulseTimer);
@@ -180,9 +332,27 @@ export default function GlobalToolNavigation() {
         data.subscription.unsubscribe();
       };
     } catch {
-      setSignedIn(false);
+      setAuthStatus("signed-out");
     }
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    setSessionChecking(true);
+
+    async function resolveMobilePizzaAction() {
+      const decision = await resolveCanonicalActivePizzaSession();
+      if (!mounted) return;
+      setSessionDecision(decision);
+      setAuthStatus(decision.signedIn ? "signed-in" : "signed-out");
+      setSessionChecking(false);
+    }
+
+    resolveMobilePizzaAction();
+    return () => {
+      mounted = false;
+    };
+  }, [pathname]);
 
   const learningActiveByHref = (href: string) => {
     if (href === "/guide") return learningCenterActive;
@@ -193,6 +363,14 @@ export default function GlobalToolNavigation() {
     if (href === "/guide/pizza-troubleshooting") return troubleshootingActive;
     return false;
   };
+
+  const signedIn = authStatus === "signed-in";
+  const accountLoading = authStatus === "loading";
+  const mobilePizzaActionDescription = sessionDecision.state === "active"
+    ? mobileStepDescription(sessionDecision.session.currentStep)
+    : sessionDecision.state === "error"
+      ? "We could not check your account pizza yet."
+      : copy.mobileStartPizzaDescription;
 
   const accountLink = (
     <Link
@@ -218,22 +396,100 @@ export default function GlobalToolNavigation() {
     </Link>
   );
 
-  const mobileAccountLink = (
+  const mobileAccountAction = accountLoading ? (
+    <div className={`${mobileActionClass(false, "account")} min-h-[4.25rem] opacity-85`} aria-busy="true" data-mobile-account-state="loading">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-ink/50" aria-hidden="true">
+        <DoughToolsIcon name="account" size={20} strokeWidth={1.9} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold">{copy.checkingAccount}</span>
+        <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">Checking sign-in status.</span>
+      </span>
+    </div>
+  ) : (
     <Link
       href="/account"
-      role="menuitem"
-      aria-label={copy.account}
+      aria-label={signedIn ? copy.myAccount : copy.signIn}
       aria-current={accountActive ? "page" : undefined}
       onClick={() => setOpenMenu(null)}
-      className={menuItemClass(accountActive)}
+      className={mobileActionClass(accountActive, "account")}
+      data-mobile-account-state={signedIn ? "signed-in" : "signed-out"}
     >
-      <span className="flex items-center gap-2 text-sm font-extrabold">
+      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${accountActive ? "bg-white/14 text-white" : "bg-white text-leaf"}`} aria-hidden="true">
         <DoughToolsIcon name="account" size={20} strokeWidth={1.9} />
-        {copy.account}
       </span>
-      {signedIn && <span className="mt-1 block text-xs leading-5 text-leaf">Signed in</span>}
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold">{signedIn ? copy.myAccount : copy.signIn}</span>
+        <span className={`mt-1 block text-xs font-bold leading-5 ${accountActive ? "text-white/72" : "text-ink/58"}`}>
+          {signedIn ? copy.myAccountDescription : copy.signInDescription}
+        </span>
+      </span>
     </Link>
   );
+
+  const mobilePizzaAction = sessionChecking ? (
+    <div className={`${mobileActionClass(false, "primary")} min-h-[4.75rem] opacity-90`} aria-busy="true" data-mobile-pizza-action="checking">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/16 text-white" aria-hidden="true">
+        <DoughToolsIcon name="pizza" size={24} strokeWidth={2} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold">{copy.mobileCheckingPizza}</span>
+        <span className="mt-1 block text-xs font-bold leading-5 text-white/72">Finding the safest place to continue.</span>
+      </span>
+    </div>
+  ) : sessionDecision.state === "active" ? (
+    <Link
+      href={sessionDecision.href}
+      aria-current={pathname === sessionDecision.href ? "page" : undefined}
+      onClick={() => setOpenMenu(null)}
+      className={mobileActionClass(pathname === sessionDecision.href, "primary")}
+      data-mobile-pizza-action="continue"
+    >
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/16 text-white" aria-hidden="true">
+        <DoughToolsIcon name="pizza" size={24} strokeWidth={2} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold">{copy.mobileContinuePizza}</span>
+        <span className="mt-1 block text-xs font-bold leading-5 text-white/72">{mobilePizzaActionDescription}</span>
+      </span>
+    </Link>
+  ) : sessionDecision.state === "error" ? (
+    <Link
+      href={sessionDecision.href}
+      onClick={() => setOpenMenu(null)}
+      className={mobileActionClass(false, "primary")}
+      data-mobile-pizza-action="error-fallback"
+    >
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/16 text-white" aria-hidden="true">
+        <DoughToolsIcon name="warning" size={24} strokeWidth={2} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold">{copy.mobileContinuePizza}</span>
+        <span className="mt-1 block text-xs font-bold leading-5 text-white/72">{mobilePizzaActionDescription}</span>
+      </span>
+    </Link>
+  ) : (
+    <Link
+      href="/session/start"
+      aria-current={startActive ? "page" : undefined}
+      onClick={() => setOpenMenu(null)}
+      className={mobileActionClass(startActive, "primary")}
+      data-mobile-pizza-action="start"
+    >
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/16 text-white" aria-hidden="true">
+        <DoughToolsIcon name="pizza" size={24} strokeWidth={2} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold">{copy.mobileStartPizza}</span>
+        <span className="mt-1 block text-xs font-bold leading-5 text-white/72">{mobilePizzaActionDescription}</span>
+      </span>
+    </Link>
+  );
+  const closeMobileMenu = () => {
+    setOpenMenu(null);
+    setMobileLearnOpen(false);
+    window.requestAnimationFrame(() => mobileButtonRef.current?.focus());
+  };
 
   return (
     <header className="sticky top-0 z-[60] overflow-visible border-b border-ink/10 bg-cream/95 px-3 py-2.5 text-ink shadow-sm backdrop-blur-xl sm:px-6">
@@ -298,11 +554,11 @@ export default function GlobalToolNavigation() {
             {accountLink}
           </nav>
 
-          <div ref={mobileMenuRef} className="relative lg:hidden">
+          <div className="relative lg:hidden">
             <button
               ref={mobileButtonRef}
               type="button"
-              aria-haspopup="menu"
+              aria-haspopup="dialog"
               aria-expanded={mobileMenuOpen}
               aria-controls="global-mobile-menu"
               aria-label="Open DoughTools navigation menu"
@@ -314,56 +570,143 @@ export default function GlobalToolNavigation() {
               {copy.menu}
             </button>
             {mobileMenuOpen && (
-              <div id="global-mobile-menu" className="fixed left-3 right-3 top-14 z-[70] max-h-[calc(100vh-4.5rem)] overflow-y-auto rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Mobile navigation menu">
-                <Link
-                  href="/session/start"
-                  role="menuitem"
-                  aria-current={startActive ? "page" : undefined}
-                  onClick={() => setOpenMenu(null)}
-                  className={menuItemClass(startActive, "primary")}
-                >
-                  <span className="block text-sm font-extrabold">{copy.plan}</span>
-                  <span className="mt-1 block text-xs leading-5 text-white/72">Create the guided recipe, shopping, timeline, Kitchen Mode and review flow.</span>
-                </Link>
-                <div className="mt-2 rounded-xl border border-ink/10 p-2" role="none">
-                  <p className="px-1 pb-1 text-[10px] font-extrabold uppercase tracking-[.18em] text-ink/38">{copy.learning}</p>
-                  {learningMenuItems.map((item) => {
-                    const active = learningActiveByHref(item.href);
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        role="menuitem"
-                        aria-current={active ? "page" : undefined}
-                        onClick={() => setOpenMenu(null)}
-                        className={menuItemClass(active)}
-                      >
-                        <span className="block text-sm font-extrabold">{item.label}</span>
-                        <span className="mt-1 block text-xs leading-5 text-ink/55">{item.description}</span>
-                      </Link>
-                    );
-                  })}
+              <div
+                id="global-mobile-menu"
+                ref={mobileMenuRef}
+                className="fixed inset-0 z-[100] h-[100dvh] overflow-hidden bg-cream text-ink"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="global-mobile-menu-title"
+                aria-label="Mobile navigation menu"
+                data-mobile-menu-overlay
+              >
+                <div className="flex h-full min-h-0 flex-col pt-[calc(env(safe-area-inset-top)+1rem)]">
+                  <div className="flex shrink-0 items-center justify-between gap-4 border-b border-ink/10 px-4 pb-4">
+                    <h2 id="global-mobile-menu-title" className="text-base font-extrabold text-ink">
+                      Menu
+                    </h2>
+                    <button
+                      ref={mobileCloseButtonRef}
+                      type="button"
+                      onClick={closeMobileMenu}
+                      aria-label="Close menu"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink/10 bg-white text-ink transition hover:border-ink/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                    >
+                      <DoughToolsIcon name="close" size={20} aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  <nav
+                    className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4"
+                    aria-label="Mobile navigation"
+                    data-mobile-menu-scroll
+                  >
+                    <div className="grid gap-4">
+                      <section aria-labelledby="mobile-menu-account-heading" data-mobile-menu-section="account">
+                        <p id="mobile-menu-account-heading" className={mobileSectionLabelClass()}>My account</p>
+                        <div className="mt-2">{mobileAccountAction}</div>
+                      </section>
+
+                      <section aria-labelledby="mobile-menu-pizza-heading" data-mobile-menu-section="pizza">
+                        <p id="mobile-menu-pizza-heading" className={mobileSectionLabelClass()}>Your pizza</p>
+                        <div className="mt-2">{mobilePizzaAction}</div>
+                      </section>
+
+                      <section aria-labelledby="mobile-menu-tools-heading" data-mobile-menu-section="tools" data-mobile-tools-extension-point="before-quick-dough-calculator">
+                        <p id="mobile-menu-tools-heading" className={mobileSectionLabelClass()}>Tools</p>
+                        <div className="mt-2 grid gap-2">
+                          {mobileToolItems.map((item) => {
+                            const active = item.href === "/calculator/quick" ? quickCalculatorActive : pathname === item.href;
+                            return (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                aria-current={active ? "page" : undefined}
+                                onClick={() => setOpenMenu(null)}
+                                className={mobileActionClass(active)}
+                                data-mobile-tool-item={item.href}
+                              >
+                                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-tomato" aria-hidden="true">
+                                  <DoughToolsIcon name={item.icon} size={20} strokeWidth={2} />
+                                </span>
+                                <span className="min-w-0">
+                                  <span className="block text-sm font-extrabold">{item.label}</span>
+                                  <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">{item.description}</span>
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </section>
+
+                      <section aria-labelledby="mobile-menu-learn-heading" data-mobile-menu-section="learn">
+                        <p id="mobile-menu-learn-heading" className={mobileSectionLabelClass()}>Learn</p>
+                        <div className="mt-2 rounded-[1.25rem] border border-ink/10 bg-white">
+                          <button
+                            type="button"
+                            aria-expanded={mobileLearnOpen}
+                            aria-controls="mobile-menu-learn-panel"
+                            onClick={() => setMobileLearnOpen((open) => !open)}
+                            className="flex min-h-[4.25rem] w-full items-center justify-between gap-3 px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                          >
+                            <span className="flex min-w-0 items-center gap-3">
+                              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-leaf" aria-hidden="true">
+                                <DoughToolsIcon name="information" size={20} strokeWidth={2} />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-sm font-extrabold">{copy.mobileLearn}</span>
+                                <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">{copy.mobileLearnDescription}</span>
+                              </span>
+                            </span>
+                            <DoughToolsIcon name={mobileLearnOpen ? "chevron-up" : "chevron-down"} size={20} className="shrink-0 text-ink/45" aria-hidden="true" />
+                          </button>
+
+                          {mobileLearnOpen && (
+                            <div id="mobile-menu-learn-panel" className="border-t border-ink/10 p-2">
+                              {mobileLearningItems.map((item) => {
+                                const active = learningActiveByHref(item.href);
+                                return (
+                                  <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    aria-current={active ? "page" : undefined}
+                                    onClick={() => setOpenMenu(null)}
+                                    className={`block rounded-xl px-3 py-3 text-sm font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                                      active
+                                        ? "bg-cream text-ink ring-1 ring-tomato/20"
+                                        : "secondary" in item && item.secondary
+                                          ? "text-ink/55 hover:bg-cream"
+                                          : "text-ink hover:bg-cream"
+                                    }`}
+                                  >
+                                    {item.label}
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </section>
+
+                      <section aria-labelledby="mobile-menu-about-heading" data-mobile-menu-section="about">
+                        <p id="mobile-menu-about-heading" className={mobileSectionLabelClass()}>About</p>
+                        <div className="mt-2">
+                          <Link
+                            href="/about"
+                            aria-current={aboutActive ? "page" : undefined}
+                            onClick={() => setOpenMenu(null)}
+                            className={mobileActionClass(aboutActive)}
+                          >
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-ink/65" aria-hidden="true">
+                              <DoughToolsIcon name="information" size={20} strokeWidth={2} />
+                            </span>
+                            <span className="block text-sm font-extrabold">{copy.aboutDoughTools}</span>
+                          </Link>
+                        </div>
+                      </section>
+                    </div>
+                  </nav>
                 </div>
-                <Link
-                  href="/calculator/quick"
-                  role="menuitem"
-                  aria-current={quickCalculatorActive ? "page" : undefined}
-                  onClick={() => setOpenMenu(null)}
-                  className={menuItemClass(quickCalculatorActive)}
-                >
-                  <span className="block text-sm font-extrabold">{copy.quickCalculator}</span>
-                  <span className="mt-1 block text-xs leading-5 text-ink/55">{copy.quickCalculatorDescription}</span>
-                </Link>
-                <Link
-                  href="/about"
-                  role="menuitem"
-                  aria-current={aboutActive ? "page" : undefined}
-                  onClick={() => setOpenMenu(null)}
-                  className={menuItemClass(aboutActive)}
-                >
-                  <span className="block text-sm font-extrabold">{copy.about}</span>
-                </Link>
-                {mobileAccountLink}
               </div>
             )}
           </div>

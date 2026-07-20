@@ -40,7 +40,14 @@ describe("learning architecture", () => {
     expect(header).toContain('aria-current={active ? "page" : undefined}');
     expect(header).toContain('aria-label="Learning Center menu"');
     expect(header).toContain('aria-label="Mobile navigation menu"');
-    expect(header).toContain("max-h-[calc(100vh-4.5rem)]");
+    expect(header).toContain("Learn to make better pizza");
+    expect(header).toContain("How to make pizza dough");
+    expect(header).toContain("How to make pizza sauce");
+    expect(header).toContain("Choose and use your oven");
+    expect(header).toContain("Choose your pizza style");
+    expect(header).toContain("Fix common pizza problems");
+    expect(header).toContain("View all pizza guides");
+    expect(header).toContain("h-[100dvh]");
     expect(header).toContain("overflow-y-auto");
   });
 
