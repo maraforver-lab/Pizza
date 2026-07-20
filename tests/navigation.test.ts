@@ -132,6 +132,7 @@ describe("final product navigation model", () => {
     expect(header).toContain("Account");
     expect(header).toContain('href="/account"');
     expect(header).toContain('aria-label="Primary"');
+    expect(header).not.toContain('href="/admin"');
     expect(header).not.toContain('copy.tools');
     expect(header).not.toContain('type OpenNavigationMenu = "guide" | "tools" | null');
     expect(header).not.toContain("Tools menu");

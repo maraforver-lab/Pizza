@@ -166,6 +166,7 @@ export const publicSeoRoutes = [
 
 export const privateSeoRoutes = [
   "/account",
+  "/admin",
   "/auth",
   "/auth/callback",
   "/login",

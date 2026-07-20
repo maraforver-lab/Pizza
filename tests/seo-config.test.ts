@@ -134,6 +134,7 @@ describe("SEO launch configuration", () => {
     ]);
     expect(seoRoutePolicy.legacyNoindexRoutes).toEqual(legacyNoindexRoutePaths);
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/account");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/admin");
   });
 
   it("includes canonical public product, learning and supporting utility routes in the sitemap", () => {
@@ -171,6 +172,7 @@ describe("SEO launch configuration", () => {
       "/session/kitchen",
       "/session/review",
       "/account",
+      "/admin",
       "/account/party-orders",
       "/order/",
       "/api/",
@@ -284,6 +286,7 @@ describe("SEO launch configuration", () => {
     });
 
     expect(privateSeoRoutes).toContain("/account");
+    expect(privateSeoRoutes).toContain("/admin");
   });
 
   it("keeps obsolete predecessor routes accessible but explicitly noindexed", () => {

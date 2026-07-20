@@ -16,6 +16,7 @@ describe("Patch 344 account responsive workspace", () => {
     expect(page).toContain("PartyOrdersAccountEntryCard enabled");
     expect(page).toContain("InstallAppPrompt compact collapsible");
     expect(page).toContain("AccountGuidancePreference");
+    expect(page).toContain("AccountAdminEntryCard");
     expect(page).toContain("Account and security");
     expect(page).not.toContain("AccountArchivedPizzaSessions");
     expect(page).not.toContain("Archived pizza sessions");
@@ -33,6 +34,7 @@ describe("Patch 344 account responsive workspace", () => {
     const partyIndex = page.indexOf("PartyOrdersAccountEntryCard enabled");
     const installIndex = page.indexOf("InstallAppPrompt compact collapsible");
     const guidanceIndex = page.indexOf("<AccountGuidancePreference");
+    const adminIndex = page.indexOf("<AccountAdminEntryCard");
     const securityIndex = page.indexOf("Account and security");
 
     expect(activeIndex).toBeGreaterThan(-1);
@@ -40,7 +42,8 @@ describe("Patch 344 account responsive workspace", () => {
     expect(partyIndex).toBeGreaterThan(historyIndex);
     expect(installIndex).toBeGreaterThan(partyIndex);
     expect(guidanceIndex).toBeGreaterThan(installIndex);
-    expect(securityIndex).toBeGreaterThan(guidanceIndex);
+    expect(adminIndex).toBeGreaterThan(guidanceIndex);
+    expect(securityIndex).toBeGreaterThan(adminIndex);
   });
 
   it("shows only two completed sessions by default with an accessible disclosure for the rest", () => {
