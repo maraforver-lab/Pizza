@@ -333,7 +333,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(valentineBlock).toContain("--theme-header-surface: rgba(255, 243, 241, .96)");
     expect(valentineBlock).toContain("--theme-header-border: rgba(122, 45, 44, .14)");
     expect(css).toContain('html[data-public-theme="valentine"] body');
-    expect(css).toContain("radial-gradient(circle at 10% 0%, var(--theme-decorative), transparent 24rem)");
+    expect(css).toContain("linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 36%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%)");
     expect(css).not.toMatch(/html\[data-public-theme="valentine"\][^{]*(?:\.text-tomato|\.bg-tomato|dt-bake-timer)/);
     expect(css).not.toMatch(/html\[data-public-theme="valentine"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="valentine"\][\s\S]*--dt-action-danger/);
   });
@@ -355,7 +355,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(easterBlock).toContain("--theme-header-surface: rgba(255, 249, 222, .96)");
     expect(easterBlock).toContain("--theme-header-border: rgba(95, 143, 58, .16)");
     expect(css).toContain('html[data-public-theme="easter"] body');
-    expect(css).toContain("radial-gradient(ellipse at 12% 0%, var(--theme-decorative), transparent 24rem)");
+    expect(css).toContain("linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 34%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%)");
     expect(css).not.toMatch(/html\[data-public-theme="easter"\][^{]*(?:\.text-leaf|\.bg-leaf|dt-bake-timer)/);
     expect(css).not.toMatch(/html\[data-public-theme="easter"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="easter"\][\s\S]*--dt-action-danger/);
   });
@@ -377,8 +377,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(summerBlock).toContain("--theme-header-surface: rgba(255, 244, 216, .96)");
     expect(summerBlock).toContain("--theme-header-border: rgba(18, 109, 122, .16)");
     expect(css).toContain('html[data-public-theme="summer"] body');
-    expect(css).toContain("radial-gradient(circle at 12% -8%, var(--theme-decorative), transparent 25rem)");
-    expect(css).toContain("repeating-linear-gradient(135deg, rgba(18, 109, 122, .055) 0 1px, transparent 1px 3.25rem)");
+    expect(css).toContain("linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 30%, var(--theme-page-background)) 50%, var(--theme-page-background) 100%)");
     expect(css).not.toMatch(/html\[data-public-theme="summer"\][^{]*(?:\.text-sky|\.bg-sky|dt-bake-timer)/);
     expect(css).not.toMatch(/html\[data-public-theme="summer"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="summer"\][\s\S]*--dt-action-danger/);
   });
@@ -400,8 +399,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(harvestBlock).toContain("--theme-header-surface: rgba(255, 240, 220, .96)");
     expect(harvestBlock).toContain("--theme-header-border: rgba(101, 114, 58, .16)");
     expect(css).toContain('html[data-public-theme="harvest"] body');
-    expect(css).toContain("linear-gradient(110deg, transparent 0 44%, var(--theme-decorative) 44.2% 44.8%, transparent 45% 100%)");
-    expect(css).toContain("radial-gradient(circle at 12% 10%, rgba(101, 114, 58, .07), transparent 18rem)");
+    expect(css).toContain("linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 32%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%)");
     expect(css).not.toMatch(/html\[data-public-theme="harvest"\][^{]*(?:\.text-purple|\.bg-purple|dt-bake-timer)/);
     expect(css).not.toMatch(/html\[data-public-theme="harvest"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="harvest"\][\s\S]*--dt-action-danger/);
   });
@@ -423,8 +421,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(halloweenBlock).toContain("--theme-header-surface: rgba(255, 244, 232, .96)");
     expect(halloweenBlock).toContain("--theme-header-border: rgba(112, 68, 47, .18)");
     expect(css).toContain('html[data-public-theme="halloween"] body');
-    expect(css).toContain("radial-gradient(ellipse at 8% -12%, rgba(36, 26, 22, .18), transparent 25rem)");
-    expect(css).toContain("radial-gradient(ellipse at 95% 58%, var(--theme-decorative-secondary), transparent 26rem)");
+    expect(css).toContain("linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 8%, var(--theme-page-background)) 42%, var(--theme-page-background) 100%)");
     expect(css).not.toMatch(/html\[data-public-theme="halloween"\][^{]*(?:\.text-purple|\.bg-purple|dt-bake-timer|flame|overtime|final-ten)/);
     expect(css).not.toMatch(/html\[data-public-theme="halloween"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="halloween"\][\s\S]*--dt-action-danger/);
   });
@@ -446,9 +443,8 @@ describe("Patch 445A public theme architecture", () => {
     expect(christmasBlock).toContain("--theme-header-surface: rgba(248, 241, 230, .96)");
     expect(christmasBlock).toContain("--theme-header-border: rgba(15, 61, 46, .16)");
     expect(css).toContain('html[data-public-theme="christmas"] body');
-    expect(css).toContain("radial-gradient(circle at 10% 6%, var(--theme-decorative), transparent 18rem)");
-    expect(css).toContain("linear-gradient(125deg, transparent 0 46%, rgba(143, 38, 38, .055) 46.2% 46.6%, transparent 46.8% 100%)");
-    expect(css).not.toMatch(/html\[data-public-theme="christmas"\][^{]*(?:dt-bake-timer|flame|overtime|final-ten|snow|blink)/);
+    expect(css).toContain("linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 28%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%)");
+    expect(css).not.toMatch(/html\[data-public-theme="christmas"\][^{]*(?:dt-bake-timer|flame|overtime|final-ten|snowfall|blink)/);
     expect(css).not.toMatch(/html\[data-public-theme="christmas"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="christmas"\][\s\S]*--dt-action-danger/);
   });
 
@@ -627,8 +623,8 @@ describe("Patch 445I cross-theme consistency contract", () => {
     const css = source("app/globals.css");
     const themeCss = css.slice(css.indexOf('html[data-public-theme="valentine"]'), css.indexOf("* { box-sizing"));
 
-    expect(themeCss).toContain("radial-gradient");
-    expect(themeCss).not.toMatch(/url\(|https?:\/\/|animation:|@keyframes|snow|blink|strobe|particle|parallax/i);
+    expect(themeCss).toContain("linear-gradient(180deg");
+    expect(themeCss).not.toMatch(/url\(|https?:\/\/|animation:|@keyframes|blink|strobe|particle|parallax|snowfall/i);
     expect(css).toContain("html[data-public-theme]:not([data-public-theme=\"default\"]) .bg-cream");
     expect(css).toContain("html[data-public-theme]:not([data-public-theme=\"default\"]) .border-flour");
   });
@@ -662,6 +658,8 @@ describe("Patch 445I cross-theme consistency contract", () => {
     expect(component).toContain('pathname.startsWith("/guide/")');
     expect(component).toContain('pathname === "/session/kitchen"');
     expect(component).toContain('pathname === "/tools/bake-timer"');
+    expect(component).toContain('pathname === "/admin"');
+    expect(component).toContain('pathname.startsWith("/admin/")');
   });
 
   it("uses original local SVG and CSS shapes without external graphics or overflow-prone layout", () => {
@@ -671,18 +669,25 @@ describe("Patch 445I cross-theme consistency contract", () => {
 
     expect(component).toContain("function SummerGraphics");
     expect(component).toContain("function ValentineGraphics");
-    expect(component).toContain("seasonal-theme-decoration__summer-leaf");
+    expect(component).toContain("seasonal-theme-decoration__summer-palm");
     expect(component).toContain("seasonal-theme-decoration__heart");
+    expect(component).toContain("seasonal-theme-decoration__cupid-arrow");
     expect(component).toContain("seasonal-theme-decoration__sun");
-    expect(component).toContain("seasonal-theme-decoration__spring-leaf");
-    expect(component).toContain("seasonal-theme-decoration__easter-oval");
+    expect(component).toContain("seasonal-theme-decoration__lemon");
+    expect(component).toContain("seasonal-theme-decoration__easter-egg");
+    expect(component).toContain("seasonal-theme-decoration__spring-flower");
+    expect(component).toContain("seasonal-theme-decoration__bunny-ears");
     expect(component).toContain("seasonal-theme-decoration__grain");
-    expect(component).toContain("seasonal-theme-decoration__seed");
+    expect(component).toContain("seasonal-theme-decoration__olive-branch");
+    expect(component).toContain("seasonal-theme-decoration__tomato-detail");
     expect(component).toContain("seasonal-theme-decoration__moon");
     expect(component).toContain("seasonal-theme-decoration__web");
+    expect(component).toContain("seasonal-theme-decoration__bat");
     expect(component).toContain("seasonal-theme-decoration__pumpkin");
     expect(component).toContain("seasonal-theme-decoration__fir");
     expect(component).toContain("seasonal-theme-decoration__star");
+    expect(component).toContain("seasonal-theme-decoration__ornament");
+    expect(component).toContain("seasonal-theme-decoration__snowflake");
     expect(`${component}\n${seasonalCss}`).not.toMatch(/url\(|https?:\/\/|<img|image href|background-image:\s*url/i);
     expect(seasonalCss).toContain("position: fixed");
     expect(seasonalCss).toContain("overflow: hidden");
@@ -696,13 +701,15 @@ describe("Patch 445I cross-theme consistency contract", () => {
 
     expect(component).toContain("function EasterGraphics");
     expect(component).toContain("function HarvestGraphics");
-    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__spring-leaf');
-    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__easter-oval');
+    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__easter-egg');
+    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__spring-flower');
+    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__bunny-ears');
     expect(css).toContain('html[data-public-theme="harvest"] .seasonal-theme-decoration__grain');
-    expect(css).toContain('html[data-public-theme="harvest"] .seasonal-theme-decoration__flour-dust');
-    expect(css).toContain('html[data-public-theme="summer"] .seasonal-theme-decoration__summer-leaf');
+    expect(css).toContain('html[data-public-theme="harvest"] .seasonal-theme-decoration__olive-branch');
+    expect(css).toContain('html[data-public-theme="harvest"] .seasonal-theme-decoration__tomato-detail');
+    expect(css).toContain('html[data-public-theme="summer"] .seasonal-theme-decoration__summer-palm');
     expect(css).toContain('html[data-public-theme="valentine"] .seasonal-theme-decoration__heart');
-    expect(css).not.toMatch(/html\[data-public-theme="(?:halloween|christmas|default)"\]\s+\.seasonal-theme-decoration__(?:spring-leaf|easter-oval|grain|seed|flour-dust)/);
+    expect(css).not.toMatch(/html\[data-public-theme="(?:halloween|christmas|default)"\]\s+\.seasonal-theme-decoration__(?:easter-egg|spring-flower|bunny-ears|grain|olive-branch|tomato-detail)/);
   });
 
   it("gives Halloween and Christmas tasteful static seasonal shapes without changing earlier graphics", () => {
@@ -714,15 +721,34 @@ describe("Patch 445I cross-theme consistency contract", () => {
     expect(component).toContain("function ChristmasGraphics");
     expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration__moon');
     expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration__web');
+    expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration__bat');
     expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration__pumpkin');
     expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__fir');
     expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__star');
-    expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__warm-light-points');
-    expect(css).toContain('html[data-public-theme="summer"] .seasonal-theme-decoration__summer-leaf');
+    expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__ornament');
+    expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__snowflake');
+    expect(css).toContain('html[data-public-theme="summer"] .seasonal-theme-decoration__summer-palm');
     expect(css).toContain('html[data-public-theme="valentine"] .seasonal-theme-decoration__heart');
-    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__spring-leaf');
+    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__easter-egg');
     expect(css).toContain('html[data-public-theme="harvest"] .seasonal-theme-decoration__grain');
     expect(seasonalCss).not.toMatch(/animation:|@keyframes|blink|snowfall|strobe|scary|skull|blood|ghost/i);
-    expect(css).not.toMatch(/html\[data-public-theme="default"\]\s+\.seasonal-theme-decoration__(?:moon|web|pumpkin|fir|star|warm-light-points)/);
+    expect(css).not.toMatch(/html\[data-public-theme="default"\]\s+\.seasonal-theme-decoration__(?:moon|web|bat|pumpkin|fir|star|ornament|snowflake)/);
+  });
+
+  it("keeps Admin pages globally decoration-free while showing small theme-card motif previews", () => {
+    const component = source("components/SeasonalThemeDecorations.tsx");
+    const appearanceClient = source("components/admin/AdminAppearanceClient.tsx");
+    const css = source("app/globals.css");
+
+    expect(component).toContain('pathname === "/admin"');
+    expect(component).toContain('pathname.startsWith("/admin/")');
+    expect(css).toContain('.seasonal-theme-decoration[data-seasonal-intensity="minimal"]');
+    expect(appearanceClient).toContain("ThemeMotifPreview");
+    expect(css).toContain(".admin-theme-motif-preview--valentine");
+    expect(css).toContain(".admin-theme-motif-preview--easter");
+    expect(css).toContain(".admin-theme-motif-preview--summer");
+    expect(css).toContain(".admin-theme-motif-preview--harvest");
+    expect(css).toContain(".admin-theme-motif-preview--halloween");
+    expect(css).toContain(".admin-theme-motif-preview--christmas");
   });
 });

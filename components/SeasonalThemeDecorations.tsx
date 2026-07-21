@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 type DecorationIntensity = "expressive" | "restrained" | "minimal";
 
 function decorationIntensityForPath(pathname: string): DecorationIntensity {
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return "minimal";
+  }
+
   if (
     pathname === "/"
     || pathname === "/about"
@@ -31,18 +35,24 @@ function decorationIntensityForPath(pathname: string): DecorationIntensity {
 function SummerGraphics() {
   return (
     <>
-      <svg className="seasonal-theme-decoration__summer-leaf seasonal-theme-decoration__summer-leaf--primary" viewBox="0 0 220 260" focusable="false">
-        <path d="M111 246C62 194 32 142 22 91 60 97 96 116 128 149c28 29 50 62 66 99-27-4-55-5-83-2Z" />
-        <path d="M111 246c-2-58 4-112 18-162" />
-        <path d="M114 207c-25-13-47-31-66-54" />
-        <path d="M122 177c-22-8-42-20-61-36" />
-        <path d="M132 148c-18-8-35-18-50-30" />
+      <svg className="seasonal-theme-decoration__summer-palm seasonal-theme-decoration__summer-palm--primary" viewBox="0 0 220 240" focusable="false">
+        <path d="M104 220c8-66 7-124-3-174" />
+        <path d="M101 50C70 25 38 14 8 18c28 22 58 36 92 42Z" />
+        <path d="M103 58c-39 2-70 15-93 40 36 4 67-8 93-40Z" />
+        <path d="M105 66c-31 19-52 45-64 78 36-8 58-32 64-78Z" />
+        <path d="M108 53c25-28 54-43 88-46-19 31-48 47-88 46Z" />
+        <path d="M109 62c39 5 70 23 94 54-38 2-70-16-94-54Z" />
+        <path d="M109 72c30 21 49 49 58 84-33-12-52-40-58-84Z" />
       </svg>
-      <svg className="seasonal-theme-decoration__summer-leaf seasonal-theme-decoration__summer-leaf--secondary" viewBox="0 0 180 220" focusable="false">
-        <path d="M82 207C42 167 18 125 11 82c29 4 58 18 84 42 24 22 43 49 58 81-23-2-47-2-71 2Z" />
-        <path d="M82 207c1-45 8-89 22-133" />
+      <svg className="seasonal-theme-decoration__summer-palm seasonal-theme-decoration__summer-palm--secondary" viewBox="0 0 180 210" focusable="false">
+        <path d="M86 196c5-52 2-101-9-146" />
+        <path d="M78 54C53 34 27 26 5 31c24 17 48 28 74 32Z" />
+        <path d="M81 62C51 66 28 78 10 98c29 1 53-11 71-36Z" />
+        <path d="M84 57c21-25 46-38 75-40-16 26-41 40-75 40Z" />
+        <path d="M86 65c31 5 56 20 75 44-32 1-57-13-75-44Z" />
       </svg>
       <span className="seasonal-theme-decoration__sun" />
+      <span className="seasonal-theme-decoration__lemon" />
     </>
   );
 }
@@ -51,8 +61,11 @@ function ValentineGraphics() {
     <>
       <span className="seasonal-theme-decoration__heart seasonal-theme-decoration__heart--primary" />
       <span className="seasonal-theme-decoration__heart seasonal-theme-decoration__heart--secondary" />
-      <span className="seasonal-theme-decoration__soft-dot seasonal-theme-decoration__soft-dot--one" />
-      <span className="seasonal-theme-decoration__soft-dot seasonal-theme-decoration__soft-dot--two" />
+      <svg className="seasonal-theme-decoration__cupid-arrow" viewBox="0 0 260 80" focusable="false">
+        <path d="M18 58c55-31 116-45 184-42" />
+        <path d="m201 16 33 12-29 19" />
+        <path d="M35 49 16 28M50 43 31 22" />
+      </svg>
     </>
   );
 }
@@ -60,18 +73,25 @@ function ValentineGraphics() {
 function EasterGraphics() {
   return (
     <>
-      <svg className="seasonal-theme-decoration__spring-leaf seasonal-theme-decoration__spring-leaf--primary" viewBox="0 0 180 220" focusable="false">
-        <path d="M87 207C49 164 25 121 15 76c34 8 64 26 90 55 24 26 42 57 55 92-23-9-47-14-73-16Z" />
-        <path d="M87 207c-1-46 5-91 18-137" />
-        <path d="M91 172c-20-11-38-25-54-43" />
-        <path d="M101 142c-17-9-32-21-45-35" />
+      <svg className="seasonal-theme-decoration__easter-egg seasonal-theme-decoration__easter-egg--primary" viewBox="0 0 130 170" focusable="false">
+        <path className="egg-shell" d="M65 158c35 0 55-23 55-58 0-39-28-88-55-88S10 61 10 100c0 35 20 58 55 58Z" />
+        <path d="M24 76c14 9 25 9 39 0s25-9 43 0" />
+        <path d="M23 102h84" />
+        <path d="M33 126c10-8 22-8 32 0s22 8 32 0" />
       </svg>
-      <svg className="seasonal-theme-decoration__spring-leaf seasonal-theme-decoration__spring-leaf--secondary" viewBox="0 0 150 180" focusable="false">
-        <path d="M71 166C39 134 19 99 10 63c28 6 54 20 76 42 20 21 35 46 46 75-20-8-40-12-61-14Z" />
-        <path d="M71 166c2-35 9-70 21-105" />
+      <svg className="seasonal-theme-decoration__easter-egg seasonal-theme-decoration__easter-egg--secondary" viewBox="0 0 120 160" focusable="false">
+        <path className="egg-shell" d="M60 148c31 0 49-21 49-52 0-36-25-84-49-84S11 60 11 96c0 31 18 52 49 52Z" />
+        <path d="M24 72h72" />
+        <path d="M27 96c11 8 21 8 32 0s21-8 32 0" />
       </svg>
-      <span className="seasonal-theme-decoration__easter-oval seasonal-theme-decoration__easter-oval--primary" />
-      <span className="seasonal-theme-decoration__easter-oval seasonal-theme-decoration__easter-oval--secondary" />
+      <svg className="seasonal-theme-decoration__spring-flower" viewBox="0 0 120 120" focusable="false">
+        <path d="M60 61c-12-18-12-34 0-48 12 14 12 30 0 48Z" />
+        <path d="M60 61c18-12 34-12 48 0-14 12-30 12-48 0Z" />
+        <path d="M60 61c12 18 12 34 0 48-12-14-12-30 0-48Z" />
+        <path d="M60 61c-18 12-34 12-48 0 14-12 30-12 48 0Z" />
+        <circle cx="60" cy="61" r="10" />
+      </svg>
+      <span className="seasonal-theme-decoration__bunny-ears" />
     </>
   );
 }
@@ -92,9 +112,14 @@ function HarvestGraphics() {
         <path d="M71 96c24 4 39 17 43 39-24-2-38-16-43-39Z" />
         <path d="M70 128c-24 4-39 17-44 39 24-2 38-16 44-39Z" />
       </svg>
-      <span className="seasonal-theme-decoration__seed seasonal-theme-decoration__seed--one" />
-      <span className="seasonal-theme-decoration__seed seasonal-theme-decoration__seed--two" />
-      <span className="seasonal-theme-decoration__flour-dust" />
+      <svg className="seasonal-theme-decoration__olive-branch" viewBox="0 0 190 120" focusable="false">
+        <path d="M18 97c47-38 96-59 154-75" />
+        <path d="M61 71c-20-9-34-8-45 4 18 11 33 10 45-4Z" />
+        <path d="M88 56c-8-20-6-34 7-43 9 18 7 32-7 43Z" />
+        <path d="M117 45c17-13 31-15 44-5-14 14-29 16-44 5Z" />
+        <path d="M136 35c-6-18-3-31 10-39 7 16 4 29-10 39Z" />
+      </svg>
+      <span className="seasonal-theme-decoration__tomato-detail" />
     </>
   );
 }
@@ -113,8 +138,13 @@ function HalloweenGraphics() {
         <path d="M95 95c18 3 34 10 48 22" />
         <path d="M95 95c10 15 17 32 21 49" />
       </svg>
+      <svg className="seasonal-theme-decoration__bat seasonal-theme-decoration__bat--one" viewBox="0 0 140 70" focusable="false">
+        <path d="M70 34c-12-16-30-24-54-24 7 7 9 16 5 27 17-8 32-5 49 10 17-15 32-18 49-10-4-11-2-20 5-27-24 0-42 8-54 24Z" />
+      </svg>
+      <svg className="seasonal-theme-decoration__bat seasonal-theme-decoration__bat--two" viewBox="0 0 120 60" focusable="false">
+        <path d="M60 29C50 16 35 9 14 9c6 6 8 14 4 23 15-7 28-4 42 9 14-13 27-16 42-9-4-9-2-17 4-23-21 0-36 7-46 20Z" />
+      </svg>
       <span className="seasonal-theme-decoration__pumpkin seasonal-theme-decoration__pumpkin--primary" />
-      <span className="seasonal-theme-decoration__pumpkin seasonal-theme-decoration__pumpkin--secondary" />
     </>
   );
 }
@@ -134,7 +164,9 @@ function ChristmasGraphics() {
       </svg>
       <span className="seasonal-theme-decoration__star seasonal-theme-decoration__star--primary" />
       <span className="seasonal-theme-decoration__star seasonal-theme-decoration__star--secondary" />
-      <span className="seasonal-theme-decoration__warm-light-points" />
+      <span className="seasonal-theme-decoration__ornament seasonal-theme-decoration__ornament--one" />
+      <span className="seasonal-theme-decoration__ornament seasonal-theme-decoration__ornament--two" />
+      <span className="seasonal-theme-decoration__snowflake" />
     </>
   );
 }

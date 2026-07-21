@@ -56,6 +56,72 @@ function foundationLabel(theme: PublicThemeDefinition) {
   return theme.designStatus === "final" ? "Default design" : "Foundation design";
 }
 
+function ThemeMotifPreview({ themeId, themeName }: { themeId: PublicThemeId; themeName: string }) {
+  return (
+    <div className={`admin-theme-motif-preview admin-theme-motif-preview--${themeId}`} aria-label={`${themeName} motif preview`} role="img">
+      {themeId === "default" ? (
+        <span className="admin-theme-motif-preview__neutral" />
+      ) : null}
+      {themeId === "valentine" ? (
+        <>
+          <span className="admin-theme-motif-preview__heart" />
+          <svg viewBox="0 0 120 42" focusable="false" aria-hidden="true">
+            <path d="M10 30c26-17 57-25 94-22" />
+            <path d="m96 8 16 6-15 10" />
+          </svg>
+        </>
+      ) : null}
+      {themeId === "easter" ? (
+        <>
+          <svg viewBox="0 0 70 88" focusable="false" aria-hidden="true">
+            <path d="M35 80c20 0 31-13 31-33C66 25 50 4 35 4S4 25 4 47c0 20 11 33 31 33Z" />
+            <path d="M14 36c8 5 15 5 23 0s15-5 25 0M13 51h44M19 64c6-5 13-5 20 0s13 5 20 0" />
+          </svg>
+          <span className="admin-theme-motif-preview__flower" />
+        </>
+      ) : null}
+      {themeId === "summer" ? (
+        <>
+          <span className="admin-theme-motif-preview__sun" />
+          <svg viewBox="0 0 86 86" focusable="false" aria-hidden="true">
+            <path d="M40 80c3-25 2-47-4-67" />
+            <path d="M36 18C23 8 12 5 3 8c12 8 23 13 34 15Z" />
+            <path d="M39 22C25 24 14 30 6 40c14 0 25-6 33-18Z" />
+            <path d="M40 20c11-12 23-18 38-19-8 13-21 20-38 19Z" />
+            <path d="M42 25c16 3 29 10 39 23-16 0-29-8-39-23Z" />
+          </svg>
+        </>
+      ) : null}
+      {themeId === "harvest" ? (
+        <>
+          <svg viewBox="0 0 70 100" focusable="false" aria-hidden="true">
+            <path d="M35 92V8" />
+            <path d="M35 24C22 27 15 34 13 45c12-1 20-8 22-21ZM36 40c13 3 22 11 24 24-14-2-22-10-24-24ZM35 55c-14 3-23 11-26 24 14-1 23-9 26-24Z" />
+          </svg>
+          <span className="admin-theme-motif-preview__tomato" />
+        </>
+      ) : null}
+      {themeId === "halloween" ? (
+        <>
+          <span className="admin-theme-motif-preview__moon" />
+          <svg viewBox="0 0 90 46" focusable="false" aria-hidden="true">
+            <path d="M45 23C37 12 25 7 8 7c5 5 6 12 3 20 12-6 23-3 34 7 11-10 22-13 34-7-3-8-2-15 3-20-17 0-29 5-37 16Z" />
+          </svg>
+        </>
+      ) : null}
+      {themeId === "christmas" ? (
+        <>
+          <svg viewBox="0 0 78 98" focusable="false" aria-hidden="true">
+            <path d="M39 91V15" />
+            <path d="M39 18 22 38h11L14 60h16L9 84M39 18l17 20H45l19 22H48l21 24" />
+          </svg>
+          <span className="admin-theme-motif-preview__star" />
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export default function AdminAppearanceClient({ initialActiveTheme, initialCampaigns }: AdminAppearanceClientProps) {
   const [activeTheme, setActiveTheme] = useState(initialActiveTheme);
   const [campaigns, setCampaigns] = useState(initialCampaigns);
@@ -261,14 +327,17 @@ export default function AdminAppearanceClient({ initialActiveTheme, initialCampa
               <DoughToolsIcon name={theme.id === "default" ? "success" : "experience-level"} size={24} />
             </div>
             <p className="mt-3 text-sm font-bold leading-6 text-ink/60">{theme.description}</p>
-            <div className="mt-4 flex gap-2" aria-label={`${theme.name} preview colors`}>
-              {theme.previewSwatches.map((swatch) => (
-                <span
-                  key={swatch}
-                  className="h-8 flex-1 rounded-full border border-ink/10"
-                  style={{ backgroundColor: swatch }}
-                />
-              ))}
+            <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem] sm:items-stretch">
+              <div className="flex gap-2" aria-label={`${theme.name} preview colors`}>
+                {theme.previewSwatches.map((swatch) => (
+                  <span
+                    key={swatch}
+                    className="h-8 flex-1 rounded-full border border-ink/10"
+                    style={{ backgroundColor: swatch }}
+                  />
+                ))}
+              </div>
+              <ThemeMotifPreview themeId={theme.id} themeName={theme.name} />
             </div>
             <p className="mt-4 rounded-2xl border border-ink/10 bg-cream/70 px-3 py-2 text-xs font-bold leading-5 text-ink/58">
               Visual details can be refined without changing the schedule.

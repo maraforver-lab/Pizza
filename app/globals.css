@@ -105,11 +105,7 @@ html[data-public-theme="valentine"] {
 }
 
 html[data-public-theme="valentine"] body {
-  background:
-    radial-gradient(circle at 10% 0%, var(--theme-decorative), transparent 24rem),
-    radial-gradient(circle at 18% 7%, rgba(122, 45, 44, .06), transparent 16rem),
-    radial-gradient(circle at 92% 44%, var(--theme-decorative-secondary), transparent 29rem),
-    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 44%, var(--theme-page-background)) 46%, var(--theme-page-background) 100%);
+  background: linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 36%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="easter"] {
@@ -133,11 +129,7 @@ html[data-public-theme="easter"] {
 }
 
 html[data-public-theme="easter"] body {
-  background:
-    radial-gradient(ellipse at 12% 0%, var(--theme-decorative), transparent 24rem),
-    radial-gradient(ellipse at 86% 16%, var(--theme-decorative-secondary), transparent 18rem),
-    radial-gradient(circle at 96% 62%, rgba(95, 143, 58, .07), transparent 26rem),
-    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 38%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
+  background: linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 34%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="summer"] {
@@ -161,11 +153,7 @@ html[data-public-theme="summer"] {
 }
 
 html[data-public-theme="summer"] body {
-  background:
-    radial-gradient(circle at 12% -8%, var(--theme-decorative), transparent 25rem),
-    repeating-linear-gradient(135deg, rgba(18, 109, 122, .055) 0 1px, transparent 1px 3.25rem),
-    radial-gradient(ellipse at 94% 18%, var(--theme-decorative-secondary), transparent 26rem),
-    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 32%, var(--theme-page-background)) 50%, var(--theme-page-background) 100%);
+  background: linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 30%, var(--theme-page-background)) 50%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="harvest"] {
@@ -189,11 +177,7 @@ html[data-public-theme="harvest"] {
 }
 
 html[data-public-theme="harvest"] body {
-  background:
-    linear-gradient(110deg, transparent 0 44%, var(--theme-decorative) 44.2% 44.8%, transparent 45% 100%),
-    radial-gradient(circle at 12% 10%, rgba(101, 114, 58, .07), transparent 18rem),
-    radial-gradient(circle at 90% 42%, var(--theme-decorative-secondary), transparent 24rem),
-    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 34%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
+  background: linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 32%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="halloween"] {
@@ -217,11 +201,7 @@ html[data-public-theme="halloween"] {
 }
 
 html[data-public-theme="halloween"] body {
-  background:
-    radial-gradient(ellipse at 8% -12%, rgba(36, 26, 22, .18), transparent 25rem),
-    radial-gradient(circle at 88% 8%, var(--theme-decorative), transparent 18rem),
-    radial-gradient(ellipse at 95% 58%, var(--theme-decorative-secondary), transparent 26rem),
-    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 10%, var(--theme-page-background)) 42%, var(--theme-page-background) 100%);
+  background: linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 8%, var(--theme-page-background)) 42%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="christmas"] {
@@ -245,12 +225,7 @@ html[data-public-theme="christmas"] {
 }
 
 html[data-public-theme="christmas"] body {
-  background:
-    radial-gradient(circle at 10% 6%, var(--theme-decorative), transparent 18rem),
-    radial-gradient(circle at 16% 10%, rgba(143, 38, 38, .07), transparent 1.1rem),
-    radial-gradient(circle at 88% 18%, rgba(15, 61, 46, .08), transparent 23rem),
-    linear-gradient(125deg, transparent 0 46%, rgba(143, 38, 38, .055) 46.2% 46.6%, transparent 46.8% 100%),
-    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 28%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
+  background: linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 28%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
 }
 
 * { box-sizing: border-box; }
@@ -262,10 +237,7 @@ body {
   max-width: 100%;
   overflow-x: clip;
   color: var(--dt-text-primary);
-  background:
-    radial-gradient(circle at 8% 0%, var(--theme-decorative), transparent 26rem),
-    radial-gradient(circle at 100% 55%, color-mix(in srgb, var(--theme-accent-secondary) 9%, transparent), transparent 30rem),
-    var(--theme-page-background);
+  background: var(--theme-page-background);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -282,40 +254,48 @@ body {
 .seasonal-theme-decoration svg,
 .seasonal-theme-decoration span {
   position: absolute;
-  display: block;
+  display: none;
   pointer-events: none;
 }
 
-.seasonal-theme-decoration__summer-leaf {
+.seasonal-theme-decoration__summer-palm,
+.seasonal-theme-decoration__grain,
+.seasonal-theme-decoration__olive-branch,
+.seasonal-theme-decoration__bat,
+.seasonal-theme-decoration__fir,
+.seasonal-theme-decoration__cupid-arrow,
+.seasonal-theme-decoration__easter-egg,
+.seasonal-theme-decoration__spring-flower,
+.seasonal-theme-decoration__web {
   display: none;
   fill: none;
-  stroke: var(--theme-accent-secondary);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.seasonal-theme-decoration__summer-leaf path:first-child {
-  fill: color-mix(in srgb, var(--theme-accent-secondary) 13%, transparent);
-  stroke-width: 2;
+.seasonal-theme-decoration__summer-palm {
+  stroke: var(--theme-accent-secondary);
+  stroke-width: 4;
+  opacity: .72;
 }
 
-.seasonal-theme-decoration__summer-leaf path:not(:first-child) {
-  opacity: .42;
-  stroke-width: 3;
+.seasonal-theme-decoration__summer-palm path:not(:first-child) {
+  fill: color-mix(in srgb, var(--theme-accent-secondary) 15%, transparent);
+  stroke-width: 2.5;
 }
 
-.seasonal-theme-decoration__summer-leaf--primary {
+.seasonal-theme-decoration__summer-palm--primary {
   bottom: 5rem;
   left: max(-4rem, calc((100vw - 78rem) / 2 - 8rem));
   width: clamp(9rem, 18vw, 16rem);
-  transform: rotate(-18deg);
+  transform: rotate(-11deg);
 }
 
-.seasonal-theme-decoration__summer-leaf--secondary {
+.seasonal-theme-decoration__summer-palm--secondary {
   right: max(-3rem, calc((100vw - 78rem) / 2 - 6rem));
   top: 7rem;
   width: clamp(7rem, 14vw, 12rem);
-  transform: rotate(18deg);
+  transform: rotate(15deg);
 }
 
 .seasonal-theme-decoration__sun {
@@ -331,69 +311,88 @@ body {
   opacity: .54;
 }
 
-.seasonal-theme-decoration__spring-leaf {
+.seasonal-theme-decoration__lemon {
   display: none;
-  fill: none;
+  left: 17vw;
+  top: 24vh;
+  width: clamp(2.75rem, 6vw, 4.5rem);
+  aspect-ratio: .78;
+  border-radius: 52% 48% 55% 45% / 64% 60% 40% 36%;
+  background: color-mix(in srgb, var(--theme-accent) 18%, transparent);
+  opacity: .68;
+  transform: rotate(-18deg);
+}
+
+.seasonal-theme-decoration__easter-egg {
   stroke: var(--theme-accent);
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  stroke-width: 4;
+  opacity: .76;
 }
 
-.seasonal-theme-decoration__spring-leaf path:first-child {
-  fill: color-mix(in srgb, var(--theme-accent) 13%, transparent);
-  stroke-width: 2;
+.seasonal-theme-decoration__easter-egg .egg-shell {
+  fill: color-mix(in srgb, var(--theme-accent-secondary) 18%, transparent);
+  stroke: var(--theme-accent-secondary);
 }
 
-.seasonal-theme-decoration__spring-leaf path:not(:first-child) {
-  opacity: .42;
-  stroke-width: 3;
-}
-
-.seasonal-theme-decoration__spring-leaf--primary {
-  left: max(-3rem, calc((100vw - 78rem) / 2 - 6rem));
-  top: 8rem;
-  width: clamp(7.5rem, 15vw, 12rem);
-  transform: rotate(-12deg);
-}
-
-.seasonal-theme-decoration__spring-leaf--secondary {
-  bottom: 5.5rem;
-  right: max(-2.5rem, calc((100vw - 78rem) / 2 - 5rem));
-  width: clamp(6rem, 11vw, 9rem);
-  transform: rotate(20deg);
-}
-
-.seasonal-theme-decoration__easter-oval {
-  display: none;
-  border-radius: 58% 42% 54% 46% / 64% 56% 44% 36%;
-  background:
-    radial-gradient(ellipse at 44% 28%, color-mix(in srgb, var(--theme-accent-secondary) 18%, transparent), transparent 44%),
-    color-mix(in srgb, var(--theme-accent-secondary) 12%, transparent);
-}
-
-.seasonal-theme-decoration__easter-oval--primary {
+.seasonal-theme-decoration__easter-egg--primary {
   right: max(-1rem, calc((100vw - 78rem) / 2 - 2rem));
   top: 10.5rem;
-  width: clamp(4rem, 8vw, 6.5rem);
-  aspect-ratio: .72;
+  width: clamp(4.75rem, 9vw, 7rem);
   transform: rotate(12deg);
 }
 
-.seasonal-theme-decoration__easter-oval--secondary {
+.seasonal-theme-decoration__easter-egg--secondary {
   left: 16vw;
   bottom: 17vh;
-  width: clamp(2.75rem, 6vw, 4.5rem);
-  aspect-ratio: .76;
+  width: clamp(3.5rem, 7vw, 5rem);
   opacity: .66;
   transform: rotate(-18deg);
 }
 
-.seasonal-theme-decoration__grain {
+.seasonal-theme-decoration__spring-flower {
+  left: max(-1rem, calc((100vw - 78rem) / 2 - 2rem));
+  top: 8rem;
+  width: clamp(4rem, 8vw, 6rem);
+  fill: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+  stroke: var(--theme-accent);
+  stroke-width: 3;
+  opacity: .64;
+  transform: rotate(-10deg);
+}
+
+.seasonal-theme-decoration__bunny-ears {
   display: none;
-  fill: none;
+  right: 18vw;
+  bottom: 18vh;
+  width: clamp(2.75rem, 6vw, 4rem);
+  aspect-ratio: 1;
+  opacity: .58;
+}
+
+.seasonal-theme-decoration__bunny-ears::before,
+.seasonal-theme-decoration__bunny-ears::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 42%;
+  height: 100%;
+  border: 3px solid color-mix(in srgb, var(--theme-accent) 45%, transparent);
+  border-radius: 9999px 9999px 55% 55%;
+  background: color-mix(in srgb, var(--theme-accent) 8%, transparent);
+}
+
+.seasonal-theme-decoration__bunny-ears::before {
+  left: 13%;
+  transform: rotate(-13deg);
+}
+
+.seasonal-theme-decoration__bunny-ears::after {
+  right: 13%;
+  transform: rotate(13deg);
+}
+
+.seasonal-theme-decoration__grain {
   stroke: var(--theme-accent-secondary);
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 .seasonal-theme-decoration__grain path:first-child {
@@ -421,43 +420,32 @@ body {
   transform: rotate(15deg);
 }
 
-.seasonal-theme-decoration__seed,
-.seasonal-theme-decoration__flour-dust {
-  display: none;
-  border-radius: 9999px;
-}
-
-.seasonal-theme-decoration__seed {
-  background: color-mix(in srgb, var(--theme-accent) 12%, transparent);
-}
-
-.seasonal-theme-decoration__seed--one {
-  right: 20vw;
-  bottom: 22vh;
-  width: 4.25rem;
-  aspect-ratio: 1.75;
-  transform: rotate(-22deg);
-}
-
-.seasonal-theme-decoration__seed--two {
-  left: 18vw;
-  top: 21vh;
-  width: 3rem;
-  aspect-ratio: 1.7;
-  opacity: .64;
-  transform: rotate(28deg);
-}
-
-.seasonal-theme-decoration__flour-dust {
+.seasonal-theme-decoration__olive-branch {
   right: 13vw;
-  top: 28vh;
-  width: 10rem;
+  top: 23vh;
+  width: clamp(6rem, 13vw, 10rem);
+  stroke: var(--theme-accent-secondary);
+  stroke-width: 4;
+  opacity: .58;
+  transform: rotate(-16deg);
+}
+
+.seasonal-theme-decoration__olive-branch path:not(:first-child) {
+  fill: color-mix(in srgb, var(--theme-accent-secondary) 16%, transparent);
+  stroke-width: 2;
+}
+
+.seasonal-theme-decoration__tomato-detail {
+  display: none;
+  right: 22vw;
+  bottom: 20vh;
+  width: clamp(2.75rem, 6vw, 4.25rem);
   aspect-ratio: 1;
+  border-radius: 48% 52% 52% 48% / 56% 56% 44% 44%;
   background:
-    radial-gradient(circle at 20% 35%, color-mix(in srgb, var(--theme-accent-secondary) 16%, transparent) 0 .18rem, transparent .2rem),
-    radial-gradient(circle at 48% 22%, color-mix(in srgb, var(--theme-accent-secondary) 13%, transparent) 0 .14rem, transparent .16rem),
-    radial-gradient(circle at 72% 52%, color-mix(in srgb, var(--theme-accent-secondary) 14%, transparent) 0 .16rem, transparent .18rem),
-    radial-gradient(circle at 38% 78%, color-mix(in srgb, var(--theme-accent-secondary) 11%, transparent) 0 .12rem, transparent .14rem);
+    radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--theme-accent-secondary) 28%, transparent) 0 .2rem, transparent .23rem),
+    color-mix(in srgb, var(--theme-accent) 15%, transparent);
+  opacity: .64;
 }
 
 .seasonal-theme-decoration__moon {
@@ -474,7 +462,6 @@ body {
 }
 
 .seasonal-theme-decoration__web {
-  display: none;
   right: max(-2rem, calc((100vw - 78rem) / 2 - 3rem));
   top: 5.5rem;
   width: clamp(7rem, 14vw, 11rem);
@@ -486,13 +473,37 @@ body {
   opacity: .48;
 }
 
+.seasonal-theme-decoration__bat {
+  fill: color-mix(in srgb, var(--theme-accent-secondary) 48%, transparent);
+  stroke: color-mix(in srgb, var(--theme-accent-secondary) 52%, transparent);
+  stroke-width: 2;
+  opacity: .72;
+}
+
+.seasonal-theme-decoration__bat--one {
+  left: max(1rem, calc((100vw - 78rem) / 2 + 2rem));
+  top: 9rem;
+  width: clamp(4rem, 8vw, 6rem);
+  transform: rotate(-8deg);
+}
+
+.seasonal-theme-decoration__bat--two {
+  right: 18vw;
+  top: 23vh;
+  width: clamp(3rem, 6vw, 4.75rem);
+  opacity: .52;
+  transform: rotate(10deg);
+}
+
 .seasonal-theme-decoration__pumpkin {
   display: none;
   border-radius: 48% 52% 50% 50% / 58% 58% 42% 42%;
   background:
-    radial-gradient(ellipse at 35% 52%, transparent 0 22%, color-mix(in srgb, var(--theme-accent) 11%, transparent) 23% 26%, transparent 27%),
-    radial-gradient(ellipse at 65% 52%, transparent 0 22%, color-mix(in srgb, var(--theme-accent) 11%, transparent) 23% 26%, transparent 27%),
-    color-mix(in srgb, var(--theme-accent) 13%, transparent);
+    linear-gradient(90deg, transparent 0 30%, color-mix(in srgb, var(--theme-accent-hover) 22%, transparent) 31% 33%, transparent 34% 63%, color-mix(in srgb, var(--theme-accent-hover) 22%, transparent) 64% 66%, transparent 67% 100%),
+    radial-gradient(circle at 36% 56%, color-mix(in srgb, var(--theme-accent-secondary) 42%, transparent) 0 5%, transparent 6%),
+    radial-gradient(circle at 64% 56%, color-mix(in srgb, var(--theme-accent-secondary) 42%, transparent) 0 5%, transparent 6%),
+    linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--theme-accent-secondary) 36%, transparent) 46% 58%, transparent 59%),
+    color-mix(in srgb, var(--theme-accent) 18%, transparent);
 }
 
 .seasonal-theme-decoration__pumpkin--primary {
@@ -503,21 +514,8 @@ body {
   transform: rotate(-7deg);
 }
 
-.seasonal-theme-decoration__pumpkin--secondary {
-  left: 17vw;
-  top: 22vh;
-  width: clamp(2.75rem, 6vw, 4.25rem);
-  aspect-ratio: 1.22;
-  opacity: .58;
-  transform: rotate(14deg);
-}
-
 .seasonal-theme-decoration__fir {
-  display: none;
-  fill: none;
-  stroke: var(--theme-accent-secondary);
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  stroke: color-mix(in srgb, var(--theme-accent-secondary) 58%, var(--theme-surface) 42%);
 }
 
 .seasonal-theme-decoration__fir path:first-child {
@@ -566,17 +564,40 @@ body {
   transform: rotate(-18deg);
 }
 
-.seasonal-theme-decoration__warm-light-points {
+.seasonal-theme-decoration__ornament {
   display: none;
-  left: 14vw;
-  top: 20vh;
-  width: 12rem;
+  width: clamp(1.75rem, 4vw, 2.75rem);
   aspect-ratio: 1;
   border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--theme-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+}
+
+.seasonal-theme-decoration__ornament--one {
+  right: 20vw;
+  top: 24vh;
+}
+
+.seasonal-theme-decoration__ornament--two {
+  left: 17vw;
+  bottom: 18vh;
+  width: clamp(1.5rem, 3vw, 2.2rem);
+  background: color-mix(in srgb, var(--theme-accent-secondary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--theme-accent-secondary) 32%, transparent);
+}
+
+.seasonal-theme-decoration__snowflake {
+  display: none;
+  left: 13vw;
+  top: 21vh;
+  width: clamp(2rem, 5vw, 3.5rem);
+  aspect-ratio: 1;
+  opacity: .58;
   background:
-    radial-gradient(circle at 18% 44%, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0 .18rem, transparent .2rem),
-    radial-gradient(circle at 54% 22%, color-mix(in srgb, var(--theme-accent) 22%, transparent) 0 .15rem, transparent .17rem),
-    radial-gradient(circle at 76% 66%, color-mix(in srgb, var(--theme-accent) 20%, transparent) 0 .16rem, transparent .18rem);
+    linear-gradient(90deg, transparent 0 45%, color-mix(in srgb, var(--theme-accent-secondary) 38%, transparent) 46% 54%, transparent 55% 100%),
+    linear-gradient(0deg, transparent 0 45%, color-mix(in srgb, var(--theme-accent-secondary) 38%, transparent) 46% 54%, transparent 55% 100%),
+    linear-gradient(45deg, transparent 0 46%, color-mix(in srgb, var(--theme-accent-secondary) 34%, transparent) 47% 53%, transparent 54% 100%),
+    linear-gradient(-45deg, transparent 0 46%, color-mix(in srgb, var(--theme-accent-secondary) 34%, transparent) 47% 53%, transparent 54% 100%);
 }
 
 .seasonal-theme-decoration__heart {
@@ -620,24 +641,211 @@ body {
   opacity: .7;
 }
 
-.seasonal-theme-decoration__soft-dot {
-  display: none;
+.seasonal-theme-decoration__cupid-arrow {
+  left: 15vw;
+  top: 24vh;
+  width: clamp(7rem, 14vw, 12rem);
+  stroke: var(--theme-accent-secondary);
+  stroke-width: 6;
+  opacity: .58;
+  transform: rotate(-9deg);
+}
+
+.admin-theme-motif-preview {
+  position: relative;
+  min-height: 4.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(31, 31, 31, .10);
+  border-radius: 1.25rem;
+  background: var(--theme-surface, #fff);
+}
+
+.admin-theme-motif-preview svg,
+.admin-theme-motif-preview span {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.admin-theme-motif-preview svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-theme-motif-preview--default {
+  color: var(--dt-forest);
+  background: linear-gradient(135deg, #fff8f1, #ffffff);
+}
+
+.admin-theme-motif-preview__neutral {
+  inset: 1rem;
+  border: 2px solid rgba(15, 61, 46, .16);
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--theme-accent-secondary) 10%, transparent);
 }
 
-.seasonal-theme-decoration__soft-dot--one {
-  right: 18vw;
-  bottom: 20vh;
-  width: 5rem;
-  aspect-ratio: 1;
+.admin-theme-motif-preview--valentine {
+  color: #7a2d2c;
+  background: #fff3f1;
 }
 
-.seasonal-theme-decoration__soft-dot--two {
-  left: 14vw;
-  top: 20vh;
-  width: 3rem;
+.admin-theme-motif-preview--valentine svg {
+  left: 1.25rem;
+  top: 1.1rem;
+  width: 5.8rem;
+  stroke-width: 5;
+}
+
+.admin-theme-motif-preview__heart {
+  right: 1.35rem;
+  top: 1.35rem;
+  width: 2rem;
   aspect-ratio: 1;
+  border-radius: .45rem;
+  background: rgba(217, 66, 56, .28);
+  transform: rotate(-45deg);
+}
+
+.admin-theme-motif-preview__heart::before,
+.admin-theme-motif-preview__heart::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: inherit;
+}
+
+.admin-theme-motif-preview__heart::before {
+  top: -50%;
+  left: 0;
+}
+
+.admin-theme-motif-preview__heart::after {
+  left: 50%;
+  top: 0;
+}
+
+.admin-theme-motif-preview--easter {
+  color: #5f8f3a;
+  background: #fff9de;
+}
+
+.admin-theme-motif-preview--easter svg {
+  left: 1rem;
+  top: .35rem;
+  width: 3.7rem;
+  stroke-width: 4;
+}
+
+.admin-theme-motif-preview--easter svg path:first-child {
+  fill: rgba(224, 184, 74, .20);
+  stroke: #e0b84a;
+}
+
+.admin-theme-motif-preview__flower {
+  right: 1.25rem;
+  top: 1.45rem;
+  width: 1.75rem;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle, rgba(224, 184, 74, .55) 0 20%, transparent 22%),
+    conic-gradient(from 0deg, rgba(95, 143, 58, .22) 0 12%, transparent 12% 25%, rgba(95, 143, 58, .22) 25% 37%, transparent 37% 50%, rgba(95, 143, 58, .22) 50% 62%, transparent 62% 75%, rgba(95, 143, 58, .22) 75% 87%, transparent 87%);
+}
+
+.admin-theme-motif-preview--summer {
+  color: #126d7a;
+  background: #fff4d8;
+}
+
+.admin-theme-motif-preview--summer svg {
+  left: 1.1rem;
+  top: .25rem;
+  width: 4.25rem;
+  stroke-width: 4;
+}
+
+.admin-theme-motif-preview__sun {
+  right: 1.1rem;
+  top: 1rem;
+  width: 2.3rem;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background:
+    repeating-conic-gradient(from 10deg, rgba(216, 138, 36, .42) 0 8deg, transparent 8deg 18deg),
+    radial-gradient(circle, rgba(216, 138, 36, .32) 0 38%, transparent 40%);
+}
+
+.admin-theme-motif-preview--harvest {
+  color: #65723a;
+  background: #fff0dc;
+}
+
+.admin-theme-motif-preview--harvest svg {
+  left: 1.4rem;
+  top: .35rem;
+  width: 3.5rem;
+  stroke-width: 4;
+}
+
+.admin-theme-motif-preview--harvest svg path:not(:first-child) {
+  fill: rgba(185, 99, 36, .18);
+}
+
+.admin-theme-motif-preview__tomato {
+  right: 1.25rem;
+  top: 1.5rem;
+  width: 2rem;
+  aspect-ratio: 1;
+  border-radius: 48% 52% 52% 48% / 56% 56% 44% 44%;
+  background: rgba(185, 99, 36, .22);
+}
+
+.admin-theme-motif-preview--halloween {
+  color: #5b3a6b;
+  background: #fff4e8;
+}
+
+.admin-theme-motif-preview--halloween svg {
+  left: 1rem;
+  top: 1.7rem;
+  width: 4.5rem;
+  fill: rgba(91, 58, 107, .26);
+  stroke-width: 2;
+}
+
+.admin-theme-motif-preview__moon {
+  right: 1.15rem;
+  top: .85rem;
+  width: 2.2rem;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 65% 34%, #fff4e8 0 36%, transparent 37%),
+    rgba(91, 58, 107, .24);
+}
+
+.admin-theme-motif-preview--christmas {
+  color: #0f3d2e;
+  background: #f8f1e6;
+}
+
+.admin-theme-motif-preview--christmas svg {
+  left: 1rem;
+  top: .35rem;
+  width: 3.7rem;
+  stroke-width: 5;
+}
+
+.admin-theme-motif-preview__star {
+  right: 1.4rem;
+  top: 1.45rem;
+  width: 1.85rem;
+  aspect-ratio: 1;
+  background: rgba(143, 38, 38, .28);
+  clip-path: polygon(50% 0, 60% 36%, 98% 50%, 60% 64%, 50% 100%, 40% 64%, 2% 50%, 40% 36%);
 }
 
 html[data-public-theme="summer"] .seasonal-theme-decoration,
@@ -649,110 +857,114 @@ html[data-public-theme="christmas"] .seasonal-theme-decoration {
   opacity: 1;
 }
 
-html[data-public-theme="summer"] .seasonal-theme-decoration__summer-leaf,
+html[data-public-theme="summer"] .seasonal-theme-decoration__summer-palm,
 html[data-public-theme="summer"] .seasonal-theme-decoration__sun,
+html[data-public-theme="summer"] .seasonal-theme-decoration__lemon,
 html[data-public-theme="valentine"] .seasonal-theme-decoration__heart,
-html[data-public-theme="valentine"] .seasonal-theme-decoration__soft-dot,
-html[data-public-theme="easter"] .seasonal-theme-decoration__spring-leaf,
-html[data-public-theme="easter"] .seasonal-theme-decoration__easter-oval,
+html[data-public-theme="valentine"] .seasonal-theme-decoration__cupid-arrow,
+html[data-public-theme="easter"] .seasonal-theme-decoration__easter-egg,
+html[data-public-theme="easter"] .seasonal-theme-decoration__spring-flower,
+html[data-public-theme="easter"] .seasonal-theme-decoration__bunny-ears,
 html[data-public-theme="harvest"] .seasonal-theme-decoration__grain,
-html[data-public-theme="harvest"] .seasonal-theme-decoration__seed,
-html[data-public-theme="harvest"] .seasonal-theme-decoration__flour-dust,
+html[data-public-theme="harvest"] .seasonal-theme-decoration__olive-branch,
+html[data-public-theme="harvest"] .seasonal-theme-decoration__tomato-detail,
 html[data-public-theme="halloween"] .seasonal-theme-decoration__moon,
 html[data-public-theme="halloween"] .seasonal-theme-decoration__web,
+html[data-public-theme="halloween"] .seasonal-theme-decoration__bat,
 html[data-public-theme="halloween"] .seasonal-theme-decoration__pumpkin,
 html[data-public-theme="christmas"] .seasonal-theme-decoration__fir,
 html[data-public-theme="christmas"] .seasonal-theme-decoration__star,
-html[data-public-theme="christmas"] .seasonal-theme-decoration__warm-light-points {
+html[data-public-theme="christmas"] .seasonal-theme-decoration__ornament,
+html[data-public-theme="christmas"] .seasonal-theme-decoration__snowflake {
   display: block;
 }
 
-.seasonal-theme-decoration[data-seasonal-intensity="restrained"] {
+html[data-public-theme]:not([data-public-theme="default"]) .seasonal-theme-decoration[data-seasonal-intensity="restrained"] {
   opacity: .48;
 }
 
-.seasonal-theme-decoration[data-seasonal-intensity="minimal"] {
+html[data-public-theme] .seasonal-theme-decoration[data-seasonal-intensity="minimal"] {
   opacity: 0;
 }
 
 @media (max-width: 640px) {
-  .seasonal-theme-decoration__summer-leaf--primary {
-    bottom: 4rem;
-    left: -4rem;
-    width: 9rem;
+  .seasonal-theme-decoration__summer-palm--primary {
+    bottom: 3.25rem;
+    left: -6.75rem;
+    width: 8.75rem;
   }
 
-  .seasonal-theme-decoration__summer-leaf--secondary {
-    right: -4.25rem;
-    top: 6.5rem;
-    width: 8rem;
+  .seasonal-theme-decoration__summer-palm--secondary {
+    right: -2.6rem;
+    top: 5rem;
+    width: 5.75rem;
   }
 
   .seasonal-theme-decoration__sun {
-    right: -1.75rem;
-    top: 7rem;
-    width: 5.25rem;
-    opacity: .44;
+    right: .5rem;
+    top: 4.25rem;
+    width: 3.9rem;
+    opacity: .46;
   }
 
-  .seasonal-theme-decoration__spring-leaf--primary {
-    left: -3.75rem;
-    top: 8rem;
-    width: 7rem;
+  .seasonal-theme-decoration__lemon {
+    left: -2.25rem;
+    top: 30vh;
+    width: 2.75rem;
   }
 
-  .seasonal-theme-decoration__spring-leaf--secondary {
-    right: -3.75rem;
-    bottom: 5rem;
-    width: 6.5rem;
+  .seasonal-theme-decoration__easter-egg--primary {
+    right: .55rem;
+    top: 4.55rem;
+    width: 3.65rem;
   }
 
-  .seasonal-theme-decoration__easter-oval--primary {
-    right: -2rem;
-    top: 12rem;
-    width: 4.5rem;
+  .seasonal-theme-decoration__easter-egg--secondary {
+    left: -3.25rem;
+    bottom: 13vh;
+    width: 3.4rem;
   }
 
-  .seasonal-theme-decoration__easter-oval--secondary {
-    left: 8vw;
-    bottom: 18vh;
-    width: 3rem;
+  .seasonal-theme-decoration__spring-flower {
+    left: -2.4rem;
+    top: 8.75rem;
+    width: 2.75rem;
+  }
+
+  .seasonal-theme-decoration__bunny-ears {
+    right: -2.6rem;
+    bottom: 10vh;
+    width: 2.75rem;
   }
 
   .seasonal-theme-decoration__grain--primary {
-    bottom: 4rem;
-    left: -3rem;
-    width: 6rem;
+    bottom: 3rem;
+    left: -4.75rem;
+    width: 5.75rem;
   }
 
   .seasonal-theme-decoration__grain--secondary {
-    right: -2.75rem;
-    top: 8.5rem;
-    width: 5.5rem;
+    right: .75rem;
+    top: 4.35rem;
+    width: 3.85rem;
   }
 
-  .seasonal-theme-decoration__seed--one {
-    right: 10vw;
-    bottom: 20vh;
-    width: 3rem;
-  }
-
-  .seasonal-theme-decoration__seed--two {
-    left: 9vw;
-    top: 24vh;
-    width: 2.25rem;
-  }
-
-  .seasonal-theme-decoration__flour-dust {
-    right: 6vw;
-    top: 30vh;
+  .seasonal-theme-decoration__olive-branch {
+    right: -4.5rem;
+    top: 28vh;
     width: 7rem;
   }
 
+  .seasonal-theme-decoration__tomato-detail {
+    right: -2.5rem;
+    bottom: 17vh;
+    width: 2.9rem;
+  }
+
   .seasonal-theme-decoration__moon {
-    right: -2rem;
-    top: 8rem;
-    width: 5rem;
+    right: .65rem;
+    top: 4.5rem;
+    width: 3.8rem;
   }
 
   .seasonal-theme-decoration__web {
@@ -761,70 +973,87 @@ html[data-public-theme="christmas"] .seasonal-theme-decoration__warm-light-point
     width: 8rem;
   }
 
-  .seasonal-theme-decoration__pumpkin--primary {
-    bottom: 4.5rem;
-    left: -2.75rem;
-    width: 4.75rem;
+  .seasonal-theme-decoration__bat--one {
+    left: -3.25rem;
+    top: 8.25rem;
+    width: 3.75rem;
   }
 
-  .seasonal-theme-decoration__pumpkin--secondary {
-    left: 8vw;
-    top: 25vh;
-    width: 3rem;
+  .seasonal-theme-decoration__bat--two {
+    right: 4.35rem;
+    top: 4.6rem;
+    width: 2.7rem;
+    opacity: .68;
+  }
+
+  .seasonal-theme-decoration__pumpkin--primary {
+    bottom: auto;
+    left: auto;
+    right: -.85rem;
+    top: 9.8rem;
+    width: 3.35rem;
   }
 
   .seasonal-theme-decoration__fir--primary {
-    bottom: 4rem;
-    right: -3rem;
-    width: 6rem;
+    bottom: 3.5rem;
+    right: -5rem;
+    width: 5.75rem;
   }
 
   .seasonal-theme-decoration__fir--secondary {
-    left: -2.75rem;
-    top: 8.5rem;
-    width: 5.5rem;
+    left: auto;
+    right: .55rem;
+    top: 3.9rem;
+    width: 3.8rem;
+    opacity: .84;
   }
 
   .seasonal-theme-decoration__star--primary {
-    right: 10vw;
+    right: -1.5rem;
     top: 22vh;
     width: 2.5rem;
   }
 
   .seasonal-theme-decoration__star--secondary {
-    left: 10vw;
+    left: -1.5rem;
     bottom: 18vh;
     width: 2rem;
   }
 
-  .seasonal-theme-decoration__warm-light-points {
-    left: 8vw;
-    top: 28vh;
-    width: 8rem;
+  .seasonal-theme-decoration__ornament--one {
+    right: -1.85rem;
+    top: 25vh;
+    width: 2rem;
+  }
+
+  .seasonal-theme-decoration__ornament--two {
+    left: -1.75rem;
+    bottom: 20vh;
+    width: 1.6rem;
+  }
+
+  .seasonal-theme-decoration__snowflake {
+    left: -1.5rem;
+    top: 25vh;
+    width: 2.25rem;
   }
 
   .seasonal-theme-decoration__heart--primary {
-    right: -3.25rem;
-    top: 8rem;
-    width: 5.5rem;
+    right: .65rem;
+    top: 4.5rem;
+    width: 3.7rem;
   }
 
   .seasonal-theme-decoration__heart--secondary {
     bottom: 4rem;
-    left: -2.75rem;
+    left: -3.5rem;
     width: 4.25rem;
   }
 
-  .seasonal-theme-decoration__soft-dot--one {
-    right: 9vw;
-    bottom: 18vh;
-    width: 3.5rem;
-  }
-
-  .seasonal-theme-decoration__soft-dot--two {
-    left: 8vw;
-    top: 24vh;
-    width: 2.5rem;
+  .seasonal-theme-decoration__cupid-arrow {
+    left: -4.75rem;
+    top: 27vh;
+    width: 7.25rem;
   }
 }
 
