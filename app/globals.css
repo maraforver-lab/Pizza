@@ -269,6 +269,194 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.seasonal-theme-decoration {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  contain: layout paint;
+}
+
+.seasonal-theme-decoration svg,
+.seasonal-theme-decoration span {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.seasonal-theme-decoration__summer-leaf {
+  display: none;
+  fill: none;
+  stroke: var(--theme-accent-secondary);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.seasonal-theme-decoration__summer-leaf path:first-child {
+  fill: color-mix(in srgb, var(--theme-accent-secondary) 13%, transparent);
+  stroke-width: 2;
+}
+
+.seasonal-theme-decoration__summer-leaf path:not(:first-child) {
+  opacity: .42;
+  stroke-width: 3;
+}
+
+.seasonal-theme-decoration__summer-leaf--primary {
+  bottom: 5rem;
+  left: max(-4rem, calc((100vw - 78rem) / 2 - 8rem));
+  width: clamp(9rem, 18vw, 16rem);
+  transform: rotate(-18deg);
+}
+
+.seasonal-theme-decoration__summer-leaf--secondary {
+  right: max(-3rem, calc((100vw - 78rem) / 2 - 6rem));
+  top: 7rem;
+  width: clamp(7rem, 14vw, 12rem);
+  transform: rotate(18deg);
+}
+
+.seasonal-theme-decoration__sun {
+  display: none;
+  right: max(1rem, calc((100vw - 78rem) / 2 + 1rem));
+  top: 6.5rem;
+  width: clamp(4.5rem, 9vw, 7.5rem);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background:
+    repeating-conic-gradient(from 8deg, color-mix(in srgb, var(--theme-accent) 30%, transparent) 0 7deg, transparent 7deg 18deg),
+    radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 24%, transparent) 0 38%, transparent 39% 100%);
+  opacity: .54;
+}
+
+.seasonal-theme-decoration__heart {
+  display: none;
+  width: clamp(4.5rem, 10vw, 8rem);
+  aspect-ratio: 1;
+  transform: rotate(-45deg);
+  border-radius: 1.45rem;
+  background: color-mix(in srgb, var(--theme-accent) 12%, transparent);
+}
+
+.seasonal-theme-decoration__heart::before,
+.seasonal-theme-decoration__heart::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: inherit;
+}
+
+.seasonal-theme-decoration__heart::before {
+  top: -50%;
+  left: 0;
+}
+
+.seasonal-theme-decoration__heart::after {
+  left: 50%;
+  top: 0;
+}
+
+.seasonal-theme-decoration__heart--primary {
+  right: max(-2rem, calc((100vw - 78rem) / 2 - 4rem));
+  top: 8rem;
+}
+
+.seasonal-theme-decoration__heart--secondary {
+  bottom: 6rem;
+  left: max(-2.5rem, calc((100vw - 78rem) / 2 - 5rem));
+  width: clamp(3.25rem, 8vw, 5.75rem);
+  opacity: .7;
+}
+
+.seasonal-theme-decoration__soft-dot {
+  display: none;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--theme-accent-secondary) 10%, transparent);
+}
+
+.seasonal-theme-decoration__soft-dot--one {
+  right: 18vw;
+  bottom: 20vh;
+  width: 5rem;
+  aspect-ratio: 1;
+}
+
+.seasonal-theme-decoration__soft-dot--two {
+  left: 14vw;
+  top: 20vh;
+  width: 3rem;
+  aspect-ratio: 1;
+}
+
+html[data-public-theme="summer"] .seasonal-theme-decoration,
+html[data-public-theme="valentine"] .seasonal-theme-decoration {
+  opacity: 1;
+}
+
+html[data-public-theme="summer"] .seasonal-theme-decoration__summer-leaf,
+html[data-public-theme="summer"] .seasonal-theme-decoration__sun,
+html[data-public-theme="valentine"] .seasonal-theme-decoration__heart,
+html[data-public-theme="valentine"] .seasonal-theme-decoration__soft-dot {
+  display: block;
+}
+
+.seasonal-theme-decoration[data-seasonal-intensity="restrained"] {
+  opacity: .48;
+}
+
+.seasonal-theme-decoration[data-seasonal-intensity="minimal"] {
+  opacity: 0;
+}
+
+@media (max-width: 640px) {
+  .seasonal-theme-decoration__summer-leaf--primary {
+    bottom: 4rem;
+    left: -4rem;
+    width: 9rem;
+  }
+
+  .seasonal-theme-decoration__summer-leaf--secondary {
+    right: -4.25rem;
+    top: 6.5rem;
+    width: 8rem;
+  }
+
+  .seasonal-theme-decoration__sun {
+    right: -1.75rem;
+    top: 7rem;
+    width: 5.25rem;
+    opacity: .44;
+  }
+
+  .seasonal-theme-decoration__heart--primary {
+    right: -3.25rem;
+    top: 8rem;
+    width: 5.5rem;
+  }
+
+  .seasonal-theme-decoration__heart--secondary {
+    bottom: 4rem;
+    left: -2.75rem;
+    width: 4.25rem;
+  }
+
+  .seasonal-theme-decoration__soft-dot--one {
+    right: 9vw;
+    bottom: 18vh;
+    width: 3.5rem;
+  }
+
+  .seasonal-theme-decoration__soft-dot--two {
+    left: 8vw;
+    top: 24vh;
+    width: 2.5rem;
+  }
+}
+
 html[data-public-theme]:not([data-public-theme="default"]) .bg-cream {
   background-color: var(--theme-page-background);
 }

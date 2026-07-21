@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import GlobalToolNavigation from "@/components/GlobalToolNavigation";
 import LatestUpdateNotice from "@/components/LatestUpdateNotice";
+import { SeasonalThemeDecorations } from "@/components/SeasonalThemeDecorations";
 import { getActivePublicTheme } from "@/lib/public-theme-campaigns";
 import { getSiteUrl, metadataForRoute } from "@/lib/seo-config";
 import "./globals.css";
@@ -38,7 +39,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       data-public-theme={theme.id}
       className={`${inter.variable} ${newsreader.variable} ${theme.rootClassName}`}
     >
-      <body className="font-sans"><GlobalToolNavigation/><LatestUpdateNotice/>{children}</body>
+      <body className="font-sans"><SeasonalThemeDecorations/><GlobalToolNavigation/><LatestUpdateNotice/>{children}</body>
     </html>
   );
 }

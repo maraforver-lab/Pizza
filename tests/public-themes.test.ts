@@ -632,4 +632,49 @@ describe("Patch 445I cross-theme consistency contract", () => {
     expect(css).toContain("html[data-public-theme]:not([data-public-theme=\"default\"]) .bg-cream");
     expect(css).toContain("html[data-public-theme]:not([data-public-theme=\"default\"]) .border-flour");
   });
+
+  it("adds one reusable non-interactive seasonal decoration layer to the root layout", () => {
+    const layout = source("app/layout.tsx");
+    const component = source("components/SeasonalThemeDecorations.tsx");
+
+    expect(layout).toContain("SeasonalThemeDecorations");
+    expect(layout.indexOf("<SeasonalThemeDecorations/>")).toBeLessThan(layout.indexOf("<GlobalToolNavigation/>"));
+    expect(component).toContain('data-seasonal-theme-decoration');
+    expect(component).toContain('aria-hidden="true"');
+    expect(component).not.toMatch(/localStorage|sessionStorage|fetch\(|supabase|PizzaSession|stepRuntime/i);
+  });
+
+  it("shows seasonal graphics only for Summer and Valentine with route-based intensity", () => {
+    const css = source("app/globals.css");
+    const component = source("components/SeasonalThemeDecorations.tsx");
+
+    expect(css).toContain('html[data-public-theme="summer"] .seasonal-theme-decoration');
+    expect(css).toContain('html[data-public-theme="valentine"] .seasonal-theme-decoration');
+    expect(css).not.toContain('html[data-public-theme="default"] .seasonal-theme-decoration');
+    expect(css).not.toContain('html[data-public-theme="easter"] .seasonal-theme-decoration');
+    expect(css).toContain('.seasonal-theme-decoration[data-seasonal-intensity="restrained"]');
+    expect(css).toContain('.seasonal-theme-decoration[data-seasonal-intensity="minimal"]');
+    expect(component).toContain('pathname === "/"');
+    expect(component).toContain('pathname === "/about"');
+    expect(component).toContain('pathname.startsWith("/guide/")');
+    expect(component).toContain('pathname === "/session/kitchen"');
+    expect(component).toContain('pathname === "/tools/bake-timer"');
+  });
+
+  it("uses original local SVG and CSS shapes without external graphics or overflow-prone layout", () => {
+    const css = source("app/globals.css");
+    const component = source("components/SeasonalThemeDecorations.tsx");
+    const seasonalCss = css.slice(css.indexOf(".seasonal-theme-decoration"), css.indexOf('html[data-public-theme]:not([data-public-theme="default"]) .bg-cream'));
+
+    expect(component).toContain("function SummerGraphics");
+    expect(component).toContain("function ValentineGraphics");
+    expect(component).toContain("seasonal-theme-decoration__summer-leaf");
+    expect(component).toContain("seasonal-theme-decoration__heart");
+    expect(component).toContain("seasonal-theme-decoration__sun");
+    expect(`${component}\n${seasonalCss}`).not.toMatch(/url\(|https?:\/\/|<img|image href|background-image:\s*url/i);
+    expect(seasonalCss).toContain("position: fixed");
+    expect(seasonalCss).toContain("overflow: hidden");
+    expect(seasonalCss).toContain("pointer-events: none");
+    expect(seasonalCss).toContain("@media (max-width: 640px)");
+  });
 });
