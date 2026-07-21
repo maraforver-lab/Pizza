@@ -103,12 +103,12 @@ export const PUBLIC_THEME_DEFINITIONS = [
   {
     id: "christmas",
     name: "Christmas",
-    description: "A festive but quiet foundation using deep red, forest green and warm cream.",
-    shortDescription: "Deep red, forest green and warm cream.",
+    description: "A warm restrained Christmas appearance with candle-cream surfaces, festive red, forest accents and non-religious warm-light cues.",
+    shortDescription: "Warm festive cream with restrained red and forest.",
     rootClassName: "theme-christmas",
     themeColor: "#F8F1E6",
-    previewSwatches: ["#F8F1E6", "#8F2626", "#0F3D2E", "#E8C98A"],
-    designStatus: "foundation",
+    previewSwatches: ["#F8F1E6", "#FFF9F0", "#8F2626", "#0F3D2E"],
+    designStatus: "final",
   },
 ] as const satisfies readonly PublicThemeDefinition[];
 

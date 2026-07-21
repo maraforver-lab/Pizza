@@ -73,9 +73,8 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
-    expect(PUBLIC_THEME_DEFINITIONS
-      .filter((theme) => !["default", "valentine", "easter", "summer", "harvest", "halloween"].includes(theme.id))
-      .every((theme) => theme.designStatus === "foundation")).toBe(true);
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("final");
+    expect(PUBLIC_THEME_DEFINITIONS.every((theme) => theme.designStatus === "final")).toBe(true);
   });
 
   it("keeps the Valentine registry values approved by Patch 445B and Patch 445C", () => {
@@ -110,7 +109,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
-    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("final");
   });
 
   it("finalizes only the Summer registry values approved by Patch 445B", () => {
@@ -132,7 +131,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
-    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("final");
   });
 
   it("finalizes only the Harvest registry values approved by Patch 445B", () => {
@@ -154,7 +153,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
     expect(publicThemeDefinitionFor("summer").themeColor).toBe("#FFF4D8");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
-    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("final");
   });
 
   it("finalizes only the Halloween registry values approved by Patch 445B", () => {
@@ -176,7 +175,28 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
     expect(publicThemeDefinitionFor("summer").themeColor).toBe("#FFF4D8");
     expect(publicThemeDefinitionFor("harvest").themeColor).toBe("#FFF0DC");
-    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("final");
+  });
+
+  it("finalizes only the Christmas registry values approved by Patch 445B", () => {
+    const christmas = publicThemeDefinitionFor("christmas");
+
+    expect(christmas).toMatchObject({
+      id: "christmas",
+      rootClassName: "theme-christmas",
+      themeColor: "#F8F1E6",
+      designStatus: "final",
+      shortDescription: "Warm festive cream with restrained red and forest.",
+    });
+    expect(christmas.description).toContain("non-religious");
+    expect(christmas.description).toContain("warm-light cues");
+    expect(christmas.description).not.toMatch(/church|cross|religious symbol|santa|reindeer|gift|snowfall|blink/i);
+    expect(christmas.previewSwatches).toEqual(["#F8F1E6", "#FFF9F0", "#8F2626", "#0F3D2E"]);
+    expect(publicThemeDefinitionFor("valentine").themeColor).toBe("#FFF3F1");
+    expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
+    expect(publicThemeDefinitionFor("summer").themeColor).toBe("#FFF4D8");
+    expect(publicThemeDefinitionFor("harvest").themeColor).toBe("#FFF0DC");
+    expect(publicThemeDefinitionFor("halloween").themeColor).toBe("#241A16");
   });
 
   it("derives campaign status with inclusive start and exclusive end semantics", () => {
@@ -389,6 +409,29 @@ describe("Patch 445A public theme architecture", () => {
     expect(css).not.toMatch(/html\[data-public-theme="halloween"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="halloween"\][\s\S]*--dt-action-danger/);
   });
 
+  it("implements the final Christmas CSS tokens without replacing semantic red, green or timer urgency", () => {
+    const css = source("app/globals.css");
+    const christmasBlock = css.match(/html\[data-public-theme="christmas"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+
+    expect(christmasBlock).toContain("--theme-page-background: #f8f1e6");
+    expect(christmasBlock).toContain("--theme-page-background-secondary: #e9ddca");
+    expect(christmasBlock).toContain("--theme-surface: #fff9f0");
+    expect(christmasBlock).toContain("--theme-surface-muted: #eadfce");
+    expect(christmasBlock).toContain("--theme-surface-elevated: #fff9f0");
+    expect(christmasBlock).toContain("--theme-border: #d9c8ad");
+    expect(christmasBlock).toContain("--theme-border-strong: #bfa781");
+    expect(christmasBlock).toContain("--theme-accent: #8f2626");
+    expect(christmasBlock).toContain("--theme-accent-hover: #6f1d1d");
+    expect(christmasBlock).toContain("--theme-accent-secondary: #0f3d2e");
+    expect(christmasBlock).toContain("--theme-header-surface: rgba(248, 241, 230, .96)");
+    expect(christmasBlock).toContain("--theme-header-border: rgba(15, 61, 46, .16)");
+    expect(css).toContain('html[data-public-theme="christmas"] body');
+    expect(css).toContain("radial-gradient(circle at 10% 6%, var(--theme-decorative), transparent 18rem)");
+    expect(css).toContain("linear-gradient(125deg, transparent 0 46%, rgba(143, 38, 38, .055) 46.2% 46.6%, transparent 46.8% 100%)");
+    expect(css).not.toMatch(/html\[data-public-theme="christmas"\][^{]*(?:dt-bake-timer|flame|overtime|final-ten|snow|blink)/);
+    expect(css).not.toMatch(/html\[data-public-theme="christmas"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="christmas"\][\s\S]*--dt-action-danger/);
+  });
+
   it("keeps Harvest visually separate from Halloween final design", () => {
     const harvest = publicThemeDefinitionFor("harvest");
     const halloween = publicThemeDefinitionFor("halloween");
@@ -449,6 +492,17 @@ describe("Patch 445A public theme architecture", () => {
     expect(contrastRatio("#B94F12", "#FFF4E8")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#5B3A6B", "#FFF4E8")).toBeGreaterThanOrEqual(4.5);
     expect(publicThemeDefinitionFor("halloween").previewSwatches).not.toContain("#E94B2E");
+  });
+
+  it("keeps Christmas readable without replacing semantic red or green states", () => {
+    for (const surface of ["#F8F1E6", "#FFF9F0", "#EADFCE"]) {
+      expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrastRatio("#6B645D", "#FFF9F0")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#6F1D1D", "#F8F1E6")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#0F3D2E", "#F8F1E6")).toBeGreaterThanOrEqual(4.5);
+    expect(publicThemeDefinitionFor("christmas").previewSwatches).not.toContain("#E94B2E");
+    expect(publicThemeDefinitionFor("christmas").previewSwatches).not.toContain("#3BA66B");
   });
 
   it("documents the Patch 445B visual audit boundary and later theme roadmap", () => {

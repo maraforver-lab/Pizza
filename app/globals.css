@@ -226,13 +226,31 @@ html[data-public-theme="halloween"] body {
 
 html[data-public-theme="christmas"] {
   --theme-page-background: #f8f1e6;
-  --theme-surface: #fffaf2;
+  --theme-page-background-secondary: #e9ddca;
+  --theme-surface: #fff9f0;
   --theme-surface-muted: #eadfce;
+  --theme-surface-elevated: #fff9f0;
   --theme-border: #d9c8ad;
+  --theme-border-strong: #bfa781;
+  --theme-text: var(--dt-ink);
+  --theme-text-muted: var(--dt-muted);
   --theme-accent: #8f2626;
+  --theme-accent-hover: #6f1d1d;
+  --theme-accent-soft: rgba(143, 38, 38, .09);
   --theme-accent-secondary: #0f3d2e;
-  --theme-decorative: rgba(143, 38, 38, .12);
-  --theme-header-surface: rgba(248, 241, 230, .94);
+  --theme-decorative: rgba(232, 201, 138, .22);
+  --theme-decorative-secondary: rgba(15, 61, 46, .10);
+  --theme-header-surface: rgba(248, 241, 230, .96);
+  --theme-header-border: rgba(15, 61, 46, .16);
+}
+
+html[data-public-theme="christmas"] body {
+  background:
+    radial-gradient(circle at 10% 6%, var(--theme-decorative), transparent 18rem),
+    radial-gradient(circle at 16% 10%, rgba(143, 38, 38, .07), transparent 1.1rem),
+    radial-gradient(circle at 88% 18%, rgba(15, 61, 46, .08), transparent 23rem),
+    linear-gradient(125deg, transparent 0 46%, rgba(143, 38, 38, .055) 46.2% 46.6%, transparent 46.8% 100%),
+    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 28%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
 }
 
 * { box-sizing: border-box; }
