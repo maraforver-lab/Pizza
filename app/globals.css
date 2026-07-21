@@ -197,14 +197,31 @@ html[data-public-theme="harvest"] body {
 }
 
 html[data-public-theme="halloween"] {
-  --theme-page-background: #211915;
+  --theme-page-background: #fff4e8;
+  --theme-page-background-secondary: #241a16;
   --theme-surface: #fff8ef;
-  --theme-surface-muted: #39261d;
-  --theme-border: #65402d;
-  --theme-accent: #f0782a;
-  --theme-accent-secondary: #5c3a72;
-  --theme-decorative: rgba(240, 120, 42, .18);
-  --theme-header-surface: rgba(33, 25, 21, .95);
+  --theme-surface-muted: #f3dfcf;
+  --theme-surface-elevated: #fff8ef;
+  --theme-border: #70442f;
+  --theme-border-strong: #5f3828;
+  --theme-text: var(--dt-ink);
+  --theme-text-muted: var(--dt-muted);
+  --theme-accent: #e96f24;
+  --theme-accent-hover: #b94f12;
+  --theme-accent-soft: rgba(233, 111, 36, .10);
+  --theme-accent-secondary: #5b3a6b;
+  --theme-decorative: rgba(233, 111, 36, .13);
+  --theme-decorative-secondary: rgba(91, 58, 107, .12);
+  --theme-header-surface: rgba(255, 244, 232, .96);
+  --theme-header-border: rgba(112, 68, 47, .18);
+}
+
+html[data-public-theme="halloween"] body {
+  background:
+    radial-gradient(ellipse at 8% -12%, rgba(36, 26, 22, .18), transparent 25rem),
+    radial-gradient(circle at 88% 8%, var(--theme-decorative), transparent 18rem),
+    radial-gradient(ellipse at 95% 58%, var(--theme-decorative-secondary), transparent 26rem),
+    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 10%, var(--theme-page-background)) 42%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="christmas"] {

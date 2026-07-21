@@ -93,12 +93,12 @@ export const PUBLIC_THEME_DEFINITIONS = [
   {
     id: "halloween",
     name: "Halloween",
-    description: "A darker seasonal foundation with orange, restrained purple and warm charcoal accents.",
-    shortDescription: "Dark orange with restrained purple.",
+    description: "A playful restrained Halloween appearance with light workflow surfaces, warm night arcs, ember orange and muted purple accents.",
+    shortDescription: "Warm night atmosphere with restrained ember accents.",
     rootClassName: "theme-halloween",
-    themeColor: "#211915",
-    previewSwatches: ["#211915", "#F0782A", "#5C3A72", "#FFF3E2"],
-    designStatus: "foundation",
+    themeColor: "#241A16",
+    previewSwatches: ["#241A16", "#FFF8EF", "#E96F24", "#5B3A6B"],
+    designStatus: "final",
   },
   {
     id: "christmas",

@@ -72,8 +72,9 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("easter").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
+    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
     expect(PUBLIC_THEME_DEFINITIONS
-      .filter((theme) => !["default", "valentine", "easter", "summer", "harvest"].includes(theme.id))
+      .filter((theme) => !["default", "valentine", "easter", "summer", "harvest", "halloween"].includes(theme.id))
       .every((theme) => theme.designStatus === "foundation")).toBe(true);
   });
 
@@ -108,7 +109,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(easter.previewSwatches).toEqual(["#FFF9DE", "#FFFDF5", "#5F8F3A", "#E0B84A"]);
     expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
-    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
   });
 
@@ -130,7 +131,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("valentine").themeColor).toBe("#FFF3F1");
     expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
-    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
   });
 
@@ -152,7 +153,29 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("valentine").themeColor).toBe("#FFF3F1");
     expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
     expect(publicThemeDefinitionFor("summer").themeColor).toBe("#FFF4D8");
-    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("final");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
+  });
+
+  it("finalizes only the Halloween registry values approved by Patch 445B", () => {
+    const halloween = publicThemeDefinitionFor("halloween");
+
+    expect(halloween).toMatchObject({
+      id: "halloween",
+      rootClassName: "theme-halloween",
+      themeColor: "#241A16",
+      designStatus: "final",
+      shortDescription: "Warm night atmosphere with restrained ember accents.",
+    });
+    expect(halloween.description).toContain("light workflow surfaces");
+    expect(halloween.description).toContain("warm night arcs");
+    expect(halloween.description).toContain("muted purple");
+    expect(halloween.description).not.toMatch(/gore|horror|jump|strobe|ghost|bat|skull|blood/i);
+    expect(halloween.previewSwatches).toEqual(["#241A16", "#FFF8EF", "#E96F24", "#5B3A6B"]);
+    expect(publicThemeDefinitionFor("valentine").themeColor).toBe("#FFF3F1");
+    expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
+    expect(publicThemeDefinitionFor("summer").themeColor).toBe("#FFF4D8");
+    expect(publicThemeDefinitionFor("harvest").themeColor).toBe("#FFF0DC");
     expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
   });
 
@@ -343,7 +366,30 @@ describe("Patch 445A public theme architecture", () => {
     expect(css).not.toMatch(/html\[data-public-theme="harvest"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="harvest"\][\s\S]*--dt-action-danger/);
   });
 
-  it("keeps Harvest visually separate from Halloween foundation", () => {
+  it("implements the final Halloween CSS tokens without replacing timer urgency or workflow semantics", () => {
+    const css = source("app/globals.css");
+    const halloweenBlock = css.match(/html\[data-public-theme="halloween"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+
+    expect(halloweenBlock).toContain("--theme-page-background: #fff4e8");
+    expect(halloweenBlock).toContain("--theme-page-background-secondary: #241a16");
+    expect(halloweenBlock).toContain("--theme-surface: #fff8ef");
+    expect(halloweenBlock).toContain("--theme-surface-muted: #f3dfcf");
+    expect(halloweenBlock).toContain("--theme-surface-elevated: #fff8ef");
+    expect(halloweenBlock).toContain("--theme-border: #70442f");
+    expect(halloweenBlock).toContain("--theme-border-strong: #5f3828");
+    expect(halloweenBlock).toContain("--theme-accent: #e96f24");
+    expect(halloweenBlock).toContain("--theme-accent-hover: #b94f12");
+    expect(halloweenBlock).toContain("--theme-accent-secondary: #5b3a6b");
+    expect(halloweenBlock).toContain("--theme-header-surface: rgba(255, 244, 232, .96)");
+    expect(halloweenBlock).toContain("--theme-header-border: rgba(112, 68, 47, .18)");
+    expect(css).toContain('html[data-public-theme="halloween"] body');
+    expect(css).toContain("radial-gradient(ellipse at 8% -12%, rgba(36, 26, 22, .18), transparent 25rem)");
+    expect(css).toContain("radial-gradient(ellipse at 95% 58%, var(--theme-decorative-secondary), transparent 26rem)");
+    expect(css).not.toMatch(/html\[data-public-theme="halloween"\][^{]*(?:\.text-purple|\.bg-purple|dt-bake-timer|flame|overtime|final-ten)/);
+    expect(css).not.toMatch(/html\[data-public-theme="halloween"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="halloween"\][\s\S]*--dt-action-danger/);
+  });
+
+  it("keeps Harvest visually separate from Halloween final design", () => {
     const harvest = publicThemeDefinitionFor("harvest");
     const halloween = publicThemeDefinitionFor("halloween");
     const css = source("app/globals.css");
@@ -351,13 +397,14 @@ describe("Patch 445A public theme architecture", () => {
     const halloweenBlock = css.match(/html\[data-public-theme="halloween"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
 
     expect(harvest.themeColor).toBe("#FFF0DC");
-    expect(halloween.themeColor).toBe("#211915");
+    expect(halloween.themeColor).toBe("#241A16");
     expect(harvest.previewSwatches).not.toEqual(halloween.previewSwatches);
     expect(harvestBlock).toContain("--theme-accent: #b96324");
-    expect(halloweenBlock).toContain("--theme-accent: #f0782a");
+    expect(halloweenBlock).toContain("--theme-accent: #e96f24");
     expect(harvestBlock).toContain("--theme-accent-secondary: #65723a");
-    expect(halloweenBlock).toContain("--theme-accent-secondary: #5c3a72");
+    expect(halloweenBlock).toContain("--theme-accent-secondary: #5b3a6b");
     expect(`${harvest.description} ${harvest.shortDescription}`).not.toMatch(/halloween|spooky|pumpkin|ghost|bat|night|purple|charcoal/i);
+    expect(`${halloween.description} ${halloween.shortDescription}`).not.toMatch(/grain|flour|ingredient craft|wheat/i);
   });
 
   it("keeps Valentine readable by using Ink and muted text over final surfaces", () => {
@@ -392,6 +439,16 @@ describe("Patch 445A public theme architecture", () => {
     expect(contrastRatio("#6B645D", "#FFF9F1")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#8F4618", "#FFF0DC")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#65723A", "#FFF0DC")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps Halloween readable without making normal UI look like urgency", () => {
+    for (const surface of ["#FFF4E8", "#FFF8EF", "#F3DFCF"]) {
+      expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrastRatio("#6B645D", "#FFF8EF")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#B94F12", "#FFF4E8")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#5B3A6B", "#FFF4E8")).toBeGreaterThanOrEqual(4.5);
+    expect(publicThemeDefinitionFor("halloween").previewSwatches).not.toContain("#E94B2E");
   });
 
   it("documents the Patch 445B visual audit boundary and later theme roadmap", () => {
