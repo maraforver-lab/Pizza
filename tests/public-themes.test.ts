@@ -34,6 +34,26 @@ function contrastRatio(foreground: string, background: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+function cssVariablesForBlock(css: string, selector: string) {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const block = css.match(new RegExp(`${escapedSelector}\\s*{(?<body>[^}]+)}`))?.groups?.body ?? "";
+  const variables = new Map<string, string>();
+
+  for (const match of block.matchAll(/(--[\w-]+):\s*([^;]+);/g)) {
+    variables.set(match[1], match[2].trim());
+  }
+
+  return variables;
+}
+
+function effectiveThemeVariables(css: string, themeId: string) {
+  const root = cssVariablesForBlock(css, ":root");
+  if (themeId === "default") return root;
+
+  const themed = cssVariablesForBlock(css, `html[data-public-theme="${themeId}"]`);
+  return new Map([...root, ...themed]);
+}
+
 describe("Patch 445A public theme architecture", () => {
   it("defines exactly the approved seven public theme IDs", () => {
     expect(PUBLIC_THEME_IDS).toEqual([
@@ -513,5 +533,103 @@ describe("Patch 445A public theme architecture", () => {
     expect(doc).toContain("Patch 445I: cross-theme consistency");
     expect(doc).toContain("Patch 446 Sound-Theme Integration Point");
     expect(doc).toContain("Patch 445A does not apply the migration and does not deploy");
+  });
+});
+
+describe("Patch 445I cross-theme consistency contract", () => {
+  const requiredTokens = [
+    "--theme-page-background",
+    "--theme-page-background-secondary",
+    "--theme-surface",
+    "--theme-surface-muted",
+    "--theme-surface-elevated",
+    "--theme-border",
+    "--theme-border-strong",
+    "--theme-text",
+    "--theme-text-muted",
+    "--theme-accent",
+    "--theme-accent-hover",
+    "--theme-accent-soft",
+    "--theme-accent-secondary",
+    "--theme-header-surface",
+    "--theme-header-border",
+    "--theme-decorative",
+    "--theme-decorative-secondary",
+    "--theme-focus",
+  ];
+
+  const themeSurfaces = {
+    default: ["#FFF8F1", "#FFFFFF", "#F1E6D8"],
+    valentine: ["#FFF3F1", "#FFFBFA", "#F7E1DD"],
+    easter: ["#FFF9DE", "#FFFDF5", "#EEF5DC"],
+    summer: ["#FFF4D8", "#FFF9EC", "#E7F4F6"],
+    harvest: ["#FFF0DC", "#FFF9F1", "#F0DFC2"],
+    halloween: ["#FFF4E8", "#FFF8EF", "#F3DFCF"],
+    christmas: ["#F8F1E6", "#FFF9F0", "#EADFCE"],
+  } satisfies Record<(typeof PUBLIC_THEME_IDS)[number], string[]>;
+
+  it("gives every public theme the same effective token contract", () => {
+    const css = source("app/globals.css");
+
+    for (const theme of PUBLIC_THEME_DEFINITIONS) {
+      const variables = effectiveThemeVariables(css, theme.id);
+      for (const token of requiredTokens) {
+        expect(variables.get(token), `${theme.id} missing ${token}`).toBeTruthy();
+      }
+    }
+  });
+
+  it("keeps all finalized theme metadata colors and preview swatches distinct enough for scanning", () => {
+    const themeColors = PUBLIC_THEME_DEFINITIONS.map((theme) => theme.themeColor);
+    expect(new Set(themeColors).size).toBe(PUBLIC_THEME_DEFINITIONS.length);
+
+    for (const theme of PUBLIC_THEME_DEFINITIONS) {
+      expect(theme.designStatus).toBe("final");
+      expect(theme.previewSwatches[0]).toBe(theme.themeColor);
+      expect(theme.previewSwatches).toHaveLength(4);
+    }
+
+    expect(publicThemeDefinitionFor("valentine").previewSwatches).not.toEqual(publicThemeDefinitionFor("christmas").previewSwatches);
+    expect(publicThemeDefinitionFor("easter").previewSwatches).not.toEqual(publicThemeDefinitionFor("summer").previewSwatches);
+    expect(publicThemeDefinitionFor("harvest").previewSwatches).not.toEqual(publicThemeDefinitionFor("halloween").previewSwatches);
+  });
+
+  it("keeps Ink and muted text readable across the complete seven-theme surface set", () => {
+    for (const [themeId, surfaces] of Object.entries(themeSurfaces)) {
+      for (const surface of surfaces) {
+        expect(contrastRatio("#1F1F1F", surface), `${themeId} Ink on ${surface}`).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(contrastRatio("#6B645D", surfaces[1]), `${themeId} muted text on primary surface`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("keeps seasonal accents separate from semantic status and Bake Timer urgency colors", () => {
+    const semanticColors = ["#E94B2E", "#3BA66B", "#E8C98A"];
+    const css = source("app/globals.css");
+
+    for (const theme of PUBLIC_THEME_DEFINITIONS.filter((definition) => definition.id !== "default")) {
+      const variables = effectiveThemeVariables(css, theme.id);
+      const seasonalAccent = String(variables.get("--theme-accent")).toUpperCase();
+      const seasonalSecondary = String(variables.get("--theme-accent-secondary")).toUpperCase();
+
+      expect(semanticColors).not.toContain(seasonalAccent);
+      expect(semanticColors).not.toContain(seasonalSecondary);
+    }
+
+    expect(css).toContain("@keyframes dt-bake-timer-final-pulse");
+    expect(css).toContain("@keyframes dt-bake-timer-expiry-pulse");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).not.toMatch(/html\[data-public-theme="[^\"]+"\][\s\S]*--dt-status-(?:danger|warning|success)/);
+    expect(css).not.toMatch(/html\[data-public-theme="[^\"]+"\][\s\S]*(?:dt-bake-timer|overtime|final-ten|flame)[\s\S]*--theme-accent/);
+  });
+
+  it("keeps seasonal motifs static, CSS-owned and away from external assets", () => {
+    const css = source("app/globals.css");
+    const themeCss = css.slice(css.indexOf('html[data-public-theme="valentine"]'), css.indexOf("* { box-sizing"));
+
+    expect(themeCss).toContain("radial-gradient");
+    expect(themeCss).not.toMatch(/url\(|https?:\/\/|animation:|@keyframes|snow|blink|strobe|particle|parallax/i);
+    expect(css).toContain("html[data-public-theme]:not([data-public-theme=\"default\"]) .bg-cream");
+    expect(css).toContain("html[data-public-theme]:not([data-public-theme=\"default\"]) .border-flour");
   });
 });
