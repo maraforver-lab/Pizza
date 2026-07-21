@@ -98,6 +98,20 @@ Ordinary users cannot modify global sound settings because the table is not dire
 
 Timer runtime state remains local to the current device. The saved Account preference selects a theme only. It does not control whether sound is currently on or off, and it does not create per-second cloud/session writes.
 
+## Patch 446E Runtime Integration
+
+Kitchen and standalone Bake Timers now resolve the effective sound theme when the full-screen timer opens:
+
+```text
+user preference -> product default -> Classic
+```
+
+Signed-in users receive their saved enabled Account preference when available. Signed-out users use the product default. Configuration, Account or network failures fall back to Classic without blocking the timer.
+
+The selected theme is snapshotted for the open timer and passed into the shared `useBakeTimer` hook. The timer keeps that theme until it is closed. `Start next pizza` keeps the same snapshotted theme. A newly reopened timer resolves the latest Account preference and product configuration again.
+
+Runtime mute remains separate. Muting a timer does not update Account preferences, and a saved Account preference does not unmute an active timer. All cue roles continue to flow through `playBakeTimerCue`, and unsupported audio remains a visual-only safe fallback.
+
 ## Tests
 
 Added coverage for:

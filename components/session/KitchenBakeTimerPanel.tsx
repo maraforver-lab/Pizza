@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { buttonClass, cx } from "@/components/design-system";
 import { DoughToolsIcon } from "@/components/icons";
 import { BAKE_TIMER_MAX_OVERTIME_SECONDS } from "@/lib/bake-timer";
+import { CLASSIC_BAKE_TIMER_SOUND_THEME_ID, type BakeTimerSoundThemeId } from "@/lib/bake-timer-sound-themes";
 import type { PizzaSessionOvenType } from "@/lib/pizza-session-bake-profile";
 import { useBakeTimer } from "@/lib/use-bake-timer";
+import { useBakeTimerSoundTheme } from "@/lib/use-bake-timer-sound-theme";
 
 const KITCHEN_BAKE_TIMER_STORAGE_PREFIX = "doughtools.kitchen-bake-timer.v1";
 
@@ -155,15 +157,20 @@ export function BakeTimerPanel({
   onClose,
 }: BakeTimerPanelProps) {
   const [open, setOpen] = useState(false);
+  const [resolvingSoundTheme, setResolvingSoundTheme] = useState(false);
+  const [activeSoundThemeId, setActiveSoundThemeId] = useState<BakeTimerSoundThemeId>(CLASSIC_BAKE_TIMER_SOUND_THEME_ID);
   const [announcement, setAnnouncement] = useState("");
   const launcherRef = useRef<HTMLButtonElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousPhaseRef = useRef<string | null>(null);
   const autoOpenedRef = useRef(false);
+  const openingRef = useRef(false);
+  const { resolveLatestSoundTheme } = useBakeTimerSoundTheme();
   const timer = useBakeTimer({
     durationSeconds,
     storageKey,
+    soundThemeId: activeSoundThemeId,
   });
   const phase = timer.phase;
   const copy = useMemo(() => phaseCopy(phase), [phase]);
@@ -182,6 +189,22 @@ export function BakeTimerPanel({
   const overtimeVisual = phase === "overtime" || phase === "expired";
   const overtimePulse = overtimeVisual && timer.overtimeAlarmActive;
 
+  const openTimer = useCallback(async () => {
+    if (openingRef.current) return;
+    openingRef.current = true;
+    setResolvingSoundTheme(true);
+    try {
+      const resolution = await resolveLatestSoundTheme();
+      setActiveSoundThemeId(resolution.themeId);
+    } catch {
+      setActiveSoundThemeId(CLASSIC_BAKE_TIMER_SOUND_THEME_ID);
+    } finally {
+      openingRef.current = false;
+      setResolvingSoundTheme(false);
+      setOpen(true);
+    }
+  }, [resolveLatestSoundTheme]);
+
   const closeTimer = useCallback(() => {
     if (timerStatus === "running") pauseTimer();
     if (timer.overtimeAlarmActive) stopTimerAlarm();
@@ -190,14 +213,14 @@ export function BakeTimerPanel({
   }, [onClose, pauseTimer, stopTimerAlarm, timer.overtimeAlarmActive, timerStatus]);
 
   useEffect(() => {
-    if (timerActive) setOpen(true);
-  }, [timerActive]);
+    if (timerActive && !open) void openTimer();
+  }, [open, openTimer, timerActive]);
 
   useEffect(() => {
     if (!openOnMount || autoOpenedRef.current) return;
     autoOpenedRef.current = true;
-    setOpen(true);
-  }, [openOnMount]);
+    void openTimer();
+  }, [openOnMount, openTimer]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -276,10 +299,11 @@ export function BakeTimerPanel({
           <button
             ref={launcherRef}
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={() => void openTimer()}
+            disabled={resolvingSoundTheme}
             className={buttonClass({ className: "mt-4 w-full", variant: "primary" })}
           >
-            {launcherActionLabel}
+            {resolvingSoundTheme ? "Opening bake timer..." : launcherActionLabel}
           </button>
         </section>
       )}
