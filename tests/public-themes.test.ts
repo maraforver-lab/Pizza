@@ -644,7 +644,7 @@ describe("Patch 445I cross-theme consistency contract", () => {
     expect(component).not.toMatch(/localStorage|sessionStorage|fetch\(|supabase|PizzaSession|stepRuntime/i);
   });
 
-  it("shows seasonal graphics only for Summer, Valentine, Easter and Harvest with route-based intensity", () => {
+  it("shows seasonal graphics for seasonal themes with route-based intensity", () => {
     const css = source("app/globals.css");
     const component = source("components/SeasonalThemeDecorations.tsx");
 
@@ -652,9 +652,9 @@ describe("Patch 445I cross-theme consistency contract", () => {
     expect(css).toContain('html[data-public-theme="valentine"] .seasonal-theme-decoration');
     expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration');
     expect(css).toContain('html[data-public-theme="harvest"] .seasonal-theme-decoration');
+    expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration');
+    expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration');
     expect(css).not.toContain('html[data-public-theme="default"] .seasonal-theme-decoration');
-    expect(css).not.toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration');
-    expect(css).not.toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration');
     expect(css).toContain('.seasonal-theme-decoration[data-seasonal-intensity="restrained"]');
     expect(css).toContain('.seasonal-theme-decoration[data-seasonal-intensity="minimal"]');
     expect(component).toContain('pathname === "/"');
@@ -678,6 +678,11 @@ describe("Patch 445I cross-theme consistency contract", () => {
     expect(component).toContain("seasonal-theme-decoration__easter-oval");
     expect(component).toContain("seasonal-theme-decoration__grain");
     expect(component).toContain("seasonal-theme-decoration__seed");
+    expect(component).toContain("seasonal-theme-decoration__moon");
+    expect(component).toContain("seasonal-theme-decoration__web");
+    expect(component).toContain("seasonal-theme-decoration__pumpkin");
+    expect(component).toContain("seasonal-theme-decoration__fir");
+    expect(component).toContain("seasonal-theme-decoration__star");
     expect(`${component}\n${seasonalCss}`).not.toMatch(/url\(|https?:\/\/|<img|image href|background-image:\s*url/i);
     expect(seasonalCss).toContain("position: fixed");
     expect(seasonalCss).toContain("overflow: hidden");
@@ -698,5 +703,26 @@ describe("Patch 445I cross-theme consistency contract", () => {
     expect(css).toContain('html[data-public-theme="summer"] .seasonal-theme-decoration__summer-leaf');
     expect(css).toContain('html[data-public-theme="valentine"] .seasonal-theme-decoration__heart');
     expect(css).not.toMatch(/html\[data-public-theme="(?:halloween|christmas|default)"\]\s+\.seasonal-theme-decoration__(?:spring-leaf|easter-oval|grain|seed|flour-dust)/);
+  });
+
+  it("gives Halloween and Christmas tasteful static seasonal shapes without changing earlier graphics", () => {
+    const css = source("app/globals.css");
+    const component = source("components/SeasonalThemeDecorations.tsx");
+    const seasonalCss = css.slice(css.indexOf(".seasonal-theme-decoration"), css.indexOf('html[data-public-theme]:not([data-public-theme="default"]) .bg-cream'));
+
+    expect(component).toContain("function HalloweenGraphics");
+    expect(component).toContain("function ChristmasGraphics");
+    expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration__moon');
+    expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration__web');
+    expect(css).toContain('html[data-public-theme="halloween"] .seasonal-theme-decoration__pumpkin');
+    expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__fir');
+    expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__star');
+    expect(css).toContain('html[data-public-theme="christmas"] .seasonal-theme-decoration__warm-light-points');
+    expect(css).toContain('html[data-public-theme="summer"] .seasonal-theme-decoration__summer-leaf');
+    expect(css).toContain('html[data-public-theme="valentine"] .seasonal-theme-decoration__heart');
+    expect(css).toContain('html[data-public-theme="easter"] .seasonal-theme-decoration__spring-leaf');
+    expect(css).toContain('html[data-public-theme="harvest"] .seasonal-theme-decoration__grain');
+    expect(seasonalCss).not.toMatch(/animation:|@keyframes|blink|snowfall|strobe|scary|skull|blood|ghost/i);
+    expect(css).not.toMatch(/html\[data-public-theme="default"\]\s+\.seasonal-theme-decoration__(?:moon|web|pumpkin|fir|star|warm-light-points)/);
   });
 });

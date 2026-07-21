@@ -460,6 +460,125 @@ body {
     radial-gradient(circle at 38% 78%, color-mix(in srgb, var(--theme-accent-secondary) 11%, transparent) 0 .12rem, transparent .14rem);
 }
 
+.seasonal-theme-decoration__moon {
+  display: none;
+  right: max(.5rem, calc((100vw - 78rem) / 2 + .5rem));
+  top: 7rem;
+  width: clamp(4.5rem, 9vw, 7rem);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 66% 34%, var(--theme-page-background) 0 36%, transparent 37%),
+    color-mix(in srgb, var(--theme-accent-secondary) 18%, transparent);
+  opacity: .7;
+}
+
+.seasonal-theme-decoration__web {
+  display: none;
+  right: max(-2rem, calc((100vw - 78rem) / 2 - 3rem));
+  top: 5.5rem;
+  width: clamp(7rem, 14vw, 11rem);
+  fill: none;
+  stroke: color-mix(in srgb, var(--theme-accent-secondary) 34%, transparent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  opacity: .48;
+}
+
+.seasonal-theme-decoration__pumpkin {
+  display: none;
+  border-radius: 48% 52% 50% 50% / 58% 58% 42% 42%;
+  background:
+    radial-gradient(ellipse at 35% 52%, transparent 0 22%, color-mix(in srgb, var(--theme-accent) 11%, transparent) 23% 26%, transparent 27%),
+    radial-gradient(ellipse at 65% 52%, transparent 0 22%, color-mix(in srgb, var(--theme-accent) 11%, transparent) 23% 26%, transparent 27%),
+    color-mix(in srgb, var(--theme-accent) 13%, transparent);
+}
+
+.seasonal-theme-decoration__pumpkin--primary {
+  bottom: 6rem;
+  left: max(-2rem, calc((100vw - 78rem) / 2 - 4rem));
+  width: clamp(4.5rem, 9vw, 7rem);
+  aspect-ratio: 1.25;
+  transform: rotate(-7deg);
+}
+
+.seasonal-theme-decoration__pumpkin--secondary {
+  left: 17vw;
+  top: 22vh;
+  width: clamp(2.75rem, 6vw, 4.25rem);
+  aspect-ratio: 1.22;
+  opacity: .58;
+  transform: rotate(14deg);
+}
+
+.seasonal-theme-decoration__fir {
+  display: none;
+  fill: none;
+  stroke: var(--theme-accent-secondary);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.seasonal-theme-decoration__fir path:first-child {
+  stroke-width: 4;
+  opacity: .35;
+}
+
+.seasonal-theme-decoration__fir path:not(:first-child) {
+  stroke-width: 5;
+  opacity: .48;
+}
+
+.seasonal-theme-decoration__fir--primary {
+  bottom: 4.75rem;
+  right: max(-2rem, calc((100vw - 78rem) / 2 - 4rem));
+  width: clamp(6rem, 12vw, 10rem);
+  transform: rotate(8deg);
+}
+
+.seasonal-theme-decoration__fir--secondary {
+  left: max(-2rem, calc((100vw - 78rem) / 2 - 4rem));
+  top: 8rem;
+  width: clamp(5rem, 10vw, 8rem);
+  transform: rotate(-10deg);
+}
+
+.seasonal-theme-decoration__star {
+  display: none;
+  width: clamp(2rem, 5vw, 3.5rem);
+  aspect-ratio: 1;
+  background: color-mix(in srgb, var(--theme-accent) 20%, transparent);
+  clip-path: polygon(50% 0, 60% 36%, 98% 50%, 60% 64%, 50% 100%, 40% 64%, 2% 50%, 40% 36%);
+}
+
+.seasonal-theme-decoration__star--primary {
+  right: 17vw;
+  top: 19vh;
+  transform: rotate(12deg);
+}
+
+.seasonal-theme-decoration__star--secondary {
+  left: 18vw;
+  bottom: 19vh;
+  width: clamp(1.75rem, 4vw, 2.75rem);
+  opacity: .62;
+  transform: rotate(-18deg);
+}
+
+.seasonal-theme-decoration__warm-light-points {
+  display: none;
+  left: 14vw;
+  top: 20vh;
+  width: 12rem;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 18% 44%, color-mix(in srgb, var(--theme-accent) 26%, transparent) 0 .18rem, transparent .2rem),
+    radial-gradient(circle at 54% 22%, color-mix(in srgb, var(--theme-accent) 22%, transparent) 0 .15rem, transparent .17rem),
+    radial-gradient(circle at 76% 66%, color-mix(in srgb, var(--theme-accent) 20%, transparent) 0 .16rem, transparent .18rem);
+}
+
 .seasonal-theme-decoration__heart {
   display: none;
   width: clamp(4.5rem, 10vw, 8rem);
@@ -524,7 +643,9 @@ body {
 html[data-public-theme="summer"] .seasonal-theme-decoration,
 html[data-public-theme="valentine"] .seasonal-theme-decoration,
 html[data-public-theme="easter"] .seasonal-theme-decoration,
-html[data-public-theme="harvest"] .seasonal-theme-decoration {
+html[data-public-theme="harvest"] .seasonal-theme-decoration,
+html[data-public-theme="halloween"] .seasonal-theme-decoration,
+html[data-public-theme="christmas"] .seasonal-theme-decoration {
   opacity: 1;
 }
 
@@ -536,7 +657,13 @@ html[data-public-theme="easter"] .seasonal-theme-decoration__spring-leaf,
 html[data-public-theme="easter"] .seasonal-theme-decoration__easter-oval,
 html[data-public-theme="harvest"] .seasonal-theme-decoration__grain,
 html[data-public-theme="harvest"] .seasonal-theme-decoration__seed,
-html[data-public-theme="harvest"] .seasonal-theme-decoration__flour-dust {
+html[data-public-theme="harvest"] .seasonal-theme-decoration__flour-dust,
+html[data-public-theme="halloween"] .seasonal-theme-decoration__moon,
+html[data-public-theme="halloween"] .seasonal-theme-decoration__web,
+html[data-public-theme="halloween"] .seasonal-theme-decoration__pumpkin,
+html[data-public-theme="christmas"] .seasonal-theme-decoration__fir,
+html[data-public-theme="christmas"] .seasonal-theme-decoration__star,
+html[data-public-theme="christmas"] .seasonal-theme-decoration__warm-light-points {
   display: block;
 }
 
@@ -620,6 +747,60 @@ html[data-public-theme="harvest"] .seasonal-theme-decoration__flour-dust {
     right: 6vw;
     top: 30vh;
     width: 7rem;
+  }
+
+  .seasonal-theme-decoration__moon {
+    right: -2rem;
+    top: 8rem;
+    width: 5rem;
+  }
+
+  .seasonal-theme-decoration__web {
+    right: -4.25rem;
+    top: 6rem;
+    width: 8rem;
+  }
+
+  .seasonal-theme-decoration__pumpkin--primary {
+    bottom: 4.5rem;
+    left: -2.75rem;
+    width: 4.75rem;
+  }
+
+  .seasonal-theme-decoration__pumpkin--secondary {
+    left: 8vw;
+    top: 25vh;
+    width: 3rem;
+  }
+
+  .seasonal-theme-decoration__fir--primary {
+    bottom: 4rem;
+    right: -3rem;
+    width: 6rem;
+  }
+
+  .seasonal-theme-decoration__fir--secondary {
+    left: -2.75rem;
+    top: 8.5rem;
+    width: 5.5rem;
+  }
+
+  .seasonal-theme-decoration__star--primary {
+    right: 10vw;
+    top: 22vh;
+    width: 2.5rem;
+  }
+
+  .seasonal-theme-decoration__star--secondary {
+    left: 10vw;
+    bottom: 18vh;
+    width: 2rem;
+  }
+
+  .seasonal-theme-decoration__warm-light-points {
+    left: 8vw;
+    top: 28vh;
+    width: 8rem;
   }
 
   .seasonal-theme-decoration__heart--primary {

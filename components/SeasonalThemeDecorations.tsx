@@ -99,6 +99,46 @@ function HarvestGraphics() {
   );
 }
 
+function HalloweenGraphics() {
+  return (
+    <>
+      <span className="seasonal-theme-decoration__moon" />
+      <svg className="seasonal-theme-decoration__web" viewBox="0 0 220 220" focusable="false">
+        <path d="M18 18h184v184" />
+        <path d="M18 18l184 184" />
+        <path d="M18 18c58 8 110 30 154 66" />
+        <path d="M18 18c32 48 55 99 69 154" />
+        <path d="M57 57c36 5 69 19 97 42" />
+        <path d="M57 57c20 30 34 63 43 97" />
+        <path d="M95 95c18 3 34 10 48 22" />
+        <path d="M95 95c10 15 17 32 21 49" />
+      </svg>
+      <span className="seasonal-theme-decoration__pumpkin seasonal-theme-decoration__pumpkin--primary" />
+      <span className="seasonal-theme-decoration__pumpkin seasonal-theme-decoration__pumpkin--secondary" />
+    </>
+  );
+}
+
+function ChristmasGraphics() {
+  return (
+    <>
+      <svg className="seasonal-theme-decoration__fir seasonal-theme-decoration__fir--primary" viewBox="0 0 190 250" focusable="false">
+        <path d="M96 232V36" />
+        <path d="M96 68 52 112h34l-49 50h42l-53 54" />
+        <path d="M96 68 140 112h-34l49 50h-42l53 54" />
+      </svg>
+      <svg className="seasonal-theme-decoration__fir seasonal-theme-decoration__fir--secondary" viewBox="0 0 160 210" focusable="false">
+        <path d="M81 196V30" />
+        <path d="M81 58 44 95h29l-41 42h35l-45 45" />
+        <path d="M81 58 118 95H89l41 42H95l45 45" />
+      </svg>
+      <span className="seasonal-theme-decoration__star seasonal-theme-decoration__star--primary" />
+      <span className="seasonal-theme-decoration__star seasonal-theme-decoration__star--secondary" />
+      <span className="seasonal-theme-decoration__warm-light-points" />
+    </>
+  );
+}
+
 export function SeasonalThemeDecorations() {
   const pathname = usePathname() ?? "/";
   const intensity = decorationIntensityForPath(pathname);
@@ -114,6 +154,8 @@ export function SeasonalThemeDecorations() {
       <ValentineGraphics />
       <EasterGraphics />
       <HarvestGraphics />
+      <HalloweenGraphics />
+      <ChristmasGraphics />
     </div>
   );
 }
