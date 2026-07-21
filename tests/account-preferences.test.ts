@@ -15,22 +15,27 @@ describe("Account preferences", () => {
   it("defaults missing early-completion preference to false for older accounts", () => {
     expect(normalizeAccountPreferencesRow(null)).toEqual({
       allowEarlyTimedStepCompletion: false,
+      bakeTimerSoundTheme: null,
     });
     expect(normalizeAccountPreferencesRow({ user_id: "user-1" })).toEqual({
       allowEarlyTimedStepCompletion: false,
+      bakeTimerSoundTheme: null,
     });
   });
 
   it("normalizes account preference rows and payloads for Supabase storage", () => {
     expect(normalizeAccountPreferencesRow({
       allow_early_timed_step_completion: true,
+      bake_timer_sound_theme: "bell",
       updated_at: "2026-07-15T12:00:00.000Z",
     })).toEqual({
       allowEarlyTimedStepCompletion: true,
+      bakeTimerSoundTheme: "bell",
       updatedAt: "2026-07-15T12:00:00.000Z",
     });
-    expect(accountPreferencesPayload({ allowEarlyTimedStepCompletion: true })).toEqual({
+    expect(accountPreferencesPayload({ allowEarlyTimedStepCompletion: true, bakeTimerSoundTheme: "bell" })).toEqual({
       allow_early_timed_step_completion: true,
+      bake_timer_sound_theme: "bell",
     });
   });
 
@@ -65,11 +70,26 @@ describe("Account preferences", () => {
     expect(route).toContain(".from(\"account_preferences\")");
     expect(route).toContain("normalizeAccountPreferencesRow(data)");
     expect(route).toContain("allowEarlyTimedStepCompletion");
+    expect(route).toContain("bakeTimerSoundTheme");
     expect(route).toContain("knownUpdatedAt");
     expect(route).toContain("accountPreferencesAreNewer(existingPreferences.updatedAt, knownUpdatedAt)");
     expect(route).toContain("stale: true");
     expect(route).toContain(".insert({ ...payload, user_id: user.id, created_at: updatedAt })");
     expect(route).toContain(".update(payload)");
+  });
+
+  it("adds a nullable Bake Timer sound-theme preference without changing owner-only storage", () => {
+    const migration = source("supabase/migrations/20260721130000_create_bake_timer_sound_theme_settings.sql");
+    const preferences = source("lib/account-preferences.ts");
+    const route = source("app/api/account/preferences/route.ts");
+
+    expect(preferences).toContain("bakeTimerSoundTheme: BakeTimerSoundThemeId | null");
+    expect(preferences).toContain("bake_timer_sound_theme");
+    expect(migration).toContain("alter table public.account_preferences");
+    expect(migration).toContain("add column if not exists bake_timer_sound_theme text");
+    expect(migration).toContain("account_preferences_bake_timer_sound_theme_check");
+    expect(route).toContain("isBakeTimerSoundThemeId(record.bakeTimerSoundTheme)");
+    expect(route).toContain("soundSettings.enabledThemeIds.includes(record.bakeTimerSoundTheme)");
   });
 
   it("renders the Account toggle only in the signed-in account workspace", () => {

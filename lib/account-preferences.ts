@@ -1,12 +1,16 @@
+import { isBakeTimerSoundThemeId, type BakeTimerSoundThemeId } from "@/lib/bake-timer-sound-themes";
+
 export type AccountPreferences = {
   allowEarlyTimedStepCompletion: boolean;
+  bakeTimerSoundTheme: BakeTimerSoundThemeId | null;
   updatedAt?: string;
 };
 
-export const ACCOUNT_PREFERENCES_SELECT = "user_id,allow_early_timed_step_completion,created_at,updated_at";
+export const ACCOUNT_PREFERENCES_SELECT = "user_id,allow_early_timed_step_completion,bake_timer_sound_theme,created_at,updated_at";
 
 export const DEFAULT_ACCOUNT_PREFERENCES: AccountPreferences = {
   allowEarlyTimedStepCompletion: false,
+  bakeTimerSoundTheme: null,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -28,13 +32,19 @@ export function normalizeAccountPreferencesRow(value: unknown): AccountPreferenc
     allowEarlyTimedStepCompletion: booleanField(value, "allow_early_timed_step_completion")
       ?? booleanField(value, "allowEarlyTimedStepCompletion")
       ?? false,
+    bakeTimerSoundTheme: isBakeTimerSoundThemeId(value.bake_timer_sound_theme)
+      ? value.bake_timer_sound_theme
+      : isBakeTimerSoundThemeId(value.bakeTimerSoundTheme)
+        ? value.bakeTimerSoundTheme
+        : null,
     updatedAt: stringField(value, "updated_at") ?? stringField(value, "updatedAt"),
   };
 }
 
-export function accountPreferencesPayload(preferences: Pick<AccountPreferences, "allowEarlyTimedStepCompletion">) {
+export function accountPreferencesPayload(preferences: Pick<AccountPreferences, "allowEarlyTimedStepCompletion" | "bakeTimerSoundTheme">) {
   return {
     allow_early_timed_step_completion: preferences.allowEarlyTimedStepCompletion === true,
+    bake_timer_sound_theme: preferences.bakeTimerSoundTheme,
   };
 }
 

@@ -319,7 +319,8 @@ describe("Kitchen bake timer integration", () => {
     expect(component).not.toContain("setSession(");
     expect(hook).toContain("BAKE_TIMER_SOUND_STORAGE_KEY");
     expect(hook).toContain("getBakeTimerSoundCues");
-    expect(hook).toContain("getBakeTimerSoundPattern");
+    expect(hook).toContain("playBakeTimerCue");
+    expect(hook).toContain("soundThemeId = CLASSIC_BAKE_TIMER_SOUND_THEME_ID");
     expect(hook).toContain("overtimeAlarmInterval");
     expect(hook).toContain("isBakeTimerOvertimeAlarmActive");
     expect(hook).toContain('if (cue === "overtime") continue');

@@ -1,3 +1,9 @@
+import {
+  CLASSIC_BAKE_TIMER_SOUND_THEME_ID,
+  getBakeTimerSoundPatternForTheme,
+  type BakeTimerSoundTone,
+} from "@/lib/bake-timer-sound-themes";
+
 export type BakeTimerStatus = "idle" | "running" | "paused" | "overtime" | "expired";
 export type BakeTimerPhase = "ready" | "active" | "almost_there" | "final_ten" | "paused" | "overtime" | "expired";
 export type BakeTimerOvertimeAlarmState = "inactive" | "active" | "stopped";
@@ -10,12 +16,7 @@ export type BakeTimerSoundCue =
   | "expired"
   | "overtime";
 
-export type BakeTimerSoundTone = {
-  frequency: number;
-  length: number;
-  gain: number;
-  offset: number;
-};
+export type { BakeTimerSoundTone };
 
 export type BakeTimerSnapshot = {
   status: BakeTimerStatus;
@@ -273,29 +274,7 @@ export function getBakeTimerSoundCues({
 }
 
 export function getBakeTimerSoundPattern(cue: BakeTimerSoundCue): BakeTimerSoundTone[] {
-  if (cue === "normal") {
-    return [{ frequency: 820, gain: 0.13, length: 0.1, offset: 0 }];
-  }
-  if (cue === "almost_there") {
-    return [{ frequency: 960, gain: 0.15, length: 0.12, offset: 0 }];
-  }
-  if (cue === "final_ten_transition") {
-    return [
-      { frequency: 1_060, gain: 0.16, length: 0.09, offset: 0 },
-      { frequency: 1_180, gain: 0.17, length: 0.1, offset: 0.13 },
-    ];
-  }
-  if (cue === "final_ten") {
-    return [{ frequency: 1_120, gain: 0.17, length: 0.09, offset: 0 }];
-  }
-  if (cue === "final_three") {
-    return [{ frequency: 1_360, gain: 0.2, length: 0.11, offset: 0 }];
-  }
-  return [
-    { frequency: 1_120, gain: 0.2, length: 0.12, offset: 0 },
-    { frequency: 1_260, gain: 0.22, length: 0.12, offset: 0.18 },
-    { frequency: 1_420, gain: 0.24, length: 0.18, offset: 0.36 },
-  ];
+  return [...getBakeTimerSoundPatternForTheme(cue, CLASSIC_BAKE_TIMER_SOUND_THEME_ID)];
 }
 
 export function getBakeTimerProgressRatio(snapshot: BakeTimerSnapshot) {

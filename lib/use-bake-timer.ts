@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   adjustBakeTimerDuration,
   adjustBakeTimerOvertime,
@@ -13,7 +13,6 @@ import {
   getBakeTimerPhase,
   getBakeTimerProgressRatio,
   getBakeTimerSoundCues,
-  getBakeTimerSoundPattern,
   isBakeTimerOvertimeAlarmActive,
   pauseBakeTimerSnapshot,
   resetBakeTimerSnapshot,
@@ -23,6 +22,11 @@ import {
   stopBakeTimerAlarm,
   updateBakeTimerDuration,
 } from "@/lib/bake-timer";
+import { closeBakeTimerAudioContext, playBakeTimerCue } from "@/lib/bake-timer-audio";
+import {
+  CLASSIC_BAKE_TIMER_SOUND_THEME_ID,
+  type BakeTimerSoundThemeId,
+} from "@/lib/bake-timer-sound-themes";
 
 export type BakeTimerWakeStatus = "idle" | "active" | "unsupported" | "failed";
 type WakeLockLike = {
@@ -33,10 +37,6 @@ type WakeLockLike = {
 
 type NavigatorWithWakeLock = Navigator & {
   wakeLock?: { request: (type: "screen") => Promise<WakeLockLike> };
-};
-
-type WindowWithAudio = Window & {
-  webkitAudioContext?: typeof AudioContext;
 };
 
 type StoredBakeTimer = {
@@ -50,6 +50,7 @@ export type UseBakeTimerOptions = {
   durationSeconds: number;
   storageKey?: string;
   soundEnabledByDefault?: boolean;
+  soundThemeId?: BakeTimerSoundThemeId;
 };
 
 function safeLoadSnapshot(storageKey: string | undefined, durationSeconds: number) {
@@ -68,29 +69,6 @@ function safeLoadSnapshot(storageKey: string | undefined, durationSeconds: numbe
     return deriveBakeTimerSnapshot(snapshot);
   } catch {
     return fallback;
-  }
-}
-
-function playBakeTimerCue(audioRef: MutableRefObject<AudioContext | null>, enabled: boolean, cue: Parameters<typeof getBakeTimerSoundPattern>[0]) {
-  if (!enabled || typeof window === "undefined") return;
-  const AudioCtor = window.AudioContext ?? (window as WindowWithAudio).webkitAudioContext;
-  if (!AudioCtor) return;
-  const context = audioRef.current ?? new AudioCtor();
-  audioRef.current = context;
-  void context.resume?.();
-  for (const tone of getBakeTimerSoundPattern(cue)) {
-    const startAt = context.currentTime + tone.offset;
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(tone.frequency, startAt);
-    gain.gain.setValueAtTime(0.0001, startAt);
-    gain.gain.exponentialRampToValueAtTime(tone.gain, startAt + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + tone.length);
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(startAt);
-    oscillator.stop(startAt + tone.length + 0.03);
   }
 }
 
@@ -119,6 +97,7 @@ export function useBakeTimer({
   durationSeconds,
   storageKey,
   soundEnabledByDefault = true,
+  soundThemeId = CLASSIC_BAKE_TIMER_SOUND_THEME_ID,
 }: UseBakeTimerOptions) {
   const [snapshot, setSnapshot] = useState(() => safeLoadSnapshot(storageKey, durationSeconds));
   const [wakeStatus, setWakeStatus] = useState<BakeTimerWakeStatus>("idle");
@@ -137,9 +116,7 @@ export function useBakeTimer({
 
   const closeAudio = useCallback(() => {
     clearOvertimeAlarmLoop();
-    const currentAudio = audio.current;
-    audio.current = null;
-    void currentAudio?.close();
+    closeBakeTimerAudioContext(audio);
   }, [clearOvertimeAlarmLoop]);
 
   const releaseWakeLock = useCallback(async () => {
@@ -193,10 +170,10 @@ export function useBakeTimer({
         const marker = `${derived.status}:${derived.remainingSeconds}:${derived.overtimeSeconds}`;
         for (const cue of cues) {
           if (cue === "overtime") continue;
-          const milestoneMarker = `${cue}:${marker}`;
+          const milestoneMarker = `${soundThemeId}:${cue}:${marker}`;
           if (soundMilestones.current.has(milestoneMarker)) continue;
           soundMilestones.current.add(milestoneMarker);
-          playBakeTimerCue(audio, soundEnabled, cue);
+          playBakeTimerCue({ audioRef: audio, enabled: soundEnabled, cue, themeId: soundThemeId });
         }
         return cues.includes("expired") ? { ...derived, completedCuePlayed: true } : derived;
       });
@@ -204,7 +181,7 @@ export function useBakeTimer({
     update();
     const interval = window.setInterval(update, 250);
     return () => window.clearInterval(interval);
-  }, [snapshot.status, soundEnabled]);
+  }, [snapshot.status, soundEnabled, soundThemeId]);
 
   const overtimeAlarmActive = isBakeTimerOvertimeAlarmActive(snapshot);
 
@@ -219,11 +196,11 @@ export function useBakeTimer({
     }
 
     if (overtimeAlarmInterval.current !== null || typeof window === "undefined") return;
-    if (!soundWasEnabled) playBakeTimerCue(audio, true, "overtime");
+    if (!soundWasEnabled) playBakeTimerCue({ audioRef: audio, enabled: true, cue: "overtime", themeId: soundThemeId });
     overtimeAlarmInterval.current = window.setInterval(() => {
-      playBakeTimerCue(audio, true, "overtime");
+      playBakeTimerCue({ audioRef: audio, enabled: true, cue: "overtime", themeId: soundThemeId });
     }, 5_000);
-  }, [clearOvertimeAlarmLoop, closeAudio, overtimeAlarmActive, soundEnabled]);
+  }, [clearOvertimeAlarmLoop, closeAudio, overtimeAlarmActive, soundEnabled, soundThemeId]);
 
   useEffect(() => {
     persistSoundPreference(soundEnabled);
