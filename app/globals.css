@@ -169,14 +169,31 @@ html[data-public-theme="summer"] body {
 }
 
 html[data-public-theme="harvest"] {
-  --theme-page-background: #fff1df;
-  --theme-surface: #fffaf4;
-  --theme-surface-muted: #f1dfc3;
-  --theme-border: #e8c99c;
-  --theme-accent: #c46a28;
-  --theme-accent-secondary: #6d7a3a;
-  --theme-decorative: rgba(122, 74, 36, .12);
-  --theme-header-surface: rgba(255, 241, 223, .94);
+  --theme-page-background: #fff0dc;
+  --theme-page-background-secondary: #f0dfc2;
+  --theme-surface: #fff9f1;
+  --theme-surface-muted: #f0dfc2;
+  --theme-surface-elevated: #fff9f1;
+  --theme-border: #dec290;
+  --theme-border-strong: #c9a76b;
+  --theme-text: var(--dt-ink);
+  --theme-text-muted: var(--dt-muted);
+  --theme-accent: #b96324;
+  --theme-accent-hover: #8f4618;
+  --theme-accent-soft: rgba(185, 99, 36, .10);
+  --theme-accent-secondary: #65723a;
+  --theme-decorative: rgba(185, 99, 36, .11);
+  --theme-decorative-secondary: rgba(101, 114, 58, .10);
+  --theme-header-surface: rgba(255, 240, 220, .96);
+  --theme-header-border: rgba(101, 114, 58, .16);
+}
+
+html[data-public-theme="harvest"] body {
+  background:
+    linear-gradient(110deg, transparent 0 44%, var(--theme-decorative) 44.2% 44.8%, transparent 45% 100%),
+    radial-gradient(circle at 12% 10%, rgba(101, 114, 58, .07), transparent 18rem),
+    radial-gradient(circle at 90% 42%, var(--theme-decorative-secondary), transparent 24rem),
+    linear-gradient(180deg, var(--theme-page-background) 0%, color-mix(in srgb, var(--theme-page-background-secondary) 34%, var(--theme-page-background)) 48%, var(--theme-page-background) 100%);
 }
 
 html[data-public-theme="halloween"] {

@@ -83,12 +83,12 @@ export const PUBLIC_THEME_DEFINITIONS = [
   {
     id: "harvest",
     name: "Harvest",
-    description: "An autumn ingredient-harvest foundation using warm orange, earthy brown and restrained olive.",
-    shortDescription: "Warm orange, olive and autumn grain.",
+    description: "A grounded ingredient-focused harvest appearance with warm grain, flour texture and restrained olive accents.",
+    shortDescription: "Warm grain, flour and ingredient craft.",
     rootClassName: "theme-harvest",
-    themeColor: "#FFF1DF",
-    previewSwatches: ["#FFF1DF", "#E8B05F", "#7A4A24", "#6D7A3A"],
-    designStatus: "foundation",
+    themeColor: "#FFF0DC",
+    previewSwatches: ["#FFF0DC", "#FFF9F1", "#B96324", "#65723A"],
+    designStatus: "final",
   },
   {
     id: "halloween",

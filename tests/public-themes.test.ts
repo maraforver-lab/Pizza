@@ -71,8 +71,9 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("valentine").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("easter").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
+    expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
     expect(PUBLIC_THEME_DEFINITIONS
-      .filter((theme) => !["default", "valentine", "easter", "summer"].includes(theme.id))
+      .filter((theme) => !["default", "valentine", "easter", "summer", "harvest"].includes(theme.id))
       .every((theme) => theme.designStatus === "foundation")).toBe(true);
   });
 
@@ -106,7 +107,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(easter.description).not.toMatch(/church|cross|religious symbol|egg hunt|cartoon/i);
     expect(easter.previewSwatches).toEqual(["#FFF9DE", "#FFFDF5", "#5F8F3A", "#E0B84A"]);
     expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
-    expect(publicThemeDefinitionFor("harvest").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
     expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
   });
@@ -128,7 +129,29 @@ describe("Patch 445A public theme architecture", () => {
     expect(summer.previewSwatches).toEqual(["#FFF4D8", "#FFF9EC", "#D88A24", "#126D7A"]);
     expect(publicThemeDefinitionFor("valentine").themeColor).toBe("#FFF3F1");
     expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
-    expect(publicThemeDefinitionFor("harvest").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("harvest").designStatus).toBe("final");
+    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
+  });
+
+  it("finalizes only the Harvest registry values approved by Patch 445B", () => {
+    const harvest = publicThemeDefinitionFor("harvest");
+
+    expect(harvest).toMatchObject({
+      id: "harvest",
+      rootClassName: "theme-harvest",
+      themeColor: "#FFF0DC",
+      designStatus: "final",
+      shortDescription: "Warm grain, flour and ingredient craft.",
+    });
+    expect(harvest.description).toContain("ingredient-focused");
+    expect(harvest.description).toContain("grain");
+    expect(harvest.description).toContain("flour");
+    expect(harvest.description).not.toMatch(/halloween|spooky|pumpkin|ghost|bat|night/i);
+    expect(harvest.previewSwatches).toEqual(["#FFF0DC", "#FFF9F1", "#B96324", "#65723A"]);
+    expect(publicThemeDefinitionFor("valentine").themeColor).toBe("#FFF3F1");
+    expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
+    expect(publicThemeDefinitionFor("summer").themeColor).toBe("#FFF4D8");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
     expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
   });
@@ -297,6 +320,46 @@ describe("Patch 445A public theme architecture", () => {
     expect(css).not.toMatch(/html\[data-public-theme="summer"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="summer"\][\s\S]*--dt-action-danger/);
   });
 
+  it("implements the final Harvest CSS tokens with grain/flour motif and no Halloween semantics", () => {
+    const css = source("app/globals.css");
+    const harvestBlock = css.match(/html\[data-public-theme="harvest"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+
+    expect(harvestBlock).toContain("--theme-page-background: #fff0dc");
+    expect(harvestBlock).toContain("--theme-page-background-secondary: #f0dfc2");
+    expect(harvestBlock).toContain("--theme-surface: #fff9f1");
+    expect(harvestBlock).toContain("--theme-surface-muted: #f0dfc2");
+    expect(harvestBlock).toContain("--theme-surface-elevated: #fff9f1");
+    expect(harvestBlock).toContain("--theme-border: #dec290");
+    expect(harvestBlock).toContain("--theme-border-strong: #c9a76b");
+    expect(harvestBlock).toContain("--theme-accent: #b96324");
+    expect(harvestBlock).toContain("--theme-accent-hover: #8f4618");
+    expect(harvestBlock).toContain("--theme-accent-secondary: #65723a");
+    expect(harvestBlock).toContain("--theme-header-surface: rgba(255, 240, 220, .96)");
+    expect(harvestBlock).toContain("--theme-header-border: rgba(101, 114, 58, .16)");
+    expect(css).toContain('html[data-public-theme="harvest"] body');
+    expect(css).toContain("linear-gradient(110deg, transparent 0 44%, var(--theme-decorative) 44.2% 44.8%, transparent 45% 100%)");
+    expect(css).toContain("radial-gradient(circle at 12% 10%, rgba(101, 114, 58, .07), transparent 18rem)");
+    expect(css).not.toMatch(/html\[data-public-theme="harvest"\][^{]*(?:\.text-purple|\.bg-purple|dt-bake-timer)/);
+    expect(css).not.toMatch(/html\[data-public-theme="harvest"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="harvest"\][\s\S]*--dt-action-danger/);
+  });
+
+  it("keeps Harvest visually separate from Halloween foundation", () => {
+    const harvest = publicThemeDefinitionFor("harvest");
+    const halloween = publicThemeDefinitionFor("halloween");
+    const css = source("app/globals.css");
+    const harvestBlock = css.match(/html\[data-public-theme="harvest"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+    const halloweenBlock = css.match(/html\[data-public-theme="halloween"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+
+    expect(harvest.themeColor).toBe("#FFF0DC");
+    expect(halloween.themeColor).toBe("#211915");
+    expect(harvest.previewSwatches).not.toEqual(halloween.previewSwatches);
+    expect(harvestBlock).toContain("--theme-accent: #b96324");
+    expect(halloweenBlock).toContain("--theme-accent: #f0782a");
+    expect(harvestBlock).toContain("--theme-accent-secondary: #65723a");
+    expect(halloweenBlock).toContain("--theme-accent-secondary: #5c3a72");
+    expect(`${harvest.description} ${harvest.shortDescription}`).not.toMatch(/halloween|spooky|pumpkin|ghost|bat|night|purple|charcoal/i);
+  });
+
   it("keeps Valentine readable by using Ink and muted text over final surfaces", () => {
     for (const surface of ["#FFF3F1", "#FFFBFA", "#F7E1DD"]) {
       expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
@@ -320,6 +383,15 @@ describe("Patch 445A public theme architecture", () => {
     expect(contrastRatio("#6B645D", "#FFF9EC")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#126D7A", "#FFF4D8")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#99520C", "#FFF4D8")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps Harvest readable without muddy brown-on-brown contrast", () => {
+    for (const surface of ["#FFF0DC", "#FFF9F1", "#F0DFC2"]) {
+      expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrastRatio("#6B645D", "#FFF9F1")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#8F4618", "#FFF0DC")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#65723A", "#FFF0DC")).toBeGreaterThanOrEqual(4.5);
   });
 
   it("documents the Patch 445B visual audit boundary and later theme roadmap", () => {
