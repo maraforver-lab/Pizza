@@ -52,3 +52,122 @@ Testing guidance:
 - Run `npm run lint`.
 - Run `npm run build`.
 - Run `npm run test` when practical.
+
+## Codex patch workflow
+
+Use this lightweight workflow for future DoughTools patch prompts.
+
+### Patch scope
+
+1. One prompt covers one patch.
+2. One patch should have one primary outcome.
+3. Split work when objectives are independent.
+4. Reuse existing architecture and helpers.
+5. Do not build duplicate implementations.
+6. Do not expand scope merely because nearby code could also be improved.
+7. Do not perform unrelated cleanup.
+
+### Prompt structure
+
+Each patch prompt should normally contain only:
+
+- Goal
+- Read first
+- Implement
+- Do not change
+- Acceptance criteria
+- Validation
+- Git
+- Final report
+
+Typical prompt length should be about 40-100 lines. Longer prompts are acceptable only when genuinely required for security, authentication, database migrations, RLS, or major architecture.
+
+Do not repeat long project background or permanent repository rules in every prompt. Refer instead to `AGENTS.md`, the relevant plan, the relevant audit, or implementation documentation.
+
+### Audits and planning
+
+1. Do not create an audit when the implementation path is already clear.
+2. Do not repeat an audit that already exists and is still current.
+3. Read the existing audit and implement from it.
+4. Create a new audit only when security architecture is unclear, database/RLS design is unclear, multiple materially different approaches exist, or the user explicitly requests an audit.
+5. A small visual or copy change normally does not need an audit.
+6. Do not create audit documents merely to satisfy a routine patch format.
+
+### Validation
+
+Use risk-based validation. Run only validation that can meaningfully detect regressions caused by the patch.
+
+Documentation-only changes normally need:
+
+- `git diff --check`
+- documentation checks when available
+- `git status --short`
+
+Do not run the full test suite or production build for documentation-only changes unless repository policy or the changed documentation requires it.
+
+Small UI or copy changes normally need:
+
+- focused affected tests
+- lint when relevant
+- build when rendering, routing, or imports changed
+- `git diff --check`
+
+Logic changes normally need:
+
+- focused behavior tests
+- relevant regression tests
+- full suite when shared logic or broad behavior changed
+- lint
+- build
+- `git diff --check`
+
+Security, auth, migrations, and RLS changes need the strongest relevant validation, including focused security tests, migration/RLS checks, full suite, lint, build, and `git diff --check`.
+
+### Avoid duplicate validation
+
+1. Do not rerun validation that was already completed successfully for the exact unchanged commit.
+2. A fast-forward merge of an already validated commit normally needs only merge preflight, `git diff --check` for the merged commit, and final Git status.
+3. Do not rerun the full suite merely because a validated branch is being fast-forward merged.
+4. Do rerun validation when files changed after validation, conflicts were resolved, commits were amended, dependencies changed, the target branch changed incompatibly, or repository policy requires it.
+5. Report clearly when validation was reused rather than rerun.
+
+### Preflight and blockers
+
+Before editing:
+
+- confirm current branch and commit
+- confirm tracked worktree state
+- inspect required prerequisite patches
+- inspect only the relevant files and documentation
+
+Stop only for a real blocker, such as unrelated tracked changes, a missing prerequisite patch, an unsafe migration, unresolved security ambiguity, failed required validation, a non-fast-forward merge, an unavailable required asset or secret, or repository state that risks losing work.
+
+Do not stop merely to ask for confirmation when the prompt already defines the desired behavior.
+
+### Git workflow
+
+After successful implementation and required validation:
+
+- commit automatically
+- fast-forward merge and push only when the prompt requests it
+- do not deploy unless explicitly requested
+- do not amend or rewrite unrelated history
+- stage only files belonging to the patch
+
+Always leave `supabase/.temp/` untouched. Never stage, modify, remove, or commit it.
+
+### Final report
+
+Keep the final report concise. Include only:
+
+- starting commit
+- patch commit
+- resulting master commit when merged
+- changed files
+- key behavior implemented
+- validation actually run
+- validation reused but not rerun
+- final Git status
+- migration/deployment status when relevant
+
+Do not repeat the full prompt or produce a long audit-style report for a small patch.
