@@ -70,8 +70,9 @@ describe("Patch 445A public theme architecture", () => {
     expect(publicThemeDefinitionFor("default").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("valentine").designStatus).toBe("final");
     expect(publicThemeDefinitionFor("easter").designStatus).toBe("final");
+    expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
     expect(PUBLIC_THEME_DEFINITIONS
-      .filter((theme) => theme.id !== "default" && theme.id !== "valentine" && theme.id !== "easter")
+      .filter((theme) => !["default", "valentine", "easter", "summer"].includes(theme.id))
       .every((theme) => theme.designStatus === "foundation")).toBe(true);
   });
 
@@ -104,7 +105,29 @@ describe("Patch 445A public theme architecture", () => {
     expect(easter.description).toContain("practical");
     expect(easter.description).not.toMatch(/church|cross|religious symbol|egg hunt|cartoon/i);
     expect(easter.previewSwatches).toEqual(["#FFF9DE", "#FFFDF5", "#5F8F3A", "#E0B84A"]);
-    expect(publicThemeDefinitionFor("summer").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("summer").designStatus).toBe("final");
+    expect(publicThemeDefinitionFor("harvest").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
+    expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
+  });
+
+  it("finalizes only the Summer registry values approved by Patch 445B", () => {
+    const summer = publicThemeDefinitionFor("summer");
+
+    expect(summer).toMatchObject({
+      id: "summer",
+      rootClassName: "theme-summer",
+      themeColor: "#FFF4D8",
+      designStatus: "final",
+      shortDescription: "Sunlit terrace warmth with readable teal accents.",
+    });
+    expect(summer.description).toContain("Mediterranean terrace");
+    expect(summer.description).toContain("outdoor-readable");
+    expect(summer.description).toContain("tile rhythm");
+    expect(summer.description).not.toMatch(/beach|palm|umbrella|cocktail|vacation/i);
+    expect(summer.previewSwatches).toEqual(["#FFF4D8", "#FFF9EC", "#D88A24", "#126D7A"]);
+    expect(publicThemeDefinitionFor("valentine").themeColor).toBe("#FFF3F1");
+    expect(publicThemeDefinitionFor("easter").themeColor).toBe("#FFF9DE");
     expect(publicThemeDefinitionFor("harvest").designStatus).toBe("foundation");
     expect(publicThemeDefinitionFor("halloween").designStatus).toBe("foundation");
     expect(publicThemeDefinitionFor("christmas").designStatus).toBe("foundation");
@@ -251,6 +274,29 @@ describe("Patch 445A public theme architecture", () => {
     expect(css).not.toMatch(/html\[data-public-theme="easter"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="easter"\][\s\S]*--dt-action-danger/);
   });
 
+  it("implements the final Summer CSS tokens with outdoor-readable teal and restrained sun-tile motif", () => {
+    const css = source("app/globals.css");
+    const summerBlock = css.match(/html\[data-public-theme="summer"\]\s*{(?<body>[^}]+)}/)?.groups?.body ?? "";
+
+    expect(summerBlock).toContain("--theme-page-background: #fff4d8");
+    expect(summerBlock).toContain("--theme-page-background-secondary: #e7f4f6");
+    expect(summerBlock).toContain("--theme-surface: #fff9ec");
+    expect(summerBlock).toContain("--theme-surface-muted: #e7f4f6");
+    expect(summerBlock).toContain("--theme-surface-elevated: #fff9ec");
+    expect(summerBlock).toContain("--theme-border: #c9e2e7");
+    expect(summerBlock).toContain("--theme-border-strong: #9fc7ce");
+    expect(summerBlock).toContain("--theme-accent: #d88a24");
+    expect(summerBlock).toContain("--theme-accent-hover: #99520c");
+    expect(summerBlock).toContain("--theme-accent-secondary: #126d7a");
+    expect(summerBlock).toContain("--theme-header-surface: rgba(255, 244, 216, .96)");
+    expect(summerBlock).toContain("--theme-header-border: rgba(18, 109, 122, .16)");
+    expect(css).toContain('html[data-public-theme="summer"] body');
+    expect(css).toContain("radial-gradient(circle at 12% -8%, var(--theme-decorative), transparent 25rem)");
+    expect(css).toContain("repeating-linear-gradient(135deg, rgba(18, 109, 122, .055) 0 1px, transparent 1px 3.25rem)");
+    expect(css).not.toMatch(/html\[data-public-theme="summer"\][^{]*(?:\.text-sky|\.bg-sky|dt-bake-timer)/);
+    expect(css).not.toMatch(/html\[data-public-theme="summer"\][\s\S]*--dt-status-(?:danger|warning|success)|html\[data-public-theme="summer"\][\s\S]*--dt-action-danger/);
+  });
+
   it("keeps Valentine readable by using Ink and muted text over final surfaces", () => {
     for (const surface of ["#FFF3F1", "#FFFBFA", "#F7E1DD"]) {
       expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
@@ -265,6 +311,15 @@ describe("Patch 445A public theme architecture", () => {
     }
     expect(contrastRatio("#6B645D", "#FFFDF5")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#4F7C30", "#FFF9DE")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps Summer readable outdoors by using Ink, muted text and teal over final surfaces", () => {
+    for (const surface of ["#FFF4D8", "#FFF9EC", "#E7F4F6"]) {
+      expect(contrastRatio("#1F1F1F", surface)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrastRatio("#6B645D", "#FFF9EC")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#126D7A", "#FFF4D8")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#99520C", "#FFF4D8")).toBeGreaterThanOrEqual(4.5);
   });
 
   it("documents the Patch 445B visual audit boundary and later theme roadmap", () => {

@@ -73,12 +73,12 @@ export const PUBLIC_THEME_DEFINITIONS = [
   {
     id: "summer",
     name: "Summer",
-    description: "A sunny, open foundation with warm light and a pale sky-blue accent.",
-    shortDescription: "Sunlit warmth with a pale sky accent.",
+    description: "A warm Mediterranean terrace appearance with sunlit surfaces, strong outdoor-readable text and restrained tile rhythm.",
+    shortDescription: "Sunlit terrace warmth with readable teal accents.",
     rootClassName: "theme-summer",
-    themeColor: "#FFF4D6",
-    previewSwatches: ["#FFF4D6", "#DFF1F5", "#E9A83A", "#187C8C"],
-    designStatus: "foundation",
+    themeColor: "#FFF4D8",
+    previewSwatches: ["#FFF4D8", "#FFF9EC", "#D88A24", "#126D7A"],
+    designStatus: "final",
   },
   {
     id: "harvest",
