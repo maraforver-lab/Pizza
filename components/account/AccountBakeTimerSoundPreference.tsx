@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DoughToolsIcon } from "@/components/icons";
-import { closeBakeTimerAudioContext, playBakeTimerCue } from "@/lib/bake-timer-audio";
+import { closeBakeTimerAudioContext, playBakeTimerCue, type BakeTimerAudioEngine } from "@/lib/bake-timer-audio";
 import { normalizeAccountPreferencesRow } from "@/lib/account-preferences";
 import {
   CLASSIC_BAKE_TIMER_SOUND_THEME_ID,
@@ -49,7 +49,7 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
   const [requestState, setRequestState] = useState<RequestState>({ status: "loading", message: "Loading Bake Timer sound preference..." });
   const [previewChoice, setPreviewChoice] = useState<SoundChoice | null>(null);
-  const audio = useRef<AudioContext | null>(null);
+  const audio = useRef<BakeTimerAudioEngine | null>(null);
   const previewStopTimeout = useRef<number | null>(null);
   const mounted = useRef(false);
 

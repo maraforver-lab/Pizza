@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DoughToolsIcon } from "@/components/icons";
-import { closeBakeTimerAudioContext, playBakeTimerCue } from "@/lib/bake-timer-audio";
+import { closeBakeTimerAudioContext, playBakeTimerCue, type BakeTimerAudioEngine } from "@/lib/bake-timer-audio";
 import {
   BAKE_TIMER_SOUND_THEME_DEFINITIONS,
   CLASSIC_BAKE_TIMER_SOUND_THEME_ID,
@@ -55,7 +55,7 @@ export default function AdminBakeTimerSoundsClient({ initialSettings }: AdminBak
   const [draftSettings, setDraftSettings] = useState<EditableSettings>(() => settingsFromResponse(initialSettings));
   const [requestState, setRequestState] = useState<RequestState>({ status: "idle", message: "" });
   const [previewThemeId, setPreviewThemeId] = useState<BakeTimerSoundThemeId | null>(null);
-  const audio = useRef<AudioContext | null>(null);
+  const audio = useRef<BakeTimerAudioEngine | null>(null);
   const previewStopTimeout = useRef<number | null>(null);
 
   const hasChanges = useMemo(() => (

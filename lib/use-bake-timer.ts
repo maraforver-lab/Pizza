@@ -22,7 +22,7 @@ import {
   stopBakeTimerAlarm,
   updateBakeTimerDuration,
 } from "@/lib/bake-timer";
-import { closeBakeTimerAudioContext, playBakeTimerCue } from "@/lib/bake-timer-audio";
+import { closeBakeTimerAudioContext, playBakeTimerCue, type BakeTimerAudioEngine } from "@/lib/bake-timer-audio";
 import {
   CLASSIC_BAKE_TIMER_SOUND_THEME_ID,
   type BakeTimerSoundThemeId,
@@ -103,7 +103,7 @@ export function useBakeTimer({
   const [wakeStatus, setWakeStatus] = useState<BakeTimerWakeStatus>("idle");
   const [soundEnabled, setSoundEnabled] = useState(() => loadSoundPreference(soundEnabledByDefault));
   const wakeLock = useRef<WakeLockLike | null>(null);
-  const audio = useRef<AudioContext | null>(null);
+  const audio = useRef<BakeTimerAudioEngine | null>(null);
   const overtimeAlarmInterval = useRef<number | null>(null);
   const previousSoundEnabled = useRef(soundEnabled);
   const soundMilestones = useRef<Set<string>>(new Set());
