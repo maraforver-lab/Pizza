@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import SiteFooter from "@/components/SiteFooter";
 import { AccountAdminEntryCard } from "@/components/account/AccountAdminEntryCard";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
+import { AccountBakeTimerSoundPreference } from "@/components/account/AccountBakeTimerSoundPreference";
 import { AccountEarlyCompletionPreference } from "@/components/account/AccountEarlyCompletionPreference";
 import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
@@ -171,6 +172,7 @@ export default function AccountPage() {
               <PartyOrdersAccountEntryCard enabled className="mt-0" />
               <InstallAppPrompt compact collapsible className="mt-0" />
               <AccountGuidancePreference />
+              <AccountBakeTimerSoundPreference />
               <AccountEarlyCompletionPreference />
               <AccountAdminEntryCard />
               <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-security-heading">

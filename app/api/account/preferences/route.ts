@@ -89,9 +89,11 @@ export async function PATCH(request: Request) {
 
   const existingPreferences = normalizeAccountPreferencesRow(existing);
   if (existing && accountPreferencesAreNewer(existingPreferences.updatedAt, knownUpdatedAt)) {
+    const soundSettings = await loadBakeTimerSoundSettings(supabase, existingPreferences.bakeTimerSoundTheme);
     return NextResponse.json({
       error: "Account preferences changed on another device. Reload and try again.",
       preferences: existingPreferences,
+      bakeTimerSound: soundSettings,
       stale: true,
     }, { status: 409 });
   }
