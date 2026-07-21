@@ -9,8 +9,8 @@ const upcomingCapabilities = [
   },
   {
     title: "Bake Timer sounds",
-    description: "Patch 446 will add prebuilt sound-theme availability controls.",
-    href: null,
+    description: "Manage which prebuilt Bake Timer sound themes are available and which one is the product default.",
+    href: "/admin/bake-timer-sounds",
   },
   {
     title: "Public statistics",
@@ -57,7 +57,7 @@ export default function AdminPage() {
                   href={capability.href}
                   className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white transition hover:bg-forest focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                 >
-                  Open appearance
+                  {capability.title === "Bake Timer sounds" ? "Open sound settings" : "Open appearance"}
                   <DoughToolsIcon name="forward" size={20} />
                 </Link>
               ) : null}

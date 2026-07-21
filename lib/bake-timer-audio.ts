@@ -23,11 +23,13 @@ export function playBakeTimerCue({
   enabled,
   cue,
   themeId = CLASSIC_BAKE_TIMER_SOUND_THEME_ID,
+  delaySeconds = 0,
 }: {
   audioRef: BakeTimerAudioRef;
   enabled: boolean;
   cue: BakeTimerSoundCue;
   themeId?: BakeTimerSoundThemeId;
+  delaySeconds?: number;
 }) {
   if (!enabled || typeof window === "undefined") return;
   const AudioCtor = window.AudioContext ?? (window as WindowWithAudio).webkitAudioContext;
@@ -39,7 +41,7 @@ export function playBakeTimerCue({
     void context.resume?.();
 
     for (const tone of getBakeTimerSoundPatternForTheme(cue, themeId)) {
-      const startAt = context.currentTime + tone.offset;
+      const startAt = context.currentTime + delaySeconds + tone.offset;
       const oscillator = context.createOscillator();
       const gain = context.createGain();
       oscillator.type = tone.type ?? "sine";
