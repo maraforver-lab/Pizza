@@ -23,6 +23,29 @@ function source(path: string) {
   return readFileSync(join(process.cwd(), path), "utf8");
 }
 
+function rhythmSignature(themeId: string, cue: Parameters<typeof getBakeTimerSoundPatternForTheme>[0]) {
+  return getBakeTimerSoundPatternForTheme(cue, themeId)
+    .map((tone) => `${tone.offset.toFixed(3)}:${tone.length.toFixed(3)}`)
+    .join("|");
+}
+
+function noteSignature(themeId: string, cue: Parameters<typeof getBakeTimerSoundPatternForTheme>[0]) {
+  return getBakeTimerSoundPatternForTheme(cue, themeId)
+    .map((tone) => `${tone.type ?? "sine"}:${tone.frequency}`)
+    .join("|");
+}
+
+function fullSequenceSignature(themeId: string) {
+  return [
+    "normal",
+    "almost_there",
+    "final_ten",
+    "final_three",
+    "expired",
+    "overtime",
+  ].map((cue) => `${cue}=${rhythmSignature(themeId, cue as Parameters<typeof getBakeTimerSoundPatternForTheme>[0])}/${noteSignature(themeId, cue as Parameters<typeof getBakeTimerSoundPatternForTheme>[0])}`).join(";");
+}
+
 describe("Bake Timer sound themes", () => {
   it("defines the approved registry and releases original novelty themes", () => {
     expect(BAKE_TIMER_SOUND_THEME_IDS).toEqual([
@@ -107,14 +130,55 @@ describe("Bake Timer sound themes", () => {
         const pattern = getBakeTimerSoundPatternForTheme(cue, themeId);
         expect(pattern.length).toBeGreaterThan(0);
         for (const tone of pattern) {
-          expect(tone.frequency).toBeGreaterThanOrEqual(180);
-          expect(tone.frequency).toBeLessThanOrEqual(1_650);
+          expect(tone.frequency).toBeGreaterThanOrEqual(160);
+          expect(tone.frequency).toBeLessThanOrEqual(2_100);
           expect(tone.gain).toBeLessThanOrEqual(0.24);
-          expect(tone.length).toBeLessThanOrEqual(0.2);
+          expect(tone.length).toBeLessThanOrEqual(0.5);
           expect(tone.offset).toBeGreaterThanOrEqual(0);
         }
       }
     }
+  });
+
+  it("gives every released theme a distinct rhythm, note order and sequence shape", () => {
+    const sequenceSignatures = BAKE_TIMER_SOUND_THEME_IDS.map((themeId) => fullSequenceSignature(themeId));
+    expect(new Set(sequenceSignatures).size).toBe(BAKE_TIMER_SOUND_THEME_IDS.length);
+
+    const finalTenRhythms = BAKE_TIMER_SOUND_THEME_IDS.map((themeId) => rhythmSignature(themeId, "final_ten"));
+    const expiryRhythms = BAKE_TIMER_SOUND_THEME_IDS.map((themeId) => rhythmSignature(themeId, "expired"));
+    const finalThreeNotes = BAKE_TIMER_SOUND_THEME_IDS.map((themeId) => noteSignature(themeId, "final_three"));
+
+    expect(new Set(finalTenRhythms).size).toBe(BAKE_TIMER_SOUND_THEME_IDS.length);
+    expect(new Set(expiryRhythms).size).toBe(BAKE_TIMER_SOUND_THEME_IDS.length);
+    expect(new Set(finalThreeNotes).size).toBe(BAKE_TIMER_SOUND_THEME_IDS.length);
+  });
+
+  it("makes the individual sound identities materially different beyond frequency", () => {
+    expect(getBakeTimerSoundPatternForTheme("normal", "classic")).toHaveLength(1);
+
+    const bellNormal = getBakeTimerSoundPatternForTheme("normal", "bell");
+    expect(bellNormal).toHaveLength(2);
+    expect(bellNormal[0].length).toBeGreaterThan(0.3);
+    expect(bellNormal[1].frequency).toBe(bellNormal[0].frequency * 2);
+
+    const roosterNormal = getBakeTimerSoundPatternForTheme("normal", "rooster");
+    expect(roosterNormal.map((tone) => tone.frequency)).toEqual([700, 920, 1_180]);
+    expect(roosterNormal.map((tone) => tone.offset)).toEqual([0, 0.1, 0.22]);
+
+    const halloweenFinalTen = getBakeTimerSoundPatternForTheme("final_ten", "halloween");
+    expect(halloweenFinalTen.map((tone) => tone.frequency)).toEqual([370, 311, 247]);
+    expect(halloweenFinalTen.map((tone) => tone.type)).toEqual(["triangle", "triangle", "sawtooth"]);
+    expect(getBakeTimerSoundPatternForTheme("expired", "halloween")).toHaveLength(4);
+    expect(getBakeTimerSoundPatternForTheme("expired", "halloween")[0].length).toBeGreaterThan(0.7);
+
+    const commanderOvertime = getBakeTimerSoundPatternForTheme("overtime", "dark-commander");
+    expect(commanderOvertime.map((tone) => tone.frequency)).toEqual([180, 540, 180, 540]);
+    expect(commanderOvertime.map((tone) => tone.type)).toEqual(["square", "sawtooth", "square", "sawtooth"]);
+
+    const robotFinalTen = getBakeTimerSoundPatternForTheme("final_ten", "robot-chef");
+    expect(robotFinalTen).toHaveLength(4);
+    expect(robotFinalTen.map((tone) => tone.frequency)).toEqual([900, 1_140, 1_440, 1_720]);
+    expect(robotFinalTen.map((tone) => tone.type)).toEqual(["square", "triangle", "square", "triangle"]);
   });
 
   it("adds the Patch 446B database model without broadening private-user access", () => {
