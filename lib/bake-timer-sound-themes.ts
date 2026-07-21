@@ -7,14 +7,13 @@ export const BAKE_TIMER_SOUND_THEME_IDS = [
   "bell",
   "rooster",
   "halloween",
+  "dark-commander",
+  "robot-chef",
 ] as const;
 
 export type BakeTimerSoundThemeId = (typeof BAKE_TIMER_SOUND_THEME_IDS)[number];
 
-export const DEFERRED_BAKE_TIMER_SOUND_THEME_IDS = [
-  "dark-commander",
-  "robot-chef",
-] as const;
+export const DEFERRED_BAKE_TIMER_SOUND_THEME_IDS = [] as const;
 
 export type DeferredBakeTimerSoundThemeId = (typeof DEFERRED_BAKE_TIMER_SOUND_THEME_IDS)[number];
 
@@ -149,6 +148,71 @@ const HALLOWEEN_PATTERNS: Readonly<Record<BakeTimerSoundCue, readonly BakeTimerS
   ],
 };
 
+const DARK_COMMANDER_PATTERNS: Readonly<Record<BakeTimerSoundCue, readonly BakeTimerSoundTone[]>> = {
+  normal: [
+    { frequency: 220, gain: 0.13, length: 0.1, offset: 0, type: "sawtooth" },
+    { frequency: 440, gain: 0.07, length: 0.08, offset: 0.02, type: "triangle" },
+  ],
+  almost_there: [
+    { frequency: 240, gain: 0.14, length: 0.1, offset: 0, type: "sawtooth" },
+    { frequency: 520, gain: 0.08, length: 0.08, offset: 0.08, type: "triangle" },
+  ],
+  final_ten_transition: [
+    { frequency: 260, gain: 0.15, length: 0.08, offset: 0, type: "sawtooth" },
+    { frequency: 390, gain: 0.13, length: 0.08, offset: 0.11, type: "square" },
+    { frequency: 580, gain: 0.09, length: 0.09, offset: 0.22, type: "triangle" },
+  ],
+  final_ten: [
+    { frequency: 310, gain: 0.15, length: 0.07, offset: 0, type: "square" },
+    { frequency: 620, gain: 0.08, length: 0.06, offset: 0.02, type: "triangle" },
+  ],
+  final_three: [
+    { frequency: 360, gain: 0.18, length: 0.09, offset: 0, type: "square" },
+    { frequency: 720, gain: 0.1, length: 0.08, offset: 0.03, type: "triangle" },
+  ],
+  expired: [
+    { frequency: 290, gain: 0.18, length: 0.11, offset: 0, type: "sawtooth" },
+    { frequency: 430, gain: 0.19, length: 0.11, offset: 0.16, type: "square" },
+    { frequency: 620, gain: 0.16, length: 0.16, offset: 0.34, type: "triangle" },
+  ],
+  overtime: [
+    { frequency: 260, gain: 0.17, length: 0.1, offset: 0, type: "sawtooth" },
+    { frequency: 390, gain: 0.18, length: 0.1, offset: 0.15, type: "square" },
+    { frequency: 520, gain: 0.13, length: 0.13, offset: 0.32, type: "triangle" },
+  ],
+};
+
+const ROBOT_CHEF_PATTERNS: Readonly<Record<BakeTimerSoundCue, readonly BakeTimerSoundTone[]>> = {
+  normal: [{ frequency: 780, gain: 0.12, length: 0.07, offset: 0, type: "square" }],
+  almost_there: [
+    { frequency: 860, gain: 0.12, length: 0.06, offset: 0, type: "square" },
+    { frequency: 1_120, gain: 0.1, length: 0.06, offset: 0.09, type: "triangle" },
+  ],
+  final_ten_transition: [
+    { frequency: 900, gain: 0.13, length: 0.05, offset: 0, type: "square" },
+    { frequency: 1_100, gain: 0.14, length: 0.05, offset: 0.08, type: "square" },
+    { frequency: 1_340, gain: 0.15, length: 0.07, offset: 0.16, type: "triangle" },
+  ],
+  final_ten: [
+    { frequency: 980, gain: 0.14, length: 0.05, offset: 0, type: "square" },
+    { frequency: 1_220, gain: 0.1, length: 0.05, offset: 0.06, type: "triangle" },
+  ],
+  final_three: [
+    { frequency: 1_180, gain: 0.17, length: 0.06, offset: 0, type: "square" },
+    { frequency: 1_480, gain: 0.14, length: 0.07, offset: 0.08, type: "triangle" },
+  ],
+  expired: [
+    { frequency: 980, gain: 0.16, length: 0.06, offset: 0, type: "square" },
+    { frequency: 1_280, gain: 0.18, length: 0.07, offset: 0.1, type: "square" },
+    { frequency: 1_560, gain: 0.17, length: 0.12, offset: 0.22, type: "triangle" },
+  ],
+  overtime: [
+    { frequency: 900, gain: 0.15, length: 0.06, offset: 0, type: "square" },
+    { frequency: 1_160, gain: 0.17, length: 0.06, offset: 0.1, type: "square" },
+    { frequency: 1_420, gain: 0.14, length: 0.09, offset: 0.22, type: "triangle" },
+  ],
+};
+
 export const BAKE_TIMER_SOUND_THEME_DEFINITIONS: readonly BakeTimerSoundThemeDefinition[] = [
   {
     id: "classic",
@@ -177,6 +241,20 @@ export const BAKE_TIMER_SOUND_THEME_DEFINITIONS: readonly BakeTimerSoundThemeDef
     description: "A seasonal synthesized cue set using darker, non-copied tones.",
     cueRoles: ALL_CUE_ROLES,
     patternByCue: HALLOWEEN_PATTERNS,
+  },
+  {
+    id: "dark-commander",
+    label: "Dark Commander",
+    description: "An original deep mechanical cinematic sound.",
+    cueRoles: ALL_CUE_ROLES,
+    patternByCue: DARK_COMMANDER_PATTERNS,
+  },
+  {
+    id: "robot-chef",
+    label: "Robot Chef",
+    description: "A friendly robotic kitchen sound with concise beeps.",
+    cueRoles: ALL_CUE_ROLES,
+    patternByCue: ROBOT_CHEF_PATTERNS,
   },
 ];
 

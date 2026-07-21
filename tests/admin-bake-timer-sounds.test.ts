@@ -28,7 +28,7 @@ describe("Admin Bake Timer sound-theme management", () => {
     expect(dashboard).toContain("Open sound settings");
   });
 
-  it("manages only production sound themes in canonical registry order", () => {
+  it("manages released production sound themes in canonical registry order", () => {
     const component = source("components/admin/AdminBakeTimerSoundsClient.tsx");
 
     expect(BAKE_TIMER_SOUND_THEME_DEFINITIONS.map((theme) => theme.label)).toEqual([
@@ -36,10 +36,10 @@ describe("Admin Bake Timer sound-theme management", () => {
       "Bell",
       "Rooster",
       "Halloween",
+      "Dark Commander",
+      "Robot Chef",
     ]);
-    for (const deferred of DEFERRED_BAKE_TIMER_SOUND_THEME_IDS) {
-      expect(component).not.toContain(deferred);
-    }
+    expect(DEFERRED_BAKE_TIMER_SOUND_THEME_IDS).toEqual([]);
     expect(component).toContain("BAKE_TIMER_SOUND_THEME_DEFINITIONS.map");
     expect(component).toContain("Classic is always retained as the safe fallback.");
   });

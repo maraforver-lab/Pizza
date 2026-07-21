@@ -24,9 +24,16 @@ function source(path: string) {
 }
 
 describe("Bake Timer sound themes", () => {
-  it("defines the approved initial registry and defers higher-risk themes", () => {
-    expect(BAKE_TIMER_SOUND_THEME_IDS).toEqual(["classic", "bell", "rooster", "halloween"]);
-    expect(DEFERRED_BAKE_TIMER_SOUND_THEME_IDS).toEqual(["dark-commander", "robot-chef"]);
+  it("defines the approved registry and releases original novelty themes", () => {
+    expect(BAKE_TIMER_SOUND_THEME_IDS).toEqual([
+      "classic",
+      "bell",
+      "rooster",
+      "halloween",
+      "dark-commander",
+      "robot-chef",
+    ]);
+    expect(DEFERRED_BAKE_TIMER_SOUND_THEME_IDS).toEqual([]);
     expect(BAKE_TIMER_SOUND_CUE_ROLES).toEqual(["periodic", "final20", "final10", "final3", "expiry", "overtime"]);
     expect(BAKE_TIMER_SOUND_THEME_DEFINITIONS.map((theme) => theme.id)).toEqual(BAKE_TIMER_SOUND_THEME_IDS);
     expect(publicBakeTimerSoundThemeDefinitions()[0]).not.toHaveProperty("patternByCue");
@@ -71,7 +78,7 @@ describe("Bake Timer sound themes", () => {
       { theme_id: "dark-commander", enabled: true, is_default: false, version: 3 },
     ], "halloween");
 
-    expect(response.enabledThemeIds).toEqual(["classic", "bell"]);
+    expect(response.enabledThemeIds).toEqual(["classic", "bell", "dark-commander"]);
     expect(response.defaultThemeId).toBe("bell");
     expect(response.effectiveThemeId).toBe("bell");
     expect(response.version).toBe(3);
@@ -85,6 +92,29 @@ describe("Bake Timer sound themes", () => {
       defaultThemeId: "halloween",
       expectedVersion: 1,
     })).toMatchObject({ ok: false });
+  });
+
+  it("defines complete bounded nonverbal profiles for released novelty themes", () => {
+    const protectedTerms = /star wars|darth|vader|jedi|sith|lightsaber|voice|speech|quote|movie|franchise|url|asset/i;
+
+    for (const themeId of ["dark-commander", "robot-chef"] as const) {
+      const definition = BAKE_TIMER_SOUND_THEME_DEFINITIONS.find((theme) => theme.id === themeId);
+      expect(definition).toBeDefined();
+      expect(`${definition?.label} ${definition?.description}`).not.toMatch(protectedTerms);
+      expect(definition?.cueRoles).toEqual(BAKE_TIMER_SOUND_CUE_ROLES);
+
+      for (const cue of ["normal", "almost_there", "final_ten_transition", "final_ten", "final_three", "expired", "overtime"] as const) {
+        const pattern = getBakeTimerSoundPatternForTheme(cue, themeId);
+        expect(pattern.length).toBeGreaterThan(0);
+        for (const tone of pattern) {
+          expect(tone.frequency).toBeGreaterThanOrEqual(180);
+          expect(tone.frequency).toBeLessThanOrEqual(1_650);
+          expect(tone.gain).toBeLessThanOrEqual(0.24);
+          expect(tone.length).toBeLessThanOrEqual(0.2);
+          expect(tone.offset).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
   });
 
   it("adds the Patch 446B database model without broadening private-user access", () => {
@@ -101,6 +131,20 @@ describe("Bake Timer sound themes", () => {
     expect(migration).toContain("public.current_user_is_admin()");
     expect(migration).toContain("revoke all on table public.bake_timer_sound_theme_settings");
     expect(migration).not.toMatch(/star wars|darth|vader|voice clone|audio url|pizza_sessions|party_orders|storage\./i);
+  });
+
+  it("adds a small Patch 446F migration for the released novelty sound IDs", () => {
+    const migrationPath = "supabase/migrations/20260721140000_release_novelty_bake_timer_sound_themes.sql";
+    expect(existsSync(join(process.cwd(), migrationPath))).toBe(true);
+    const migration = source(migrationPath);
+
+    expect(migration).toContain("account_preferences_bake_timer_sound_theme_check");
+    expect(migration).toContain("bake_timer_sound_theme_settings_theme_id_check");
+    expect(migration).toContain("'dark-commander'");
+    expect(migration).toContain("'robot-chef'");
+    expect(migration).toContain("admin_update_bake_timer_sound_theme_settings");
+    expect(migration).toContain("allowed_theme_ids constant text[] := array['classic', 'bell', 'rooster', 'halloween', 'dark-commander', 'robot-chef']");
+    expect(migration).not.toMatch(/star wars|darth|vader|voice clone|audio url|pizza_sessions|party_orders|storage\.|service_role/i);
   });
 
   it("adds safe public, admin and Account API plumbing", () => {

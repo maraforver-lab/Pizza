@@ -26,14 +26,14 @@ describe("Account Bake Timer sound preference", () => {
     expect(component).not.toMatch(/PizzaSession|stepRuntime|queueCloudActivePizzaSessionSave/);
   });
 
-  it("shows default plus enabled production themes and excludes deferred themes", () => {
+  it("shows default plus enabled production themes from the registry", () => {
     const component = source("components/account/AccountBakeTimerSoundPreference.tsx");
 
     expect(component).toContain("Use DoughTools default");
     expect(component).toContain("enabledThemes.map");
     expect(component).toContain("theme.label");
     expect(component).toContain("theme.description");
-    expect(component).not.toMatch(/Dark Commander|Robot Chef|dark-commander|robot-chef/);
+    expect(component).not.toMatch(/DEFERRED_BAKE_TIMER_SOUND_THEME_IDS|deferred/i);
   });
 
   it("keeps the documented fallback behavior for disabled or missing preferences", () => {
