@@ -44,7 +44,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expectTextLink(shopping, "Continue your pizza plan →", "/session/timeline");
     expect(timeline).toContain('onClick={handleNextAction}');
     expect(timeline).toContain('router.push(nextAction.href)');
-    expect(timeline).toContain('Start Kitchen Mode');
+    expect(timeline).toContain('Start cooking');
     expectTextLink(timeline, "Back", "/session/shopping");
     expect(kitchen).not.toContain("href={backHref}");
     expect(kitchen).not.toContain("kitchenBackHrefFromSource");

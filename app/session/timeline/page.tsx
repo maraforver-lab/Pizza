@@ -196,7 +196,7 @@ function shoppingCheckpointState(session: PizzaSession | null): ShoppingCheckpoi
 }
 
 function timelineStartActionLabel() {
-  return "Start Kitchen Mode";
+  return "Start cooking";
 }
 
 function nextActionForTimeline({
@@ -213,7 +213,7 @@ function nextActionForTimeline({
     const hasStarted = hasStepActuallyStarted(session ?? undefined, nextStep.id);
     return {
       href: "/session/kitchen?from=timeline",
-      cta: isWorkStep && !hasStarted ? timelineStartActionLabel() : "Start Kitchen Mode",
+      cta: isWorkStep && !hasStarted ? timelineStartActionLabel() : "Start cooking",
       title: nextStep.label,
       subtext: "This is your next dough preparation step.",
       kind: "dough",
@@ -224,9 +224,9 @@ function nextActionForTimeline({
   if (nextStep && isServiceTimelineStep(nextStep)) {
     return {
       href: "/session/kitchen?from=timeline",
-      cta: "Start Kitchen Mode",
+      cta: "Start cooking",
       title: nextStep.label,
-      subtext: "Kitchen Mode will guide the active cooking steps.",
+      subtext: "DoughTools will guide the active cooking steps.",
       kind: "service",
       scheduledAt: nextStep.scheduledAt,
     };
@@ -341,7 +341,7 @@ export default function SessionTimelinePage() {
   if (!ready) {
     return (
       <SessionRouteState
-        body="Checking this browser for an active pizza plan before building the preparation schedule."
+        body="Checking this browser for an active pizza plan before building the preparation timeline."
         eyebrow="Timeline"
         title="Opening your timeline"
         variant="checking"
@@ -352,8 +352,8 @@ export default function SessionTimelinePage() {
   if (!session) {
     return (
       <SessionRouteState
-        action={{ href: "/session/start", label: "Plan my next pizza" }}
-        body="Your preparation schedule is created after your pizza plan is ready."
+        action={{ href: "/session/start", label: "Plan a pizza" }}
+        body="Your preparation timeline is created after your pizza plan is ready."
         eyebrow="Timeline"
         title="No timeline yet"
         variant="no-session"
@@ -364,8 +364,8 @@ export default function SessionTimelinePage() {
   if (!timeline || missingReason) {
     return (
       <SessionRouteState
-        action={{ href: "/session/start", label: "Complete my pizza plan" }}
-        body="Complete your pizza plan first so DoughTools can build the preparation schedule."
+        action={{ href: "/session/start", label: "Continue your pizza plan" }}
+        body="Complete your pizza plan first so DoughTools can build the preparation timeline."
         eyebrow="Timeline"
         localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No reminders, cloud sync or account sync are active yet.`}
         title="Your timeline is not ready yet."
@@ -422,7 +422,7 @@ export default function SessionTimelinePage() {
     ? "Timing check first"
     : nextAction.kind === "review"
       ? "Review next"
-      : "Ready when you confirm";
+      : "Ready to start";
   const startCurrentRuntimeStepAndGoToKitchen = () => {
     if (currentActionStep && isRuntimeDoughWorkStep(currentActionStep) && !hasStepActuallyStarted(session, currentActionStep.id)) {
       const updated = startPizzaSessionTimelineStep(session, currentActionStep.id);
@@ -460,13 +460,13 @@ export default function SessionTimelinePage() {
             <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{formatShortDateTime(targetTime)}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Schedule</dt>
+            <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Timing</dt>
             <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">
               {currentLiveTiming.label}{currentLiveTiming.value ? ` ${currentLiveTiming.value}` : ""}
             </dd>
           </div>
           <div className="hidden min-w-0 sm:block">
-            <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Kitchen Mode</dt>
+            <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Start cooking</dt>
             <dd className="mt-1 text-sm font-extrabold leading-5 text-ink">{kitchenModeAvailability}</dd>
           </div>
         </dl>
@@ -567,7 +567,7 @@ export default function SessionTimelinePage() {
           label="Timeline"
           pageType="Timeline page"
           title="Timeline"
-          body="Use this schedule to see the next required action, its planned time and the path into Kitchen Mode."
+          body="Use this preparation timeline to see the next required action, its planned time and when to start cooking."
           level={session.experienceLevel}
           levelCompactOnMobile
           hideBodyOnMobile
@@ -579,8 +579,8 @@ export default function SessionTimelinePage() {
         <section aria-labelledby="full-timeline-heading" className="mt-5 sm:mt-6">
           <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Schedule</p>
-              <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Ordered steps</h2>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Preparation timeline</p>
+              <h2 id="full-timeline-heading" className="mt-2 font-display text-3xl font-semibold">Timeline steps</h2>
             </div>
             <p className="text-sm font-bold leading-5 text-ink/55 sm:text-right">
               {actionableSteps.length} action steps
