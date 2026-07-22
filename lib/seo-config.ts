@@ -98,6 +98,14 @@ export const publicSeoRoutes = [
     priority: 0.8,
   },
   {
+    path: "/guide/practical-pizza-tips",
+    title: "Practical Pizza Tips | DoughTools",
+    description:
+      "Find practical pizza tips for leftover dough, freezing and thawing, fermentation timing, containers, lids and common pizza-making problems.",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
     path: "/styles",
     title: "Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools",
     description: "Compare major pizza styles by crust, texture, dough, oven, sauce and baking method, and learn which style DoughTools currently supports for planning.",

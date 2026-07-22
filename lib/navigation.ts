@@ -8,6 +8,7 @@ export type NavigationItemId =
   | "toppings"
   | "ovens"
   | "styles"
+  | "practical-tips"
   | "troubleshooting"
   | "quick-calculator"
   | "about"
@@ -51,6 +52,7 @@ export const navigationGroups = [
       { id: "toppings", label: "Choose toppings", href: "/toppings", description: "Balance sauce, cheese and topping moisture before baking." },
       { id: "ovens", label: "Choose your oven", href: "/ovens", description: "Compare oven types and understand practical bake trade-offs." },
       { id: "styles", label: "Choose your pizza", href: "/styles", description: "Compare pizza styles and choose the style you want to make." },
+      { id: "practical-tips", label: "Practical pizza tips", href: "/guide/practical-pizza-tips", description: "Find practical storage, timing and problem-solving topics for future guide articles." },
       { id: "troubleshooting", label: "Fix pizza problems", href: "/guide/pizza-troubleshooting", description: "Fix common dough, topping and baking problems." },
     ],
   },

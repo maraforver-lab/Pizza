@@ -136,6 +136,9 @@ describe("final product navigation model", () => {
     expect(header).toContain("Choose toppings");
     expect(header).toContain("Balance sauce, cheese and topping moisture before baking.");
     expect(header).toContain('href: "/toppings"');
+    expect(header).toContain("Practical pizza tips");
+    expect(header).toContain("Storage, timing and common pizza-making fixes.");
+    expect(header).toContain('href: "/guide/practical-pizza-tips"');
     expect(header).not.toContain('href="/timer"');
     expect(header).not.toContain('href="/costs"');
     expect(header).not.toMatch(/Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
@@ -185,6 +188,7 @@ describe("final product navigation model", () => {
     expect(header).toContain("Choose toppings");
     expect(header).toContain("Choose your oven");
     expect(header).toContain("Choose your pizza");
+    expect(header).toContain("Practical pizza tips");
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain("About DoughTools");
     expect(header).toContain("Close menu");

@@ -48,6 +48,8 @@ const copy = {
   ovensDescription: "Compare home ovens, pizza ovens and bake trade-offs.",
   troubleshooting: "Fix pizza problems",
   troubleshootingDescription: "Fix common dough, topping and baking problems.",
+  practicalTips: "Practical pizza tips",
+  practicalTipsDescription: "Storage, timing and common pizza-making fixes.",
   about: "About",
   aboutDoughTools: "About DoughTools",
 } as const;
@@ -93,6 +95,11 @@ const learningMenuItems = [
     description: copy.pizzaStylesDescription,
   },
   {
+    href: "/guide/practical-pizza-tips",
+    label: copy.practicalTips,
+    description: copy.practicalTipsDescription,
+  },
+  {
     href: "/guide/pizza-troubleshooting",
     label: copy.troubleshooting,
     description: copy.troubleshootingDescription,
@@ -119,6 +126,10 @@ const mobileLearningItems = [
   {
     href: "/styles",
     label: copy.pizzaStyles,
+  },
+  {
+    href: "/guide/practical-pizza-tips",
+    label: copy.practicalTips,
   },
   {
     href: "/guide/pizza-troubleshooting",
@@ -240,6 +251,7 @@ export default function GlobalToolNavigation() {
   const toppingsGuideActive = pathname === "/toppings";
   const pizzaStylesActive = pathname === "/styles";
   const ovensActive = pathname === "/ovens";
+  const practicalTipsActive = pathname === "/guide/practical-pizza-tips";
   const troubleshootingActive = pathname === "/guide/pizza-troubleshooting";
   const quickCalculatorActive = pathname === "/calculator/quick";
   const aboutActive = pathname === "/about";
@@ -381,6 +393,7 @@ export default function GlobalToolNavigation() {
     if (href === "/toppings") return toppingsGuideActive;
     if (href === "/ovens") return ovensActive;
     if (href === "/styles") return pizzaStylesActive;
+    if (href === "/guide/practical-pizza-tips") return practicalTipsActive;
     if (href === "/guide/pizza-troubleshooting") return troubleshootingActive;
     return false;
   };

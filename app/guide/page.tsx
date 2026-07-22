@@ -47,6 +47,12 @@ const secondaryGuides: GuideLink[] = [
   },
   {
     title: "Practical pizza tips",
+    description: "Start with practical storage, timing and problem-solving topics.",
+    href: "/guide/practical-pizza-tips",
+    icon: "warning",
+  },
+  {
+    title: "Fix pizza problems",
     description: "Find causes and fixes when dough, baking or toppings go wrong.",
     href: "/guide/pizza-troubleshooting",
     icon: "warning",

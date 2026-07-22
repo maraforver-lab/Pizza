@@ -45,6 +45,7 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).toContain("aria-label=\"Open DoughTools navigation menu\"");
     expect(navigationSource).toContain('const doughGuideActive = pathname === "/guides/dough"');
     expect(navigationSource).toContain('const learningCenterActive = pathname === "/guide"');
+    expect(navigationSource).toContain('const practicalTipsActive = pathname === "/guide/practical-pizza-tips"');
     expect(navigationSource).toContain('const troubleshootingActive = pathname === "/guide/pizza-troubleshooting"');
     expect(navigationSource).toContain('aria-current={active ? "page" : undefined}');
     expect(navigationSource).toContain('aria-current={aboutActive ? "page" : undefined}');
@@ -66,6 +67,8 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).not.toContain("Tools menu");
     expect(navigationSource).toContain('href: "/toppings"');
     expect(navigationSource).toContain("Choose toppings");
+    expect(navigationSource).toContain('href: "/guide/practical-pizza-tips"');
+    expect(navigationSource).toContain("Practical pizza tips");
     expect(navigationSource).not.toContain('href="/timer"');
     expect(navigationSource).not.toContain('href="/costs"');
     expect(navigationSource).not.toContain("aria-expanded={expanded}");

@@ -37,6 +37,8 @@ describe("learning architecture", () => {
     expect(header).toContain('href: "/styles"');
     expect(header).toContain("Choose your oven");
     expect(header).toContain('href: "/ovens"');
+    expect(header).toContain("Practical pizza tips");
+    expect(header).toContain('href: "/guide/practical-pizza-tips"');
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain('href: "/guide/pizza-troubleshooting"');
     expect(header).toContain('aria-current={active ? "page" : undefined}');
@@ -48,6 +50,7 @@ describe("learning architecture", () => {
     expect(header).toContain("Choose toppings");
     expect(header).toContain("Choose your oven");
     expect(header).toContain("Choose your pizza");
+    expect(header).toContain("Practical pizza tips");
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain("h-[100dvh]");
     expect(header).toContain("overflow-y-auto");
