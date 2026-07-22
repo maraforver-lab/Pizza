@@ -127,7 +127,7 @@ function selectedFlourLabel(value?: string) {
 function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["missingReason"]) {
   if (reason === "no-session") {
     return {
-      action: "Plan my next pizza",
+      action: "Plan a pizza",
       actionHref: "/session/start",
       body: "Start by choosing when you want to eat and what kind of pizza you want to make.",
       title: "No active pizza plan",
@@ -136,7 +136,7 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
   }
   if (reason === "missing-path") {
     return {
-      action: "Complete my pizza plan",
+      action: "Complete your pizza plan",
       actionHref: "/session/start",
       body: "The dough plan needs to know whether you are baking in a home oven, pizza oven or pan.",
       title: "Your dough plan is not ready yet.",
@@ -145,7 +145,7 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
   }
   if (reason === "missing-preset") {
     return {
-      action: "Complete my pizza plan",
+      action: "Complete your pizza plan",
       actionHref: "/session/start",
       body: "The pizza style keeps dough planning separate from the topping choices you’ll allocate in Shopping.",
       title: "Your dough plan is not ready yet.",
@@ -154,7 +154,7 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
   }
   if (reason === "missing-quantity") {
     return {
-      action: "Complete my pizza plan",
+      action: "Complete your pizza plan",
       actionHref: "/session/start",
       body: "The dough plan needs a number of pizzas before it can calculate the total dough.",
       title: "Your dough plan is not ready yet.",
@@ -162,9 +162,9 @@ function missingCopy(reason: Exclude<SessionRecipeBuildResult, { ok: true }>["mi
     };
   }
   return {
-    action: "Complete my pizza plan",
+    action: "Complete your pizza plan",
     actionHref: "/session/start",
-    body: "Pick the closest flour type in the session starter. Exact flour tuning remains available in the full calculator.",
+    body: "Pick the closest flour type in the pizza plan setup. Exact flour tuning remains available in the full calculator.",
     title: "Your dough plan is not ready yet.",
     variant: "step-unavailable" as const,
   };
@@ -205,7 +205,7 @@ export default function SessionRecipePage() {
   if (routeError) {
     return (
       <SessionRouteState
-        action={{ href: "/session/start", label: "Start a new plan" }}
+        action={{ href: "/session/start", label: "Plan a pizza" }}
         body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
         eyebrow="Dough Plan"
         onRetry={() => window.location.reload()}
@@ -218,7 +218,7 @@ export default function SessionRecipePage() {
   if (!ready || !result) {
     return (
       <SessionRouteState
-        body="Checking this browser for an active pizza plan before building the dough recipe."
+        body="Checking this browser for an active pizza plan before building the Dough Plan."
         eyebrow="Dough Plan"
         title="Opening your pizza plan"
         variant="checking"
@@ -231,7 +231,7 @@ export default function SessionRecipePage() {
     return (
       <SessionRouteState
         action={{ href: copy.actionHref, label: copy.action }}
-        eyebrow="Pizza Session recipe"
+        eyebrow="Dough Plan"
         title={copy.title}
         body={copy.body}
         localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.`}
@@ -364,8 +364,8 @@ export default function SessionRecipePage() {
         <SessionStepHero
           step={6}
           label="Dough Plan"
-          pageType="Reference page"
-          title="Your Dough Plan is ready."
+          pageType="Dough Plan"
+          title="Dough Plan"
           body={doughPlanHeroBody}
           level={session.experienceLevel}
           levelCompactOnMobile
@@ -418,11 +418,11 @@ export default function SessionRecipePage() {
               <div className="grid gap-5">
                 <section aria-labelledby="ingredients-amounts-heading" className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 id="ingredients-amounts-heading" className="font-display text-2xl font-semibold">Ingredients & amounts</h3>
+                    <h3 id="ingredients-amounts-heading" className="font-display text-2xl font-semibold">Make the dough</h3>
                     <span className="rounded-full bg-leaf/10 px-3 py-1.5 text-xs font-extrabold text-leaf">Weigh for best results</span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-ink/55">
-                    Use these amounts when mixing your dough.
+                    Use these amounts when you make the dough.
                   </p>
                   <dl className="mt-3 grid gap-2 sm:grid-cols-2">
                     <div className="rounded-2xl bg-white p-3">
@@ -528,10 +528,10 @@ export default function SessionRecipePage() {
                   <>
                     <details className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:hidden">
                       <summary className="cursor-pointer list-none font-display text-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-                        Sauce for this plan
+                        Make the sauce
                       </summary>
                       <p className="mt-2 text-sm leading-6 text-ink/55">
-                        Use this when preparing toppings. Shopping rounds tomato cans separately.
+                        Use this when you make the sauce. Shopping rounds tomato cans separately.
                       </p>
                       <dl className="mt-3 grid gap-2">
                         <div className="rounded-2xl bg-white p-3">
@@ -550,11 +550,11 @@ export default function SessionRecipePage() {
                     </details>
                     <section aria-labelledby="session-recipe-sauce-heading" className="hidden min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:block sm:p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <h3 id="session-recipe-sauce-heading" className="font-display text-2xl font-semibold">Sauce for this plan</h3>
+                        <h3 id="session-recipe-sauce-heading" className="font-display text-2xl font-semibold">Make the sauce</h3>
                         <span className="rounded-full bg-tomato/10 px-3 py-1.5 text-xs font-extrabold text-tomato">Prepare separately</span>
                       </div>
                       <p className="mt-2 text-sm leading-6 text-ink/55">
-                        Use this when preparing toppings. Shopping rounds tomato cans separately.
+                        Use this when you make the sauce. Shopping rounds tomato cans separately.
                       </p>
                       <dl className="mt-3 grid gap-2 sm:grid-cols-3">
                         <div className="rounded-2xl bg-white p-3">
@@ -630,7 +630,7 @@ export default function SessionRecipePage() {
 
                 {!selectedLongHorizonOption && (
                   <p className="mt-3 rounded-2xl bg-white/80 p-3 text-sm font-extrabold leading-6 text-tomato">
-                    Select one of these plans before continuing so DoughTools can calculate yeast, flour guidance, Timeline, and Kitchen Mode from the chosen fermentation window.
+                    Select one of these plans before continuing so DoughTools can calculate yeast, flour guidance, Timeline, and Kitchen from the chosen fermentation window.
                   </p>
                 )}
 
@@ -667,7 +667,7 @@ export default function SessionRecipePage() {
                 href="/session/shopping"
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 sm:w-auto"
               >
-                Continue to Shopping →
+                Continue your pizza plan →
               </Link>
             )
           )}

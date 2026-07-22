@@ -40,7 +40,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(start).toContain("const continueToRecipe = async (options: { replaceActiveCloudSession?: boolean } = {})");
     expect(start).toContain("await materializeCloudBackedPizzaSession(saved,");
     expect(start).toContain("router.push(\"/session/recipe\")");
-    expectTextLink(recipe, "Continue to Shopping →", "/session/shopping");
+    expectTextLink(recipe, "Continue your pizza plan →", "/session/shopping");
     expectTextLink(shopping, "Continue to Timeline →", "/session/timeline");
     expect(timeline).toContain('onClick={handleNextAction}');
     expect(timeline).toContain('router.push(nextAction.href)');

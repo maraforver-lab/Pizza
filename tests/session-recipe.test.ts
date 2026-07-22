@@ -62,7 +62,7 @@ describe("Session recipe build step", () => {
     expect(page).toContain("hideMeta");
     expect(page).toContain("levelCompactOnMobile");
     expect(page).toContain("hideBodyOnMobile");
-    expect(page).toContain("Your Dough Plan is ready.");
+    expect(page).toContain("title=\"Dough Plan\"");
     expect(page).toContain("Get your dough ingredients and amounts ready before you start.");
     expect(page).toContain("doughPlanHeroBody");
     expect(page).toContain("fermentationDisplay.durationHours > 24");
@@ -71,7 +71,7 @@ describe("Session recipe build step", () => {
     expect(page).toContain("{result.settings.pizzas} × {result.settings.ballWeight} g");
     expect(page).not.toContain("Dough ball size");
     expect(page).not.toContain("Batch size");
-    expect(page).toContain("Continue to Shopping");
+    expect(page).toContain("Continue your pizza plan");
     expect(page).toContain("Back");
     expect(page).toContain('href="/session/start"');
     expect(page).toContain('href="/session/shopping"');
@@ -120,14 +120,14 @@ describe("Session recipe build step", () => {
 
     expect(page).not.toContain("Get ready to mix");
     expect(page).not.toContain("Gather your ingredients and tools, and measure everything before you start.");
-    expect(page).toContain("Ingredients & amounts");
+    expect(page).toContain("Make the dough");
     expect(page).toContain("Weigh for best results");
     expect(page).toContain("Total dough");
     expect(page).toContain("Flour");
     expect(page).toContain("Water");
     expect(page).toContain("Salt");
     expect(page).toContain("Yeast");
-    expect(page).toContain("Use these amounts when mixing your dough.");
+    expect(page).toContain("Use these amounts when you make the dough.");
     expect(page).not.toContain("Use a digital scale for best accuracy. That’s enough to start the dough.");
     expect(page).not.toContain("Yeast can be a very small amount. A precision scale helps.");
     expect(page).not.toContain("doughPrepTools");
@@ -192,10 +192,10 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("Add a bake date and time to get a stronger planning risk summary.");
     expect(page).not.toContain("Calculator v1");
     expect(page).not.toContain("Calculator v2");
-    expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Choose your fermentation length"));
+    expect(page.indexOf("title=\"Dough Plan\"")).toBeLessThan(page.indexOf("Choose your fermentation length"));
     expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("<SavePizzaSessionToAccount session={session} />"));
-    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Ingredients & amounts"));
-    expect(page.indexOf("Your Dough Plan is ready.")).toBeLessThan(page.indexOf("Ingredients & amounts"));
+    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Make the dough"));
+    expect(page.indexOf("title=\"Dough Plan\"")).toBeLessThan(page.indexOf("Make the dough"));
   });
 
   it("keeps planning guidance primitives unused on the Dough Plan page", () => {
@@ -236,7 +236,7 @@ describe("Session recipe build step", () => {
   it("shows one separate sauce quantity summary without changing the dough ingredient list", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).toContain("Sauce for this plan");
+    expect(page).toContain("Make the sauce");
     expect(page).toContain('<details className="min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:hidden">');
     expect(page).toContain('<section aria-labelledby="session-recipe-sauce-heading" className="hidden min-w-0 rounded-[1.25rem] bg-cream/70 p-3.5 sm:block sm:p-4">');
     expect(page).toContain("Use on pizzas");
@@ -254,7 +254,7 @@ describe("Session recipe build step", () => {
     expect(page.match(/<SavePizzaSessionToAccount session={session} \/>/g)).toHaveLength(1);
     expect(page).toContain('<div className="order-2 mt-4 sm:order-1 sm:mt-0">');
     expect(page).toContain('<section className="order-1 sm:order-2 sm:mt-6" aria-label="Dough plan details">');
-    expect(page.indexOf("<SavePizzaSessionToAccount session={session} />")).toBeLessThan(page.indexOf("Ingredients & amounts"));
+    expect(page.indexOf("<SavePizzaSessionToAccount session={session} />")).toBeLessThan(page.indexOf("Make the dough"));
   });
 
   it("uses the same Sauce helper for Recipe and Shopping sauce quantities", () => {
@@ -292,7 +292,7 @@ describe("Session recipe build step", () => {
   it("keeps Shopping as the primary next step from the dough plan page", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).toContain("Continue to Shopping →");
+    expect(page).toContain("Continue your pizza plan →");
     expect(page).toContain("href=\"/session/shopping\"");
     expect(page).toContain("BottomActionBar");
     expect(page).not.toContain("Next step");
@@ -300,7 +300,7 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("SessionLocalOnlyNote");
     expect(page).not.toContain("{PIZZA_SESSION_LOCAL_ONLY_COPY} Saved locally in this browser.");
     expect(page).not.toContain("href=\"/session/timeline\"");
-    expect(page.match(/Continue to Shopping →/g)).toHaveLength(1);
+    expect(page.match(/Continue your pizza plan →/g)).toHaveLength(1);
     expect(page).not.toContain("Edit session choices");
     expect(page).not.toContain("Review setup");
   });

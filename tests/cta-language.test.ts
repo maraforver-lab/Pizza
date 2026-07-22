@@ -42,7 +42,7 @@ describe("sitewide CTA language", () => {
     ]);
 
     expect(workflow).toContain("Create my pizza plan");
-    expect(workflow).toContain("Continue to Shopping");
+    expect(workflow).toContain("Continue your pizza plan");
     expect(workflow).toContain("Continue to Timeline");
     expect(workflow).toContain("Start Kitchen Mode");
     expect(workflow).toContain("Review my pizza");
@@ -68,7 +68,7 @@ describe("sitewide CTA language", () => {
     ]);
 
     expect(toolSources).toContain("Calculate my dough");
-    expect(toolSources).toContain("Calculate my sauce");
+    expect(toolSources).toContain("Make the sauce");
     expect(toolSources).toContain("Estimate my pizza cost");
     expect(toolSources).toContain("Build and compare the topping load");
     expect(toolSources).toContain("Keep your eyes on the pizza");
