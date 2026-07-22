@@ -267,6 +267,7 @@ describe("Patch 445A public theme architecture", () => {
       "app/api/admin/themes/route.ts",
       "app/api/admin/themes/[id]/route.ts",
       "app/api/admin/themes/activate-default/route.ts",
+      "app/api/admin/themes/activate-now/route.ts",
       "lib/admin-theme-api.ts",
     ].map(source).join("\n");
 
@@ -277,10 +278,39 @@ describe("Patch 445A public theme architecture", () => {
     expect(routes).toContain("admin_update_theme_campaign");
     expect(routes).toContain("admin_delete_theme_campaign");
     expect(routes).toContain("admin_activate_default_theme");
+    expect(routes).toContain("admin_activate_theme_now");
     expect(routes).toContain("revalidatePublicThemeCache");
     expect(routes).toContain("Unknown public theme");
     expect(routes).toContain("stale: true");
     expect(routes).not.toMatch(/auth\.admin|service_role|pizza_sessions|party_orders|account_preferences|created_by.*json|updated_by.*json/i);
+  });
+
+  it("allows direct seasonal theme activation through an atomic database function", () => {
+    const migration = source("supabase/migrations/20260722100000_activate_public_theme_now.sql");
+    const activateRoute = source("app/api/admin/themes/activate-now/route.ts");
+    const appearanceClient = source("components/admin/AdminAppearanceClient.tsx");
+
+    expect(migration).toContain("create or replace function public.admin_activate_theme_now(p_theme_id text)");
+    expect(migration).toContain("lock table public.theme_campaigns in exclusive mode");
+    expect(migration).toContain("where enabled is true");
+    expect(migration).toContain("and starts_at <= activation_time");
+    expect(migration).toContain("and (ends_at is null or activation_time < ends_at)");
+    expect(migration).toContain("set enabled = false");
+    expect(migration).toContain("if public.theme_campaign_overlaps(null, p_theme_id, activation_time, null) then");
+    expect(migration).toContain("raise exception 'theme_campaign_overlap'");
+    expect(migration).toContain("insert into public.theme_campaigns (theme_id, starts_at, ends_at, created_by, updated_by)");
+    expect(migration).toContain("grant execute on function public.admin_activate_theme_now(text) to authenticated");
+
+    expect(activateRoute).toContain("requireAdminRequest(request)");
+    expect(activateRoute).toContain("admin_activate_theme_now");
+    expect(activateRoute).toContain("p_theme_id: body.themeId");
+    expect(activateRoute).toContain('body.themeId === "default"');
+    expect(activateRoute).toContain("revalidatePublicThemeCache");
+    expect(activateRoute).not.toMatch(/auth\.admin|service_role|pizza_sessions|party_orders|account_preferences/i);
+
+    expect(appearanceClient).toContain('fetch("/api/admin/themes/activate-now"');
+    expect(appearanceClient).toContain('fetch("/api/admin/themes/activate-default"');
+    expect(appearanceClient).not.toMatch(/theme\.id,\s*startsAt:\s*new Date\(\)\.toISOString\(\),\s*endsAt:\s*null/s);
   });
 
   it("adds the protected Appearance UI without exposing private data or public navigation", () => {
