@@ -288,23 +288,28 @@ describe("Patch 445A public theme architecture", () => {
   it("restores seasonal Activate now to the proven campaign creation route", () => {
     const migration = source("supabase/migrations/20260722100000_activate_public_theme_now.sql");
     const correctiveMigration = source("supabase/migrations/20260722110000_fix_activate_public_theme_now_rpc.sql");
-    const effectiveSql = `${migration}\n${correctiveMigration}`;
+    const repairedMigration = source("supabase/migrations/20260722120000_repair_activate_public_theme_now_rpc.sql");
+    const effectiveSql = `${migration}\n${correctiveMigration}\n${repairedMigration}`;
     const activateRoute = source("app/api/admin/themes/activate-now/route.ts");
     const appearanceClient = source("components/admin/AdminAppearanceClient.tsx");
 
     expect(effectiveSql).toContain("create or replace function public.admin_activate_theme_now(p_theme_id text)");
-    expect(correctiveMigration).toContain("perform pg_advisory_xact_lock(hashtext('public.theme_campaigns.activate_now'))");
-    expect(correctiveMigration).toContain("where enabled is true");
-    expect(correctiveMigration).toContain("and starts_at <= activation_time");
-    expect(correctiveMigration).toContain("and (ends_at is null or activation_time < ends_at)");
-    expect(correctiveMigration).toContain("set enabled = false");
-    expect(correctiveMigration).toContain("select exists (");
-    expect(correctiveMigration).toContain("from public.theme_campaigns existing");
-    expect(correctiveMigration).toContain("into has_overlap");
-    expect(correctiveMigration).toContain("raise exception 'theme_campaign_overlap'");
-    expect(correctiveMigration).toContain("insert into public.theme_campaigns (theme_id, starts_at, ends_at, created_by, updated_by)");
-    expect(correctiveMigration).toContain("grant execute on function public.admin_activate_theme_now(text) to authenticated");
-    expect(correctiveMigration).toContain("notify pgrst, 'reload schema'");
+    expect(repairedMigration).toContain("perform pg_advisory_xact_lock(hashtext('public.theme_campaigns.activate_now'))");
+    expect(repairedMigration).toContain("update public.theme_campaigns as active_campaign");
+    expect(repairedMigration).toContain("version = active_campaign.version + 1");
+    expect(repairedMigration).toContain("where active_campaign.enabled is true");
+    expect(repairedMigration).toContain("and active_campaign.starts_at <= activation_time");
+    expect(repairedMigration).toContain("and (active_campaign.ends_at is null or activation_time < active_campaign.ends_at)");
+    expect(repairedMigration).toContain("from public.theme_campaigns as future_campaign");
+    expect(repairedMigration).toContain("future_campaign.enabled is true");
+    expect(repairedMigration).toContain("into has_overlap");
+    expect(repairedMigration).toContain("raise exception 'theme_campaign_overlap'");
+    expect(repairedMigration).toContain("insert into public.theme_campaigns (theme_id, starts_at, ends_at, created_by, updated_by)");
+    expect(repairedMigration).toContain("returning");
+    expect(repairedMigration).toContain("public.theme_campaigns.version");
+    expect(repairedMigration).toContain("from inserted_campaign");
+    expect(repairedMigration).toContain("grant execute on function public.admin_activate_theme_now(text) to authenticated");
+    expect(repairedMigration).toContain("notify pgrst, 'reload schema'");
 
     expect(activateRoute).toContain("requireAdminRequest(request)");
     expect(activateRoute).toContain("admin_activate_theme_now");
@@ -318,6 +323,30 @@ describe("Patch 445A public theme architecture", () => {
     expect(appearanceClient).toContain("startsAt: new Date().toISOString()");
     expect(appearanceClient).toContain("endsAt: null");
     expect(appearanceClient).not.toContain('fetch("/api/admin/themes/activate-now"');
+  });
+
+  it("repairs activate-now RPC while preserving Admin-only authorization and return fields", () => {
+    const repairedMigration = source("supabase/migrations/20260722120000_repair_activate_public_theme_now_rpc.sql");
+    const activateRoute = source("app/api/admin/themes/activate-now/route.ts");
+    const defaultRoute = source("app/api/admin/themes/activate-default/route.ts");
+
+    expect(repairedMigration).toContain("caller_user_id uuid := public.require_theme_admin()");
+    expect(repairedMigration).toContain("if p_theme_id = 'default' then");
+    expect(repairedMigration).toContain("raise exception 'theme_campaign_invalid_theme'");
+    expect(repairedMigration).toContain("if p_theme_id not in ('valentine', 'easter', 'summer', 'harvest', 'halloween', 'christmas') then");
+    expect(repairedMigration).toContain("values (p_theme_id, activation_time, null, caller_user_id, caller_user_id)");
+    for (const field of ["id", "theme_id", "enabled", "starts_at", "ends_at", "version", "created_at", "updated_at"]) {
+      expect(repairedMigration).toContain(`inserted_campaign.${field}`);
+    }
+    expect(repairedMigration).toContain("public.theme_campaign_status(");
+    expect(repairedMigration).toContain(") as status");
+    expect(repairedMigration).not.toContain("where enabled is true");
+    expect(repairedMigration).not.toContain("version = version + 1");
+
+    expect(activateRoute).toContain("requireAdminRequest(request)");
+    expect(activateRoute).toContain("p_theme_id: body.themeId");
+    expect(activateRoute).toContain('body.themeId === "default"');
+    expect(defaultRoute).toContain("admin_activate_default_theme");
   });
 
   it("adds the protected Appearance UI without exposing private data or public navigation", () => {
