@@ -11,15 +11,20 @@ function source(path: string) {
 }
 
 describe("Account Bake Timer sound preference", () => {
-  it("adds the signed-in Account preference card without changing signed-out access", () => {
+  it("moves the signed-in Account preference card to Account Settings without changing signed-out access", () => {
     const componentPath = "components/account/AccountBakeTimerSoundPreference.tsx";
     expect(existsSync(join(process.cwd(), componentPath))).toBe(true);
 
     const accountPage = source("app/account/page.tsx");
+    const settingsPage = source("app/account/settings/page.tsx");
     const component = source(componentPath);
 
-    expect(accountPage).toContain("AccountBakeTimerSoundPreference");
-    expect(accountPage.indexOf("<AccountBakeTimerSoundPreference />")).toBeGreaterThan(accountPage.indexOf("{user ? ("));
+    expect(accountPage).toContain("href=\"/account/settings\"");
+    expect(accountPage).toContain("Open settings");
+    expect(accountPage).not.toContain("AccountBakeTimerSoundPreference");
+    expect(settingsPage).toContain("AccountBakeTimerSoundPreference");
+    expect(settingsPage).toContain("<AccountBakeTimerSoundPreference />");
+    expect(settingsPage).toContain("Sign in to manage settings");
     expect(component).toContain("Bake Timer sound");
     expect(component).toContain("Choose the sound used by newly opened timers.");
     expect(component).toContain("Each running timer can still be muted separately.");

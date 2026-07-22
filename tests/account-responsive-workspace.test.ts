@@ -18,6 +18,8 @@ describe("Patch 344 account responsive workspace", () => {
     expect(page).toContain("AccountPizzaSessionHistory enabled");
     expect(page).toContain("PartyOrdersAccountEntryCard enabled");
     expect(page).toContain("InstallAppPrompt compact collapsible");
+    expect(page).toContain("href=\"/account/settings\"");
+    expect(page).toContain("Open settings");
     expect(page).toContain("AccountGuidancePreference");
     expect(page).toContain("AccountAdminEntryCard");
     expect(page).toContain("Account and security");
@@ -36,6 +38,7 @@ describe("Patch 344 account responsive workspace", () => {
     const historyIndex = page.indexOf("AccountPizzaSessionHistory enabled");
     const partyIndex = page.indexOf("PartyOrdersAccountEntryCard enabled");
     const installIndex = page.indexOf("InstallAppPrompt compact collapsible");
+    const settingsIndex = page.indexOf("href=\"/account/settings\"");
     const guidanceIndex = page.indexOf("<AccountGuidancePreference");
     const adminIndex = page.indexOf("<AccountAdminEntryCard");
     const securityIndex = page.indexOf("Account and security");
@@ -44,7 +47,8 @@ describe("Patch 344 account responsive workspace", () => {
     expect(historyIndex).toBeGreaterThan(activeIndex);
     expect(partyIndex).toBeGreaterThan(historyIndex);
     expect(installIndex).toBeGreaterThan(partyIndex);
-    expect(guidanceIndex).toBeGreaterThan(installIndex);
+    expect(settingsIndex).toBeGreaterThan(installIndex);
+    expect(guidanceIndex).toBeGreaterThan(settingsIndex);
     expect(adminIndex).toBeGreaterThan(guidanceIndex);
     expect(securityIndex).toBeGreaterThan(adminIndex);
   });

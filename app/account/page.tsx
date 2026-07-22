@@ -6,8 +6,6 @@ import type { User } from "@supabase/supabase-js";
 import SiteFooter from "@/components/SiteFooter";
 import { AccountAdminEntryCard } from "@/components/account/AccountAdminEntryCard";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
-import { AccountBakeTimerSoundPreference } from "@/components/account/AccountBakeTimerSoundPreference";
-import { AccountEarlyCompletionPreference } from "@/components/account/AccountEarlyCompletionPreference";
 import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
 import { PartyOrdersAccountEntryCard } from "@/components/account/PartyOrdersAccountEntryCard";
@@ -167,9 +165,22 @@ export default function AccountPage() {
             <aside className="min-w-0 space-y-6 lg:sticky lg:top-24" aria-label="Account support tools">
               <PartyOrdersAccountEntryCard enabled className="mt-0" />
               <InstallAppPrompt compact collapsible className="mt-0" />
+              <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-settings-heading">
+                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
+                <h2 id="account-settings-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
+                  Settings
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-ink/60">
+                  Choose account preferences such as your Bake timer sound.
+                </p>
+                <Link
+                  href="/account/settings"
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                >
+                  Open settings
+                </Link>
+              </section>
               <AccountGuidancePreference />
-              <AccountBakeTimerSoundPreference />
-              <AccountEarlyCompletionPreference />
               <AccountAdminEntryCard />
               <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-security-heading">
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>

@@ -63,6 +63,23 @@ describe("Account preferences", () => {
     expect(migration).toContain("auth.uid() = user_id");
   });
 
+  it("fixes authenticated account preference grants without opening anonymous or cross-user access", () => {
+    const migrationPath = "supabase/migrations/20260722130000_fix_account_preferences_authenticated_grants.sql";
+    expect(existsSync(join(process.cwd(), migrationPath))).toBe(true);
+    const migration = source(migrationPath);
+
+    expect(migration).toContain("grant select, insert, update on table public.account_preferences to authenticated");
+    expect(migration).toContain("revoke all on table public.account_preferences from anon");
+    expect(migration).toContain("revoke delete on table public.account_preferences from authenticated");
+    expect(migration).toContain("for select");
+    expect(migration).toContain("for insert");
+    expect(migration).toContain("for update");
+    expect(migration).toContain("to authenticated");
+    expect(migration).toContain("using (auth.uid() = user_id)");
+    expect(migration).toContain("with check (auth.uid() = user_id)");
+    expect(migration).not.toMatch(/service_role|auth\.admin|using \(true\)|with check \(true\)/i);
+  });
+
   it("exposes authenticated GET and PATCH endpoints with stale-write protection", () => {
     const route = source("app/api/account/preferences/route.ts");
 
@@ -92,17 +109,18 @@ describe("Account preferences", () => {
     expect(route).toContain("soundSettings.enabledThemeIds.includes(record.bakeTimerSoundTheme)");
   });
 
-  it("renders the Account toggle only in the signed-in account workspace", () => {
+  it("removes the early-completion preference card from visible Account settings UI", () => {
     const accountPage = source("app/account/page.tsx");
-    const component = source("components/account/AccountEarlyCompletionPreference.tsx");
+    const settingsPage = source("app/account/settings/page.tsx");
+    const route = source("app/api/account/preferences/route.ts");
+    const preferences = source("lib/account-preferences.ts");
 
-    expect(accountPage).toContain("AccountEarlyCompletionPreference");
-    expect(accountPage.indexOf("<AccountEarlyCompletionPreference />")).toBeGreaterThan(accountPage.indexOf("{user ? ("));
-    expect(component).toContain("Allow early completion of timed dough stages");
-    expect(component).toContain("Allows you to continue before a dough rest or fermentation timer has finished.");
-    expect(component).toContain("Saving preference");
-    expect(component).toContain("knownUpdatedAt: updatedAt");
-    expect(component).not.toMatch(/localStorage|sessionStorage/);
+    expect(accountPage).not.toContain("AccountEarlyCompletionPreference");
+    expect(settingsPage).not.toContain("AccountEarlyCompletionPreference");
+    expect(accountPage).not.toContain("Allow early completion of timed dough stages");
+    expect(settingsPage).not.toContain("Allow early completion of timed dough stages");
+    expect(route).toContain("allowEarlyTimedStepCompletion");
+    expect(preferences).toContain("allowEarlyTimedStepCompletion");
   });
 
   it("keeps the preference code available while temporary Kitchen rollout enforcement is disabled", () => {
