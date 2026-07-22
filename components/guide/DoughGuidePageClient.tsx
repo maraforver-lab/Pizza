@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useId, useState } from "react";
-import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
+import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import ContextualReturn from "@/components/navigation/ContextualReturn";
 import {
   DOUGH_GUIDE_LEVEL_LABELS,
@@ -571,39 +571,6 @@ export default function DoughGuidePageClient() {
                   Dough is ready to stretch
                 </p>
               )}
-            </div>
-
-            <div className="mt-6">
-              <RelatedLearning
-                title="Connect dough technique to the rest of the pizza"
-                intro="The dough steps make more sense when you connect them to sauce moisture, oven heat and troubleshooting signs."
-                links={[
-                  {
-                    href: "/guide",
-                    title: "Pizza guides",
-                    description: "Understand hydration, fermentation, flour strength and oven heat.",
-                    icon: "information",
-                  },
-                  {
-                    href: "/sauce",
-                    title: "Pizza Sauce",
-                    description: "Balance tomato texture and moisture with your dough and oven.",
-                    icon: "water",
-                  },
-                  {
-                    href: "/ovens",
-                    title: "Baking guides",
-                    description: "Match dough, toppings and bake profile to your oven.",
-                    icon: "oven",
-                  },
-                  {
-                    href: "/guide/pizza-troubleshooting",
-                    title: "Troubleshooting",
-                    description: "Diagnose sticky dough, tearing, dense crusts and baking problems.",
-                    icon: "warning",
-                  },
-                ]}
-              />
             </div>
           </article>
         </div>

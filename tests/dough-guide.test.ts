@@ -872,4 +872,16 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("buildDoughGuideHref(nextStep.id, sessionReturnPath ?? undefined)");
     expect(page).toContain("buildDoughGuideHref(previousStep.id, sessionReturnPath ?? undefined)");
   });
+
+  it("removes the redundant large related-guides block while preserving step navigation", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).not.toContain("Connect dough technique to the rest of the pizza");
+    expect(page).not.toContain("The dough steps make more sense when you connect them to sauce moisture");
+    expect(page).not.toContain("<RelatedLearning");
+    expect(page).toContain("<LearningBreadcrumbs");
+    expect(page).toContain("<TroubleshootingLinksCard");
+    expect(page).toContain("Continue to {nextStep.actionName}");
+    expect(page).toContain("Previous step");
+  });
 });
