@@ -75,6 +75,8 @@ describe("Pizza guides index", () => {
     expect(guide).toContain('href: "/guides/dough"');
     expect(guide).toContain("How to make pizza sauce");
     expect(guide).toContain('href: "/sauce"');
+    expect(guide).toContain("Choose toppings");
+    expect(guide).toContain('href: "/toppings"');
     expect(guide).toContain("Baking guides");
     expect(guide).toContain('href: "/ovens"');
     expect(guide).toContain("Choose your pizza");

@@ -35,7 +35,7 @@ describe("internal link governance", () => {
     }
   });
 
-  it("keeps contextual utilities out of global navigation while preserving contextual links", () => {
+  it("keeps non-guide utilities out of global navigation while preserving contextual links", () => {
     const globalSurfaces = [
       source("components", "GlobalToolNavigation.tsx"),
       source("lib", "navigation.ts"),
@@ -44,7 +44,8 @@ describe("internal link governance", () => {
     const shopping = source("app", "session", "shopping", "page.tsx");
     const kitchen = source("app", "session", "kitchen", "page.tsx");
 
-    expect(globalSurfaces).not.toContain("/toppings");
+    expect(globalSurfaces).toContain("/toppings");
+    expect(globalSurfaces).toContain("Choose toppings");
     expect(globalSurfaces).not.toContain("/timer");
     expect(globalSurfaces).not.toContain("/costs");
     expect(footer).toContain('href: "/costs"');

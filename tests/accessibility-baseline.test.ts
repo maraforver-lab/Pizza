@@ -64,7 +64,8 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).not.toContain('startSession: "Start Pizza Session"');
     expect(navigationSource).toContain('href="/session/start"');
     expect(navigationSource).not.toContain("Tools menu");
-    expect(navigationSource).not.toContain('href="/toppings"');
+    expect(navigationSource).toContain('href: "/toppings"');
+    expect(navigationSource).toContain("Choose toppings");
     expect(navigationSource).not.toContain('href="/timer"');
     expect(navigationSource).not.toContain('href="/costs"');
     expect(navigationSource).not.toContain("aria-expanded={expanded}");

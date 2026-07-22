@@ -17,6 +17,7 @@ const globalNavigationRoutes = [
   "/guide",
   "/guides/dough",
   "/sauce",
+  "/toppings",
   "/ovens",
   "/styles",
   "/guide/pizza-troubleshooting",
@@ -25,11 +26,7 @@ const globalNavigationRoutes = [
   "/account",
 ] as const;
 
-const contextualOrFooterUtilityRoutes = [
-  "/toppings",
-  "/timer",
-  "/costs",
-] as const;
+const contextualOrFooterUtilityRoutes = ["/timer", "/costs"] as const;
 
 const retiredRoutes = [
   "/start",
@@ -78,7 +75,7 @@ describe("final product navigation model", () => {
     }
   });
 
-  it("does not expose contextual utilities as global navigation pillars", () => {
+  it("does not expose non-guide contextual utilities as global navigation pillars", () => {
     const paths = new Set(navigationItems.map((item) => splitNavigationHref(item.href).pathname));
     const labels = navigationItems.map((item) => item.label).join("\n");
 
@@ -136,8 +133,9 @@ describe("final product navigation model", () => {
     expect(header).not.toContain('copy.tools');
     expect(header).not.toContain('type OpenNavigationMenu = "guide" | "tools" | null');
     expect(header).not.toContain("Tools menu");
-    expect(header).not.toContain('href="/toppings"');
-    expect(header).not.toContain('href: "/toppings"');
+    expect(header).toContain("Choose toppings");
+    expect(header).toContain("Balance sauce, cheese and topping moisture before baking.");
+    expect(header).toContain('href: "/toppings"');
     expect(header).not.toContain('href="/timer"');
     expect(header).not.toContain('href="/costs"');
     expect(header).not.toMatch(/Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
@@ -184,6 +182,7 @@ describe("final product navigation model", () => {
     expect(header).toContain("Practical guides for dough, sauce, ovens and common problems.");
     expect(header).toContain("Make the dough");
     expect(header).toContain("Make the sauce");
+    expect(header).toContain("Choose toppings");
     expect(header).toContain("Choose your oven");
     expect(header).toContain("Choose your pizza");
     expect(header).toContain("Fix pizza problems");

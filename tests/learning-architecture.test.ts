@@ -31,6 +31,8 @@ describe("learning architecture", () => {
     expect(header).toContain('href: "/guides/dough"');
     expect(header).toContain("Make the sauce");
     expect(header).toContain('href: "/sauce"');
+    expect(header).toContain("Choose toppings");
+    expect(header).toContain('href: "/toppings"');
     expect(header).toContain("Choose your pizza");
     expect(header).toContain('href: "/styles"');
     expect(header).toContain("Choose your oven");
@@ -43,6 +45,7 @@ describe("learning architecture", () => {
     expect(header).toContain("Pizza guides");
     expect(header).toContain("Make the dough");
     expect(header).toContain("Make the sauce");
+    expect(header).toContain("Choose toppings");
     expect(header).toContain("Choose your oven");
     expect(header).toContain("Choose your pizza");
     expect(header).toContain("Fix pizza problems");

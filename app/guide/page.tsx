@@ -28,6 +28,12 @@ const primaryGuides: GuideLink[] = [
 
 const secondaryGuides: GuideLink[] = [
   {
+    title: "Choose toppings",
+    description: "Balance sauce, cheese and topping moisture before baking.",
+    href: "/toppings",
+    icon: "pizza",
+  },
+  {
     title: "Baking guides",
     description: "Compare oven types and understand how heat changes the bake.",
     href: "/ovens",

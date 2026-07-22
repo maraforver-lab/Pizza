@@ -5,6 +5,7 @@ export type NavigationItemId =
   | "guide"
   | "dough-guide"
   | "sauce"
+  | "toppings"
   | "ovens"
   | "styles"
   | "troubleshooting"
@@ -47,6 +48,7 @@ export const navigationGroups = [
     items: [
       { id: "dough-guide", label: "Make the dough", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
       { id: "sauce", label: "Make the sauce", href: "/sauce", description: "Learn sauce methods, tomato choices and sauce quantities." },
+      { id: "toppings", label: "Choose toppings", href: "/toppings", description: "Balance sauce, cheese and topping moisture before baking." },
       { id: "ovens", label: "Choose your oven", href: "/ovens", description: "Compare oven types and understand practical bake trade-offs." },
       { id: "styles", label: "Choose your pizza", href: "/styles", description: "Compare pizza styles and choose the style you want to make." },
       { id: "troubleshooting", label: "Fix pizza problems", href: "/guide/pizza-troubleshooting", description: "Fix common dough, topping and baking problems." },

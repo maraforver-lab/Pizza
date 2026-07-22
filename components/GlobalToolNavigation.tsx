@@ -40,6 +40,8 @@ const copy = {
   doughGuideDescription: "Step-by-step dough preparation from mixing to a ball ready to stretch.",
   sauceGuide: "Make the sauce",
   sauceGuideDescription: "Sauce methods, tomato choices and practical quantities.",
+  toppingsGuide: "Choose toppings",
+  toppingsGuideDescription: "Balance sauce, cheese and topping moisture before baking.",
   pizzaStyles: "Choose your pizza",
   pizzaStylesDescription: "Compare styles and choose the pizza you want to make.",
   ovens: "Choose your oven",
@@ -76,6 +78,11 @@ const learningMenuItems = [
     description: copy.sauceGuideDescription,
   },
   {
+    href: "/toppings",
+    label: copy.toppingsGuide,
+    description: copy.toppingsGuideDescription,
+  },
+  {
     href: "/ovens",
     label: copy.ovens,
     description: copy.ovensDescription,
@@ -100,6 +107,10 @@ const mobileLearningItems = [
   {
     href: "/sauce",
     label: copy.sauceGuide,
+  },
+  {
+    href: "/toppings",
+    label: copy.toppingsGuide,
   },
   {
     href: "/ovens",
@@ -226,6 +237,7 @@ export default function GlobalToolNavigation() {
   const doughGuideActive = pathname === "/guides/dough";
   const learningCenterActive = pathname === "/guide";
   const sauceGuideActive = pathname === "/sauce";
+  const toppingsGuideActive = pathname === "/toppings";
   const pizzaStylesActive = pathname === "/styles";
   const ovensActive = pathname === "/ovens";
   const troubleshootingActive = pathname === "/guide/pizza-troubleshooting";
@@ -366,6 +378,7 @@ export default function GlobalToolNavigation() {
     if (href === "/guide") return learningCenterActive;
     if (href === "/guides/dough") return doughGuideActive;
     if (href === "/sauce") return sauceGuideActive;
+    if (href === "/toppings") return toppingsGuideActive;
     if (href === "/ovens") return ovensActive;
     if (href === "/styles") return pizzaStylesActive;
     if (href === "/guide/pizza-troubleshooting") return troubleshootingActive;
