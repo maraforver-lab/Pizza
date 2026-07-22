@@ -103,13 +103,13 @@ describe("final product navigation model", () => {
     expect(existsSync(join(process.cwd(), "app", "community", "page.tsx"))).toBe(false);
   });
 
-  it("uses Plan my next pizza as the primary global navigation action", () => {
+  it("uses Plan a pizza as the primary global navigation action", () => {
     const primaryItem = navigationItems.find((item) => item.id === primaryNavigationItemId);
     const primaryGroup = navigationGroups.find((group) => group.id === "primary");
 
     expect(primaryNavigationItemId).toBe("start");
     expect(primaryItem?.href).toBe("/session/start");
-    expect(primaryItem?.label).toBe("Plan my next pizza");
+    expect(primaryItem?.label).toBe("Plan a pizza");
     expect(primaryGroup?.items.some((item) => item.id === primaryNavigationItemId)).toBe(true);
   });
 
@@ -122,10 +122,10 @@ describe("final product navigation model", () => {
     const header = source("components", "GlobalToolNavigation.tsx");
 
     expect(header).toContain('href="/session/start"');
-    expect(header).toContain("Plan my next pizza");
-    expect(header).toContain("Learning Center");
-    expect(header).toContain('aria-label="Learning Center menu"');
-    expect(header).toContain("Quick Calculator");
+    expect(header).toContain("Plan a pizza");
+    expect(header).toContain("Pizza guides");
+    expect(header).toContain('aria-label="Pizza guides menu"');
+    expect(header).toContain("Quick dough calculator");
     expect(header).toContain('href="/calculator/quick"');
     expect(header).toContain("About");
     expect(header).toContain('href="/about"');
@@ -140,7 +140,7 @@ describe("final product navigation model", () => {
     expect(header).not.toContain('href: "/toppings"');
     expect(header).not.toContain('href="/timer"');
     expect(header).not.toContain('href="/costs"');
-    expect(header).not.toMatch(/Make pizza|Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
+    expect(header).not.toMatch(/Learn & troubleshoot|My DoughTools|More tools|navigationGroups\.map|panelId|fixed inset-x-2/);
   });
 
   it("renders a mobile navigation menu with the same product priorities", () => {
@@ -165,11 +165,11 @@ describe("final product navigation model", () => {
     expect(header.indexOf("data-mobile-menu-section=\"learn\"")).toBeLessThan(header.indexOf("data-mobile-menu-section=\"about\""));
     expect(header).toContain("Sign in");
     expect(header).toContain("Save your pizza plans and continue on another device.");
-    expect(header).toContain("My account");
+    expect(header).toContain("Account");
     expect(header).toContain("Manage your pizza plans and preferences.");
     expect(header).toContain("Checking account...");
     expect(header).toContain("Continue making your pizza");
-    expect(header).toContain("Start making a pizza");
+    expect(header).toContain("Plan a pizza");
     expect(header).toContain("Checking your pizza...");
     expect(header).toContain("resolveCanonicalActivePizzaSession");
     expect(header).toContain("href={sessionDecision.href}");
@@ -180,14 +180,13 @@ describe("final product navigation model", () => {
     expect(header).toContain("Calculate dough amounts without starting a full pizza plan.");
     expect(header).toContain('data-mobile-tools-extension-point="before-quick-dough-calculator"');
     expect(header.indexOf('href: "/tools/bake-timer"')).toBeLessThan(header.indexOf('href: "/calculator/quick"'));
-    expect(header).toContain("Learn to make better pizza");
+    expect(header).toContain("Pizza guides");
     expect(header).toContain("Practical guides for dough, sauce, ovens and common problems.");
-    expect(header).toContain("How to make pizza dough");
-    expect(header).toContain("How to make pizza sauce");
-    expect(header).toContain("Choose and use your oven");
+    expect(header).toContain("Make pizza dough");
+    expect(header).toContain("Make pizza sauce");
+    expect(header).toContain("Choose your oven");
     expect(header).toContain("Choose your pizza style");
-    expect(header).toContain("Fix common pizza problems");
-    expect(header).toContain("View all pizza guides");
+    expect(header).toContain("Fix pizza problems");
     expect(header).toContain("About DoughTools");
     expect(header).toContain("Close menu");
     expect(header).not.toContain("Topping Balance Lab");

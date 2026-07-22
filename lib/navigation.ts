@@ -35,21 +35,21 @@ export const navigationGroups = [
     shortLabel: "Product",
     description: "The main DoughTools entry points for planning a pizza night.",
     items: [
-      { id: "start", label: "Plan my next pizza", href: "/session/start", description: "Create the guided Pizza Session for recipe, shopping, timeline, Kitchen Mode and review." },
-      { id: "guide", label: "Learning Center", href: "/guide", description: "Start with the canonical learning hub for dough, sauce, ovens, styles and troubleshooting." },
+      { id: "start", label: "Plan a pizza", href: "/session/start", description: "Create the guided Pizza Session for recipe, shopping, timeline, Kitchen Mode and review." },
+      { id: "guide", label: "Pizza guides", href: "/guide", description: "Start with the canonical learning hub for dough, sauce, ovens, styles and troubleshooting." },
     ],
   },
   {
     id: "learning",
-    label: "Learning Center",
+    label: "Pizza guides",
     shortLabel: "Learning",
     description: "Canonical learning pages for current pizza-making guidance.",
     items: [
-      { id: "dough-guide", label: "Dough Guide", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
-      { id: "sauce", label: "Pizza Sauce", href: "/sauce", description: "Learn sauce methods, tomato choices and sauce quantities." },
-      { id: "ovens", label: "Ovens", href: "/ovens", description: "Compare oven types and understand practical bake trade-offs." },
-      { id: "styles", label: "Pizza Styles", href: "/styles", description: "Compare pizza styles and choose the style you want to make." },
-      { id: "troubleshooting", label: "Troubleshooting", href: "/guide/pizza-troubleshooting", description: "Fix common dough, topping and baking problems." },
+      { id: "dough-guide", label: "Make pizza dough", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
+      { id: "sauce", label: "Make pizza sauce", href: "/sauce", description: "Learn sauce methods, tomato choices and sauce quantities." },
+      { id: "ovens", label: "Choose your oven", href: "/ovens", description: "Compare oven types and understand practical bake trade-offs." },
+      { id: "styles", label: "Choose your pizza style", href: "/styles", description: "Compare pizza styles and choose the style you want to make." },
+      { id: "troubleshooting", label: "Fix pizza problems", href: "/guide/pizza-troubleshooting", description: "Fix common dough, topping and baking problems." },
     ],
   },
   {
@@ -58,7 +58,7 @@ export const navigationGroups = [
     shortLabel: "Utility",
     description: "The one globally exposed standalone utility that supports, but does not replace, Pizza Session.",
     items: [
-      { id: "quick-calculator", label: "Quick Calculator", href: "/calculator/quick", description: "Calculate dough amounts quickly without creating a full Pizza Session." },
+      { id: "quick-calculator", label: "Quick dough calculator", href: "/calculator/quick", description: "Calculate dough amounts quickly without creating a full Pizza Session." },
     ],
   },
   {

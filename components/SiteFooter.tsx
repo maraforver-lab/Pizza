@@ -4,19 +4,19 @@ const footerGroups = [
   {
     title: "Learn",
     links: [
-      { label: "Learning Center", href: "/guide" },
-      { label: "Dough Guide", href: "/guides/dough" },
-      { label: "Pizza Sauce", href: "/sauce" },
-      { label: "Ovens", href: "/ovens" },
-      { label: "Pizza Styles", href: "/styles" },
-      { label: "Troubleshooting", href: "/guide/pizza-troubleshooting" },
+      { label: "Pizza guides", href: "/guide" },
+      { label: "Make pizza dough", href: "/guides/dough" },
+      { label: "Make pizza sauce", href: "/sauce" },
+      { label: "Choose your oven", href: "/ovens" },
+      { label: "Choose your pizza style", href: "/styles" },
+      { label: "Fix pizza problems", href: "/guide/pizza-troubleshooting" },
     ],
   },
   {
     title: "Product",
     links: [
-      { label: "Plan my next pizza", href: "/session/start" },
-      { label: "Quick Calculator", href: "/calculator/quick" },
+      { label: "Plan a pizza", href: "/session/start" },
+      { label: "Quick dough calculator", href: "/calculator/quick" },
       { label: "Party Orders", href: "/account/party-orders" },
       { label: "Pizza costs", href: "/costs" },
     ],

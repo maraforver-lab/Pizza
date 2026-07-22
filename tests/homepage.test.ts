@@ -223,26 +223,26 @@ describe("homepage content model", () => {
     expect(header).toContain("href=\"/account\"");
     expect(header).toContain("Account");
     expect(header).toContain("bg-ink text-white");
-    expect(header).toContain("Plan my next pizza");
+    expect(header).toContain("Plan a pizza");
     expect(header).toContain('href="/session/start"');
-    expect(header).toContain("Learning Center");
+    expect(header).toContain("Pizza guides");
     expect(header).toContain("Dough, sauce, ovens, styles and troubleshooting.");
-    expect(header).toContain("Pizza Sauce");
+    expect(header).toContain("Make pizza sauce");
     expect(header).toContain('href: "/sauce"');
-    expect(header).toContain("Troubleshooting");
+    expect(header).toContain("Fix pizza problems");
     expect(header).toContain("Fix common dough, topping and baking problems.");
     expect(header).toContain('href: "/guide/pizza-troubleshooting"');
-    expect(header).toContain("Pizza Styles");
+    expect(header).toContain("Choose your pizza style");
     expect(header).toContain('href: "/styles"');
-    expect(header).toContain("Ovens");
+    expect(header).toContain("Choose your oven");
     expect(header).toContain('href: "/ovens"');
-    expect(header).toContain("aria-label=\"Learning Center menu\"");
+    expect(header).toContain("aria-label=\"Pizza guides menu\"");
     expect(header).toContain("aria-label=\"Mobile navigation menu\"");
     expect(header).toContain('type OpenNavigationMenu = "learning" | "mobile" | null');
     expect(header).toContain("setOpenMenu(null)");
     expect(header).toContain("About");
     expect(header).not.toContain("Start Pizza Session");
-    expect(header).toContain("Quick Calculator");
+    expect(header).toContain("Quick dough calculator");
     expect(header).toContain("Fast standalone dough amounts without a Pizza Session.");
     expect(header).toContain('href="/calculator/quick"');
     expect(header).not.toContain("Tools menu");
@@ -254,7 +254,7 @@ describe("homepage content model", () => {
     expect(header).not.toContain("Calculate flour, water, salt and yeast.");
     expect(header).not.toContain("Calculator v1");
     expect(header).not.toContain("Full-control planning lab for dough variables and risk.");
-    expect(header).not.toMatch(/Make pizza|Learn & troubleshoot|My DoughTools|More tools/);
+    expect(header).not.toMatch(/Learn & troubleshoot|My DoughTools|More tools/);
     expect(header).not.toContain('label: "Dough Calculator"');
     expect(updateNotice).toContain('pathname === "/"');
     expect(homepage).not.toContain("homepageContent.hero.learnCta.href");
@@ -353,7 +353,7 @@ describe("homepage content model", () => {
     const afterFooter = homepage.slice(footerStart + "<SiteFooter />".length);
     expect(afterFooter).not.toContain("<section");
     expect(afterFooter).not.toContain("<SiteFooter");
-    expect(afterFooter).not.toContain("Plan my next pizza");
+    expect(afterFooter).not.toContain("Plan a pizza");
     expect(footer).toContain('aria-label="DoughTools footer"');
     expect(footer).toContain('id="site-footer-brand"');
     expect(footer).toContain("Made for better pizza nights.");
@@ -371,14 +371,14 @@ describe("homepage content model", () => {
       'title: "Learn"',
       'title: "Product"',
       'title: "Company"',
-      'label: "Learning Center", href: "/guide"',
-      'label: "Pizza Sauce", href: "/sauce"',
-      'label: "Dough Guide", href: "/guides/dough"',
-      'label: "Troubleshooting", href: "/guide/pizza-troubleshooting"',
-      'label: "Pizza Styles", href: "/styles"',
-      'label: "Ovens", href: "/ovens"',
-      'label: "Plan my next pizza", href: "/session/start"',
-      'label: "Quick Calculator", href: "/calculator/quick"',
+      'label: "Pizza guides", href: "/guide"',
+      'label: "Make pizza sauce", href: "/sauce"',
+      'label: "Make pizza dough", href: "/guides/dough"',
+      'label: "Fix pizza problems", href: "/guide/pizza-troubleshooting"',
+      'label: "Choose your pizza style", href: "/styles"',
+      'label: "Choose your oven", href: "/ovens"',
+      'label: "Plan a pizza", href: "/session/start"',
+      'label: "Quick dough calculator", href: "/calculator/quick"',
       'label: "Party Orders", href: "/account/party-orders"',
       'label: "Pizza costs", href: "/costs"',
       'label: "About", href: "/about"',
@@ -396,7 +396,7 @@ describe("homepage content model", () => {
     expect(footer).not.toContain("copyright");
   });
 
-  it("keeps global navigation focused on Pizza Session, Learning Center and secondary Quick Calculator", () => {
+  it("keeps global navigation focused on pizza planning, Pizza guides and the secondary quick calculator", () => {
     const header = source("components/GlobalToolNavigation.tsx");
     const homepage = source("app/page.tsx");
 
@@ -408,9 +408,9 @@ describe("homepage content model", () => {
     expect(header).toContain("setOpenMenu(null)");
     expect(header).not.toContain("<details");
     expect(header).not.toContain("<summary");
-    expect(header).toContain("Plan my next pizza");
-    expect(header).toContain("Learning Center");
-    expect(header).toContain("Quick Calculator");
+    expect(header).toContain("Plan a pizza");
+    expect(header).toContain("Pizza guides");
+    expect(header).toContain("Quick dough calculator");
     expect(header).toContain("Fast standalone dough amounts without a Pizza Session.");
     expect(header).toContain('href="/calculator/quick"');
     expect(header).toContain('const quickCalculatorActive = pathname === "/calculator/quick"');
@@ -481,7 +481,7 @@ describe("homepage content model", () => {
     const calculatorWorkspace = source("components/HomeCalculatorWorkspace.tsx");
     const sessionStart = source("app/session/start/page.tsx");
 
-    expect(header).toContain("Quick Calculator");
+    expect(header).toContain("Quick dough calculator");
     expect(header).toContain('href="/calculator/quick"');
     expect(header).not.toContain("Calculator v2");
     expect(header).not.toContain("Guided recommendation from bake time and ingredients.");

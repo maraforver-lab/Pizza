@@ -40,7 +40,7 @@ describe("core accessibility baseline", () => {
     expect(navigationSource).toContain("aria-expanded={mobileMenuOpen}");
     expect(navigationSource).toContain("aria-controls=\"global-learning-menu\"");
     expect(navigationSource).toContain("aria-controls=\"global-mobile-menu\"");
-    expect(navigationSource).toContain("aria-label=\"Learning Center menu\"");
+    expect(navigationSource).toContain("aria-label=\"Pizza guides menu\"");
     expect(navigationSource).toContain("aria-label=\"Mobile navigation menu\"");
     expect(navigationSource).toContain("aria-label=\"Open DoughTools navigation menu\"");
     expect(navigationSource).toContain('const doughGuideActive = pathname === "/guides/dough"');

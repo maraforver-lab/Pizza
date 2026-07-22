@@ -84,7 +84,7 @@ describe("canonical site footer", () => {
       expect(footer).toContain(`href: "${href}"`);
     }
 
-    expect(footer).toContain('label: "Quick Calculator", href: "/calculator/quick"');
+    expect(footer).toContain('label: "Quick dough calculator", href: "/calculator/quick"');
     expect(footer).toContain('label: "Pizza costs", href: "/costs"');
     expect(footer).not.toContain('href: "/toppings"');
     expect(footer).not.toContain('href: "/timer"');
@@ -123,7 +123,7 @@ describe("canonical site footer", () => {
 
       const afterFooter = text.slice(footerStart + "<SiteFooter />".length);
       expect(afterFooter, name).not.toMatch(/<section|<aside|<article|<nav|<Link|<a\s/);
-      expect(afterFooter, name).not.toMatch(/Plan my next pizza|Start Pizza Session|Next step|NEXT STEP/i);
+      expect(afterFooter, name).not.toMatch(/Plan a pizza|Start Pizza Session|Next step|NEXT STEP/i);
     }
   });
 

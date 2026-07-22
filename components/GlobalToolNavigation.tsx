@@ -16,35 +16,35 @@ const copy = {
   accountActive: "Account",
   signIn: "Sign in",
   signInDescription: "Save your pizza plans and continue on another device.",
-  myAccount: "My account",
+  myAccount: "Account",
   myAccountDescription: "Manage your pizza plans and preferences.",
   checkingAccount: "Checking account...",
   menu: "Menu",
-  plan: "Plan my next pizza",
-  mobileStartPizza: "Start making a pizza",
+  plan: "Plan a pizza",
+  mobileStartPizza: "Plan a pizza",
   mobileContinuePizza: "Continue making your pizza",
   mobileCheckingPizza: "Checking your pizza...",
   mobilePizzaFallback: "Continue your pizza plan",
   mobileStartPizzaDescription: "Create a guided plan for recipe, shopping, timeline, Kitchen Mode and review.",
-  learning: "Learning Center",
+  learning: "Pizza guides",
   learningDescription: "Dough, sauce, ovens, styles and troubleshooting.",
-  quickCalculator: "Quick Calculator",
+  quickCalculator: "Quick dough calculator",
   quickCalculatorDescription: "Fast standalone dough amounts without a Pizza Session.",
   mobileBakeTimer: "Bake timer",
   mobileBakeTimerDescription: "Time one pizza without starting a Pizza Session.",
   mobileQuickCalculator: "Quick dough calculator",
   mobileQuickCalculatorDescription: "Calculate dough amounts without starting a full pizza plan.",
-  mobileLearn: "Learn to make better pizza",
+  mobileLearn: "Pizza guides",
   mobileLearnDescription: "Practical guides for dough, sauce, ovens and common problems.",
-  doughGuide: "Dough Guide",
+  doughGuide: "Make pizza dough",
   doughGuideDescription: "Step-by-step dough preparation from mixing to a ball ready to stretch.",
-  sauceGuide: "Pizza Sauce",
+  sauceGuide: "Make pizza sauce",
   sauceGuideDescription: "Sauce methods, tomato choices and practical quantities.",
-  pizzaStyles: "Pizza Styles",
+  pizzaStyles: "Choose your pizza style",
   pizzaStylesDescription: "Compare styles and choose the pizza you want to make.",
-  ovens: "Ovens",
+  ovens: "Choose your oven",
   ovensDescription: "Compare home ovens, pizza ovens and bake trade-offs.",
-  troubleshooting: "Troubleshooting",
+  troubleshooting: "Fix pizza problems",
   troubleshootingDescription: "Fix common dough, topping and baking problems.",
   about: "About",
   aboutDoughTools: "About DoughTools",
@@ -95,27 +95,27 @@ const learningMenuItems = [
 const mobileLearningItems = [
   {
     href: "/guides/dough",
-    label: "How to make pizza dough",
+    label: copy.doughGuide,
   },
   {
     href: "/sauce",
-    label: "How to make pizza sauce",
+    label: copy.sauceGuide,
   },
   {
     href: "/ovens",
-    label: "Choose and use your oven",
+    label: copy.ovens,
   },
   {
     href: "/styles",
-    label: "Choose your pizza style",
+    label: copy.pizzaStyles,
   },
   {
     href: "/guide/pizza-troubleshooting",
-    label: "Fix common pizza problems",
+    label: copy.troubleshooting,
   },
   {
     href: "/guide",
-    label: "View all pizza guides",
+    label: copy.learning,
     secondary: true,
   },
 ] as const;
@@ -533,7 +533,7 @@ export default function GlobalToolNavigation() {
                 <DoughToolsIcon name="chevron-down" size={16} />
               </button>
               {learningMenuOpen && (
-                <div id="global-learning-menu" className="absolute right-0 top-12 z-[70] w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Learning Center menu">
+                <div id="global-learning-menu" className="absolute right-0 top-12 z-[70] w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl border border-ink/10 bg-white/95 p-2 text-ink shadow-card backdrop-blur" role="menu" aria-label="Pizza guides menu">
                   {learningMenuItems.map((item) => {
                     const active = learningActiveByHref(item.href);
                     return (
@@ -611,7 +611,7 @@ export default function GlobalToolNavigation() {
                   >
                     <div className="grid gap-4">
                       <section aria-labelledby="mobile-menu-account-heading" data-mobile-menu-section="account">
-                        <p id="mobile-menu-account-heading" className={mobileSectionLabelClass()}>My account</p>
+                        <p id="mobile-menu-account-heading" className={mobileSectionLabelClass()}>Account</p>
                         <div className="mt-2">{mobileAccountAction}</div>
                       </section>
 

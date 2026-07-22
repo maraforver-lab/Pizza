@@ -23,30 +23,29 @@ describe("learning architecture", () => {
     expect(pageEnding).toContain("cannot repeat the same destination");
   });
 
-  it("makes important learning pages discoverable from the Learning Center dropdown", () => {
+  it("makes important learning pages discoverable from the Pizza guides dropdown", () => {
     const header = source("components", "GlobalToolNavigation.tsx");
 
-    expect(header).toContain("Learning Center");
-    expect(header).toContain("Dough Guide");
+    expect(header).toContain("Pizza guides");
+    expect(header).toContain("Make pizza dough");
     expect(header).toContain('href: "/guides/dough"');
-    expect(header).toContain("Pizza Sauce");
+    expect(header).toContain("Make pizza sauce");
     expect(header).toContain('href: "/sauce"');
-    expect(header).toContain("Pizza Styles");
+    expect(header).toContain("Choose your pizza style");
     expect(header).toContain('href: "/styles"');
-    expect(header).toContain("Ovens");
+    expect(header).toContain("Choose your oven");
     expect(header).toContain('href: "/ovens"');
-    expect(header).toContain("Troubleshooting");
+    expect(header).toContain("Fix pizza problems");
     expect(header).toContain('href: "/guide/pizza-troubleshooting"');
     expect(header).toContain('aria-current={active ? "page" : undefined}');
-    expect(header).toContain('aria-label="Learning Center menu"');
+    expect(header).toContain('aria-label="Pizza guides menu"');
     expect(header).toContain('aria-label="Mobile navigation menu"');
-    expect(header).toContain("Learn to make better pizza");
-    expect(header).toContain("How to make pizza dough");
-    expect(header).toContain("How to make pizza sauce");
-    expect(header).toContain("Choose and use your oven");
+    expect(header).toContain("Pizza guides");
+    expect(header).toContain("Make pizza dough");
+    expect(header).toContain("Make pizza sauce");
+    expect(header).toContain("Choose your oven");
     expect(header).toContain("Choose your pizza style");
-    expect(header).toContain("Fix common pizza problems");
-    expect(header).toContain("View all pizza guides");
+    expect(header).toContain("Fix pizza problems");
     expect(header).toContain("h-[100dvh]");
     expect(header).toContain("overflow-y-auto");
   });
