@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Shallow tray with flour for coating dough.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="205" rx="118" ry="14" fill="#d8c9b6"/>
+  <path d="M66 138c16-37 172-37 188 0l-17 43H83Z" fill="#d8c3a5" stroke="#6f6256" stroke-width="4"/>
+  <ellipse cx="160" cy="138" rx="94" ry="30" fill="#fff9ef" stroke="#c8b797" stroke-width="4"/>
+  <ellipse cx="143" cy="131" rx="32" ry="16" fill="#fffdf7" opacity=".9"/>
+  <circle cx="199" cy="139" r="5" fill="#e9dcc8"/>
+  <circle cx="112" cy="143" r="4" fill="#e9dcc8"/>
+</svg>

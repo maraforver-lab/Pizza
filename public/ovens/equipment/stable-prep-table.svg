@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Stable prep table with organized pizza tools.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="208" rx="120" ry="12" fill="#d8c9b6"/>
+  <rect x="56" y="102" width="208" height="24" rx="6" fill="#8b6f55" stroke="#5d4938" stroke-width="4"/>
+  <path d="M78 126v64M242 126v64M116 126l-12 64M204 126l12 64" stroke="#5d4938" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="114" cy="83" r="20" fill="#fff4db" stroke="#c89f5b" stroke-width="3"/>
+  <rect x="151" y="72" width="54" height="26" rx="8" fill="#ded9d0" stroke="#6f6256" stroke-width="3"/>
+  <path d="M216 91h37" stroke="#b8492f" stroke-width="8" stroke-linecap="round"/>
+</svg>

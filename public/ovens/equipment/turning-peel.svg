@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Small round turning peel for rotating pizza.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="205" rx="116" ry="14" fill="#d8c9b6"/>
+  <circle cx="130" cy="126" r="55" fill="#d7d2ca" stroke="#5f5a54" stroke-width="4"/>
+  <circle cx="130" cy="126" r="39" fill="#fff0d1" stroke="#c89f5b" stroke-width="3"/>
+  <path d="M174 158l89 44" stroke="#6f6256" stroke-width="10" stroke-linecap="round"/>
+  <path d="M99 118c19-12 47-12 65 0" stroke="#e6bf76" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Cooling rack set above a cutting board.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="207" rx="118" ry="13" fill="#d8c9b6"/>
+  <rect x="67" y="104" width="186" height="80" rx="16" fill="#c89961" stroke="#6f4e31" stroke-width="4"/>
+  <rect x="88" y="75" width="144" height="74" rx="6" fill="#e7e3dc" stroke="#5f5a54" stroke-width="4"/>
+  <path d="M102 75v74M126 75v74M150 75v74M174 75v74M198 75v74M88 96h144M88 121h144" stroke="#8b8580" stroke-width="2"/>
+  <circle cx="235" cy="145" r="6" fill="#8b5d35"/>
+</svg>

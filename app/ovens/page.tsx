@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
@@ -118,6 +119,10 @@ const equipmentGroups = [
     items: [
       {
         name: "Digital scale",
+        image: {
+          src: "/ovens/equipment/digital-scale.svg",
+          alt: "Digital kitchen scale with a small bowl on top.",
+        },
         use: "Measures flour, water, salt and dough-ball weight repeatably.",
         priority: "Essential",
         ovenFit: "Both",
@@ -126,6 +131,10 @@ const equipmentGroups = [
       },
       {
         name: "Lidded proofing box",
+        image: {
+          src: "/ovens/equipment/lidded-proofing-box.svg",
+          alt: "Clear lidded proofing box holding dough balls.",
+        },
         use: "Keeps dough balls covered so they do not dry out before stretching.",
         priority: "Essential",
         ovenFit: "Both",
@@ -134,6 +143,10 @@ const equipmentGroups = [
       },
       {
         name: "Dough scraper",
+        image: {
+          src: "/ovens/equipment/dough-scraper.svg",
+          alt: "Flat dough scraper beside a dough ball.",
+        },
         use: "Releases dough from the box and helps move sticky dough without tearing it.",
         priority: "Essential",
         ovenFit: "Both",
@@ -142,6 +155,10 @@ const equipmentGroups = [
       },
       {
         name: "Launching peel",
+        image: {
+          src: "/ovens/equipment/launching-peel.svg",
+          alt: "Long launching peel holding an untopped pizza base.",
+        },
         use: "Moves a topped pizza from the station to the hot surface.",
         priority: "Essential",
         ovenFit: "Both",
@@ -150,6 +167,10 @@ const equipmentGroups = [
       },
       {
         name: "Infrared thermometer",
+        image: {
+          src: "/ovens/equipment/infrared-thermometer.svg",
+          alt: "Infrared thermometer aimed at a hot baking surface.",
+        },
         use: "Checks whether the stone, steel or oven floor is actually ready.",
         priority: "Essential",
         ovenFit: "Pizza oven; useful for home oven surfaces too",
@@ -158,6 +179,10 @@ const equipmentGroups = [
       },
       {
         name: "Fire blanket and heat gloves",
+        image: {
+          src: "/ovens/equipment/fire-blanket-heat-gloves.svg",
+          alt: "Folded fire blanket beside heat gloves.",
+        },
         use: "Basic protection around flame, hot metal, stones and trays.",
         priority: "Essential",
         ovenFit: "Both",
@@ -172,6 +197,10 @@ const equipmentGroups = [
     items: [
       {
         name: "Turning peel",
+        image: {
+          src: "/ovens/equipment/turning-peel.svg",
+          alt: "Small round turning peel for rotating pizza.",
+        },
         use: "Turns fast-baking pizza without pulling the whole pizza out of the oven.",
         priority: "Useful",
         ovenFit: "Pizza oven",
@@ -180,6 +209,10 @@ const equipmentGroups = [
       },
       {
         name: "Stable prep table",
+        image: {
+          src: "/ovens/equipment/stable-prep-table.svg",
+          alt: "Stable prep table with organized pizza tools.",
+        },
         use: "Gives a clean, steady surface for opening, topping and peel movement.",
         priority: "Useful",
         ovenFit: "Both",
@@ -188,6 +221,10 @@ const equipmentGroups = [
       },
       {
         name: "Opening-flour tray",
+        image: {
+          src: "/ovens/equipment/opening-flour-tray.svg",
+          alt: "Shallow tray with flour for coating dough.",
+        },
         use: "Coats the dough ball evenly before stretching.",
         priority: "Useful",
         ovenFit: "Both",
@@ -196,6 +233,10 @@ const equipmentGroups = [
       },
       {
         name: "Cooling rack and cutting board",
+        image: {
+          src: "/ovens/equipment/cooling-rack-cutting-board.svg",
+          alt: "Cooling rack set above a cutting board.",
+        },
         use: "Lets steam escape briefly before slicing and serving.",
         priority: "Useful",
         ovenFit: "Both",
@@ -204,6 +245,10 @@ const equipmentGroups = [
       },
       {
         name: "Wheel or pizza scissors",
+        image: {
+          src: "/ovens/equipment/wheel-pizza-scissors.svg",
+          alt: "Pizza cutter wheel and pizza scissors.",
+        },
         use: "Slices pizza without crushing the rim or dragging toppings.",
         priority: "Useful",
         ovenFit: "Both",
@@ -218,6 +263,10 @@ const equipmentGroups = [
     items: [
       {
         name: "Stone brush or scraper",
+        image: {
+          src: "/ovens/equipment/stone-brush-scraper.svg",
+          alt: "Stone brush and scraper for cleaning a baking surface.",
+        },
         use: "Removes burned flour from the hot surface between pizzas.",
         priority: "Optional",
         ovenFit: "Pizza oven; useful for stone or steel home setups",
@@ -226,6 +275,10 @@ const equipmentGroups = [
       },
       {
         name: "Cover and storage",
+        image: {
+          src: "/ovens/equipment/cover-storage.svg",
+          alt: "Protective cover folded beside an outdoor pizza oven.",
+        },
         use: "Protects outdoor oven parts from weather between uses.",
         priority: "Optional",
         ovenFit: "Pizza oven",
@@ -437,30 +490,43 @@ export default function OvensPage() {
 
                       <div className="mt-4 grid gap-3 lg:grid-cols-2">
                         {group.items.map((item) => (
-                          <article key={item.name} className="rounded-[1rem] border border-ink/10 bg-cream/70 p-4">
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                              <div>
-                                <h4 className="text-base font-extrabold">{item.name}</h4>
-                                <p className="mt-1 text-sm leading-6 text-ink/64">{item.use}</p>
+                          <article key={item.name} className="rounded-[1rem] border border-ink/10 bg-cream/70 p-3.5 sm:p-4">
+                            <div className="grid gap-3 sm:grid-cols-[5rem_1fr] sm:items-start">
+                              <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-ink/10 bg-white shadow-sm">
+                                <Image
+                                  src={item.image.src}
+                                  alt={item.image.alt}
+                                  fill
+                                  sizes="(min-width: 1024px) 80px, (min-width: 640px) 80px, calc(100vw - 4rem)"
+                                  className="object-cover"
+                                />
                               </div>
-                              <span className="w-fit rounded-full bg-tomato/10 px-3 py-1 text-[0.65rem] font-black uppercase tracking-[.12em] text-tomato">
-                                {item.priority}
-                              </span>
+                              <div className="min-w-0">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                  <div>
+                                    <h4 className="text-base font-extrabold">{item.name}</h4>
+                                    <p className="mt-1 text-sm leading-6 text-ink/64">{item.use}</p>
+                                  </div>
+                                  <span className="w-fit rounded-full bg-tomato/10 px-3 py-1 text-[0.65rem] font-black uppercase tracking-[.12em] text-tomato">
+                                    {item.priority}
+                                  </span>
+                                </div>
+                                <dl className="mt-3 grid gap-2 text-xs leading-5 text-ink/62 sm:grid-cols-2">
+                                  <div>
+                                    <dt className="font-extrabold text-ink">Oven fit</dt>
+                                    <dd>{item.ovenFit}</dd>
+                                  </div>
+                                  <div>
+                                    <dt className="font-extrabold text-ink">Beginner need</dt>
+                                    <dd>{item.beginner}</dd>
+                                  </div>
+                                  <div className="sm:col-span-2">
+                                    <dt className="font-extrabold text-ink">Use or safety note</dt>
+                                    <dd>{item.tip}</dd>
+                                  </div>
+                                </dl>
+                              </div>
                             </div>
-                            <dl className="mt-3 grid gap-2 text-xs leading-5 text-ink/62 sm:grid-cols-2">
-                              <div>
-                                <dt className="font-extrabold text-ink">Oven fit</dt>
-                                <dd>{item.ovenFit}</dd>
-                              </div>
-                              <div>
-                                <dt className="font-extrabold text-ink">Beginner need</dt>
-                                <dd>{item.beginner}</dd>
-                              </div>
-                              <div className="sm:col-span-2">
-                                <dt className="font-extrabold text-ink">Use or safety note</dt>
-                                <dd>{item.tip}</dd>
-                              </div>
-                            </dl>
                           </article>
                         ))}
                       </div>

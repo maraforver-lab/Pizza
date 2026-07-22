@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Clear lidded proofing box holding dough balls.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="204" rx="118" ry="15" fill="#d8c9b6"/>
+  <rect x="54" y="72" width="212" height="118" rx="18" fill="#e9f1ef" fill-opacity=".72" stroke="#6f6256" stroke-width="4"/>
+  <rect x="46" y="56" width="228" height="28" rx="12" fill="#d6dedb" stroke="#6f6256" stroke-width="4"/>
+  <ellipse cx="112" cy="142" rx="32" ry="24" fill="#fff9ef" stroke="#c9b799" stroke-width="3"/>
+  <ellipse cx="164" cy="144" rx="34" ry="25" fill="#fff8ed" stroke="#c9b799" stroke-width="3"/>
+  <ellipse cx="216" cy="142" rx="32" ry="24" fill="#fff9ef" stroke="#c9b799" stroke-width="3"/>
+  <path d="M77 97h166" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+</svg>

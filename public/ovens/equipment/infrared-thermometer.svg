@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Infrared thermometer aimed at a hot baking surface.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="205" rx="116" ry="14" fill="#d8c9b6"/>
+  <path d="M98 96h96c18 0 30 11 30 26s-12 26-30 26h-45l-18 50H94l16-56H98c-14 0-24-10-24-23s10-23 24-23Z" fill="#f1efe8" stroke="#5f5a54" stroke-width="4"/>
+  <rect x="106" y="111" width="58" height="22" rx="6" fill="#25211e"/>
+  <path d="M185 117h32" stroke="#d94124" stroke-width="5" stroke-linecap="round"/>
+  <path d="M226 119l44-21M226 128h51M226 137l44 21" stroke="#e25a2f" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+  <rect x="192" y="178" width="76" height="12" rx="4" fill="#786a5d"/>
+</svg>

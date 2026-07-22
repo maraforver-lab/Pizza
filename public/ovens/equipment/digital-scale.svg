@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Digital kitchen scale with a small bowl on top.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="205" rx="118" ry="14" fill="#d8c9b6"/>
+  <rect x="72" y="104" width="176" height="78" rx="16" fill="#ded9d0" stroke="#6f6256" stroke-width="4"/>
+  <rect x="98" y="126" width="124" height="34" rx="8" fill="#fbfaf7" stroke="#9a8d7f" stroke-width="3"/>
+  <rect x="126" y="137" width="68" height="12" rx="3" fill="#2f2a26"/>
+  <path d="M104 93c14-29 96-29 112 0 7 13-8 24-56 24s-63-11-56-24Z" fill="#f6f1ea" stroke="#6f6256" stroke-width="4"/>
+  <path d="M120 92c15 10 65 10 80 0" fill="none" stroke="#b8aa99" stroke-width="3" stroke-linecap="round"/>
+</svg>

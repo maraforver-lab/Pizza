@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title">
+  <title id="title">Folded fire blanket beside heat gloves.</title>
+  <rect width="320" height="240" fill="#f7efe4"/>
+  <ellipse cx="160" cy="205" rx="118" ry="14" fill="#d8c9b6"/>
+  <rect x="72" y="72" width="94" height="114" rx="10" fill="#f7f1df" stroke="#6f6256" stroke-width="4"/>
+  <path d="M90 99h58M90 121h58M90 143h58" stroke="#d5c39d" stroke-width="4" stroke-linecap="round"/>
+  <path d="M193 95c17-10 42 2 42 25v62h-66v-55c0-16 9-26 24-32Z" fill="#b8492f" stroke="#6f2f22" stroke-width="4"/>
+  <path d="M224 126c13-8 30 1 30 18v28h-30Z" fill="#d45c35" stroke="#6f2f22" stroke-width="4"/>
+  <path d="M194 116v47" stroke="#f2c28f" stroke-width="4" stroke-linecap="round"/>
+</svg>
