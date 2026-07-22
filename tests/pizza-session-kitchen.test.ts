@@ -112,13 +112,13 @@ describe("Pizza Session Kitchen Mode", () => {
     const page = source("app/session/kitchen/page.tsx");
 
     expect(page).toContain("\"use client\"");
-    expect(page).toContain("Kitchen Mode");
+    expect(page).toContain("Kitchen");
     expect(page).not.toContain("SessionStepHero");
     expect(page).not.toContain("Follow one step at a time.");
     expect(page).toContain("hideLocalSaveNote");
     expect(page).toContain("Step complete");
-    expect(page).toContain("Kitchen Mode is not ready yet");
-    expect(page).toContain("Build my timeline");
+    expect(page).toContain("Kitchen is not ready yet");
+    expect(page).toContain("Continue your pizza plan");
     expect(page).toContain("variant=\"no-session\"");
     expect(page).toContain("variant=\"step-unavailable\"");
     expect(page).toContain("Ingredient amounts unavailable");
@@ -830,7 +830,7 @@ describe("Pizza Session Kitchen Mode", () => {
   it("prepares a completion transition to review and notes", () => {
     const page = source("app/session/kitchen/page.tsx");
 
-    expect(page).toContain("Pizza session complete");
+    expect(page).toContain("Pizza plan ready for Review");
     expect(page).toContain("Save what worked and what you want to improve next time.");
     expect(page).toContain("Review my pizza");
     expect(page).toContain("href=\"/session/review\"");
@@ -882,13 +882,13 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("Keep in mind");
     expect(page).toContain("Next:");
     expect(page).toContain("const nextStepSummary = kitchenState.nextStep");
-    expect(page).toContain(": \"Review your pizza session\"");
+    expect(page).toContain(": \"Review your pizza\"");
     expect(page).toContain("BottomActionBar");
     expect(page).not.toContain("href={backHref}");
     expect(page).toContain("Change pizza menu");
     expect(page).toContain("View full schedule");
     expect(page).toContain("href=\"/session/timeline\"");
-    expect(page).toContain("Done baking? Review session");
+    expect(page).toContain("Done baking? Review");
     expect(page).toContain("setSession(updated)");
     expect(page).not.toContain("kitchenBackHrefFromSource(source)");
     expect(page).not.toContain("kitchenBackHrefFromReferrer(document.referrer)");
@@ -1015,7 +1015,7 @@ describe("Pizza Session Kitchen Mode", () => {
     expect(page).toContain("ovenTroubleshootingLink.ariaLabel");
     expect(page).toContain("{ovenTroubleshootingLink.label}");
     expect(page).toContain("Oven preheated");
-    expect(page).toContain("Done baking? Review session");
+    expect(page).toContain("Done baking? Review");
     expect(page).not.toContain("shouldConfirmEarlyKitchenStepCompletion(currentStep, new Date())");
   });
 

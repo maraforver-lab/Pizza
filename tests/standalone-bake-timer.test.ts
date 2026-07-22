@@ -60,7 +60,7 @@ describe("standalone Bake Timer", () => {
     expect(tool).not.toContain("setActivePizzaSession");
     expect(tool).not.toContain("queueCloudActivePizzaSessionSave");
     expect(tool).not.toContain("fetch(");
-    expect(tool).not.toContain("Done baking? Review session");
+    expect(tool).not.toContain("Done baking? Review");
     expect(tool).not.toContain("completeKitchenTimelineStep");
   });
 
@@ -100,7 +100,7 @@ describe("standalone Bake Timer", () => {
     expect(component).not.toContain("queueCloudActivePizzaSessionSave");
     expect(component).not.toContain("stepRuntime");
     expect(kitchenPage).toContain("KitchenBakeTimerPanel");
-    expect(kitchenPage).toContain("Done baking? Review session");
+    expect(kitchenPage).toContain("Done baking? Review");
   });
 
   it("preserves shared timer behavior for standalone use without Kitchen completion", () => {

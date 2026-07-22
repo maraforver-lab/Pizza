@@ -193,7 +193,7 @@ function kitchenCompleteActionLabel(step?: { id: string }) {
   if (step?.id === "room-temperature-rest") return "Ball rest complete";
   if (step?.id === "preheat-oven") return "Oven preheated";
   if (step?.id === "prepare-sauce-toppings") return "Sauce and toppings ready";
-  if (step?.id === "bake-pizza") return "Done baking? Review session";
+  if (step?.id === "bake-pizza") return "Done baking? Review";
   return "Step complete";
 }
 
@@ -361,11 +361,11 @@ export default function SessionKitchenPage() {
   if (routeError) {
     return (
       <SessionRouteState
-        action={{ href: "/session/start", label: "Start a new plan" }}
+        action={{ href: "/session/start", label: "Plan a pizza" }}
         body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
-        eyebrow="Kitchen Mode"
+        eyebrow="Kitchen"
         onRetry={() => window.location.reload()}
-        title="We couldn’t open Kitchen Mode."
+        title="We couldn’t open Kitchen."
         variant="error"
       />
     );
@@ -375,8 +375,8 @@ export default function SessionKitchenPage() {
     return (
       <SessionRouteState
         body="Checking this browser for an active pizza plan before opening guided cooking."
-        eyebrow="Kitchen Mode"
-        title="Opening Kitchen Mode"
+        eyebrow="Kitchen"
+        title="Opening Kitchen"
         variant="checking"
       />
     );
@@ -385,10 +385,10 @@ export default function SessionKitchenPage() {
   if (!session || (!kitchenState.ok && kitchenState.missingReason === "no-session")) {
     return (
       <SessionRouteState
-        action={{ href: "/session/start", label: "Create my plan" }}
+        action={{ href: "/session/start", label: "Plan a pizza" }}
         body="Create your pizza plan and preparation timeline before starting guided cooking."
-        eyebrow="Kitchen Mode"
-        title="Kitchen Mode is not ready yet"
+        eyebrow="Kitchen"
+        title="Kitchen is not ready yet"
         variant="no-session"
       />
     );
@@ -397,10 +397,10 @@ export default function SessionKitchenPage() {
   if (!kitchenState.ok && kitchenState.missingReason === "missing-timeline") {
     return (
       <SessionRouteState
-        action={{ href: "/session/timeline", label: "Build my timeline" }}
+        action={{ href: "/session/timeline", label: "Continue your pizza plan" }}
         body="Create your pizza plan and preparation timeline before starting guided cooking."
-        eyebrow="Kitchen Mode"
-        title="Kitchen Mode is not ready yet"
+        eyebrow="Kitchen"
+        title="Kitchen is not ready yet"
         variant="step-unavailable"
       />
     );
@@ -409,11 +409,11 @@ export default function SessionKitchenPage() {
   if (!kitchenState.ok) {
     return (
       <SessionRouteState
-        action={{ href: "/session/timeline", label: "Open timeline" }}
-        body="Kitchen Mode could not find the next practical task for this session."
-        eyebrow="Kitchen Mode"
+        action={{ href: "/session/timeline", label: "Open Timeline" }}
+        body="Kitchen could not find the next practical task for this pizza plan."
+        eyebrow="Kitchen"
         onRetry={() => window.location.reload()}
-        title="We couldn’t open Kitchen Mode."
+        title="We couldn’t open Kitchen."
         variant="error"
       />
     );
@@ -454,13 +454,13 @@ export default function SessionKitchenPage() {
   const ovenTroubleshootingHref = ovenTroubleshootingLink ? buildContextualReturnHref(ovenTroubleshootingLink.href) : null;
   const nextStepSummary = kitchenState.nextStep
     ? `${nextTaskPresentation.title} at ${formatRuntimeClockTime(kitchenState.nextStep.scheduledAt)}`
-    : "Review your pizza session";
+    : "Review your pizza";
   const experience = getExperienceLevelConfig(session.experienceLevel);
   const levelGuidance = getKitchenExperienceGuidance(currentStep, session.experienceLevel, session);
   const levelGuidanceDetails = [
     levelGuidance.whatToLookFor && { label: "What to look for", value: levelGuidance.whatToLookFor },
     levelGuidance.whyItMatters && { label: "Why it matters", value: levelGuidance.whyItMatters },
-    levelGuidance.technicalNote && { label: "Technical note", value: levelGuidance.technicalNote },
+    levelGuidance.technicalNote && { label: "Extra detail", value: levelGuidance.technicalNote },
     levelGuidance.reassuranceTip && { label: "Keep in mind", value: levelGuidance.reassuranceTip },
   ].filter(Boolean) as { label: string; value: string }[];
   const lockedPizzaCount = pizzaCount && pizzaCount > 0 ? Math.floor(pizzaCount) : undefined;
@@ -602,7 +602,7 @@ export default function SessionKitchenPage() {
     }
     const latestSession = getActivePizzaSession();
     if (!latestSession || latestSession.id !== session.id) {
-      setMenuError("This pizza session changed in another tab. Reload Kitchen Mode before changing the menu.");
+      setMenuError("This pizza plan changed in another tab. Reload Kitchen before changing the menu.");
       return;
     }
     if (kitchenBakePhaseStarted(latestSession, currentStep)) {
@@ -863,7 +863,7 @@ export default function SessionKitchenPage() {
                    <section className="mt-5 rounded-[1.5rem] bg-cream p-4 sm:mt-6 sm:p-5">
                     <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Needed now</p>
                     <h3 className="mt-2 font-display text-2xl font-semibold">Ingredient amounts unavailable</h3>
-                    <p className="mt-2 text-sm leading-6 text-ink/60">Kitchen Mode can still guide the current task. Exact dough amounts need a saved recipe snapshot.</p>
+                    <p className="mt-2 text-sm leading-6 text-ink/60">Kitchen can still guide the current task. Exact dough amounts need a saved Dough Plan.</p>
                   </section>
                 )}
 
@@ -1079,7 +1079,7 @@ export default function SessionKitchenPage() {
             ) : (
               <>
                 <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">All steps done</p>
-                 <h2 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">Pizza session complete</h2>
+                 <h2 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">Pizza plan ready for Review</h2>
                 <p className="mt-4 text-sm leading-6 text-ink/60">
                   Save what worked and what you want to improve next time.
                 </p>

@@ -76,7 +76,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(timeline).toContain("if (!timeline || missingReason)");
     expect(timeline).toContain("No timeline yet");
     expect(kitchen).toContain('missingReason === "no-session"');
-    expect(kitchen).toContain("Kitchen Mode is not ready yet");
+    expect(kitchen).toContain("Kitchen is not ready yet");
     expect(review).toContain("Nothing to review yet");
   });
 
@@ -132,8 +132,8 @@ describe("Pizza Session flow navigation integrity", () => {
     const review = source("app/session/review/page.tsx");
 
     expect(kitchen).toContain("hideLocalSaveNote");
-    expect(kitchen).toContain("Done baking? Review session");
-    expect(kitchen).toContain("Pizza session complete");
+    expect(kitchen).toContain("Done baking? Review");
+    expect(kitchen).toContain("Pizza plan ready for Review");
     expect(kitchen).toContain("Review my pizza");
     expect(kitchen).toContain('href="/session/review"');
     expect(kitchen).not.toContain("href={backHref}");

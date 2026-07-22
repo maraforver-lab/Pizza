@@ -282,7 +282,7 @@ describe("Kitchen bake timer integration", () => {
     expect(page).toContain("{waitInfo.waitLabel} before this step.");
     expect(page).toContain("This step is scheduled for");
     expect(page).toContain("aria-describedby={currentStepCompletionBlocked ? \"kitchen-wait-status\" : undefined}");
-    expect(page).toContain("Done baking? Review session");
+    expect(page).toContain("Done baking? Review");
   });
 
   it("renders a launcher and full-screen timer dialog separate from Kitchen progress persistence", () => {
