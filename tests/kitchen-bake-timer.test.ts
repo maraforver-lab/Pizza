@@ -54,7 +54,7 @@ describe("Kitchen bake timer integration", () => {
       remainingSeconds: 0,
       overtimeSeconds: 5,
     });
-    expect(bakeTimerDisplayValue(overtime)).toBe("+00:05");
+    expect(bakeTimerDisplayValue(overtime)).toBe("00:05");
 
     const almostThere = deriveBakeTimerSnapshot(started, 71_000);
     expect(almostThere.remainingSeconds).toBe(20);
@@ -72,7 +72,7 @@ describe("Kitchen bake timer integration", () => {
     expect(cappedOvertime.overtimeSeconds).toBe(BAKE_TIMER_MAX_OVERTIME_SECONDS);
     expect(cappedOvertime.overtimeAlarmState).toBe("active");
     expect(isBakeTimerOvertimeAlarmActive(cappedOvertime)).toBe(true);
-    expect(bakeTimerDisplayValue(cappedOvertime)).toBe("+01:30");
+    expect(bakeTimerDisplayValue(cappedOvertime)).toBe("01:30");
   });
 
   it("supports accurate pause, resume and safe timer adjustments", () => {
@@ -301,6 +301,8 @@ describe("Kitchen bake timer integration", () => {
     expect(component).toContain("ALMOST THERE");
     expect(component).toContain("FINAL 10 SECONDS");
     expect(component).toContain("TIME'S UP");
+    expect(component).toContain("formatOvertimeIndicator");
+    expect(component).toContain("OVERTIME +");
     expect(component).toContain("Pizza still baking");
     expect(component).toContain('DoughToolsIcon name="flame"');
     expect(component).toContain("Stop alarm");

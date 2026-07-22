@@ -47,6 +47,11 @@ function formatCompactDuration(seconds: number) {
   return `${minutes} min ${remainder} sec`;
 }
 
+function formatOvertimeIndicator(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  return `OVERTIME +${safeSeconds} SEC`;
+}
+
 function formatOvenContext(ovenType: PizzaSessionOvenType) {
   return ovenType === "pizza" ? "For your pizza oven" : "For your home oven";
 }
@@ -360,6 +365,11 @@ export function BakeTimerPanel({
                 </p>
 
                 <div className="mt-3 sm:mt-5">
+                  {overtimeVisual && (
+                    <p className="mb-2 text-xs font-black uppercase tracking-[.18em] text-tomato sm:mb-3">
+                      {formatOvertimeIndicator(timer.snapshot.overtimeSeconds)}
+                    </p>
+                  )}
                   <BakeTimerProgressRing
                     displayValue={timer.displayValue}
                     overtimeAlarmActive={timer.overtimeAlarmActive}

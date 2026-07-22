@@ -96,6 +96,7 @@ describe("standalone Bake Timer", () => {
     expect(component).toContain("Close bake timer");
     expect(component).toContain("Turn bake timer sound");
     expect(component).toContain("Start next pizza");
+    expect(component).toContain("OVERTIME +");
     expect(component).toContain("Pizza still baking");
     expect(component).not.toContain("queueCloudActivePizzaSessionSave");
     expect(component).not.toContain("stepRuntime");

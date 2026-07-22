@@ -292,7 +292,7 @@ export function formatBakeTimerClock(seconds: number) {
 
 export function bakeTimerDisplayValue(snapshot: BakeTimerSnapshot) {
   if (snapshot.status === "overtime" || snapshot.status === "expired") {
-    return `+${formatBakeTimerClock(snapshot.overtimeSeconds)}`;
+    return formatBakeTimerClock(snapshot.overtimeSeconds);
   }
   return formatBakeTimerClock(snapshot.remainingSeconds);
 }
