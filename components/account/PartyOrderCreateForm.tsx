@@ -138,7 +138,7 @@ export function PartyOrderCreateForm() {
 
         <section aria-labelledby="allowed-pizzas-heading">
           <h2 id="allowed-pizzas-heading" className="font-display text-2xl font-semibold">Allowed pizzas</h2>
-          <p className="mt-1 text-sm leading-6 text-ink/55">These options come from the same catalog used by Pizza Session shopping.</p>
+          <p className="mt-1 text-sm leading-6 text-ink/55">These options come from the same catalog used by the Shopping list.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {PIZZA_CATALOG_OPTIONS.map((option) => {
               const selected = allowedPizzaIds.includes(option.id);

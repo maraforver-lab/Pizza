@@ -941,7 +941,7 @@ describe("Party Orders foundation", () => {
     expect(list).toContain("Restore party order");
     expect(list).toContain("Plan your first pizza party");
     expect(list).toContain("Create the menu, share one link with your guests");
-    expect(list).toContain("Turn orders into a Pizza Session");
+    expect(list).toContain("Turn orders into a pizza plan");
     expect(list).toContain("partyOrderOwnerStatusSummary(event)");
     expect(source("app/account/party-orders/page.tsx")).toContain("max-w-6xl");
 
@@ -1020,7 +1020,7 @@ describe("Party Orders foundation", () => {
     expect(publicEditForm).toContain("w-full items-center justify-center rounded-2xl bg-tomato");
   });
 
-  it("adds an owner-only Pizza Session handoff without mutating Party Orders", () => {
+  it("adds an owner-only pizza plan handoff without mutating Party Orders", () => {
     const route = source("app/api/party-orders/[id]/session-handoff/route.ts");
     const handoff = source("components/account/PartyOrderSessionHandoff.tsx");
     const detail = source("components/account/PartyOrderDetail.tsx");
@@ -1034,16 +1034,16 @@ describe("Party Orders foundation", () => {
     expect(route).toContain(".from(\"party_order_items\")");
     expect(route).toContain("summarizePartyOrderActivity(submissions, itemRows)");
     expect(route).toContain("buildPartyOrderPizzaSessionHandoff(event, activity)");
-    expect(route).toContain("Collect at least one guest order before creating a Pizza Session.");
+    expect(route).toContain("Collect at least one guest order before creating a pizza plan.");
     expect(route).not.toContain(".update(");
 
     expect(detail).toContain("<PartyOrderSessionHandoff event={event} activity={activity} />");
     expect(handoff).toContain("Plan production");
-    expect(handoff).toContain("Create Pizza Session from this order");
-    expect(handoff).toContain("Collect at least one guest order before creating a Pizza Session.");
+    expect(handoff).toContain("Create pizza plan from this order");
+    expect(handoff).toContain("Collect at least one guest order before creating a pizza plan.");
     expect(handoff).toContain("Total pizzas:");
     expect(handoff).toContain("Pizza time:");
-    expect(handoff).toContain("Review these older pizza names in the normal Pizza Session flow:");
+    expect(handoff).toContain("Review these older pizza names in the normal pizza plan flow:");
     expect(handoff).toContain("fetch(`/api/party-orders/${event.id}/session-handoff`");
     expect(handoff).toContain("method: \"POST\"");
     expect(handoff).toContain("createPizzaSession");
@@ -1054,7 +1054,7 @@ describe("Party Orders foundation", () => {
     expect(handoff).toContain("setActivePizzaSession(saved.id)");
     expect(handoff).toContain("isActiveCloudPizzaSessionConflictError");
     expect(handoff).toContain("setActiveConflict(caught.conflict)");
-    expect(handoff).toContain("Continue current pizza");
+    expect(handoff).toContain("Continue your pizza plan");
     expect(handoff).toContain("Keep Party Order setup");
     expect(handoff).toContain("Use this Party Order plan");
     expect(handoff).toContain("Replace and create Party Order plan");

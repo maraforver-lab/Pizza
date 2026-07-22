@@ -231,7 +231,7 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("lg:order-1");
     expect(aboutPage).toContain("min-h-12");
     expect(partyOrderCreate).toContain("fetch(\"/api/party-orders\"");
-    expect(partyOrderHandoff).toContain("Create Pizza Session from this order");
+    expect(partyOrderHandoff).toContain("Create pizza plan from this order");
     expect(partyOrderHandoff).toContain("targetEatTime: handoff.pizzaTime");
     expect(partyOrderHandoff).toContain("pizzaCount: handoff.pizzaCount");
     expect(aboutPage).not.toContain("fetch(\"/api/party-orders\"");

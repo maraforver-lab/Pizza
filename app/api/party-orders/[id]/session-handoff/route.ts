@@ -16,7 +16,7 @@ export async function POST(
   const { data: userData, error: userError } = await supabase.auth.getUser();
   const user = userData.user;
   if (userError || !user) {
-    return NextResponse.json({ error: "Sign in to create a Pizza Session from this Party Order." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in to create a pizza plan from this Party Order." }, { status: 401 });
   }
 
   const { data, error } = await supabase
@@ -57,7 +57,7 @@ export async function POST(
   const handoff = buildPartyOrderPizzaSessionHandoff(event, activity);
   if (!handoff) {
     return NextResponse.json({
-      error: "Collect at least one guest order before creating a Pizza Session.",
+      error: "Collect at least one guest order before creating a pizza plan.",
     }, { status: 400 });
   }
 

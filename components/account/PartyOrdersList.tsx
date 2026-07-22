@@ -216,7 +216,7 @@ export function PartyOrdersList() {
               Plan the menu. Let guests choose.
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/62">
-              Create a pizza party, share the ordering link, collect guest choices, and turn the final menu into a Pizza Session.
+              Create a pizza party, share the ordering link, collect guest choices, and turn the final menu into a pizza plan.
             </p>
           </div>
           <Link
@@ -247,7 +247,7 @@ export function PartyOrdersList() {
           <ol className="mt-5 grid gap-2 text-sm font-bold text-ink/66 sm:grid-cols-3">
             <li className="rounded-2xl bg-cream/70 p-3">1. Create the party</li>
             <li className="rounded-2xl bg-cream/70 p-3">2. Share the guest link</li>
-            <li className="rounded-2xl bg-cream/70 p-3">3. Turn orders into a Pizza Session</li>
+            <li className="rounded-2xl bg-cream/70 p-3">3. Turn orders into a pizza plan</li>
           </ol>
         </section>
       )}
@@ -271,7 +271,7 @@ export function PartyOrdersList() {
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-ink/58">
-              Open and closed parties stay here while you collect orders, prepare the menu, or create the Pizza Session.
+              Open and closed parties stay here while you collect orders, prepare the menu, or create the pizza plan.
             </p>
           </div>
           <div className="mt-4 grid gap-3">

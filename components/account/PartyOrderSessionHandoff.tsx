@@ -91,7 +91,7 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
       expectedActiveSessionId: activeConflict?.activeSessionId ?? activeConflict?.cloudSessionId,
       replaceActiveSession,
     });
-    if ("skipped" in result) throw new Error("Sign in to create a Pizza Session from this Party Order.");
+    if ("skipped" in result) throw new Error("Sign in to create a pizza plan from this Party Order.");
     setActivePizzaSession(saved.id);
     router.push("/session/start?handoff=1");
   };
@@ -106,9 +106,9 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
         method: "POST",
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Pizza Session could not be created from this order.");
+      if (!response.ok) throw new Error(payload.error || "Pizza plan could not be created from this order.");
       const handoff = normalizeHandoffPayload(payload.handoff);
-      if (!handoff) throw new Error("Pizza Session handoff data could not be verified.");
+      if (!handoff) throw new Error("Pizza plan handoff data could not be verified.");
 
       const session = createPizzaSession({
         status: "planning",
@@ -125,7 +125,7 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
         setError("");
         return;
       }
-      setError(caught instanceof Error ? caught.message : "Pizza Session could not be created from this order.");
+      setError(caught instanceof Error ? caught.message : "Pizza plan could not be created from this order.");
     } finally {
       setSubmitting(false);
     }
@@ -145,9 +145,9 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
         router.push(activeConflict.resumeRoute);
         return;
       }
-      setError("We could not open the existing active pizza session. Try again from Account.");
+      setError("We could not open the existing active pizza plan. Try again from Account.");
     } catch {
-      setError("We could not open the existing active pizza session. Try again from Account.");
+      setError("We could not open the existing active pizza plan. Try again from Account.");
     } finally {
       setSubmitting(false);
     }
@@ -160,7 +160,7 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
     try {
       await persistSessionFromOrder(pendingSession, true);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Pizza Session could not be created from this order.");
+      setError(caught instanceof Error ? caught.message : "Pizza plan could not be created from this order.");
     } finally {
       setSubmitting(false);
     }
@@ -178,10 +178,10 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
         <div className="max-w-2xl">
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Plan production</p>
           <h2 id="party-order-production-heading" className="mt-2 font-display text-2xl font-semibold">
-            Create Pizza Session from this order
+            Create pizza plan from this order
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
-            Start a normal Pizza Session using this party’s pizza time, total pizza count and pizza mix.
+            Start a normal pizza plan using this party’s pizza time, total pizza count and pizza mix.
           </p>
         </div>
         <button
@@ -190,13 +190,13 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
           disabled={!hasGuestOrders || submitting}
           className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-tomato px-4 text-sm font-extrabold text-white transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-55 lg:w-auto"
         >
-          {submitting ? "Creating Pizza Session…" : "Create Pizza Session from this order"}
+          {submitting ? "Creating pizza plan…" : "Create pizza plan from this order"}
         </button>
       </div>
 
       {hasGuestOrders ? (
         <div className="mt-4 rounded-[1.25rem] border border-white/70 bg-white/80 p-4">
-          <p className="text-sm font-extrabold text-ink">This will start a normal Pizza Session with:</p>
+          <p className="text-sm font-extrabold text-ink">This will start a normal pizza plan with:</p>
           <div className="mt-3 grid gap-2 text-sm font-bold leading-6 text-ink/68">
             <p>Pizza time: <span className="text-ink">{partyOrderDateTimeLabel(event.pizza_datetime, event.time_zone)}</span></p>
             <p>Total pizzas: <span className="text-ink">{activity.totalPizzaCount}</span></p>
@@ -212,20 +212,20 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
           </div>
           {unsupportedPizzaNames.length > 0 && (
             <p className="mt-3 rounded-2xl bg-flour/70 p-3 text-xs font-bold leading-5 text-ink/55">
-              Review these older pizza names in the normal Pizza Session flow: {unsupportedPizzaNames.join(", ")}.
+              Review these older pizza names in the normal pizza plan flow: {unsupportedPizzaNames.join(", ")}.
             </p>
           )}
         </div>
       ) : (
         <p className="mt-4 rounded-[1.25rem] border border-ink/10 bg-white/80 p-4 text-sm font-bold leading-6 text-ink/60">
-          Collect at least one guest order before creating a Pizza Session.
+          Collect at least one guest order before creating a pizza plan.
         </p>
       )}
 
       {error && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{error}</p>}
       {activeConflict && (
         <div className="mt-4 rounded-[1.25rem] border border-tomato/20 bg-white/85 p-4" aria-labelledby="party-order-active-session-conflict-heading">
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Active account session</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Active account pizza plan</p>
           <h3 id="party-order-active-session-conflict-heading" className="mt-2 font-display text-2xl font-semibold leading-tight">
             You already have an unfinished pizza
           </h3>
@@ -235,7 +235,7 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
           {!confirmingStartNew ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
               <button type="button" onClick={continueExistingSession} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5" })}>
-                Continue current pizza
+            Continue your pizza plan
               </button>
               <button type="button" onClick={keepPartyOrderSetup} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5", variant: "secondary" })}>
                 Keep Party Order setup
@@ -254,7 +254,7 @@ export function PartyOrderSessionHandoff({ event, activity }: PartyOrderSessionH
                   Keep current pizza
                 </button>
                 <button type="button" onClick={confirmCreateFromOrder} disabled={submitting} className={buttonClass({ className: "min-h-12 px-5" })}>
-                  {submitting ? "Creating Pizza Session…" : "Replace and create Party Order plan"}
+                {submitting ? "Creating pizza plan…" : "Replace and create Party Order plan"}
                 </button>
               </div>
             </div>
