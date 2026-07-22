@@ -126,8 +126,9 @@ describe("trust and legal pages", () => {
 
     expect(aboutPage).toContain("the dough still needs observation");
     expect(aboutPage).toContain("A good plan helps, but the dough still deserves attention.");
-    expect(aboutPage).toContain("DoughTools gives planning guidance, not guarantees.");
-    expect(aboutPage).toContain("The calculation method and limits stay visible.");
+    expect(aboutPage).not.toContain("Trust and methodology");
+    expect(aboutPage).not.toContain("DoughTools gives planning guidance, not guarantees.");
+    expect(aboutPage).not.toContain("The calculation method and limits stay visible.");
     expect(aboutPage).toContain("The calculations stay the same.");
     expect(aboutPage).toContain("The explanation changes.");
     expect(aboutPage).toContain("Software should support the craft. Not replace it.");

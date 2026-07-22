@@ -36,12 +36,6 @@ const beliefs = [
   "A good plan helps, but the dough still deserves attention.",
 ] as const;
 
-const legalLinks = [
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
-  { href: "/methodology", label: "Methodology" },
-] as const;
-
 type ChapterImage = {
   src: string;
   alt: string;
@@ -413,25 +407,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-sm sm:grid-cols-3 sm:p-6">
-          <div>
-            <h2 className="text-base font-extrabold text-ink">Trust and methodology</h2>
-            <p className="mt-2 text-sm leading-6 text-ink/62">
-              DoughTools gives planning guidance, not guarantees. The calculation method and limits stay visible.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:justify-end">
-            {legalLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/62 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </section>
         <SiteFooter />
       </div>
     </main>
