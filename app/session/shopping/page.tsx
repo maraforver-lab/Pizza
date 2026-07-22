@@ -41,10 +41,10 @@ function isItemReady(status: PizzaSessionShoppingItem["status"]) {
 }
 
 function sectionLabel(group: string) {
-  if (group === "Dough") return "Dough ingredients";
-  if (group === "Sauce") return "Sauce";
+  if (group === "Dough") return "Make the dough";
+  if (group === "Sauce") return "Make the sauce";
   if (group === "Cheese") return "Cheese";
-  if (group === "Toppings") return "Toppings";
+  if (group === "Toppings") return "Choose toppings";
   if (group === "Gear") return "Optional gear";
   return group;
 }
@@ -230,7 +230,7 @@ export default function SessionShoppingPage() {
   if (!session || missingReason === "no-session") {
     return (
       <SessionRouteState
-        action={{ href: "/session/start", label: "Create my pizza plan" }}
+        action={{ href: "/session/start", label: "Plan a pizza" }}
         body="Your shopping list is created from your pizza and dough plan."
         eyebrow="Shopping list"
         title="No shopping list yet"
@@ -242,8 +242,8 @@ export default function SessionShoppingPage() {
   if (missingReason) {
     return (
       <SessionRouteState
-        action={{ href: "/session/recipe", label: "Open Dough Plan" }}
-        body="Complete your dough plan first so DoughTools can build the ingredients and pizza menu from a valid plan."
+        action={{ href: "/session/recipe", label: "Make the dough" }}
+        body="Complete your Dough Plan first so DoughTools can build the ingredients and topping choices from a valid pizza plan."
         eyebrow="Shopping list"
         localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} No cloud sync, tracking or public sharing is active.`}
         title="Your shopping list is not ready yet."
@@ -262,14 +262,14 @@ export default function SessionShoppingPage() {
           label="Shopping list"
           pageType="Checklist page"
           title="Your shopping list"
-          body="Check ingredients, confirm the pizza mix, then continue to Timeline."
+          body="Check ingredients, choose toppings, then continue your pizza plan."
           level={session.experienceLevel}
           levelCompactOnMobile
           hideBodyOnMobile
           hideMeta
         >
           <p className="text-sm font-bold leading-6 text-ink/60 sm:hidden">
-            These are the ingredients you need to make your dough and pizza toppings. Check what you already have and what you still need to buy.
+            These are the ingredients you need to make the dough, make the sauce and choose toppings. Check what you already have and what you still need to buy.
           </p>
         </SessionStepHero>
 
@@ -277,10 +277,10 @@ export default function SessionShoppingPage() {
           <div className="border-b border-ink/10 px-4 py-2 sm:px-5 sm:py-4">
             <div className="flex flex-col gap-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="hidden sm:block">
-                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Shopping Checklist</p>
-                <h2 id="shopping-checklist-heading" className="hidden font-display text-2xl font-semibold sm:mt-1 sm:block">Shopping Checklist</h2>
+                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-leaf sm:block">Shopping list</p>
+                <h2 id="shopping-checklist-heading" className="hidden font-display text-2xl font-semibold sm:mt-1 sm:block">Shopping list</h2>
                 <p className="mt-1 hidden text-sm leading-6 text-ink/60 sm:block">
-                  Dough amounts come from the Dough Plan. Toppings follow the selected pizza mix: {selectedPizzaMixSummary}.
+                  Dough amounts come from the Dough Plan. Toppings follow your selected pizzas: {selectedPizzaMixSummary}.
                 </p>
               </div>
               <div className={cardClass({ className: "px-0 py-0 shadow-none sm:px-4 sm:py-3", variant: "success" })}>
@@ -350,7 +350,7 @@ export default function SessionShoppingPage() {
               href="/session/timeline"
               className={buttonClass({ className: "w-full sm:w-auto" })}
             >
-              Continue to Timeline →
+              Continue your pizza plan →
             </Link>
           )}
         />
@@ -361,12 +361,12 @@ export default function SessionShoppingPage() {
           <section className={cardClass({ className: "p-4 sm:p-5 lg:col-span-2", variant: "guidance" })} aria-label="Pizza mix">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato sm:hidden">Pizza selection</p>
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato sm:hidden">Choose toppings</p>
                 <p className="mt-2 text-sm font-bold leading-6 text-ink/60 sm:hidden">
                   Choose what kinds of pizzas you want to make. This affects the toppings in your shopping list.
                 </p>
-                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-tomato sm:block">Pizza Menu</p>
-                <h2 id="pizza-menu-controls-heading" className="mt-1 hidden font-display text-2xl font-semibold sm:block">Pizza mix</h2>
+                <p className="hidden text-xs font-extrabold uppercase tracking-[.18em] text-tomato sm:block">Choose toppings</p>
+                <h2 id="pizza-menu-controls-heading" className="mt-1 hidden font-display text-2xl font-semibold sm:block">Choose your pizza</h2>
                 <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-ink/60 sm:block">
                   {selectedPizzaMixSummary}
                 </p>
@@ -382,7 +382,7 @@ export default function SessionShoppingPage() {
                   onClick={() => setMenuControlsOpen((current) => !current)}
                   className={buttonClass({ className: "w-full sm:w-auto", variant: "secondary" })}
                 >
-                  {menuControlsOpen ? "Hide pizza mix controls" : "Edit pizza mix"}
+                  {menuControlsOpen ? "Hide topping choices" : "Choose toppings"}
                 </button>
                 <Link
                   href="/toppings"

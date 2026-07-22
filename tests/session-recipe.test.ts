@@ -1576,7 +1576,7 @@ describe("Session recipe build step", () => {
     expect(timelinePage).not.toContain("Review dough plan");
     expect(shoppingPage).not.toContain("Review dough plan");
     expect(timelinePage).toContain("/session/kitchen");
-    expect(shoppingPage).toContain("Continue to Timeline");
+    expect(shoppingPage).toContain("Continue your pizza plan");
     expect(recipePage).not.toContain("sessionRecipeQuery");
     expect(recipeDoc).toContain("/session/recipe");
     expect(dataDoc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
