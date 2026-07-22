@@ -107,7 +107,7 @@ describe("pizza cost calculator", () => {
     expect(page).toContain("Where the homemade cost goes");
     expect(page).toContain("How these estimates work");
     expect(page).toContain("Turn the estimate into pizza.");
-    expect(page).toContain("Plan my next pizza");
+    expect(page).toContain("Plan a pizza");
     expect(page).toContain("<SiteFooter />");
     expect(page).not.toContain("Ready to turn the estimate into pizza?");
     expect(page).not.toContain("Related learning");

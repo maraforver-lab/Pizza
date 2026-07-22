@@ -35,7 +35,7 @@ export const navigationGroups = [
     shortLabel: "Product",
     description: "The main DoughTools entry points for planning a pizza night.",
     items: [
-      { id: "start", label: "Plan a pizza", href: "/session/start", description: "Create the guided Pizza Session for recipe, shopping, timeline, Kitchen Mode and review." },
+      { id: "start", label: "Plan a pizza", href: "/session/start", description: "Create the guided pizza plan for Dough Plan, Shopping list, Timeline, Kitchen and Review." },
       { id: "guide", label: "Pizza guides", href: "/guide", description: "Start with the canonical learning hub for dough, sauce, ovens, styles and troubleshooting." },
     ],
   },
@@ -56,9 +56,9 @@ export const navigationGroups = [
     id: "secondary",
     label: "Secondary utility",
     shortLabel: "Utility",
-    description: "The one globally exposed standalone utility that supports, but does not replace, Pizza Session.",
+    description: "The one globally exposed standalone utility that supports, but does not replace, a pizza plan.",
     items: [
-      { id: "quick-calculator", label: "Quick dough calculator", href: "/calculator/quick", description: "Calculate dough amounts quickly without creating a full Pizza Session." },
+      { id: "quick-calculator", label: "Quick dough calculator", href: "/calculator/quick", description: "Calculate dough amounts quickly without creating a full pizza plan." },
     ],
   },
   {

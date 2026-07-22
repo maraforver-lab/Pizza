@@ -201,7 +201,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain('href="/session/start"');
     expect(component.match(/href="\/session\/start"/g)).toHaveLength(1);
     expect(component).toContain("Need the full process?");
-    expect(component).toContain("Plan a Pizza Session");
+    expect(component).toContain("Plan a pizza");
     expect(component).toContain("Open the guided setup from scratch.");
     expect(component).toContain("does not automatically import this calculator preset");
     expect(component).not.toContain('href="/start"');

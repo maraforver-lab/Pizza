@@ -37,7 +37,7 @@ export default function AdminPage() {
             Product administration
           </h1>
           <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-ink/60 sm:text-base sm:leading-7">
-            This protected workspace is ready for public product configuration. It does not expose private Pizza Sessions, Party Orders, photos, notes, emails or account preferences.
+            This protected workspace is ready for public product configuration. It does not expose private pizza plans, Party Orders, photos, notes, emails or account preferences.
           </p>
           <p className="mt-4 rounded-2xl border border-leaf/20 bg-leaf/[.08] px-4 py-3 text-sm font-bold leading-6 text-ink/65">
             Authorized admin access confirmed.

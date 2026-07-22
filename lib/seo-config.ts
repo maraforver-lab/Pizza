@@ -27,7 +27,7 @@ export const publicSeoRoutes = [
     path: "/",
     title: "Plan Better Pizza Nights | DoughTools",
     description:
-      "Plan a complete pizza night with a dough recipe, shopping guidance, timeline, Kitchen Mode and review path.",
+      "Plan a complete pizza night with a Dough Plan, Shopping list, Timeline, Kitchen and Review path.",
     changeFrequency: "weekly",
     priority: 1,
   },
@@ -57,7 +57,7 @@ export const publicSeoRoutes = [
     path: "/terms",
     title: "Terms of Use | DoughTools",
     description:
-      "Clear DoughTools terms for accounts, Pizza Sessions, Party Orders, photos, calculations, responsibilities and consumer rights.",
+      "Clear DoughTools terms for accounts, pizza plans, Party Orders, photos, calculations, responsibilities and consumer rights.",
     changeFrequency: "monthly",
     priority: 0.3,
   },
@@ -77,8 +77,8 @@ export const publicSeoRoutes = [
   },
   {
     path: "/session/start",
-    title: "Plan My Next Pizza | DoughTools",
-    description: "Create a guided Pizza Session with dough, shopping, timeline, Kitchen Mode and review steps.",
+    title: "Plan a Pizza | DoughTools",
+    description: "Create a guided pizza plan with Dough Plan, Shopping list, Timeline, Kitchen and Review steps.",
     changeFrequency: "weekly",
     priority: 0.9,
   },
@@ -130,7 +130,7 @@ export const publicSeoRoutes = [
   {
     path: "/calculator/quick",
     title: "Quick Dough Calculator | DoughTools",
-    description: "Calculate pizza dough ingredient amounts without creating a full Pizza Session.",
+    description: "Calculate pizza dough ingredient amounts without creating a full pizza plan.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
@@ -144,7 +144,7 @@ export const publicSeoRoutes = [
   {
     path: "/tools/bake-timer",
     title: "Bake Timer | DoughTools",
-    description: "Use a standalone pizza bake timer for pizza ovens or home ovens without starting a Pizza Session.",
+    description: "Use a standalone pizza bake timer for pizza ovens or home ovens without starting a pizza plan.",
     changeFrequency: "monthly",
     priority: 0.5,
   },

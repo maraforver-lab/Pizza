@@ -975,7 +975,7 @@ export default function QuickDoughCalculator() {
                 Quick Dough Calculator
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/65 sm:text-base">
-                Get dough amounts fast. Use Pizza Session when you also need shopping, scheduling, Kitchen Mode and Review.
+                Get dough amounts fast. Plan a pizza when you also need a Shopping list, Timeline, Kitchen and Review.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold ring-1 ${selectedGuidance.badgeClassName}`}>
@@ -1396,7 +1396,7 @@ export default function QuickDoughCalculator() {
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Local recipes</p>
                 <h2 id="quick-recipe-management-heading" className="mt-2 font-display text-3xl font-semibold">Save, reload or share this calculator preset</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/58">
-                  Saved calculator presets stay only in this browser. Shared links restore these calculator inputs without creating a Pizza Session.
+                  Saved calculator presets stay only in this browser. Shared links restore these calculator inputs without creating a pizza plan.
                 </p>
                 {recipeNotice !== "idle" && (
                   <p className="mt-3 rounded-2xl bg-leaf/[.08] px-4 py-3 text-xs font-extrabold text-leaf" role="status">
@@ -1474,7 +1474,7 @@ export default function QuickDoughCalculator() {
 
             <aside className="mt-5 rounded-[1.5rem] border border-ink/10 bg-cream/55 p-4" aria-labelledby="quick-session-cta-heading" data-quick-session-cta>
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/42">Need the full process?</p>
-              <h3 id="quick-session-cta-heading" className="mt-2 text-xl font-extrabold text-ink">Plan a Pizza Session</h3>
+              <h3 id="quick-session-cta-heading" className="mt-2 text-xl font-extrabold text-ink">Plan a pizza</h3>
               <p className="mt-2 text-sm leading-6 text-ink/58">
                 Open the guided setup from scratch. It does not automatically import this calculator preset.
               </p>
@@ -1482,7 +1482,7 @@ export default function QuickDoughCalculator() {
                 href="/session/start"
                 className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-extrabold text-ink/65 transition hover:border-tomato/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato sm:w-auto"
               >
-                Plan a Pizza Session
+                Plan a pizza
               </Link>
             </aside>
           </section>

@@ -52,7 +52,7 @@ describe("Start Pizza Session wizard", () => {
       "Dough Plan",
       "Choose pizzas & Shopping",
       "Timeline",
-      "Kitchen Mode",
+      "Kitchen",
       "Review",
     ]) {
       expect(doc).toContain(label);
@@ -192,7 +192,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("Flour situation");
     expect(page).toContain("Dough Plan");
     expect(page).toContain("Choose pizzas & Shopping");
-    expect(page).toContain("Kitchen Mode");
+    expect(page).toContain("Kitchen");
     expect(page).toContain("Review");
     expect(page).toContain("journeyProgressForStep");
     expect(page).toContain("Setup is steps 1–5 of the full pizza journey.");
@@ -260,8 +260,8 @@ describe("Start Pizza Session wizard", () => {
     expect(journeyProgressUses).toHaveLength(1);
     expect(page).toContain('<aside className="hidden rounded-[1.75rem]');
     expect(page).toContain('<div className="hidden">');
-    expect(page).toContain('aria-label="Pizza Session journey"');
-    expect(page).toContain('aria-label="Pizza Session setup progress"');
+    expect(page).toContain('aria-label="Pizza plan journey"');
+    expect(page).toContain('aria-label="Pizza plan setup progress"');
     expect(page).toContain("setup complete. Dough Plan next.");
     expect(page).toContain('<SessionExperienceLevelBadge level={experienceLevel} compact className="mb-3 sm:hidden" />');
     expect(page).toContain('<SessionExperienceLevelBadge level={experienceLevel} className="mb-3 hidden sm:inline-flex" />');
@@ -336,7 +336,7 @@ describe("Start Pizza Session wizard", () => {
 
     expect(page).toContain("You’re ready for your Dough Plan.");
     expect(page).toContain("You chose the key setup details. Next, DoughTools turns them into a personalized Dough Plan and ingredient amounts.");
-    expect(page).toContain("Create my pizza plan");
+    expect(page).toContain("Plan a pizza");
     expect(page).toContain("const continueToRecipe = async (options: { replaceActiveCloudSession?: boolean } = {})");
     expect(page).toContain("await materializeCloudBackedPizzaSession(saved,");
     expect(page).toContain("router.push(\"/session/recipe\")");
@@ -354,7 +354,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain('h-12 w-12 px-0 sm:hidden');
     expect(page).toContain('hidden sm:inline-flex sm:w-auto');
     expect(page).not.toContain("Save and continue later");
-    expect(page.match(/Create my pizza plan/g) ?? []).toHaveLength(1);
+    expect(page.match(/Plan a pizza/g) ?? []).toHaveLength(1);
     expect(page).toContain("Back");
     expect(page).not.toContain("Saved locally");
     expect(page).not.toContain("hidden items-center gap-1 text-xs font-bold text-ink/40 sm:flex");
@@ -879,7 +879,7 @@ describe("Start Pizza Session wizard", () => {
     expect(headerLogoIndex).toBeGreaterThan(-1);
     expect(sidebarIndex).toBeGreaterThan(-1);
     expect(page.indexOf('aria-label="DoughTools home"', sidebarIndex)).toBe(-1);
-    expect(page).toContain("Set up your pizza session.</h1>");
+    expect(page).toContain("Set up your pizza plan.</h1>");
     expect(page).not.toContain('<p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session V2</p>');
   });
 
@@ -914,7 +914,7 @@ describe("Start Pizza Session wizard", () => {
   it("keeps accessibility markers and keyboard-friendly controls visible in source", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("aria-label=\"Pizza Session setup progress\"");
+    expect(page).toContain("aria-label=\"Pizza plan setup progress\"");
     expect(page).toContain("Current journey step:");
     expect(page).toContain("Completed journey step:");
     expect(page).toContain("Upcoming journey step:");

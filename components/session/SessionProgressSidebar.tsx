@@ -13,7 +13,7 @@ const sessionJourneySteps = [
   { label: "Dough Plan", phase: "Plan", href: "/session/recipe" },
   { label: "Choose pizzas & Shopping", phase: "Prepare", href: "/session/shopping" },
   { label: "Timeline", phase: "Plan", href: "/session/timeline" },
-  { label: "Kitchen Mode", phase: "Bake", href: "/session/kitchen" },
+  { label: "Kitchen", phase: "Bake", href: "/session/kitchen" },
   { label: "Review", phase: "Improve", href: "/session/review" },
 ] as const;
 
@@ -33,8 +33,8 @@ export function SessionProgressSidebar({ activeStep, hideLocalSaveNote = false }
 
   return (
     <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start">
-      <h2 className="font-display text-3xl font-semibold leading-none">Pizza Session</h2>
-      <p className="mt-3 text-sm leading-5 text-ink/55">One guided path from setup to Dough Plan, Shopping, Timeline, Kitchen Mode and Review.</p>
+      <h2 className="font-display text-3xl font-semibold leading-none">Pizza plan</h2>
+      <p className="mt-3 text-sm leading-5 text-ink/55">One guided path from setup to Dough Plan, Shopping list, Timeline, Kitchen and Review.</p>
       <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3">
         <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
           <span>Step {activeStep} of {sessionJourneySteps.length}</span>
@@ -45,7 +45,7 @@ export function SessionProgressSidebar({ activeStep, hideLocalSaveNote = false }
         </div>
         <p className="mt-2 text-[11px] font-bold text-ink/45">Desktop keeps the full session path visible.</p>
       </div>
-      <ol className="mt-5 grid gap-1.5" aria-label="Pizza Session journey">
+      <ol className="mt-5 grid gap-1.5" aria-label="Pizza plan journey">
         {sessionJourneySteps.map((item, index) => {
           const state = stepState(index, activeStep);
           const canNavigate = state === "complete";

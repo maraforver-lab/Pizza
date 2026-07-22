@@ -58,7 +58,7 @@ export function AccountGuidancePreference({ className = "" }: AccountGuidancePre
             onChange={setExperienceLevel}
             compact
             title="Choose account guidance"
-            intro="This preference is shared with Pizza Session, guides and calculators. It changes explanation depth, not the calculations."
+            intro="This preference is shared with pizza plans, guides and calculators. It changes explanation depth, not the calculations."
             className="border-ink/10 bg-cream/45 shadow-none"
           />
         </div>

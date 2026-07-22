@@ -23,24 +23,24 @@ describe("contextual return navigation", () => {
 
   it("adds return context without moving anchors or exposing session data", () => {
     expect(buildContextualReturnHref("/guide/pizza-troubleshooting#baking")).toBe(
-      "/guide/pizza-troubleshooting?returnTo=%2Fsession%2Fkitchen&returnLabel=Back+to+Kitchen+Mode#baking",
+      "/guide/pizza-troubleshooting?returnTo=%2Fsession%2Fkitchen&returnLabel=Back+to+Kitchen#baking",
     );
     expect(buildContextualReturnHref("/guides/dough?step=mix-dough&from=%2Fsession%2Fkitchen")).toBe(
-      "/guides/dough?step=mix-dough&from=%2Fsession%2Fkitchen&returnTo=%2Fsession%2Fkitchen&returnLabel=Back+to+Kitchen+Mode",
+      "/guides/dough?step=mix-dough&from=%2Fsession%2Fkitchen&returnTo=%2Fsession%2Fkitchen&returnLabel=Back+to+Kitchen",
     );
     expect(buildContextualReturnHref("https://evil.example")).toBe("https://evil.example");
     expect(buildContextualReturnHref("//evil.example")).toBe("//evil.example");
     expect(buildContextualReturnHref("/guide/pizza-troubleshooting#baking")).not.toContain("sessionId");
   });
 
-  it("renders a fixed Back to Kitchen Mode destination for valid context only", () => {
+  it("renders a fixed Back to Kitchen destination for valid context only", () => {
     const component = source("components/navigation/ContextualReturn.tsx");
     const helper = source("lib/contextual-return.ts");
     const doughGuide = source("components/guide/DoughGuidePageClient.tsx");
     const troubleshootingPage = source("app/guide/pizza-troubleshooting/page.tsx");
     const troubleshootingClient = source("components/guide/PizzaTroubleshootingGuideClient.tsx");
 
-    expect(contextualReturnLabelFor("/session/kitchen")).toBe("Back to Kitchen Mode");
+    expect(contextualReturnLabelFor("/session/kitchen")).toBe("Back to Kitchen");
     expect(component).toContain("getSafeContextualReturnPath(returnTo)");
     expect(helper).toContain("Return to your active step");
     expect(component).toContain("href={safeReturnTo}");

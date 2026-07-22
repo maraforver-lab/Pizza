@@ -25,7 +25,7 @@ describe("sitewide CTA language", () => {
       "components/SiteFooter.tsx",
     ]);
 
-    expect(publicEntrySources).toContain("Plan my next pizza");
+    expect(publicEntrySources).toContain("Plan a pizza");
     expect(publicEntrySources).not.toContain("Start Pizza Session");
     expect(publicEntrySources).not.toContain("Explore Pizza Sessions");
     expect(publicEntrySources).not.toContain("Continue to the pizza-night plan");
@@ -41,7 +41,7 @@ describe("sitewide CTA language", () => {
       "app/session/review/page.tsx",
     ]);
 
-    expect(workflow).toContain("Create my pizza plan");
+    expect(workflow).toContain("Plan a pizza");
     expect(workflow).toContain("Continue your pizza plan");
     expect(workflow).toContain("Start cooking");
     expect(workflow).toContain("Review my pizza");

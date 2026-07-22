@@ -1,7 +1,7 @@
 export type ContextualReturnPath = "/session/kitchen";
 
 const CONTEXTUAL_RETURN_LABELS: Record<ContextualReturnPath, string> = {
-  "/session/kitchen": "Back to Kitchen Mode",
+  "/session/kitchen": "Back to Kitchen",
 };
 
 function firstParam(value?: string | string[] | null) {

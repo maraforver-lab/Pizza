@@ -531,10 +531,10 @@ export default function PizzaCostsPlayfulClient() {
           <p className="text-xs font-extrabold uppercase tracking-[.18em] text-white/70">Next step</p>
           <h2 className="mt-2 font-display text-4xl font-semibold leading-none">Turn the estimate into pizza.</h2>
           <p className="mt-3 max-w-2xl text-sm font-bold leading-6 text-white/75">
-            Costs stays a lightweight insight page. Pizza Session handles the recipe, timeline and kitchen flow.
+            Costs stays a lightweight insight page. A pizza plan handles the Dough Plan, Timeline and Kitchen flow.
           </p>
           <Link href="/session/start" className={buttonClass({ className: "mt-5 bg-white text-tomato hover:bg-flour" })}>
-            Plan my next pizza
+            Plan a pizza
           </Link>
         </section>
 

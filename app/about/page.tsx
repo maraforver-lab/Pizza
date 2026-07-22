@@ -26,7 +26,7 @@ const partyOrderSteps = [
   "Share one link",
   "Collect choices",
   "Review totals",
-  "Create Pizza Session",
+  "Create pizza plan",
 ] as const;
 
 const beliefs = [
@@ -242,10 +242,10 @@ export default function AboutPage() {
               <span className="block text-tomato">I started building a workflow.</span>
             </PullQuote>
             <p>
-              That workflow became Pizza Session: not a different logic, but the natural continuation of a real bake. A pizza night is not only a formula. It is dough, shopping, timing, oven work, serving and learning from what happened.
+              That workflow became a pizza plan: not a different logic, but the natural continuation of a real bake. A pizza night is not only a formula. It is dough, shopping, timing, oven work, serving and learning from what happened.
             </p>
             <div className="pt-2">
-              <SecondaryLink href="/session/start">Plan my next pizza</SecondaryLink>
+              <SecondaryLink href="/session/start">Plan a pizza</SecondaryLink>
             </div>
           </StoryChapter>
 
@@ -350,7 +350,7 @@ export default function AboutPage() {
               <span className="block text-tomato">I was organising messages.</span>
             </PullQuote>
             <p>
-              Party Orders came from that exact friction. Share one link. Collect choices. Review totals. Create Pizza Session. The workflow keeps the human part intact while removing the message chaos around it.
+              Party Orders came from that exact friction. Share one link. Collect choices. Review totals. Create a pizza plan. The workflow keeps the human part intact while removing the message chaos around it.
             </p>
             <div className="grid gap-3 sm:grid-cols-4">
               {partyOrderSteps.map((step, index) => (

@@ -225,7 +225,7 @@ describe("Pizza Dough Guide foundation", () => {
   it("keeps the generic hero information note desktop-only", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page).toContain("This guide works with or without a Pizza Session. When a session is active, it adds your dough-plan values without changing the session.");
+    expect(page).toContain("This guide works with or without a pizza plan. When a plan is active, it adds your dough-plan values without changing the plan.");
     expect(page).toContain('className="mt-4 hidden max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65 lg:block"');
   });
 
@@ -583,10 +583,10 @@ describe("Pizza Dough Guide foundation", () => {
 
     expect(context.hasActiveSession).toBe(false);
     expect(context.summaryRows).toEqual([]);
-    expect(page).toContain("No active Pizza Session");
-    expect(page).toContain("You can use this guide without a session.");
+    expect(page).toContain("No active pizza plan");
+    expect(page).toContain("You can use this guide without a pizza plan.");
     expect(page).toContain('href="/session/start"');
-    expect(page).toContain("Start a Pizza Session");
+    expect(page).toContain("Plan a pizza");
     expect(page).toContain("Continue to {nextStep.actionName}");
   });
 
@@ -864,7 +864,7 @@ describe("Pizza Dough Guide foundation", () => {
 
     expect(page).toContain('getSafeDoughGuideSessionReturnPath(searchParams.get("from"))');
     expect(page).toContain("Back to Timeline");
-    expect(page).toContain("Back to Kitchen Mode");
+    expect(page).toContain("Back to Kitchen");
     expect(page).toContain('href={sessionReturnPath}');
     expect(page).toContain("<StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />");
     expect(page).toContain("sessionReturnPath={sessionReturnPath}");

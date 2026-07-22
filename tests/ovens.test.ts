@@ -20,7 +20,7 @@ describe("Oven Guide", () => {
     expect(page).toContain("Pizza oven");
     expect(page).toContain("Home oven");
     expect(page).toContain("Stone, steel and tray");
-    expect(page).toContain("Pizza Session effect");
+    expect(page).toContain("Pizza plan effect");
     expect(page).toContain("Plan with the oven you actually have.");
   });
 
@@ -148,7 +148,7 @@ describe("Oven Guide", () => {
     const footerIndex = page.indexOf("<SiteFooter />");
 
     expect(otherEquipmentIndex).toBeGreaterThan(-1);
-    expect(otherEquipmentIndex).toBeGreaterThan(page.indexOf("Pizza Session effect"));
+    expect(otherEquipmentIndex).toBeGreaterThan(page.indexOf("Pizza plan effect"));
     expect(otherEquipmentIndex).toBeLessThan(finalCtaIndex);
     expect(finalCtaIndex).toBeLessThan(footerIndex);
     expect(page.match(/<details/g)).toHaveLength(1);

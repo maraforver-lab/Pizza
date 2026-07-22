@@ -53,7 +53,7 @@ function secondaryActionClass() {
 export function SessionRouteState({
   action,
   body,
-  eyebrow = "Pizza Session",
+  eyebrow = "Pizza plan",
   localNote,
   onRetry,
   retryLabel = "Try again",

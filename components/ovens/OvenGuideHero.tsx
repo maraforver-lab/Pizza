@@ -16,7 +16,7 @@ export default function OvenGuideHero() {
           Home oven or pizza oven?
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/62 sm:text-base">
-          Compare the heat, preheat, placement, bake time and result so you can choose the right DoughTools Pizza Session path.
+          Compare the heat, preheat, placement, bake time and result so you can choose the right DoughTools pizza-plan path.
         </p>
         <p className="mt-4 max-w-xl text-sm font-bold leading-6 text-ink/70">
           Oven choice changes the schedule, bake rhythm and how much moisture your pizza can handle.

@@ -214,10 +214,10 @@ describe("homepage content model", () => {
     expect(sessionActions).toContain("Plan a pizza");
     expect(sessionActions).toContain("Plan a new pizza");
     expect(sessionActions).toContain("Checking your pizza plan");
-    expect(continueCard).toContain("Continue Pizza Session");
+    expect(continueCard).toContain("Continue your pizza plan");
     expect(continueCard).toContain("pizzaSessionContinueHref(session)");
     expect(continueCard).toContain("Signed-in users can save an in-progress copy");
-    expect(continueCard).toContain("Active pizza session");
+    expect(continueCard).toContain("Active pizza plan");
     expect(header).toContain("href=\"/\"");
     expect(header).toContain('const accountActive = pathname === "/account"');
     expect(header).toContain("href=\"/account\"");
@@ -243,7 +243,7 @@ describe("homepage content model", () => {
     expect(header).toContain("About");
     expect(header).not.toContain("Start Pizza Session");
     expect(header).toContain("Quick dough calculator");
-    expect(header).toContain("Fast standalone dough amounts without a Pizza Session.");
+    expect(header).toContain("Fast standalone dough amounts without starting a full pizza plan.");
     expect(header).toContain('href="/calculator/quick"');
     expect(header).not.toContain("Tools menu");
     expect(header).not.toContain("Topping Balance Lab");
@@ -275,7 +275,7 @@ describe("homepage content model", () => {
     expect(homepage).not.toMatch(/trusted by thousands|star rating|award-winning|revolutionize|ultimate pizza platform/i);
   });
 
-  it("hides Continue Pizza Session after the active session pointer is cleared", () => {
+  it("hides Continue your pizza plan after the active session pointer is cleared", () => {
     const storage = new MemoryStorage();
     const session = createAndSavePizzaSession({
       id: "homepage-cleared-active-session",
@@ -411,7 +411,7 @@ describe("homepage content model", () => {
     expect(header).toContain("Plan a pizza");
     expect(header).toContain("Pizza guides");
     expect(header).toContain("Quick dough calculator");
-    expect(header).toContain("Fast standalone dough amounts without a Pizza Session.");
+    expect(header).toContain("Fast standalone dough amounts without starting a full pizza plan.");
     expect(header).toContain('href="/calculator/quick"');
     expect(header).toContain('const quickCalculatorActive = pathname === "/calculator/quick"');
     expect(header).not.toContain('const toppingBalanceLabActive = pathname === "/toppings"');

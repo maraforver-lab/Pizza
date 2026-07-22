@@ -525,7 +525,7 @@ export const troubleshootingSections: PizzaTroubleshootingSection[] = [
           "remove dough from refrigeration earlier",
           "plan around dough temperature, not clock time alone",
           "avoid placing dough on a very cold surface",
-          "use Kitchen Mode timing where relevant",
+          "use Kitchen timing where relevant",
         ],
         relatedTopicIds: ["dough-underproofed", "dough-springs-back"],
       },

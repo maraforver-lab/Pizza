@@ -151,7 +151,7 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("Share one link");
     expect(aboutPage).toContain("Collect choices");
     expect(aboutPage).toContain("Review totals");
-    expect(aboutPage).toContain("Create Pizza Session");
+    expect(aboutPage).toContain("Create pizza plan");
     expect(aboutPage).toContain("The workflow keeps the human part intact");
     expect(aboutPage).toContain("If DoughTools helps you make your first great pizza");
     expect(aboutPage).toContain("or confidently host twenty friends");
@@ -159,7 +159,7 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain('href="/account/party-orders/new"');
     expect(aboutPage).toContain("Plan a pizza party");
     expect(aboutPage).toContain('href="/session/start"');
-    expect(aboutPage).toContain("Plan my next pizza");
+    expect(aboutPage).toContain("Plan a pizza");
     expect(aboutPage).toContain('href="/contact"');
     expect(aboutPage).toContain("Share an idea");
     expect(aboutPage).not.toMatch(/RSVP|email invitation|allerg(?:y|ies)|payment|fully automatic|zero host decisions/i);
@@ -200,7 +200,7 @@ describe("trust and legal pages", () => {
 
   it("keeps product CTAs contextual, unique and below the originating story sections", () => {
     const aboutPage = source("app/about/page.tsx");
-    const pizzaSessionIndex = aboutPage.indexOf("Plan my next pizza");
+    const pizzaSessionIndex = aboutPage.indexOf("Plan a pizza");
     const workflowIndex = aboutPage.indexOf("From calculator to workflow");
     const partyIndex = aboutPage.indexOf("Plan a pizza party");
     const partyStoryIndex = aboutPage.indexOf("Then another problem appeared.");
@@ -212,7 +212,7 @@ describe("trust and legal pages", () => {
     expect(partyStoryIndex).toBeGreaterThan(-1);
     expect(partyIndex).toBeGreaterThan(partyStoryIndex);
     expect(shareIndex).toBeGreaterThan(closingIndex);
-    expect(aboutPage.match(/Plan my next pizza/g) ?? []).toHaveLength(1);
+    expect(aboutPage.match(/<SecondaryLink href="\/session\/start">Plan a pizza<\/SecondaryLink>/g) ?? []).toHaveLength(1);
     expect(aboutPage).not.toContain("Explore Pizza Sessions");
     expect(aboutPage.match(/Plan a pizza party/g) ?? []).toHaveLength(1);
     expect(aboutPage.match(/Share an idea/g) ?? []).toHaveLength(1);
@@ -277,7 +277,7 @@ describe("trust and legal pages", () => {
     const terms = pageText("terms");
 
     expect(terms).toContain("What DoughTools provides");
-    expect(terms).toContain("Pizza Sessions");
+    expect(terms).toContain("pizza plans");
     expect(terms).toContain("Party Orders");
     expect(terms).toContain("public guest links");
     expect(terms).toContain("Calculations, recipes, and educational information");

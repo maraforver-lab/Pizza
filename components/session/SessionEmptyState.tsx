@@ -12,9 +12,9 @@ type SessionEmptyStateProps = {
 
 export function SessionEmptyState({
   actionHref = "/session/start",
-  actionLabel = "Plan my next pizza",
+  actionLabel = "Plan a pizza",
   body,
-  eyebrow = "Pizza Session",
+  eyebrow = "Pizza plan",
   localNote,
   title,
 }: SessionEmptyStateProps) {

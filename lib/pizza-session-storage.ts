@@ -6,7 +6,7 @@ import {
 
 export const PIZZA_SESSIONS_STORAGE_KEY = "doughtools:pizza-sessions-v1";
 export const ACTIVE_PIZZA_SESSION_STORAGE_KEY = "doughtools:active-pizza-session-id";
-export const PIZZA_SESSION_LOCAL_ONLY_COPY = "Pizza sessions are currently saved in this browser on this device.";
+export const PIZZA_SESSION_LOCAL_ONLY_COPY = "Pizza plans are currently saved in this browser on this device.";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 

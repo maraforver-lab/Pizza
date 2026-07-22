@@ -112,14 +112,14 @@ function SupportAction({ style }: { style: PizzaStyleEducation }) {
         href="/session/start"
         className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-card transition hover:bg-forest focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
       >
-        Plan my next pizza
+        Plan a pizza
       </Link>
     );
   }
 
   return (
     <p className="rounded-2xl border border-ink/10 bg-flour/70 px-4 py-3 text-sm font-bold leading-6 text-ink/60">
-      This is an educational style guide. DoughTools does not generate a separate Pizza Session plan for this style yet.
+      This is an educational style guide. DoughTools does not generate a separate pizza plan for this style yet.
     </p>
   );
 }

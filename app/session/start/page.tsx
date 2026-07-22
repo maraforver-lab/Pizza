@@ -67,7 +67,7 @@ const journeySteps = [
   { label: "Dough Plan", href: "/session/recipe", phase: "Plan" },
   { label: "Choose pizzas & Shopping", href: "/session/shopping", phase: "Prepare" },
   { label: "Timeline", href: "/session/timeline", phase: "Plan" },
-  { label: "Kitchen Mode", href: "/session/kitchen", phase: "Bake" },
+  { label: "Kitchen", href: "/session/kitchen", phase: "Bake" },
   { label: "Review", href: "/session/review", phase: "Improve" },
 ] as const;
 
@@ -964,8 +964,8 @@ function StartPizzaSessionContent() {
     return (
       <SessionRouteState
         action={{ href: "/", label: "Back to homepage" }}
-        body="We could not verify your active account pizza session. Try again before starting or changing a plan."
-        eyebrow="Pizza Session"
+        body="We could not verify your active account pizza plan. Try again before starting or changing a plan."
+        eyebrow="Pizza plan"
         onRetry={() => window.location.reload()}
         title="We couldn’t open setup."
         variant="error"
@@ -1023,8 +1023,8 @@ function StartPizzaSessionContent() {
 
       <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[16rem_1fr] [@media_(min-width:1024px)_and_(max-height:860px)]:max-w-7xl [@media_(min-width:1024px)_and_(max-height:860px)]:gap-3 [@media_(min-width:1024px)_and_(max-height:860px)]:lg:grid-cols-[14rem_minmax(0,1fr)]">
         <aside className="hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-4 shadow-card backdrop-blur lg:sticky lg:top-5 lg:block lg:self-start [@media_(min-width:1024px)_and_(max-height:860px)]:top-3 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-[1.35rem] [@media_(min-width:1024px)_and_(max-height:860px)]:p-3">
-          <h1 className="font-display text-3xl font-semibold leading-none [@media_(min-width:1024px)_and_(max-height:860px)]:text-2xl">Set up your pizza session.</h1>
-          <p className="mt-3 text-sm leading-5 text-ink/55 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-2 [@media_(min-width:1024px)_and_(max-height:860px)]:text-xs [@media_(min-width:1024px)_and_(max-height:860px)]:leading-4">First choose the basics. Dough Plan, pizza choices, Shopping, Timeline, Kitchen Mode and Review come next.</p>
+          <h1 className="font-display text-3xl font-semibold leading-none [@media_(min-width:1024px)_and_(max-height:860px)]:text-2xl">Set up your pizza plan.</h1>
+          <p className="mt-3 text-sm leading-5 text-ink/55 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-2 [@media_(min-width:1024px)_and_(max-height:860px)]:text-xs [@media_(min-width:1024px)_and_(max-height:860px)]:leading-4">First choose the basics. Dough Plan, pizza choices, Shopping list, Timeline, Kitchen and Review come next.</p>
           <div className="mt-4 rounded-2xl border border-ink/10 bg-white p-3 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-3 [@media_(min-width:1024px)_and_(max-height:860px)]:rounded-xl [@media_(min-width:1024px)_and_(max-height:860px)]:p-2.5">
             <div className="flex items-center justify-between text-xs font-extrabold text-ink/65">
               <span>{step === "summary" ? "Setup ready" : `Step ${journeyProgress} of ${journeySteps.length}`}</span>
@@ -1035,7 +1035,7 @@ function StartPizzaSessionContent() {
             </div>
             <p className="mt-2 text-[11px] font-bold text-ink/45 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-1.5 [@media_(min-width:1024px)_and_(max-height:860px)]:text-[10px]">Setup is steps 1–5 of the full pizza journey.</p>
           </div>
-          <ol className="mt-5 grid gap-1.5 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-3 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-1" aria-label="Pizza Session journey">
+          <ol className="mt-5 grid gap-1.5 [@media_(min-width:1024px)_and_(max-height:860px)]:mt-3 [@media_(min-width:1024px)_and_(max-height:860px)]:gap-1" aria-label="Pizza plan journey">
             {journeySteps.map((item, index) => {
               const state = journeyStepState(index, journeyProgress);
               const canNavigate = state === "complete";
@@ -1084,7 +1084,7 @@ function StartPizzaSessionContent() {
             <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[.18em] text-tomato">
               <span>{step === "summary" ? "Setup ready" : `Setup step ${setupProgress} of ${wizardSteps.length}`}</span>
             </div>
-            <div className="mt-2 flex gap-1.5" aria-label="Pizza Session setup progress">
+            <div className="mt-2 flex gap-1.5" aria-label="Pizza plan setup progress">
               {wizardSteps.map((item, index) => (
                 <span
                   key={item}
@@ -1530,7 +1530,7 @@ function StartPizzaSessionContent() {
                 </button>
               ) : (
                 <button type="button" onClick={() => continueToRecipe()} disabled={creatingPlan} className={buttonClass({ className: "min-h-14 w-full px-8 sm:w-auto" })}>
-                  {creatingPlan ? "Creating pizza plan..." : "Create my pizza plan"}
+                  {creatingPlan ? "Creating pizza plan..." : "Plan a pizza"}
                 </button>
               )}
             </div>

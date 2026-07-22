@@ -73,7 +73,7 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
         className={`rounded-[1.75rem] border border-leaf/20 bg-leaf/[.08] p-5 shadow-sm sm:p-6 ${variant === "hero" ? "border-white/70 bg-white/80 shadow-card backdrop-blur-md" : ""} ${className}`}
         aria-labelledby="cloud-active-pizza-session-heading"
       >
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Active pizza session</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Active pizza plan</p>
         <div className="mt-2 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
             <h2 id="cloud-active-pizza-session-heading" className="font-display text-2xl font-semibold text-ink">
@@ -91,7 +91,7 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
             onClick={continueCloudSession}
             className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-ink px-5 py-3 text-sm font-extrabold text-white transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
-            Continue Pizza Session →
+            Continue your pizza plan →
           </button>
         </div>
       </section>
@@ -114,9 +114,9 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
         <div className="grid gap-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
           <span className="grid h-14 w-14 place-items-center rounded-full bg-leaf/10 text-2xl text-leaf" aria-hidden="true">◌</span>
           <div className="min-w-0">
-            <p className="text-[0.65rem] font-extrabold uppercase tracking-[.28em] text-ink/50">Local session</p>
+            <p className="text-[0.65rem] font-extrabold uppercase tracking-[.28em] text-ink/50">Local pizza plan</p>
             <h2 id="continue-pizza-session-heading" className="mt-2 font-display text-2xl font-semibold leading-none text-ink">
-              Continue Pizza Session
+              Continue your pizza plan
             </h2>
             <p className="mt-2 text-sm leading-5 text-ink/60">
               Next step: <strong className="text-ink">{stepLabels[session.currentStep]}</strong>
@@ -127,7 +127,7 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
             href={pizzaSessionContinueHref(session)}
             className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 py-3 text-xs font-extrabold text-white transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
-            Continue my plan
+            Continue your pizza plan
           </Link>
         </div>
         <div className="mt-4 border-t border-ink/10 pt-4 text-sm leading-6 text-ink/55">
@@ -143,11 +143,11 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
       className={`rounded-[1.75rem] border border-leaf/20 bg-leaf/[.08] p-5 shadow-sm sm:p-6 ${className}`}
       aria-labelledby="continue-pizza-session-heading"
     >
-      <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Local session</p>
+      <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Local pizza plan</p>
       <div className="mt-2 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
         <div>
           <h2 id="continue-pizza-session-heading" className="font-display text-2xl font-semibold text-ink">
-            Continue Pizza Session
+            Continue your pizza plan
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
             Next step: <strong className="text-ink">{stepLabels[session.currentStep]}</strong>. Last saved {lastSaved}.
@@ -160,7 +160,7 @@ export default function ContinuePizzaSessionCard({ className = "", variant = "de
           href={pizzaSessionContinueHref(session)}
           className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-ink px-5 py-3 text-sm font-extrabold text-white transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
-          Continue my plan
+          Continue your pizza plan
         </Link>
       </div>
     </section>

@@ -26,7 +26,7 @@ function formatFermentation(value?: string) {
 function doughSummary(style: PizzaStyleEducation) {
   const preset = presetForStyle(style);
   if (!preset) {
-    return "Learning-only tray format; no Pizza Session planning default.";
+    return "Learning-only tray format; no pizza-plan default.";
   }
 
   const flour = flourById(preset.settings.flourId);
@@ -51,12 +51,12 @@ export default function PizzaStyleComparison() {
             Main pizza styles at a glance.
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">
-            Use this as a choosing guide. DoughTools currently creates a Neapolitan-style Pizza Session; the other style families are learning references or legacy calculator presets.
+            Use this as a choosing guide. DoughTools currently creates a Neapolitan-style pizza plan; the other style families are learning references or legacy calculator presets.
           </p>
         </div>
         <div className="rounded-[1.25rem] border border-leaf/20 bg-leaf/10 px-4 py-3 text-sm font-bold leading-6 text-forest lg:max-w-sm">
           <DoughToolsIcon name="information" size={20} className="mr-2 inline align-[-4px]" />
-          Pizza Session currently plans Neapolitan-style pizza for home ovens and pizza ovens. Other styles are learning references.
+          Pizza plans currently support Neapolitan-style pizza for home ovens and pizza ovens. Other styles are learning references.
         </div>
       </div>
 

@@ -18,7 +18,7 @@ describe("core recipe workflow handoff", () => {
 
     const planner = handoff.actions.find((item) => item.id === "planner");
     expect(planner).toMatchObject({
-      label: "Plan my next pizza",
+      label: "Plan a pizza",
       href: "/session/start",
       preservesQuery: false,
     });
@@ -56,11 +56,11 @@ describe("core recipe workflow handoff", () => {
     const nerd = getRecipeWorkflowHandoff("pizza_nerd", query);
 
     expect(beginner.intro).toContain("guided pizza plan");
-    expect(beginner.detail).toContain("Pizza Session first");
+    expect(beginner.detail).toContain("pizza plan first");
     expect(enthusiast.intro).toContain("timing controls fermentation");
     expect(enthusiast.detail).toContain("sauce, toppings and oven timing");
     expect(nerd.intro).toContain("recipe context");
-    expect(nerd.detail).toContain("Pizza Session starts from the canonical planning flow");
+    expect(nerd.detail).toContain("pizza plan starts from the canonical planning flow");
   });
 
   it("wires the calculator workspace recipe result to a semantic next-step section with accessible link text", () => {

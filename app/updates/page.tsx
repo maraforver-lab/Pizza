@@ -26,7 +26,7 @@ export default function UpdatesPage() {
                   href="/session/start"
                   className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-forest active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                 >
-                  Plan my next pizza
+                  Plan a pizza
                 </Link>
                 <Link
                   href="/about"

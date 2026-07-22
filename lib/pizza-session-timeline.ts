@@ -34,7 +34,7 @@ export const QUIET_HOURS_WARNING =
   "This active task falls inside the usual 22:00–07:00 quiet window. If that is not realistic, move the target time or prepare this step earlier.";
 
 const DEFAULT_TIMELINE_ASSUMPTIONS = [
-  "The target time is treated as the planned eating or baking moment saved in the Pizza Session.",
+  "The target time is treated as the planned eating or baking moment saved in the pizza plan.",
   "Timing is a practical guide, not a guarantee. Dough temperature, room temperature, flour strength and oven heat can shift the schedule.",
   "This first timeline version uses conservative default offsets and keeps detailed fermentation tuning in the existing tools.",
   "User-facing times are rounded to practical 15-minute increments.",

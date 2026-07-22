@@ -34,8 +34,8 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
   const actions: RecipeWorkflowAction[] = [
     {
       id: "planner",
-      label: "Plan my next pizza",
-      description: "Create the guided plan for recipe, shopping, timeline, Kitchen Mode and review.",
+      label: "Plan a pizza",
+      description: "Create the guided plan for Dough Plan, Shopping list, Timeline, Kitchen and Review.",
       href: "/session/start",
       priority: "primary",
       preservesQuery: false,
@@ -86,7 +86,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
       heading: "Next steps for this recipe",
       intro: "You have the dough numbers. Next, create the guided pizza plan.",
       primaryActionId: "planner",
-      detail: "Start with Pizza Session first. Sauce, toppings, timer and troubleshooting are ready when you need them.",
+      detail: "Start with a pizza plan first. Sauce, toppings, timer and troubleshooting are ready when you need them.",
       actions,
     };
   }
@@ -96,7 +96,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
       heading: "Next steps for this recipe",
       intro: "Use the recipe as the base for the whole bake: timing controls fermentation, sauce and toppings control balance, and the timer helps repeatability.",
       primaryActionId: "planner",
-      detail: "Pizza Session is the best next move, then finish the pizza setup with sauce, toppings and oven timing.",
+      detail: "A pizza plan is the best next move, then finish the pizza setup with sauce, toppings and oven timing.",
       actions,
     };
   }
@@ -105,7 +105,7 @@ export function getRecipeWorkflowHandoff(level: ExperienceLevel, recipeQuery: st
     heading: "Next steps for this recipe",
     intro: "Carry this recipe context through the workflow so variables stay comparable from dough numbers to bake notes.",
     primaryActionId: "planner",
-    detail: "Pizza Session starts from the canonical planning flow. Sauce, Toppings and Timer receive the current recipe query where supported. Troubleshooting stays recipe-neutral.",
+    detail: "A pizza plan starts from the canonical planning flow. Sauce, toppings and timer receive the current recipe query where supported. Troubleshooting stays recipe-neutral.",
     actions,
   };
 }

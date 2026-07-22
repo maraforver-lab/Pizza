@@ -105,7 +105,7 @@ const defaultInstruction: KitchenTaskInstruction = {
   shortInstruction: "Follow the timeline step, then mark it done when you are ready to continue.",
   beginnerWhy: "One step at a time keeps the session calm.",
   enthusiastWhy: "A clear step sequence helps repeat the same bake later.",
-  pizzaNerdWhy: "Kitchen Mode consumes the stored timeline and does not recalculate the schedule.",
+  pizzaNerdWhy: "Kitchen uses the stored timeline and does not recalculate the schedule.",
 };
 
 export const kitchenTaskInstructions: Record<string, KitchenTaskInstruction> = {
@@ -113,7 +113,7 @@ export const kitchenTaskInstructions: Record<string, KitchenTaskInstruction> = {
     shortInstruction: "Weigh the ingredients, mix until no dry flour remains, then cover the dough. Up to 30 minutes is reserved; the rest starts after completion.",
     beginnerWhy: "This creates the dough you will ferment, ball and bake later.",
     enthusiastWhy: "Careful weighing and complete mixing make the dough easier to repeat and diagnose.",
-    pizzaNerdWhy: "Use the stored recipe snapshot here. Kitchen Mode shows saved dough numbers and does not change formulas.",
+    pizzaNerdWhy: "Use the stored recipe snapshot here. Kitchen shows saved dough numbers and does not change formulas.",
   },
   "rest-dough": {
     shortInstruction: "Keep the dough covered and let it relax.",
@@ -179,7 +179,7 @@ const defaultExperienceGuidance: KitchenExperienceGuidanceByLevel = {
   pizza_nerd: {
     instruction: "Use the stored timeline step as the execution checkpoint.",
     whatToLookFor: "Assess the physical state before relying on the clock alone.",
-    technicalNote: "Kitchen Mode reads the stored timeline and guidance; it does not recalculate formulas or timings here.",
+    technicalNote: "Kitchen reads the stored timeline and guidance; it does not recalculate formulas or timings here.",
   },
 };
 
@@ -585,7 +585,7 @@ export function getKitchenTaskPresentation(
   if (ovenPresentation) return ovenPresentation;
 
   return {
-    title: step?.label ?? "Kitchen Mode",
+    title: step?.label ?? "Kitchen",
     shortInstruction: isBallDough ? ballInstruction : instruction.shortInstruction,
     doneCondition: step ? kitchenDoneConditions[step.id] ?? "The step is complete and you are ready for the next task." : "You are ready for the next task.",
     helperCopy: step?.helperCopy,

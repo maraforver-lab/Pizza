@@ -84,9 +84,9 @@ describe("Pizza Session desktop refinement components", () => {
     expect(downstreamPages).toContain("variant=\"step-unavailable\"");
     expect(downstreamPages).toContain("variant=\"error\"");
     expect(startPage).toContain("SessionRouteState");
-    expect(startPage).toContain("We could not verify your active account pizza session.");
+    expect(startPage).toContain("We could not verify your active account pizza plan.");
     expect(startPage).toContain("createPlanningDraftSession");
-    expect(startPage).toContain("Create my pizza plan");
+    expect(startPage).toContain("Plan a pizza");
   });
 
   it("keeps Pizza Session viewport reset mounted across route-query step variants", () => {
@@ -138,7 +138,7 @@ describe("Pizza Session desktop refinement components", () => {
 
     expect(sidebar).toContain("export function SessionProgressSidebar");
     expect(sidebar).toContain('import Link from "next/link"');
-    expect(sidebar).toContain("Pizza Session journey");
+    expect(sidebar).toContain("Pizza plan journey");
     expect(sidebar).toContain("hidden rounded-[1.75rem]");
     expect(sidebar).toContain("lg:block");
     expect(sidebar).toContain('href: "/session/start?step=path"');
@@ -162,7 +162,7 @@ describe("Pizza Session desktop refinement components", () => {
     expect(sidebar).toContain("Dough Plan");
     expect(sidebar).toContain("Choose pizzas & Shopping");
     expect(sidebar).toContain("Timeline");
-    expect(sidebar).toContain("Kitchen Mode");
+    expect(sidebar).toContain("Kitchen");
     expect(sidebar).toContain("Review");
     expect(layout).toContain("export function SessionWorkspaceLayout");
     expect(layout).toContain("SessionProgressSidebar");
@@ -174,13 +174,13 @@ describe("Pizza Session desktop refinement components", () => {
     }
   });
 
-  it("keeps Pizza Session guidance level visible from the active session value", () => {
+  it("keeps pizza plan guidance level visible from the active session value", () => {
     const badge = source("components/session/SessionExperienceLevelBadge.tsx");
     const hero = source("components/session/SessionStepHero.tsx");
     const startPage = source("app/session/start/page.tsx");
     const kitchenPage = source("app/session/kitchen/page.tsx");
 
-    expect(badge).toContain("Pizza Session guidance level: ${config.label}");
+    expect(badge).toContain("Pizza plan guidance level: ${config.label}");
     expect(badge).toContain("Guidance: {config.label}");
     expect(badge).toContain("compact");
     expect(badge).toContain("data-session-experience-level={config.id}");

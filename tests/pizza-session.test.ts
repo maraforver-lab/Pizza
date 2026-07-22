@@ -317,7 +317,7 @@ describe("Pizza Session local storage", () => {
     expect(component).toContain("\"use client\"");
     expect(component).toContain("resolveCanonicalActivePizzaSession");
     expect(component).toContain("if (!ready || (!session && !cloudSession)) return null");
-    expect(component).toContain("Continue Pizza Session");
+    expect(component).toContain("Continue your pizza plan");
     expect(component).toContain("Signed-in users can save an in-progress copy");
     expect(component).toContain("focus-visible:ring");
     expect(homepage).toContain("HomepageSessionActions");

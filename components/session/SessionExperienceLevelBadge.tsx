@@ -12,7 +12,7 @@ export function SessionExperienceLevelBadge({ level, className = "", compact = f
   return (
     <span
       className={`inline-flex w-fit items-center gap-2 rounded-full text-xs font-extrabold ring-1 ${compact ? "px-2.5 py-2" : "px-3 py-2"} ${config.badgeClassName} ${className}`}
-      aria-label={`Pizza Session guidance level: ${config.label}`}
+      aria-label={`Pizza plan guidance level: ${config.label}`}
       data-session-experience-level={config.id}
     >
       <span className={`h-2.5 w-2.5 rounded-full ${config.markerClassName}`} aria-hidden="true" />

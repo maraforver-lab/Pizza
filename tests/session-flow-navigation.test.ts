@@ -36,7 +36,7 @@ describe("Pizza Session flow navigation integrity", () => {
     const kitchen = source("app/session/kitchen/page.tsx");
     const review = source("app/session/review/page.tsx");
 
-    expect(start).toContain("Create my pizza plan");
+    expect(start).toContain("Plan a pizza");
     expect(start).toContain("const continueToRecipe = async (options: { replaceActiveCloudSession?: boolean } = {})");
     expect(start).toContain("await materializeCloudBackedPizzaSession(saved,");
     expect(start).toContain("router.push(\"/session/recipe\")");
@@ -67,7 +67,7 @@ describe("Pizza Session flow navigation integrity", () => {
     expect(start).toContain("createPlanningDraftSession");
     expect(start).toContain("const baseSession = active ?? createPlanningDraftSession(preferredLevel, requestedStep)");
     expect(start).toContain("resolveCanonicalActivePizzaSession");
-    expect(start).toContain("We could not verify your active account pizza session.");
+    expect(start).toContain("We could not verify your active account pizza plan.");
     expect(start).not.toContain("SessionEmptyState");
     expect(recipe).toContain("SessionRouteState");
     expect(recipe).toContain("No active pizza plan");

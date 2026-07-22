@@ -106,16 +106,16 @@ function PreparePlanSummaryCard({
       <section className="rounded-[1.5rem] border border-ink/10 bg-white/75 p-4 shadow-sm" aria-labelledby="dough-guide-no-session">
         <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <h2 id="dough-guide-no-session" className="font-display text-2xl font-semibold">No active Pizza Session</h2>
+            <h2 id="dough-guide-no-session" className="font-display text-2xl font-semibold">No active pizza plan</h2>
             <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
-              You can use this guide without a session. Start a Pizza Session to see your exact ingredient amounts, dough-ball size and fermentation plan inside each step.
+              You can use this guide without a pizza plan. Plan a pizza to see your exact ingredient amounts, dough-ball size and fermentation plan inside each step.
             </p>
           </div>
           <Link
             href="/session/start"
             className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
           >
-            Start a Pizza Session
+            Plan a pizza
           </Link>
         </div>
       </section>
@@ -128,7 +128,7 @@ function PreparePlanSummaryCard({
     <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.08] p-4 shadow-sm" aria-labelledby="dough-guide-current-plan">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Active Pizza Session</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Active pizza plan</p>
           <h2 id="dough-guide-current-plan" className="mt-1 font-display text-2xl font-semibold">Your dough plan</h2>
         </div>
       </div>
@@ -422,7 +422,7 @@ export default function DoughGuidePageClient() {
   const sessionReturnLabel = sessionReturnPath === "/session/timeline"
     ? "Back to Timeline"
     : sessionReturnPath === "/session/kitchen"
-      ? "Back to Kitchen Mode"
+      ? "Back to Kitchen"
       : null;
   const activeStep = getDoughGuideStepById(stepParam);
   const activeIndex = getDoughGuideStepIndex(stepParam);
@@ -468,7 +468,7 @@ export default function DoughGuidePageClient() {
               Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
             </p>
             <p className="mt-4 hidden max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65 lg:block">
-              This guide works with or without a Pizza Session. When a session is active, it adds your dough-plan values without changing the session.
+              This guide works with or without a pizza plan. When a plan is active, it adds your dough-plan values without changing the plan.
             </p>
           </div>
           <div className="mt-6 hidden lg:mt-0 lg:block">

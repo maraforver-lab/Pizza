@@ -39,8 +39,8 @@ const stepLabels: Record<PizzaSession["currentStep"], string> = {
   recipe: "Dough Plan",
   shopping: "Shopping list",
   timeline: "Timeline",
-  prep: "Kitchen Mode",
-  bake: "Kitchen Mode",
+  prep: "Kitchen",
+  bake: "Kitchen",
   review: "Review",
 };
 

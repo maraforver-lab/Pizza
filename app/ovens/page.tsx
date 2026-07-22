@@ -17,7 +17,7 @@ const ovenSetups = [
     icon: "oven" as DoughToolsIconName,
     tone: "light",
     heat: homeProfile.temperatureLabel,
-    preheat: `${homeProfile.preheatDurationMinutes} min Pizza Session preheat window`,
+    preheat: `${homeProfile.preheatDurationMinutes} min pizza-plan preheat window`,
     bake: `${homeProfile.bakeTimeLabel} planning default`,
     placement: "Fully heated steel, stone or tray; choose rack position for top/bottom balance.",
     result: "Longer bake, more drying risk, steadier workflow and good browning when the surface is hot.",
@@ -29,7 +29,7 @@ const ovenSetups = [
     icon: "flame" as DoughToolsIconName,
     tone: "dark",
     heat: pizzaProfile.temperatureLabel,
-    preheat: `${pizzaProfile.preheatDurationMinutes} min Pizza Session preheat window`,
+    preheat: `${pizzaProfile.preheatDurationMinutes} min pizza-plan preheat window`,
     bake: `${pizzaProfile.bakeTimeLabel} planning default`,
     placement: "Launch onto the hot floor or stone where top heat and floor heat are balanced.",
     result: "Fast oven spring, rapid colour, lower topping tolerance and a short turning window.",
@@ -46,14 +46,14 @@ const comparisonRows = [
 ] as const;
 
 const pizzaOvenSteps = [
-  `Preheat for the current ${pizzaProfile.preheatDurationMinutes} min Pizza Session window and judge the floor, not only the flame.`,
+  `Preheat for the current ${pizzaProfile.preheatDurationMinutes} min pizza-plan window and judge the floor, not only the flame.`,
   "Launch onto a balanced floor spot where the base can set before the rim scorches.",
   `${pizzaProfile.rotationGuidance} Start checking early because ${pizzaProfile.bakeTimeLabel} is a short bake window.`,
   "Remove when the rim is browned, the bottom is baked, and the cheese is melted.",
 ] as const;
 
 const homeOvenSteps = [
-  `Preheat for the current ${homeProfile.preheatDurationMinutes} min Pizza Session window so the surface is saturated, not just the oven air.`,
+  `Preheat for the current ${homeProfile.preheatDurationMinutes} min pizza-plan window so the surface is saturated, not just the oven air.`,
   `${homeProfile.surfaceGuidance} A tray remains a valid fallback when no stone or steel is available.`,
   `${homeProfile.rotationGuidance} Use broiler or grill help only when it is safe for your oven and the top is lagging.`,
   `Plan around ${homeProfile.bakeTimeLabel}, then judge the rim, bottom and cheese instead of treating the clock as exact.`,
@@ -98,8 +98,8 @@ const improvementItems = [
 ] as const;
 
 const sessionEffects = [
-  "Home oven and Pizza oven are the supported Pizza Session choices.",
-  "The selected oven changes the preheat window and the baking copy used in Timeline and Kitchen Mode.",
+  "Home oven and Pizza oven are the supported pizza-plan choices.",
+  "The selected oven changes the preheat window and the baking copy used in Timeline and Kitchen.",
   "DoughTools uses a planning default, while real bake time still depends on surface heat, topping moisture and visual doneness.",
   "Choosing Home oven does not promise a dedicated pizza-oven result; it plans for a longer home-oven rhythm.",
 ] as const;
@@ -360,7 +360,7 @@ export default function OvensPage() {
 
         <section className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,.75fr)]" aria-labelledby="session-effect-title">
           <article className={cardClass({ className: "p-5 sm:p-6", variant: "success" })}>
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza Session effect</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza plan effect</p>
             <h2 id="session-effect-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               Use the same oven choice when you plan.
             </h2>
@@ -478,7 +478,7 @@ export default function OvensPage() {
             Plan with the oven you actually have.
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70">
-            Pizza Session uses your Home oven or Pizza oven choice for the current preheat window, bake guidance and kitchen instructions.
+            Your pizza plan uses your Home oven or Pizza oven choice for the current preheat window, bake guidance and kitchen instructions.
           </p>
           <div className="mt-6">
             <Link href="/session/start" className={buttonClass({ className: "w-full sm:w-auto", variant: "primary" })}>

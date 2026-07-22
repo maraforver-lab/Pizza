@@ -70,7 +70,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "A tool first built for real pizza nights",
         paragraphs: [
           "DoughTools began with practical pizza-making questions: when to start, how much yeast to use, whether to ferment at room temperature or in the refrigerator, and which flour can handle the plan.",
-          "It later grew to include Party Orders because hosting friends created another real problem: collecting guest choices and turning them into dough quantities, shopping and a usable Pizza Session.",
+          "It later grew to include Party Orders because hosting friends created another real problem: collecting guest choices and turning them into dough quantities, shopping and a usable pizza plan.",
         ],
       },
       {
@@ -145,7 +145,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       },
       {
         title: "Account sync is optional",
-        body: "Signed-in Pizza Session, history, Party Order, and photo features use Supabase-backed cloud storage.",
+        body: "Signed-in pizza plan, history, Party Order, and photo features use Supabase-backed cloud storage.",
         href: "#account-and-cloud-data",
       },
       {
@@ -164,7 +164,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "Privacy at a glance",
         id: "privacy-at-a-glance",
         paragraphs: [
-          "DoughTools tries to keep simple planning and calculator data local to your browser where that is enough. Account features are different: when you sign in, selected Pizza Session, history, Party Order, and photo data can be saved to Supabase so you can use account features.",
+          "DoughTools tries to keep simple planning and calculator data local to your browser where that is enough. Account features are different: when you sign in, selected pizza plan, history, Party Order, and photo data can be saved to Supabase so you can use account features.",
           "DoughTools does not include advertising pixels or analytics tracking in the inspected code. Hosting, authentication, database, storage, and photo-checking providers still process technical data needed to run the service.",
         ],
       },
@@ -181,7 +181,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "what-data-doughtools-processes",
         bullets: [
           "Account data: email address, Supabase authentication identifiers, and authentication-session data.",
-          "Pizza Session data: dough settings, timing, shopping, Timeline, Kitchen Mode, Review notes, completed-session titles, and related session metadata.",
+          "Pizza plan data: dough settings, timing, shopping, Timeline, Kitchen, Review notes, completed-plan titles, and related plan metadata.",
           "Browser-local data: active local sessions, saved calculator recipes, experience-level preference, local bake results, cost currency, install-prompt state, gear checklist choices, and similar local-only tool state.",
           "Party Orders: organizer event details, public guest link token, guest names, guest comments, pizza choices, edit tokens, status, and timestamps.",
           "Pizza photos: optional uploaded image, original filename and type metadata, optimized image metadata, moderation/relevance results, and Supabase Storage path.",
@@ -194,7 +194,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "why-and-on-what-legal-basis",
         paragraphs: [
           "DoughTools uses personal data to provide the service you request, keep account features working, secure the service, prevent abuse, respond to support and privacy requests, and maintain records where required.",
-          "The main GDPR legal bases described by this notice are: performance of the requested service or contract for account, Pizza Session, Party Order, and support features; legitimate interests for security, abuse prevention, service reliability, and basic technical logging; consent or your optional action where the interface asks you to upload a photo or start an optional feature; and legal obligation where applicable law requires records or responses.",
+          "The main GDPR legal bases described by this notice are: performance of the requested service or contract for account, pizza plan, Party Order, and support features; legitimate interests for security, abuse prevention, service reliability, and basic technical logging; consent or your optional action where the interface asks you to upload a photo or start an optional feature; and legal obligation where applicable law requires records or responses.",
           "Where DoughTools relies on legitimate interests, the interest is to keep a small pizza-planning service secure, reliable, and usable without collecting more data than needed. You may object to processing based on legitimate interests by contacting DoughTools.",
         ],
       },
@@ -202,7 +202,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "Local-only data",
         id: "local-only-data",
         paragraphs: [
-          "Some data stays in your browser unless you separately choose an account or cloud feature. This includes local Pizza Session storage, saved Quick Calculator recipes, saved calculator recipes in the main calculator, experience-level preference, local bake results, gear checklist choices, cost currency, install-prompt state, and older local planning state.",
+          "Some data stays in your browser unless you separately choose an account or cloud feature. This includes local pizza plan storage, saved Quick Calculator recipes, saved calculator recipes in the main calculator, experience-level preference, local bake results, gear checklist choices, cost currency, install-prompt state, and older local planning state.",
           "Local browser data is stored on the device and browser profile you use. It may be deleted by the relevant in-product delete/reset control where available or by clearing site data in your browser. DoughTools cannot recover browser-local data after you clear it.",
         ],
       },
@@ -210,8 +210,8 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "Account and cloud data",
         id: "account-and-cloud-data",
         paragraphs: [
-          "If you create an account, Supabase handles authentication. DoughTools application code does not store your password. Signed-in users can save active Pizza Sessions, completed session history, completed-session titles, Party Orders, and optional pizza photos in Supabase-backed cloud storage.",
-          "Active and completed Pizza Session records can be archived through the current account UI. In the inspected implementation, those delete actions mark records as archived instead of proving physical erasure from every table or backup. Privacy deletion requests should be sent to DoughTools so account-level cleanup can be handled deliberately.",
+          "If you create an account, Supabase handles authentication. DoughTools application code does not store your password. Signed-in users can save active pizza plans, completed plan history, completed-plan titles, Party Orders, and optional pizza photos in Supabase-backed cloud storage.",
+          "Active and completed pizza plan records can be archived through the current account UI. In the inspected implementation, those delete actions mark records as archived instead of proving physical erasure from every table or backup. Privacy deletion requests should be sent to DoughTools so account-level cleanup can be handled deliberately.",
           "Saved Quick Calculator recipes and many older calculator saved recipes remain local-only in the browser and are not currently described as account-synced data.",
         ],
       },
@@ -219,7 +219,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "Pizza photos and moderation",
         id: "pizza-photos-and-moderation",
         paragraphs: [
-          "Pizza photos are optional and available only for signed-in completed Pizza Sessions. Before a photo is stored, DoughTools checks the uploaded image with OpenAI for safety moderation and pizza relevance. If the check fails, the photo is not stored for the overlay feature.",
+          "Pizza photos are optional and available only for signed-in completed pizza plans. Before a photo is stored, DoughTools checks the uploaded image with OpenAI for safety moderation and pizza relevance. If the check fails, the photo is not stored for the overlay feature.",
           "Accepted photos are uploaded to the Supabase Storage bucket used for pizza-session photos. DoughTools stores metadata such as the storage path, upload time, content type, file size, original filename, original content type, optimized size, image dimensions, compression quality, and related session data.",
           "The moderation and relevance checks are practical feature checks. They do not create legal or similarly significant automated decisions about you; a rejected image simply cannot be used for the DoughTools photo feature.",
         ],
@@ -229,7 +229,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "party-orders-and-public-links",
         paragraphs: [
           "Party Orders let a signed-in organizer create a public guest link. Anyone with the link may be able to open the guest form while orders are open, so the link should be shared only with intended participants.",
-          "Guest submissions can include a guest name, optional comment, pizza choices, quantities, and an edit token. The organizer can view guest orders, close or reopen orders before the deadline, archive the Party Order, use the totals to create a Pizza Session, and delete individual guest submissions from the organizer view.",
+          "Guest submissions can include a guest name, optional comment, pizza choices, quantities, and an edit token. The organizer can view guest orders, close or reopen orders before the deadline, archive the Party Order, use the totals to create a pizza plan, and delete individual guest submissions from the organizer view.",
           "Guests should not submit sensitive information, allergy details, medical information, or private data in Party Order names or comments. Allergies and dietary safety should be verified directly outside DoughTools.",
         ],
       },
@@ -246,7 +246,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "Service providers and recipients",
         id: "service-providers-and-recipients",
         bullets: [
-          "Supabase: authentication, database, and storage for account, Pizza Session, Party Order, and pizza-photo features.",
+          "Supabase: authentication, database, and storage for account, pizza plan, Party Order, and pizza-photo features.",
           "Vercel: hosting, delivery, build/runtime infrastructure, and technical logs for the website and API routes.",
           "OpenAI: optional pizza-photo safety moderation and pizza-relevance analysis when a signed-in user uploads a pizza photo.",
           "Email providers: if you email DoughTools, your email provider and the DoughTools mailbox provider process the message outside the application itself.",
@@ -265,7 +265,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "retention-and-deletion",
         paragraphs: [
           "Browser-local data remains until you delete it in the product where a delete/reset control exists, clear site data, switch browser profiles, or the browser removes it.",
-          "Cloud Pizza Sessions, completed history, Party Orders, guest submissions, and photos remain until you archive/delete them through available product controls, until account-level deletion is handled by request, or until DoughTools applies a future retention rule. Current code limits completed-session list display to recent entries, but that display limit is not a deletion period.",
+          "Cloud pizza plans, completed history, Party Orders, guest submissions, and photos remain until you archive/delete them through available product controls, until account-level deletion is handled by request, or until DoughTools applies a future retention rule. Current code limits completed-plan list display to recent entries, but that display limit is not a deletion period.",
           "Uploaded pizza photos are replaced when a new photo is uploaded for the same completed session. The previous stored photo path is removed from Supabase Storage during replacement. Backup retention, support-email retention, exact log retention, and account deletion timing require Marcin/provider confirmation.",
         ],
       },
@@ -327,7 +327,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     eyebrow: "Terms",
     title: "Clear rules for using DoughTools.",
     intro:
-      "These Terms explain how the service may be used, what DoughTools provides, and the responsibilities that apply to accounts, photos, Pizza Sessions, and Party Orders.",
+      "These Terms explain how the service may be used, what DoughTools provides, and the responsibilities that apply to accounts, photos, pizza plans, and Party Orders.",
     lastUpdated: "13 July 2026",
     effectiveFrom: "13 July 2026",
     heroImage: {
@@ -342,7 +342,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     summary: [
       {
         title: "DoughTools helps you plan and learn",
-        body: "The service provides calculators, Pizza Sessions, learning pages, Party Orders, and review tools.",
+        body: "The service provides calculators, pizza plans, learning pages, Party Orders, and review tools.",
         href: "#what-doughtools-provides",
       },
       {
@@ -366,7 +366,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "Terms at a glance",
         id: "terms-at-a-glance",
         paragraphs: [
-          "DoughTools is a pizza-planning and learning companion. It helps you calculate, plan, shop, follow a timeline, use Kitchen Mode, review bakes, manage Party Orders, and learn pizza-making topics.",
+          "DoughTools is a pizza-planning and learning companion. It helps you calculate, plan, shop, follow a timeline, use Kitchen, review bakes, manage Party Orders, and learn pizza-making topics.",
           "The service is guidance, not a guarantee. Dough behavior, oven performance, food safety, allergies, and equipment use still depend on your ingredients, environment, choices, and judgment.",
         ],
       },
@@ -399,7 +399,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "What DoughTools provides",
         id: "what-doughtools-provides",
         paragraphs: [
-          "DoughTools currently includes pizza calculators, the standalone Quick Dough Calculator, Pizza Session planning, recipe and shopping views, Timeline, Kitchen Mode, Review, account history, Party Orders, photo overlay features, and learning pages such as the Pizza Learning Center, Dough Guide, Sauce, Ovens, Styles, Toppings, and Troubleshooting.",
+          "DoughTools currently includes pizza calculators, the standalone Quick Dough Calculator, pizza planning, Dough Plan and Shopping list views, Timeline, Kitchen, Review, account history, Party Orders, photo overlay features, and Pizza guides such as Dough guides, Sauce guides, Baking guides, Choose your pizza, Topping guides, and Practical pizza tips.",
           "Some features are local-only and stored in your browser. Some require an account. Some are educational or experimental and may change as DoughTools improves.",
         ],
       },
@@ -408,7 +408,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "accounts",
         paragraphs: [
           "You are responsible for using an accurate email address, keeping your password safe, and not sharing account credentials. Supabase handles password authentication; DoughTools application code does not store your password.",
-          "Account features may save Pizza Sessions, completed history, Party Orders, and pizza photos in the cloud. If you use a shared device, remember that browser-local DoughTools data may remain visible in that browser unless you clear it.",
+          "Account features may save pizza plans, completed history, Party Orders, and pizza photos in the cloud. If you use a shared device, remember that browser-local DoughTools data may remain visible in that browser unless you clear it.",
         ],
       },
       {
@@ -444,7 +444,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "party-orders-and-public-guest-links",
         paragraphs: [
           "A Party Order organizer creates a public guest link. The link is not a password-protected private area; anyone who receives or guesses a valid link may be able to access the guest form while it is open.",
-          "Guests are responsible for entering accurate choices. Organizers are responsible for sharing links only with intended participants, checking final counts, handling allergies and dietary safety directly, and deciding whether to close, archive, or use Party Order totals in a Pizza Session.",
+          "Guests are responsible for entering accurate choices. Organizers are responsible for sharing links only with intended participants, checking final counts, handling allergies and dietary safety directly, and deciding whether to close, archive, or use Party Order totals in a pizza plan.",
           "DoughTools does not guarantee guest attendance, payment, dietary accuracy, or that a guest will not forward a link.",
         ],
       },

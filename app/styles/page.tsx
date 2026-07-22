@@ -96,7 +96,7 @@ export default function StylesPage() {
             Start with the style DoughTools can plan today.
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70">
-            Pizza Session uses your chosen oven, schedule, quantity and Neapolitan-style dough assumption to build the plan. Choose toppings later in Shopping.
+            Your pizza plan uses your chosen oven, schedule, quantity and Neapolitan-style dough assumption to build the plan. Choose toppings later in Shopping.
           </p>
           <Link
             href="/session/start"
