@@ -18,11 +18,12 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Choosing fermentation length");
     expect(page).toContain("Dough container and lid use");
     expect(page).toContain("Common dough, sauce and baking problems");
-    expect(page).toContain("Start with leftover dough guidance now.");
+    expect(page).toContain("Open a focused tip when a small dough, sauce or baking decision needs a quick answer.");
     expect(page).toContain('href: "/guide/practical-pizza-tips/leftover-dough"');
     expect(page).toContain('href: "/guide/practical-pizza-tips/fermentation-length"');
+    expect(page).toContain('href: "/guide/practical-pizza-tips/containers-and-lids"');
+    expect(page).toContain('href: "/guide/practical-pizza-tips/common-problems"');
     expect(page).toContain("Open practical tip");
-    expect(page).toContain("Planned for Patch");
     expect(guide).toContain('href: "/guide/practical-pizza-tips"');
     expect(navigation).toContain('id: "practical-tips"');
     expect(navigation).toContain('label: "Practical pizza tips"');
@@ -160,5 +161,60 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Discard dough with mold");
     expect(page).toContain("Shorten the plan if the dough is racing ahead");
     expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Fermentation length guidance by experience level"));
+  });
+
+  it("adds a container and lid page with covered-but-not-pressure-sealed guidance", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "containers-and-lids", "page.tsx");
+    const seo = source("lib", "seo-config.ts");
+
+    expect(page).toContain('metadataForRoute("/guide/practical-pizza-tips/containers-and-lids")');
+    expect(seo).toContain('path: "/guide/practical-pizza-tips/containers-and-lids"');
+    expect(page).toContain("Dough container and lid use");
+    expect(page).toContain("Cover the dough");
+    expect(page).toContain("Leave headspace");
+    expect(page).toContain("Do not pressure-seal");
+    expect(page).toContain("prevents drying");
+    expect(page).toContain("Condensation is normal");
+    expect(page).toContain("Clean and covered comes first.");
+  });
+
+  it("uses the shared three-level structure for container and lid depth", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "containers-and-lids", "page.tsx");
+
+    expect(page).toContain("Use a covered container with room");
+    expect(page).toContain("Control drying, sticking and temperature swings");
+    expect(page).toContain("Read headspace, humidity and gas expansion");
+    expect(page).toContain("A pressure-tight setup is unnecessary");
+    expect(page).toContain("Container and lid guidance by experience level");
+    expect(EXPERIENCE_LEVELS.map((level) => level.label)).toEqual(["Beginner", "Enthusiast", "Pizza Nerd"]);
+  });
+
+  it("adds a common problems page with beginner problem-to-action guidance", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "common-problems", "page.tsx");
+    const seo = source("lib", "seo-config.ts");
+
+    expect(page).toContain('metadataForRoute("/guide/practical-pizza-tips/common-problems")');
+    expect(seo).toContain('path: "/guide/practical-pizza-tips/common-problems"');
+    expect(page).toContain("Common dough, sauce and baking problems");
+    expect(page).toContain("Dough too sticky");
+    expect(page).toContain("Dough too tight");
+    expect(page).toContain("Dough spread flat");
+    expect(page).toContain("Dry skin on dough");
+    expect(page).toContain("Sauce too watery");
+    expect(page).toContain("Pale top");
+    expect(page).toContain("Burnt base");
+    expect(page).toContain("Wet toppings");
+  });
+
+  it("keeps common problems concise while linking to the existing troubleshooting guide", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "common-problems", "page.tsx");
+
+    expect(page).toContain('href="/guide/pizza-troubleshooting"');
+    expect(page).toContain("Fix pizza problems");
+    expect(page).toContain("Under-fermented dough is dense and tight");
+    expect(page).toContain("Sauce water activity and total topping mass");
+    expect(page).toContain("Top-to-bottom heat balance");
+    expect(page).toContain("Safety beats saving a bad batch.");
+    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Common problem guidance by experience level"));
   });
 });

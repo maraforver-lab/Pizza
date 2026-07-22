@@ -48,14 +48,14 @@ const plannedTopics = [
     description: "How container size, lid fit and surface drying affect dough handling.",
     plannedPatch: "452C",
     icon: "yeast",
-    href: undefined,
+    href: "/guide/practical-pizza-tips/containers-and-lids",
   },
   {
     title: "Common dough, sauce and baking problems",
     description: "How to decide whether a problem came from formula, timing, toppings or heat.",
     plannedPatch: "452D",
     icon: "warning",
-    href: undefined,
+    href: "/guide/practical-pizza-tips/common-problems",
   },
 ] as const satisfies readonly PracticalPizzaTipTopic[];
 
@@ -130,7 +130,7 @@ export default function PracticalPizzaTipsPage() {
               Small decisions that make the next pizza easier.
             </h2>
             <p className="mt-3 text-sm leading-6 text-ink/62">
-              Start with leftover dough guidance now. The remaining focused tip articles are planned next.
+              Open a focused tip when a small dough, sauce or baking decision needs a quick answer.
             </p>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -42,6 +42,8 @@ const requiredPublicRoutes = [
   "/guide/practical-pizza-tips",
   "/guide/practical-pizza-tips/leftover-dough",
   "/guide/practical-pizza-tips/fermentation-length",
+  "/guide/practical-pizza-tips/containers-and-lids",
+  "/guide/practical-pizza-tips/common-problems",
   "/styles",
   "/ovens",
   "/sauce",
@@ -150,6 +152,8 @@ describe("SEO launch configuration", () => {
       "/guide/practical-pizza-tips",
       "/guide/practical-pizza-tips/leftover-dough",
       "/guide/practical-pizza-tips/fermentation-length",
+      "/guide/practical-pizza-tips/containers-and-lids",
+      "/guide/practical-pizza-tips/common-problems",
       "/calculator/quick",
       "/tools/bake-timer",
     ]) {

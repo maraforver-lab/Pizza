@@ -122,6 +122,22 @@ export const publicSeoRoutes = [
     priority: 0.7,
   },
   {
+    path: "/guide/practical-pizza-tips/containers-and-lids",
+    title: "Pizza Dough Container and Lid Guide | DoughTools",
+    description:
+      "Learn how to choose and use covered dough containers, leave headspace and prevent dough from drying or sticking.",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
+    path: "/guide/practical-pizza-tips/common-problems",
+    title: "Common Pizza Dough, Sauce and Baking Problems | DoughTools",
+    description:
+      "Find quick practical fixes for sticky dough, tight dough, watery sauce, pale tops, burnt bases and wet toppings.",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
     path: "/styles",
     title: "Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools",
     description: "Compare major pizza styles by crust, texture, dough, oven, sauce and baking method, and learn which style DoughTools currently supports for planning.",
