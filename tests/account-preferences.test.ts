@@ -80,6 +80,23 @@ describe("Account preferences", () => {
     expect(migration).not.toMatch(/service_role|auth\.admin|using \(true\)|with check \(true\)/i);
   });
 
+  it("tightens account preference table privileges to only the required authenticated access", () => {
+    const migrationPath = "supabase/migrations/20260722131000_tighten_account_preferences_authenticated_grants.sql";
+    expect(existsSync(join(process.cwd(), migrationPath))).toBe(true);
+    const migration = source(migrationPath);
+
+    expect(migration).toContain("revoke all on table public.account_preferences from anon");
+    expect(migration).toContain("revoke all on table public.account_preferences from authenticated");
+    expect(migration).toContain("grant select, insert, update on table public.account_preferences to authenticated");
+    expect(migration).toContain("alter table public.account_preferences enable row level security");
+    expect(migration).toContain("to authenticated");
+    expect(migration).toContain("using (auth.uid() = user_id)");
+    expect(migration).toContain("with check (auth.uid() = user_id)");
+    expect(migration).not.toMatch(/grant\s+(delete|truncate|references|trigger)/i);
+    expect(migration).not.toMatch(/grant\s+.*\s+to\s+anon/i);
+    expect(migration).not.toMatch(/service_role|auth\.admin|using \(true\)|with check \(true\)/i);
+  });
+
   it("exposes authenticated GET and PATCH endpoints with stale-write protection", () => {
     const route = source("app/api/account/preferences/route.ts");
 
