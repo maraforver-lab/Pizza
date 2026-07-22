@@ -45,7 +45,7 @@ describe("sitewide CTA language", () => {
     expect(workflow).toContain("Continue your pizza plan");
     expect(workflow).toContain("Start cooking");
     expect(workflow).toContain("Review my pizza");
-    expect(workflow).toContain("Finish session");
+    expect(workflow).toContain("Finish and review");
     expect(workflow).toContain("Continue my plan");
     expect(workflow).not.toContain("Continue saved plan");
     expect(workflow).not.toContain("Build my Dough Plan");

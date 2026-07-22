@@ -123,19 +123,19 @@ function nearestReviewPrerequisiteHref(session: PizzaSession) {
 
 function nearestReviewPrerequisiteLabel(session: PizzaSession) {
   const href = nearestReviewPrerequisiteHref(session);
-  if (href === "/session/kitchen") return "Open Kitchen Mode";
-  if (href === "/session/timeline") return "Open timeline";
-  if (href === "/session/shopping") return "Open shopping";
+  if (href === "/session/kitchen") return "Open Kitchen";
+  if (href === "/session/timeline") return "Open Timeline";
+  if (href === "/session/shopping") return "Open Shopping list";
   return "Open Dough Plan";
 }
 
 function MissingReviewState() {
   return (
     <SessionRouteState
-      action={{ href: "/session/start", label: "Plan my next pizza" }}
+      action={{ href: "/session/start", label: "Plan a pizza" }}
       body="Finish a pizza plan before opening its results and notes."
       eyebrow="Review"
-      localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} Completed or archived sessions are not treated as active.`}
+      localNote={`${PIZZA_SESSION_LOCAL_ONLY_COPY} Completed or archived pizza plans are not treated as active.`}
       title="Nothing to review yet"
       variant="no-session"
     />
@@ -194,7 +194,7 @@ export default function SessionReviewPage() {
   if (routeError) {
     return (
       <SessionRouteState
-        action={{ href: "/session/start", label: "Start a new plan" }}
+        action={{ href: "/session/start", label: "Plan a pizza" }}
         body="Something interrupted the local session check. Try again, or start a fresh pizza plan."
         eyebrow="Review"
         onRetry={() => window.location.reload()}
@@ -256,12 +256,12 @@ export default function SessionReviewPage() {
         setSession(canonical.session);
         setCloudCompletionRequired(canonical.signedIn);
         setSaving(false);
-        setMessage("Your account active session changed. Review the current session before finishing.");
+        setMessage("Your active pizza plan changed. Review the current pizza plan before finishing.");
         return;
       }
       if (canonical.state !== "active") {
         setSaving(false);
-        setMessage("Could not find the active pizza session to finish.");
+        setMessage("Could not find the active pizza plan to finish.");
         return;
       }
       sessionForCompletion = canonical.session;
@@ -417,7 +417,7 @@ export default function SessionReviewPage() {
                   disabled={saving}
                   className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:opacity-60 sm:w-auto"
                 >
-                  {saving ? "Finishing session…" : "Finish session"}
+                  {saving ? "Finishing and reviewing…" : "Finish and review"}
                 </button>
               )}
             />

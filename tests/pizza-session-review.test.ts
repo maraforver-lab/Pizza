@@ -64,8 +64,8 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("What worked well?");
     expect(page).toContain("What would you improve?");
     expect(page).toContain("Free notes");
-    expect(page).toContain("Finish session");
-    expect(page).toContain("Finishing session…");
+    expect(page).toContain("Finish and review");
+    expect(page).toContain("Finishing and reviewing…");
     expect(page).toContain("Add a pizza photo and share your bake");
     expect(page).toContain("Add a photo and share");
     expect(page).toContain("Save and share your finished pizza after the review.");
@@ -115,7 +115,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page.indexOf("What worked well?")).toBeLessThan(page.indexOf("What would you improve?"));
     expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Free notes"));
     expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Add a photo and share"));
-    expect(page.indexOf("Add a photo and share")).toBeLessThan(page.indexOf("Finish session"));
+    expect(page.indexOf("Add a photo and share")).toBeLessThan(page.indexOf("Finish and review"));
 
     expect(page).toContain("Did something go wrong?");
     expect(page).toContain("{toppingsTroubleshootingLink.label}");
@@ -146,7 +146,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page.indexOf("Overall result")).toBeLessThan(page.indexOf("What worked well?"));
     expect(page.indexOf("What worked well?")).toBeLessThan(page.indexOf("What would you improve?"));
     expect(page.indexOf("What would you improve?")).toBeLessThan(page.indexOf("Free notes"));
-    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Finish session"));
+    expect(page.indexOf("Free notes")).toBeLessThan(page.indexOf("Finish and review"));
     [
       "Great crust",
       "Good oven spring",
@@ -176,7 +176,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).not.toContain("placeholder={copy.nextTimeTryPlaceholder}");
   });
 
-  it("uses Finish session as the final completion action", () => {
+  it("uses Finish and review as the final completion action", () => {
     const page = source("app/session/review/page.tsx");
 
     expect(page).toContain("const saveReview = async () =>");
@@ -186,8 +186,8 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).toContain("completeCloudBackedPizzaSession(completed)");
     expect(page).not.toContain("saveCloudActivePizzaSession(completed)");
     expect(page).toContain("router.push(\"/\")");
-    expect(page).toContain("Finishing session…");
-    expect(page).toContain("Finish session");
+    expect(page).toContain("Finishing and reviewing…");
+    expect(page).toContain("Finish and review");
     expect(page).not.toContain("const finishSession");
     expect(page).not.toContain("Review saved");
     expect(page).not.toContain("Save review →");
@@ -198,7 +198,7 @@ describe("Pizza Session review and bake notes", () => {
     expect(page).not.toContain("Your notes are saved in this browser.");
     expect(page).not.toContain("Back to Kitchen Mode");
     expect(page).not.toContain("View timeline");
-    expect(page).not.toMatch(/full timeline|shopping list|dough amounts|recipe snapshot/i);
+    expect(page).not.toMatch(/full timeline|dough amounts|recipe snapshot/i);
   });
 
   it("normalizes rating and text review input safely", () => {
