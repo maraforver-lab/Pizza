@@ -111,6 +111,9 @@ export function safeThemeMutationError(error: { message?: string; code?: string 
   if (/theme_campaign_invalid|invalid input syntax|check constraint/i.test(message)) {
     return NextResponse.json({ error: "Invalid theme campaign." }, { status: 400 });
   }
+  if (/admin_activate_theme_now|Could not find the function|schema cache|PGRST202/i.test(message)) {
+    return NextResponse.json({ error: "Theme activation is not available yet. Refresh and try again." }, { status: 503 });
+  }
   return NextResponse.json({ error: "Theme campaign could not be saved." }, { status: 500 });
 }
 
