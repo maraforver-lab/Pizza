@@ -285,7 +285,7 @@ describe("Patch 445A public theme architecture", () => {
     expect(routes).not.toMatch(/auth\.admin|service_role|pizza_sessions|party_orders|account_preferences|created_by.*json|updated_by.*json/i);
   });
 
-  it("allows direct seasonal theme activation through an atomic database function", () => {
+  it("restores seasonal Activate now to the proven campaign creation route", () => {
     const migration = source("supabase/migrations/20260722100000_activate_public_theme_now.sql");
     const correctiveMigration = source("supabase/migrations/20260722110000_fix_activate_public_theme_now_rpc.sql");
     const effectiveSql = `${migration}\n${correctiveMigration}`;
@@ -313,9 +313,11 @@ describe("Patch 445A public theme architecture", () => {
     expect(activateRoute).toContain("revalidatePublicThemeCache");
     expect(activateRoute).not.toMatch(/auth\.admin|service_role|pizza_sessions|party_orders|account_preferences/i);
 
-    expect(appearanceClient).toContain('fetch("/api/admin/themes/activate-now"');
+    expect(appearanceClient).toContain('fetch("/api/admin/themes"');
     expect(appearanceClient).toContain('fetch("/api/admin/themes/activate-default"');
-    expect(appearanceClient).not.toMatch(/theme\.id,\s*startsAt:\s*new Date\(\)\.toISOString\(\),\s*endsAt:\s*null/s);
+    expect(appearanceClient).toContain("startsAt: new Date().toISOString()");
+    expect(appearanceClient).toContain("endsAt: null");
+    expect(appearanceClient).not.toContain('fetch("/api/admin/themes/activate-now"');
   });
 
   it("adds the protected Appearance UI without exposing private data or public navigation", () => {

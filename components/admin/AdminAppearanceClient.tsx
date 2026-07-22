@@ -158,11 +158,13 @@ export default function AdminAppearanceClient({ initialActiveTheme, initialCampa
     try {
       const response = theme.id === "default"
         ? await fetch("/api/admin/themes/activate-default", { method: "POST" })
-        : await fetch("/api/admin/themes/activate-now", {
+        : await fetch("/api/admin/themes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             themeId: theme.id,
+            startsAt: new Date().toISOString(),
+            endsAt: null,
           }),
         });
 
