@@ -290,12 +290,12 @@ describe("Kitchen bake timer integration", () => {
     const hook = source("lib/use-bake-timer.ts");
 
     expect(component).toContain("doughtools.kitchen-bake-timer.v1");
-    expect(component).toContain("Open full-screen bake timer");
+    expect(component).toContain("Start bake timer");
     expect(component).toContain('role="dialog"');
     expect(component).toContain('aria-modal="true"');
     expect(component).toContain("Close bake timer");
     expect(component).toContain("Turn bake timer sound");
-    expect(component).toContain("Start timer");
+    expect(component).toContain("Start bake timer");
     expect(component).toContain("Pause");
     expect(component).toContain("Resume");
     expect(component).toContain("ALMOST THERE");

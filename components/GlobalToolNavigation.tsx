@@ -31,7 +31,7 @@ const copy = {
   quickCalculator: "Quick dough calculator",
   quickCalculatorDescription: "Fast standalone dough amounts without a Pizza Session.",
   mobileBakeTimer: "Bake timer",
-  mobileBakeTimerDescription: "Time one pizza without starting a Pizza Session.",
+  mobileBakeTimerDescription: "Time one pizza without starting a pizza plan.",
   mobileQuickCalculator: "Quick dough calculator",
   mobileQuickCalculatorDescription: "Calculate dough amounts without starting a full pizza plan.",
   mobileLearn: "Pizza guides",

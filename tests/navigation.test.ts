@@ -174,7 +174,7 @@ describe("final product navigation model", () => {
     expect(header).toContain("resolveCanonicalActivePizzaSession");
     expect(header).toContain("href={sessionDecision.href}");
     expect(header).toContain("Bake timer");
-    expect(header).toContain("Time one pizza without starting a Pizza Session.");
+    expect(header).toContain("Time one pizza without starting a pizza plan.");
     expect(header).toContain('href: "/tools/bake-timer"');
     expect(header).toContain("Quick dough calculator");
     expect(header).toContain("Calculate dough amounts without starting a full pizza plan.");

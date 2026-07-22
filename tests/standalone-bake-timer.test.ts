@@ -30,7 +30,7 @@ describe("standalone Bake Timer", () => {
     const quickCalculatorIndex = header.indexOf('href: "/calculator/quick"');
 
     expect(header).toContain("Bake timer");
-    expect(header).toContain("Time one pizza without starting a Pizza Session.");
+    expect(header).toContain("Time one pizza without starting a pizza plan.");
     expect(bakeTimerIndex).toBeGreaterThan(-1);
     expect(bakeTimerIndex).toBeLessThan(quickCalculatorIndex);
     expect(header).toContain("data-mobile-tools-extension-point");

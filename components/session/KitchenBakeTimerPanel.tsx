@@ -150,7 +150,7 @@ export function BakeTimerPanel({
   ovenType,
   ovenLabel,
   storageKey,
-  launcherActionLabel = "Open full-screen bake timer",
+  launcherActionLabel = "Start bake timer",
   launcherEyebrow = "Bake timer",
   openOnMount = false,
   showLauncher = true,
@@ -354,7 +354,7 @@ export function BakeTimerPanel({
                   <DoughToolsIcon name={ovenType === "pizza" ? "flame" : "oven"} size={24} strokeWidth={2.1} />
                 </div>
                 <p className="mt-2 text-xs font-extrabold uppercase tracking-[.2em] text-ink sm:mt-4">{formatOvenEyebrow(ovenType)}</p>
-                <h2 id="full-screen-bake-timer-heading" className="sr-only">Full-screen bake timer</h2>
+                <h2 id="full-screen-bake-timer-heading" className="sr-only">Bake timer</h2>
                 <p id="full-screen-bake-timer-description" className="mt-1 text-sm font-bold leading-6 text-ink/55">
                   {ovenLabel} · Default {defaultValue}
                 </p>
@@ -421,7 +421,7 @@ export function BakeTimerPanel({
                         onClick={timer.status === "running" ? timer.pause : startOrResume}
                         className={buttonClass({ className: "px-3", variant: timer.status === "running" ? "secondary" : "primary" })}
                       >
-                        {timer.status === "running" ? "Pause" : timer.status === "paused" ? "Resume" : "Start timer"}
+                        {timer.status === "running" ? "Pause" : timer.status === "paused" ? "Resume" : "Start bake timer"}
                       </button>
                       <button type="button" onClick={() => timer.adjustDuration(10)} className={buttonClass({ className: "px-3", variant: "secondary" })}>
                         +10 sec
