@@ -9,6 +9,9 @@ describe("Patch 344 account responsive workspace", () => {
     const page = source("app/account/page.tsx");
 
     expect(page).toContain("Your DoughTools workspace.");
+    expect(page).toContain("Your place for pizza plans.");
+    expect(page).toContain("Active pizza plans can be saved to your account");
+    expect(page).toContain("Pizza plans appear here when they are active or completed.");
     expect(page).toContain("Loading your DoughTools workspace…");
     expect(page).toContain("lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.75fr)]");
     expect(page).toContain("AccountActivePizzaSessionCard enabled");
@@ -46,15 +49,15 @@ describe("Patch 344 account responsive workspace", () => {
     expect(securityIndex).toBeGreaterThan(adminIndex);
   });
 
-  it("shows only two completed sessions by default with an accessible disclosure for the rest", () => {
+  it("shows only two completed pizza plans by default with an accessible disclosure for the rest", () => {
     const history = source("components/account/AccountPizzaSessionHistory.tsx");
 
     expect(history).toContain("const ACCOUNT_HISTORY_COLLAPSED_LIMIT = 2");
     expect(history).toContain("sortCloudPizzaSessionHistoryRows(rows)");
     expect(history).toContain("sessions.slice(0, ACCOUNT_HISTORY_COLLAPSED_LIMIT)");
-    expect(history).toContain("retained completed sessions");
-    expect(history).toContain("Show ${hiddenSessionCount} more sessions");
-    expect(history).toContain("Show fewer sessions");
+    expect(history).toContain("retained completed pizza plans");
+    expect(history).toContain("Show ${hiddenSessionCount} more pizza plans");
+    expect(history).toContain("Show fewer pizza plans");
     expect(history).toContain("aria-expanded={historyExpanded}");
     expect(history).toContain("aria-controls=\"account-pizza-session-history-list\"");
   });
@@ -89,20 +92,40 @@ describe("Patch 344 account responsive workspace", () => {
     expect(guidance).not.toMatch(/localStorage\.setItem|sessionStorage|account-guidance-storage/i);
   });
 
-  it("lets active account sessions edit the locked pizza menu through the canonical shopping path", () => {
+  it("lets active account pizza plans edit the locked pizza menu through the canonical shopping path", () => {
     const card = source("components/account/AccountActivePizzaSessionCard.tsx");
 
+    expect(card).toContain("Pizza plan");
+    expect(card).toContain("Continue your pizza plan");
+    expect(card).toContain("Plan a pizza from the homepage.");
     expect(card).toContain("Change pizza menu");
     expect(card).toContain("View shopping list");
     expect(card).toContain("Total pizzas:");
-    expect(card).toContain("Locked for this session");
+    expect(card).toContain("Locked for this pizza plan");
     expect(card).toContain("savePizzaSessionMenuMix(restoredSession, draftNormalizedMix");
     expect(card).toContain("queueCloudActivePizzaSessionSave(updatedSession)");
     expect(card).toContain("restoreCloudPizzaSessionToLocal(cloudSession)");
     expect(card).toContain("Shopping rows keep their checked state only when the same item and amount remain valid");
     expect(card).toContain("Pizza menu is locked once baking starts.");
     expect(card).toContain("Save pizza menu");
+    expect(card).not.toContain("Continue Pizza Session");
+    expect(card).not.toContain("Start a new Pizza Session");
     expect(card).not.toContain("doughBallWeight:");
     expect(card).not.toContain("plannedFermentationHours:");
+  });
+
+  it("uses pizza plan terminology for completed account history", () => {
+    const history = source("components/account/AccountPizzaSessionHistory.tsx");
+    const detail = source("components/account/CompletedPizzaSessionDetail.tsx");
+
+    expect(history).toContain("Pizza plan history");
+    expect(history).toContain("No completed pizza plans yet");
+    expect(history).toContain("Finish and review a pizza plan to save it here.");
+    expect(history).toContain("View pizza plan");
+    expect(detail).toContain("Completed pizza plan");
+    expect(detail).toContain("Pizza plan name");
+    expect(detail).toContain("No review notes were saved for this pizza plan.");
+    expect(history).not.toContain("Pizza session history");
+    expect(detail).not.toContain("Completed session not found.");
   });
 });

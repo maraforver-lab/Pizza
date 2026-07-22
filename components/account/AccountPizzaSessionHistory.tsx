@@ -76,11 +76,11 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
     try {
       const response = await fetch(`/api/pizza-sessions/history/${sessionId}`, { method: "DELETE" });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Could not delete pizza session.");
+      if (!response.ok) throw new Error(payload.error || "Could not delete pizza plan.");
       setSessions((current) => current.filter((session) => session.id !== sessionId));
       setConfirmingDeleteId(null);
     } catch (caught) {
-      setDeleteError(caught instanceof Error ? caught.message : "Could not delete pizza session.");
+      setDeleteError(caught instanceof Error ? caught.message : "Could not delete pizza plan.");
     } finally {
       setDeletingId(null);
     }
@@ -96,14 +96,14 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
         body: JSON.stringify({ name: title }),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Could not update pizza session title.");
+      if (!response.ok) throw new Error(payload.error || "Could not update pizza plan title.");
       const nextSession = normalizeCloudPizzaSessionHistoryRow(payload.session);
-      if (!nextSession) throw new Error("Could not update pizza session title.");
+      if (!nextSession) throw new Error("Could not update pizza plan title.");
       setSessions((current) => current.map((session) => (session.id === sessionId ? nextSession : session)));
       setEditingTitleId(null);
       setTitleDrafts((current) => ({ ...current, [sessionId]: cloudPizzaSessionCustomName(nextSession) ?? "" }));
     } catch (caught) {
-      setTitleError(caught instanceof Error ? caught.message : "Could not update pizza session title.");
+      setTitleError(caught instanceof Error ? caught.message : "Could not update pizza plan title.");
     } finally {
       setSavingTitleId(null);
     }
@@ -112,7 +112,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
   if (!ready) {
     return (
       <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7 ${className}`}>
-        Loading pizza session history…
+        Loading pizza plan history…
       </section>
     );
   }
@@ -125,24 +125,24 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
     <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7 ${className}`} aria-labelledby="pizza-session-history-heading">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Completed sessions</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Completed pizza plans</p>
           <h2 id="pizza-session-history-heading" className="mt-2 font-display text-3xl font-semibold">
-            Pizza session history
+            Pizza plan history
           </h2>
         </div>
         {sessions.length > 0 && (
           <p className="text-xs font-bold leading-5 text-ink/45">
             {hasMoreSessions && !historyExpanded
-              ? `Showing your 2 most recent of ${sessions.length} retained completed sessions.`
-              : "Showing your retained completed sessions."}
+              ? `Showing your 2 most recent of ${sessions.length} retained completed pizza plans.`
+              : "Showing your retained completed pizza plans."}
           </p>
         )}
       </div>
 
       {sessions.length === 0 ? (
         <div className="mt-5 rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4">
-          <h3 className="text-base font-extrabold text-ink">No completed pizza sessions yet</h3>
-          <p className="mt-2 text-sm leading-6 text-ink/60">Finish a Pizza Session to save it here.</p>
+          <h3 className="text-base font-extrabold text-ink">No completed pizza plans yet</h3>
+          <p className="mt-2 text-sm leading-6 text-ink/60">Finish and review a pizza plan to save it here.</p>
         </div>
       ) : (
         <div id="account-pizza-session-history-list" className="mt-5 grid gap-3">
@@ -178,7 +178,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                         }}
                       >
                         <label htmlFor={`pizza-session-title-${session.id}`} className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">
-                          Session name
+                          Pizza plan name
                         </label>
                         <input
                           id={`pizza-session-title-${session.id}`}
@@ -235,7 +235,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photo}
-                        alt="Completed pizza session thumbnail"
+                        alt="Completed pizza plan thumbnail"
                         className="aspect-square w-full object-cover"
                         loading="lazy"
                       />
@@ -244,9 +244,9 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                 </div>
                 {isConfirmingDelete && (
                   <div className="mt-4 rounded-[1.25rem] border border-tomato/15 bg-white/85 p-4">
-                    <h4 className="text-sm font-extrabold text-ink">Delete this pizza session?</h4>
+                    <h4 className="text-sm font-extrabold text-ink">Delete this pizza plan?</h4>
                     <p className="mt-2 text-sm leading-6 text-ink/60">
-                      This removes the completed session from your account history. This cannot be undone.
+                      This removes the completed pizza plan from your account history. This cannot be undone.
                     </p>
                     {deleteError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{deleteError}</p>}
                     <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -266,7 +266,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                         disabled={isDeleting}
                         className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-tomato px-4 text-xs font-extrabold text-white transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {isDeleting ? "Deleting…" : "Delete session"}
+                        {isDeleting ? "Deleting…" : "Delete pizza plan"}
                       </button>
                     </div>
                   </div>
@@ -277,7 +277,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
                       href={`/account/pizza-sessions/${session.id}`}
                       className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                     >
-                      View session
+                      View pizza plan
                     </Link>
                     <button
                       type="button"
@@ -313,7 +313,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
               onClick={() => setHistoryExpanded((current) => !current)}
               className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-cream/65 px-4 text-sm font-extrabold text-ink/70 transition hover:border-leaf/35 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
-              {historyExpanded ? "Show fewer sessions" : `Show ${hiddenSessionCount} more sessions`}
+              {historyExpanded ? "Show fewer pizza plans" : `Show ${hiddenSessionCount} more pizza plans`}
             </button>
           )}
         </div>

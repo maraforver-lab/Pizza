@@ -271,11 +271,11 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
       const syncedSession = await syncEditedSessionToCloud(updatedSession);
       if (!syncedSession) setCloudSession(optimisticRow);
       setNameDraft(sessionName ?? "");
-      setNameStatus(sessionName ? "Session name saved." : "Session name removed.");
+      setNameStatus(sessionName ? "Pizza plan name saved." : "Pizza plan name removed.");
       setEditingName(false);
     } catch {
       setCloudSession(cloudSession);
-      setNameError("Session name was saved in this browser, but account sync failed. Try again.");
+      setNameError("Pizza plan name was saved in this browser, but account sync failed. Try again.");
     } finally {
       setSavingName(false);
     }
@@ -315,12 +315,12 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
       const headers = await cloudActivePizzaSessionRequestHeaders();
       const response = await fetch("/api/pizza-sessions/active", { method: "DELETE", headers });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Could not delete this pizza session.");
+      if (!response.ok) throw new Error(payload.error || "Could not delete this pizza plan.");
       clearMatchingLocalActiveSession(cloudSession);
       setCloudSession(null);
       setConfirmingDelete(false);
     } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : "Could not delete this pizza session.");
+      setDeleteError(error instanceof Error ? error.message : "Could not delete this pizza plan.");
     } finally {
       setDeleting(false);
     }
@@ -329,7 +329,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
   if (!ready) {
     return (
       <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7 ${className}`}>
-        Loading saved pizza session…
+        Loading saved pizza plan…
       </section>
     );
   }
@@ -337,12 +337,12 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
   if (!cloudSession) {
     return (
       <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7 ${className}`} aria-labelledby="account-active-session-heading">
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Pizza Session</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Pizza plan</p>
         <div className="mt-2 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
-            <h2 id="account-active-session-heading" className="font-display text-3xl font-semibold">No active pizza session</h2>
+            <h2 id="account-active-session-heading" className="font-display text-3xl font-semibold">No active pizza plan</h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-ink/60">
-              Start a new Pizza Session from the homepage.
+              Plan a pizza from the homepage.
             </p>
           </div>
           <Link
@@ -363,7 +363,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
     <section className={`rounded-[1.75rem] border border-leaf/20 bg-leaf/[.08] p-5 shadow-card sm:p-6 ${className}`} aria-labelledby="account-active-session-heading">
       <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-start">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Pizza Session</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Pizza plan</p>
           <h2 id="account-active-session-heading" className="mt-2 font-display text-3xl font-semibold text-ink">
             {summary.title}
           </h2>
@@ -379,13 +379,13 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
           onClick={continueSession}
           className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-ink px-5 py-3 text-sm font-extrabold text-white transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
-          Continue Pizza Session →
+          Continue your pizza plan
         </button>
       </div>
       <div className="mt-5 rounded-[1.25rem] border border-leaf/15 bg-white/65 p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">Session name</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/45">Pizza plan name</p>
             <p className="mt-1 text-sm font-bold leading-6 text-ink/62">
               {customName ? `Saved as ${customName}` : "Add a short name so this pizza is easier to recognize later."}
             </p>
@@ -413,7 +413,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
               saveSessionName(nameDraft);
             }}
           >
-            <label htmlFor="active-session-name-input" className="sr-only">Session name</label>
+            <label htmlFor="active-session-name-input" className="sr-only">Pizza plan name</label>
             <input
               id="active-session-name-input"
               value={nameDraft}
@@ -475,7 +475,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
           View shopping list
         </Link>
         <p className="w-full text-xs font-bold leading-5 text-ink/45">
-          Total pizzas: {lockedPizzaCount ?? "not set"} · {menuLocked ? "Menu locked once baking starts." : "Locked for this session."}
+          Total pizzas: {lockedPizzaCount ?? "not set"} · {menuLocked ? "Menu locked once baking starts." : "Locked for this pizza plan."}
         </p>
         {menuStatus && <p role="status" className="w-full rounded-2xl bg-leaf/10 px-3 py-2 text-xs font-extrabold text-leaf">{menuStatus}</p>}
         {menuError && !menuEditorOpen && <p role="alert" className="w-full rounded-2xl bg-tomato/10 px-3 py-2 text-xs font-extrabold text-tomato">{menuError}</p>}
@@ -488,9 +488,9 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
             aria-labelledby="delete-active-session-heading"
             className="rounded-[1.25rem] border border-tomato/20 bg-white/85 p-4"
           >
-            <h3 id="delete-active-session-heading" className="font-display text-2xl font-semibold text-ink">Delete pizza session?</h3>
+            <h3 id="delete-active-session-heading" className="font-display text-2xl font-semibold text-ink">Delete pizza plan?</h3>
             <p className="mt-2 max-w-xl text-sm leading-6 text-ink/60">
-              This will remove your active in-progress Pizza Session. This cannot be undone.
+              This will remove your active in-progress pizza plan. This cannot be undone.
             </p>
             {deleteError && <p role="alert" className="mt-3 rounded-xl bg-tomato/10 p-3 text-xs font-bold text-tomato">{deleteError}</p>}
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -508,7 +508,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
                 disabled={deleting}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl bg-tomato px-4 text-sm font-extrabold text-white disabled:opacity-50"
               >
-                {deleting ? "Deleting…" : "Delete session"}
+                {deleting ? "Deleting…" : "Delete pizza plan"}
               </button>
             </div>
           </div>
@@ -518,7 +518,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
             onClick={() => setConfirmingDelete(true)}
             className="inline-flex min-h-10 items-center justify-center rounded-xl border border-tomato/20 bg-white/70 px-4 text-sm font-extrabold text-tomato transition active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
-            Delete pizza session
+            Delete pizza plan
           </button>
         )}
       </div>
@@ -553,7 +553,7 @@ export function AccountActivePizzaSessionCard({ enabled, className = "" }: Accou
               </button>
             </div>
             <p className="mt-3 text-sm font-bold leading-6 text-ink/60">
-              Total pizzas: {lockedPizzaCount}. Locked for this session.
+              Total pizzas: {lockedPizzaCount}. Locked for this pizza plan.
             </p>
             <p className="mt-1 text-sm font-bold leading-6 text-ink/50">
               Change pizza types without changing dough balls, dough weight or fermentation timing.

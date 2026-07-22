@@ -48,10 +48,10 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
         const response = await fetch(`/api/pizza-sessions/history/${sessionId}`, { method: "GET" });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(payload.error || "Completed pizza session could not be loaded.");
+          throw new Error(payload.error || "Completed pizza plan could not be loaded.");
         }
         const row = normalizeCloudPizzaSessionHistoryRow(payload.session);
-        if (!row) throw new Error("Completed pizza session could not be found.");
+        if (!row) throw new Error("Completed pizza plan could not be found.");
         if (mounted) {
           setSession(row);
           setTitleDraft(cloudPizzaSessionCustomName(row) ?? "");
@@ -59,7 +59,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
       } catch (caught) {
         if (mounted) {
           setSession(null);
-          setError(caught instanceof Error ? caught.message : "Completed pizza session could not be loaded.");
+          setError(caught instanceof Error ? caught.message : "Completed pizza plan could not be loaded.");
         }
       } finally {
         if (mounted) setReady(true);
@@ -75,7 +75,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   if (!ready) {
     return (
       <section className="rounded-[2rem] border border-ink/10 bg-white p-5 text-sm font-bold text-ink/45 shadow-card sm:p-7">
-        Loading completed pizza session…
+        Loading completed pizza plan…
       </section>
     );
   }
@@ -83,10 +83,10 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
   if (error || !session) {
     return (
       <section className="rounded-[2rem] border border-tomato/15 bg-white p-5 shadow-card sm:p-7">
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Session unavailable</p>
-        <h1 className="mt-3 font-display text-4xl font-semibold">Completed session not found.</h1>
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza plan unavailable</p>
+        <h1 className="mt-3 font-display text-4xl font-semibold">Completed pizza plan not found.</h1>
         <p className="mt-3 max-w-xl text-sm leading-6 text-ink/60">
-          {error || "This completed Pizza Session could not be loaded."}
+          {error || "This completed pizza plan could not be loaded."}
         </p>
         <Link
           href="/account"
@@ -114,14 +114,14 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
         body: JSON.stringify({ name: title }),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Could not update pizza session title.");
+      if (!response.ok) throw new Error(payload.error || "Could not update pizza plan title.");
       const nextSession = normalizeCloudPizzaSessionHistoryRow(payload.session);
-      if (!nextSession) throw new Error("Could not update pizza session title.");
+      if (!nextSession) throw new Error("Could not update pizza plan title.");
       setSession(nextSession);
       setTitleDraft(cloudPizzaSessionCustomName(nextSession) ?? "");
       setEditingTitle(false);
     } catch (caught) {
-      setTitleError(caught instanceof Error ? caught.message : "Could not update pizza session title.");
+      setTitleError(caught instanceof Error ? caught.message : "Could not update pizza plan title.");
     } finally {
       setSavingTitle(false);
     }
@@ -175,7 +175,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
     <article className="rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Completed session</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Completed pizza plan</p>
           <h1 className="mt-3 font-display text-4xl font-semibold leading-tight sm:text-5xl">{summary.title}</h1>
           <p className="mt-2 text-sm font-extrabold leading-6 text-leaf">{summary.statusLine}</p>
         </div>
@@ -190,9 +190,9 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
       <section className="mt-6 rounded-[1.5rem] border border-ink/10 bg-cream/65 p-4 sm:p-5" aria-labelledby="completed-session-title-heading">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Session name</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/40">Pizza plan name</p>
             <h2 id="completed-session-title-heading" className="mt-2 font-display text-2xl font-semibold">
-              {customTitle ? "Session name saved" : "Add a session name"}
+              {customTitle ? "Pizza plan name saved" : "Add a pizza plan name"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink/60">
               Use a short name for this completed bake in your account history.
@@ -220,7 +220,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
               saveTitle(titleDraft);
             }}
           >
-            <label htmlFor="completed-session-title-input" className="sr-only">Session name</label>
+            <label htmlFor="completed-session-title-input" className="sr-only">Pizza plan name</label>
             <input
               id="completed-session-title-input"
               value={titleDraft}
@@ -347,7 +347,7 @@ export function CompletedPizzaSessionDetail({ sessionId }: CompletedPizzaSession
           </div>
         ) : (
           <p className="mt-4 rounded-[1.15rem] border border-white/80 bg-white/85 p-4 text-sm leading-6 text-ink/55">
-            No review notes were saved for this session.
+            No review notes were saved for this pizza plan.
           </p>
         )}
       </section>

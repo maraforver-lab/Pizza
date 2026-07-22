@@ -22,7 +22,7 @@ const copy = {
   sv: {
     eyebrow: "Användarkonto", title: "Din plats för pizzarecept.", intro: "I den första versionen kan du skapa ett konto samt logga in och ut. Recept flyttas ännu inte till kontot.", login: "Logga in", signup: "Skapa konto", email: "E-post", password: "Lösenord", passwordHint: "Minst 8 tecken", working: "Ett ögonblick…", confirm: "Kontrollera din e-post och bekräfta kontot via länken i meddelandet.", confirmed: "E-postadressen är bekräftad. Du är nu inloggad.", signedIn: "Du är inloggad", signOut: "Logga ut", signedOut: "Du är utloggad.", back: "Back to homepage", retry: "Bekräftelselänken kunde inte behandlas. Försök logga in.", error: "Inloggningen misslyckades. Kontrollera uppgifterna och försök igen." },
   en: {
-    eyebrow: "User account", title: "Your place for pizza recipes.", intro: "You can create an account, sign in and sign out. Active Pizza Sessions can now be saved to your account while saved recipes and bake notes remain browser-local for now.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to homepage", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again." },
+    eyebrow: "Account", title: "Your place for pizza plans.", intro: "Create an account, sign in and sign out. Active pizza plans can be saved to your account while saved recipes and bake notes remain browser-local for now.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to homepage", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again." },
 } as const;
 
 export default function AccountPage() {
@@ -107,7 +107,7 @@ export default function AccountPage() {
                 </h2>
                 <p className="mt-1 break-all text-sm text-ink/55">{user.email}</p>
                 <p className="mt-4 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/55">
-                  Cloud-backed Pizza Sessions appear here when they are active or completed.
+                  Pizza plans appear here when they are active or completed.
                 </p>
               </div>
             ) : (
