@@ -248,7 +248,7 @@ export default function OvensPage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8">
       <div className="mx-auto max-w-7xl">
-        <LearningBreadcrumbs current="Oven Guide" />
+        <LearningBreadcrumbs current="Baking guides" />
         <OvenGuideHero />
 
         <section id="oven-comparison" className="mt-6 scroll-mt-24" aria-labelledby="oven-comparison-title">
@@ -482,11 +482,11 @@ export default function OvensPage() {
           </p>
           <div className="mt-6">
             <Link href="/session/start" className={buttonClass({ className: "w-full sm:w-auto", variant: "primary" })}>
-              Plan my next pizza
+              Plan a pizza
             </Link>
           </div>
           <p className="mt-4 text-xs leading-5 text-white/52">
-            For dough handling, use the <Link href="/guides/dough" className="font-bold text-oven-gold underline-offset-2 hover:underline">Dough Guide</Link>. For topping moisture, use the <Link href="/toppings" className="font-bold text-oven-gold underline-offset-2 hover:underline">Topping Balance Lab</Link>.
+            For dough handling, use <Link href="/guides/dough" className="font-bold text-oven-gold underline-offset-2 hover:underline">Dough guides</Link>. For topping moisture, use <Link href="/toppings" className="font-bold text-oven-gold underline-offset-2 hover:underline">Topping guides</Link>.
           </p>
         </section>
 

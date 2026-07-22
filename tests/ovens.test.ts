@@ -12,7 +12,7 @@ describe("Oven Guide", () => {
     const hero = source("components", "ovens", "OvenGuideHero.tsx");
 
     expect(page).toContain("OvenGuideHero");
-    expect(hero).toContain("Oven Guide");
+    expect(hero).toContain("Baking guides");
     expect(hero).toContain("Home oven or pizza oven?");
     expect(hero).toContain("Compare the heat, preheat, placement, bake time and result");
     expect(page).toContain("Pick the oven path that matches your real heat");
@@ -173,7 +173,7 @@ describe("Oven Guide", () => {
 
     expect(routeContentBeforeFooter).toContain("Plan with the oven you actually have.");
     expect(routeContentBeforeFooter).toContain('href="/session/start"');
-    expect(routeContentBeforeFooter).toContain("Plan my next pizza");
+    expect(routeContentBeforeFooter).toContain("Plan a pizza");
     expect(routeContentBeforeFooter.match(/href="\/session\/start"/g)).toHaveLength(1);
     expect(page).toContain('href="/guides/dough"');
     expect(page).toContain('href="/toppings"');

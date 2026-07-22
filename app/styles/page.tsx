@@ -13,21 +13,21 @@ const practicalDifferences = [
     icon: "mixing-bowl",
     body: "Styles may change hydration, dough-ball size, thickness, flour strength and fermentation timing. The comparison uses existing style preset data where DoughTools has it.",
     href: "/guides/dough",
-    link: "Open Dough Guide",
+    link: "Open Dough guides",
   },
   {
     title: "Oven and bake",
     icon: "oven",
     body: "High-heat pizza ovens, home-oven stone or steel setups, and pan bakes produce different results. A home oven can adapt a style, but it does not become the same environment as a dedicated pizza oven.",
     href: "/ovens",
-    link: "Open Oven Guide",
+    link: "Open Baking guides",
   },
   {
     title: "Sauce and toppings",
     icon: "water",
     body: "Soft, fast bakes usually need restrained moisture. Longer home-oven and pan bakes tolerate different cheese, sauce and topping loads when the structure supports them.",
     href: "/sauce",
-    link: "Open Sauce Guide",
+    link: "Open Sauce guides",
   },
 ] as const;
 
@@ -35,7 +35,7 @@ export default function StylesPage() {
   return (
     <main className="min-h-screen bg-cream px-4 py-5 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-7xl">
-        <LearningBreadcrumbs current="Pizza Styles" />
+        <LearningBreadcrumbs current="Choose your pizza" />
         <PizzaStyleHero />
 
         <PizzaStyleComparison />
@@ -72,9 +72,9 @@ export default function StylesPage() {
           <h2 id="related-style-guides-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">Use the dedicated guide for the next detail.</h2>
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
             {([
-              { href: "/guides/dough", title: "Dough Guide", description: "Process, fermentation and handling.", icon: "mixing-bowl" },
+              { href: "/guides/dough", title: "Dough guides", description: "Process, fermentation and handling.", icon: "mixing-bowl" },
               { href: "/sauce", title: "Pizza Sauce", description: "Recipe method and sauce amount.", icon: "water" },
-              { href: "/ovens", title: "Oven Guide", description: "Equipment, heat and bake behavior.", icon: "oven" },
+              { href: "/ovens", title: "Baking guides", description: "Equipment, heat and bake behavior.", icon: "oven" },
               { href: "/guide/pizza-troubleshooting", title: "Troubleshooting", description: "Dense crust, pale base, sticky dough and launch issues.", icon: "warning" },
             ] as const).map((link) => (
               <Link key={link.href} href={link.href} className="flex items-start gap-3 rounded-[1rem] border border-ink/10 bg-white px-4 py-3 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
@@ -102,7 +102,7 @@ export default function StylesPage() {
             href="/session/start"
             className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-card transition hover:bg-white hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-forest-dark sm:w-auto"
           >
-            Plan my next pizza
+            Plan a pizza
           </Link>
         </section>
         <SiteFooter />

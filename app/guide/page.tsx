@@ -28,19 +28,19 @@ const primaryGuides: GuideLink[] = [
 
 const secondaryGuides: GuideLink[] = [
   {
-    title: "Oven Guide",
+    title: "Baking guides",
     description: "Compare oven types and understand how heat changes the bake.",
     href: "/ovens",
     icon: "oven",
   },
   {
-    title: "Pizza Styles",
-    description: "Choose a practical starting style before you plan the bake.",
+    title: "Choose your pizza",
+    description: "Choose a practical starting pizza style before you plan the bake.",
     href: "/styles",
     icon: "pizza",
   },
   {
-    title: "Pizza Troubleshooting",
+    title: "Practical pizza tips",
     description: "Find causes and fixes when dough, baking or toppings go wrong.",
     href: "/guide/pizza-troubleshooting",
     icon: "warning",
@@ -112,7 +112,7 @@ export default function Guide() {
           <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/76 to-ink/25" aria-hidden="true" />
         </div>
         <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-          <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza Learning Center</p>
+          <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza guides</p>
           <h1 className="mt-4 max-w-4xl font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:mt-5 sm:text-6xl lg:text-7xl">
             Find the right pizza guide.
           </h1>
@@ -127,7 +127,7 @@ export default function Guide() {
           <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Start here</p>
             <h2 id="primary-guide-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
-              Dough and sauce
+              Dough guides and sauce guides
             </h2>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -139,9 +139,9 @@ export default function Guide() {
 
         <section className="mt-12" aria-labelledby="supporting-guide-title">
           <div className="max-w-3xl">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Supporting guides</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Practical pizza tips</p>
             <h2 id="supporting-guide-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-              Choose the context you need next.
+              Choose the guide you need next.
             </h2>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -158,7 +158,7 @@ export default function Guide() {
               Quick orientation
             </h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/62">
-              These anchors keep older learning links useful. For full method and amounts, use the dedicated Dough Guide and Sauce page above.
+              These anchors keep older guide links useful. For full method and amounts, use the dedicated dough and sauce guides above.
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {topicShortcuts.map((topic) => (
@@ -174,13 +174,13 @@ export default function Guide() {
         <section className="mt-12 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-10 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/70">Ready to use what you learned?</p>
-            <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Plan your next pizza with less guesswork.</h2>
+            <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Plan a pizza with less guesswork.</h2>
           </div>
           <Link
             href="/session/start"
             className={buttonClass({ className: "mt-6 w-full bg-white text-tomato hover:bg-flour sm:w-auto lg:mt-0" })}
           >
-            Plan my next pizza
+            Plan a pizza
           </Link>
         </section>
         <SiteFooter />

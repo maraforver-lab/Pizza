@@ -27,7 +27,7 @@ type RelatedLearningProps = {
 export function LearningBreadcrumbs({
   current,
   parentHref = "/guide",
-  parentLabel = "Pizza Learning Center",
+  parentLabel = "Pizza guides",
 }: LearningBreadcrumbsProps) {
   return (
     <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-2 text-xs font-extrabold text-ink/45">
@@ -44,8 +44,8 @@ export function LearningBreadcrumbs({
 }
 
 export default function RelatedLearning({
-  eyebrow = "Related learning",
-  title = "Keep learning",
+  eyebrow = "Pizza guides",
+  title = "Practical pizza tips",
   intro = "Move naturally to the next useful pizza topic.",
   links,
   cta,

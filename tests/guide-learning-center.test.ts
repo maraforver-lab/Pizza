@@ -4,17 +4,17 @@ import { describe, expect, it } from "vitest";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
-describe("Pizza Learning Center guide index", () => {
+describe("Pizza guides index", () => {
   const page = () => source("app/guide/page.tsx");
 
-  it("rebuilds /guide as the Pizza Learning Center", () => {
+  it("rebuilds /guide as Pizza guides", () => {
     const guide = page();
 
-    expect(guide).toContain("Pizza Learning Center");
+    expect(guide).toContain("Pizza guides");
     expect(guide).toContain("Find the right pizza guide.");
     expect(guide).toContain("Start with dough or sauce");
-    expect(guide).toContain("Dough and sauce");
-    expect(guide).toContain("Supporting guides");
+    expect(guide).toContain("Dough guides and sauce guides");
+    expect(guide).toContain("Practical pizza tips");
     expect(guide).toContain("Quick orientation");
     expect(guide).not.toContain("Learn more");
   });
@@ -61,7 +61,7 @@ describe("Pizza Learning Center guide index", () => {
 
     for (const concept of topics) expect(guide).toContain(concept);
     for (const anchor of anchors) expect(guide).toContain(`id: "${anchor}"`);
-    expect(guide).toContain("These anchors keep older learning links useful.");
+    expect(guide).toContain("These anchors keep older guide links useful.");
     expect(guide).not.toContain("Why it matters");
     expect(guide).not.toContain("Practical effect");
     expect(guide).not.toContain("Commonly goes wrong");
@@ -75,13 +75,13 @@ describe("Pizza Learning Center guide index", () => {
     expect(guide).toContain('href: "/guides/dough"');
     expect(guide).toContain("How to make pizza sauce");
     expect(guide).toContain('href: "/sauce"');
-    expect(guide).toContain("Oven Guide");
+    expect(guide).toContain("Baking guides");
     expect(guide).toContain('href: "/ovens"');
-    expect(guide).toContain("Pizza Styles");
+    expect(guide).toContain("Choose your pizza");
     expect(guide).toContain('href: "/styles"');
-    expect(guide).toContain("Pizza Troubleshooting");
+    expect(guide).toContain("Practical pizza tips");
     expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
-    expect(guide).toContain("Plan my next pizza");
+    expect(guide).toContain("Plan a pizza");
     expect(guide).toContain('href="/session/start"');
   });
 

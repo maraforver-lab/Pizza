@@ -102,7 +102,7 @@ describe("Pizza Troubleshooting Guide", () => {
 
     const page = troubleshootingPageSource();
 
-    expect(page).toContain("Pizza Troubleshooting");
+    expect(page).toContain("Practical pizza tips");
     expect(page).toContain("What went wrong with your pizza?");
     expect(page).toContain("Choose the symptom that looks closest to yours");
     expect(page).toContain("Find my problem");
@@ -313,7 +313,7 @@ describe("Pizza Troubleshooting Guide", () => {
   it("keeps related guide links restrained and internal", () => {
     const page = troubleshootingPageSource();
 
-    expect(page).toContain("Keep learning after the diagnosis");
+    expect(page).toContain("Practical pizza tips after the diagnosis");
     expect(page).toContain('href: "/guides/dough"');
     expect(page).toContain('href: "/guide"');
     expect(page).toContain('href: "/ovens"');
@@ -577,14 +577,14 @@ describe("Pizza Troubleshooting Guide", () => {
     expect(getSafeDoughGuideReturnPath("//evil.example/guides/dough")).toBeNull();
     expect(getSafeDoughGuideReturnPath("javascript:alert(1)")).toBeNull();
     expect(getSafeDoughGuideReturnPath("/account")).toBeNull();
-    expect(page).toContain("Back to Dough Guide");
+    expect(page).toContain("Back to Dough guides");
     expect(page).toContain("getSafeDoughGuideReturnPath(params?.from)");
   });
 
   it("links the troubleshooting guide from the existing Guide index", () => {
     const guide = source("app/guide/page.tsx");
 
-    expect(guide).toContain("Pizza Troubleshooting");
+    expect(guide).toContain("Practical pizza tips");
     expect(guide).toContain("Find causes and fixes when dough, baking or toppings go wrong.");
     expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
   });
@@ -618,7 +618,7 @@ describe("Pizza Troubleshooting Guide", () => {
     const page = troubleshootingPageSource();
     const data = source("lib/pizza-troubleshooting.ts");
 
-    expect(page).toContain("Pizza Troubleshooting Guide");
+    expect(page).toContain("Practical pizza tips");
     expect(data).toContain("Dough is not rising");
     expect(data).toContain("Home oven pizza is pale or soft");
     expect(page).not.toContain("Plan your next pizza session");

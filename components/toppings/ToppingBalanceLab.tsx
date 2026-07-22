@@ -171,7 +171,7 @@ const lessons: ToppingLesson[] = [
       ["Balanced", "Thin even coverage, no pools, a clear rim, and tomato presence without flooding the center."],
       ["Too much", "Deep layer, pooled sauce, toppings sliding, slower base baking and possible wet center."],
     ],
-    link: { href: "/sauce", label: "Open the Pizza Sauce Guide" },
+    link: { href: "/sauce", label: "Open Sauce guides" },
   },
   {
     id: "cheese-lesson",
@@ -891,9 +891,9 @@ export default function ToppingBalanceLab() {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,.82fr)_minmax(18rem,.48fr)] lg:px-8">
           <div>
             <div className="[&_a]:text-oven-gold [&_span]:text-white/60">
-              <LearningBreadcrumbs current="Topping Balance Lab" />
+              <LearningBreadcrumbs current="Topping guides" />
             </div>
-            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Topping Balance Lab</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Topping guides</p>
             <h1 className="mt-4 max-w-4xl font-display text-5xl font-semibold leading-[.94] tracking-tight sm:text-6xl lg:text-7xl">
               See what too much looks like.
             </h1>
@@ -1181,10 +1181,10 @@ export default function ToppingBalanceLab() {
           </div>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-0">
             <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-extrabold text-tomato shadow-soft transition hover:-translate-y-0.5 hover:bg-flour focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              Plan my next pizza
+              Plan a pizza
             </Link>
             <Link href="/guide" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              Return to the Learning Center
+              Return to Pizza guides
             </Link>
           </div>
         </section>

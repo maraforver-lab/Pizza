@@ -37,29 +37,29 @@ const troubleshootingSteps = [
 
 const categoryLearningLinks: Record<PizzaTroubleshootingCategoryId, LearningLink[]> = {
   "dough-fermentation": [
-    { href: "/guides/dough", title: "Dough Guide", description: "Review mixing, resting, proofing and dough readiness.", icon: "wheat" },
+    { href: "/guides/dough", title: "Dough guides", description: "Review mixing, resting, proofing and dough readiness.", icon: "wheat" },
     { href: "/guide#fermentation", title: "Fermentation", description: "Understand time, temperature and dough structure.", icon: "timer" },
     { href: "/guide#flour-strength", title: "Flour strength", description: "See why flour affects support and extensibility.", icon: "scale" },
   ],
   shaping: [
     { href: "/guides/dough?step=release-dough-ball", title: "Dough release", description: "Prepare the ball before opening and stretching.", icon: "mixing-bowl" },
     { href: "/guide#gluten-development", title: "Gluten development", description: "Connect elasticity, rest and extensibility.", icon: "wheat" },
-    { href: "/styles", title: "Pizza Style Atlas", description: "Match shaping expectations to the style.", icon: "pizza" },
+    { href: "/styles", title: "Choose your pizza", description: "Match shaping expectations to the style.", icon: "pizza" },
   ],
   launching: [
     { href: "/ovens#other-equipment", title: "Other equipment", description: "Check peels, flour, heat tools and safe station setup.", icon: "shopping-basket" },
-    { href: "/guides/dough", title: "Dough Guide", description: "Check release, handling and topping timing.", icon: "mixing-bowl" },
-    { href: "/ovens", title: "Oven Guide", description: "Connect launch speed with oven heat and recovery.", icon: "oven" },
+    { href: "/guides/dough", title: "Dough guides", description: "Check release, handling and topping timing.", icon: "mixing-bowl" },
+    { href: "/ovens", title: "Baking guides", description: "Connect launch speed with oven heat and recovery.", icon: "oven" },
   ],
   baking: [
-    { href: "/ovens", title: "Oven Guide", description: "Understand top heat, bottom heat, preheat and recovery.", icon: "oven" },
-    { href: "/styles", title: "Pizza Style Atlas", description: "Choose a style that fits your oven.", icon: "pizza" },
+    { href: "/ovens", title: "Baking guides", description: "Understand top heat, bottom heat, preheat and recovery.", icon: "oven" },
+    { href: "/styles", title: "Choose your pizza", description: "Choose a style that fits your oven.", icon: "pizza" },
     { href: "/sauce", title: "Pizza Sauce", description: "Control moisture for the bake you are using.", icon: "water" },
   ],
   toppings: [
-    { href: "/toppings", title: "Toppings", description: "Balance moisture, cheese and topping load.", icon: "pizza" },
+    { href: "/toppings", title: "Topping guides", description: "Balance moisture, cheese and topping load.", icon: "pizza" },
     { href: "/sauce", title: "Pizza Sauce", description: "Use sauce amount and texture that fit the pizza.", icon: "water" },
-    { href: "/ovens", title: "Oven Guide", description: "Match topping load to heat and bake time.", icon: "oven" },
+    { href: "/ovens", title: "Baking guides", description: "Match topping load to heat and bake time.", icon: "oven" },
   ],
 };
 
@@ -102,7 +102,7 @@ function TroubleshootingHero() {
   return (
     <section className="rounded-[2rem] border border-ink/10 bg-forest-dark p-5 text-white shadow-raised sm:p-7 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.72fr)] lg:items-center lg:gap-8">
       <div>
-        <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza Troubleshooting</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Practical pizza tips</p>
         <h1 className="mt-4 max-w-3xl font-display text-4xl font-semibold leading-[.95] sm:text-6xl">
           What went wrong with your pizza?
         </h1>
@@ -471,7 +471,7 @@ function ProblemDetail({
           onSelect={onSelectRelated}
         />
         <RelatedLearning
-          eyebrow="Related learning"
+          eyebrow="Pizza guides"
           title="Understand the variable behind it"
           intro="Use the closest learning topic before changing the next bake."
           links={relatedLearning}
@@ -539,14 +539,14 @@ export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath, con
         <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col items-start gap-3">
             <ContextualReturn returnTo={contextualReturnPath} />
-            <LearningBreadcrumbs current="Pizza Troubleshooting Guide" />
+            <LearningBreadcrumbs current="Practical pizza tips" />
           </div>
           {returnPath && (
             <Link
               href={returnPath}
               className="inline-flex min-h-11 items-center justify-center rounded-full border border-ink/10 bg-white/80 px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
             >
-              Back to Dough Guide
+              Back to Dough guides
             </Link>
           )}
         </header>
@@ -639,19 +639,19 @@ export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath, con
 
         <div className="mt-8">
           <RelatedLearning
-            title="Keep learning after the diagnosis"
+            title="Practical pizza tips after the diagnosis"
             intro="Most pizza problems connect back to dough handling, sauce moisture, topping load or oven heat."
             links={[
-              { href: "/guides/dough", title: "Dough Guide", description: "Review step-by-step dough handling.", icon: "wheat" },
+              { href: "/guides/dough", title: "Dough guides", description: "Review step-by-step dough handling.", icon: "wheat" },
               { href: "/sauce", title: "Pizza Sauce", description: "Control sauce texture and moisture.", icon: "water" },
-              { href: "/toppings", title: "Toppings", description: "Balance cheese, moisture and topping load.", icon: "pizza" },
-              { href: "/ovens", title: "Oven Guide", description: "Understand heat balance and bake profiles.", icon: "oven" },
-              { href: "/styles", title: "Pizza Style Atlas", description: "Match expectations to pizza style.", icon: "pizza" },
-              { href: "/guide", title: "Pizza Learning Center", description: "Return to the full learning hub.", icon: "information" },
+              { href: "/toppings", title: "Topping guides", description: "Balance cheese, moisture and topping load.", icon: "pizza" },
+              { href: "/ovens", title: "Baking guides", description: "Understand heat balance and bake profiles.", icon: "oven" },
+              { href: "/styles", title: "Choose your pizza", description: "Match expectations to pizza style.", icon: "pizza" },
+              { href: "/guide", title: "Pizza guides", description: "Return to the full guide hub.", icon: "information" },
             ]}
             cta={{
               href: "/session/start",
-              title: "Plan my next pizza",
+              title: "Plan a pizza",
               description: "Use what you diagnosed in a real plan.",
               icon: "calendar",
             }}

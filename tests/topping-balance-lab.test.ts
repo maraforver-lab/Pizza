@@ -107,7 +107,7 @@ describe("Topping Balance Lab page structure", () => {
   it("renders the new lab identity, breadcrumb, hero and primary experiment", () => {
     expect(page).toContain("ToppingBalanceLab");
     expect(component).toContain("LearningBreadcrumbs");
-    expect(component).toContain("Topping Balance Lab");
+    expect(component).toContain("Topping guides");
     expect(component).toContain("See what too much looks like.");
     expect(component).toContain("Start the experiment");
     expect(component).toContain("Build and compare the topping load");
@@ -251,8 +251,8 @@ describe("Topping Balance Lab page structure", () => {
     expect(component).not.toContain("<RelatedLearning");
     expect(component).not.toContain("Oven and Heat Guide");
     expect(component).not.toContain("Pizza Style Atlas");
-    expect(component).toContain("Plan my next pizza");
-    expect(component).toContain("Return to the Learning Center");
+    expect(component).toContain("Plan a pizza");
+    expect(component).toContain("Return to Pizza guides");
     expect(component).toContain('href="/session/start"');
     expect(component).toContain('href="/guide"');
     expect(component).not.toContain("docs/research/topping-balance-sources.md");

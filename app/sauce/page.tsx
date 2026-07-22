@@ -67,24 +67,24 @@ const troubleshootingItems: TroubleshootingItem[] = [
 
 const relatedLinks: PublicPageEndingLink[] = [
   {
-    title: "Oven Guide",
+    title: "Baking guides",
     href: "/ovens",
     description: "Match sauce moisture to your real baking environment.",
   },
   {
-    title: "Topping Balance Lab",
+    title: "Topping guides",
     href: "/toppings",
     description: "Balance sauce, cheese and topping moisture before baking.",
   },
   {
-    title: "Pizza Troubleshooting Guide",
+    title: "Practical pizza tips",
     href: "/guide/pizza-troubleshooting",
     description: "Diagnose wet centers, pale bases and burnt toppings.",
   },
 ];
 
 const finalAction: PublicPageEndingLink = {
-  title: "Plan my next pizza",
+  title: "Plan a pizza",
   href: "/session/start",
   description: "Use the sauce in a real pizza plan.",
 };
@@ -105,8 +105,8 @@ export default function SaucePage() {
       <section className="border-b border-ink/10 bg-card">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
           <div className="max-w-3xl">
-            <LearningBreadcrumbs current="Pizza Sauce" />
-            <p className="mt-6 text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Pizza Sauce Guide</p>
+            <LearningBreadcrumbs current="Sauce guides" />
+            <p className="mt-6 text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Sauce guides</p>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               Make the sauce, then measure it clearly.
             </h1>
@@ -208,7 +208,7 @@ export default function SaucePage() {
           relatedTitle="Keep sauce connected to heat and toppings."
           action={finalAction}
           actionEyebrow="Ready to use the sauce in a real plan?"
-          actionTitle="Plan my next pizza with the sauce in mind."
+          actionTitle="Plan a pizza with the sauce in mind."
         />
         <SiteFooter />
       </div>

@@ -11,7 +11,7 @@ export default function OvenGuideHero() {
       })}
     >
       <div className="min-w-0">
-        <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Oven Guide</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Baking guides</p>
         <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-[.98] tracking-tight sm:text-6xl">
           Home oven or pizza oven?
         </h1>

@@ -338,7 +338,7 @@ function TroubleshootingLinksCard({
             key={`${stepId}-${link.topicId}`}
             href={troubleshootingHref(link.topicId, stepId, sessionReturnPath)}
             className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-sm font-extrabold text-ink/65 transition hover:border-tomato/30 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato"
-            aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Pizza Troubleshooting Guide`}
+            aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Practical pizza tips`}
           >
             {getDoughGuideTroubleshootingLabel(link, experienceLevel)}
           </Link>
@@ -356,7 +356,7 @@ function StepNavigation({
   sessionReturnPath?: DoughGuideReturnPath | null;
 }) {
   return (
-    <nav className="rounded-[1.5rem] border border-white/80 bg-white/80 p-2 shadow-card backdrop-blur" aria-label="Dough Guide steps">
+    <nav className="rounded-[1.5rem] border border-white/80 bg-white/80 p-2 shadow-card backdrop-blur" aria-label="Dough guides steps">
       <ol className="space-y-1">
         {doughGuideSteps.map((step, index) => {
           const active = index === activeIndex;
@@ -446,7 +446,7 @@ export default function DoughGuidePageClient() {
         <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col items-start gap-3">
             <ContextualReturn returnTo={searchParams.get("returnTo")} />
-            <LearningBreadcrumbs current="Pizza Dough Guide" />
+            <LearningBreadcrumbs current="Dough guides" />
           </div>
           {!contextualReturnPath && sessionReturnPath && sessionReturnLabel && (
             <Link
@@ -460,9 +460,9 @@ export default function DoughGuidePageClient() {
 
         <section className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/75 p-6 shadow-card backdrop-blur sm:p-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)] lg:items-center lg:gap-8">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">DoughTools guide</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Dough guides</p>
             <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-[.95] tracking-tight sm:text-6xl">
-              Pizza Dough Guide
+              Make the dough
             </h1>
             <p className="mt-5 max-w-2xl text-sm font-bold leading-7 text-ink/60 sm:text-base">
               Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
@@ -580,7 +580,7 @@ export default function DoughGuidePageClient() {
                 links={[
                   {
                     href: "/guide",
-                    title: "Pizza Learning Center",
+                    title: "Pizza guides",
                     description: "Understand hydration, fermentation, flour strength and oven heat.",
                     icon: "information",
                   },
@@ -592,7 +592,7 @@ export default function DoughGuidePageClient() {
                   },
                   {
                     href: "/ovens",
-                    title: "Oven Guide",
+                    title: "Baking guides",
                     description: "Match dough, toppings and bake profile to your oven.",
                     icon: "oven",
                   },

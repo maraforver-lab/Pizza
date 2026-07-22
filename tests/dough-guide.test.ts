@@ -162,7 +162,7 @@ describe("Pizza Dough Guide foundation", () => {
     expect(metadata.title).toBe("Pizza Dough Guide | DoughTools");
     expect(metadata.description).toContain("Learn how to make pizza dough step by step");
     expect(route).toContain("<DoughGuidePageClient />");
-    expect(page).toContain("Pizza Dough Guide");
+    expect(page).toContain("Make the dough");
     expect(page).toContain("from the first mix to a dough ball that is ready to stretch");
     expect(page).not.toContain("redirect(");
     expect(page).toContain("getActivePizzaSession");
@@ -562,7 +562,7 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("/guide/pizza-troubleshooting?topic=${topicId}&from=");
     expect(page).toContain("#topic-${topicId}");
     expect(page).toContain("encodeURIComponent(buildDoughGuideHref(stepId, sessionReturnPath ?? undefined))");
-    expect(page).toContain("aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Pizza Troubleshooting Guide`}");
+    expect(page).toContain("aria-label={`${getDoughGuideTroubleshootingLabel(link, experienceLevel)} in Practical pizza tips`}");
     expect(page).not.toMatch(/updatePizzaSession|setActivePizzaSession|localStorage\.setItem|mark.*done|complete/i);
     expect(page.match(/Continue to \{nextStep\.actionName\}/g)).toHaveLength(1);
   });

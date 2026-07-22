@@ -35,7 +35,7 @@ export default function PublicPageEnding({
   actionTitle,
   className = "mt-16",
   links,
-  relatedEyebrow = "Related learning",
+  relatedEyebrow = "Pizza guides",
   relatedTitle,
 }: PublicPageEndingProps) {
   validatePageEndingLinks(links, action);
