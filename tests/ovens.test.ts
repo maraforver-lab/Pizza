@@ -56,7 +56,6 @@ describe("Oven Guide", () => {
     expect(bakeProfile).toContain('ovenType: "home"');
     expect(bakeProfile).toContain('ovenType: "pizza"');
     expect(page).toContain("getPizzaSessionBakeProfile");
-    expect(page).toContain("homeProfile.preheatDurationMinutes");
     expect(page).toContain("pizzaProfile.preheatDurationMinutes");
     expect(page).toContain("homeProfile.bakeTimeLabel");
     expect(page).toContain("pizzaProfile.bakeTimeLabel");
@@ -131,6 +130,12 @@ describe("Oven Guide", () => {
 
     expect(page).toContain("Preheat the surface, place the pizza deliberately");
     expect(page).toContain("judge the floor, not only the flame");
+    expect(page).toContain("Preheat until the oven and baking surface are fully ready.");
+    expect(page).toContain("The oven reaching its set temperature may be enough for a tray");
+    expect(page).toContain("stone or steel often needs more time to heat through");
+    expect(page).toContain("highest reliable oven temperature");
+    expect(page).toContain("upper-middle or upper third");
+    expect(page).toContain("surface temperature");
     expect(page).toContain("Steel");
     expect(page).toContain("Stone");
     expect(page).toContain("Tray");
@@ -139,6 +144,27 @@ describe("Oven Guide", () => {
     expect(page).toContain("Use outdoor-only ovens outdoors.");
     expect(page).not.toContain("Do not modify fuel, ventilation or safety systems.");
     expect(page).not.toContain("infrared thermometer guide");
+    expect(page).not.toContain("75 min pizza-plan preheat window");
+  });
+
+  it("clarifies Home oven guidance by experience level without changing planner timing", () => {
+    const page = source("app", "ovens", "page.tsx");
+
+    expect(page).toContain('aria-label="Home oven guidance by experience level"');
+    expect(page).toContain("Beginner");
+    expect(page).toContain("Use one reliable starting setup.");
+    expect(page).toContain("check the pizza after about 4 minutes");
+    expect(page).toContain("use the grill or broiler briefly at the end only if the top needs help");
+    expect(page).toContain("Enthusiast");
+    expect(page).toContain("If the top stays pale, move the surface higher or finish briefly with grill heat.");
+    expect(page).toContain("If the base burns too early, move lower or reduce bottom heat.");
+    expect(page).toContain("Steel heats and browns the base faster, stone is more forgiving");
+    expect(page).toContain("Pizza Nerd");
+    expect(page).toContain("Separate oven air from surface heat.");
+    expect(page).toContain("Calibrate the surface temperature when you can");
+    expect(page).toContain("balance top heat against bottom heat with rack position");
+
+    expect(getPizzaSessionBakeProfile("home").preheatDurationMinutes).toBe(75);
   });
 
   it("adds compact disclosed equipment guidance without reviving the retired gear page", () => {

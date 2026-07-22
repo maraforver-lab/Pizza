@@ -18,9 +18,9 @@ const ovenSetups = [
     icon: "oven" as DoughToolsIconName,
     tone: "light",
     heat: homeProfile.temperatureLabel,
-    preheat: `${homeProfile.preheatDurationMinutes} min pizza-plan preheat window`,
+    preheat: "Preheat until the oven and baking surface are fully ready.",
     bake: `${homeProfile.bakeTimeLabel} planning default`,
-    placement: "Fully heated steel, stone or tray; choose rack position for top/bottom balance.",
+    placement: "Upper-middle or upper-third rack to start; adjust for top and bottom balance.",
     result: "Longer bake, more drying risk, steadier workflow and good browning when the surface is hot.",
     useWhen: "Use this for normal home ovens, tray bakes, stone bakes and steel bakes.",
   },
@@ -54,10 +54,32 @@ const pizzaOvenSteps = [
 ] as const;
 
 const homeOvenSteps = [
-  `Preheat for the current ${homeProfile.preheatDurationMinutes} min pizza-plan window so the surface is saturated, not just the oven air.`,
-  `${homeProfile.surfaceGuidance} A tray remains a valid fallback when no stone or steel is available.`,
-  `${homeProfile.rotationGuidance} Use broiler or grill help only when it is safe for your oven and the top is lagging.`,
+  "Preheat until the oven and baking surface are fully ready. The oven reaching its set temperature may be enough for a tray, but stone or steel often needs more time to heat through.",
+  "Use the highest reliable oven temperature and start with the stone, steel or tray in the upper-middle or upper third of the oven.",
+  "Check the actual surface temperature when you have an infrared thermometer; otherwise judge the first bake and adjust.",
+  `${homeProfile.rotationGuidance} Use broiler or grill help briefly at the end only when it is safe for your oven and the top is lagging.`,
   `Plan around ${homeProfile.bakeTimeLabel}, then judge the rim, bottom and cheese instead of treating the clock as exact.`,
+] as const;
+
+const homeOvenLevelGuidance = [
+  {
+    level: "Beginner",
+    title: "Use one reliable starting setup.",
+    body:
+      "Set the oven as hot as it reliably goes, place the stone, steel or tray in the upper-middle or upper third, wait until the oven and surface are ready, check the pizza after about 4 minutes, and use the grill or broiler briefly at the end only if the top needs help.",
+  },
+  {
+    level: "Enthusiast",
+    title: "Adjust from the baked result.",
+    body:
+      "If the top stays pale, move the surface higher or finish briefly with grill heat. If the base burns too early, move lower or reduce bottom heat. Steel heats and browns the base faster, stone is more forgiving, and both may need recovery time between pizzas.",
+  },
+  {
+    level: "Pizza Nerd",
+    title: "Separate oven air from surface heat.",
+    body:
+      "Oven air can reach the set temperature before a stone or steel is saturated. Calibrate the surface temperature when you can, balance top heat against bottom heat with rack position, and expect steel, stone and tray bakes to recover and brown differently between pizzas.",
+  },
 ] as const;
 
 const surfaceGuidance = [
@@ -372,6 +394,15 @@ export default function OvensPage() {
                 </li>
               ))}
             </ol>
+            <div className="mt-5 grid gap-3" aria-label="Home oven guidance by experience level">
+              {homeOvenLevelGuidance.map((item) => (
+                <section key={item.level} className="rounded-[1rem] border border-ink/10 bg-flour/70 p-4">
+                  <p className="text-[0.68rem] font-black uppercase tracking-[.14em] text-tomato">{item.level}</p>
+                  <h4 className="mt-1 text-sm font-extrabold text-ink">{item.title}</h4>
+                  <p className="mt-1 text-sm leading-6 text-ink/62">{item.body}</p>
+                </section>
+              ))}
+            </div>
           </article>
         </section>
 
