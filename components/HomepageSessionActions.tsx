@@ -111,12 +111,12 @@ export default function HomepageSessionActions({
   const hasError = decision.state === "error";
   const showChecking = checking;
   const label = showChecking
-    ? "Checking your pizza..."
+    ? "Checking your pizza plan..."
     : hasError
-      ? "Could not check your pizza"
+      ? "Could not check your pizza plan"
     : hasActiveSession
-      ? "Continue my pizza"
-      : "Plan my new pizza";
+      ? "Continue your pizza plan"
+      : "Plan a pizza";
 
   const continueActiveSession = () => {
     if (decision.state !== "active") return;
@@ -185,7 +185,7 @@ export default function HomepageSessionActions({
           className={secondaryClass(tone)}
           data-homepage-start-new-session
         >
-          Start a new pizza
+          Plan a new pizza
         </button>
       )}
 
@@ -213,9 +213,9 @@ export default function HomepageSessionActions({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Active session</p>
+                <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Active pizza plan</p>
                 <h2 id="homepage-start-new-pizza-title" className="mt-2 font-display text-3xl font-semibold leading-none">
-                  Start a new pizza?
+                  Plan a new pizza?
                 </h2>
               </div>
               <button
@@ -228,14 +228,14 @@ export default function HomepageSessionActions({
               </button>
             </div>
             <p id="homepage-start-new-pizza-copy" className="mt-4 text-sm font-bold leading-6 text-ink/66">
-              You already have an unfinished pizza. You can keep it, or set up a new pizza and choose whether to replace the current one before anything changes.
+              You already have an unfinished pizza plan. You can keep it, or set up a new pizza plan and choose whether to replace the current one before anything changes.
             </p>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" onClick={closeConfirm} className={dialogButtonClass("secondary")}>
-                Keep current session
+                Keep current pizza plan
               </button>
               <button type="button" onClick={startNewPizza} className={dialogButtonClass("primary")}>
-                Set up a new pizza
+                Set up a new pizza plan
               </button>
             </div>
           </div>

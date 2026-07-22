@@ -56,35 +56,35 @@ const guessworkQuestions = [
 
 const journeyStages: JourneyStage[] = [
   {
-    title: "Plan",
+    title: "Plan a pizza",
     text: "Start with the pizza night you want, then get a plan that fits real life.",
     icon: "calendar",
     image: "/dough-guide/guide-step-02-measure.webp",
     alt: "Measured ingredients for planning pizza dough",
   },
   {
-    title: "Shop",
+    title: "Shopping list",
     text: "Buy with confidence instead of rebuilding the recipe in the store.",
     icon: "shopping-basket",
     image: "/images/shopping/pizza-margherita.webp",
     alt: "Fresh Margherita pizza representing the pizza menu and shopping plan",
   },
   {
-    title: "Prepare",
+    title: "Timeline",
     text: "Know when the dough needs attention and when it simply needs time.",
     icon: "timeline",
     image: "/dough-guide/guide-step-08-ball.webp",
     alt: "Dough balls prepared for the next stage of pizza making",
   },
   {
-    title: "Bake",
+    title: "Start cooking",
     text: "Keep the hot, messy part calm with the next action already clear.",
     icon: "kitchen-mode",
     image: "/images/timeline/bake-pizza.webp",
     alt: "Pizza baking in a hot oven",
   },
   {
-    title: "Improve",
+    title: "Review",
     text: "Turn one good evening into the starting point for the next one.",
     icon: "history",
     image: "/images/timeline/review-result.webp",
@@ -94,16 +94,16 @@ const journeyStages: JourneyStage[] = [
 
 const productMoments: ProductMoment[] = [
   {
-    title: "Dough Plan",
+    title: "Pizza plan",
     label: "Recipe",
-    text: "The dough numbers become something you can trust before the first bowl comes out.",
+    text: "The dough numbers become a pizza plan you can trust before the first bowl comes out.",
     image: "/dough-guide/guide-step-02-measure.webp",
     alt: "Measured pizza dough ingredients prepared for a dough plan",
     stats: ["Flour 950 g", "6 balls", "24 h cold"],
   },
   {
-    title: "Shopping",
-    label: "Menu",
+    title: "Shopping list",
+    label: "Shopping list",
     text: "The pizzas you want become a clear shopping list, so the fridge is ready too.",
     image: "/images/shopping/pizza-margherita.webp",
     alt: "Fresh Margherita pizza representing the shopping and pizza menu flow",
@@ -118,11 +118,11 @@ const productMoments: ProductMoment[] = [
     stats: ["Mix", "Ball", "Preheat"],
   },
   {
-    title: "Kitchen Mode",
-    label: "Now",
-    text: "When the oven is hot, DoughTools narrows the noise down to what matters now.",
+    title: "Kitchen",
+    label: "Start cooking",
+    text: "When the oven is hot, DoughTools narrows the noise down to the next Kitchen action.",
     image: "/images/timeline/bake-pizza.webp",
-    alt: "Pizza baking in a hot oven for Kitchen Mode guidance",
+    alt: "Pizza baking in a hot oven for Kitchen guidance",
     stats: ["Current step", "Done when", "Next action"],
   },
 ];
@@ -340,7 +340,7 @@ export default async function Home({ searchParams }: HomePageProps) {
               <article className="rounded-[1.5rem] border border-oven-gold/35 bg-oven-gold/12 p-5">
                 <p className="text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold">DoughTools</p>
                 <h3 className="mt-3 font-display text-3xl font-semibold leading-none">Turns the recipe into a pizza night you can follow.</h3>
-                <p className="mt-3 text-sm leading-6 text-white/72">Calculate, plan, shop, prepare, bake and improve without losing the thread.</p>
+                <p className="mt-3 text-sm leading-6 text-white/72">Plan a pizza, make the dough, make the sauce, choose toppings, shop, follow the Timeline, start cooking and Review without losing the thread.</p>
               </article>
             </div>
           </div>
@@ -355,7 +355,7 @@ export default async function Home({ searchParams }: HomePageProps) {
               You always know what happens next.
             </h2>
             <p className="mt-4 text-base leading-7 text-ink/70">
-              Product views create trust only when they answer a practical question. These moments show how the plan turns into action after the pizza already looks worth making.
+              Product views create trust only when they answer a practical question. These moments show how the pizza plan turns into action after the pizza already looks worth making.
             </p>
           </div>
 
@@ -465,7 +465,7 @@ export default async function Home({ searchParams }: HomePageProps) {
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/80 bg-ink p-6 text-center text-white shadow-card sm:rounded-[2.5rem] sm:p-10">
           <p className="text-xs font-extrabold uppercase tracking-[.28em] text-oven-gold">Ready when you are</p>
           <h2 id="homepage-final-cta-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">
-            Ready to plan your next pizza?
+            Ready to plan a pizza?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base sm:leading-7">
             It only takes a few minutes to create your first plan.

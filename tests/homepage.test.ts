@@ -45,7 +45,7 @@ describe("homepage content model", () => {
   });
 
   it("makes an outcome-first planning action the primary homepage CTA", () => {
-    expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan my new pizza", href: "/session/start" });
+    expect(homepageContent.hero.primaryCta).toEqual({ label: "Plan a pizza", href: "/session/start" });
   });
 
   it("uses the hero secondary action to explain the workflow", () => {
@@ -53,17 +53,17 @@ describe("homepage content model", () => {
   });
 
   it("keeps learning available without making it the primary action", () => {
-    expect(homepageContent.hero.learnCta).toEqual({ label: "Learn how it works", href: "/guide" });
+    expect(homepageContent.hero.learnCta).toEqual({ label: "Pizza guides", href: "/guide" });
   });
 
   it("contains the required compact eight-step session flow", () => {
     expect(homepageContent.workflow.map((step) => step.title)).toEqual([
       "How you bake",
-      "Pizza style",
+      "Choose your pizza",
       "When to eat",
       "How many",
       "Flour",
-      "Dough plan",
+      "Pizza plan",
       "Timeline",
       "Shopping list",
     ]);
@@ -74,9 +74,9 @@ describe("homepage content model", () => {
     expect(homepageContent.hero.intro).toContain("pizza night");
     expect(homepageContent.hero.intro).toContain("recipe");
     expect(homepageContent.hero.intro).toContain("shopping list");
-    expect(homepageContent.hero.intro).toContain("timeline");
-    expect(homepageContent.hero.intro).toContain("kitchen guidance");
-    expect(homepageContent.hero.intro).toContain("review");
+    expect(homepageContent.hero.intro).toContain("Timeline");
+    expect(homepageContent.hero.intro).toContain("Kitchen");
+    expect(homepageContent.hero.intro).toContain("Review");
     expect(homepageContent.trust).toEqual([
       "Saved locally",
       "Private",
@@ -143,12 +143,12 @@ describe("homepage content model", () => {
     const header = source("components/GlobalToolNavigation.tsx");
     const updateNotice = source("components/LatestUpdateNotice.tsx");
 
-    expect(content).toContain("Plan my new pizza");
+    expect(content).toContain("Plan a pizza");
     expect(content).toContain("Your pizza, planned properly.");
     expect(content).toContain("Better pizza starts before the oven.");
     expect(content).toContain("Choose the pizza night you want");
     expect(content).toContain("so you can focus on making the pizza");
-    expect(content).toContain("kitchen guidance");
+    expect(content).toContain("Kitchen steps");
     expect(homepage).toContain("HomepageSessionActions");
     expect(homepage).toContain('variant="hero"');
     expect(homepage).toContain('variant="final"');
@@ -170,11 +170,11 @@ describe("homepage content model", () => {
     expect(homepage).toContain("When should I start?");
     expect(homepage).toContain("What do I need to buy?");
     expect(homepage).toContain("One plan. Every step.");
-    expect(homepage).toContain("Plan");
-    expect(homepage).toContain("Shop");
-    expect(homepage).toContain("Prepare");
-    expect(homepage).toContain("Bake");
-    expect(homepage).toContain("Improve");
+    expect(homepage).toContain("Plan a pizza");
+    expect(homepage).toContain("Shopping list");
+    expect(homepage).toContain("Timeline");
+    expect(homepage).toContain("Start cooking");
+    expect(homepage).toContain("Review");
     expect(homepage).toContain("You always know what happens next.");
     expect(homepage).toContain("Product views create trust only when they answer a practical question.");
     expect(homepage).toContain("Planning should leave more attention for the pizza.");
@@ -186,7 +186,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain("Turns the recipe into a pizza night you can follow.");
     expect(homepage).toContain("Built because pizza night was harder to plan than it should be.");
     expect(homepage).toContain("I did not build DoughTools because the dough numbers were difficult.");
-    expect(homepage).toContain("Ready to plan your next pizza?");
+    expect(homepage).toContain("Ready to plan a pizza?");
     expect(homepage).toContain("It only takes a few minutes to create your first plan.");
     expect(homepage).toContain("Read the founder story");
     expect(homepage).toContain("/about/marcin-arcisz-founder.webp");
@@ -210,10 +210,10 @@ describe("homepage content model", () => {
     expect(guidance).toContain("writeExperienceLevelPreference");
     expect(continueCard).toContain('variant = "default"');
     expect(continueCard).toContain('variant === "hero"');
-    expect(sessionActions).toContain("Continue my pizza");
-    expect(sessionActions).toContain("Plan my new pizza");
-    expect(sessionActions).toContain("Start a new pizza");
-    expect(sessionActions).toContain("Checking your pizza");
+    expect(sessionActions).toContain("Continue your pizza plan");
+    expect(sessionActions).toContain("Plan a pizza");
+    expect(sessionActions).toContain("Plan a new pizza");
+    expect(sessionActions).toContain("Checking your pizza plan");
     expect(continueCard).toContain("Continue Pizza Session");
     expect(continueCard).toContain("pizzaSessionContinueHref(session)");
     expect(continueCard).toContain("Signed-in users can save an in-progress copy");
@@ -289,7 +289,7 @@ describe("homepage content model", () => {
     clearActivePizzaSession(storage);
 
     expect(getActivePizzaSession(storage)).toBeUndefined();
-    expect(homepageContent.hero.primaryCta.label).toBe("Plan my new pizza");
+    expect(homepageContent.hero.primaryCta.label).toBe("Plan a pizza");
     expect(source("components/HomepageSessionActions.tsx")).toContain("resolveCanonicalActivePizzaSession()");
     expect(source("components/ContinuePizzaSessionCard.tsx")).toContain("if (!ready || (!session && !cloudSession)) return null");
   });
@@ -727,7 +727,7 @@ describe("homepage content model", () => {
     expect(homepage).toContain('sizes: "62vw"');
     expect(homepage).toContain('sizes: "(max-width: 1023px) 100vw, 38vw"');
     expect(homepage).toContain("Finished pizza with prepared dough in a warm pizza-making workspace");
-    expect(homepage).toContain("Ready to plan your next pizza?");
+    expect(homepage).toContain("Ready to plan a pizza?");
     expect(homepage).not.toContain("/images/homepage/hero-desktop-bg.png");
     expect(homepage).not.toContain("/images/homepage/hero-mobile-bg.png");
     expect(homepage).not.toMatch(new RegExp("https?://|data:image", "i"));
