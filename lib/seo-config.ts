@@ -106,6 +106,14 @@ export const publicSeoRoutes = [
     priority: 0.7,
   },
   {
+    path: "/guide/practical-pizza-tips/leftover-dough",
+    title: "Leftover Pizza Dough Storage Guide | DoughTools",
+    description:
+      "Learn how to refrigerate, freeze, thaw and safely use leftover pizza dough when your pizza plan changes.",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
     path: "/styles",
     title: "Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools",
     description: "Compare major pizza styles by crust, texture, dough, oven, sauce and baking method, and learn which style DoughTools currently supports for planning.",

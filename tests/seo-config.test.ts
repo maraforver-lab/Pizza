@@ -40,6 +40,7 @@ const requiredPublicRoutes = [
   "/guides/dough",
   "/guide/pizza-troubleshooting",
   "/guide/practical-pizza-tips",
+  "/guide/practical-pizza-tips/leftover-dough",
   "/styles",
   "/ovens",
   "/sauce",
@@ -146,6 +147,7 @@ describe("SEO launch configuration", () => {
       "/guides/dough",
       "/guide/pizza-troubleshooting",
       "/guide/practical-pizza-tips",
+      "/guide/practical-pizza-tips/leftover-dough",
       "/calculator/quick",
       "/tools/bake-timer",
     ]) {

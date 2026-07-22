@@ -18,38 +18,44 @@ type PracticalPizzaTipTopic = {
   description: string;
   plannedPatch: "452B" | "452C" | "452D";
   icon: DoughToolsIconName;
+  href?: string;
 };
 
 const plannedTopics = [
   {
     title: "Leftover dough",
-    description: "What to do when the dough is ready but the pizza night changes.",
+    description: "Store, freeze, thaw and safely use dough when pizza night changes.",
     plannedPatch: "452B",
     icon: "mixing-bowl",
+    href: "/guide/practical-pizza-tips/leftover-dough",
   },
   {
     title: "Freezing and thawing",
     description: "How to freeze dough safely and bring it back without guessing.",
     plannedPatch: "452B",
     icon: "refrigerator",
+    href: "/guide/practical-pizza-tips/leftover-dough",
   },
   {
     title: "Choosing fermentation length",
     description: "How to choose a practical dough timeline for the time you have.",
     plannedPatch: "452C",
     icon: "timer",
+    href: undefined,
   },
   {
     title: "Dough container and lid use",
     description: "How container size, lid fit and surface drying affect dough handling.",
     plannedPatch: "452C",
     icon: "yeast",
+    href: undefined,
   },
   {
     title: "Common dough, sauce and baking problems",
     description: "How to decide whether a problem came from formula, timing, toppings or heat.",
     plannedPatch: "452D",
     icon: "warning",
+    href: undefined,
   },
 ] as const satisfies readonly PracticalPizzaTipTopic[];
 
@@ -124,20 +130,38 @@ export default function PracticalPizzaTipsPage() {
               Small decisions that make the next pizza easier.
             </h2>
             <p className="mt-3 text-sm leading-6 text-ink/62">
-              These are placeholders for the focused tip articles planned next. The full articles are not part of this patch.
+              Start with leftover dough guidance now. The remaining focused tip articles are planned next.
             </p>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {plannedTopics.map((topic) => (
-              <article key={topic.title} className={cardClass({ className: "p-5", variant: "default" })}>
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-tomato/10 text-tomato ring-1 ring-tomato/15" aria-hidden="true">
-                  <DoughToolsIcon name={topic.icon} size={20} />
-                </span>
-                <h3 className="mt-4 font-display text-2xl font-semibold">{topic.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-ink/62">{topic.description}</p>
-                <p className="mt-4 text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">Planned for Patch {topic.plannedPatch}</p>
-              </article>
-            ))}
+            {plannedTopics.map((topic) => {
+              const content = (
+                <>
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-tomato/10 text-tomato ring-1 ring-tomato/15" aria-hidden="true">
+                    <DoughToolsIcon name={topic.icon} size={20} />
+                  </span>
+                  <h3 className="mt-4 font-display text-2xl font-semibold">{topic.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-ink/62">{topic.description}</p>
+                  <p className="mt-4 text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">
+                    {topic.href ? "Open practical tip" : `Planned for Patch ${topic.plannedPatch}`}
+                  </p>
+                </>
+              );
+
+              return topic.href ? (
+                <Link
+                  key={topic.title}
+                  href={topic.href}
+                  className={cardClass({ className: "block p-5 transition hover:-translate-y-0.5 hover:border-tomato/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2", variant: "default" })}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <article key={topic.title} className={cardClass({ className: "p-5", variant: "default" })}>
+                  {content}
+                </article>
+              );
+            })}
           </div>
         </section>
 

@@ -18,8 +18,10 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Choosing fermentation length");
     expect(page).toContain("Dough container and lid use");
     expect(page).toContain("Common dough, sauce and baking problems");
-    expect(page).toContain("The full articles are not part of this patch.");
-    expect(page).toContain("Planned for Patch {topic.plannedPatch}");
+    expect(page).toContain("Start with leftover dough guidance now.");
+    expect(page).toContain('href: "/guide/practical-pizza-tips/leftover-dough"');
+    expect(page).toContain("Open practical tip");
+    expect(page).toContain("Planned for Patch");
     expect(guide).toContain('href: "/guide/practical-pizza-tips"');
     expect(navigation).toContain('id: "practical-tips"');
     expect(navigation).toContain('label: "Practical pizza tips"');
@@ -63,5 +65,52 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Fix pizza problems");
     expect(guide).toContain("Fix pizza problems");
     expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
+  });
+
+  it("adds a leftover dough page with storage, freezing, thawing and safety guidance", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "leftover-dough", "page.tsx");
+    const seo = source("lib", "seo-config.ts");
+
+    expect(page).toContain('metadataForRoute("/guide/practical-pizza-tips/leftover-dough")');
+    expect(seo).toContain('path: "/guide/practical-pizza-tips/leftover-dough"');
+    expect(page).toContain("Leftover dough");
+    expect(page).toContain("Store, freeze, thaw and safely use dough");
+    expect(page).toContain("refrigerate it");
+    expect(page).toContain("freeze it");
+    expect(page).toContain("Lightly oil the dough ball and container");
+    expect(page).toContain("Move frozen dough to the refrigerator to thaw");
+    expect(page).toContain("let chilled dough warm up and relax");
+    expect(page).toContain("Discard dough");
+    expect(page).not.toContain("75 minutes");
+  });
+
+  it("uses the shared Beginner, Enthusiast and Pizza Nerd structure for leftover dough", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "leftover-dough", "page.tsx");
+
+    expect(page).toContain("const levelGuidance");
+    expect(page).toContain("EXPERIENCE_LEVELS");
+    expect(page).toContain("type ExperienceLevel");
+    expect(page).toContain("Safe starting action");
+    expect(page).toContain("Storage timing and recovery");
+    expect(page).toContain("What storage changes inside the dough");
+    expect(page).toContain("Under-fermented dough feels dense and tight");
+    expect(page).toContain("over-fermented dough feels slack");
+    expect(page).toContain("Cold storage slows fermentation");
+    expect(page).toContain("Container headspace matters");
+    expect(EXPERIENCE_LEVELS.map((level) => level.label)).toEqual(["Beginner", "Enthusiast", "Pizza Nerd"]);
+    expect(page).not.toContain("ExperienceLevelSelector");
+    expect(page).not.toContain("writeExperienceLevelPreference");
+    expect(page).not.toContain("localStorage");
+  });
+
+  it("keeps leftover dough food-safety guidance visible outside the level cards", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "leftover-dough", "page.tsx");
+
+    expect(page).toContain("Always visible");
+    expect(page).toContain("Food-safety checks come first.");
+    expect(page).toContain("Keep leftover dough covered and cold whenever it is waiting.");
+    expect(page).toContain("Thaw frozen dough in the refrigerator first");
+    expect(page).toContain("Discard dough that shows mold");
+    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Leftover dough guidance by experience level"));
   });
 });
