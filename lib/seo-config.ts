@@ -114,6 +114,14 @@ export const publicSeoRoutes = [
     priority: 0.7,
   },
   {
+    path: "/guide/practical-pizza-tips/fermentation-length",
+    title: "Pizza Dough Fermentation Length Guide | DoughTools",
+    description:
+      "Compare 12, 24, 48 and 72 hour pizza dough fermentation plans and learn how flour, temperature and schedule affect readiness.",
+    changeFrequency: "monthly",
+    priority: 0.7,
+  },
+  {
     path: "/styles",
     title: "Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools",
     description: "Compare major pizza styles by crust, texture, dough, oven, sauce and baking method, and learn which style DoughTools currently supports for planning.",

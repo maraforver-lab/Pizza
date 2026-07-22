@@ -20,6 +20,7 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Common dough, sauce and baking problems");
     expect(page).toContain("Start with leftover dough guidance now.");
     expect(page).toContain('href: "/guide/practical-pizza-tips/leftover-dough"');
+    expect(page).toContain('href: "/guide/practical-pizza-tips/fermentation-length"');
     expect(page).toContain("Open practical tip");
     expect(page).toContain("Planned for Patch");
     expect(guide).toContain('href: "/guide/practical-pizza-tips"');
@@ -112,5 +113,52 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Thaw frozen dough in the refrigerator first");
     expect(page).toContain("Discard dough that shows mold");
     expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Leftover dough guidance by experience level"));
+  });
+
+  it("adds a fermentation length page with a clear 12, 24, 48 and 72 hour comparison", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "fermentation-length", "page.tsx");
+    const seo = source("lib", "seo-config.ts");
+
+    expect(page).toContain('metadataForRoute("/guide/practical-pizza-tips/fermentation-length")');
+    expect(seo).toContain('path: "/guide/practical-pizza-tips/fermentation-length"');
+    expect(page).toContain("Choosing fermentation length");
+    expect(page).toContain("12, 24, 48 and 72 hour");
+    expect(page).toContain('label: "12 hours"');
+    expect(page).toContain('label: "24 hours"');
+    expect(page).toContain('label: "48 hours"');
+    expect(page).toContain('label: "72 hours"');
+    expect(page).toContain("Longer fermentation is not automatically better");
+    expect(page).toContain("start with 24 hours");
+    expect(page).not.toContain("always better");
+  });
+
+  it("uses the shared three-level structure for fermentation depth without calculator logic", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "fermentation-length", "page.tsx");
+
+    expect(page).toContain("const levelGuidance");
+    expect(page).toContain("EXPERIENCE_LEVELS");
+    expect(page).toContain("type ExperienceLevel");
+    expect(page).toContain("Choose the simplest safe plan");
+    expect(page).toContain("Match flavor, strength and schedule");
+    expect(page).toContain("Read the time-temperature-yeast system");
+    expect(page).toContain("Room-temperature fermentation moves faster");
+    expect(page).toContain("Proteolysis can improve extensibility");
+    expect(page).toContain("Gas retention depends on gluten quality");
+    expect(page).toContain("Nominal hours are only a planning label");
+    expect(EXPERIENCE_LEVELS.map((level) => level.label)).toEqual(["Beginner", "Enthusiast", "Pizza Nerd"]);
+    expect(page).not.toContain("calculate");
+    expect(page).not.toContain("PizzaSession");
+    expect(page).not.toContain("Timeline");
+  });
+
+  it("keeps fermentation safety guidance visible outside the level cards", () => {
+    const page = source("app", "guide", "practical-pizza-tips", "fermentation-length", "page.tsx");
+
+    expect(page).toContain("Always visible");
+    expect(page).toContain("Dough condition matters more than the clock.");
+    expect(page).toContain("Do not judge dough readiness by hours alone");
+    expect(page).toContain("Discard dough with mold");
+    expect(page).toContain("Shorten the plan if the dough is racing ahead");
+    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Fermentation length guidance by experience level"));
   });
 });

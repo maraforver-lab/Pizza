@@ -41,7 +41,7 @@ const plannedTopics = [
     description: "How to choose a practical dough timeline for the time you have.",
     plannedPatch: "452C",
     icon: "timer",
-    href: undefined,
+    href: "/guide/practical-pizza-tips/fermentation-length",
   },
   {
     title: "Dough container and lid use",
