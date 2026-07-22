@@ -27,11 +27,11 @@ describe("learning architecture", () => {
     const header = source("components", "GlobalToolNavigation.tsx");
 
     expect(header).toContain("Pizza guides");
-    expect(header).toContain("Make pizza dough");
+    expect(header).toContain("Make the dough");
     expect(header).toContain('href: "/guides/dough"');
-    expect(header).toContain("Make pizza sauce");
+    expect(header).toContain("Make the sauce");
     expect(header).toContain('href: "/sauce"');
-    expect(header).toContain("Choose your pizza style");
+    expect(header).toContain("Choose your pizza");
     expect(header).toContain('href: "/styles"');
     expect(header).toContain("Choose your oven");
     expect(header).toContain('href: "/ovens"');
@@ -41,10 +41,10 @@ describe("learning architecture", () => {
     expect(header).toContain('aria-label="Pizza guides menu"');
     expect(header).toContain('aria-label="Mobile navigation menu"');
     expect(header).toContain("Pizza guides");
-    expect(header).toContain("Make pizza dough");
-    expect(header).toContain("Make pizza sauce");
+    expect(header).toContain("Make the dough");
+    expect(header).toContain("Make the sauce");
     expect(header).toContain("Choose your oven");
-    expect(header).toContain("Choose your pizza style");
+    expect(header).toContain("Choose your pizza");
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain("h-[100dvh]");
     expect(header).toContain("overflow-y-auto");

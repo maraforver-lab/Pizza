@@ -182,10 +182,10 @@ describe("final product navigation model", () => {
     expect(header.indexOf('href: "/tools/bake-timer"')).toBeLessThan(header.indexOf('href: "/calculator/quick"'));
     expect(header).toContain("Pizza guides");
     expect(header).toContain("Practical guides for dough, sauce, ovens and common problems.");
-    expect(header).toContain("Make pizza dough");
-    expect(header).toContain("Make pizza sauce");
+    expect(header).toContain("Make the dough");
+    expect(header).toContain("Make the sauce");
     expect(header).toContain("Choose your oven");
-    expect(header).toContain("Choose your pizza style");
+    expect(header).toContain("Choose your pizza");
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain("About DoughTools");
     expect(header).toContain("Close menu");

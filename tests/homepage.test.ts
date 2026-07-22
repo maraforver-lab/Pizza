@@ -227,12 +227,12 @@ describe("homepage content model", () => {
     expect(header).toContain('href="/session/start"');
     expect(header).toContain("Pizza guides");
     expect(header).toContain("Dough, sauce, ovens, styles and troubleshooting.");
-    expect(header).toContain("Make pizza sauce");
+    expect(header).toContain("Make the sauce");
     expect(header).toContain('href: "/sauce"');
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain("Fix common dough, topping and baking problems.");
     expect(header).toContain('href: "/guide/pizza-troubleshooting"');
-    expect(header).toContain("Choose your pizza style");
+    expect(header).toContain("Choose your pizza");
     expect(header).toContain('href: "/styles"');
     expect(header).toContain("Choose your oven");
     expect(header).toContain('href: "/ovens"');
@@ -372,10 +372,10 @@ describe("homepage content model", () => {
       'title: "Product"',
       'title: "Company"',
       'label: "Pizza guides", href: "/guide"',
-      'label: "Make pizza sauce", href: "/sauce"',
-      'label: "Make pizza dough", href: "/guides/dough"',
+      'label: "Make the sauce", href: "/sauce"',
+      'label: "Make the dough", href: "/guides/dough"',
       'label: "Fix pizza problems", href: "/guide/pizza-troubleshooting"',
-      'label: "Choose your pizza style", href: "/styles"',
+      'label: "Choose your pizza", href: "/styles"',
       'label: "Choose your oven", href: "/ovens"',
       'label: "Plan a pizza", href: "/session/start"',
       'label: "Quick dough calculator", href: "/calculator/quick"',

@@ -5,10 +5,10 @@ const footerGroups = [
     title: "Learn",
     links: [
       { label: "Pizza guides", href: "/guide" },
-      { label: "Make pizza dough", href: "/guides/dough" },
-      { label: "Make pizza sauce", href: "/sauce" },
+      { label: "Make the dough", href: "/guides/dough" },
+      { label: "Make the sauce", href: "/sauce" },
       { label: "Choose your oven", href: "/ovens" },
-      { label: "Choose your pizza style", href: "/styles" },
+      { label: "Choose your pizza", href: "/styles" },
       { label: "Fix pizza problems", href: "/guide/pizza-troubleshooting" },
     ],
   },

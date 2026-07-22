@@ -45,10 +45,10 @@ export const navigationGroups = [
     shortLabel: "Learning",
     description: "Canonical learning pages for current pizza-making guidance.",
     items: [
-      { id: "dough-guide", label: "Make pizza dough", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
-      { id: "sauce", label: "Make pizza sauce", href: "/sauce", description: "Learn sauce methods, tomato choices and sauce quantities." },
+      { id: "dough-guide", label: "Make the dough", href: "/guides/dough", description: "Follow dough preparation step by step from mixing to a dough ball ready to stretch." },
+      { id: "sauce", label: "Make the sauce", href: "/sauce", description: "Learn sauce methods, tomato choices and sauce quantities." },
       { id: "ovens", label: "Choose your oven", href: "/ovens", description: "Compare oven types and understand practical bake trade-offs." },
-      { id: "styles", label: "Choose your pizza style", href: "/styles", description: "Compare pizza styles and choose the style you want to make." },
+      { id: "styles", label: "Choose your pizza", href: "/styles", description: "Compare pizza styles and choose the style you want to make." },
       { id: "troubleshooting", label: "Fix pizza problems", href: "/guide/pizza-troubleshooting", description: "Fix common dough, topping and baking problems." },
     ],
   },

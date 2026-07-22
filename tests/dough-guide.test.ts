@@ -826,7 +826,7 @@ describe("Pizza Dough Guide foundation", () => {
     const guideIndex = source("app/guide/page.tsx");
     const navigation = source("lib/navigation.ts");
 
-    expect(header).toContain("Make pizza dough");
+    expect(header).toContain("Make the dough");
     expect(header).toContain('href: "/guides/dough"');
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain('href: "/guide/pizza-troubleshooting"');
