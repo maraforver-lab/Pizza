@@ -8,7 +8,6 @@ import { AccountAdminEntryCard } from "@/components/account/AccountAdminEntryCar
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
 import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
-import { PartyOrdersAccountEntryCard } from "@/components/account/PartyOrdersAccountEntryCard";
 import InstallAppPrompt from "@/components/InstallAppPrompt";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -60,7 +59,7 @@ export default function AccountPage() {
   };
 
   const accountAccessCard = user ? (
-    <section className="min-w-0 rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="account-access-heading">
+    <section className="min-w-0 rounded-[1.25rem] border border-ink/10 bg-white/85 p-4 shadow-sm" aria-labelledby="account-access-heading">
       <span className="grid h-11 w-11 place-items-center rounded-full bg-leaf text-base font-extrabold text-white">✓</span>
       <h2 id="account-access-heading" className="mt-3 font-display text-2xl font-semibold">
         {t.signedIn}
@@ -76,31 +75,41 @@ export default function AccountPage() {
     <main className="min-h-screen bg-cream px-4 py-7 pb-24 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
         {user ? (
-          <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.72fr)] lg:items-start">
-            <div className="min-w-0 space-y-5 sm:space-y-6">
-              <section className="min-w-0 rounded-[2rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="account-workspace-heading">
-                <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
-                <h1 id="account-workspace-heading" className="mt-3 max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
-                  Your DoughTools workspace
-                </h1>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
-                  Continue your active pizza plan, check your latest finished bake, and keep account tools close without crowding the cooking flow.
-                </p>
-                <Link
-                  href="/"
-                  className="mt-6 inline-flex min-h-11 max-w-full items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                >
-                  ← {t.back}
-                </Link>
+          <div
+            className="account-workspace-shell grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,24rem)] lg:items-start"
+            data-account-workspace-layout="two-column"
+          >
+            <div className="account-workspace-main min-w-0 space-y-5 sm:space-y-6" data-account-workspace-main>
+              <section className="min-w-0 rounded-[1.75rem] border border-ink/10 bg-white/55 p-5 shadow-sm backdrop-blur sm:p-6" aria-labelledby="account-workspace-heading">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
+                    <h1 id="account-workspace-heading" className="mt-3 max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
+                      Your DoughTools workspace
+                    </h1>
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
+                      Continue your active pizza plan and review the latest finished bake without crowding the cooking flow.
+                    </p>
+                  </div>
+                  <Link
+                    href="/"
+                    className="inline-flex min-h-11 w-fit max-w-full shrink-0 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  >
+                    ← {t.back}
+                  </Link>
+                </div>
               </section>
               <AccountActivePizzaSessionCard enabled className="mt-0" />
               <AccountPizzaSessionHistory enabled latestOnly className="mt-0" />
             </div>
-            <aside className="min-w-0 space-y-4 lg:sticky lg:top-24" aria-label="Account support tools">
+            <aside
+              className="account-workspace-secondary min-w-0 space-y-3 lg:sticky lg:top-24"
+              aria-label="Account support tools"
+              data-account-workspace-secondary
+            >
               {accountAccessCard}
               <InstallAppPrompt compact collapsible className="mt-0" />
-              <PartyOrdersAccountEntryCard enabled className="mt-0" />
-              <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-settings-heading">
+              <section className="rounded-[1.25rem] border border-ink/10 bg-white/85 p-4 shadow-sm" aria-labelledby="account-settings-heading">
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
                 <h2 id="account-settings-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
                   Settings
@@ -117,7 +126,7 @@ export default function AccountPage() {
               </section>
               <AccountGuidancePreference />
               <AccountAdminEntryCard />
-              <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-security-heading">
+              <section className="rounded-[1.25rem] border border-ink/10 bg-white/85 p-4 shadow-sm" aria-labelledby="account-security-heading">
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
                 <h2 id="account-security-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
                   Account and security

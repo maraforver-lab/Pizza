@@ -11,7 +11,11 @@ describe("Account workspace redesign", () => {
     const page = source("app/account/page.tsx");
 
     expect(page).toContain("Your DoughTools workspace");
-    expect(page).toContain("lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.72fr)]");
+    expect(page).toContain("account-workspace-shell");
+    expect(page).toContain("data-account-workspace-layout=\"two-column\"");
+    expect(page).toContain("lg:grid-cols-[minmax(0,2fr)_minmax(18rem,24rem)]");
+    expect(page).toContain("data-account-workspace-main");
+    expect(page).toContain("data-account-workspace-secondary");
     expect(page.indexOf("account-workspace-heading")).toBeLessThan(page.indexOf("<AccountActivePizzaSessionCard enabled"));
     expect(page.indexOf("<AccountActivePizzaSessionCard enabled")).toBeLessThan(page.indexOf("<AccountPizzaSessionHistory enabled latestOnly"));
     expect(page.indexOf("aria-label=\"Account support tools\"")).toBeGreaterThan(page.indexOf("<AccountPizzaSessionHistory enabled latestOnly"));
@@ -24,14 +28,14 @@ describe("Account workspace redesign", () => {
   it("keeps Account functionality while making the secondary column compact", () => {
     const page = source("app/account/page.tsx");
 
-    expect(page).toContain("<PartyOrdersAccountEntryCard enabled");
     expect(page).toContain("<AccountGuidancePreference />");
     expect(page).toContain("<AccountAdminEntryCard />");
     expect(page).toContain("Account and security");
     expect(page).toContain("signOut");
     expect(page).toContain("href=\"/account/settings\"");
     expect(page).toContain("lg:sticky lg:top-24");
-    expect(page).toContain("space-y-4");
+    expect(page).toContain("space-y-3");
+    expect(page).not.toContain("PartyOrdersAccountEntryCard");
   });
 
   it("shows only the latest completed pizza plan on Account and keeps safe photo behavior", () => {

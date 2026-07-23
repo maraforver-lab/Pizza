@@ -13,10 +13,11 @@ describe("Patch 344 account responsive workspace", () => {
     expect(page).toContain("Active pizza plans can be saved to your account");
     expect(page).toContain("Pizza plans appear here when they are active or completed.");
     expect(page).toContain("Loading your DoughTools workspace…");
-    expect(page).toContain("lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.72fr)]");
+    expect(page).toContain("account-workspace-shell");
+    expect(page).toContain("data-account-workspace-layout=\"two-column\"");
+    expect(page).toContain("lg:grid-cols-[minmax(0,2fr)_minmax(18rem,24rem)]");
     expect(page).toContain("AccountActivePizzaSessionCard enabled");
     expect(page).toContain("AccountPizzaSessionHistory enabled latestOnly");
-    expect(page).toContain("PartyOrdersAccountEntryCard enabled");
     expect(page).toContain("InstallAppPrompt compact collapsible");
     expect(page).toContain("href=\"/account/settings\"");
     expect(page).toContain("Open settings");
@@ -36,7 +37,6 @@ describe("Patch 344 account responsive workspace", () => {
 
     const activeIndex = page.indexOf("AccountActivePizzaSessionCard enabled");
     const historyIndex = page.indexOf("AccountPizzaSessionHistory enabled");
-    const partyIndex = page.indexOf("PartyOrdersAccountEntryCard enabled");
     const installIndex = page.indexOf("InstallAppPrompt compact collapsible");
     const settingsIndex = page.indexOf("href=\"/account/settings\"");
     const guidanceIndex = page.indexOf("<AccountGuidancePreference");
@@ -46,8 +46,7 @@ describe("Patch 344 account responsive workspace", () => {
     expect(activeIndex).toBeGreaterThan(-1);
     expect(historyIndex).toBeGreaterThan(activeIndex);
     expect(installIndex).toBeGreaterThan(historyIndex);
-    expect(partyIndex).toBeGreaterThan(installIndex);
-    expect(settingsIndex).toBeGreaterThan(partyIndex);
+    expect(settingsIndex).toBeGreaterThan(installIndex);
     expect(guidanceIndex).toBeGreaterThan(settingsIndex);
     expect(adminIndex).toBeGreaterThan(guidanceIndex);
     expect(securityIndex).toBeGreaterThan(adminIndex);

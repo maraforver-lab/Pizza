@@ -884,14 +884,9 @@ describe("Party Orders foundation", () => {
     expect(source("app/account/party-orders/[id]/page.tsx")).toContain("redirect(\"/account\")");
   });
 
-  it("adds a signed-in Account page entry card for Party Orders discovery", () => {
-    const accountPage = source("app/account/page.tsx");
+  it("keeps the reusable signed-in Party Orders discovery card available outside the Account workspace", () => {
     const card = source("components/account/PartyOrdersAccountEntryCard.tsx");
 
-    expect(accountPage).toContain("PartyOrdersAccountEntryCard");
-    expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled");
-    expect(accountPage).toContain("<PartyOrdersAccountEntryCard enabled");
-    expect(accountPage).toContain("aria-label=\"Account support tools\"");
     expect(card).toContain("if (!enabled) return null");
     expect(card).toContain("PIZZA PARTY ORDERS");
     expect(card).toContain("Collect pizza orders from guests");
