@@ -18,15 +18,21 @@ describe("Account Settings information architecture", () => {
     expect(page).toContain("Download your data or permanently delete your account.");
     expect(page).toContain("Security");
     expect(page).toContain("Manage your email, password and account access.");
+    expect(page).toContain("App and device");
+    expect(page).toContain("Install DoughTools on this device.");
     expect(page).toContain("/account/settings/preferences");
     expect(page).toContain("/account/settings/privacy");
     expect(page).toContain("/account/settings/security");
+    expect(page).toContain("#app-and-device");
     expect(page).toContain('aria-label="Settings categories"');
     expect(page).toContain("min-h-28");
     expect(page).toContain("sm:grid-cols-[minmax(0,1fr)_auto]");
     expect(page).toContain("Open preferences");
     expect(page).toContain("Open privacy");
     expect(page).toContain("Open security");
+    expect(page).toContain("View install options");
+    expect(page).toContain("<InstallAppPrompt compact collapsible");
+    expect(page).toContain("<AccountAdminEntryCard title=\"Admin tools\"");
   });
 
   it("keeps the existing Settings auth guard and back navigation shared by subpages", () => {
@@ -53,12 +59,16 @@ describe("Account Settings information architecture", () => {
     const soundComponent = source("components/account/AccountBakeTimerSoundPreference.tsx");
     const exportComponent = source("components/account/AccountDataExportCard.tsx");
     const deleteComponent = source("components/account/AccountDeleteAccountCard.tsx");
+    const securityControls = source("components/account/AccountSecurityControls.tsx");
 
+    expect(preferencesPage).toContain("<AccountGuidancePreference />");
     expect(preferencesPage).toContain("<AccountBakeTimerSoundPreference />");
     expect(privacyPage).toContain("<AccountDataExportCard />");
     expect(privacyPage).toContain("<AccountDeleteAccountCard />");
-    expect(securityPage).toContain("Open Account to use the existing email and password access controls.");
-    expect(securityPage).toContain("Open Account to sign out of this browser.");
+    expect(securityPage).toContain("<AccountSecurityControls />");
+    expect(securityControls).toContain("Email");
+    expect(securityControls).toContain("Change email or password");
+    expect(securityControls).toContain("supabase.auth.signOut()");
     expect(soundComponent).toContain('fetch("/api/account/preferences"');
     expect(exportComponent).toContain("/api/account/export");
     expect(deleteComponent).toContain('fetch("/api/account/delete", { method: "DELETE" })');
@@ -78,8 +88,6 @@ describe("Account Settings information architecture", () => {
     expect(exportComponent).toContain("Your data");
     expect(exportComponent).toContain("sm:grid-cols-2");
     expect(exportComponent).toContain("w-full max-w-full");
-    expect(securityPage).toContain("sm:grid-cols-2");
-    expect(securityPage).toContain("min-h-44");
-    expect(securityPage).toContain("mt-auto");
+    expect(securityPage).toContain("<AccountSecurityControls />");
   });
 });

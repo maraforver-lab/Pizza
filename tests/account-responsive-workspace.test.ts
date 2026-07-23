@@ -11,25 +11,25 @@ describe("Patch 344 account responsive workspace", () => {
     expect(page).toContain("Your DoughTools workspace");
     expect(page).toContain("Your place for pizza plans.");
     expect(page).toContain("Active pizza plans can be saved to your account");
-    expect(page).toContain("Pizza plans appear here when they are active or completed.");
     expect(page).toContain("Loading your DoughTools workspace…");
     expect(page).toContain("account-workspace-shell");
     expect(page).toContain("data-account-workspace-layout=\"two-column\"");
-    expect(page).toContain("lg:grid-cols-[minmax(0,2fr)_minmax(18rem,24rem)]");
+    expect(page).toContain("lg:grid-cols-[minmax(0,2.35fr)_minmax(16rem,20rem)]");
     expect(page).toContain("AccountActivePizzaSessionCard enabled");
     expect(page).toContain("AccountPizzaSessionHistory enabled latestOnly");
-    expect(page).toContain("InstallAppPrompt compact collapsible");
+    expect(page).toContain("PartyOrdersAccountEntryCard enabled");
     expect(page).toContain("href=\"/account/settings\"");
     expect(page).toContain("Open settings");
-    expect(page).toContain("AccountGuidancePreference");
     expect(page).toContain("AccountAdminEntryCard");
-    expect(page).toContain("Account and security");
+    expect(page).not.toContain("InstallAppPrompt");
+    expect(page).not.toContain("AccountGuidancePreference");
+    expect(page).not.toContain("Account and security");
     expect(page).not.toContain("AccountArchivedPizzaSessions");
     expect(page).not.toContain("Archived pizza sessions");
     expect(page).toContain("supabase.auth.getUser()");
     expect(page).toContain("supabase.auth.signInWithPassword");
     expect(page).toContain("supabase.auth.signUp");
-    expect(page).toContain("supabase.auth.signOut()");
+    expect(page).not.toContain("supabase.auth.signOut()");
   });
 
   it("keeps the mobile reading order focused on session work before support settings", () => {
@@ -37,19 +37,15 @@ describe("Patch 344 account responsive workspace", () => {
 
     const activeIndex = page.indexOf("AccountActivePizzaSessionCard enabled");
     const historyIndex = page.indexOf("AccountPizzaSessionHistory enabled");
-    const installIndex = page.indexOf("InstallAppPrompt compact collapsible");
+    const partyIndex = page.indexOf("PartyOrdersAccountEntryCard enabled");
     const settingsIndex = page.indexOf("href=\"/account/settings\"");
-    const guidanceIndex = page.indexOf("<AccountGuidancePreference");
     const adminIndex = page.indexOf("<AccountAdminEntryCard");
-    const securityIndex = page.indexOf("Account and security");
 
     expect(activeIndex).toBeGreaterThan(-1);
     expect(historyIndex).toBeGreaterThan(activeIndex);
-    expect(installIndex).toBeGreaterThan(historyIndex);
-    expect(settingsIndex).toBeGreaterThan(installIndex);
-    expect(guidanceIndex).toBeGreaterThan(settingsIndex);
-    expect(adminIndex).toBeGreaterThan(guidanceIndex);
-    expect(securityIndex).toBeGreaterThan(adminIndex);
+    expect(partyIndex).toBeGreaterThan(historyIndex);
+    expect(settingsIndex).toBeGreaterThan(partyIndex);
+    expect(adminIndex).toBeGreaterThan(settingsIndex);
   });
 
   it("keeps full history disclosure support while Account requests only the latest completed pizza plan", () => {
@@ -79,11 +75,11 @@ describe("Patch 344 account responsive workspace", () => {
     expect(page).not.toContain("/api/pizza-sessions/archived");
   });
 
-  it("keeps install guidance compact on account without changing PWA event behavior", () => {
+  it("keeps install guidance available for Settings without changing PWA event behavior", () => {
     const install = source("components/InstallAppPrompt.tsx");
-    const page = source("app/account/page.tsx");
+    const settingsPage = source("app/account/settings/page.tsx");
 
-    expect(page).toContain("InstallAppPrompt compact collapsible");
+    expect(settingsPage).toContain("InstallAppPrompt compact collapsible");
     expect(install).toContain("collapsible?: boolean");
     expect(install).toContain("Show install options");
     expect(install).toContain("Hide install options");

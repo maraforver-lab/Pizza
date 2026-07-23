@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { AccountAdminEntryCard } from "@/components/account/AccountAdminEntryCard";
 import { AccountSettingsShell } from "@/components/account/AccountSettingsShell";
+import InstallAppPrompt from "@/components/InstallAppPrompt";
 
 const settingsCategories = [
   {
@@ -19,6 +21,12 @@ const settingsCategories = [
     description: "Manage your email, password and account access.",
     href: "/account/settings/security",
     action: "Open security",
+  },
+  {
+    title: "App and device",
+    description: "Install DoughTools on this device.",
+    href: "#app-and-device",
+    action: "View install options",
   },
 ];
 
@@ -51,6 +59,12 @@ export default function AccountSettingsPage() {
             </span>
           </Link>
         ))}
+      </div>
+      <div id="app-and-device" className="mt-6">
+        <InstallAppPrompt compact collapsible className="mt-0" />
+      </div>
+      <div className="mt-6 border-t border-ink/10 pt-5">
+        <AccountAdminEntryCard title="Admin tools" />
       </div>
     </AccountSettingsShell>
   );

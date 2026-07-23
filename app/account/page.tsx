@@ -6,16 +6,15 @@ import type { User } from "@supabase/supabase-js";
 import SiteFooter from "@/components/SiteFooter";
 import { AccountAdminEntryCard } from "@/components/account/AccountAdminEntryCard";
 import { AccountActivePizzaSessionCard } from "@/components/account/AccountActivePizzaSessionCard";
-import { AccountGuidancePreference } from "@/components/account/AccountGuidancePreference";
 import { AccountPizzaSessionHistory } from "@/components/account/AccountPizzaSessionHistory";
-import InstallAppPrompt from "@/components/InstallAppPrompt";
+import { PartyOrdersAccountEntryCard } from "@/components/account/PartyOrdersAccountEntryCard";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "signup";
 
 const copy = {
   en: {
-    eyebrow: "Account", title: "Your place for pizza plans.", intro: "Create an account, sign in and sign out. Active pizza plans can be saved to your account while saved recipes and bake notes remain browser-local for now.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", signedIn: "You are signed in", signOut: "Sign out", signedOut: "You are signed out.", back: "Back to homepage", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again." },
+    eyebrow: "Account", title: "Your place for pizza plans.", intro: "Create an account, sign in and sign out. Active pizza plans can be saved to your account while saved recipes and bake notes remain browser-local for now.", login: "Sign in", signup: "Create account", email: "Email", password: "Password", passwordHint: "At least 8 characters", working: "One moment…", confirm: "Check your email and confirm the account using the link in the message.", confirmed: "Email confirmed. You are now signed in.", back: "Back to homepage", retry: "The confirmation link could not be processed. Try signing in.", error: "Authentication failed. Check your details and try again." },
 } as const;
 
 export default function AccountPage() {
@@ -52,96 +51,63 @@ export default function AccountPage() {
     setUser(result.data.user); setPassword("");
   };
 
-  const signOut = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    setLoading(false); setUser(null); setMessage(error ? error.message : t.signedOut); setIsError(Boolean(error));
-  };
-
-  const accountAccessCard = user ? (
-    <section className="min-w-0 rounded-[1.25rem] border border-ink/10 bg-white/85 p-4 shadow-sm" aria-labelledby="account-access-heading">
-      <span className="grid h-11 w-11 place-items-center rounded-full bg-leaf text-base font-extrabold text-white">✓</span>
-      <h2 id="account-access-heading" className="mt-3 font-display text-2xl font-semibold">
-        {t.signedIn}
-      </h2>
-      <p className="mt-1 break-all text-sm text-ink/55">{user.email}</p>
-      <p className="mt-4 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/55">
-        Pizza plans appear here when they are active or completed.
-      </p>
-    </section>
-  ) : null;
-
   return (
     <main className="min-h-screen bg-cream px-4 py-7 pb-24 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
         {user ? (
-          <div
-            className="account-workspace-shell grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,24rem)] lg:items-start"
-            data-account-workspace-layout="two-column"
-          >
-            <div className="account-workspace-main min-w-0 space-y-5 sm:space-y-6" data-account-workspace-main>
-              <section className="min-w-0 rounded-[1.75rem] border border-ink/10 bg-white/55 p-5 shadow-sm backdrop-blur sm:p-6" aria-labelledby="account-workspace-heading">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
-                    <h1 id="account-workspace-heading" className="mt-3 max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
-                      Your DoughTools workspace
-                    </h1>
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
-                      Continue your active pizza plan and review the latest finished bake without crowding the cooking flow.
-                    </p>
-                  </div>
-                  <Link
-                    href="/"
-                    className="inline-flex min-h-11 w-fit max-w-full shrink-0 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                  >
-                    ← {t.back}
-                  </Link>
+          <div className="space-y-6 sm:space-y-8">
+            <section className="max-w-4xl" aria-labelledby="account-workspace-heading">
+              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
+              <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                  <h1 id="account-workspace-heading" className="max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
+                    Your DoughTools workspace
+                  </h1>
+                  <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
+                    Continue your active pizza plan, review the latest finished bake, and manage party orders from one clear workspace.
+                  </p>
                 </div>
-              </section>
-              <AccountActivePizzaSessionCard enabled className="mt-0" />
-              <AccountPizzaSessionHistory enabled latestOnly className="mt-0" />
-            </div>
-            <aside
-              className="account-workspace-secondary min-w-0 space-y-3 lg:sticky lg:top-24"
-              aria-label="Account support tools"
-              data-account-workspace-secondary
-            >
-              {accountAccessCard}
-              <InstallAppPrompt compact collapsible className="mt-0" />
-              <section className="rounded-[1.25rem] border border-ink/10 bg-white/85 p-4 shadow-sm" aria-labelledby="account-settings-heading">
-                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
-                <h2 id="account-settings-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
-                  Settings
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-ink/60">
-                  Choose account preferences such as your Bake timer sound.
-                </p>
                 <Link
-                  href="/account/settings"
-                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  href="/"
+                  className="inline-flex min-h-11 w-fit max-w-full shrink-0 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                 >
-                  Open settings
+                  ← {t.back}
                 </Link>
-              </section>
-              <AccountGuidancePreference />
-              <AccountAdminEntryCard />
-              <section className="rounded-[1.25rem] border border-ink/10 bg-white/85 p-4 shadow-sm" aria-labelledby="account-security-heading">
-                <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
-                <h2 id="account-security-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
-                  Account and security
-                </h2>
-                <p className="mt-2 break-all text-sm leading-6 text-ink/60">{user.email}</p>
-                <button
-                  type="button"
-                  onClick={signOut}
-                  disabled={loading}
-                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-ink/10 bg-cream/65 px-5 text-sm font-extrabold text-ink/75 transition hover:border-tomato/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-50"
-                >
-                  {loading ? t.working : t.signOut}
-                </button>
-              </section>
-            </aside>
+              </div>
+            </section>
+
+            <div
+              className="account-workspace-shell grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2.35fr)_minmax(16rem,20rem)] lg:items-start"
+              data-account-workspace-layout="two-column"
+            >
+              <div className="account-workspace-main min-w-0 space-y-5 sm:space-y-6" data-account-workspace-main>
+                <AccountActivePizzaSessionCard enabled className="mt-0" />
+                <AccountPizzaSessionHistory enabled latestOnly className="mt-0" />
+                <PartyOrdersAccountEntryCard enabled className="mt-0" />
+              </div>
+              <aside
+                className="account-workspace-secondary min-w-0 space-y-3 lg:sticky lg:top-24"
+                aria-label="Account support tools"
+                data-account-workspace-secondary
+              >
+                <section className="rounded-[1.25rem] border border-ink/10 bg-white/85 p-4 shadow-sm" aria-labelledby="account-settings-heading">
+                  <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
+                  <h2 id="account-settings-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
+                    Settings
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-ink/60">
+                    Preferences, privacy, security and app options live here.
+                  </p>
+                  <Link
+                    href="/account/settings"
+                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                  >
+                    Open settings
+                  </Link>
+                </section>
+                <AccountAdminEntryCard title="Admin tools" compact />
+              </aside>
+            </div>
           </div>
         ) : (
           <section className="grid min-w-0 gap-5 rounded-[2rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-center">

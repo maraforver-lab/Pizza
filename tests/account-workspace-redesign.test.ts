@@ -13,29 +13,29 @@ describe("Account workspace redesign", () => {
     expect(page).toContain("Your DoughTools workspace");
     expect(page).toContain("account-workspace-shell");
     expect(page).toContain("data-account-workspace-layout=\"two-column\"");
-    expect(page).toContain("lg:grid-cols-[minmax(0,2fr)_minmax(18rem,24rem)]");
+    expect(page).toContain("lg:grid-cols-[minmax(0,2.35fr)_minmax(16rem,20rem)]");
     expect(page).toContain("data-account-workspace-main");
     expect(page).toContain("data-account-workspace-secondary");
     expect(page.indexOf("account-workspace-heading")).toBeLessThan(page.indexOf("<AccountActivePizzaSessionCard enabled"));
     expect(page.indexOf("<AccountActivePizzaSessionCard enabled")).toBeLessThan(page.indexOf("<AccountPizzaSessionHistory enabled latestOnly"));
-    expect(page.indexOf("aria-label=\"Account support tools\"")).toBeGreaterThan(page.indexOf("<AccountPizzaSessionHistory enabled latestOnly"));
-    expect(page.indexOf("{accountAccessCard}")).toBeLessThan(page.indexOf("<InstallAppPrompt compact collapsible"));
-    expect(page.indexOf("<InstallAppPrompt compact collapsible")).toBeLessThan(page.indexOf("href=\"/account/settings\""));
+    expect(page.indexOf("<AccountPizzaSessionHistory enabled latestOnly")).toBeLessThan(page.indexOf("<PartyOrdersAccountEntryCard enabled"));
+    expect(page.indexOf("aria-label=\"Account support tools\"")).toBeGreaterThan(page.indexOf("<PartyOrdersAccountEntryCard enabled"));
     expect(page).toContain("<SiteFooter />");
     expect(page).not.toMatch(/GlobalToolNavigation|navigationGroups|SiteFooter.*href|new header link/i);
   });
 
-  it("keeps Account functionality while making the secondary column compact", () => {
+  it("keeps the Account secondary rail slim and moves personal settings out of the workspace", () => {
     const page = source("app/account/page.tsx");
 
-    expect(page).toContain("<AccountGuidancePreference />");
-    expect(page).toContain("<AccountAdminEntryCard />");
-    expect(page).toContain("Account and security");
-    expect(page).toContain("signOut");
+    expect(page).toContain("<PartyOrdersAccountEntryCard enabled");
+    expect(page).toContain("<AccountAdminEntryCard title=\"Admin tools\" compact />");
     expect(page).toContain("href=\"/account/settings\"");
     expect(page).toContain("lg:sticky lg:top-24");
     expect(page).toContain("space-y-3");
-    expect(page).not.toContain("PartyOrdersAccountEntryCard");
+    expect(page).not.toContain("AccountGuidancePreference");
+    expect(page).not.toContain("InstallAppPrompt");
+    expect(page).not.toContain("Account and security");
+    expect(page).not.toContain("signOut");
   });
 
   it("shows only the latest completed pizza plan on Account and keeps safe photo behavior", () => {

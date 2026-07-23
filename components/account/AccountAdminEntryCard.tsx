@@ -10,7 +10,12 @@ type AdminStatus = {
   role: AppRole;
 };
 
-export function AccountAdminEntryCard() {
+type AccountAdminEntryCardProps = {
+  title?: string;
+  compact?: boolean;
+};
+
+export function AccountAdminEntryCard({ title = "Admin tools", compact = false }: AccountAdminEntryCardProps) {
   const [status, setStatus] = useState<AdminStatus | null>(null);
 
   useEffect(() => {
@@ -40,10 +45,10 @@ export function AccountAdminEntryCard() {
   if (!status?.isAdmin || status.role !== ADMIN_APP_ROLE) return null;
 
   return (
-    <section className="rounded-[1.75rem] border border-tomato/20 bg-tomato/[.06] p-4 shadow-sm sm:p-5" aria-labelledby="account-admin-heading">
+    <section className={`rounded-[1.25rem] border border-tomato/20 bg-tomato/[.06] p-4 shadow-sm ${compact ? "" : "sm:p-5"}`} aria-labelledby="account-admin-heading">
       <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Admin</p>
       <h2 id="account-admin-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
-        Product admin
+        {title}
       </h2>
       <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
         Manage public DoughTools configuration. Private user activity is not exposed here.
