@@ -5,13 +5,15 @@ import { DoughToolsIcon } from "@/components/icons";
 
 type ExportState =
   | { status: "idle"; message: string }
-  | { status: "loading"; message: string }
+  | { status: "loading"; message: string; format: "html" | "json" }
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
-function filenameFromContentDisposition(value: string | null) {
+type ExportFormat = "html" | "json";
+
+function filenameFromContentDisposition(value: string | null, format: ExportFormat) {
   const match = value?.match(/filename="([^"]+)"/i);
-  return match?.[1] ?? `doughtools-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+  return match?.[1] ?? `doughtools-data-export-${new Date().toISOString().slice(0, 10)}.${format}`;
 }
 
 export function AccountDataExportCard() {
@@ -22,9 +24,13 @@ export function AccountDataExportCard() {
     if (downloadUrl.current) URL.revokeObjectURL(downloadUrl.current);
   }, []);
 
-  async function downloadData() {
+  async function downloadData(format: ExportFormat) {
     if (state.status === "loading") return;
-    setState({ status: "loading", message: "Preparing your data export..." });
+    setState({
+      status: "loading",
+      format,
+      message: format === "html" ? "Preparing your readable data export..." : "Preparing your JSON data export...",
+    });
 
     if (downloadUrl.current) {
       URL.revokeObjectURL(downloadUrl.current);
@@ -32,7 +38,7 @@ export function AccountDataExportCard() {
     }
 
     try {
-      const response = await fetch("/api/account/export", { method: "GET" });
+      const response = await fetch(`/api/account/export${format === "html" ? "?format=html" : ""}`, { method: "GET" });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         throw new Error(payload.error || "Your data export could not be prepared.");
@@ -43,7 +49,7 @@ export function AccountDataExportCard() {
       downloadUrl.current = url;
       const link = document.createElement("a");
       link.href = url;
-      link.download = filenameFromContentDisposition(response.headers.get("Content-Disposition"));
+      link.download = filenameFromContentDisposition(response.headers.get("Content-Disposition"), format);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -68,7 +74,7 @@ export function AccountDataExportCard() {
             Privacy and data
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
-            Download a JSON file with your account details, preferences, pizza plans, Review photo metadata, Party Orders, and related guest submissions for orders you own.
+            Download a readable copy or JSON file with your account details, preferences, pizza plans, Review photo metadata, Party Orders, and related guest submissions for orders you own.
           </p>
         </div>
         <DoughToolsIcon name="download" size={24} className="mt-1 shrink-0 text-tomato" aria-hidden="true" />
@@ -80,18 +86,27 @@ export function AccountDataExportCard() {
         </p>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-center">
         <p className="text-xs font-bold leading-5 text-ink/45" aria-live="polite">
           {state.message || "Nothing is changed or deleted when you download your data."}
         </p>
         <button
           type="button"
-          onClick={() => void downloadData()}
+          onClick={() => void downloadData("html")}
           disabled={state.status === "loading"}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white transition hover:bg-forest disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
           <DoughToolsIcon name="download" size={20} aria-hidden="true" />
-          {state.status === "loading" ? "Preparing..." : "Download my data"}
+          {state.status === "loading" && state.format === "html" ? "Preparing..." : "Download readable copy"}
+        </button>
+        <button
+          type="button"
+          onClick={() => void downloadData("json")}
+          disabled={state.status === "loading"}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink transition hover:border-tomato/25 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        >
+          <DoughToolsIcon name="download" size={20} aria-hidden="true" />
+          {state.status === "loading" && state.format === "json" ? "Preparing..." : "Download JSON"}
         </button>
       </div>
 

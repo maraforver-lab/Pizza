@@ -97,7 +97,8 @@ describe("GDPR self-service safeguards", () => {
     const deleteCard = source("components/account/AccountDeleteAccountCard.tsx");
     const cleanup = source("components/account/account-local-data-cleanup.ts");
 
-    expect(exportCard).toContain("Download my data");
+    expect(exportCard).toContain("Download readable copy");
+    expect(exportCard).toContain("Download JSON");
     expect(exportCard).toContain("related guest submissions for orders you own");
     expect(exportCard).toContain("private Party Order tokens");
     expect(deleteCard).toContain("owned Review photos");

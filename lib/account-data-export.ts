@@ -192,3 +192,106 @@ export async function assembleAccountDataExport({
 export function accountDataExportFilename(now = new Date()) {
   return `${ACCOUNT_DATA_EXPORT_FILENAME_PREFIX}-${now.toISOString().slice(0, 10)}.json`;
 }
+
+export function accountDataExportHtmlFilename(now = new Date()) {
+  return `${ACCOUNT_DATA_EXPORT_FILENAME_PREFIX}-${now.toISOString().slice(0, 10)}.html`;
+}
+
+export function escapeAccountDataExportHtml(value: unknown) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function readableExportLabel(key: string) {
+  return key
+    .replaceAll("_", " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function renderExportValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return "<span class=\"muted\">Not provided</span>";
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "<span class=\"muted\">No records exported.</span>";
+    return `<ol>${value.map((item) => `<li>${renderExportValue(item)}</li>`).join("")}</ol>`;
+  }
+
+  if (isRecord(value)) {
+    const rows = Object.entries(value);
+    if (rows.length === 0) return "<span class=\"muted\">No details exported.</span>";
+    return `<table><tbody>${rows.map(([key, raw]) => (
+      `<tr><th scope="row">${escapeAccountDataExportHtml(readableExportLabel(key))}</th><td>${renderExportValue(raw)}</td></tr>`
+    )).join("")}</tbody></table>`;
+  }
+
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  return escapeAccountDataExportHtml(value);
+}
+
+function renderExportSection(title: string, body: unknown) {
+  return `
+    <section>
+      <h2>${escapeAccountDataExportHtml(title)}</h2>
+      ${renderExportValue(body)}
+    </section>
+  `;
+}
+
+export function renderAccountDataExportHtml(payload: AccountDataExport) {
+  const sections: Array<[string, unknown]> = [
+    ["Account", payload.account],
+    ["Role", payload.role],
+    ["Account preferences", payload.accountPreferences],
+    ["Pizza plans", payload.pizzaPlans],
+    ["Review photos", payload.reviewPhotos],
+    ["Party Orders", payload.partyOrders],
+    ["Party Order guest submissions", payload.partyOrderGuestSubmissions],
+    ["Party Order items", payload.partyOrderItems],
+  ];
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DoughTools data export</title>
+  <style>
+    body { margin: 0; padding: 2rem; color: #231f20; background: #fffdf7; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; }
+    main { max-width: 72rem; margin: 0 auto; }
+    header, section { margin: 0 0 1.5rem; padding: 1.25rem; border: 1px solid #ded7cb; border-radius: 0.75rem; background: #ffffff; }
+    h1, h2, h3 { margin: 0 0 0.75rem; line-height: 1.15; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.35rem; }
+    p { margin: 0.35rem 0; }
+    table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
+    th, td { padding: 0.5rem; border-top: 1px solid #eee7dc; text-align: left; vertical-align: top; }
+    th { width: 14rem; color: #5f564c; font-weight: 700; }
+    ol { margin: 0.25rem 0 0.25rem 1.25rem; padding: 0; }
+    li { margin: 0.75rem 0; }
+    .muted { color: #6f665c; }
+    @media print {
+      body { padding: 0; background: #ffffff; }
+      header, section { break-inside: avoid; border-color: #cccccc; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>DoughTools data export</h1>
+      <p><strong>Export date:</strong> ${escapeAccountDataExportHtml(payload.exportedAt)}</p>
+      <p><strong>Format version:</strong> ${escapeAccountDataExportHtml(payload.formatVersion)}</p>
+      <p class="muted">This readable copy uses the same permitted account data as the JSON export.</p>
+    </header>
+    ${sections.map(([title, body]) => renderExportSection(title, body)).join("")}
+  </main>
+</body>
+</html>`;
+}

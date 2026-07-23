@@ -54,7 +54,7 @@ describe("Account Settings information architecture", () => {
     expect(securityPage).toContain("Open Account to use the existing email and password access controls.");
     expect(securityPage).toContain("Open Account to sign out of this browser.");
     expect(soundComponent).toContain('fetch("/api/account/preferences"');
-    expect(exportComponent).toContain('fetch("/api/account/export"');
+    expect(exportComponent).toContain("/api/account/export");
     expect(deleteComponent).toContain('fetch("/api/account/delete", { method: "DELETE" })');
   });
 });

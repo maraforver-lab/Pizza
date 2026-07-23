@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import {
   accountDataExportFilename,
+  accountDataExportHtmlFilename,
   assembleAccountDataExport,
+  renderAccountDataExportHtml,
 } from "@/lib/account-data-export";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await getSupabaseServerClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   const user = userData.user;
@@ -20,13 +22,15 @@ export async function GET() {
       user,
       exportedAt: exportedAt.toISOString(),
     });
-    const body = JSON.stringify(payload, null, 2);
+    const format = new URL(request.url).searchParams.get("format");
+    const isReadableHtml = format === "html";
+    const body = isReadableHtml ? renderAccountDataExportHtml(payload) : JSON.stringify(payload, null, 2);
 
     return new Response(body, {
       status: 200,
       headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${accountDataExportFilename(exportedAt)}"`,
+        "Content-Type": isReadableHtml ? "text/html; charset=utf-8" : "application/json; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${isReadableHtml ? accountDataExportHtmlFilename(exportedAt) : accountDataExportFilename(exportedAt)}"`,
         "Cache-Control": "no-store",
       },
     });
