@@ -85,9 +85,14 @@ describe("Account data deletion backend", () => {
     expect(helper).toContain("const partyItemsFailed");
     expect(helper).toContain("const submissionsFailed");
     expect(route).toContain("status: result.success ? 200 : 207");
-    expect(helper.indexOf(".from(\"party_order_items\")")).toBeLessThan(helper.indexOf(".from(\"party_order_submissions\")\n      .delete()"));
-    expect(helper.indexOf(".from(\"party_order_submissions\")\n      .delete()")).toBeLessThan(helper.indexOf(".from(\"party_orders\")\n      .delete()"));
-    expect(helper.indexOf("queuedPhotoPaths")).toBeLessThan(helper.indexOf(".from(\"pizza_sessions\")\n      .delete()"));
+    const orderItemsDelete = helper.indexOf(".from(\"party_order_items\")");
+    const submissionsDelete = helper.indexOf(".from(\"party_order_submissions\")", orderItemsDelete);
+    const partyOrdersDelete = helper.indexOf(".from(\"party_orders\")", submissionsDelete);
+    const pizzaPlansDelete = helper.indexOf(".from(\"pizza_sessions\")", helper.indexOf("queuedPhotoPaths"));
+
+    expect(orderItemsDelete).toBeLessThan(submissionsDelete);
+    expect(submissionsDelete).toBeLessThan(partyOrdersDelete);
+    expect(helper.indexOf("queuedPhotoPaths")).toBeLessThan(pizzaPlansDelete);
   });
 
   it("preserves Auth, Storage objects and admin public configuration for later patches", () => {

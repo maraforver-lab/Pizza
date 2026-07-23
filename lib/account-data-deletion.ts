@@ -112,7 +112,7 @@ export function extractOwnedPizzaSessionPhotoPaths(rows: unknown[], userId: stri
   return [...paths].sort();
 }
 
-async function currentUserRole(supabase: SupabaseClient, userId: string): Promise<AppRole> {
+export async function loadAccountDeletionUserRole(supabase: SupabaseClient, userId: string): Promise<AppRole> {
   const { data, error } = await supabase
     .from("user_roles")
     .select("role")
@@ -260,7 +260,7 @@ export async function deleteSignedInUserCloudApplicationData({
     ? failed("accountPreferences", "Account preferences could not be deleted.")
     : completed("accountPreferences", deletedCount(preferenceRows)));
 
-  const role = await currentUserRole(serviceSupabase, user.id);
+  const role = await loadAccountDeletionUserRole(serviceSupabase, user.id);
   if (role === "admin") {
     categories.push(skipped("userRole", "Admin role rows are preserved until full account deletion can handle admin-authored public configuration."));
   } else {
