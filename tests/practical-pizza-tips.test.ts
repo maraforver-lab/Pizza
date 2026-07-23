@@ -32,39 +32,39 @@ describe("Practical pizza tips landing page", () => {
     expect(header).toContain("practicalTipsActive");
   });
 
-  it("defines one reusable level-aware pattern without a new profile setting", () => {
+  it("keeps the landing focused on topic cards without redundant level explanations", () => {
     const page = source("app", "guide", "practical-pizza-tips", "page.tsx");
 
-    expect(page).toContain("const practicalTipLevelPattern");
-    expect(page).toContain("EXPERIENCE_LEVELS");
-    expect(page).toContain("type ExperienceLevel");
-    expect(page).toContain("Direct answer and safe starting action");
-    expect(page).toContain("Practical adjustments and common exceptions");
-    expect(page).toContain("Technical explanation and fine-tuning");
-    expect(EXPERIENCE_LEVELS.map((level) => level.label)).toEqual(["Beginner", "Enthusiast", "Pizza Nerd"]);
+    expect(page).not.toContain("Structure");
+    expect(page).not.toContain("Each future tip will use the same Beginner, Enthusiast and Pizza Nerd pattern");
+    expect(page).not.toContain("const practicalTipLevelPattern");
+    expect(page).not.toContain("Direct answer and safe starting action");
+    expect(page).not.toContain("Practical adjustments and common exceptions");
+    expect(page).not.toContain("Technical explanation and fine-tuning");
     expect(page).not.toContain("ExperienceLevelSelector");
     expect(page).not.toContain("writeExperienceLevelPreference");
     expect(page).not.toContain("localStorage");
   });
 
-  it("keeps essential safety guidance visible to every level", () => {
+  it("removes the lower safety and troubleshooting promo sections from the landing", () => {
     const page = source("app", "guide", "practical-pizza-tips", "page.tsx");
 
-    expect(page).toContain("Always visible");
-    expect(page).toContain("Safety does not hide behind experience level.");
-    expect(page).toContain("Keep food-safety guidance visible to every experience level.");
-    expect(page).toContain("Use cold storage for dough that needs to wait.");
-    expect(page).toContain("Discard dough or toppings that smell wrong, show mold or have been held unsafely.");
-    expect(page).toContain("Follow your appliance manual when using grill, broiler, stone, steel or high heat.");
-    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Practical pizza tips level pattern"));
+    expect(page).not.toContain("Safety does not hide behind experience level.");
+    expect(page).not.toContain("Keep food-safety guidance visible to every experience level.");
+    expect(page).not.toContain("Use cold storage for dough that needs to wait.");
+    expect(page).not.toContain("Discard dough or toppings that smell wrong, show mold or have been held unsafely.");
+    expect(page).not.toContain("Follow your appliance manual when using grill, broiler, stone, steel or high heat.");
+    expect(page).not.toContain("Practical pizza tips level pattern");
+    expect(page).not.toContain("Troubleshoot the current pizza problem.");
+    expect(page).not.toContain('href="/guide/pizza-troubleshooting"');
+    expect(page.indexOf("Open practical tip")).toBeLessThan(page.indexOf("<SiteFooter />"));
   });
 
-  it("preserves the existing troubleshooting article as a separate destination", () => {
+  it("preserves the existing troubleshooting article as a separate Pizza guides destination", () => {
     const page = source("app", "guide", "practical-pizza-tips", "page.tsx");
     const guide = source("app", "guide", "page.tsx");
 
-    expect(page).toContain('href="/guide/pizza-troubleshooting"');
-    expect(page).toContain("Fix pizza problems");
+    expect(page).not.toContain('href="/guide/pizza-troubleshooting"');
     expect(guide).toContain("Fix pizza problems");
     expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
   });
