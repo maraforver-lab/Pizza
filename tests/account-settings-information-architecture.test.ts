@@ -21,6 +21,12 @@ describe("Account Settings information architecture", () => {
     expect(page).toContain("/account/settings/preferences");
     expect(page).toContain("/account/settings/privacy");
     expect(page).toContain("/account/settings/security");
+    expect(page).toContain('aria-label="Settings categories"');
+    expect(page).toContain("min-h-28");
+    expect(page).toContain("sm:grid-cols-[minmax(0,1fr)_auto]");
+    expect(page).toContain("Open preferences");
+    expect(page).toContain("Open privacy");
+    expect(page).toContain("Open security");
   });
 
   it("keeps the existing Settings auth guard and back navigation shared by subpages", () => {
@@ -56,5 +62,24 @@ describe("Account Settings information architecture", () => {
     expect(soundComponent).toContain('fetch("/api/account/preferences"');
     expect(exportComponent).toContain("/api/account/export");
     expect(deleteComponent).toContain('fetch("/api/account/delete", { method: "DELETE" })');
+  });
+
+  it("keeps Settings pages responsive and separated by task", () => {
+    const shell = source("components/account/AccountSettingsShell.tsx");
+    const privacyPage = source("app/account/settings/privacy/page.tsx");
+    const securityPage = source("app/account/settings/security/page.tsx");
+    const exportComponent = source("components/account/AccountDataExportCard.tsx");
+
+    expect(shell).toContain("overflow-x-hidden");
+    expect(shell).toContain("w-full max-w-4xl");
+    expect(shell).toContain("max-w-full");
+    expect(privacyPage).toContain("space-y-6");
+    expect(privacyPage).toContain("border-t border-tomato/15 pt-5");
+    expect(exportComponent).toContain("Your data");
+    expect(exportComponent).toContain("sm:grid-cols-2");
+    expect(exportComponent).toContain("w-full max-w-full");
+    expect(securityPage).toContain("sm:grid-cols-2");
+    expect(securityPage).toContain("min-h-44");
+    expect(securityPage).toContain("mt-auto");
   });
 });

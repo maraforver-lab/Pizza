@@ -35,16 +35,16 @@ export default function AccountSettingsSecurityPage() {
           </p>
         </section>
 
-        <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {securityItems.map((item) => (
             <Link
               key={item.title}
               href={item.href}
-              className="block rounded-[1.5rem] border border-ink/10 bg-white/80 p-4 shadow-sm transition hover:border-tomato/25 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:p-5"
+              className="flex min-h-44 flex-col rounded-[1.5rem] border border-ink/10 bg-white/80 p-4 shadow-sm transition hover:border-tomato/25 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:p-5"
             >
               <span className="block font-display text-2xl font-semibold text-ink">{item.title}</span>
               <span className="mt-2 block text-sm font-bold leading-6 text-ink/60">{item.description}</span>
-              <span className="mt-4 inline-flex min-h-11 items-center rounded-2xl bg-ink px-5 text-sm font-extrabold text-white">
+              <span className="mt-auto inline-flex min-h-11 w-full max-w-full items-center justify-center rounded-2xl bg-ink px-5 text-center text-sm font-extrabold text-white">
                 {item.action}
               </span>
             </Link>

@@ -137,12 +137,21 @@ describe("Account data export", () => {
     expect(settingsPage).not.toContain("<AccountDataExportCard />");
     expect(privacyPage).toContain("AccountDataExportCard");
     expect(privacyPage).toContain("<AccountDataExportCard />");
-    expect(component).toContain("Privacy and data");
+    expect(component).toContain("Your data");
     expect(component).toContain("Download readable copy");
     expect(component).toContain("Download JSON");
     expect(component).toContain("/api/account/export");
     expect(component).toContain('fetch(`/api/account/export${format === "html" ? "?format=html" : ""}`');
     expect(component).toContain("downloads without navigating away");
     expect(component).not.toMatch(/delete account|account deletion|localStorage|sessionStorage/i);
+  });
+
+  it("groups readable and JSON export actions without cramped mobile buttons", () => {
+    const component = source("components/account/AccountDataExportCard.tsx");
+
+    expect(component).toContain("mt-3 grid gap-2 sm:grid-cols-2");
+    expect(component).toContain("w-full max-w-full");
+    expect(component).toContain("text-center text-sm font-extrabold");
+    expect(component).not.toContain("lg:grid-cols-[1fr_auto_auto]");
   });
 });

@@ -11,9 +11,13 @@ export default function AccountSettingsPrivacyPage() {
       backLabel="Back to Settings"
       showDeletionCompletion
     >
-      <div className="space-y-4">
-        <AccountDataExportCard />
-        <AccountDeleteAccountCard />
+      <div className="space-y-6">
+        <div>
+          <AccountDataExportCard />
+        </div>
+        <div className="border-t border-tomato/15 pt-5">
+          <AccountDeleteAccountCard />
+        </div>
       </div>
     </AccountSettingsShell>
   );

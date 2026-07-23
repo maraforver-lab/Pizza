@@ -65,13 +65,13 @@ export function AccountDataExportCard() {
   return (
     <section
       className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm backdrop-blur sm:p-5"
-      aria-labelledby="privacy-data-heading"
+      aria-labelledby="account-data-export-heading"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Account data</p>
-          <h2 id="privacy-data-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
-            Privacy and data
+          <h2 id="account-data-export-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
+            Your data
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
             Download a readable copy or JSON file with your account details, preferences, pizza plans, Review photo metadata, Party Orders, and related guest submissions for orders you own.
@@ -86,28 +86,30 @@ export function AccountDataExportCard() {
         </p>
       </div>
 
-      <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-center">
+      <div className="mt-4">
         <p className="text-xs font-bold leading-5 text-ink/45" aria-live="polite">
           {state.message || "Nothing is changed or deleted when you download your data."}
         </p>
-        <button
-          type="button"
-          onClick={() => void downloadData("html")}
-          disabled={state.status === "loading"}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white transition hover:bg-forest disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-        >
-          <DoughToolsIcon name="download" size={20} aria-hidden="true" />
-          {state.status === "loading" && state.format === "html" ? "Preparing..." : "Download readable copy"}
-        </button>
-        <button
-          type="button"
-          onClick={() => void downloadData("json")}
-          disabled={state.status === "loading"}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-ink/10 bg-white px-5 text-sm font-extrabold text-ink transition hover:border-tomato/25 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-        >
-          <DoughToolsIcon name="download" size={20} aria-hidden="true" />
-          {state.status === "loading" && state.format === "json" ? "Preparing..." : "Download JSON"}
-        </button>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => void downloadData("html")}
+            disabled={state.status === "loading"}
+            className="inline-flex min-h-11 w-full max-w-full items-center justify-center gap-2 rounded-2xl bg-tomato px-5 text-center text-sm font-extrabold text-white transition hover:bg-forest disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          >
+            <DoughToolsIcon name="download" size={20} aria-hidden="true" />
+            {state.status === "loading" && state.format === "html" ? "Preparing..." : "Download readable copy"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void downloadData("json")}
+            disabled={state.status === "loading"}
+            className="inline-flex min-h-11 w-full max-w-full items-center justify-center gap-2 rounded-2xl border border-ink/10 bg-white px-5 text-center text-sm font-extrabold text-ink transition hover:border-tomato/25 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          >
+            <DoughToolsIcon name="download" size={20} aria-hidden="true" />
+            {state.status === "loading" && state.format === "json" ? "Preparing..." : "Download JSON"}
+          </button>
+        </div>
       </div>
 
       {state.status === "error" ? (
