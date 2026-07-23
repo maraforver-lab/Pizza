@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import SiteFooter from "@/components/SiteFooter";
+import { AccountDataExportCard } from "@/components/account/AccountDataExportCard";
 import { AccountBakeTimerSoundPreference } from "@/components/account/AccountBakeTimerSoundPreference";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -55,7 +56,10 @@ export default function AccountSettingsPage() {
               </div>
             </section>
           ) : user ? (
-            <AccountBakeTimerSoundPreference />
+            <div className="space-y-4">
+              <AccountDataExportCard />
+              <AccountBakeTimerSoundPreference />
+            </div>
           ) : (
             <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5">
               <h2 className="font-display text-2xl font-semibold text-ink">Sign in to manage settings</h2>
