@@ -59,112 +59,47 @@ export default function AccountPage() {
     setLoading(false); setUser(null); setMessage(error ? error.message : t.signedOut); setIsError(Boolean(error));
   };
 
+  const accountAccessCard = user ? (
+    <section className="min-w-0 rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="account-access-heading">
+      <span className="grid h-11 w-11 place-items-center rounded-full bg-leaf text-base font-extrabold text-white">✓</span>
+      <h2 id="account-access-heading" className="mt-3 font-display text-2xl font-semibold">
+        {t.signedIn}
+      </h2>
+      <p className="mt-1 break-all text-sm text-ink/55">{user.email}</p>
+      <p className="mt-4 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/55">
+        Pizza plans appear here when they are active or completed.
+      </p>
+    </section>
+  ) : null;
+
   return (
     <main className="min-h-screen bg-cream px-4 py-7 pb-24 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto max-w-7xl">
-        <section className="grid min-w-0 gap-5 rounded-[2rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-center">
-          <div className="min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
-            <h1 className="mt-3 max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
-              {user ? "Your DoughTools workspace." : t.title}
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
-              {user
-                ? "Continue your active pizza plan, review recent bakes, manage party orders and keep your guidance preferences in one calm place."
-                : t.intro}
-            </p>
-            <Link
-              href="/"
-              className="mt-6 inline-flex min-h-11 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-            >
-              ← {t.back}
-            </Link>
-          </div>
-
-          <section className="min-w-0 rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="account-access-heading">
-            {loading && !user ? (
-              <div className="min-h-48 space-y-4" aria-busy="true">
-                <h2 id="account-access-heading" className="font-display text-2xl font-semibold">
-                  Loading your DoughTools workspace…
-                </h2>
-                <div className="space-y-3" aria-hidden="true">
-                  <div className="h-4 w-3/4 rounded-full bg-ink/10" />
-                  <div className="h-4 w-1/2 rounded-full bg-ink/10" />
-                  <div className="h-12 rounded-2xl bg-ink/10" />
-                </div>
-              </div>
-            ) : user ? (
-              <div>
-                <span className="grid h-11 w-11 place-items-center rounded-full bg-leaf text-base font-extrabold text-white">✓</span>
-                <h2 id="account-access-heading" className="mt-3 font-display text-2xl font-semibold">
-                  {t.signedIn}
-                </h2>
-                <p className="mt-1 break-all text-sm text-ink/55">{user.email}</p>
-                <p className="mt-4 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/55">
-                  Pizza plans appear here when they are active or completed.
-                </p>
-              </div>
-            ) : (
-              <>
-                <h2 id="account-access-heading" className="sr-only">
-                  Account access
-                </h2>
-                <div className="grid grid-cols-2 rounded-xl bg-ink/[.05] p-1">
-                  {(["login", "signup"] as Mode[]).map(item => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => { setMode(item); setMessage(""); setIsError(false); }}
-                      className={`min-h-11 rounded-lg px-3 text-xs font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${mode === item ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}
-                    >
-                      {item === "login" ? t.login : t.signup}
-                    </button>
-                  ))}
-                </div>
-                <form onSubmit={submit} className="mt-5 space-y-4">
-                  <label className="block text-xs font-bold text-ink/55">
-                    {t.email}
-                    <input
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={event => setEmail(event.target.value)}
-                      className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"
-                    />
-                  </label>
-                  <label className="block text-xs font-bold text-ink/55">
-                    {t.password}
-                    <input
-                      type="password"
-                      required
-                      minLength={8}
-                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                      value={password}
-                      onChange={event => setPassword(event.target.value)}
-                      className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"
-                    />
-                    <span className="mt-1 block text-[10px] font-normal text-ink/35">{t.passwordHint}</span>
-                  </label>
-                  <button type="submit" disabled={loading} className="min-h-12 w-full rounded-xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg disabled:opacity-50">
-                    {loading ? t.working : mode === "login" ? t.login : t.signup}
-                  </button>
-                </form>
-              </>
-            )}
-            {message && <p role="status" className={`mt-4 rounded-xl p-3 text-xs leading-5 ${isError ? "bg-tomato/10 text-tomato" : "bg-leaf/10 text-leaf"}`}>{message}</p>}
-          </section>
-        </section>
-
         {user ? (
-          <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.75fr)] lg:items-start">
-            <div className="min-w-0 space-y-6">
+          <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.72fr)] lg:items-start">
+            <div className="min-w-0 space-y-5 sm:space-y-6">
+              <section className="min-w-0 rounded-[2rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:p-7" aria-labelledby="account-workspace-heading">
+                <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
+                <h1 id="account-workspace-heading" className="mt-3 max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
+                  Your DoughTools workspace
+                </h1>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
+                  Continue your active pizza plan, check your latest finished bake, and keep account tools close without crowding the cooking flow.
+                </p>
+                <Link
+                  href="/"
+                  className="mt-6 inline-flex min-h-11 max-w-full items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                >
+                  ← {t.back}
+                </Link>
+              </section>
               <AccountActivePizzaSessionCard enabled className="mt-0" />
-              <AccountPizzaSessionHistory enabled className="mt-0" />
+              <AccountPizzaSessionHistory enabled latestOnly className="mt-0" />
             </div>
-            <aside className="min-w-0 space-y-6 lg:sticky lg:top-24" aria-label="Account support tools">
-              <PartyOrdersAccountEntryCard enabled className="mt-0" />
+            <aside className="min-w-0 space-y-4 lg:sticky lg:top-24" aria-label="Account support tools">
+              {accountAccessCard}
               <InstallAppPrompt compact collapsible className="mt-0" />
+              <PartyOrdersAccountEntryCard enabled className="mt-0" />
               <section className="rounded-[1.75rem] border border-ink/10 bg-white/80 p-4 shadow-sm sm:p-5" aria-labelledby="account-settings-heading">
                 <p className="text-xs font-extrabold uppercase tracking-[.2em] text-ink/45">Account</p>
                 <h2 id="account-settings-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
@@ -199,7 +134,88 @@ export default function AccountPage() {
               </section>
             </aside>
           </div>
-        ) : null}
+        ) : (
+          <section className="grid min-w-0 gap-5 rounded-[2rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-center">
+            <div className="min-w-0">
+              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">{t.eyebrow}</p>
+              <h1 className="mt-3 max-w-3xl break-words font-display text-4xl font-semibold leading-[.98] sm:text-5xl lg:text-6xl">
+                {t.title}
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base sm:leading-7">
+                {t.intro}
+              </p>
+              <Link
+                href="/"
+                className="mt-6 inline-flex min-h-11 items-center rounded-full border border-ink/10 bg-white px-5 text-sm font-extrabold transition hover:border-tomato/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              >
+                ← {t.back}
+              </Link>
+            </div>
+
+            <section className="min-w-0 rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="account-access-heading">
+              {loading ? (
+                <div className="min-h-48 space-y-4" aria-busy="true">
+                  <h2 id="account-access-heading" className="font-display text-2xl font-semibold">
+                    Loading your DoughTools workspace…
+                  </h2>
+                  <div className="space-y-3" aria-hidden="true">
+                    <div className="h-4 w-3/4 rounded-full bg-ink/10" />
+                    <div className="h-4 w-1/2 rounded-full bg-ink/10" />
+                    <div className="h-12 rounded-2xl bg-ink/10" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 id="account-access-heading" className="sr-only">
+                    Account access
+                  </h2>
+                  <div className="grid grid-cols-2 rounded-xl bg-ink/[.05] p-1">
+                    {(["login", "signup"] as Mode[]).map(item => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => { setMode(item); setMessage(""); setIsError(false); }}
+                        className={`min-h-11 rounded-lg px-3 text-xs font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${mode === item ? "bg-white text-ink shadow-sm" : "text-ink/45"}`}
+                      >
+                        {item === "login" ? t.login : t.signup}
+                      </button>
+                    ))}
+                  </div>
+                  <form onSubmit={submit} className="mt-5 space-y-4">
+                    <label className="block text-xs font-bold text-ink/55">
+                      {t.email}
+                      <input
+                        type="email"
+                        required
+                        autoComplete="email"
+                        value={email}
+                        onChange={event => setEmail(event.target.value)}
+                        className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"
+                      />
+                    </label>
+                    <label className="block text-xs font-bold text-ink/55">
+                      {t.password}
+                      <input
+                        type="password"
+                        required
+                        minLength={8}
+                        autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                        value={password}
+                        onChange={event => setPassword(event.target.value)}
+                        className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"
+                      />
+                      <span className="mt-1 block text-[10px] font-normal text-ink/35">{t.passwordHint}</span>
+                    </label>
+                    <button type="submit" disabled={loading} className="min-h-12 w-full rounded-xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg disabled:opacity-50">
+                      {loading ? t.working : mode === "login" ? t.login : t.signup}
+                    </button>
+                  </form>
+                </>
+              )}
+              {message && <p role="status" className={`mt-4 rounded-xl p-3 text-xs leading-5 ${isError ? "bg-tomato/10 text-tomato" : "bg-leaf/10 text-leaf"}`}>{message}</p>}
+            </section>
+          </section>
+        )}
         <SiteFooter />
       </div>
     </main>

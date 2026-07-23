@@ -14,11 +14,12 @@ import { migratePizzaSession } from "@/lib/pizza-session";
 type AccountPizzaSessionHistoryProps = {
   enabled: boolean;
   className?: string;
+  latestOnly?: boolean;
 };
 
 const ACCOUNT_HISTORY_COLLAPSED_LIMIT = 2;
 
-export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountPizzaSessionHistoryProps) {
+export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly = false }: AccountPizzaSessionHistoryProps) {
   const [sessions, setSessions] = useState<CloudPizzaSessionRow[]>([]);
   const [ready, setReady] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
@@ -117,9 +118,12 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
     );
   }
 
-  const visibleSessions = historyExpanded ? sessions : sessions.slice(0, ACCOUNT_HISTORY_COLLAPSED_LIMIT);
+  const latestCompletedSession = sessions[0] ?? null;
+  const visibleSessions = latestOnly
+    ? latestCompletedSession ? [latestCompletedSession] : []
+    : historyExpanded ? sessions : sessions.slice(0, ACCOUNT_HISTORY_COLLAPSED_LIMIT);
   const hiddenSessionCount = Math.max(0, sessions.length - ACCOUNT_HISTORY_COLLAPSED_LIMIT);
-  const hasMoreSessions = hiddenSessionCount > 0;
+  const hasMoreSessions = !latestOnly && hiddenSessionCount > 0;
 
   return (
     <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7 ${className}`} aria-labelledby="pizza-session-history-heading">
@@ -132,7 +136,9 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
         </div>
         {sessions.length > 0 && (
           <p className="text-xs font-bold leading-5 text-ink/45">
-            {hasMoreSessions && !historyExpanded
+            {latestOnly
+              ? "Showing your latest completed pizza plan."
+              : hasMoreSessions && !historyExpanded
               ? `Showing your 2 most recent of ${sessions.length} retained completed pizza plans.`
               : "Showing your retained completed pizza plans."}
           </p>
@@ -316,6 +322,11 @@ export function AccountPizzaSessionHistory({ enabled, className = "" }: AccountP
               {historyExpanded ? "Show fewer pizza plans" : `Show ${hiddenSessionCount} more pizza plans`}
             </button>
           )}
+          {latestOnly && sessions.length > 1 && latestCompletedSession ? (
+            <p className="text-xs font-bold leading-5 text-ink/45">
+              Only the latest completed pizza plan is shown here to keep Account compact.
+            </p>
+          ) : null}
         </div>
       )}
     </section>

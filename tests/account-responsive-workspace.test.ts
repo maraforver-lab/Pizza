@@ -8,14 +8,14 @@ describe("Patch 344 account responsive workspace", () => {
   it("turns account into a responsive workspace without changing authentication plumbing", () => {
     const page = source("app/account/page.tsx");
 
-    expect(page).toContain("Your DoughTools workspace.");
+    expect(page).toContain("Your DoughTools workspace");
     expect(page).toContain("Your place for pizza plans.");
     expect(page).toContain("Active pizza plans can be saved to your account");
     expect(page).toContain("Pizza plans appear here when they are active or completed.");
     expect(page).toContain("Loading your DoughTools workspace…");
-    expect(page).toContain("lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.75fr)]");
+    expect(page).toContain("lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.72fr)]");
     expect(page).toContain("AccountActivePizzaSessionCard enabled");
-    expect(page).toContain("AccountPizzaSessionHistory enabled");
+    expect(page).toContain("AccountPizzaSessionHistory enabled latestOnly");
     expect(page).toContain("PartyOrdersAccountEntryCard enabled");
     expect(page).toContain("InstallAppPrompt compact collapsible");
     expect(page).toContain("href=\"/account/settings\"");
@@ -45,17 +45,24 @@ describe("Patch 344 account responsive workspace", () => {
 
     expect(activeIndex).toBeGreaterThan(-1);
     expect(historyIndex).toBeGreaterThan(activeIndex);
-    expect(partyIndex).toBeGreaterThan(historyIndex);
-    expect(installIndex).toBeGreaterThan(partyIndex);
-    expect(settingsIndex).toBeGreaterThan(installIndex);
+    expect(installIndex).toBeGreaterThan(historyIndex);
+    expect(partyIndex).toBeGreaterThan(installIndex);
+    expect(settingsIndex).toBeGreaterThan(partyIndex);
     expect(guidanceIndex).toBeGreaterThan(settingsIndex);
     expect(adminIndex).toBeGreaterThan(guidanceIndex);
     expect(securityIndex).toBeGreaterThan(adminIndex);
   });
 
-  it("shows only two completed pizza plans by default with an accessible disclosure for the rest", () => {
+  it("keeps full history disclosure support while Account requests only the latest completed pizza plan", () => {
+    const page = source("app/account/page.tsx");
     const history = source("components/account/AccountPizzaSessionHistory.tsx");
 
+    expect(page).toContain("AccountPizzaSessionHistory enabled latestOnly");
+    expect(history).toContain("latestOnly?: boolean");
+    expect(history).toContain("latestCompletedSession = sessions[0] ?? null");
+    expect(history).toContain("latestCompletedSession ? [latestCompletedSession] : []");
+    expect(history).toContain("Showing your latest completed pizza plan.");
+    expect(history).toContain("Only the latest completed pizza plan is shown here to keep Account compact.");
     expect(history).toContain("const ACCOUNT_HISTORY_COLLAPSED_LIMIT = 2");
     expect(history).toContain("sortCloudPizzaSessionHistoryRows(rows)");
     expect(history).toContain("sessions.slice(0, ACCOUNT_HISTORY_COLLAPSED_LIMIT)");
