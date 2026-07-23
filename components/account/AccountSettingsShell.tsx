@@ -11,6 +11,7 @@ type AccountSettingsShellProps = {
   description: string;
   backHref?: string;
   backLabel?: string;
+  headingVariant?: "card" | "open";
   showDeletionCompletion?: boolean;
   children: ReactNode;
 };
@@ -20,6 +21,7 @@ export function AccountSettingsShell({
   description,
   backHref = "/account",
   backLabel = "Back to account",
+  headingVariant = "card",
   showDeletionCompletion = false,
   children,
 }: AccountSettingsShellProps) {
@@ -45,7 +47,13 @@ export function AccountSettingsShell({
   return (
     <main className="min-h-screen overflow-x-hidden bg-cream px-4 py-6 pb-24 text-ink sm:px-6 sm:py-10">
       <div className="mx-auto w-full max-w-4xl">
-        <section className="rounded-[1.75rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:rounded-[2rem] sm:p-7">
+        <section
+          className={
+            headingVariant === "open"
+              ? "px-1 py-2 sm:px-0 sm:py-3"
+              : "rounded-[1.75rem] border border-ink/10 bg-white/75 p-5 shadow-card backdrop-blur sm:rounded-[2rem] sm:p-7"
+          }
+        >
           <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Account</p>
           <h1 className="mt-3 font-display text-4xl font-semibold leading-tight sm:text-5xl">
             {title}

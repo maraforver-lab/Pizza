@@ -11,28 +11,33 @@ describe("Account Settings information architecture", () => {
     const page = source("app/account/settings/page.tsx");
 
     expect(page).toContain('title="Settings"');
-    expect(page).toContain("Choose the account settings area you want to manage.");
+    expect(page).toContain("Manage your preferences, privacy, security, and app settings.");
+    expect(page).toContain('headingVariant="open"');
     expect(page).toContain("Preferences");
-    expect(page).toContain("Personalize how DoughTools works for you.");
+    expect(page).toContain("Guidance level");
+    expect(page).toContain("Bake timer sound");
     expect(page).toContain("Privacy and data");
-    expect(page).toContain("Download your data or permanently delete your account.");
+    expect(page).toContain("Download my data");
+    expect(page).toContain("Delete my account");
     expect(page).toContain("Security");
-    expect(page).toContain("Manage your email, password and account access.");
+    expect(page).toContain("Email");
+    expect(page).toContain("Change password");
+    expect(page).toContain("Sign out");
     expect(page).toContain("App and device");
-    expect(page).toContain("Install DoughTools on this device.");
+    expect(page).toContain("Install DoughTools");
     expect(page).toContain("/account/settings/preferences");
     expect(page).toContain("/account/settings/privacy");
     expect(page).toContain("/account/settings/security");
     expect(page).toContain("#app-and-device");
     expect(page).toContain('aria-label="Settings categories"');
-    expect(page).toContain("min-h-28");
-    expect(page).toContain("sm:grid-cols-[minmax(0,1fr)_auto]");
-    expect(page).toContain("Open preferences");
-    expect(page).toContain("Open privacy");
-    expect(page).toContain("Open security");
-    expect(page).toContain("View install options");
+    expect(page).toContain("lg:grid-cols-2");
+    expect(page).toContain("SettingsSectionCard");
+    expect(page).toContain("SettingsNavigationRow");
+    expect(page).toContain("divide-y divide-ink/10");
+    expect(page).toContain('DoughToolsIcon name={section.icon}');
+    expect(page).toContain('name="forward"');
     expect(page).toContain("<InstallAppPrompt compact collapsible");
-    expect(page).toContain("<AccountAdminEntryCard title=\"Admin tools\"");
+    expect(page).toContain('<AccountAdminEntryCard title="Admin tools" subtitle="Product admin" variant="wide"');
   });
 
   it("keeps the existing Settings auth guard and back navigation shared by subpages", () => {
@@ -83,6 +88,7 @@ describe("Account Settings information architecture", () => {
     expect(shell).toContain("overflow-x-hidden");
     expect(shell).toContain("w-full max-w-4xl");
     expect(shell).toContain("max-w-full");
+    expect(shell).toContain('headingVariant?: "card" | "open"');
     expect(privacyPage).toContain("space-y-6");
     expect(privacyPage).toContain("border-t border-tomato/15 pt-5");
     expect(exportComponent).toContain("Your data");
