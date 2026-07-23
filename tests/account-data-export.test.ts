@@ -78,12 +78,15 @@ describe("Account data export", () => {
     expect(helper).not.toMatch(/createSignedUrl|storage\.from/i);
   });
 
-  it("surfaces Download my data under Privacy and data in Account Settings", () => {
+  it("surfaces Download my data under Account Settings Privacy and data", () => {
     const settingsPage = source("app/account/settings/page.tsx");
+    const privacyPage = source("app/account/settings/privacy/page.tsx");
     const component = source("components/account/AccountDataExportCard.tsx");
 
-    expect(settingsPage).toContain("AccountDataExportCard");
-    expect(settingsPage).toContain("<AccountDataExportCard />");
+    expect(settingsPage).toContain("/account/settings/privacy");
+    expect(settingsPage).not.toContain("<AccountDataExportCard />");
+    expect(privacyPage).toContain("AccountDataExportCard");
+    expect(privacyPage).toContain("<AccountDataExportCard />");
     expect(component).toContain("Privacy and data");
     expect(component).toContain("Download my data");
     expect(component).toContain('fetch("/api/account/export"');

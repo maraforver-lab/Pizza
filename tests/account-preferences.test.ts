@@ -129,13 +129,22 @@ describe("Account preferences", () => {
   it("removes the early-completion preference card from visible Account settings UI", () => {
     const accountPage = source("app/account/page.tsx");
     const settingsPage = source("app/account/settings/page.tsx");
+    const preferencesPage = source("app/account/settings/preferences/page.tsx");
+    const privacyPage = source("app/account/settings/privacy/page.tsx");
+    const securityPage = source("app/account/settings/security/page.tsx");
     const route = source("app/api/account/preferences/route.ts");
     const preferences = source("lib/account-preferences.ts");
 
     expect(accountPage).not.toContain("AccountEarlyCompletionPreference");
     expect(settingsPage).not.toContain("AccountEarlyCompletionPreference");
+    expect(preferencesPage).not.toContain("AccountEarlyCompletionPreference");
+    expect(privacyPage).not.toContain("AccountEarlyCompletionPreference");
+    expect(securityPage).not.toContain("AccountEarlyCompletionPreference");
     expect(accountPage).not.toContain("Allow early completion of timed dough stages");
     expect(settingsPage).not.toContain("Allow early completion of timed dough stages");
+    expect(preferencesPage).not.toContain("Allow early completion of timed dough stages");
+    expect(privacyPage).not.toContain("Allow early completion of timed dough stages");
+    expect(securityPage).not.toContain("Allow early completion of timed dough stages");
     expect(route).toContain("allowEarlyTimedStepCompletion");
     expect(preferences).toContain("allowEarlyTimedStepCompletion");
   });

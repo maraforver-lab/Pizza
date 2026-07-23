@@ -11,21 +11,26 @@ function source(path: string) {
 }
 
 describe("Account Bake Timer sound preference", () => {
-  it("moves the signed-in Account preference card to Account Settings without changing signed-out access", () => {
+  it("moves the signed-in Account preference card to Account Settings Preferences without changing signed-out access", () => {
     const componentPath = "components/account/AccountBakeTimerSoundPreference.tsx";
     expect(existsSync(join(process.cwd(), componentPath))).toBe(true);
 
     const accountPage = source("app/account/page.tsx");
     const settingsPage = source("app/account/settings/page.tsx");
+    const preferencesPage = source("app/account/settings/preferences/page.tsx");
+    const shell = source("components/account/AccountSettingsShell.tsx");
     const component = source(componentPath);
 
     expect(accountPage).toContain("href=\"/account/settings\"");
     expect(accountPage).toContain("Open settings");
     expect(accountPage).not.toContain("AccountBakeTimerSoundPreference");
-    expect(settingsPage).toContain("AccountBakeTimerSoundPreference");
-    expect(settingsPage).toContain("<AccountBakeTimerSoundPreference />");
-    expect(settingsPage).toContain("Sign in to manage settings");
-    expect(component).toContain("Bake Timer sound");
+    expect(settingsPage).toContain("/account/settings/preferences");
+    expect(settingsPage).not.toContain("<AccountBakeTimerSoundPreference />");
+    expect(preferencesPage).toContain("AccountBakeTimerSoundPreference");
+    expect(preferencesPage).toContain("<AccountBakeTimerSoundPreference />");
+    expect(preferencesPage).toContain('title="Preferences"');
+    expect(shell).toContain("Sign in to manage settings");
+    expect(component).toContain("Bake timer sound");
     expect(component).toContain("Choose the sound used by newly opened timers.");
     expect(component).toContain("Each running timer can still be muted separately.");
     expect(component).not.toMatch(/PizzaSession|stepRuntime|queueCloudActivePizzaSessionSave/);

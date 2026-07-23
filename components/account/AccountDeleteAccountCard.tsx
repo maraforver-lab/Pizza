@@ -55,7 +55,7 @@ export function AccountDeleteAccountCard() {
 
       if (response.ok && payload.success) {
         clearDoughToolsOwnedLocalData();
-        window.location.assign("/account/settings?accountDeleted=1");
+        window.location.assign("/account/settings/privacy?accountDeleted=1");
         return;
       }
 

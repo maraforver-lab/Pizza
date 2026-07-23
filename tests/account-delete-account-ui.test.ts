@@ -9,11 +9,14 @@ function source(path: string) {
 describe("Account delete-account UI", () => {
   it("surfaces Delete my account under Account Settings Privacy and data", () => {
     const settingsPage = source("app/account/settings/page.tsx");
+    const privacyPage = source("app/account/settings/privacy/page.tsx");
     const component = source("components/account/AccountDeleteAccountCard.tsx");
 
-    expect(settingsPage).toContain("AccountDeleteAccountCard");
-    expect(settingsPage).toContain("<AccountDeleteAccountCard />");
-    expect(settingsPage.indexOf("<AccountDataExportCard />")).toBeLessThan(settingsPage.indexOf("<AccountDeleteAccountCard />"));
+    expect(settingsPage).toContain("/account/settings/privacy");
+    expect(settingsPage).not.toContain("<AccountDeleteAccountCard />");
+    expect(privacyPage).toContain("AccountDeleteAccountCard");
+    expect(privacyPage).toContain("<AccountDeleteAccountCard />");
+    expect(privacyPage.indexOf("<AccountDataExportCard />")).toBeLessThan(privacyPage.indexOf("<AccountDeleteAccountCard />"));
     expect(component).toContain("Delete account");
     expect(component).toContain("Delete my account");
     expect(component).toContain("Privacy Policy");
@@ -57,14 +60,16 @@ describe("Account delete-account UI", () => {
   });
 
   it("shows a signed-out completion state without changing the backend", () => {
-    const settingsPage = source("app/account/settings/page.tsx");
+    const privacyPage = source("app/account/settings/privacy/page.tsx");
+    const shell = source("components/account/AccountSettingsShell.tsx");
     const component = source("components/account/AccountDeleteAccountCard.tsx");
     const route = source("app/api/account/delete/route.ts");
 
-    expect(component).toContain('window.location.assign("/account/settings?accountDeleted=1")');
-    expect(settingsPage).toContain("accountDeleted");
-    expect(settingsPage).toContain("Your account has been deleted");
-    expect(settingsPage).toContain("DoughTools-owned local app data");
+    expect(component).toContain('window.location.assign("/account/settings/privacy?accountDeleted=1")');
+    expect(privacyPage).toContain("showDeletionCompletion");
+    expect(shell).toContain("accountDeleted");
+    expect(shell).toContain("Your account has been deleted");
+    expect(shell).toContain("DoughTools-owned local app data");
     expect(route).toContain("deleteSignedInUserAccount({ user })");
   });
 

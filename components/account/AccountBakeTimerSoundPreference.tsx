@@ -47,7 +47,7 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
   const [savedPreference, setSavedPreference] = useState<BakeTimerSoundThemeId | null>(null);
   const [draftChoice, setDraftChoice] = useState<SoundChoice>(DEFAULT_CHOICE);
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
-  const [requestState, setRequestState] = useState<RequestState>({ status: "loading", message: "Loading Bake Timer sound preference..." });
+  const [requestState, setRequestState] = useState<RequestState>({ status: "loading", message: "Loading Bake timer sound preference..." });
   const [previewChoice, setPreviewChoice] = useState<SoundChoice | null>(null);
   const audio = useRef<BakeTimerAudioEngine | null>(null);
   const previewStopTimeout = useRef<number | null>(null);
@@ -99,11 +99,11 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
 
   const loadPreference = useCallback(async () => {
     setReady(false);
-    setRequestState({ status: "loading", message: "Loading Bake Timer sound preference..." });
+    setRequestState({ status: "loading", message: "Loading Bake timer sound preference..." });
     try {
       const response = await fetch("/api/account/preferences", { method: "GET" });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Could not load Bake Timer sound preference.");
+      if (!response.ok) throw new Error(payload.error || "Could not load Bake timer sound preference.");
       if (!mounted.current) return;
       applyPayload(payload);
       setRequestState({ status: "idle", message: "" });
@@ -115,7 +115,7 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
       setSavedPreference(null);
       setDraftChoice(DEFAULT_CHOICE);
       setUpdatedAt(undefined);
-      setRequestState({ status: "error", message: caught instanceof Error ? caught.message : "Could not load Bake Timer sound preference." });
+      setRequestState({ status: "error", message: caught instanceof Error ? caught.message : "Could not load Bake timer sound preference." });
     } finally {
       if (mounted.current) setReady(true);
     }
@@ -154,7 +154,7 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
 
   async function savePreference() {
     if (!ready || requestState.status === "saving") return;
-    setRequestState({ status: "saving", message: "Saving Bake Timer sound preference..." });
+    setRequestState({ status: "saving", message: "Saving Bake timer sound preference..." });
     try {
       const response = await fetch("/api/account/preferences", {
         method: "PATCH",
@@ -173,11 +173,11 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
         });
         return;
       }
-      if (!response.ok) throw new Error(payload.error || "Could not save Bake Timer sound preference.");
+      if (!response.ok) throw new Error(payload.error || "Could not save Bake timer sound preference.");
       applyPayload(payload);
-      setRequestState({ status: "success", message: "Bake Timer sound preference saved." });
+      setRequestState({ status: "success", message: "Bake timer sound preference saved." });
     } catch (caught) {
-      setRequestState({ status: "error", message: caught instanceof Error ? caught.message : "Could not save Bake Timer sound preference." });
+      setRequestState({ status: "error", message: caught instanceof Error ? caught.message : "Could not save Bake timer sound preference." });
     }
   }
 
@@ -190,7 +190,7 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
         <div className="min-w-0">
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Bake Timer preference</p>
           <h2 id="bake-timer-sound-preference-heading" className="mt-2 font-display text-2xl font-semibold text-ink">
-            Bake Timer sound
+            Bake timer sound
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
             Choose the sound used by newly opened timers. Each running timer can still be muted separately.
@@ -212,7 +212,7 @@ export function AccountBakeTimerSoundPreference({ className = "" }: AccountBakeT
       ) : null}
 
       <fieldset className="mt-4 space-y-3" disabled={!ready || requestState.status === "saving"} aria-describedby="bake-timer-sound-preference-status">
-        <legend className="sr-only">Choose Bake Timer sound preference</legend>
+        <legend className="sr-only">Choose Bake timer sound preference</legend>
         <label className="block rounded-2xl border border-ink/10 bg-white p-3">
           <span className="flex items-start gap-3">
             <input
