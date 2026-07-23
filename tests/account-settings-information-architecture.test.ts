@@ -9,6 +9,7 @@ function source(path: string) {
 describe("Account Settings information architecture", () => {
   it("renders Settings as a concise category hub", () => {
     const page = source("app/account/settings/page.tsx");
+    const installComponent = source("components/InstallAppPrompt.tsx");
 
     expect(page).toContain('title="Settings"');
     expect(page).toContain("Manage your preferences, privacy, security, and app settings.");
@@ -24,11 +25,10 @@ describe("Account Settings information architecture", () => {
     expect(page).toContain("Change password");
     expect(page).toContain("Sign out");
     expect(page).toContain("App and device");
-    expect(page).toContain("Install DoughTools");
+    expect(installComponent).toContain("Install DoughTools");
     expect(page).toContain("/account/settings/preferences");
     expect(page).toContain("/account/settings/privacy");
     expect(page).toContain("/account/settings/security");
-    expect(page).toContain("#app-and-device");
     expect(page).toContain('aria-label="Settings categories"');
     expect(page).toContain("lg:grid-cols-2");
     expect(page).toContain("SettingsSectionCard");
@@ -36,7 +36,8 @@ describe("Account Settings information architecture", () => {
     expect(page).toContain("divide-y divide-ink/10");
     expect(page).toContain('DoughToolsIcon name={section.icon}');
     expect(page).toContain('name="forward"');
-    expect(page).toContain("<InstallAppPrompt compact collapsible");
+    expect(page).toContain('id="app-and-device"');
+    expect(page).toContain('<InstallAppPrompt collapsible variant="settings-row"');
     expect(page).toContain('<AccountAdminEntryCard title="Admin tools" subtitle="Product admin" variant="wide"');
   });
 
@@ -81,14 +82,20 @@ describe("Account Settings information architecture", () => {
 
   it("keeps Settings pages responsive and separated by task", () => {
     const shell = source("components/account/AccountSettingsShell.tsx");
+    const page = source("app/account/settings/page.tsx");
     const privacyPage = source("app/account/settings/privacy/page.tsx");
     const securityPage = source("app/account/settings/security/page.tsx");
     const exportComponent = source("components/account/AccountDataExportCard.tsx");
+    const installComponent = source("components/InstallAppPrompt.tsx");
 
     expect(shell).toContain("overflow-x-hidden");
     expect(shell).toContain("w-full max-w-4xl");
     expect(shell).toContain("max-w-full");
     expect(shell).toContain('headingVariant?: "card" | "open"');
+    expect(page).toContain("rows: []");
+    expect(installComponent).toContain('variant?: "card" | "settings-row"');
+    expect(installComponent).toContain("Add DoughTools to your home screen for easier access.");
+    expect(installComponent).toContain("Manual home-screen option");
     expect(privacyPage).toContain("space-y-6");
     expect(privacyPage).toContain("border-t border-tomato/15 pt-5");
     expect(exportComponent).toContain("Your data");

@@ -74,13 +74,7 @@ const settingsSections: SettingsSection[] = [
   {
     title: "App and device",
     icon: "pizza",
-    rows: [
-      {
-        title: "Install DoughTools",
-        description: "Keep DoughTools one tap away on this device.",
-        href: "#app-and-device",
-      },
-    ],
+    rows: [],
   },
 ];
 
@@ -93,11 +87,13 @@ function SettingsSectionCard({ section, children }: { section: SettingsSection; 
         </span>
         <h2 className="font-display text-2xl font-semibold leading-tight text-ink">{section.title}</h2>
       </div>
-      <div className="divide-y divide-ink/10">
-        {section.rows.map((row) => (
-          <SettingsNavigationRow key={`${section.title}-${row.title}`} row={row} />
-        ))}
-      </div>
+      {section.rows.length > 0 ? (
+        <div className="divide-y divide-ink/10">
+          {section.rows.map((row) => (
+            <SettingsNavigationRow key={`${section.title}-${row.title}`} row={row} />
+          ))}
+        </div>
+      ) : null}
       {children}
     </section>
   );
@@ -150,8 +146,8 @@ export default function AccountSettingsPage() {
         {settingsSections.map((section) => (
           <SettingsSectionCard key={section.title} section={section}>
             {section === appSection ? (
-              <div id="app-and-device" className="border-t border-ink/10 p-3 sm:p-4">
-                <InstallAppPrompt compact collapsible className="mt-0 border-ink/10 bg-cream/45 shadow-none" />
+              <div id="app-and-device">
+                <InstallAppPrompt collapsible variant="settings-row" />
               </div>
             ) : null}
           </SettingsSectionCard>
