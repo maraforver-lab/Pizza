@@ -211,9 +211,18 @@ describe("final product navigation model", () => {
     expect(header).toContain('event.key !== "Tab"');
     expect(header).toContain("trigger?.focus()");
     expect(header).toContain("mobileButtonRef.current?.focus()");
+    expect(header).toContain('document.body.style.setProperty("--mobile-menu-scroll-lock-offset", `${scrollY}px`)');
+    expect(header).toContain('document.body.style.position = "fixed"');
+    expect(header).toContain("document.body.style.top = `-${scrollY}px`");
+    expect(header).toContain('document.body.style.left = "0"');
+    expect(header).toContain('document.body.style.right = "0"');
+    expect(header).toContain('document.body.style.width = "100%"');
     expect(header).toContain('document.body.style.overflow = "hidden"');
     expect(header).toContain('document.body.style.touchAction = "none"');
+    expect(header).toContain('document.body.style.removeProperty("--mobile-menu-scroll-lock-offset")');
+    expect(header).toContain('style={{ transform: "translateY(var(--mobile-menu-scroll-lock-offset, 0px))" }}');
     expect(header).toContain("window.scrollTo(0, scrollY)");
+    expect(header).not.toContain('document.documentElement.style.overflow = "hidden"');
     expect(header).toContain("!navigationRootRef.current?.contains(target)");
     expect(header).toContain("aria-expanded={learningMenuOpen}");
     expect(header).toContain("aria-expanded={mobileMenuOpen}");

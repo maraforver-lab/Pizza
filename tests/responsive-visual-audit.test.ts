@@ -53,8 +53,13 @@ describe("Patch 311 responsive visual audit protections", () => {
     expect(navigation).toContain("bg-cream text-ink");
     expect(navigation).toContain("overflow-y-auto");
     expect(navigation).toContain("overscroll-contain");
+    expect(navigation).toContain('document.body.style.setProperty("--mobile-menu-scroll-lock-offset", `${scrollY}px`)');
+    expect(navigation).toContain('document.body.style.position = "fixed"');
+    expect(navigation).toContain("document.body.style.top = `-${scrollY}px`");
+    expect(navigation).toContain('style={{ transform: "translateY(var(--mobile-menu-scroll-lock-offset, 0px))" }}');
     expect(navigation).toContain('document.body.style.overflow = "hidden"');
     expect(navigation).toContain('document.body.style.touchAction = "none"');
+    expect(navigation).not.toContain('document.documentElement.style.overflow = "hidden"');
     expect(navigation).toContain("overflow-visible");
     expect(navigation).not.toContain("items-center justify-between gap-2 overflow-hidden");
     expect(navigation).not.toContain("items-center justify-start gap-1 overflow-hidden");

@@ -318,18 +318,37 @@ export default function GlobalToolNavigation() {
     if (!mobileMenuOpen) return;
     const scrollY = window.scrollY;
     const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyPosition = document.body.style.position;
     const previousBodyTouchAction = document.body.style.touchAction;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyTop = document.body.style.top;
+    const previousBodyLeft = document.body.style.left;
+    const previousBodyRight = document.body.style.right;
+    const previousBodyWidth = document.body.style.width;
+    const previousBodyScrollLockOffset = document.body.style.getPropertyValue("--mobile-menu-scroll-lock-offset");
 
+    document.body.style.setProperty("--mobile-menu-scroll-lock-offset", `${scrollY}px`);
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
     document.body.style.touchAction = "none";
-    document.documentElement.style.overflow = "hidden";
     window.requestAnimationFrame(() => mobileCloseButtonRef.current?.focus());
 
     return () => {
       document.body.style.overflow = previousBodyOverflow;
+      document.body.style.position = previousBodyPosition;
       document.body.style.touchAction = previousBodyTouchAction;
-      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.top = previousBodyTop;
+      document.body.style.left = previousBodyLeft;
+      document.body.style.right = previousBodyRight;
+      document.body.style.width = previousBodyWidth;
+      if (previousBodyScrollLockOffset) {
+        document.body.style.setProperty("--mobile-menu-scroll-lock-offset", previousBodyScrollLockOffset);
+      } else {
+        document.body.style.removeProperty("--mobile-menu-scroll-lock-offset");
+      }
       window.scrollTo(0, scrollY);
     };
   }, [mobileMenuOpen]);
@@ -608,6 +627,7 @@ export default function GlobalToolNavigation() {
                 id="global-mobile-menu"
                 ref={mobileMenuRef}
                 className="fixed inset-0 z-[100] h-[100dvh] overflow-hidden bg-cream text-ink"
+                style={{ transform: "translateY(var(--mobile-menu-scroll-lock-offset, 0px))" }}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="global-mobile-menu-title"
