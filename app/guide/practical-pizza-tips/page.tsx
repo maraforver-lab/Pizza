@@ -21,7 +21,7 @@ type PracticalPizzaTipTopic = {
   href?: string;
 };
 
-const plannedTopics = [
+const plannedTopics: readonly PracticalPizzaTipTopic[] = [
   {
     title: "Leftover dough",
     description: "Store, freeze, thaw and safely use dough when pizza night changes.",
@@ -57,7 +57,7 @@ const plannedTopics = [
     icon: "warning",
     href: "/guide/practical-pizza-tips/common-problems",
   },
-] as const satisfies readonly PracticalPizzaTipTopic[];
+];
 
 const practicalTipLevelPattern = [
   {
