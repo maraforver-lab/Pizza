@@ -126,7 +126,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
     title: "Your data, explained clearly.",
     intro:
       "DoughTools uses browser-local storage, optional accounts, and selected service providers to run the pizza-planning experience. This page describes how DoughTools currently operates, what is stored, why it is used, and the choices you have.",
-    lastUpdated: "13 July 2026",
+    lastUpdated: "23 July 2026",
     effectiveFrom: "13 July 2026",
     heroImage: {
       src: "/images/trust/privacy-hero-desktop.webp",
@@ -154,9 +154,9 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         href: "#pizza-photos-and-moderation",
       },
       {
-        title: "You can ask for help or deletion",
-        body: `Use ${projectContactEmail} for access, deletion, correction, or privacy questions.`,
-        href: "#contact-and-supervisory-authority",
+        title: "You can download or delete account data",
+        body: "Signed-in users can download their data and start account deletion from Account Settings.",
+        href: "#download-and-delete-your-data",
       },
     ],
     sections: [
@@ -203,7 +203,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "local-only-data",
         paragraphs: [
           "Some data stays in your browser unless you separately choose an account or cloud feature. This includes local pizza plan storage, saved Quick Calculator recipes, saved calculator recipes in the main calculator, experience-level preference, local bake results, gear checklist choices, cost currency, install-prompt state, and older local planning state.",
-          "Local browser data is stored on the device and browser profile you use. It may be deleted by the relevant in-product delete/reset control where available or by clearing site data in your browser. DoughTools cannot recover browser-local data after you clear it.",
+          "Local browser data is stored on the device and browser profile you use. It may be deleted by the relevant in-product delete/reset control where available or by clearing site data in your browser. After successful self-service account deletion, DoughTools clears known DoughTools-owned local app data from the current browser, but it does not clear unrelated browser data or data on other devices. DoughTools cannot recover browser-local data after you clear it.",
         ],
       },
       {
@@ -211,8 +211,19 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "account-and-cloud-data",
         paragraphs: [
           "If you create an account, Supabase handles authentication. DoughTools application code does not store your password. Signed-in users can save active pizza plans, completed plan history, completed-plan titles, Party Orders, and optional pizza photos in Supabase-backed cloud storage.",
-          "Active and completed pizza plan records can be archived through the current account UI. In the inspected implementation, those delete actions mark records as archived instead of proving physical erasure from every table or backup. Privacy deletion requests should be sent to DoughTools so account-level cleanup can be handled deliberately.",
+          "Active and completed pizza plan records can be archived through the current account UI. Account Settings also includes Download my data and Delete my account for self-service account-level access and deletion where the signed-in account is eligible.",
           "Saved Quick Calculator recipes and many older calculator saved recipes remain local-only in the browser and are not currently described as account-synced data.",
+        ],
+      },
+      {
+        heading: "Download and delete your data",
+        id: "download-and-delete-your-data",
+        paragraphs: [
+          "Signed-in users can use Account Settings to download a UTF-8 JSON export. The export includes safe account identity metadata, account preferences, owned pizza plans and Review data, metadata for owned Review photos, owned Party Orders, related guest submissions and items for those owned orders, and the account role relevant to the signed-in account.",
+          "The export does not include passwords, login tokens, raw Storage credentials, signed photo URLs, private Party Order public or edit tokens, or data from other users.",
+          "Signed-in users can also choose Delete my account in Account Settings. The flow requires typing DELETE before it runs. It deletes owned Review photos from Supabase Storage, deletes owner-scoped DoughTools cloud application data, deletes the Supabase Auth account after required cleanup succeeds, revokes the current signed-in session where possible, and clears known DoughTools-owned local app data from the current browser.",
+          "Self-service deletion does not delete public admin-created configuration such as theme campaigns or product sound settings. Admin-role accounts are blocked from self-service deletion so public product configuration can be reviewed first.",
+          `If self-service export or deletion fails, or if you need correction, restriction, objection, or help with a privacy request that is not covered by the product UI, contact ${projectContactEmail}.`,
         ],
       },
       {
@@ -221,6 +232,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         paragraphs: [
           "Pizza photos are optional and available only for signed-in completed pizza plans. Before a photo is stored, DoughTools checks the uploaded image with OpenAI for safety moderation and pizza relevance. If the check fails, the photo is not stored for the overlay feature.",
           "Accepted photos are uploaded to the Supabase Storage bucket used for pizza-session photos. DoughTools stores metadata such as the storage path, upload time, content type, file size, original filename, original content type, optimized size, image dimensions, compression quality, and related session data.",
+          "When an eligible user completes self-service account deletion, owned Review photos are removed from Supabase Storage before the related DoughTools cloud data and Supabase Auth account are deleted. If the Storage cleanup fails, the Auth account is not deleted and the user can retry or contact support.",
           "The moderation and relevance checks are practical feature checks. They do not create legal or similarly significant automated decisions about you; a rejected image simply cannot be used for the DoughTools photo feature.",
         ],
       },
@@ -230,6 +242,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         paragraphs: [
           "Party Orders let a signed-in organizer create a public guest link. Anyone with the link may be able to open the guest form while orders are open, so the link should be shared only with intended participants.",
           "Guest submissions can include a guest name, optional comment, pizza choices, quantities, and an edit token. The organizer can view guest orders, close or reopen orders before the deadline, archive the Party Order, use the totals to create a pizza plan, and delete individual guest submissions from the organizer view.",
+          "When an organizer deletes their account, DoughTools deletes Party Orders owned by that organizer and the related guest submissions and items for those owned orders. DoughTools does not delete guest data by name matching and does not delete data belonging to another organizer.",
           "Guests should not submit sensitive information, allergy details, medical information, or private data in Party Order names or comments. Allergies and dietary safety should be verified directly outside DoughTools.",
         ],
       },
@@ -265,8 +278,9 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "retention-and-deletion",
         paragraphs: [
           "Browser-local data remains until you delete it in the product where a delete/reset control exists, clear site data, switch browser profiles, or the browser removes it.",
-          "Cloud pizza plans, completed history, Party Orders, guest submissions, and photos remain until you archive/delete them through available product controls, until account-level deletion is handled by request, or until DoughTools applies a future retention rule. Current code limits completed-plan list display to recent entries, but that display limit is not a deletion period.",
-          "Uploaded pizza photos are replaced when a new photo is uploaded for the same completed session. The previous stored photo path is removed from Supabase Storage during replacement. Backup retention, support-email retention, exact log retention, and account deletion timing require Marcin/provider confirmation.",
+          "Cloud pizza plans, completed history, Party Orders, related guest submissions and items, account preferences, owned Review photos, and the Supabase Auth account can be deleted through self-service account deletion for eligible signed-in non-admin accounts. Current code limits completed-plan list display to recent entries, but that display limit is not a deletion period.",
+          "Uploaded pizza photos are replaced when a new photo is uploaded for the same completed session. The previous stored photo path is removed from Supabase Storage during replacement. During account deletion, owned Review photo objects are removed before database and Auth deletion continue.",
+          "Deletion from ordinary application tables and Storage is designed to happen during the self-service flow, but backups, provider logs, build/runtime logs, support emails, security records, and infrastructure retention may follow provider or legal retention periods rather than disappearing immediately. Exact production backup and log retention periods require provider/account confirmation.",
         ],
       },
       {
@@ -282,7 +296,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "your-data-protection-rights",
         paragraphs: [
           "Depending on the situation, you may have rights to access, correct, delete, restrict, receive a copy of, or object to the use of your personal data. You may also withdraw consent where processing is based on consent.",
-          `To make a request, contact ${projectContactEmail}. DoughTools may need enough information to verify that the request relates to you or your account. Deletion from backups or processor logs may follow the provider’s normal retention cycle rather than happening instantly.`,
+          `Use Account Settings for self-service Download my data and Delete my account where available. To make another request, report a failed deletion, handle an admin account, or ask for help, contact ${projectContactEmail}. DoughTools may need enough information to verify that the request relates to you or your account. Deletion from backups or processor logs may follow the provider’s normal retention cycle rather than happening instantly.`,
           "You can also contact the Finnish Data Protection Ombudsman if you believe your data-protection rights have not been handled properly.",
         ],
       },
@@ -314,7 +328,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         id: "effective-date-and-last-updated",
         paragraphs: [
           "Effective from: 13 July 2026.",
-          "Last updated: 13 July 2026.",
+          "Last updated: 23 July 2026.",
           "This page is a legally grounded product notice based on the inspected DoughTools implementation and official sources. It does not claim lawyer review, regulator approval, or guaranteed compliance.",
         ],
       },

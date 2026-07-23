@@ -68,7 +68,7 @@ export function AccountDataExportCard() {
             Privacy and data
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
-            Download a JSON file with your account details, preferences, pizza plans, Review photo metadata, and Party Orders.
+            Download a JSON file with your account details, preferences, pizza plans, Review photo metadata, Party Orders, and related guest submissions for orders you own.
           </p>
         </div>
         <DoughToolsIcon name="download" size={24} className="mt-1 shrink-0 text-tomato" aria-hidden="true" />
@@ -76,7 +76,7 @@ export function AccountDataExportCard() {
 
       <div className="mt-4 rounded-2xl border border-ink/10 bg-cream/65 p-3">
         <p className="text-xs font-bold leading-5 text-ink/55">
-          The export downloads without navigating away. It does not include passwords, login tokens, raw Storage credentials, signed photo links, or data from other users.
+          The export downloads without navigating away. It does not include passwords, login tokens, raw Storage credentials, signed photo links, private Party Order tokens, or data from other users.
         </p>
       </div>
 

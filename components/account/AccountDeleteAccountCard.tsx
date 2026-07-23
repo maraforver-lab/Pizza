@@ -83,7 +83,7 @@ export function AccountDeleteAccountCard() {
             Delete account
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
-            Permanently remove your account and DoughTools cloud data. Download your data first if you want a copy.
+            Permanently remove your account, owned Review photos, and DoughTools cloud data. Download your data first if you want a copy.
           </p>
         </div>
         <DoughToolsIcon name="warning" size={24} className="mt-1 shrink-0 text-tomato" aria-hidden="true" />
@@ -144,7 +144,7 @@ export function AccountDeleteAccountCard() {
             <div className="mt-4 space-y-3 text-sm font-bold leading-6 text-ink/65">
               <p>This permanently removes your account preferences, owned pizza plans and history, owned Party Orders with related submissions and items, owned Review photos, Supabase Auth account, and current signed-in session.</p>
               <p>Public admin-created configuration is not deleted. Admin accounts cannot use self-service deletion.</p>
-              <p>This action cannot be undone. Backups may retain data for a limited period according to the Privacy Policy.</p>
+              <p>After success, this browser clears known DoughTools-owned local app data only. This action cannot be undone. Backups may retain data for a limited period according to the Privacy Policy.</p>
             </div>
 
             <label className="mt-5 block text-sm font-extrabold text-ink" htmlFor="delete-account-confirmation">
