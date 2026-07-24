@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
+import { readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
 import { settingsFromUrl } from "@/lib/recipe-url";
 import type { PizzaStyleId } from "@/lib/saved-recipes";
 import type { CheeseType, DrainState, PizzaGeometry } from "@/lib/topping-calculator";
@@ -197,19 +198,6 @@ const lessons: ToppingLesson[] = [
   },
 ];
 
-const commonMistakes = [
-  ["Covering the pizza with a continuous cheese blanket", "It traps steam and hides the sauce. Leave gaps and keep the melt loose."],
-  ["Using a deep layer of sauce", "The base has to bake through water before it can set. Spread thinly and weigh while learning."],
-  ["Failing to drain fresh mozzarella", "The cheese may look normal before baking but release water in the oven. Drain and blot the surface."],
-  ["Stacking several wet toppings", "Mushrooms, tomato, spinach and wet cheese add up. Prepare wet ingredients before topping."],
-  ["Building the pizza too early before launch", "Sauce and cheese start hydrating the dough. Top close to baking time."],
-  ["Copying gram amounts from another pizza size", "A larger pizza has more topped area. Compare grams per 100 cm², not grams alone."],
-  ["Ignoring the rim and usable topped area", "The rim stays clear, so toppings sit on a smaller area than the full diameter suggests."],
-  ["Using the same topping load for every oven", "Home ovens and high-heat ovens handle moisture differently."],
-  ["Treating every topping as equal moisture", "Cured meat and fresh tomato do not behave the same way."],
-  ["Adding more because the uncooked pizza looks sparse", "Pizza fills visually as cheese melts; restraint often bakes better."],
-] as const;
-
 type ToppingReferenceCategory = "sauce" | "cheese" | "moisture";
 type ToppingReferenceState = "light" | "balanced" | "heavy" | "wet" | "drained";
 
@@ -307,6 +295,44 @@ const referenceImageGroups: Array<{
     ],
   },
 ] as const;
+
+const TOPPINGS_PRIMARY_RECOMMENDATION = "Less is usually better. You should still see sauce and open space between the toppings.";
+
+const TOPPINGS_QUICK_ANSWER_COPY: Record<ExperienceLevel, { answer: string; rules: readonly string[] }> = {
+  beginner: {
+    answer: "Start with one cheese and two or three toppings. Use small amounts and leave visible space between ingredients so the pizza can bake properly.",
+    rules: [
+      "Choose one main flavour",
+      "Use two or three toppings",
+      "Drain wet ingredients",
+      "Spread everything evenly",
+    ],
+  },
+  enthusiast: {
+    answer: "Build a balanced topping set by combining flavour, texture and moisture. Every extra ingredient increases the load the dough and oven must handle.",
+    rules: [
+      "Choose a clear flavour direction",
+      "Balance rich and fresh ingredients",
+      "Control moisture before baking",
+      "Adjust the amount to the bake time",
+    ],
+  },
+  pizza_nerd: {
+    answer: "Treat toppings as a load and moisture system. Ingredient water release, fat, cut size, distribution and bake profile determine whether the pizza finishes evenly.",
+    rules: [
+      "Set a topping-load target",
+      "Estimate moisture release",
+      "Match ingredient size to bake time",
+      "Separate baking and finishing ingredients",
+    ],
+  },
+};
+
+const OVERLOADED_PIZZA_COPY: Record<ExperienceLevel, string> = {
+  beginner: "If the middle looks crowded before baking, remove something. A pizza with visible gaps usually bakes better than one covered edge to edge.",
+  enthusiast: "Reduce the wettest or richest ingredient first, then test again. Cheese, vegetables, sauce depth and bake time all change the margin.",
+  pizza_nerd: "Overload is a heat-transfer and evaporation problem: high water activity, continuous cheese coverage and dense topping mass slow center drying and base setting.",
+};
 
 function levelLabel(level: BalanceLevel) {
   return ({
@@ -741,6 +767,170 @@ function ReferenceComparison({ activeLevel }: { activeLevel: BalanceLevel }) {
   );
 }
 
+function ToppingsQuickAnswer({ experienceLevel }: { experienceLevel: ExperienceLevel }) {
+  const levelCopy = TOPPINGS_QUICK_ANSWER_COPY[experienceLevel];
+
+  return (
+    <section className="rounded-[1.75rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6 lg:grid lg:grid-cols-[minmax(0,.82fr)_minmax(18rem,.48fr)] lg:gap-6" aria-labelledby="toppings-quick-answer-title" data-toppings-quick-answer>
+      <div>
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Quick answer</p>
+        <h2 id="toppings-quick-answer-title" className="mt-3 font-display text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+          How should I choose toppings?
+        </h2>
+        <p className="mt-3 text-sm font-bold leading-6 text-ink/68 sm:text-base">
+          {levelCopy.answer}
+        </p>
+        <p className="mt-4 rounded-2xl border border-leaf/20 bg-leaf/10 p-4 text-sm font-extrabold leading-6 text-ink">
+          {TOPPINGS_PRIMARY_RECOMMENDATION}
+        </p>
+      </div>
+
+      <ol className="mt-4 grid gap-2 lg:mt-0" aria-label="Topping quick answer rules">
+        {levelCopy.rules.map((rule, index) => (
+          <li key={rule} className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-2xl border border-ink/10 bg-flour p-3">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-extrabold text-tomato shadow-sm" aria-hidden="true">
+              {index + 1}
+            </span>
+            <span className="text-sm font-extrabold leading-5 text-ink">{rule}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function ToppingTeachingImage({
+  src,
+  alt,
+  label,
+  note,
+}: {
+  src: string;
+  alt: string;
+  label: string;
+  note: string;
+}) {
+  return (
+    <figure className="overflow-hidden rounded-[1.5rem] border border-ink/10 bg-white shadow-soft">
+      <Image src={src} alt={alt} width={1200} height={1200} sizes="(max-width: 768px) 100vw, 34vw" className="aspect-[4/3] h-auto w-full object-cover" />
+      <figcaption className="p-4">
+        <h3 className="text-sm font-extrabold">{label}</h3>
+        <p className="mt-2 text-xs font-bold leading-5 text-ink/58">{note}</p>
+      </figcaption>
+    </figure>
+  );
+}
+
+function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: ExperienceLevel }) {
+  return (
+    <div className="mt-6 space-y-6" data-toppings-practical-hierarchy>
+      <section className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-labelledby="balanced-set-title">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,.72fr)_minmax(18rem,.58fr)] lg:items-start">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Choose a balanced topping set</p>
+            <h2 id="balanced-set-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+              Pick fewer toppings and leave breathing room.
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-ink/64">
+              A practical pizza starts with one cheese, two or three main toppings and, when it helps the flavour,
+              one finishing ingredient after baking. Avoid covering the whole surface; open space helps heat and
+              moisture move.
+            </p>
+            <ul className="mt-4 grid gap-2 text-sm font-bold leading-6 text-ink/68 sm:grid-cols-2">
+              {["One cheese", "Two or three main toppings", "Optional finishing ingredient", "Visible open space"].map((item) => (
+                <li key={item} className="rounded-2xl bg-flour px-4 py-3">{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <ToppingTeachingImage
+              src="/toppings/diavola/diavola-balanced.webp"
+              alt="Balanced Diavola pizza with visible sauce, cheese islands and spaced salami."
+              label="Balanced"
+              note="Visible gaps leave room for the bake."
+            />
+            <ToppingTeachingImage
+              src="/toppings/diavola/diavola-too-much.webp"
+              alt="Diavola pizza with heavy sauce, cheese and salami coverage."
+              label="Too much"
+              note="A crowded surface slows the center."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-5 lg:grid-cols-2" aria-label="Cheese, moisture, baking and finishing guidance">
+        <article className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-labelledby="cheese-moisture-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Cheese and moisture</p>
+          <h2 id="cheese-moisture-title" className="mt-3 font-display text-3xl font-semibold">Keep the moisture load under control.</h2>
+          <p className="mt-3 text-sm leading-7 text-ink/64">
+            Wet mozzarella must be drained. Watery vegetables may need draining or pre-cooking. Sauce, cheese and
+            toppings all count toward one moisture load, so fix the wettest ingredient before adding more.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ToppingTeachingImage
+              src="/toppings/references/cheese-balanced.webp"
+              alt="Pizza with restrained melted fior di latte islands and visible tomato sauce."
+              label="Cheese supports"
+              note="Sauce remains visible between cheese."
+            />
+            <ToppingTeachingImage
+              src="/toppings/references/mozzarella-drained.webp"
+              alt="Fresh fior di latte pieces with a dry-looking surface and no pooling liquid."
+              label="Drain wet cheese"
+              note="Dry-looking pieces bring less water."
+            />
+          </div>
+        </article>
+
+        <div className="grid gap-5">
+          <article className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-labelledby="before-baking-title">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Before baking</p>
+            <h2 id="before-baking-title" className="mt-3 font-display text-3xl font-semibold">Bake sturdy toppings with the pizza.</h2>
+            <p className="mt-3 text-sm leading-7 text-ink/64">
+              Most cheese, cured meats, firm vegetables and prepared mushrooms can go on before baking. Keep pieces
+              modest, leave gaps and avoid building the pizza long before launch.
+            </p>
+          </article>
+
+          <article className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-labelledby="after-baking-title">
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">After baking</p>
+            <h2 id="after-baking-title" className="mt-3 font-display text-3xl font-semibold">Finish delicate ingredients after the bake.</h2>
+            <p className="mt-3 text-sm leading-7 text-ink/64">
+              Fresh basil, delicate herbs, finishing oil and prosciutto where appropriate often taste cleaner after
+              baking. Add them once the pizza is out so they stay fresh instead of drying or burning.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] bg-forest-dark p-5 text-white shadow-raised sm:p-7 lg:grid lg:grid-cols-[minmax(0,.8fr)_minmax(18rem,.55fr)] lg:gap-8" aria-labelledby="overloaded-pizza-title">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Avoid an overloaded pizza</p>
+          <h2 id="overloaded-pizza-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">
+            An overloaded pizza traps moisture, blocks heat and makes the centre difficult to bake.
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-white/70">
+            {OVERLOADED_PIZZA_COPY[experienceLevel]}
+          </p>
+        </div>
+        <div className="mt-5 grid gap-3 lg:mt-0">
+          {[
+            ["Too crowded", "Heat cannot reach the dough cleanly."],
+            ["Too wet", "Water has to evaporate before the centre sets."],
+            ["Too covered", "A cheese blanket traps steam under the melt."],
+          ].map(([title, body]) => (
+            <div key={title} className="rounded-[1.25rem] border border-white/12 bg-white/8 p-4">
+              <h3 className="text-sm font-extrabold">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-white/62">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function referenceStateForLevel(level: BalanceLevel): ToppingReferenceState {
   if (level === "very-light" || level === "light") return "light";
   if (level === "balanced") return "balanced";
@@ -849,11 +1039,13 @@ export default function ToppingBalanceLab() {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<ToppingBalanceState>(toppingBalanceDefaultState);
   const [selectedExample, setSelectedExample] = useState<ToppingPizzaExampleId>("diavola");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
   const result = useMemo(() => calculateToppingBalance(state), [state]);
 
   useEffect(() => {
     const initial = baseStateFromLocation();
     setState(initial);
+    setExperienceLevel(readExperienceLevelPreference());
     writeUrl(initial, "replace");
     setReady(true);
     document.documentElement.lang = "en";
@@ -920,9 +1112,12 @@ export default function ToppingBalanceLab() {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <section id="interactive-lab" className="scroll-mt-24" aria-labelledby="lab-title">
+        <ToppingsQuickAnswer experienceLevel={experienceLevel} />
+        <ToppingsPracticalHierarchy experienceLevel={experienceLevel} />
+
+        <section id="interactive-lab" className="mt-10 scroll-mt-24" aria-labelledby="lab-title">
           <div className="mb-6 max-w-3xl">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Interactive workspace</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Existing deeper guidance and references</p>
             <h2 id="lab-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Build and compare the topping load.</h2>
             <p className="mt-4 text-sm leading-7 text-ink/62">
               Numbers support the lesson; the visual is the point. Change one thing, watch the coverage, then read the
@@ -1154,22 +1349,6 @@ export default function ToppingBalanceLab() {
         <div className="mt-12">
           <ToppingReferenceGallery state={state} result={result} />
         </div>
-
-        <section className="mt-12 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="mistakes-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Common mistakes</p>
-          <h2 id="mistakes-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">What overloaded pizza looks like before it fails.</h2>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {commonMistakes.map(([title, body]) => (
-              <article key={title} className="rounded-[1.25rem] bg-flour p-4">
-                <h3 className="text-sm font-extrabold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-ink/62">{body}</p>
-              </article>
-            ))}
-          </div>
-          <Link href="/guide/pizza-troubleshooting#toppings" className="mt-6 inline-flex text-sm font-extrabold text-tomato underline-offset-4 hover:underline">
-            Troubleshoot toppings that slide, flood or bake unevenly →
-          </Link>
-        </section>
 
         <section className="mt-12 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-8 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8" aria-labelledby="final-cta-title">
           <div>

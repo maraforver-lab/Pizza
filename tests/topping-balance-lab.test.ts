@@ -121,7 +121,37 @@ describe("Topping Balance Lab page structure", () => {
     expect(component).not.toContain("Create Pizza Session");
   });
 
-  it("teaches area, sauce, cheese, drainage, combined load, oven interaction and mistakes", () => {
+  it("adds a selected-level quick answer before the deeper lab", () => {
+    expect(component).toContain("readExperienceLevelPreference");
+    expect(component).toContain("ToppingsQuickAnswer experienceLevel={experienceLevel}");
+    expect(component).toContain("How should I choose toppings?");
+    expect(component).toContain("Start with one cheese and two or three toppings.");
+    expect(component).toContain("Build a balanced topping set by combining flavour, texture and moisture.");
+    expect(component).toContain("Treat toppings as a load and moisture system.");
+    expect(component).toContain("TOPPINGS_QUICK_ANSWER_COPY[experienceLevel]");
+    expect(component).toContain("Less is usually better. You should still see sauce and open space between the toppings.");
+    expect(component.indexOf("<ToppingsQuickAnswer experienceLevel={experienceLevel} />")).toBeLessThan(
+      component.indexOf('<section id="interactive-lab"'),
+    );
+  });
+
+  it("separates practical toppings guidance before existing deeper guidance", () => {
+    for (const text of [
+      "Choose a balanced topping set",
+      "Cheese and moisture",
+      "Before baking",
+      "After baking",
+      "Avoid an overloaded pizza",
+      "Existing deeper guidance and references",
+    ]) {
+      expect(component).toContain(text);
+    }
+
+    expect(component.indexOf("Choose a balanced topping set")).toBeLessThan(component.indexOf("Build and compare the topping load."));
+    expect(component.indexOf("Avoid an overloaded pizza")).toBeLessThan(component.indexOf("Existing deeper guidance and references"));
+  });
+
+  it("teaches area, sauce, cheese, drainage, combined load, oven interaction and overload risk", () => {
     for (const text of [
       "The rim is not part of the topping area.",
       "Sauce controls coverage and moisture.",
@@ -129,10 +159,12 @@ describe("Topping Balance Lab page structure", () => {
       "Drainage changes how much water reaches the pizza.",
       "Sauce and cheese cannot be judged alone.",
       "The oven changes how forgiving the topping load feels.",
-      "Common mistakes",
+      "An overloaded pizza traps moisture, blocks heat and makes the centre difficult to bake.",
     ]) {
       expect(component).toContain(text);
     }
+
+    expect(component).not.toContain("What overloaded pizza looks like before it fails.");
   });
 
   it("uses local topping assets with explicit dimensions documented in the audit", () => {
@@ -210,6 +242,14 @@ describe("Topping Balance Lab page structure", () => {
     expect(component).toContain('sizes="(max-width: 1024px) 100vw, 52vw"');
     expect(component).toContain("Visual reference unavailable");
     expect(component).not.toContain("Current visual result");
+  });
+
+  it("reuses existing retained images for quick practical sections", () => {
+    expect(component).toContain('src="/toppings/diavola/diavola-balanced.webp"');
+    expect(component).toContain('src="/toppings/diavola/diavola-too-much.webp"');
+    expect(component).toContain('src="/toppings/references/cheese-balanced.webp"');
+    expect(component).toContain('src="/toppings/references/mozzarella-drained.webp"');
+    expect(component).not.toContain("/toppings/process/");
   });
 
   it("stores every realistic visual reference as a local production asset", () => {
