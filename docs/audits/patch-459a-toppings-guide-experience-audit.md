@@ -1,12 +1,14 @@
 # Patch 459A - Toppings guide experience audit
 
-Starting commit: `b4c990155a987eaad75943cd8ee2c357b8c6c7fd`
+Starting commit: `31579e37744739d5b5c299770b4355153e3f48db`
+
+Original audit baseline: `b4c990155a987eaad75943cd8ee2c357b8c6c7fd`
 
 Scope inspected:
 
 - Route: `/toppings`
 - Source files: `app/toppings/page.tsx`, `components/toppings/ToppingBalanceLab.tsx`, `lib/topping-balance-lab.ts`, `docs/research/topping-balance-sources.md`, `tests/topping-balance-lab.test.ts`
-- Local assets: `public/toppings/**`, related troubleshooting topping images under `public/images/troubleshooting/**`
+- Local assets: `public/toppings/**`
 
 No production code, route, calculator, Pizza Plan workflow, header, navigation or footer changes were made.
 
@@ -138,49 +140,53 @@ Recommended behavior:
 
 Do not create three duplicate pages. Use one shared page with selected-level copy around the existing lab.
 
-## Image Audit
+## Complete Image Inventory
 
-Current active realistic local assets:
+All files under `public/toppings/` were inspected. The active page uses the Diavola state series, the balanced Margherita and Marinara examples, and the controlled sauce, cheese and mozzarella references. The three root-level images remain local legacy assets and are not currently referenced by `/toppings`.
 
-- Diavola state series:
-  - `public/toppings/diavola/diavola-too-little.webp`
-  - `public/toppings/diavola/diavola-balanced.webp`
-  - `public/toppings/diavola/diavola-too-much.webp`
-  - `public/toppings/diavola/diavola-wet-overload.webp`
-  - `public/toppings/diavola/diavola-heavy-load.webp`
-- Balanced examples:
-  - `public/toppings/examples/margherita-balanced.webp`
-  - `public/toppings/examples/marinara-balanced.webp`
-- Controlled references:
-  - `public/toppings/references/sauce-light.webp`
-  - `public/toppings/references/sauce-balanced.webp`
-  - `public/toppings/references/sauce-heavy.webp`
-  - `public/toppings/references/cheese-light.webp`
-  - `public/toppings/references/cheese-balanced.webp`
-  - `public/toppings/references/cheese-heavy.webp`
-  - `public/toppings/references/mozzarella-wet.webp`
-  - `public/toppings/references/mozzarella-drained.webp`
+| File | Current use | What it teaches | Realistic | Accurate | Decision |
+| --- | --- | --- | --- | --- | --- |
+| `public/toppings/too-light.webp` | Legacy asset, not currently referenced by `/toppings` | Sparse topping coverage can look underbuilt | Yes | Directionally accurate, but mixed variables make it less precise than the active Diavola series | Retain in repo; do not use for new teaching unless no better asset exists |
+| `public/toppings/balanced.webp` | Legacy asset, not currently referenced by `/toppings` | A restrained mixed-topping pizza | Yes | Useful balanced impression, but mushrooms make it unsuitable as a controlled cheese or sauce variable | Retain in repo; avoid using as a controlled reference |
+| `public/toppings/too-heavy.webp` | Legacy asset, not currently referenced by `/toppings` | Overload and visual clutter | Yes | Accurate as a broad overload example, but changes several variables at once | Retain in repo; use only as a broad overload fallback |
+| `public/toppings/diavola/diavola-too-little.webp` | Active Diavola visual state | Too little sauce, cheese and salami coverage | Yes | Accurate and useful for a sparse Diavola comparison | Retain |
+| `public/toppings/diavola/diavola-balanced.webp` | Active default visual and Diavola thumbnail | Recommended Diavola coverage with visible sauce, cheese and salami spacing | Yes | Accurate and the strongest current general reference | Retain |
+| `public/toppings/diavola/diavola-too-much.webp` | Active Diavola visual state | Excess sauce, cheese and salami coverage | Yes | Accurate for overload, though it changes several topping variables together | Retain |
+| `public/toppings/diavola/diavola-wet-overload.webp` | Active Diavola visual state | Wet-looking cheese and visible moisture risk | Yes | Accurate for moisture risk, but it does not teach preparation before topping | Retain; supplement later with wet-ingredient prep images |
+| `public/toppings/diavola/diavola-heavy-load.webp` | Active Diavola visual state | Dense salami and heavy topping load | Yes | Accurate for heavy pre-bake load | Retain |
+| `public/toppings/examples/margherita-balanced.webp` | Active balanced example | Classic restrained tomato, fior di latte and basil | Yes | Accurate as a balanced finished-style reference | Retain |
+| `public/toppings/examples/marinara-balanced.webp` | Active balanced example | Cheese-free tomato, garlic, oregano and oil restraint | Yes | Accurate as a balanced no-cheese reference | Retain |
+| `public/toppings/references/sauce-light.webp` | Active reference gallery | Too little sauce coverage | Yes | Accurate controlled sauce reference | Retain |
+| `public/toppings/references/sauce-balanced.webp` | Active reference gallery and reused by Sauce page | Thin, even sauce with clear rim | Yes | Accurate controlled sauce reference | Retain |
+| `public/toppings/references/sauce-heavy.webp` | Active reference gallery and reused by Sauce page | Deep sauce layer and wet pools | Yes | Accurate controlled sauce reference | Retain |
+| `public/toppings/references/cheese-light.webp` | Active reference gallery | Sparse cheese coverage | Yes | Accurate controlled cheese reference | Retain |
+| `public/toppings/references/cheese-balanced.webp` | Active reference gallery | Restrained cheese islands with sauce still visible | Yes | Accurate controlled cheese reference | Retain |
+| `public/toppings/references/cheese-heavy.webp` | Active reference gallery | Near-continuous cheese blanket | Yes | Accurate controlled cheese reference | Retain |
+| `public/toppings/references/mozzarella-wet.webp` | Active reference gallery | Wet fresh mozzarella before baking | Yes | Accurate, practical and important | Retain |
+| `public/toppings/references/mozzarella-drained.webp` | Active reference gallery | Drained fresh mozzarella before baking | Yes | Accurate, practical and important | Retain |
 
 Image quality findings:
 
-- The existing images are realistic and useful.
-- The Diavola state series is the strongest current "good vs overload" teaching asset.
-- The sauce, cheese and mozzarella reference images are useful controlled examples.
-- The page renders only the active image for the current visual example and one active gallery image at a time, so users do not immediately see a persistent realistic side-by-side sequence.
-- Lazy loading is safe; images loaded after scrolling in browser review.
-- No production topping asset appears to rely on external URLs.
+- The active images are realistic, local WebP assets and do not rely on external URLs.
+- The Diavola series is the best existing good-versus-overload teaching set.
+- The sauce, cheese and mozzarella references are strong controlled assets, but they appear late and usually one-at-a-time.
+- The current asset set teaches amount and moisture better than it teaches the hand action of topping a pizza.
+- No existing asset should be removed as part of the next implementation patches; the gaps are mostly presentation and missing teaching moments.
 
-Image gaps for future implementation:
+## Image-Gap Plan
 
-| Teaching moment | Current coverage | Gap |
+Future image work should create only optimized local WebP assets. Images should remain people-free, hand-free, realistic, top-down or near top-down, and matched in lighting and crop to the current `public/toppings/` set.
+
+| Missing teaching image | Current coverage | Recommended future asset |
 | --- | --- | --- |
-| Too little / recommended / too much toppings | Diavola states exist and presets switch the main image | Needs a compact persistent visual comparison near the top, not only a one-image-at-a-time preset result. |
-| Wet toppings | Diavola wet-overload image and mozzarella wet/drained references exist | Missing prepared wet topping examples such as mushrooms, tomato slices, spinach or vegetables before/after preparation. |
-| Cheese amount | Controlled cheese light/balanced/heavy images exist | Good asset coverage, but currently late in the page. |
-| Topping placement | Weak | Missing image sequence for spacing toppings, leaving gaps, keeping center light and preserving rim. |
-| Finishing toppings | Missing | No image shows arugula, basil, prosciutto or oil added after baking. |
-| Good vs overloaded pizza examples | Diavola series exists | Needs better presentation as a direct compare block, and optionally another style beyond Diavola. |
-| Application order | Missing | No visual sequence for sauce -> cheese -> toppings -> finish. |
+| Too little / recommended / too much topping | Diavola states exist, but the page shows mostly one active state at a time | Reuse the Diavola three-state series in a persistent comparison block before or near the lab; no new asset required unless another pizza style is needed |
+| Correct cheese quantity and distribution | `cheese-light`, `cheese-balanced` and `cheese-heavy` exist | Reuse as an early compact cheese comparison; no new asset required |
+| Wet versus properly drained mozzarella | `mozzarella-wet` and `mozzarella-drained` exist | Reuse earlier in the page; no new asset required |
+| Balanced versus overloaded pizza | Diavola balanced, too-much, wet-overload and heavy-load exist | Reuse as a direct comparison; optionally add one non-Diavola overload WebP later if the page needs a less meat-focused example |
+| Toppings placed before baking | Weak current coverage | Create `public/toppings/process/toppings-before-bake.webp`: sauce and cheese applied, a few toppings spaced with gaps and a clean rim |
+| Finishing ingredients added after baking | Missing | Create `public/toppings/process/finish-after-bake.webp`: baked pizza with fresh basil/arugula/oil added after bake, no hands or people |
+| Ingredients that should be pre-cooked | Missing | Create `public/toppings/process/precooked-wet-toppings.webp`: prepared mushrooms or vegetables shown dry and reduced beside raw watery equivalent |
+| Even topping distribution with clear crust border | Weak current coverage | Create `public/toppings/process/even-topping-distribution.webp`: top-down pizza showing light center, spaced toppings and visible 1-2 cm crust border |
 
 ## Recommended Final Hierarchy
 
