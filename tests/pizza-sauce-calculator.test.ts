@@ -10,6 +10,7 @@ import {
   formatSauceCanPurchase,
   sessionSauceProfileForPizza,
 } from "@/lib/pizza-sauce-calculator";
+import { getSauceQuickAnswer } from "@/lib/sauce-page-guidance";
 import { metadataForRoute } from "@/lib/seo-config";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -252,15 +253,53 @@ describe("Pizza Session sauce quantity contract", () => {
 });
 
 describe("simplified pizza sauce page", () => {
-  it("puts the recipe-first calculator before secondary guidance", () => {
+  it("puts the quick answer before the calculator and the secondary guidance", () => {
     const page = source("app/sauce/page.tsx");
+    const quickAnswer = source("components/sauce/SauceQuickAnswer.tsx");
+    const quickAnswerModel = source("lib/sauce-page-guidance.ts");
 
-    expect(page).toContain("Make the sauce, then measure it clearly.");
-    expect(page).toContain("recommended sauce per pizza");
+    expect(page).toContain("Choose the sauce, then measure it clearly.");
+    expect(page).toContain("Pick a simple sauce path first");
+    expect(quickAnswerModel).toContain("Which sauce should I use?");
     expect(page).not.toContain("Calculate my sauce");
     expect(page).not.toContain("Learn the three methods");
-    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("Adjust the sauce"));
-    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("Texture and troubleshooting"));
+    expect(page.indexOf("<SauceQuickAnswer />")).toBeLessThan(page.indexOf("<SauceCalculator />"));
+    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("Buy the tomatoes"));
+    expect(page.indexOf("Buy the tomatoes")).toBeLessThan(page.indexOf("Make and apply the sauce"));
+    expect(page.indexOf("Make and apply the sauce")).toBeLessThan(page.indexOf("Avoid a wet or burnt pizza"));
+    expect(page.indexOf("Avoid a wet or burnt pizza")).toBeLessThan(page.indexOf("Store safely"));
+    expect(page.indexOf("Store safely")).toBeLessThan(page.indexOf("Sources and methodology"));
+    expect(page.indexOf("Sources and methodology")).toBeLessThan(page.indexOf("<PublicPageEnding"));
+    expect(page.indexOf("<PublicPageEnding")).toBeLessThan(page.indexOf("<SiteFooter />"));
+  });
+
+  it("provides one active Sauce quick answer per guidance level", () => {
+    const beginner = getSauceQuickAnswer("beginner");
+    const enthusiast = getSauceQuickAnswer("enthusiast");
+    const pizzaNerd = getSauceQuickAnswer("pizza_nerd");
+    const invalid = getSauceQuickAnswer("mystery");
+
+    expect(beginner).toMatchObject({
+      level: "beginner",
+      levelLabel: "Beginner",
+      title: "Which sauce should I use?",
+    });
+    expect(beginner.answer).toBe(
+      "Use a simple raw tomato sauce for most pizzas. It is the safest starting point for home pizza and pizza oven baking.",
+    );
+    expect(beginner.bullets).toEqual([
+      "Choose good canned whole peeled tomatoes.",
+      "Crush or blend lightly.",
+      "Use a small amount so the pizza does not turn wet.",
+    ]);
+    expect(enthusiast.answer).toBe(
+      "Raw tomato sauce is the default choice for most pizzas. Use cooked sauce only when you want a thicker, sweeter result or a home-oven style that benefits from lower moisture.",
+    );
+    expect(pizzaNerd.answer).toBe(
+      "Choose sauce style by bake profile and moisture budget. Raw sauce preserves brightness and suits fast, high-heat baking. Cooked sauce trades freshness for reduced water and a denser texture.",
+    );
+    expect(invalid.level).toBe("beginner");
+    expect(new Set([beginner.answer, enthusiast.answer, pizzaNerd.answer]).size).toBe(3);
   });
 
   it("keeps the calculator result hierarchy explicit without changing formulas", () => {
@@ -315,25 +354,31 @@ describe("simplified pizza sauce page", () => {
     expect(calculator.indexOf("How to make pizza sauce")).toBeLessThan(calculator.indexOf("Batch ingredients"));
   });
 
-  it("uses one compact adjustment section instead of separate method and tomato card walls", () => {
+  it("uses compact tomato, application, moisture and storage sections instead of repeated card walls", () => {
     const page = source("app/sauce/page.tsx");
 
-    expect(page).toContain("Adjust the sauce");
-    expect(page).toContain("Bigger or thicker pizza");
-    expect(page).toContain("Fast high-heat bake");
-    expect(page).toContain("Home oven or longer bake");
+    expect(page).toContain("Buy the tomatoes");
+    expect(page).toContain("What to buy");
+    expect(page).toContain("Whole peeled vs crushed");
+    expect(page).toContain("Good tomatoes matter more than complicated technique.");
+    expect(page).toContain("Make and apply the sauce");
+    expect(page).toContain("Avoid a wet or burnt pizza");
+    expect(page).toContain("Store safely");
+    expect(page).not.toContain("Adjust the sauce");
+    expect(page).not.toContain("Change the amount only when the pizza changes.");
+    expect(page).not.toContain("Useful details without a second recipe.");
     expect(page).not.toContain("Choose your tomatoes");
     expect(page).not.toContain("Choose your method");
     expect(page).not.toContain("Raw, cooked and reduced sauce solve different problems.");
   });
 
-  it("keeps troubleshooting compact with four disclosed sauce problems", () => {
+  it("keeps troubleshooting compact without duplicating moisture advice across multiple sections", () => {
     const page = source("app/sauce/page.tsx");
 
     for (const title of [
-      "Sauce too watery",
-      "Sauce too thick",
-      "Center stays wet",
+      "Wet center",
+      "Burnt base with pale top",
+      "Loose tomato texture",
       "Sauce tastes flat",
     ]) {
       expect(page).toContain(`title: "${title}"`);
@@ -342,36 +387,34 @@ describe("simplified pizza sauce page", () => {
     expect(page).not.toContain("Using too much sauce");
     expect(page).not.toContain("Making sauce too far ahead without safe storage");
     expect(page).not.toContain("SauceMistakeCard");
-    expect(page).toContain("<details");
-    expect(page).toContain("<summary");
+    expect(page).not.toContain("<details");
+    expect(page).not.toContain("<summary");
     expect(page).toContain("Open deeper troubleshooting");
   });
 
-  it("keeps source and storage notes compact without a second recipe", () => {
+  it("keeps source and storage guidance visible without a second recipe", () => {
     const page = source("app/sauce/page.tsx");
 
-    expect(page).toContain("Useful details without a second recipe.");
-    expect(page).toContain("Tomato solids");
-    expect(page).toContain("Salt and acidity");
-    expect(page).toContain("Storage");
+    expect(page).toContain("Store safely");
+    expect(page).toContain("Chill it");
+    expect(page).toContain("Cool cooked sauce first");
+    expect(page).toContain("Discard unsafe sauce");
+    expect(page).toContain("Sources and methodology");
+    expect(page).toContain("Traditional guidance, practical home-oven adaptation.");
     expect(page).not.toContain("Ingredient roles");
     expect(page).not.toContain("How much sauce should go on the pizza?");
   });
 
-  it("limits related learning to three links and keeps one final primary action before the footer", () => {
+  it("keeps the final primary action before the footer without a related-learning wall", () => {
     const page = source("app/sauce/page.tsx");
-    const relatedBlock = page.slice(page.indexOf("const relatedLinks"), page.indexOf("const finalAction"));
     const pageEnding = source("components/learning/PublicPageEnding.tsx");
 
     expect(page).toContain("PublicPageEnding");
     expect(pageEnding).toContain("links.length > 3");
     expect(pageEnding).toContain("cannot repeat the same destination");
-    expect((relatedBlock.match(/href:/g) ?? []).length).toBe(3);
-    expect(relatedBlock).toContain('href: "/ovens"');
-    expect(relatedBlock).toContain('href: "/toppings"');
-    expect(relatedBlock).toContain('href: "/guide/pizza-troubleshooting"');
+    expect(page).not.toContain("const relatedLinks");
+    expect(page).toContain("links={[]}");
     expect((page.match(/href: "\/session\/start"/g) ?? []).length).toBe(1);
-    expect(pageEnding.indexOf("{relatedEyebrow}")).toBeLessThan(pageEnding.indexOf("{actionEyebrow}"));
     expect(page.indexOf("<PublicPageEnding")).toBeLessThan(page.indexOf("<SiteFooter />"));
     expect(page.indexOf("Ready to use the sauce in a real plan?")).toBeLessThan(page.indexOf("<SiteFooter />"));
     expect(page.slice(page.indexOf("<SiteFooter />"))).not.toContain("Plan my next pizza");
@@ -392,15 +435,18 @@ describe("simplified pizza sauce page", () => {
   it("keeps accessibility and responsive semantics explicit", () => {
     const page = source("app/sauce/page.tsx");
     const calculator = source("components/sauce/SauceCalculator.tsx");
+    const quickAnswer = source("components/sauce/SauceQuickAnswer.tsx");
 
     expect(page).toContain("<h1");
     expect(page).toContain("aria-labelledby");
     expect(page).toContain("overflow-x-clip");
+    expect(page).toContain("w-full");
+    expect(page).toContain("object-cover");
     expect(calculator).toContain("aria-live=\"polite\"");
     expect(calculator).toContain("aria-label={`Decrease ${label}`}");
     expect(calculator).toContain("aria-label={`Increase ${label}`}");
     expect(calculator).toContain("aria-pressed");
-    expect(page).toContain("<summary");
+    expect(quickAnswer).toContain("GuidanceModeBadge");
     expect(page).toContain("focus-visible:outline");
     expect(page).toContain("min-h-12");
   });
