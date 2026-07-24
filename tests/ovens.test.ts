@@ -273,6 +273,20 @@ describe("Oven Guide", () => {
     expect(page.match(/label: "Know when it is ready"/g)).toHaveLength(4);
   });
 
+  it("renders oven setup paths as a readable vertical process instead of five narrow columns", () => {
+    const page = source("app", "ovens", "page.tsx");
+
+    expect(page).toContain("function OvenSetupSteps");
+    expect(page).toContain('aria-label={`${setupTitle} setup steps`}');
+    expect(page).toContain('padStart(2, "0")');
+    expect(page).toContain("<summary");
+    expect(page).toContain("focus-visible:ring");
+    expect(page).toContain("xl:grid-cols-[minmax(22rem,.48fr)_minmax(0,1fr)]");
+    expect(page.indexOf("<OvenTeachingFigure image={setup.image}")).toBeLessThan(page.indexOf("<OvenSetupSteps"));
+    expect(page).not.toContain("md:grid-cols-5");
+    expect(page).not.toContain("lg:grid-cols-5");
+  });
+
   it("adds a compact quick answer before the deeper comparison", () => {
     const page = source("app", "ovens", "page.tsx");
     const quickAnswer = source("components", "ovens", "OvensQuickAnswer.tsx");
@@ -336,8 +350,7 @@ describe("Oven Guide", () => {
     expect(otherEquipmentIndex).toBeGreaterThan(page.indexOf("Pizza plan effect"));
     expect(otherEquipmentIndex).toBeLessThan(finalCtaIndex);
     expect(finalCtaIndex).toBeLessThan(footerIndex);
-    expect(page.match(/<details/g)).toHaveLength(1);
-    expect(page.match(/<summary/g)).toHaveLength(1);
+    expect(page.match(/Show more equipment/g)).toHaveLength(1);
     expect(page).toContain("Show more equipment");
     expect(page).toContain("Essential");
     expect(page).toContain("Useful");

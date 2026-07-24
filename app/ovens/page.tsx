@@ -438,6 +438,43 @@ function OvenTeachingFigure({
   );
 }
 
+function OvenSetupSteps({
+  dark,
+  setupTitle,
+  steps,
+}: {
+  dark: boolean;
+  setupTitle: string;
+  steps: readonly { label: string; action: string; explanation: string }[];
+}) {
+  return (
+    <ol className="grid gap-3" aria-label={`${setupTitle} setup steps`}>
+      {steps.map((step, index) => (
+        <li key={`${setupTitle}-${step.label}`}>
+          <details className={`group rounded-[1.1rem] border ${dark ? "border-white/10 bg-white/[.07]" : "border-ink/10 bg-white/72"}`} open>
+            <summary className="flex cursor-pointer list-none items-start gap-4 p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato/45 focus-visible:ring-offset-2 focus-visible:ring-offset-cream [&::-webkit-details-marker]:hidden">
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black tabular-nums ${dark ? "bg-oven-gold text-ink" : "bg-tomato text-white"}`}>
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block text-base font-extrabold ${dark ? "text-white" : "text-ink"}`}>{step.label}</span>
+                <span className={`mt-1 block text-sm font-bold leading-6 ${dark ? "text-white/82" : "text-ink/74"}`}>{step.action}</span>
+              </span>
+              <DoughToolsIcon
+                name="chevron-down"
+                size={20}
+                className={`mt-1 shrink-0 transition-transform group-open:rotate-180 ${dark ? "text-white/55" : "text-ink/45"}`}
+                aria-hidden="true"
+              />
+            </summary>
+            <p className={`px-4 pb-4 pl-[4.5rem] text-sm leading-6 ${dark ? "text-white/64" : "text-ink/62"}`}>{step.explanation}</p>
+          </details>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export default function OvensPage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8">
@@ -457,16 +494,15 @@ export default function OvensPage() {
             </p>
           </div>
 
-          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <div className="mt-5 grid gap-5">
             {ovenSetupPaths.map((setup) => {
               const dark = setup.tone === "dark";
-              const fullWidth = setup.title === "Pizza oven";
 
               return (
                 <article
                   key={setup.title}
                   className={cardClass({
-                    className: `p-5 sm:p-6 ${fullWidth ? "lg:col-span-2" : ""}`,
+                    className: "p-5 sm:p-6",
                     variant: setup.tone === "dark" ? "dark" : setup.tone === "information" ? "information" : "default",
                   })}
                   aria-labelledby={`${setup.title.toLowerCase().replaceAll(" ", "-")}-title`}
@@ -483,24 +519,12 @@ export default function OvensPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(16rem,.5fr)_minmax(0,1fr)] lg:items-start">
-                    <OvenTeachingFigure image={setup.image} dark={dark} />
+                  <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(22rem,.48fr)_minmax(0,1fr)] xl:items-start">
+                    <div className="xl:sticky xl:top-24">
+                      <OvenTeachingFigure image={setup.image} dark={dark} />
+                    </div>
 
-                    <ol className="grid gap-3 md:grid-cols-5 lg:grid-cols-5">
-                      {setup.steps.map((step, index) => (
-                        <li
-                          key={`${setup.title}-${step.label}`}
-                          className={`rounded-[1rem] border p-3 ${dark ? "border-white/10 bg-white/[.07]" : "border-ink/10 bg-white/70"}`}
-                        >
-                          <span className={`grid h-8 w-8 place-items-center rounded-full text-xs font-black ${dark ? "bg-oven-gold text-ink" : "bg-tomato text-white"}`}>
-                            {index + 1}
-                          </span>
-                          <h4 className={`mt-3 text-sm font-extrabold ${dark ? "text-white" : "text-ink"}`}>{step.label}</h4>
-                          <p className={`mt-2 text-sm font-bold leading-5 ${dark ? "text-white/82" : "text-ink/74"}`}>{step.action}</p>
-                          <p className={`mt-2 text-xs leading-5 ${dark ? "text-white/60" : "text-ink/58"}`}>{step.explanation}</p>
-                        </li>
-                      ))}
-                    </ol>
+                    <OvenSetupSteps dark={dark} setupTitle={setup.title} steps={setup.steps} />
                   </div>
 
                   {"supplementalImage" in setup && (
