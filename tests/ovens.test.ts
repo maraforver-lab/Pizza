@@ -15,6 +15,9 @@ describe("Oven Guide", () => {
     expect(hero).toContain("Baking guides");
     expect(hero).toContain("Home oven or pizza oven?");
     expect(hero).toContain("Compare the heat, preheat, placement, bake time and result");
+    expect(page.indexOf("<OvenGuideHero />")).toBeLessThan(page.indexOf("<OvensQuickAnswer />"));
+    expect(page.indexOf("<OvensQuickAnswer />")).toBeLessThan(page.indexOf('id="oven-comparison"'));
+    expect(page).toContain("OvensQuickAnswer");
     expect(page).toContain("Pick the oven path that matches your real heat");
     expect(page).toContain("Bake instructions");
     expect(page).toContain("Pizza oven");
@@ -147,22 +150,55 @@ describe("Oven Guide", () => {
     expect(page).not.toContain("75 min pizza-plan preheat window");
   });
 
-  it("clarifies Home oven guidance by experience level without changing planner timing", () => {
+  it("adds a compact quick answer before the deeper comparison", () => {
     const page = source("app", "ovens", "page.tsx");
+    const quickAnswer = source("components", "ovens", "OvensQuickAnswer.tsx");
 
-    expect(page).toContain('aria-label="Home oven guidance by experience level"');
-    expect(page).toContain("Beginner");
-    expect(page).toContain("Use one reliable starting setup.");
-    expect(page).toContain("check the pizza after about 4 minutes");
-    expect(page).toContain("use the grill or broiler briefly at the end only if the top needs help");
-    expect(page).toContain("Enthusiast");
-    expect(page).toContain("If the top stays pale, move the surface higher or finish briefly with grill heat.");
-    expect(page).toContain("If the base burns too early, move lower or reduce bottom heat.");
-    expect(page).toContain("Steel heats and browns the base faster, stone is more forgiving");
-    expect(page).toContain("Pizza Nerd");
-    expect(page).toContain("Separate oven air from surface heat.");
-    expect(page).toContain("Calibrate the surface temperature when you can");
-    expect(page).toContain("balance top heat against bottom heat with rack position");
+    expect(page).toContain("<OvensQuickAnswer />");
+    expect(quickAnswer).toContain("What should I do with my oven?");
+    expect(quickAnswer).toContain("Choose your oven type, preheat the baking surface fully and manage the top and bottom heat separately.");
+    expect(quickAnswer).toContain("Home oven");
+    expect(quickAnswer).toContain("Preheat the oven and baking surface fully.");
+    expect(quickAnswer).toContain("Pizza oven");
+    expect(quickAnswer).toContain("Heat the oven floor fully, launch with a stable flame");
+
+    for (const action of [
+      "Preheat the steel or stone",
+      "Use the upper half of the oven",
+      "Launch the pizza quickly",
+      "Watch the top and bottom separately",
+      "Check the oven floor",
+      "Launch with a stable flame",
+      "Turn the pizza frequently",
+      "Move it to balance the bake",
+    ]) {
+      expect(quickAnswer).toContain(action);
+    }
+
+    const timerRecommendation = "The timer is only a guide. The pizza is ready when the base, rim and toppings are all properly baked.";
+    expect(quickAnswer).toContain(timerRecommendation);
+    expect((quickAnswer.match(new RegExp(timerRecommendation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? [])).toHaveLength(1);
+    expect(page).not.toContain("The pizza is ready when the base, rim and toppings are all properly baked.");
+  });
+
+  it("renders only the selected oven guidance level without changing planner timing", () => {
+    const page = source("app", "ovens", "page.tsx");
+    const quickAnswer = source("components", "ovens", "OvensQuickAnswer.tsx");
+
+    expect(page).not.toContain('aria-label="Home oven guidance by experience level"');
+    expect(page).not.toContain("Use one reliable starting setup.");
+    expect(page).not.toContain("Separate oven air from surface heat.");
+    expect(quickAnswer).toContain("readExperienceLevelPreference");
+    expect(quickAnswer).toContain('useState<ExperienceLevel>(getDefaultExperienceLevel())');
+    expect(quickAnswer).toContain("setExperienceLevel(readExperienceLevelPreference())");
+    expect(quickAnswer).toContain("bakeManagementByLevel[selectedGuidance.id]");
+    expect(quickAnswer).not.toContain("Object.entries(bakeManagementByLevel)");
+    expect(quickAnswer).not.toContain("EXPERIENCE_LEVELS.map");
+    expect(quickAnswer).not.toContain("bakeManagementByLevel.map");
+    expect(quickAnswer).toContain("How should I manage the bake?");
+    expect(quickAnswer).toContain("{selectedGuidance.label}");
+    expect(quickAnswer).toContain("{bakeManagement.body}");
+    expect(quickAnswer).toContain("actions={bakeManagement.rules}");
 
     expect(getPizzaSessionBakeProfile("home").preheatDurationMinutes).toBe(75);
   });
