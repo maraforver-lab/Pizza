@@ -10,7 +10,7 @@ import {
   formatSauceCanPurchase,
   sessionSauceProfileForPizza,
 } from "@/lib/pizza-sauce-calculator";
-import { getSauceQuickAnswer } from "@/lib/sauce-page-guidance";
+import { getSauceAmountTeaching, getSauceQuickAnswer } from "@/lib/sauce-page-guidance";
 import { metadataForRoute } from "@/lib/seo-config";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -306,16 +306,47 @@ describe("simplified pizza sauce page", () => {
     const calculator = source("components/sauce/SauceCalculator.tsx");
     const engine = source("lib/pizza-sauce-calculator.ts");
 
+    expect(calculator).toContain("Total sauce");
     expect(calculator).toContain("Sauce per pizza");
     expect(calculator).toContain("Pizzas");
-    expect(calculator).toContain("Finished total");
-    expect(calculator).toContain("Before prep reserve");
+    expect(calculator).not.toContain("Finished total");
+    expect(calculator).toContain("Finished amount before prep reserve");
+    expect(calculator.indexOf("Total sauce")).toBeLessThan(calculator.indexOf("Sauce per pizza"));
     expect(calculator).toContain("Prepare {formatGrams(result.preparationSauceGrams)} including");
     expect(calculator).toContain("Use {result.sauceGramsPerPizza} g on each pizza");
     expect(calculator).toContain("calculatePizzaSauce");
     expect(calculator).toContain("defaultSauceGramsForMethod");
     expect(engine).toContain("export function calculatePizzaSauce");
     expect(engine).toContain("baseSauceGrams = pizzaCount * sauceGramsPerPizza");
+  });
+
+  it("adds compact level-aware teaching below the calculator result", () => {
+    const calculator = source("components/sauce/SauceCalculator.tsx");
+    const beginner = getSauceAmountTeaching("beginner");
+    const enthusiast = getSauceAmountTeaching("enthusiast");
+    const pizzaNerd = getSauceAmountTeaching("pizza_nerd");
+
+    expect(calculator).toContain("Why this amount works");
+    expect(calculator).toContain("Sauce should support the pizza, not flood it.");
+    expect(calculator).toContain("Too little");
+    expect(calculator).toContain("Dry or unbalanced");
+    expect(calculator).toContain("Recommended balance");
+    expect(calculator).toContain("Too much");
+    expect(calculator).toContain("Wet centre");
+    expect(calculator).toContain("Wet mozzarella or wet toppings → slightly less sauce");
+    expect(calculator).toContain("Longer bake or dry toppings → sometimes slightly more sauce");
+    expect(calculator).toContain("getSauceAmountTeaching(experienceLevel)");
+    expect(calculator).toContain("readExperienceLevelPreference()");
+    expect(beginner.explanation).toBe(
+      "Start with the recommended amount. It gives clear tomato flavour without making the pizza heavy or wet.",
+    );
+    expect(enthusiast.explanation).toBe(
+      "Use slightly less sauce with wet mozzarella or moisture-heavy toppings. A longer bake or drier topping set may tolerate slightly more.",
+    );
+    expect(pizzaNerd.explanation).toBe(
+      "Treat the result as a moisture-budget baseline. Tomato water content, cheese moisture, topping load, bake temperature and bake time determine the final adjustment.",
+    );
+    expect(new Set([beginner.explanation, enthusiast.explanation, pizzaNerd.explanation]).size).toBe(3);
   });
 
   it("uses the established Sauce calculator defaults as the visible starting amounts", () => {
@@ -339,7 +370,7 @@ describe("simplified pizza sauce page", () => {
     expect(calculator).toContain("Coverage preset");
     expect(calculator).toContain("Adjust tomato, salt and batch details");
     expect(calculator.indexOf("Sauce per pizza")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
-    expect(calculator.indexOf("Finished total")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
+    expect(calculator.indexOf("Total sauce")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
   });
 
   it("connects the calculated batch to concise sauce recipe steps", () => {
@@ -443,6 +474,7 @@ describe("simplified pizza sauce page", () => {
     expect(page).toContain("w-full");
     expect(page).toContain("object-cover");
     expect(calculator).toContain("aria-live=\"polite\"");
+    expect(calculator).toContain("aria-label=\"Sauce amount balance\"");
     expect(calculator).toContain("aria-label={`Decrease ${label}`}");
     expect(calculator).toContain("aria-label={`Increase ${label}`}");
     expect(calculator).toContain("aria-pressed");

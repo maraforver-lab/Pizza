@@ -13,6 +13,12 @@ export type SauceQuickAnswer = {
   title: "Which sauce should I use?";
 };
 
+export type SauceAmountTeaching = {
+  explanation: string;
+  level: ExperienceLevel;
+  levelLabel: string;
+};
+
 const quickAnswerByLevel: Record<ExperienceLevel, Omit<SauceQuickAnswer, "level" | "levelLabel" | "title">> = {
   beginner: {
     answer:
@@ -43,6 +49,15 @@ const quickAnswerByLevel: Record<ExperienceLevel, Omit<SauceQuickAnswer, "level"
   },
 };
 
+const amountTeachingByLevel: Record<ExperienceLevel, string> = {
+  beginner:
+    "Start with the recommended amount. It gives clear tomato flavour without making the pizza heavy or wet.",
+  enthusiast:
+    "Use slightly less sauce with wet mozzarella or moisture-heavy toppings. A longer bake or drier topping set may tolerate slightly more.",
+  pizza_nerd:
+    "Treat the result as a moisture-budget baseline. Tomato water content, cheese moisture, topping load, bake temperature and bake time determine the final adjustment.",
+};
+
 export function getSauceQuickAnswer(level: unknown = DEFAULT_EXPERIENCE_LEVEL): SauceQuickAnswer {
   const normalized = normalizeExperienceLevel(level);
   const config = EXPERIENCE_LEVELS.find((item) => item.id === normalized) ?? EXPERIENCE_LEVELS[0];
@@ -53,5 +68,16 @@ export function getSauceQuickAnswer(level: unknown = DEFAULT_EXPERIENCE_LEVEL): 
     level: normalized,
     levelLabel: config.label,
     title: "Which sauce should I use?",
+  };
+}
+
+export function getSauceAmountTeaching(level: unknown = DEFAULT_EXPERIENCE_LEVEL): SauceAmountTeaching {
+  const normalized = normalizeExperienceLevel(level);
+  const config = EXPERIENCE_LEVELS.find((item) => item.id === normalized) ?? EXPERIENCE_LEVELS[0];
+
+  return {
+    explanation: amountTeachingByLevel[normalized],
+    level: normalized,
+    levelLabel: config.label,
   };
 }
