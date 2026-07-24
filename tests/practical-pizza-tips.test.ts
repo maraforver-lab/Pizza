@@ -327,7 +327,7 @@ describe("Practical pizza tips landing page", () => {
 
     expect(selectPracticalTipLevelGuidance(sampleGuidance, missingStorage).level).toBe("beginner");
     expect(selectPracticalTipLevelGuidance(sampleGuidance, invalidStorage).level).toBe("beginner");
-    expect(invalidStorage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("beginner");
+    expect(invalidStorage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("wizard");
   });
 
   it("keeps shared article content, CTAs and footers outside selected-level filtering", () => {

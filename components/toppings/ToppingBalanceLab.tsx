@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
-import { readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
+import { getDefaultExperienceLevel, readExperienceLevelPreference, type ExperienceLevel } from "@/lib/experience-levels";
 import { settingsFromUrl } from "@/lib/recipe-url";
 import type { PizzaStyleId } from "@/lib/saved-recipes";
 import type { CheeseType, DrainState, PizzaGeometry } from "@/lib/topping-calculator";
@@ -1079,7 +1079,7 @@ export default function ToppingBalanceLab() {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<ToppingBalanceState>(toppingBalanceDefaultState);
   const [selectedExample, setSelectedExample] = useState<ToppingPizzaExampleId>("diavola");
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(getDefaultExperienceLevel());
   const result = useMemo(() => calculateToppingBalance(state), [state]);
 
   useEffect(() => {

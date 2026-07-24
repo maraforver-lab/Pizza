@@ -359,8 +359,9 @@ describe("Pizza Dough Guide foundation", () => {
     expect(beginner).toContain("Sticky at this stage is normal");
     expect(enthusiast).toContain("Different recipes use different mixing orders");
     expect(nerd).toContain("gluten");
+    expect(page).toContain("getDefaultExperienceLevel");
     expect(page).toContain("readExperienceLevelPreference");
-    expect(page).toContain("useState<ExperienceLevel>(\"beginner\")");
+    expect(page).not.toContain("useState<ExperienceLevel>(\"beginner\")");
     expect(page).not.toContain("writeExperienceLevelPreference");
     expect(page).not.toContain("doughGuideExperienceLevel");
   });

@@ -31,6 +31,7 @@ import { buildPlanningResult } from "@/lib/planning-engine";
 import type { PlanningInput } from "@/lib/planning-input";
 import type { FermentationMode, PlanningMixingMethod } from "@/lib/planning-types";
 import {
+  getDefaultExperienceLevel,
   getExperienceLevelConfig,
   readExperienceLevelPreference,
   type ExperienceLevel,
@@ -1577,7 +1578,7 @@ export default function HomeCalculatorWorkspace({ variant = "full" }: HomeCalcul
   const [recipeName, setRecipeName] = useState("");
   const [recipeNotice, setRecipeNotice] = useState("");
   const [urlReady, setUrlReady] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(getDefaultExperienceLevel());
   const [advancedBakeDate, setAdvancedBakeDate] = useState(defaultBakeDateValue);
   const [advancedBakeTime, setAdvancedBakeTime] = useState("18:00");
   const [calculatorNow, setCalculatorNow] = useState<Date | null>(null);

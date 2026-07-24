@@ -100,7 +100,11 @@ export const LEGACY_EXPERIENCE_LEVEL_MIGRATIONS: Record<LegacyExperienceLevel | 
 function getBrowserStorage(storage?: StorageLike): StorageLike | undefined {
   if (storage) return storage;
   if (typeof window === "undefined") return undefined;
-  return window.localStorage;
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
+  }
 }
 
 export function isExperienceLevel(value: unknown): value is ExperienceLevel {
@@ -152,21 +156,30 @@ export function getExperienceLevelOrder(): ExperienceLevel[] {
 export function readExperienceLevelPreference(storage?: StorageLike): ExperienceLevel {
   const target = getBrowserStorage(storage);
   if (!target) return DEFAULT_EXPERIENCE_LEVEL;
-  const stored = target.getItem(EXPERIENCE_LEVEL_STORAGE_KEY);
-  const normalized = normalizeExperienceLevel(stored);
-  if (stored !== null && stored !== normalized) target.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, normalized);
-  return normalized;
+  try {
+    return normalizeExperienceLevel(target.getItem(EXPERIENCE_LEVEL_STORAGE_KEY));
+  } catch {
+    return DEFAULT_EXPERIENCE_LEVEL;
+  }
 }
 
 export function writeExperienceLevelPreference(level: ExperienceLevel, storage?: StorageLike): ExperienceLevel {
   const normalized = normalizeExperienceLevel(level);
   const target = getBrowserStorage(storage);
-  target?.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, normalized);
+  try {
+    target?.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, normalized);
+  } catch {
+    // Keep the selected UI state even when the browser blocks local storage.
+  }
   return normalized;
 }
 
 export function clearExperienceLevelPreference(storage?: StorageLike) {
-  getBrowserStorage(storage)?.removeItem(EXPERIENCE_LEVEL_STORAGE_KEY);
+  try {
+    getBrowserStorage(storage)?.removeItem(EXPERIENCE_LEVEL_STORAGE_KEY);
+  } catch {
+    // Clearing local-only preferences should never block account cleanup flows.
+  }
 }
 
 export function shouldShowBeginnerContent(level: ExperienceLevel): boolean {

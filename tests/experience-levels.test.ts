@@ -130,18 +130,79 @@ describe("experience levels foundation", () => {
     storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "wizard");
 
     expect(readExperienceLevelPreference(storage)).toBe("beginner");
+    expect(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("wizard");
+    expect(getExperienceLevelConfig(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).label).toBe("Beginner");
   });
 
-  it("updates legacy stored values to canonical values when read", () => {
+  it("normalizes legacy stored values without mutating them on read", () => {
     const storage = new MemoryStorage();
 
     storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "intermediate");
     expect(readExperienceLevelPreference(storage)).toBe("enthusiast");
-    expect(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("enthusiast");
+    expect(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("intermediate");
 
     storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "advanced");
     expect(readExperienceLevelPreference(storage)).toBe("pizza_nerd");
-    expect(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("pizza_nerd");
+    expect(storage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("advanced");
+  });
+
+  it("uses the canonical fallback when browser storage is blocked", () => {
+    const blockedStorage = {
+      getItem() {
+        throw new Error("storage blocked");
+      },
+      setItem() {
+        throw new Error("storage blocked");
+      },
+      removeItem() {
+        throw new Error("storage blocked");
+      },
+    };
+
+    expect(readExperienceLevelPreference(blockedStorage)).toBe("beginner");
+    expect(writeExperienceLevelPreference("enthusiast", blockedStorage)).toBe("enthusiast");
+    expect(() => clearExperienceLevelPreference(blockedStorage)).not.toThrow();
+  });
+
+  it("keeps level-sensitive client surfaces on the canonical default helper", () => {
+    const correctedFiles = [
+      join(process.cwd(), "app", "session", "start", "page.tsx"),
+      join(process.cwd(), "components", "HomeCalculatorWorkspace.tsx"),
+      join(process.cwd(), "components", "guide", "DoughGuidePageClient.tsx"),
+      join(process.cwd(), "components", "quick-calculator", "QuickDoughCalculator.tsx"),
+      join(process.cwd(), "components", "toppings", "ToppingBalanceLab.tsx"),
+    ];
+
+    for (const filePath of correctedFiles) {
+      const source = readFileSync(filePath, "utf8");
+
+      expect(source).toContain("getDefaultExperienceLevel");
+      expect(source).not.toContain('useState<ExperienceLevel>("beginner")');
+    }
+  });
+
+  it("keeps protected account, auth, legal, admin, party order and timer surfaces independent of guidance level", () => {
+    const protectedFiles = [
+      join(process.cwd(), "app", "account", "settings", "privacy", "page.tsx"),
+      join(process.cwd(), "app", "account", "settings", "security", "page.tsx"),
+      join(process.cwd(), "app", "auth", "callback", "route.ts"),
+      join(process.cwd(), "app", "privacy", "page.tsx"),
+      join(process.cwd(), "app", "terms", "page.tsx"),
+      join(process.cwd(), "app", "admin", "page.tsx"),
+      join(process.cwd(), "app", "tools", "bake-timer", "page.tsx"),
+      join(process.cwd(), "components", "account", "AccountDataExportCard.tsx"),
+      join(process.cwd(), "components", "account", "AccountDeleteAccountCard.tsx"),
+      join(process.cwd(), "components", "account", "AccountSecurityControls.tsx"),
+      join(process.cwd(), "components", "admin", "AdminAppearanceClient.tsx"),
+      join(process.cwd(), "components", "party-orders", "PublicPartyOrderForm.tsx"),
+      join(process.cwd(), "components", "tools", "StandaloneBakeTimerTool.tsx"),
+    ];
+
+    for (const filePath of protectedFiles) {
+      const source = readFileSync(filePath, "utf8");
+
+      expect(source).not.toMatch(/readExperienceLevelPreference|writeExperienceLevelPreference|EXPERIENCE_LEVEL_STORAGE_KEY/);
+    }
   });
 
   it("keeps content-complexity helpers deterministic", () => {

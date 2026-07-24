@@ -17,6 +17,7 @@ import {
   type ActiveCloudPizzaSessionConflict,
 } from "@/lib/cloud-pizza-session-client";
 import {
+  getDefaultExperienceLevel,
   getExperienceLevelCornerAccentStyle,
   readExperienceLevelPreference,
   type ExperienceLevel,
@@ -603,7 +604,7 @@ function StartPizzaSessionContent() {
   const [creatingPlan, setCreatingPlan] = useState(false);
   const [cloudConflictState, setCloudConflictState] = useState<CloudConflictState>(null);
   const [step, setStep] = useState<WizardStep>("path");
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(getDefaultExperienceLevel());
   const [targetTimeDraft, setTargetTimeDraft] = useState("");
   const [customDoughBallWeightDraft, setCustomDoughBallWeightDraft] = useState("");
   const [selectedDayChoice, setSelectedDayChoice] = useState<PizzaSessionDayQuickChoiceId | undefined>();

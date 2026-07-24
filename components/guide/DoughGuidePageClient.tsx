@@ -35,6 +35,7 @@ import {
 } from "@/lib/dough-guide-links";
 import { getSafeContextualReturnPath } from "@/lib/contextual-return";
 import {
+  getDefaultExperienceLevel,
   readExperienceLevelPreference,
   type ExperienceLevel,
 } from "@/lib/experience-levels";
@@ -571,7 +572,7 @@ export default function DoughGuidePageClient() {
   const activeIndex = getDoughGuideStepIndex(stepParam);
   const previousStep = activeIndex > 0 ? doughGuideSteps[activeIndex - 1] : undefined;
   const nextStep = activeIndex < doughGuideSteps.length - 1 ? doughGuideSteps[activeIndex + 1] : undefined;
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(getDefaultExperienceLevel());
   const [sessionContext, setSessionContext] = useState<DoughGuideSessionContext>(() => getDoughGuideSessionContext(null));
   const levelDetails = getDoughGuideLevelDetails(activeStep, experienceLevel);
   const flourGuidance = getDoughGuideFlourGuidance(sessionContext.flourContext, experienceLevel);

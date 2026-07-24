@@ -6,6 +6,7 @@ import EditableNumberInput from "@/components/EditableNumberInput";
 import SiteFooter from "@/components/SiteFooter";
 import {
   EXPERIENCE_LEVELS,
+  getDefaultExperienceLevel,
   getExperienceLevelConfig,
   readExperienceLevelPreference,
   writeExperienceLevelPreference,
@@ -587,7 +588,7 @@ export default function QuickDoughCalculator() {
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [shareState, setShareState] = useState<CopyState>("idle");
   const [recipeNotice, setRecipeNotice] = useState<RecipeNotice>("idle");
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>("beginner");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(getDefaultExperienceLevel());
   const [guidancePreferenceOpen, setGuidancePreferenceOpen] = useState(false);
   const [guidanceNotice, setGuidanceNotice] = useState<string | null>(null);
   const [recipeName, setRecipeName] = useState("My quick dough");

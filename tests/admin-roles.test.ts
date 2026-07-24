@@ -108,7 +108,7 @@ describe("Patch 444B admin role foundation", () => {
 
     expect(adminLayout).toContain("noindexMetadata");
     expect(adminPage).toContain("Product administration");
-    expect(adminPage).toContain("does not expose private Pizza Sessions, Party Orders, photos, notes, emails or account preferences");
+    expect(adminPage).toContain("does not expose private pizza plans, Party Orders, photos, notes, emails or account preferences");
     expect(adminPage).toContain("Seasonal appearance");
     expect(adminPage).toContain("Bake Timer sounds");
     expect(adminPage).toContain("Public statistics");
