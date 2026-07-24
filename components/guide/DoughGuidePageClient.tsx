@@ -76,6 +76,77 @@ function FactList({ facts }: { facts: readonly DoughGuideFact[] }) {
   );
 }
 
+const DOUGH_QUICK_ANSWER_COPY: Record<ExperienceLevel, string> = {
+  beginner: "Start with the Dough Plan, weigh every ingredient accurately, mix the dough, and let time do most of the work.",
+  enthusiast: "Control dough temperature and fermentation time. Adjust only after observing how the dough behaves.",
+  pizza_nerd: "Treat dough temperature, yeast amount, fermentation time and flour strength as one connected system.",
+};
+
+const DOUGH_QUICK_ANSWER_STEPS = [
+  {
+    title: "Weigh the ingredients",
+    description: "Use an accurate digital scale.",
+  },
+  {
+    title: "Mix the dough",
+    description: "Combine the ingredients until no dry flour remains.",
+  },
+  {
+    title: "Let it ferment",
+    description: "Give the dough the planned time and temperature.",
+  },
+  {
+    title: "Divide and shape",
+    description: "Make dough balls and let them relax before baking.",
+  },
+] as const;
+
+function DoughQuickAnswer({
+  experienceLevel,
+  sessionReturnPath,
+}: {
+  experienceLevel: ExperienceLevel;
+  sessionReturnPath?: DoughGuideReturnPath | null;
+}) {
+  const levelCopy = DOUGH_QUICK_ANSWER_COPY[experienceLevel];
+
+  return (
+    <section className="mt-6 rounded-[1.75rem] border border-white/80 bg-white/85 p-3 shadow-card backdrop-blur sm:p-5 lg:p-6" aria-labelledby="dough-quick-answer-heading">
+      <div>
+        <h2 id="dough-quick-answer-heading" className="font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl lg:text-4xl">
+          What should I do first?
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm font-bold leading-5 text-ink/62 sm:text-base sm:leading-6">
+          {levelCopy}
+        </p>
+      </div>
+
+      <ol className="mt-3 grid gap-1.5 lg:grid-cols-4 lg:gap-2">
+        {DOUGH_QUICK_ANSWER_STEPS.map((step, index) => (
+          <li key={step.title} className="grid grid-cols-[1.75rem_1fr] gap-2 rounded-xl border border-ink/10 bg-cream/70 p-2.5 sm:grid-cols-[2rem_1fr] sm:gap-3 sm:rounded-2xl sm:p-3 lg:p-4">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-xs font-extrabold text-tomato shadow-sm sm:h-8 sm:w-8" aria-hidden="true">
+              {index + 1}
+            </span>
+            <span>
+              <span className="block text-sm font-extrabold leading-5 text-ink">{step.title}</span>
+              <span className="mt-0.5 block text-xs font-bold leading-4 text-ink/55 sm:mt-1 sm:leading-5">{step.description}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-3 flex justify-start lg:mt-4 lg:justify-end">
+        <Link
+          href={buildDoughGuideHref("measure", sessionReturnPath ?? undefined)}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-12 sm:w-auto"
+        >
+          Start with weighing
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function compactPrepareFacts(
   context: DoughGuideSessionContext,
   flourGuidance: DoughGuideFlourGuidance | undefined,
@@ -475,6 +546,8 @@ export default function DoughGuidePageClient() {
             <StepVisual step={activeStep} priority />
           </div>
         </section>
+
+        <DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
           <aside className="hidden lg:sticky lg:top-24 lg:block">

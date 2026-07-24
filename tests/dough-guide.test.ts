@@ -229,6 +229,38 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain('className="mt-4 hidden max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65 lg:block"');
   });
 
+  it("adds a concise selected-level quick answer before the twelve-step guide", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("What should I do first?");
+    expect(page).toContain("Start with the Dough Plan, weigh every ingredient accurately, mix the dough, and let time do most of the work.");
+    expect(page).toContain("Control dough temperature and fermentation time. Adjust only after observing how the dough behaves.");
+    expect(page).toContain("Treat dough temperature, yeast amount, fermentation time and flour strength as one connected system.");
+    expect(page).toContain("const levelCopy = DOUGH_QUICK_ANSWER_COPY[experienceLevel];");
+    expect(page).toContain("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />");
+    expect(page.indexOf("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />")).toBeLessThan(
+      page.indexOf("<StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />"),
+    );
+  });
+
+  it("keeps the Dough guide quick answer compact and linked to the existing weighing step", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("Weigh the ingredients");
+    expect(page).toContain("Use an accurate digital scale.");
+    expect(page).toContain("Mix the dough");
+    expect(page).toContain("Combine the ingredients until no dry flour remains.");
+    expect(page).toContain("Let it ferment");
+    expect(page).toContain("Give the dough the planned time and temperature.");
+    expect(page).toContain("Divide and shape");
+    expect(page).toContain("Make dough balls and let them relax before baking.");
+    expect(page).toContain("Start with weighing");
+    expect(page).toContain('href={buildDoughGuideHref("measure", sessionReturnPath ?? undefined)}');
+    expect(page).toContain("lg:grid-cols-4");
+    expect(page.indexOf("{DOUGH_QUICK_ANSWER_STEPS.map")).toBeLessThan(page.indexOf("Start with weighing"));
+    expect(page).not.toContain("Object.entries(DOUGH_QUICK_ANSWER_COPY)");
+  });
+
   it("places the compact image after the active step orientation and before the immediate action", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
