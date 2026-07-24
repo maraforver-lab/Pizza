@@ -5,6 +5,64 @@ import { pizzaSessionOvenSupportSummary } from "@/lib/oven-education";
 import { getPizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
+const occurrences = (text: string, search: string) => text.split(search).length - 1;
+
+const ovenTeachingAssets = [
+  {
+    file: "home-oven-steel-position.webp",
+    section: "Home oven with baking steel",
+    alt: "Baking steel positioned on an upper rack inside a home oven.",
+    caption: "Place the baking steel in the recommended upper position so the base receives strong conductive heat while the top can still brown.",
+  },
+  {
+    file: "home-oven-stone-position.webp",
+    section: "Home oven with pizza stone",
+    alt: "Pizza stone positioned on an upper-middle rack inside a home oven.",
+    caption: "Position the stone correctly and give it a thorough preheat before launching the pizza.",
+  },
+  {
+    file: "home-oven-tray-position.webp",
+    section: "Home oven with baking tray",
+    alt: "Metal baking tray positioned on an upper rack inside a home oven.",
+    caption: "Use the tray in the recommended position and keep the pizza realistic for the heat available.",
+  },
+  {
+    file: "pizza-oven-launch-position.webp",
+    section: "Pizza oven",
+    alt: "Pizza being launched from a peel onto a pizza oven floor away from the strongest flame.",
+    caption: "Launch onto the hot oven floor with enough distance from the strongest flame.",
+  },
+  {
+    file: "pizza-oven-turning.webp",
+    section: "Manage the bake",
+    alt: "Pizza being turned with a turning peel inside a pizza oven near a steady flame.",
+    caption: "Turn the pizza before the flame-facing side colours too far.",
+  },
+  {
+    file: "oven-surface-temperature-check.webp",
+    section: "Choose your oven setup",
+    alt: "Infrared thermometer aimed at a hot pizza stone inside a home oven.",
+    caption: "Check that the baking surface is fully heated before launching.",
+  },
+  {
+    file: "pizza-bottom-doneness-comparison.webp",
+    section: "Know when it is ready",
+    alt: "Comparison of pale, properly baked and burnt pizza bases viewed from underneath.",
+    caption: "Look for an evenly baked base: not pale and soft, but not deeply burnt.",
+  },
+  {
+    file: "pizza-heat-balance-comparison.webp",
+    section: "Fix an uneven bake",
+    alt: "Comparison of uneven and balanced pizza baking with top and base doneness shown separately.",
+    caption: "Judge the top and bottom separately before deciding which heat source needs adjustment.",
+  },
+  {
+    file: "oven-surface-recovery-between-pizzas.webp",
+    section: "Bake more than one pizza",
+    alt: "Baking surface recovering in a pizza oven while the next unbaked pizza waits on a peel.",
+    caption: "Let the baking surface recover before launching the next pizza.",
+  },
+] as const;
 
 describe("Oven Guide", () => {
   it("makes /ovens a practical Home oven and Pizza oven comparison", () => {
@@ -104,6 +162,43 @@ describe("Oven Guide", () => {
     expect(hero).not.toMatch(/https?:\/\/.*\.(webp|png|jpe?g)/i);
   });
 
+  it("stores every Ovens teaching image as a local WebP production asset", () => {
+    for (const asset of ovenTeachingAssets) {
+      const assetPath = join(process.cwd(), "public", "ovens", "teaching", asset.file);
+
+      expect(asset.file.endsWith(".webp")).toBe(true);
+      expect(existsSync(assetPath)).toBe(true);
+      expect(statSync(assetPath).size).toBeGreaterThan(50_000);
+    }
+  });
+
+  it("renders every Ovens teaching image once with meaningful alt text and required captions", () => {
+    const page = source("app", "ovens", "page.tsx");
+
+    expect(page).toContain("OvenTeachingFigure");
+    expect(page).toContain("width={1200}");
+    expect(page).toContain("height={1000}");
+    expect(page).toContain('sizes="(max-width: 768px) 100vw, 42vw"');
+
+    for (const asset of ovenTeachingAssets) {
+      const sourcePath = `/ovens/teaching/${asset.file}`;
+
+      expect(occurrences(page, sourcePath)).toBe(1);
+      expect(page).toContain(`src: "${sourcePath}"`);
+      expect(page).toContain(asset.alt);
+      expect(page).toContain(asset.caption);
+      expect(page.indexOf(asset.section)).toBeGreaterThan(-1);
+    }
+
+    expect(page).toContain("<OvenTeachingFigure image={setup.image}");
+    expect(page).toContain("<OvenTeachingFigure image={setup.supplementalImage}");
+    expect(page).toContain("<OvenTeachingFigure image={surfaceReadinessImage}");
+    expect(page).toContain("<OvenTeachingFigure image={bottomDonenessImage}");
+    expect(page).toContain("<OvenTeachingFigure image={heatBalanceImage}");
+    expect(page).toContain("<OvenTeachingFigure image={recoveryImage}");
+    expect(page).not.toMatch(/https?:\/\/.*\.(webp|png|jpe?g)/i);
+  });
+
   it("keeps the comparison responsive without horizontal tables or post-footer content", () => {
     const page = source("app", "ovens", "page.tsx");
 
@@ -128,18 +223,25 @@ describe("Oven Guide", () => {
     expect(page).toContain("Reduce topping moisture and topping load before increasing bake time.");
 
     expect(page).toContain("/guide/pizza-troubleshooting");
+    expect(page.indexOf('id="uneven-bake-title"')).toBeLessThan(page.indexOf("OvenTeachingFigure image={heatBalanceImage}"));
+    expect(page.indexOf("OvenTeachingFigure image={heatBalanceImage}")).toBeLessThan(page.indexOf("unevenBakeItems.map"));
   });
 
   it("keeps concise setup, surface and safety guidance without becoming a gear guide", () => {
     const page = source("app", "ovens", "page.tsx");
 
     expect(page).toContain("Home oven with baking steel");
+    expect(page.indexOf("Home oven with baking steel")).toBeLessThan(page.indexOf("home-oven-steel-position.webp"));
     expect(page).toContain("Steel transfers heat quickly. It gives strong base colour but may require careful top-heat management.");
     expect(page).toContain("Home oven with pizza stone");
+    expect(page.indexOf("Home oven with pizza stone")).toBeLessThan(page.indexOf("home-oven-stone-position.webp"));
     expect(page).toContain("Stone heats the base more gently than steel and usually needs a thorough preheat.");
     expect(page).toContain("Pizza oven");
+    expect(page.indexOf("Pizza oven")).toBeLessThan(page.indexOf("pizza-oven-launch-position.webp"));
+    expect(page.indexOf("Manage the bake")).toBeLessThan(page.indexOf("pizza-oven-turning.webp"));
     expect(page).toContain("A pizza oven bakes quickly, so launch position, turning and flame exposure matter throughout the bake.");
     expect(page).toContain("Home oven with baking tray");
+    expect(page.indexOf("Home oven with baking tray")).toBeLessThan(page.indexOf("home-oven-tray-position.webp"));
     expect(page).toContain("A baking tray is less powerful than steel or stone");
     expect(page).toContain("Preheat for the current");
     expect(page).toContain("Start in the upper-middle or upper third.");
@@ -148,12 +250,17 @@ describe("Oven Guide", () => {
     expect(page).toContain("Judge the oven floor, not only the flame or air heat.");
     expect(page).toContain("The oven reaching its set temperature may be enough for a tray");
     expect(page).toContain("Let the baking surface recover between pizzas.");
+    expect(page.indexOf("ovenSetupPaths.map")).toBeLessThan(page.indexOf("OvenTeachingFigure image={surfaceReadinessImage}"));
+    expect(page.indexOf("OvenTeachingFigure image={surfaceReadinessImage}")).toBeLessThan(page.indexOf("OvenTeachingFigure image={bottomDonenessImage}"));
+    expect(page.indexOf('id="multiple-pizzas-title"')).toBeLessThan(page.indexOf("OvenTeachingFigure image={recoveryImage}"));
     expect(page).toContain("Safety checks");
     expect(page).toContain("Follow your own appliance manual");
     expect(page).toContain("Use outdoor-only ovens outdoors.");
     expect(page).not.toContain("Do not modify fuel, ventilation or safety systems.");
     expect(page).not.toContain("infrared thermometer guide");
     expect(page).not.toContain("75 min pizza-plan preheat window");
+    expect(page).not.toContain("BakeTimer");
+    expect(page).not.toContain("KitchenMode");
   });
 
   it("gives every setup path the same five practical step labels", () => {

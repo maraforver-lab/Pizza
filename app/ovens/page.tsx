@@ -11,12 +11,47 @@ import { getPizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 const homeProfile = getPizzaSessionBakeProfile("home");
 const pizzaProfile = getPizzaSessionBakeProfile("gas");
 
+type OvenTeachingImage = {
+  src: string;
+  alt: string;
+  caption: string;
+};
+
+const surfaceReadinessImage = {
+  src: "/ovens/teaching/oven-surface-temperature-check.webp",
+  alt: "Infrared thermometer aimed at a hot pizza stone inside a home oven.",
+  caption: "Check that the baking surface is fully heated before launching.",
+} as const satisfies OvenTeachingImage;
+
+const bottomDonenessImage = {
+  src: "/ovens/teaching/pizza-bottom-doneness-comparison.webp",
+  alt: "Comparison of pale, properly baked and burnt pizza bases viewed from underneath.",
+  caption: "Look for an evenly baked base: not pale and soft, but not deeply burnt.",
+} as const satisfies OvenTeachingImage;
+
+const heatBalanceImage = {
+  src: "/ovens/teaching/pizza-heat-balance-comparison.webp",
+  alt: "Comparison of uneven and balanced pizza baking with top and base doneness shown separately.",
+  caption: "Judge the top and bottom separately before deciding which heat source needs adjustment.",
+} as const satisfies OvenTeachingImage;
+
+const recoveryImage = {
+  src: "/ovens/teaching/oven-surface-recovery-between-pizzas.webp",
+  alt: "Baking surface recovering in a pizza oven while the next unbaked pizza waits on a peel.",
+  caption: "Let the baking surface recover before launching the next pizza.",
+} as const satisfies OvenTeachingImage;
+
 const ovenSetupPaths = [
   {
     title: "Home oven with baking steel",
     icon: "flame" as DoughToolsIconName,
     summary: "Steel transfers heat quickly. It gives strong base colour but may require careful top-heat management.",
     tone: "default",
+    image: {
+      src: "/ovens/teaching/home-oven-steel-position.webp",
+      alt: "Baking steel positioned on an upper rack inside a home oven.",
+      caption: "Place the baking steel in the recommended upper position so the base receives strong conductive heat while the top can still brown.",
+    },
     steps: [
       {
         label: "Preheat",
@@ -50,6 +85,11 @@ const ovenSetupPaths = [
     icon: "oven" as DoughToolsIconName,
     summary: "Stone heats the base more gently than steel and usually needs a thorough preheat.",
     tone: "default",
+    image: {
+      src: "/ovens/teaching/home-oven-stone-position.webp",
+      alt: "Pizza stone positioned on an upper-middle rack inside a home oven.",
+      caption: "Position the stone correctly and give it a thorough preheat before launching the pizza.",
+    },
     steps: [
       {
         label: "Preheat",
@@ -83,6 +123,11 @@ const ovenSetupPaths = [
     icon: "oven" as DoughToolsIconName,
     summary: "A baking tray is less powerful than steel or stone, so the dough and topping load must remain realistic for the available heat.",
     tone: "information",
+    image: {
+      src: "/ovens/teaching/home-oven-tray-position.webp",
+      alt: "Metal baking tray positioned on an upper rack inside a home oven.",
+      caption: "Use the tray in the recommended position and keep the pizza realistic for the heat available.",
+    },
     steps: [
       {
         label: "Preheat",
@@ -116,6 +161,16 @@ const ovenSetupPaths = [
     icon: "flame" as DoughToolsIconName,
     summary: "A pizza oven bakes quickly, so launch position, turning and flame exposure matter throughout the bake.",
     tone: "dark",
+    image: {
+      src: "/ovens/teaching/pizza-oven-launch-position.webp",
+      alt: "Pizza being launched from a peel onto a pizza oven floor away from the strongest flame.",
+      caption: "Launch onto the hot oven floor with enough distance from the strongest flame.",
+    },
+    supplementalImage: {
+      src: "/ovens/teaching/pizza-oven-turning.webp",
+      alt: "Pizza being turned with a turning peel inside a pizza oven near a steady flame.",
+      caption: "Turn the pizza before the flame-facing side colours too far.",
+    },
     steps: [
       {
         label: "Preheat",
@@ -356,6 +411,33 @@ const equipmentGroups = [
   },
 ] as const;
 
+function OvenTeachingFigure({
+  image,
+  dark = false,
+  priority = false,
+}: {
+  image: OvenTeachingImage;
+  dark?: boolean;
+  priority?: boolean;
+}) {
+  return (
+    <figure className={`overflow-hidden rounded-[1.35rem] border shadow-soft ${dark ? "border-white/10 bg-white/[.08]" : "border-ink/10 bg-white"}`}>
+      <Image
+        src={image.src}
+        alt={image.alt}
+        width={1200}
+        height={1000}
+        sizes="(max-width: 768px) 100vw, 42vw"
+        className="aspect-[6/5] h-auto w-full object-cover"
+        priority={priority}
+      />
+      <figcaption className={`border-t px-4 py-3 text-xs font-bold leading-5 ${dark ? "border-white/10 text-white/62" : "border-ink/10 text-ink/62"}`}>
+        {image.caption}
+      </figcaption>
+    </figure>
+  );
+}
+
 export default function OvensPage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-cream px-4 py-5 text-ink sm:px-6 sm:py-8">
@@ -401,24 +483,39 @@ export default function OvensPage() {
                     </div>
                   </div>
 
-                  <ol className="mt-5 grid gap-3 md:grid-cols-5">
-                    {setup.steps.map((step, index) => (
-                      <li
-                        key={`${setup.title}-${step.label}`}
-                        className={`rounded-[1rem] border p-3 ${dark ? "border-white/10 bg-white/[.07]" : "border-ink/10 bg-white/70"}`}
-                      >
-                        <span className={`grid h-8 w-8 place-items-center rounded-full text-xs font-black ${dark ? "bg-oven-gold text-ink" : "bg-tomato text-white"}`}>
-                          {index + 1}
-                        </span>
-                        <h4 className={`mt-3 text-sm font-extrabold ${dark ? "text-white" : "text-ink"}`}>{step.label}</h4>
-                        <p className={`mt-2 text-sm font-bold leading-5 ${dark ? "text-white/82" : "text-ink/74"}`}>{step.action}</p>
-                        <p className={`mt-2 text-xs leading-5 ${dark ? "text-white/60" : "text-ink/58"}`}>{step.explanation}</p>
-                      </li>
-                    ))}
-                  </ol>
+                  <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(16rem,.5fr)_minmax(0,1fr)] lg:items-start">
+                    <OvenTeachingFigure image={setup.image} dark={dark} />
+
+                    <ol className="grid gap-3 md:grid-cols-5 lg:grid-cols-5">
+                      {setup.steps.map((step, index) => (
+                        <li
+                          key={`${setup.title}-${step.label}`}
+                          className={`rounded-[1rem] border p-3 ${dark ? "border-white/10 bg-white/[.07]" : "border-ink/10 bg-white/70"}`}
+                        >
+                          <span className={`grid h-8 w-8 place-items-center rounded-full text-xs font-black ${dark ? "bg-oven-gold text-ink" : "bg-tomato text-white"}`}>
+                            {index + 1}
+                          </span>
+                          <h4 className={`mt-3 text-sm font-extrabold ${dark ? "text-white" : "text-ink"}`}>{step.label}</h4>
+                          <p className={`mt-2 text-sm font-bold leading-5 ${dark ? "text-white/82" : "text-ink/74"}`}>{step.action}</p>
+                          <p className={`mt-2 text-xs leading-5 ${dark ? "text-white/60" : "text-ink/58"}`}>{step.explanation}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {"supplementalImage" in setup && (
+                    <div className="mt-5 max-w-2xl">
+                      <OvenTeachingFigure image={setup.supplementalImage} dark={dark} />
+                    </div>
+                  )}
                 </article>
               );
             })}
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+            <OvenTeachingFigure image={surfaceReadinessImage} />
+            <OvenTeachingFigure image={bottomDonenessImage} />
           </div>
         </section>
 
@@ -432,6 +529,9 @@ export default function OvensPage() {
               <Link href="/guide/pizza-troubleshooting" className={buttonClass({ className: "w-full shrink-0 sm:w-auto", variant: "secondary" })}>
                 Open troubleshooting
               </Link>
+            </div>
+            <div className="mt-5">
+              <OvenTeachingFigure image={heatBalanceImage} />
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {unevenBakeItems.map((item) => (
@@ -449,6 +549,9 @@ export default function OvensPage() {
             <p className="mt-3 text-sm leading-7 text-ink/64">
               Let the baking surface recover between pizzas. A second pizza launched too soon may bake more slowly and remain pale underneath.
             </p>
+            <div className="mt-4">
+              <OvenTeachingFigure image={recoveryImage} />
+            </div>
           </aside>
         </section>
 
