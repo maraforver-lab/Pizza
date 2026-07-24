@@ -19,6 +19,19 @@ const finalAction: PublicPageEndingLink = {
   description: "Use the sauce in a real pizza plan.",
 };
 
+const relatedGuides: readonly PublicPageEndingLink[] = [
+  {
+    title: "Dough",
+    href: "/guides/dough",
+    description: "Build the dough foundation before you add sauce.",
+  },
+  {
+    title: "Toppings",
+    href: "/toppings",
+    description: "Balance cheese, toppings and moisture with the sauce.",
+  },
+];
+
 export default function SaucePage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
@@ -63,8 +76,8 @@ export default function SaucePage() {
         </section>
 
         <PublicPageEnding
-          links={[]}
-          relatedTitle=""
+          links={relatedGuides}
+          relatedTitle="What should I learn next?"
           action={finalAction}
           actionEyebrow="Ready to use the sauce in a real plan?"
           actionTitle="Plan a pizza with the sauce in mind."

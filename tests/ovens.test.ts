@@ -387,11 +387,15 @@ describe("Oven Guide", () => {
     const routeContentBeforeFooter = page.slice(0, page.indexOf("<SiteFooter />"));
 
     expect(routeContentBeforeFooter).toContain("Plan with the oven you actually have.");
-    expect(routeContentBeforeFooter).toContain('href="/session/start"');
+    expect(routeContentBeforeFooter).toContain('href: "/session/start"');
     expect(routeContentBeforeFooter).toContain("Plan a pizza");
-    expect(routeContentBeforeFooter.match(/href="\/session\/start"/g)).toHaveLength(1);
-    expect(page).toContain('href="/guides/dough"');
-    expect(page).toContain('href="/toppings"');
+    expect(routeContentBeforeFooter.match(/href: "\/session\/start"/g)).toHaveLength(1);
+    expect(page).toContain("PublicPageEnding");
+    expect(page).toContain("relatedOvenGuides");
+    expect(page).toContain("What should I learn next?");
+    expect(page).toContain("Explore guide");
+    expect(page).toContain('href: "/guides/dough"');
+    expect(page).toContain('href: "/guide/practical-pizza-tips"');
     expect(page).not.toContain("Compare pizza styles");
     expect(page).not.toContain('href="/start"');
   });

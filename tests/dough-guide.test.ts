@@ -903,7 +903,8 @@ describe("Pizza Dough Guide foundation", () => {
     expect(header).toContain('href: "/guides/dough"');
     expect(header).toContain("Fix pizza problems");
     expect(header).toContain('href: "/guide/pizza-troubleshooting"');
-    expect(guideIndex).toContain("How to make pizza dough");
+    expect(guideIndex).toContain('title: "Dough"');
+    expect(guideIndex).toContain("Build the foundation: flour, water, fermentation and dough handling.");
     expect(guideIndex).toContain('href: "/guides/dough"');
     expect(navigation).toContain('id: "dough-guide"');
     expect(navigation).toContain('href: "/guides/dough"');
@@ -946,12 +947,16 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("buildDoughGuideHref(previousStep.id, sessionReturnPath ?? undefined)");
   });
 
-  it("removes the redundant large related-guides block while preserving step navigation", () => {
+  it("keeps a compact related-guide handoff while preserving step navigation", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
     expect(page).not.toContain("Connect dough technique to the rest of the pizza");
     expect(page).not.toContain("The dough steps make more sense when you connect them to sauce moisture");
-    expect(page).not.toContain("<RelatedLearning");
+    expect(page).toContain("<RelatedLearning");
+    expect(page).toContain('href: "/sauce"');
+    expect(page).toContain('href: "/ovens"');
+    expect(page).toContain('href: "/session/start"');
+    expect(page).toContain('title: "Plan a pizza"');
     expect(page).toContain("<LearningBreadcrumbs");
     expect(page).toContain("<TroubleshootingLinksCard");
     expect(page).toContain("Continue to {nextStep.actionName}");

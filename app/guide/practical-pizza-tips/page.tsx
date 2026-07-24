@@ -92,7 +92,7 @@ export default function PracticalPizzaTipsPage() {
                   <h3 className="mt-4 font-display text-2xl font-semibold">{topic.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-ink/62">{topic.description}</p>
                   <p className="mt-4 text-xs font-extrabold uppercase tracking-[.16em] text-ink/42">
-                    {topic.href ? "Open practical tip" : `Planned for Patch ${topic.plannedPatch}`}
+                    {topic.href ? "Explore guide" : `Planned for Patch ${topic.plannedPatch}`}
                   </p>
                 </>
               );

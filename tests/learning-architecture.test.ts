@@ -17,8 +17,10 @@ describe("learning architecture", () => {
     expect(component).toContain('aria-label="Breadcrumb"');
     expect(component).toContain('aria-current="page"');
     expect(component).toContain("RelatedLearning");
+    expect(component).toContain("Explore guide");
     expect(component).toContain("DoughToolsIcon");
     expect(pageEnding).toContain("PublicPageEnding");
+    expect(pageEnding).toContain("Explore guide");
     expect(pageEnding).toContain("links.length > 3");
     expect(pageEnding).toContain("cannot repeat the same destination");
   });
@@ -92,9 +94,9 @@ describe("learning architecture", () => {
 
     for (const page of educationalSources) {
       expect(page).toContain("LearningBreadcrumbs");
-      expect(page).toContain("/guide");
     }
 
+    expect(educationalSources.join("\n")).toContain("/guide");
     expect(educationalSources.join("\n")).toContain("RelatedLearning");
     expect(educationalSources.join("\n")).toContain("/session/start");
     expect(retiredGear).toContain('permanentRedirect("/ovens#other-equipment")');

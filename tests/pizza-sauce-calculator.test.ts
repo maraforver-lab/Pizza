@@ -429,7 +429,7 @@ describe("simplified pizza sauce page", () => {
     expect(practicalGuidance).not.toContain("SauceMistakeCard");
     expect(practicalGuidance).not.toContain("<details");
     expect(practicalGuidance).not.toContain("<summary");
-    expect(practicalGuidance).toContain("Open deeper troubleshooting");
+    expect(practicalGuidance).toContain("Explore guide");
   });
 
   it("keeps source and storage guidance visible without a second recipe", () => {
@@ -447,15 +447,19 @@ describe("simplified pizza sauce page", () => {
     expect(combined).not.toContain("How much sauce should go on the pizza?");
   });
 
-  it("keeps the final primary action before the footer without a related-learning wall", () => {
+  it("keeps a compact related-guide handoff and one final primary action before the footer", () => {
     const page = source("app/sauce/page.tsx");
     const pageEnding = source("components/learning/PublicPageEnding.tsx");
 
     expect(page).toContain("PublicPageEnding");
     expect(pageEnding).toContain("links.length > 3");
     expect(pageEnding).toContain("cannot repeat the same destination");
-    expect(page).not.toContain("const relatedLinks");
-    expect(page).toContain("links={[]}");
+    expect(pageEnding).toContain("Explore guide");
+    expect(page).toContain("const relatedGuides");
+    expect(page).toContain("links={relatedGuides}");
+    expect(page).toContain('href: "/guides/dough"');
+    expect(page).toContain('href: "/toppings"');
+    expect(page).toContain('relatedTitle="What should I learn next?"');
     expect((page.match(/href: "\/session\/start"/g) ?? []).length).toBe(1);
     expect(page.indexOf("<PublicPageEnding")).toBeLessThan(page.indexOf("<SiteFooter />"));
     expect(page.indexOf("Ready to use the sauce in a real plan?")).toBeLessThan(page.indexOf("<SiteFooter />"));

@@ -172,7 +172,7 @@ const lessons: ToppingLesson[] = [
       ["Balanced", "Thin even coverage, no pools, a clear rim, and tomato presence without flooding the center."],
       ["Too much", "Deep layer, pooled sauce, toppings sliding, slower base baking and possible wet center."],
     ],
-    link: { href: "/sauce", label: "Open Sauce guides" },
+    link: { href: "/sauce", label: "Explore guide" },
   },
   {
     id: "cheese-lesson",
@@ -197,6 +197,21 @@ const lessons: ToppingLesson[] = [
     ],
   },
 ];
+
+const toppingRelatedGuides = [
+  {
+    href: "/sauce",
+    title: "Sauce",
+    description: "Choose the sauce style and amount that fit your topping load.",
+    icon: "chef-hat" as DoughToolsIconName,
+  },
+  {
+    href: "/ovens",
+    title: "Ovens",
+    description: "Learn how heat changes moisture, browning and bake forgiveness.",
+    icon: "oven" as DoughToolsIconName,
+  },
+] as const;
 
 type ToppingReferenceCategory = "sauce" | "cheese" | "moisture";
 type ToppingReferenceState = "light" | "balanced" | "heavy" | "wet" | "drained";
@@ -1337,7 +1352,7 @@ export default function ToppingBalanceLab() {
               </div>
               {lesson.link && (
                 <Link href={lesson.link.href} className="mt-5 inline-flex text-sm font-extrabold text-tomato underline-offset-4 hover:underline">
-                  {lesson.link.label} →
+                  {lesson.link.label}
                 </Link>
               )}
             </article>
@@ -1390,6 +1405,36 @@ export default function ToppingBalanceLab() {
           <ToppingReferenceGallery state={state} result={result} />
         </div>
 
+        <section className="mt-12 rounded-[1.75rem] border border-ink/10 bg-white/72 p-5 shadow-card sm:p-7" aria-labelledby="toppings-related-guides-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Related guides</p>
+          <h2 id="toppings-related-guides-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+            What should I learn next?
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">
+            Connect topping balance to sauce moisture and oven heat.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {toppingRelatedGuides.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="group rounded-[1.35rem] border border-ink/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-tomato/30 hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-leaf/10 text-leaf" aria-hidden="true">
+                    <DoughToolsIcon name={link.icon} size={24} />
+                  </span>
+                  <span className="font-extrabold text-ink transition group-hover:text-tomato">{link.title}</span>
+                </span>
+                <span className="mt-2 block text-sm leading-6 text-ink/55">{link.description}</span>
+                <span className="mt-4 inline-flex text-sm font-extrabold text-tomato transition group-hover:text-ink">
+                  Explore guide
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-12 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-8 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8" aria-labelledby="final-cta-title">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/70">Use what you learned</p>
@@ -1401,9 +1446,6 @@ export default function ToppingBalanceLab() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-0">
             <Link href="/session/start" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-extrabold text-tomato shadow-soft transition hover:-translate-y-0.5 hover:bg-flour focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
               Plan a pizza
-            </Link>
-            <Link href="/guide" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              Return to Pizza guides
             </Link>
           </div>
         </section>

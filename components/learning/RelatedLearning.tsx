@@ -71,6 +71,9 @@ export default function RelatedLearning({
               <span className="font-extrabold text-ink transition group-hover:text-tomato">{link.title}</span>
             </span>
             <span className="mt-2 block text-sm leading-6 text-ink/55">{link.description}</span>
+            <span className="mt-4 inline-flex text-sm font-extrabold text-tomato transition group-hover:text-ink">
+              Explore guide
+            </span>
           </Link>
         ))}
       </div>
@@ -79,7 +82,7 @@ export default function RelatedLearning({
           href={cta.href}
           className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-card transition hover:bg-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
         >
-          {cta.title} →
+          {cta.title}
         </Link>
       )}
     </section>

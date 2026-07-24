@@ -210,7 +210,7 @@ export default function SaucePracticalGuidance() {
           href="/guide/pizza-troubleshooting"
           className="mt-5 inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
         >
-          Open deeper troubleshooting
+          Explore guide
         </Link>
       </section>
 

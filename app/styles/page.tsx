@@ -13,21 +13,21 @@ const practicalDifferences = [
     icon: "mixing-bowl",
     body: "Styles may change hydration, dough-ball size, thickness, flour strength and fermentation timing. The comparison uses existing style preset data where DoughTools has it.",
     href: "/guides/dough",
-    link: "Open Dough guides",
+    link: "Explore guide",
   },
   {
     title: "Oven and bake",
     icon: "oven",
     body: "High-heat pizza ovens, home-oven stone or steel setups, and pan bakes produce different results. A home oven can adapt a style, but it does not become the same environment as a dedicated pizza oven.",
     href: "/ovens",
-    link: "Open Baking guides",
+    link: "Explore guide",
   },
   {
     title: "Sauce and toppings",
     icon: "water",
     body: "Soft, fast bakes usually need restrained moisture. Longer home-oven and pan bakes tolerate different cheese, sauce and topping loads when the structure supports them.",
     href: "/sauce",
-    link: "Open Sauce guides",
+    link: "Explore guide",
   },
 ] as const;
 
@@ -73,9 +73,9 @@ export default function StylesPage() {
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
             {([
               { href: "/guides/dough", title: "Dough guides", description: "Process, fermentation and handling.", icon: "mixing-bowl" },
-              { href: "/sauce", title: "Pizza Sauce", description: "Recipe method and sauce amount.", icon: "water" },
+              { href: "/sauce", title: "Sauce", description: "Recipe method and sauce amount.", icon: "water" },
               { href: "/ovens", title: "Baking guides", description: "Equipment, heat and bake behavior.", icon: "oven" },
-              { href: "/guide/pizza-troubleshooting", title: "Troubleshooting", description: "Dense crust, pale base, sticky dough and launch issues.", icon: "warning" },
+              { href: "/guide/pizza-troubleshooting", title: "Fix pizza problems", description: "Dense crust, pale base, sticky dough and launch issues.", icon: "warning" },
             ] as const).map((link) => (
               <Link key={link.href} href={link.href} className="flex items-start gap-3 rounded-[1rem] border border-ink/10 bg-white px-4 py-3 transition hover:border-tomato/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-leaf/10 text-leaf" aria-hidden="true">

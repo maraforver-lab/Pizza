@@ -171,7 +171,7 @@ export default function CommonProblemsTipPage() {
             <h2 className="mt-3 font-display text-3xl font-semibold sm:text-5xl">Use the full troubleshooting guide.</h2>
           </div>
           <Link href="/guide/pizza-troubleshooting" className={buttonClass({ className: "mt-6 w-full bg-white text-tomato hover:bg-flour sm:w-auto lg:mt-0" })}>
-            Fix pizza problems
+            Explore guide
           </Link>
         </section>
 

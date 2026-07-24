@@ -3,6 +3,7 @@ import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
+import PublicPageEnding, { type PublicPageEndingLink } from "@/components/learning/PublicPageEnding";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import OvenGuideHero from "@/components/ovens/OvenGuideHero";
 import OvensQuickAnswer from "@/components/ovens/OvensQuickAnswer";
@@ -233,6 +234,26 @@ const safetyItems = [
   "Keep hot tools and launch paths clear.",
   "Let stone, steel and oven parts cool before handling.",
 ] as const;
+
+const relatedOvenGuides: readonly PublicPageEndingLink[] = [
+  {
+    title: "Dough",
+    href: "/guides/dough",
+    description: "Review dough handling before opening, launching and baking.",
+  },
+  {
+    title: "Practical Tips",
+    href: "/guide/practical-pizza-tips",
+    description: "Solve storage, timing and common problem decisions after baking.",
+  },
+];
+
+const ovenFinalAction: PublicPageEndingLink = {
+  title: "Plan a pizza",
+  href: "/session/start",
+  description:
+    "Your pizza plan uses your Home oven or Pizza oven choice for the current preheat window, bake guidance and kitchen instructions.",
+};
 
 const equipmentGroups = [
   {
@@ -551,7 +572,7 @@ export default function OvensPage() {
                 <h2 id="uneven-bake-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">Fix an uneven bake</h2>
               </div>
               <Link href="/guide/pizza-troubleshooting" className={buttonClass({ className: "w-full shrink-0 sm:w-auto", variant: "secondary" })}>
-                Open troubleshooting
+                Explore guide
               </Link>
             </div>
             <div className="mt-5">
@@ -706,23 +727,14 @@ export default function OvensPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-[2rem] bg-forest-dark p-6 text-white shadow-raised sm:p-8" aria-labelledby="oven-final-cta-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold">Ready to plan</p>
-          <h2 id="oven-final-cta-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">
-            Plan with the oven you actually have.
-          </h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70">
-            Your pizza plan uses your Home oven or Pizza oven choice for the current preheat window, bake guidance and kitchen instructions.
-          </p>
-          <div className="mt-6">
-            <Link href="/session/start" className={buttonClass({ className: "w-full sm:w-auto", variant: "primary" })}>
-              Plan a pizza
-            </Link>
-          </div>
-          <p className="mt-4 text-xs leading-5 text-white/52">
-            For dough handling, use <Link href="/guides/dough" className="font-bold text-oven-gold underline-offset-2 hover:underline">Dough guides</Link>. For topping moisture, use <Link href="/toppings" className="font-bold text-oven-gold underline-offset-2 hover:underline">Topping guides</Link>.
-          </p>
-        </section>
+        <PublicPageEnding
+          className="mt-8"
+          links={relatedOvenGuides}
+          relatedTitle="What should I learn next?"
+          action={ovenFinalAction}
+          actionEyebrow="Ready to plan"
+          actionTitle="Plan with the oven you actually have."
+        />
 
         <SiteFooter />
       </div>

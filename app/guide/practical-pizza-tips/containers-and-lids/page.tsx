@@ -143,7 +143,7 @@ export default function ContainersAndLidsTipPage() {
             <h2 className="mt-3 font-display text-3xl font-semibold sm:text-5xl">Diagnose the dough problem next.</h2>
           </div>
           <Link href="/guide/practical-pizza-tips/common-problems" className={buttonClass({ className: "mt-6 w-full bg-white text-tomato hover:bg-flour sm:w-auto lg:mt-0" })}>
-            Common problems
+            Explore guide
           </Link>
         </section>
 

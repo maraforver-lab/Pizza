@@ -311,17 +311,22 @@ describe("Topping Balance Lab page structure", () => {
     expect(research).toContain("visual simulation");
   });
 
-  it("removes redundant sources and related-learning sections while keeping the final CTA", () => {
+  it("keeps a compact related-guide handoff and one final CTA", () => {
     expect(component).not.toContain("Sources and methodology");
     expect(component).not.toContain("View topping sources and methodology");
     expect(component).not.toContain("Connect topping balance to the whole pizza");
     expect(component).not.toContain("<RelatedLearning");
     expect(component).not.toContain("Oven and Heat Guide");
     expect(component).not.toContain("Pizza Style Atlas");
+    expect(component).toContain("What should I learn next?");
+    expect(component).toContain("Connect topping balance to sauce moisture and oven heat.");
+    expect(component).toContain('href: "/sauce"');
+    expect(component).toContain('href: "/ovens"');
+    expect(component).toContain("Explore guide");
     expect(component).toContain("Plan a pizza");
-    expect(component).toContain("Return to Pizza guides");
     expect(component).toContain('href="/session/start"');
-    expect(component).toContain('href="/guide"');
+    expect(component).not.toContain("Return to Pizza guides");
+    expect(component).not.toContain('href="/guide"');
     expect(component).not.toContain("docs/research/topping-balance-sources.md");
   });
 

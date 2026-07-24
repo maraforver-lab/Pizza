@@ -146,7 +146,7 @@ export default function LeftoverDoughTipPage() {
             href="/guide/practical-pizza-tips"
             className={buttonClass({ className: "mt-6 w-full bg-white text-tomato hover:bg-flour sm:w-auto lg:mt-0" })}
           >
-            See all practical tips
+            Explore guide
           </Link>
         </section>
 

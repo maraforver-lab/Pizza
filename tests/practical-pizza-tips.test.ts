@@ -61,7 +61,7 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain('href: "/guide/practical-pizza-tips/fermentation-length"');
     expect(page).toContain('href: "/guide/practical-pizza-tips/containers-and-lids"');
     expect(page).toContain('href: "/guide/practical-pizza-tips/common-problems"');
-    expect(page).toContain("Open practical tip");
+    expect(page).toContain("Explore guide");
     expect(guide).toContain('href: "/guide/practical-pizza-tips"');
     expect(navigation).toContain('id: "practical-tips"');
     expect(navigation).toContain('label: "Practical pizza tips"');
@@ -95,7 +95,7 @@ describe("Practical pizza tips landing page", () => {
     expect(page).not.toContain("Practical pizza tips level pattern");
     expect(page).not.toContain("Troubleshoot the current pizza problem.");
     expect(page).not.toContain('href="/guide/pizza-troubleshooting"');
-    expect(page.indexOf("Open practical tip")).toBeLessThan(page.indexOf("<SiteFooter />"));
+    expect(page.indexOf("Explore guide")).toBeLessThan(page.indexOf("<SiteFooter />"));
   });
 
   it("preserves the existing troubleshooting article as a separate Pizza guides destination", () => {
@@ -250,7 +250,7 @@ describe("Practical pizza tips landing page", () => {
     const page = source("app", "guide", "practical-pizza-tips", "common-problems", "page.tsx");
 
     expect(page).toContain('href="/guide/pizza-troubleshooting"');
-    expect(page).toContain("Fix pizza problems");
+    expect(page).toContain("Explore guide");
     expect(page).toContain("Quick fixes for the current pizza.");
     expect(page).not.toContain("Beginner fixes for the current pizza.");
     expect(page).toContain("Under-fermented dough is dense and tight");

@@ -56,10 +56,13 @@ export default function PublicPageEnding({
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato"
+              className="group rounded-[1.5rem] border border-ink/10 bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato"
             >
               <h3 className="text-base font-extrabold">{link.title}</h3>
               <p className="mt-2 text-sm leading-6 text-muted">{link.description}</p>
+              <span className="mt-4 inline-flex text-sm font-extrabold text-tomato transition group-hover:text-ink">
+                Explore guide
+              </span>
             </Link>
           ))}
         </section>
@@ -70,6 +73,7 @@ export default function PublicPageEnding({
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-white/70">{actionEyebrow}</p>
             {actionTitle ? <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">{actionTitle}</h2> : null}
+            {action.description ? <p className="mt-4 max-w-2xl text-sm leading-7 text-white/72">{action.description}</p> : null}
           </div>
           <Link
             href={action.href}

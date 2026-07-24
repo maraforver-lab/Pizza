@@ -54,11 +54,11 @@ const categoryLearningLinks: Record<PizzaTroubleshootingCategoryId, LearningLink
   baking: [
     { href: "/ovens", title: "Baking guides", description: "Understand top heat, bottom heat, preheat and recovery.", icon: "oven" },
     { href: "/styles", title: "Choose your pizza", description: "Choose a style that fits your oven.", icon: "pizza" },
-    { href: "/sauce", title: "Pizza Sauce", description: "Control moisture for the bake you are using.", icon: "water" },
+    { href: "/sauce", title: "Sauce", description: "Control moisture for the bake you are using.", icon: "water" },
   ],
   toppings: [
     { href: "/toppings", title: "Topping guides", description: "Balance moisture, cheese and topping load.", icon: "pizza" },
-    { href: "/sauce", title: "Pizza Sauce", description: "Use sauce amount and texture that fit the pizza.", icon: "water" },
+    { href: "/sauce", title: "Sauce", description: "Use sauce amount and texture that fit the pizza.", icon: "water" },
     { href: "/ovens", title: "Baking guides", description: "Match topping load to heat and bake time.", icon: "oven" },
   ],
 };
@@ -642,12 +642,9 @@ export function PizzaTroubleshootingGuideClient({ activeTopicId, returnPath, con
             title="Practical pizza tips after the diagnosis"
             intro="Most pizza problems connect back to dough handling, sauce moisture, topping load or oven heat."
             links={[
-              { href: "/guides/dough", title: "Dough guides", description: "Review step-by-step dough handling.", icon: "wheat" },
-              { href: "/sauce", title: "Pizza Sauce", description: "Control sauce texture and moisture.", icon: "water" },
+              { href: "/sauce", title: "Sauce", description: "Control sauce texture and moisture.", icon: "water" },
               { href: "/toppings", title: "Topping guides", description: "Balance cheese, moisture and topping load.", icon: "pizza" },
               { href: "/ovens", title: "Baking guides", description: "Understand heat balance and bake profiles.", icon: "oven" },
-              { href: "/styles", title: "Choose your pizza", description: "Match expectations to pizza style.", icon: "pizza" },
-              { href: "/guide", title: "Pizza guides", description: "Return to the full guide hub.", icon: "information" },
             ]}
             cta={{
               href: "/session/start",

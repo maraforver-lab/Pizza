@@ -312,12 +312,14 @@ describe("Pizza Troubleshooting Guide", () => {
 
   it("keeps related guide links restrained and internal", () => {
     const page = troubleshootingPageSource();
+    const relatedLearning = source("components/learning/RelatedLearning.tsx");
 
     expect(page).toContain("Practical pizza tips after the diagnosis");
-    expect(page).toContain('href: "/guides/dough"');
-    expect(page).toContain('href: "/guide"');
+    expect(page).toContain('href: "/sauce"');
+    expect(page).toContain('href: "/toppings"');
     expect(page).toContain('href: "/ovens"');
     expect(page).toContain('href: "/session/start"');
+    expect(relatedLearning).toContain("Explore guide");
   });
 
   it("uses local images and CSS-based diagnostic diagrams without remote images", () => {
@@ -584,7 +586,8 @@ describe("Pizza Troubleshooting Guide", () => {
   it("links the troubleshooting guide from the existing Guide index", () => {
     const guide = source("app/guide/page.tsx");
 
-    expect(guide).toContain("Practical pizza tips");
+    expect(guide).toContain("Practical Tips");
+    expect(guide).toContain('href: "/guide/practical-pizza-tips"');
     expect(guide).toContain("Find causes and fixes when dough, baking or toppings go wrong.");
     expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
   });
