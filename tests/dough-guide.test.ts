@@ -261,6 +261,46 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).not.toContain("Object.entries(DOUGH_QUICK_ANSWER_COPY)");
   });
 
+  it("adds one concise four-stage dough process visual after the quick answer", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("See the dough process");
+    expect(page).toContain("DOUGH_PROCESS_VISUAL_STAGES.map");
+    expect(page).toContain("<DoughProcessVisual />");
+    expect(page.indexOf("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />")).toBeLessThan(
+      page.indexOf("<DoughProcessVisual />"),
+    );
+    expect(page.indexOf("<DoughProcessVisual />")).toBeLessThan(
+      page.indexOf("<StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />"),
+    );
+    expect(page).toContain("lg:grid-cols-4");
+    expect(page).toContain("grid-cols-[5.5rem_1fr]");
+  });
+
+  it("uses existing realistic local Dough guide images for the process visual", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+    const processImages = [
+      "/dough-guide/teaching-step-02-measure.webp",
+      "/dough-guide/teaching-step-03-mix-before-after.webp",
+      "/dough-guide/teaching-step-06-bulk-before-after.webp",
+      "/dough-guide/guide-step-09-proof.webp",
+    ];
+
+    expect(page).toContain("Weigh accurately");
+    expect(page).toContain("Measure every ingredient with a digital scale.");
+    expect(page).toContain("Mix until combined");
+    expect(page).toContain("Stop when no dry flour remains. The dough can still look rough.");
+    expect(page).toContain("Let the dough develop");
+    expect(page).toContain("Look for visible expansion, trapped gas and a softer structure.");
+    expect(page).toContain("Make dough balls");
+    expect(page).toContain("Create smooth balls and give them time to relax before stretching.");
+    for (const image of processImages) {
+      expect(page).toContain(image);
+      expect(existsSync(join(process.cwd(), "public", image.slice(1)))).toBe(true);
+    }
+    expect(page.match(/src: "\/dough-guide\/(?:teaching-step-02-measure|teaching-step-03-mix-before-after|teaching-step-06-bulk-before-after|guide-step-09-proof)\.webp"/g)).toHaveLength(4);
+  });
+
   it("places the compact image after the active step orientation and before the immediate action", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 

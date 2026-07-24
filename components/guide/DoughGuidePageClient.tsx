@@ -101,6 +101,41 @@ const DOUGH_QUICK_ANSWER_STEPS = [
   },
 ] as const;
 
+const DOUGH_PROCESS_VISUAL_STAGES = [
+  {
+    label: "Weigh accurately",
+    helper: "Measure every ingredient with a digital scale.",
+    image: {
+      src: "/dough-guide/teaching-step-02-measure.webp",
+      alt: "Flour, water, salt and yeast prepared beside a mixing bowl on a digital scale.",
+    },
+  },
+  {
+    label: "Mix until combined",
+    helper: "Stop when no dry flour remains. The dough can still look rough.",
+    image: {
+      src: "/dough-guide/teaching-step-03-mix-before-after.webp",
+      alt: "Freshly mixed rough dough in a bowl, changing from floury patches to combined dough.",
+    },
+  },
+  {
+    label: "Let the dough develop",
+    helper: "Look for visible expansion, trapped gas and a softer structure.",
+    image: {
+      src: "/dough-guide/teaching-step-06-bulk-before-after.webp",
+      alt: "Dough before and after fermentation, showing expansion and visible gas in a covered container.",
+    },
+  },
+  {
+    label: "Make dough balls",
+    helper: "Create smooth balls and give them time to relax before stretching.",
+    image: {
+      src: "/dough-guide/guide-step-09-proof.webp",
+      alt: "Smooth shaped dough balls resting in a clean tray under a cover.",
+    },
+  },
+] as const;
+
 function DoughQuickAnswer({
   experienceLevel,
   sessionReturnPath,
@@ -143,6 +178,43 @@ function DoughQuickAnswer({
           Start with weighing
         </Link>
       </div>
+    </section>
+  );
+}
+
+function DoughProcessVisual() {
+  return (
+    <section className="mt-5 rounded-[1.75rem] border border-white/80 bg-white/80 p-3 shadow-card backdrop-blur sm:p-5 lg:p-6" aria-labelledby="dough-process-visual-heading">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 id="dough-process-visual-heading" className="font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">
+            See the dough process
+          </h2>
+        </div>
+      </div>
+
+      <ol className="mt-3 grid gap-2 lg:grid-cols-4">
+        {DOUGH_PROCESS_VISUAL_STAGES.map((stage, index) => (
+          <li key={stage.label} className="grid grid-cols-[5.5rem_1fr] gap-3 rounded-2xl border border-ink/10 bg-cream/70 p-2.5 sm:grid-cols-[7rem_1fr] sm:p-3 lg:grid-cols-1 lg:gap-3 lg:p-3">
+            <figure className="overflow-hidden rounded-xl bg-white shadow-sm">
+              <div className="relative aspect-square lg:aspect-[4/3]">
+                <Image
+                  src={stage.image.src}
+                  alt={stage.image.alt}
+                  fill
+                  sizes="(min-width: 1024px) 18vw, 7rem"
+                  className="object-cover"
+                />
+              </div>
+            </figure>
+            <div className="min-w-0">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-tomato">Stage {index + 1}</p>
+              <h3 className="mt-1 text-sm font-extrabold leading-5 text-ink">{stage.label}</h3>
+              <p className="mt-1 text-xs font-bold leading-5 text-ink/58">{stage.helper}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -548,6 +620,8 @@ export default function DoughGuidePageClient() {
         </section>
 
         <DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />
+
+        <DoughProcessVisual />
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
           <aside className="hidden lg:sticky lg:top-24 lg:block">
