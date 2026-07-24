@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
-import { buttonClass, cardClass, cx } from "@/components/design-system";
+import { buttonClass, cardClass } from "@/components/design-system";
+import { PracticalTipsLevelGuidance } from "@/components/guide/PracticalTipsLevelGuidance";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
-import {
-  EXPERIENCE_LEVELS,
-  getExperienceLevelCornerAccentStyle,
-  type ExperienceLevel,
-} from "@/lib/experience-levels";
+import type { PracticalTipLevelGuidanceItem } from "@/lib/practical-tips-guidance";
 import { metadataForRoute } from "@/lib/seo-config";
 
 export const metadata: Metadata = metadataForRoute("/guide/practical-pizza-tips/fermentation-length");
@@ -84,35 +81,7 @@ const levelGuidance = [
       "Long fermentation risks include gluten weakening, excessive acidity, collapsed structure and a dough that stretches easily but bakes flat.",
     ],
   },
-] as const satisfies readonly {
-  level: ExperienceLevel;
-  title: string;
-  intro: string;
-  steps: readonly string[];
-}[];
-
-function LevelGuidanceCard({ item }: { item: (typeof levelGuidance)[number] }) {
-  const level = EXPERIENCE_LEVELS.find((candidate) => candidate.id === item.level) ?? EXPERIENCE_LEVELS[0];
-
-  return (
-    <article
-      className={cx("rounded-[1.5rem] border p-5 shadow-soft", level.cardClassName)}
-      style={getExperienceLevelCornerAccentStyle(level.id)}
-    >
-      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{level.label}</p>
-      <h3 className="mt-3 font-display text-2xl font-semibold text-ink">{item.title}</h3>
-      <p className="mt-3 text-sm font-bold leading-6 text-ink/66">{item.intro}</p>
-      <ul className="mt-4 grid gap-3 text-sm leading-6 text-ink/66">
-        {item.steps.map((step) => (
-          <li key={step} className="flex gap-2">
-            <DoughToolsIcon name="success" size={16} className="mt-1 shrink-0 text-leaf" />
-            <span>{step}</span>
-          </li>
-        ))}
-      </ul>
-    </article>
-  );
-}
+] as const satisfies readonly PracticalTipLevelGuidanceItem[];
 
 export default function FermentationLengthTipPage() {
   return (
@@ -175,11 +144,7 @@ export default function FermentationLengthTipPage() {
             </ul>
           </aside>
 
-          <div className="grid gap-4" aria-label="Fermentation length guidance by experience level">
-            {levelGuidance.map((item) => (
-              <LevelGuidanceCard key={item.level} item={item} />
-            ))}
-          </div>
+          <PracticalTipsLevelGuidance ariaLabel="Fermentation length guidance by selected experience level" items={levelGuidance} />
         </section>
 
         <section className="mt-8 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-8 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8">

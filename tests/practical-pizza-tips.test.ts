@@ -1,9 +1,47 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { EXPERIENCE_LEVELS } from "@/lib/experience-levels";
+import { EXPERIENCE_LEVELS, EXPERIENCE_LEVEL_STORAGE_KEY } from "@/lib/experience-levels";
+import { selectPracticalTipLevelGuidance, type PracticalTipLevelGuidanceItem } from "@/lib/practical-tips-guidance";
 
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
+
+class MemoryStorage {
+  private data = new Map<string, string>();
+
+  getItem(key: string) {
+    return this.data.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string) {
+    this.data.set(key, value);
+  }
+
+  removeItem(key: string) {
+    this.data.delete(key);
+  }
+}
+
+const sampleGuidance = [
+  {
+    level: "beginner",
+    title: "Beginner only title",
+    intro: "Beginner only intro",
+    steps: ["Beginner only action"],
+  },
+  {
+    level: "enthusiast",
+    title: "Enthusiast only title",
+    intro: "Enthusiast only intro",
+    steps: ["Enthusiast only action"],
+  },
+  {
+    level: "pizza_nerd",
+    title: "Pizza Nerd only title",
+    intro: "Pizza Nerd only intro",
+    steps: ["Pizza Nerd only action"],
+  },
+] as const satisfies readonly PracticalTipLevelGuidanceItem[];
 
 describe("Practical pizza tips landing page", () => {
   it("creates a dedicated Pizza guides destination for planned practical topics", () => {
@@ -90,8 +128,8 @@ describe("Practical pizza tips landing page", () => {
     const page = source("app", "guide", "practical-pizza-tips", "leftover-dough", "page.tsx");
 
     expect(page).toContain("const levelGuidance");
-    expect(page).toContain("EXPERIENCE_LEVELS");
-    expect(page).toContain("type ExperienceLevel");
+    expect(page).toContain("PracticalTipsLevelGuidance");
+    expect(page).toContain("PracticalTipLevelGuidanceItem");
     expect(page).toContain("Safe starting action");
     expect(page).toContain("Storage timing and recovery");
     expect(page).toContain("What storage changes inside the dough");
@@ -113,7 +151,7 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Keep leftover dough covered and cold whenever it is waiting.");
     expect(page).toContain("Thaw frozen dough in the refrigerator first");
     expect(page).toContain("Discard dough that shows mold");
-    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Leftover dough guidance by experience level"));
+    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Leftover dough guidance by selected experience level"));
   });
 
   it("adds a fermentation length page with a clear 12, 24, 48 and 72 hour comparison", () => {
@@ -137,8 +175,8 @@ describe("Practical pizza tips landing page", () => {
     const page = source("app", "guide", "practical-pizza-tips", "fermentation-length", "page.tsx");
 
     expect(page).toContain("const levelGuidance");
-    expect(page).toContain("EXPERIENCE_LEVELS");
-    expect(page).toContain("type ExperienceLevel");
+    expect(page).toContain("PracticalTipsLevelGuidance");
+    expect(page).toContain("PracticalTipLevelGuidanceItem");
     expect(page).toContain("Choose the simplest safe plan");
     expect(page).toContain("Match flavor, strength and schedule");
     expect(page).toContain("Read the time-temperature-yeast system");
@@ -160,7 +198,7 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Do not judge dough readiness by hours alone");
     expect(page).toContain("Discard dough with mold");
     expect(page).toContain("Shorten the plan if the dough is racing ahead");
-    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Fermentation length guidance by experience level"));
+    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Fermentation length guidance by selected experience level"));
   });
 
   it("adds a container and lid page with covered-but-not-pressure-sealed guidance", () => {
@@ -181,11 +219,13 @@ describe("Practical pizza tips landing page", () => {
   it("uses the shared three-level structure for container and lid depth", () => {
     const page = source("app", "guide", "practical-pizza-tips", "containers-and-lids", "page.tsx");
 
+    expect(page).toContain("PracticalTipsLevelGuidance");
+    expect(page).toContain("PracticalTipLevelGuidanceItem");
     expect(page).toContain("Use a covered container with room");
     expect(page).toContain("Control drying, sticking and temperature swings");
     expect(page).toContain("Read headspace, humidity and gas expansion");
     expect(page).toContain("A pressure-tight setup is unnecessary");
-    expect(page).toContain("Container and lid guidance by experience level");
+    expect(page).toContain("Container and lid guidance by selected experience level");
     expect(EXPERIENCE_LEVELS.map((level) => level.label)).toEqual(["Beginner", "Enthusiast", "Pizza Nerd"]);
   });
 
@@ -211,10 +251,112 @@ describe("Practical pizza tips landing page", () => {
 
     expect(page).toContain('href="/guide/pizza-troubleshooting"');
     expect(page).toContain("Fix pizza problems");
+    expect(page).toContain("Quick fixes for the current pizza.");
+    expect(page).not.toContain("Beginner fixes for the current pizza.");
     expect(page).toContain("Under-fermented dough is dense and tight");
     expect(page).toContain("Sauce water activity and total topping mass");
     expect(page).toContain("Top-to-bottom heat balance");
     expect(page).toContain("Safety beats saving a bad batch.");
-    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Common problem guidance by experience level"));
+    expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("Common problem guidance by selected experience level"));
+  });
+
+  it("renders Practical Tips article guidance through one selected-level component", () => {
+    const articlePaths = [
+      ["leftover-dough", "Leftover dough guidance by selected experience level"],
+      ["fermentation-length", "Fermentation length guidance by selected experience level"],
+      ["containers-and-lids", "Container and lid guidance by selected experience level"],
+      ["common-problems", "Common problem guidance by selected experience level"],
+    ] as const;
+
+    for (const [slug, ariaLabel] of articlePaths) {
+      const page = source("app", "guide", "practical-pizza-tips", slug, "page.tsx");
+
+      expect(page).toContain("<PracticalTipsLevelGuidance");
+      expect(page).toContain(`ariaLabel="${ariaLabel}"`);
+      expect(page).toContain("items={levelGuidance}");
+      expect(page).not.toContain("levelGuidance.map");
+      expect(page).not.toContain("LevelGuidanceCard");
+      expect(page).not.toContain("EXPERIENCE_LEVELS");
+      expect(page).not.toContain("getExperienceLevelCornerAccentStyle");
+    }
+  });
+
+  it("selects only Beginner guidance when Beginner is stored", () => {
+    const storage = new MemoryStorage();
+    storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "beginner");
+
+    const selected = selectPracticalTipLevelGuidance(sampleGuidance, storage);
+
+    expect(selected.title).toBe("Beginner only title");
+    expect(selected.intro).toContain("Beginner only intro");
+    expect(selected.steps.join(" ")).toContain("Beginner only action");
+    expect(selected.title).not.toBe("Enthusiast only title");
+    expect(selected.title).not.toBe("Pizza Nerd only title");
+  });
+
+  it("selects only Enthusiast guidance when Enthusiast is stored", () => {
+    const storage = new MemoryStorage();
+    storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "enthusiast");
+
+    const selected = selectPracticalTipLevelGuidance(sampleGuidance, storage);
+
+    expect(selected.title).toBe("Enthusiast only title");
+    expect(selected.intro).toContain("Enthusiast only intro");
+    expect(selected.steps.join(" ")).toContain("Enthusiast only action");
+    expect(selected.title).not.toBe("Beginner only title");
+    expect(selected.title).not.toBe("Pizza Nerd only title");
+  });
+
+  it("selects only Pizza Nerd guidance when Pizza Nerd is stored", () => {
+    const storage = new MemoryStorage();
+    storage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "pizza_nerd");
+
+    const selected = selectPracticalTipLevelGuidance(sampleGuidance, storage);
+
+    expect(selected.title).toBe("Pizza Nerd only title");
+    expect(selected.intro).toContain("Pizza Nerd only intro");
+    expect(selected.steps.join(" ")).toContain("Pizza Nerd only action");
+    expect(selected.title).not.toBe("Beginner only title");
+    expect(selected.title).not.toBe("Enthusiast only title");
+  });
+
+  it("uses the canonical Beginner fallback for missing and invalid preferences", () => {
+    const missingStorage = new MemoryStorage();
+    const invalidStorage = new MemoryStorage();
+    invalidStorage.setItem(EXPERIENCE_LEVEL_STORAGE_KEY, "wizard");
+
+    expect(selectPracticalTipLevelGuidance(sampleGuidance, missingStorage).level).toBe("beginner");
+    expect(selectPracticalTipLevelGuidance(sampleGuidance, invalidStorage).level).toBe("beginner");
+    expect(invalidStorage.getItem(EXPERIENCE_LEVEL_STORAGE_KEY)).toBe("beginner");
+  });
+
+  it("keeps shared article content, CTAs and footers outside selected-level filtering", () => {
+    const articlePaths = ["leftover-dough", "fermentation-length", "containers-and-lids", "common-problems"] as const;
+
+    for (const slug of articlePaths) {
+      const page = source("app", "guide", "practical-pizza-tips", slug, "page.tsx");
+
+      expect(page).toContain("Always visible");
+      expect(page).toContain("<SiteFooter />");
+      expect(page).toContain('href="/guide/');
+      expect(page.indexOf("Always visible")).toBeLessThan(page.indexOf("<PracticalTipsLevelGuidance"));
+    }
+  });
+
+  it("keeps Practical Tips isolated from Pizza Plan and calculator behavior", () => {
+    const component = source("components", "guide", "PracticalTipsLevelGuidance.tsx");
+    const helper = source("lib", "practical-tips-guidance.ts");
+    const articleSources = [
+      source("app", "guide", "practical-pizza-tips", "leftover-dough", "page.tsx"),
+      source("app", "guide", "practical-pizza-tips", "fermentation-length", "page.tsx"),
+      source("app", "guide", "practical-pizza-tips", "containers-and-lids", "page.tsx"),
+      source("app", "guide", "practical-pizza-tips", "common-problems", "page.tsx"),
+    ].join("\n");
+
+    expect(component).toContain("selectPracticalTipLevelGuidance");
+    expect(helper).toContain("readExperienceLevelPreference");
+    expect(component).not.toMatch(/writeExperienceLevelPreference|localStorage\\.setItem|calculateDough|PizzaSession|updatePizzaSession/);
+    expect(helper).not.toMatch(/writeExperienceLevelPreference|localStorage\\.setItem|calculateDough|PizzaSession|updatePizzaSession/);
+    expect(articleSources).not.toMatch(/calculateDough|PizzaSession|updatePizzaSession|setActivePizzaSession|QuickDoughCalculator|SauceCalculator/);
   });
 });

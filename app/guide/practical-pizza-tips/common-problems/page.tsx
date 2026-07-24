@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
-import { buttonClass, cardClass, cx } from "@/components/design-system";
+import { buttonClass, cardClass } from "@/components/design-system";
+import { PracticalTipsLevelGuidance } from "@/components/guide/PracticalTipsLevelGuidance";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
-import {
-  EXPERIENCE_LEVELS,
-  getExperienceLevelCornerAccentStyle,
-  type ExperienceLevel,
-} from "@/lib/experience-levels";
+import type { PracticalTipLevelGuidanceItem } from "@/lib/practical-tips-guidance";
 import { metadataForRoute } from "@/lib/seo-config";
 
 export const metadata: Metadata = metadataForRoute("/guide/practical-pizza-tips/common-problems");
 
-const beginnerFixes = [
+const quickFixes = [
   ["Dough too sticky", "Oil your hands lightly, use a scraper and avoid adding lots of flour at the end."],
   ["Dough too tight", "Cover it and let it relax before stretching again."],
   ["Dough spread flat", "Handle it gently, bake sooner next time and check whether it over-fermented."],
@@ -86,32 +83,7 @@ const levelGuidance = [
       "Diagnose by stage: mix, ferment, store, open, top, launch and bake instead of changing every variable at once.",
     ],
   },
-] as const satisfies readonly {
-  level: ExperienceLevel;
-  title: string;
-  intro: string;
-  steps: readonly string[];
-}[];
-
-function LevelGuidanceCard({ item }: { item: (typeof levelGuidance)[number] }) {
-  const level = EXPERIENCE_LEVELS.find((candidate) => candidate.id === item.level) ?? EXPERIENCE_LEVELS[0];
-
-  return (
-    <article className={cx("rounded-[1.5rem] border p-5 shadow-soft", level.cardClassName)} style={getExperienceLevelCornerAccentStyle(level.id)}>
-      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">{level.label}</p>
-      <h3 className="mt-3 font-display text-2xl font-semibold text-ink">{item.title}</h3>
-      <p className="mt-3 text-sm font-bold leading-6 text-ink/66">{item.intro}</p>
-      <ul className="mt-4 grid gap-3 text-sm leading-6 text-ink/66">
-        {item.steps.map((step) => (
-          <li key={step} className="flex gap-2">
-            <DoughToolsIcon name="success" size={16} className="mt-1 shrink-0 text-leaf" />
-            <span>{step}</span>
-          </li>
-        ))}
-      </ul>
-    </article>
-  );
-}
+] as const satisfies readonly PracticalTipLevelGuidanceItem[];
 
 export default function CommonProblemsTipPage() {
   return (
@@ -137,15 +109,15 @@ export default function CommonProblemsTipPage() {
           </div>
         </section>
 
-        <section className="mt-8" aria-labelledby="beginner-fixes-title">
+        <section className="mt-8" aria-labelledby="quick-fixes-title">
           <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Problem to action</p>
-            <h2 id="beginner-fixes-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-              Beginner fixes for the current pizza.
+            <h2 id="quick-fixes-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+              Quick fixes for the current pizza.
             </h2>
           </div>
           <div className="mt-6 grid gap-3 md:grid-cols-2">
-            {beginnerFixes.map(([problem, action]) => (
+            {quickFixes.map(([problem, action]) => (
               <article key={problem} className={cardClass({ className: "p-4", variant: "default" })}>
                 <h3 className="font-display text-xl font-semibold">{problem}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink/62">{action}</p>
@@ -190,11 +162,7 @@ export default function CommonProblemsTipPage() {
             </ul>
           </aside>
 
-          <div className="grid gap-4" aria-label="Common problem guidance by experience level">
-            {levelGuidance.map((item) => (
-              <LevelGuidanceCard key={item.level} item={item} />
-            ))}
-          </div>
+          <PracticalTipsLevelGuidance ariaLabel="Common problem guidance by selected experience level" items={levelGuidance} />
         </section>
 
         <section className="mt-8 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-8 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8">
