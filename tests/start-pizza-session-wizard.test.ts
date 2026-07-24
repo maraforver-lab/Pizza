@@ -152,30 +152,40 @@ describe("Start Pizza Session wizard", () => {
     expect(page).not.toContain('step === "oven" && Boolean(session?.ovenType)');
   });
 
-  it("shows dough ball size and yeast type controls only for Pizza Nerd users", () => {
+  it("makes dough ball size and yeast type controls available to every guidance level", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("function shouldShowPizzaNerdDoughControls(level: ExperienceLevel)");
-    expect(page).toContain("return level === \"pizza_nerd\"");
-    expect(page).toContain("const showPizzaNerdDoughControls = shouldShowPizzaNerdDoughControls(experienceLevel)");
-    expect(page).toContain("{showPizzaNerdDoughControls && (");
+    expect(page).not.toContain("function shouldShowPizzaNerdDoughControls");
+    expect(page).not.toContain("showPizzaNerdDoughControls");
+    expect(page).toContain("Advanced dough settings");
+    expect(page).toContain("doughSettingsHelperCopy[experienceLevel]");
     expect(page).toContain("Dough ball size");
     expect(page).toContain("Custom grams per dough ball");
     expect(page).toContain("Yeast type");
     expect(page).toContain("sessionYeastTypeOptions.map");
   });
 
-  it("uses simple dough and yeast defaults for Beginner and Enthusiast sessions", () => {
+  it("uses the same canonical dough and yeast defaults for every guidance level", () => {
     const page = source("app/session/start/page.tsx");
 
-    expect(page).toContain("const SIMPLE_SESSION_DOUGH_BALL_WEIGHT = 260");
-    expect(page).toContain("function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): PizzaSessionPatch");
-    expect(page).toContain("if (shouldShowPizzaNerdDoughControls(level)) return {}");
-    expect(page).toContain("doughBallWeight: SIMPLE_SESSION_DOUGH_BALL_WEIGHT");
-    expect(page).toContain("yeastType: DEFAULT_SESSION_YEAST_TYPE");
-    expect(page).toContain("const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession)");
-    expect(page).toContain("setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)))");
+    expect(page).not.toContain("SIMPLE_SESSION_DOUGH_BALL_WEIGHT");
+    expect(page).not.toContain("simpleDoughDefaultsPatchForLevel");
+    expect(page).not.toContain("DEFAULT_SESSION_YEAST_TYPE");
+    expect(page).toContain("setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(supportedSession)))");
     expect(source("lib/yeast-types.ts")).toContain('DEFAULT_SESSION_YEAST_TYPE: YeastType = "ady"');
+
+    const sessions = (["beginner", "enthusiast", "pizza_nerd"] as const).map((level) => createPizzaSession({
+      id: `canonical-${level}`,
+      status: "planning",
+      currentStep: "style",
+      experienceLevel: level,
+      pizzaStyle: "pizza-oven",
+      ovenType: "gas",
+      pizzaCount: 4,
+    }));
+
+    expect(sessions.map((session) => session.doughBallWeight)).toEqual([undefined, undefined, undefined]);
+    expect(sessions.map((session) => session.yeastType)).toEqual(["ady", "ady", "ady"]);
   });
 
   it("keeps the setup to the first five V2 choices and routes quantity directly to flour", () => {
@@ -449,11 +459,48 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("experienceLevel: preferredLevel");
     expect(page).toContain("const sessionLevel = baseSession.experienceLevel");
     expect(page).toContain("experienceLevel: session.experienceLevel");
-    expect(page).toContain("simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession)");
+    expect(page).not.toContain("simpleDoughDefaultsPatchForLevel");
     expect(page).toContain("setExperienceLevel(sessionLevel)");
     expect(page).not.toContain("const level = readExperienceLevelPreference()");
     expect(page).not.toContain("setExperienceLevel(level)");
-    expect(page).not.toContain("simpleDoughDefaultsPatchForLevel(level, supportedSession)");
+  });
+
+  it("keeps calculation inputs stable when only the guidance level changes", () => {
+    const storage = new MemoryStorage();
+    const started = createAndSavePizzaSession(
+      {
+        id: "guidance-only-change",
+        status: "planning",
+        currentStep: "quantity",
+        experienceLevel: "beginner",
+        pizzaStyle: "pizza-oven",
+        ovenType: "gas",
+        pizzaCount: 4,
+        doughBallWeight: 280,
+        yeastType: "idy",
+      },
+      storage,
+      new Date("2026-07-10T10:00:00.000Z"),
+    );
+    setActivePizzaSession(started.id, storage);
+
+    const updated = updatePizzaSession(
+      started.id,
+      { experienceLevel: "pizza_nerd" },
+      storage,
+      new Date("2026-07-10T10:05:00.000Z"),
+    );
+
+    expect(updated).toMatchObject({
+      experienceLevel: "pizza_nerd",
+      doughBallWeight: 280,
+      yeastType: "idy",
+    });
+    expect(getActivePizzaSession(storage)).toMatchObject({
+      experienceLevel: "pizza_nerd",
+      doughBallWeight: 280,
+      yeastType: "idy",
+    });
   });
 
   it("keeps Beginner, Enthusiast and Pizza Nerd on the active local session across updates", () => {
@@ -796,7 +843,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("function createPlanningDraftSession");
     expect(page).toContain("const baseSession = active ?? createPlanningDraftSession(preferredLevel, requestedStep)");
     expect(page).toContain("const shouldPersistInitialSession = Boolean(active)");
-    expect(page).toContain("if (shouldPersistInitialSession) setActivePizzaSession(experienceScopedSession.id)");
+    expect(page).toContain("if (shouldPersistInitialSession) setActivePizzaSession(supportedSession.id)");
     expect(page).toContain("const persistedActiveSession = getActivePizzaSession()?.id === session.id");
     expect(page).toContain("if (getActivePizzaSession()?.id !== session.id) return");
     expect(page).toContain("const readyForRecipe = applySessionPatchInMemory(session, { lastRoute: \"/session/recipe\" }, \"summary\", experienceLevel, \"/session/recipe\")");

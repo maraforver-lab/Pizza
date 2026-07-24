@@ -45,7 +45,7 @@ import {
   setActivePizzaSession,
   updatePizzaSession,
 } from "@/lib/pizza-session-storage";
-import { DEFAULT_SESSION_YEAST_TYPE, normalizeSessionYeastType, sessionYeastTypeOptions } from "@/lib/yeast-types";
+import { normalizeSessionYeastType, sessionYeastTypeOptions } from "@/lib/yeast-types";
 
 type WizardStep = "path" | "preset" | "time" | "quantity" | "flour" | "summary";
 type SessionStyle = "home-oven" | "pizza-oven" | "pan-tray" | "not-sure";
@@ -131,7 +131,6 @@ const doughStartOptions: Array<{
 const DOUGH_BALL_WEIGHT_OPTIONS = [220, 240, 260, 280, 300] as const;
 const MIN_DOUGH_BALL_WEIGHT = 180;
 const MAX_DOUGH_BALL_WEIGHT = 350;
-const SIMPLE_SESSION_DOUGH_BALL_WEIGHT = 260;
 
 const doughBallWeightGuidance: Record<typeof DOUGH_BALL_WEIGHT_OPTIONS[number], {
   pizzaSize: string;
@@ -232,6 +231,12 @@ const levelCopy: Record<ExperienceLevel, Record<WizardStep, string>> = {
     flour: "Capture the flour W-range now. Formula calculations still use the legacy flour default until a later planning patch consumes these ranges.",
     summary: "The local session now has enough context to hand off to recipe calculation without changing formulas.",
   },
+};
+
+const doughSettingsHelperCopy: Record<ExperienceLevel, string> = {
+  beginner: "Use these if you know your oven or appetite needs a different dough ball size or yeast type.",
+  enthusiast: "Tune dough ball size and yeast type when you want the batch to match your oven, appetite and ingredients.",
+  pizza_nerd: "These inputs feed the same formula model for every guidance level: ball weight changes batch mass, and yeast type changes the yeast conversion.",
 };
 
 function stepToSessionStep(step: WizardStep): PizzaSessionStep {
@@ -381,22 +386,6 @@ function defaultDoughBallWeight(session: PizzaSession) {
 
 function effectiveDoughBallWeight(session: PizzaSession) {
   return session.doughBallWeight ?? defaultDoughBallWeight(session);
-}
-
-function shouldShowPizzaNerdDoughControls(level: ExperienceLevel) {
-  return level === "pizza_nerd";
-}
-
-function simpleDoughDefaultsPatchForLevel(level: ExperienceLevel, session: PizzaSession): PizzaSessionPatch {
-  if (shouldShowPizzaNerdDoughControls(level)) return {};
-  return {
-    ...(session.doughBallWeight !== SIMPLE_SESSION_DOUGH_BALL_WEIGHT
-      ? { doughBallWeight: SIMPLE_SESSION_DOUGH_BALL_WEIGHT }
-      : {}),
-    ...(session.yeastType !== DEFAULT_SESSION_YEAST_TYPE
-      ? { yeastType: DEFAULT_SESSION_YEAST_TYPE }
-      : {}),
-  };
 }
 
 function validRoundDoughBallWeight(value: number) {
@@ -680,17 +669,12 @@ function StartPizzaSessionContent() {
         }, shouldPersistInitialSession)
         : nextSession;
 
-      const simpleDefaultsPatch = simpleDoughDefaultsPatchForLevel(sessionLevel, supportedSession);
-      const experienceScopedSession = Object.keys(simpleDefaultsPatch).length
-        ? applyLoadSessionPatch(supportedSession, simpleDefaultsPatch, shouldPersistInitialSession)
-        : supportedSession;
-
       if (!mounted) return;
-      if (shouldPersistInitialSession) setActivePizzaSession(experienceScopedSession.id);
+      if (shouldPersistInitialSession) setActivePizzaSession(supportedSession.id);
       setExperienceLevel(sessionLevel);
-      setSession(experienceScopedSession);
-      setTargetTimeDraft(experienceScopedSession.targetEatTime ?? "");
-      setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(experienceScopedSession)));
+      setSession(supportedSession);
+      setTargetTimeDraft(supportedSession.targetEatTime ?? "");
+      setCustomDoughBallWeightDraft(String(effectiveDoughBallWeight(supportedSession)));
       if (hasSavedTargetTime) {
         setSelectedDayChoice("custom-date");
         setSelectedTimeChoice("custom-time");
@@ -698,7 +682,7 @@ function StartPizzaSessionContent() {
         setSelectedDayChoice("tomorrow");
         setSelectedTimeChoice("dinner");
       }
-      const restoredStep = requestedStep ?? wizardStepFromQuery(new URLSearchParams(experienceScopedSession.lastRoute?.split("?")[1] ?? "").get("step")) ?? initialWizardStep(experienceScopedSession);
+      const restoredStep = requestedStep ?? wizardStepFromQuery(new URLSearchParams(supportedSession.lastRoute?.split("?")[1] ?? "").get("step")) ?? initialWizardStep(supportedSession);
       setStep(restoredStep);
       setReady(true);
     }
@@ -996,7 +980,6 @@ function StartPizzaSessionContent() {
   const showCustomTargetInput = selectedDayChoice === "custom-date" || selectedTimeChoice === "custom-time";
   const activeDoughStartMode = session.doughStartMode ?? "recommend";
   const levelMainAccent = getExperienceLevelCornerAccentStyle(experienceLevel);
-  const showPizzaNerdDoughControls = shouldShowPizzaNerdDoughControls(experienceLevel);
   const setupSummaryCards = [
     { label: "Oven", value: selectedOvenLabel ?? "Not selected yet", icon: "oven" },
     { label: "Style", value: hasSelectedDoughStyle ? "Neapolitan-style" : "Not selected yet", icon: "pizza" },
@@ -1310,8 +1293,19 @@ function StartPizzaSessionContent() {
                 </label>
               </section>
 
-              {showPizzaNerdDoughControls && (
-                <>
+              <details className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5">
+                <summary className="cursor-pointer list-none rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                  <span className="flex items-start justify-between gap-3">
+                    <span>
+                      <span className="block text-sm font-extrabold text-ink">Advanced dough settings</span>
+                      <span className="mt-1 block text-xs font-bold leading-5 text-ink/50">{doughSettingsHelperCopy[experienceLevel]}</span>
+                    </span>
+                    <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-ink/50">
+                      <DoughToolsIcon name="chevron-down" size={20} strokeWidth={2.4} />
+                    </span>
+                  </span>
+                </summary>
+                <div className="mt-4 grid gap-4">
                   <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="dough-ball-size-heading">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -1430,8 +1424,8 @@ function StartPizzaSessionContent() {
                       })}
                     </div>
                   </section>
-                </>
-              )}
+                </div>
+              </details>
             </div>
           )}
 

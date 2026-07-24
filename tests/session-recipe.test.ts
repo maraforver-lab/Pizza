@@ -405,13 +405,14 @@ describe("Session recipe build step", () => {
     expect(page).toContain("label.startsWith(\"Yeast\")");
   });
 
-  it("shows Pizza Nerd-only hydration and temperature controls in the Dough Plan ingredients card", () => {
+  it("shows shared advanced hydration and temperature controls in the Dough Plan ingredients card", () => {
     const page = source("app/session/recipe/page.tsx");
 
-    expect(page).toContain("showPizzaNerdControls = session.experienceLevel === \"pizza_nerd\"");
-    expect(page).toContain("{showPizzaNerdControls && (");
-    expect(page).toContain("Pizza Nerd controls");
-    expect(page).toContain("Fine-tune dough behavior.");
+    expect(page).not.toContain("showPizzaNerdControls = session.experienceLevel === \"pizza_nerd\"");
+    expect(page).not.toContain("{showPizzaNerdControls && (");
+    expect(page).not.toContain("Pizza Nerd controls");
+    expect(page).toContain("Advanced dough settings");
+    expect(page).toContain("advancedDoughSettingsCopy[session.experienceLevel]");
     expect(page).toContain("Hydration");
     expect(page).toContain("Temperature");
     expect(page).toContain("aria-label=\"Decrease hydration\"");
@@ -430,7 +431,7 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("aria-label={temperatureBounds.label}");
   });
 
-  it("bounds Pizza Nerd hydration and temperature steppers with disabled min and max buttons", () => {
+  it("bounds hydration and temperature steppers with the existing disabled min and max buttons", () => {
     const page = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("Math.max(50, Math.min(80, result.settings.hydration + delta))");
@@ -444,7 +445,7 @@ describe("Session recipe build step", () => {
     expect(page).toContain("type=\"button\"");
   });
 
-  it("shows compact Pizza Nerd hydration impact guidance only when hydration differs from the default", () => {
+  it("shows compact hydration impact guidance only when hydration differs from the default", () => {
     const page = source("app/session/recipe/page.tsx");
 
     expect(page).toContain("function hydrationImpactMessage");
@@ -460,17 +461,17 @@ describe("Session recipe build step", () => {
     expect(page).toContain("Hydration impact");
   });
 
-  it("uses active hydration as the Pizza Nerd control default and recalculates ingredients without changing total dough", () => {
+  it("uses active hydration as the shared control default and recalculates ingredients without changing total dough", () => {
     const now = new Date("2026-07-03T12:00:00.000Z");
     const baseSession = createPizzaSession({
       ...completeSessionInput,
-      experienceLevel: "pizza_nerd",
+      experienceLevel: "beginner",
       targetEatTime: "2026-07-03T18:00",
       doughStartMode: "now",
     }, now);
     const overrideSession = createPizzaSession({
       ...completeSessionInput,
-      experienceLevel: "pizza_nerd",
+      experienceLevel: "beginner",
       targetEatTime: "2026-07-03T18:00",
       doughStartMode: "now",
       hydrationPercentOverride: 70,
@@ -492,18 +493,18 @@ describe("Session recipe build step", () => {
     expect(override.recipeSnapshot.waterAmount).toBeCloseTo(override.ingredients.water, 6);
   });
 
-  it("defaults fermentation temperature by mode and lets Pizza Nerd temperature override affect continuous yeast direction", () => {
+  it("defaults fermentation temperature by mode and lets temperature override affect continuous yeast direction", () => {
     const now = new Date("2026-07-02T20:00:00.000Z");
     const room = buildSessionRecipe(createPizzaSession({
       ...completeSessionInput,
-      experienceLevel: "pizza_nerd",
+      experienceLevel: "beginner",
       targetEatTime: "2026-07-03T02:00",
       doughStartMode: "now",
     }, now), now);
     const coldDefault = buildSessionRecipe(createPizzaSession({
       ...completeSessionInput,
       id: "cold-default-temp",
-      experienceLevel: "pizza_nerd",
+      experienceLevel: "beginner",
       pizzaStyle: "home-oven",
       ovenType: "home",
       pizzaPreset: "margherita",
@@ -513,7 +514,7 @@ describe("Session recipe build step", () => {
     const coldWarmer = buildSessionRecipe(createPizzaSession({
       ...completeSessionInput,
       id: "cold-warmer-temp",
-      experienceLevel: "pizza_nerd",
+      experienceLevel: "beginner",
       pizzaStyle: "home-oven",
       ovenType: "home",
       pizzaPreset: "margherita",
@@ -524,7 +525,7 @@ describe("Session recipe build step", () => {
     const coldColder = buildSessionRecipe(createPizzaSession({
       ...completeSessionInput,
       id: "cold-colder-temp",
-      experienceLevel: "pizza_nerd",
+      experienceLevel: "beginner",
       pizzaStyle: "home-oven",
       ovenType: "home",
       pizzaPreset: "margherita",
@@ -549,13 +550,13 @@ describe("Session recipe build step", () => {
     expect(coldColder.ingredients.leavener).toBeGreaterThan(coldDefault.ingredients.leavener);
   });
 
-  it("persists Pizza Nerd overrides into the active session and regenerated recipe snapshot", () => {
+  it("persists shared overrides into the active session and regenerated recipe snapshot", () => {
     const storage = new MemoryStorage();
     const now = new Date("2026-07-03T12:00:00.000Z");
     const session = createAndSavePizzaSession({
       ...completeSessionInput,
-      id: "pizza-nerd-overrides",
-      experienceLevel: "pizza_nerd",
+      id: "shared-overrides",
+      experienceLevel: "enthusiast",
       targetEatTime: "2026-07-03T18:00",
       doughStartMode: "now",
       hydrationPercentOverride: 68,
@@ -571,6 +572,63 @@ describe("Session recipe build step", () => {
     expect(updatedSession?.recipeSnapshot?.hydration).toBe(68);
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("hydrationPercentOverride");
     expect(storage.getItem(PIZZA_SESSIONS_STORAGE_KEY)).toContain("fermentationTemperatureCOverride");
+  });
+
+  it("produces identical recipe output for identical override values at every guidance level", () => {
+    const now = new Date("2026-07-03T12:00:00.000Z");
+    const results = (["beginner", "enthusiast", "pizza_nerd"] as const).map((experienceLevel) => buildSessionRecipe(createPizzaSession({
+      ...completeSessionInput,
+      id: `override-equivalence-${experienceLevel}`,
+      experienceLevel,
+      targetEatTime: "2026-07-03T18:00",
+      doughStartMode: "now",
+      hydrationPercentOverride: 68,
+      fermentationTemperatureCOverride: 24,
+    }, now), now));
+
+    for (const result of results) {
+      expect(result.ok).toBe(true);
+    }
+    if (!results.every((result) => result.ok)) throw new Error("Expected recipe results");
+
+    const [beginner, enthusiast, pizzaNerd] = results;
+    if (!beginner.ok || !enthusiast.ok || !pizzaNerd.ok) throw new Error("Expected ok results");
+
+    expect(enthusiast.recipeParams).toEqual(beginner.recipeParams);
+    expect(pizzaNerd.recipeParams).toEqual(beginner.recipeParams);
+    expect(enthusiast.recipeSnapshot).toEqual(beginner.recipeSnapshot);
+    expect(pizzaNerd.recipeSnapshot).toEqual(beginner.recipeSnapshot);
+    expect(enthusiast.ingredients).toEqual(beginner.ingredients);
+    expect(pizzaNerd.ingredients).toEqual(beginner.ingredients);
+  });
+
+  it("changing only guidance level does not create overrides or change ingredient amounts", () => {
+    const now = new Date("2026-07-03T12:00:00.000Z");
+    const sessions = (["beginner", "enthusiast", "pizza_nerd"] as const).map((experienceLevel) => createPizzaSession({
+      ...completeSessionInput,
+      id: `guidance-only-recipe-${experienceLevel}`,
+      experienceLevel,
+      targetEatTime: "2026-07-03T18:00",
+      doughStartMode: "now",
+    }, now));
+    const results = sessions.map((session) => buildSessionRecipe(session, now));
+
+    for (const session of sessions) {
+      expect(session.hydrationPercentOverride).toBeUndefined();
+      expect(session.fermentationTemperatureCOverride).toBeUndefined();
+    }
+    for (const result of results) {
+      expect(result.ok).toBe(true);
+    }
+    if (!results.every((result) => result.ok)) throw new Error("Expected recipe results");
+
+    const [beginner, enthusiast, pizzaNerd] = results;
+    if (!beginner.ok || !enthusiast.ok || !pizzaNerd.ok) throw new Error("Expected ok results");
+
+    expect(enthusiast.ingredients).toEqual(beginner.ingredients);
+    expect(pizzaNerd.ingredients).toEqual(beginner.ingredients);
+    expect(enthusiast.recipeParams).toEqual(beginner.recipeParams);
+    expect(pizzaNerd.recipeParams).toEqual(beginner.recipeParams);
   });
 
   it("feeds regenerated hydration override amounts into downstream Shopping dough quantities", () => {

@@ -85,6 +85,12 @@ function hydrationImpactMessage(current: number, baseline: number) {
   return null;
 }
 
+const advancedDoughSettingsCopy: Record<PizzaSession["experienceLevel"], string> = {
+  beginner: "Use these only when you want to adjust how soft the dough feels or match your actual fermentation temperature.",
+  enthusiast: "Tune hydration and temperature when dough handling, fermentation speed or bake timing needs a practical adjustment.",
+  pizza_nerd: "These controls feed the same recipe model for every guidance level: hydration changes the flour-water balance, and temperature changes yeast activity.",
+};
+
 function fermentationOptionIsActive(selected: number | undefined, option: number) {
   return typeof selected === "number" && Number.isFinite(selected) && Math.abs(selected - option) < 0.11;
 }
@@ -280,7 +286,6 @@ export default function SessionRecipePage() {
     && !longHorizonRecommendation,
   );
   const selectedFermentationHours = result.continuousYeast?.selectedFermentationHours;
-  const showPizzaNerdControls = session.experienceLevel === "pizza_nerd";
   const fermentationModeForControls = activeFermentationMode(result);
   const temperatureBounds = fermentationTemperatureBounds(fermentationModeForControls);
   const activeFermentationTemperatureC = result.continuousYeast?.recommendation.temperatureC
@@ -429,76 +434,74 @@ export default function SessionRecipePage() {
                       <dt className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/40">Dough balls</dt>
                       <dd className="mt-1 text-sm font-extrabold text-ink">{result.settings.pizzas} × {result.settings.ballWeight} g</dd>
                     </div>
-                    {showPizzaNerdControls && (
-                      <div className="rounded-2xl border border-leaf/20 bg-white p-3" aria-label="Pizza Nerd controls">
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                          <div className="min-w-0">
-                            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-leaf">Pizza Nerd controls</p>
-                            <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Fine-tune dough behavior.</p>
-                          </div>
-                          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[18rem]">
-                            <label className="grid gap-1 text-xs font-extrabold text-ink/55">
-                              <span>Hydration</span>
-                              <span className="grid min-h-11 grid-cols-[2.75rem_1fr_2.75rem] overflow-hidden rounded-2xl border border-ink/10 bg-cream">
-                                <button
-                                  type="button"
-                                  aria-label="Decrease hydration"
-                                  disabled={result.settings.hydration <= 50}
-                                  onClick={() => stepHydrationOverride(-1)}
-                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
-                                >
-                                  <DoughToolsIcon name="remove" size={16} strokeWidth={2.4} />
-                                </button>
-                                <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
-                                  {result.settings.hydration}%
-                                </span>
-                                <button
-                                  type="button"
-                                  aria-label="Increase hydration"
-                                  disabled={result.settings.hydration >= 80}
-                                  onClick={() => stepHydrationOverride(1)}
-                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
-                                >
-                                  <DoughToolsIcon name="add" size={16} strokeWidth={2.4} />
-                                </button>
-                              </span>
-                            </label>
-                            <label className="grid gap-1 text-xs font-extrabold text-ink/55">
-                              <span>Temperature</span>
-                              <span className="grid min-h-11 grid-cols-[2.75rem_1fr_2.75rem] overflow-hidden rounded-2xl border border-ink/10 bg-cream">
-                                <button
-                                  type="button"
-                                  aria-label="Decrease fermentation temperature"
-                                  disabled={activeFermentationTemperatureC <= temperatureBounds.min}
-                                  onClick={() => stepTemperatureOverride(-1)}
-                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
-                                >
-                                  <DoughToolsIcon name="remove" size={16} strokeWidth={2.4} />
-                                </button>
-                                <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
-                                  {activeFermentationTemperatureC} °C
-                                </span>
-                                <button
-                                  type="button"
-                                  aria-label="Increase fermentation temperature"
-                                  disabled={activeFermentationTemperatureC >= temperatureBounds.max}
-                                  onClick={() => stepTemperatureOverride(1)}
-                                  className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
-                                >
-                                  <DoughToolsIcon name="add" size={16} strokeWidth={2.4} />
-                                </button>
-                              </span>
-                            </label>
-                          </div>
+                    <div className="rounded-2xl border border-leaf/20 bg-white p-3" aria-label="Advanced dough settings">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-xs font-extrabold uppercase tracking-[.14em] text-leaf">Advanced dough settings</p>
+                          <p className="mt-1 text-xs font-bold leading-5 text-ink/50">{advancedDoughSettingsCopy[session.experienceLevel]}</p>
                         </div>
-                        {hydrationImpact && (
-                          <p className="mt-3 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/65">
-                            <span className="block text-[0.65rem] font-extrabold uppercase tracking-[.16em] text-leaf">Hydration impact</span>
-                            <span className="mt-1 block">{hydrationImpact}</span>
-                          </p>
-                        )}
+                        <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[18rem]">
+                          <label className="grid gap-1 text-xs font-extrabold text-ink/55">
+                            <span>Hydration</span>
+                            <span className="grid min-h-11 grid-cols-[2.75rem_1fr_2.75rem] overflow-hidden rounded-2xl border border-ink/10 bg-cream">
+                              <button
+                                type="button"
+                                aria-label="Decrease hydration"
+                                disabled={result.settings.hydration <= 50}
+                                onClick={() => stepHydrationOverride(-1)}
+                                className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                              >
+                                <DoughToolsIcon name="remove" size={16} strokeWidth={2.4} />
+                              </button>
+                              <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
+                                {result.settings.hydration}%
+                              </span>
+                              <button
+                                type="button"
+                                aria-label="Increase hydration"
+                                disabled={result.settings.hydration >= 80}
+                                onClick={() => stepHydrationOverride(1)}
+                                className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                              >
+                                <DoughToolsIcon name="add" size={16} strokeWidth={2.4} />
+                              </button>
+                            </span>
+                          </label>
+                          <label className="grid gap-1 text-xs font-extrabold text-ink/55">
+                            <span>Temperature</span>
+                            <span className="grid min-h-11 grid-cols-[2.75rem_1fr_2.75rem] overflow-hidden rounded-2xl border border-ink/10 bg-cream">
+                              <button
+                                type="button"
+                                aria-label="Decrease fermentation temperature"
+                                disabled={activeFermentationTemperatureC <= temperatureBounds.min}
+                                onClick={() => stepTemperatureOverride(-1)}
+                                className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                              >
+                                <DoughToolsIcon name="remove" size={16} strokeWidth={2.4} />
+                              </button>
+                              <span className="flex items-center justify-center border-x border-ink/10 bg-white/55 text-base font-extrabold text-ink">
+                                {activeFermentationTemperatureC} °C
+                              </span>
+                              <button
+                                type="button"
+                                aria-label="Increase fermentation temperature"
+                                disabled={activeFermentationTemperatureC >= temperatureBounds.max}
+                                onClick={() => stepTemperatureOverride(1)}
+                                className="text-lg font-extrabold text-ink/65 transition hover:bg-white disabled:cursor-not-allowed disabled:text-ink/25"
+                              >
+                                <DoughToolsIcon name="add" size={16} strokeWidth={2.4} />
+                              </button>
+                            </span>
+                          </label>
+                        </div>
                       </div>
-                    )}
+                      {hydrationImpact && (
+                        <p className="mt-3 rounded-2xl bg-leaf/[.08] p-3 text-xs font-bold leading-5 text-ink/65">
+                          <span className="block text-[0.65rem] font-extrabold uppercase tracking-[.16em] text-leaf">Hydration impact</span>
+                          <span className="mt-1 block">{hydrationImpact}</span>
+                        </p>
+                      )}
+                      </div>
                   </dl>
                   <dl className="mt-4 grid gap-2.5">
                     {doughIngredientRows.map((item) => (
