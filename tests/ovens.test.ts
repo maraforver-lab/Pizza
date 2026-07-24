@@ -18,11 +18,13 @@ describe("Oven Guide", () => {
     expect(page.indexOf("<OvenGuideHero />")).toBeLessThan(page.indexOf("<OvensQuickAnswer />"));
     expect(page.indexOf("<OvensQuickAnswer />")).toBeLessThan(page.indexOf('id="oven-comparison"'));
     expect(page).toContain("OvensQuickAnswer");
-    expect(page).toContain("Pick the oven path that matches your real heat");
-    expect(page).toContain("Bake instructions");
+    expect(page).toContain("Choose your oven setup");
+    expect(page).toContain("Follow the setup that matches your oven and baking surface.");
     expect(page).toContain("Pizza oven");
     expect(page).toContain("Home oven");
-    expect(page).toContain("Stone, steel and tray");
+    expect(page).toContain("Home oven with baking steel");
+    expect(page).toContain("Home oven with pizza stone");
+    expect(page).toContain("Home oven with baking tray");
     expect(page).toContain("Pizza plan effect");
     expect(page).toContain("Plan with the oven you actually have.");
   });
@@ -115,39 +117,53 @@ describe("Oven Guide", () => {
   it("retains compact practical troubleshooting and a deeper troubleshooting link", () => {
     const page = source("app", "ovens", "page.tsx");
 
-    for (const title of [
-      "Pale or soft base",
-      "Burnt base, pale top",
-      "Top burns first",
-      "Later pizzas get worse",
-    ]) {
-      expect(page).toContain(title);
-    }
+    expect(page).toContain("Fix an uneven bake");
+    expect(page).toContain("Base burns before the top is ready");
+    expect(page).toContain("Reduce bottom heat or move the pizza away from the hottest surface area. Finish with more controlled top heat.");
+    expect(page).toContain("Top browns before the base is ready");
+    expect(page).toContain("Reduce top exposure and give the base more time on the baking surface.");
+    expect(page).toContain("Base stays pale");
+    expect(page).toContain("Preheat the baking surface longer and confirm that it has recovered before launching.");
+    expect(page).toContain("Centre stays wet");
+    expect(page).toContain("Reduce topping moisture and topping load before increasing bake time.");
 
     expect(page).toContain("/guide/pizza-troubleshooting");
-    expect(page).toContain("Use the baked pizza as feedback.");
   });
 
   it("keeps concise setup, surface and safety guidance without becoming a gear guide", () => {
     const page = source("app", "ovens", "page.tsx");
 
-    expect(page).toContain("Preheat the surface, place the pizza deliberately");
-    expect(page).toContain("judge the floor, not only the flame");
-    expect(page).toContain("Preheat until the oven and baking surface are fully ready.");
+    expect(page).toContain("Home oven with baking steel");
+    expect(page).toContain("Steel transfers heat quickly. It gives strong base colour but may require careful top-heat management.");
+    expect(page).toContain("Home oven with pizza stone");
+    expect(page).toContain("Stone heats the base more gently than steel and usually needs a thorough preheat.");
+    expect(page).toContain("Pizza oven");
+    expect(page).toContain("A pizza oven bakes quickly, so launch position, turning and flame exposure matter throughout the bake.");
+    expect(page).toContain("Home oven with baking tray");
+    expect(page).toContain("A baking tray is less powerful than steel or stone");
+    expect(page).toContain("Preheat for the current");
+    expect(page).toContain("Start in the upper-middle or upper third.");
+    expect(page).toContain("Launch quickly onto the hot steel.");
+    expect(page).toContain("Turn frequently and move relative to the flame.");
+    expect(page).toContain("Judge the oven floor, not only the flame or air heat.");
     expect(page).toContain("The oven reaching its set temperature may be enough for a tray");
-    expect(page).toContain("stone or steel often needs more time to heat through");
-    expect(page).toContain("highest reliable oven temperature");
-    expect(page).toContain("upper-middle or upper third");
-    expect(page).toContain("surface temperature");
-    expect(page).toContain("Steel");
-    expect(page).toContain("Stone");
-    expect(page).toContain("Tray");
+    expect(page).toContain("Let the baking surface recover between pizzas.");
     expect(page).toContain("Safety checks");
     expect(page).toContain("Follow your own appliance manual");
     expect(page).toContain("Use outdoor-only ovens outdoors.");
     expect(page).not.toContain("Do not modify fuel, ventilation or safety systems.");
     expect(page).not.toContain("infrared thermometer guide");
     expect(page).not.toContain("75 min pizza-plan preheat window");
+  });
+
+  it("gives every setup path the same five practical step labels", () => {
+    const page = source("app", "ovens", "page.tsx");
+
+    expect(page.match(/label: "Preheat"/g)).toHaveLength(4);
+    expect(page.match(/label: "Position"/g)).toHaveLength(4);
+    expect(page.match(/label: "Launch"/g)).toHaveLength(4);
+    expect(page.match(/label: "Manage the bake"/g)).toHaveLength(4);
+    expect(page.match(/label: "Know when it is ready"/g)).toHaveLength(4);
   });
 
   it("adds a compact quick answer before the deeper comparison", () => {
@@ -275,7 +291,8 @@ describe("Oven Guide", () => {
 
     expect(page).toContain("LearningBreadcrumbs");
     expect(page).toContain('id="oven-comparison"');
-    expect(page).toContain('id="actionable-bake-title"');
+    expect(page).toContain('id="uneven-bake-title"');
+    expect(page).toContain('id="multiple-pizzas-title"');
     expect(page).toContain("aria-labelledby");
     expect(page).toContain("<ol");
     expect(hero).toContain("alt=");
