@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
@@ -125,25 +124,30 @@ export default function Guide() {
   return (
     <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
       <section className="relative overflow-hidden bg-forest-dark text-white">
-        <div className="absolute inset-0 opacity-60">
-          <Image
-            src="/images/homepage/doughtools-hero-desktop.webp"
-            alt="Finished pizza beside prepared dough on a warm kitchen work surface"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[58%_center]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/76 to-ink/25" aria-hidden="true" />
-        </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-          <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza guides</p>
-          <h1 className="mt-4 max-w-4xl font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:mt-5 sm:text-6xl lg:text-7xl">
-            Learn pizza one choice at a time.
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-8 text-white/78 sm:mt-6 sm:text-lg">
-            Use the guides to understand dough, sauce, toppings and ovens before you turn those choices into a pizza plan.
-          </p>
+        <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" aria-hidden="true" />
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.42fr)] lg:items-end lg:px-8 lg:py-20">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Pizza guides</p>
+            <h1 className="mt-4 max-w-4xl font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:mt-5 sm:text-6xl lg:text-7xl">
+              Learn pizza one choice at a time.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-white/78 sm:mt-6 sm:text-lg">
+              Use the guides to understand dough, sauce, toppings and ovens before you turn those choices into a pizza plan.
+            </p>
+          </div>
+          <div className="grid gap-3 rounded-[1.75rem] border border-white/12 bg-white/[.06] p-4 shadow-soft" aria-label="Guide learning areas">
+            {learningPathGuides.slice(0, 4).map((link) => (
+              <div key={link.href} className="grid grid-cols-[2.75rem_1fr] items-center gap-3 rounded-2xl bg-white/[.08] p-3">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 text-oven-gold ring-1 ring-white/12" aria-hidden="true">
+                  <DoughToolsIcon name={link.icon} size={20} />
+                </span>
+                <div>
+                  <p className="text-sm font-extrabold text-white">{link.title}</p>
+                  <p className="text-xs font-bold leading-5 text-white/58">{link.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -104,14 +104,14 @@ describe("Pizza guides index", () => {
     expect(guide).toContain("Use the guides to understand dough, sauce, toppings and ovens before you turn those choices into a pizza plan.");
   });
 
-  it("uses approved local imagery and the unified icon system", () => {
+  it("uses a Guide-specific visual treatment without reusing homepage hero imagery", () => {
     const guide = page();
 
     expect(guide).toContain("DoughToolsIcon");
-    expect(guide).toContain("/images/homepage/doughtools-hero-desktop.webp");
+    expect(guide).toContain("Guide learning areas");
+    expect(guide).not.toContain("/images/homepage/doughtools-hero-desktop.webp");
     expect(guide).not.toContain("/dough-guide/guide-step-03-mix.webp");
     expect(guide).not.toMatch(/https?:\/\/|\/\/images|unsplash|pexels|stock/i);
-    expect(existsSync(join(process.cwd(), "public", "images", "homepage", "doughtools-hero-desktop.webp"))).toBe(true);
   });
 
   it("does not add guide-specific recipes, formulas, amounts or old catalogue content", () => {
