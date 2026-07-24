@@ -244,11 +244,34 @@ describe("Topping Balance Lab page structure", () => {
     expect(component).not.toContain("Current visual result");
   });
 
-  it("reuses existing retained images for quick practical sections", () => {
+  it("places the realistic teaching images in the requested practical sections", () => {
+    const placements = [
+      ["Choose a balanced topping set", "toppings-even-distribution.webp"],
+      ["Cheese and moisture", "cheese-amount-placement.webp"],
+      ["Before baking", "toppings-precook-wet-ingredients.webp"],
+      ["After baking", "toppings-after-baking.webp"],
+    ] as const;
+
+    for (const [section, image] of placements) {
+      expect(component.indexOf(section)).toBeLessThan(component.indexOf(image));
+    }
+
+    for (const caption of [
+      "Leave visible space between ingredients so heat can reach the surface and moisture can escape.",
+      "Use small, separated pieces of cheese instead of covering the whole pizza.",
+      "Cook or drain moisture-heavy ingredients before they go on the pizza.",
+      "Add delicate herbs and finishing oil after baking so they stay fresh and aromatic.",
+    ]) {
+      expect(component).toContain(caption);
+    }
+
+    expect(component).toContain("ToppingProcessImage");
+    expect(component).toContain('src="/toppings/teaching/toppings-even-distribution.webp"');
+    expect(component).toContain('src="/toppings/teaching/cheese-amount-placement.webp"');
+    expect(component).toContain('src="/toppings/teaching/toppings-precook-wet-ingredients.webp"');
+    expect(component).toContain('src="/toppings/teaching/toppings-after-baking.webp"');
     expect(component).toContain('src="/toppings/diavola/diavola-balanced.webp"');
     expect(component).toContain('src="/toppings/diavola/diavola-too-much.webp"');
-    expect(component).toContain('src="/toppings/references/cheese-balanced.webp"');
-    expect(component).toContain('src="/toppings/references/mozzarella-drained.webp"');
     expect(component).not.toContain("/toppings/process/");
   });
 
@@ -261,6 +284,10 @@ describe("Topping Balance Lab page structure", () => {
       "public/toppings/diavola/diavola-heavy-load.webp",
       "public/toppings/examples/margherita-balanced.webp",
       "public/toppings/examples/marinara-balanced.webp",
+      "public/toppings/teaching/toppings-even-distribution.webp",
+      "public/toppings/teaching/toppings-after-baking.webp",
+      "public/toppings/teaching/toppings-precook-wet-ingredients.webp",
+      "public/toppings/teaching/cheese-amount-placement.webp",
     ];
 
     for (const file of files) {

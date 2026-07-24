@@ -821,6 +821,33 @@ function ToppingTeachingImage({
   );
 }
 
+function ToppingProcessImage({
+  src,
+  alt,
+  caption,
+  priority = false,
+}: {
+  src: string;
+  alt: string;
+  caption: string;
+  priority?: boolean;
+}) {
+  return (
+    <figure className="overflow-hidden rounded-[1.5rem] border border-ink/10 bg-white shadow-soft">
+      <Image
+        src={src}
+        alt={alt}
+        width={1200}
+        height={1200}
+        sizes="(max-width: 768px) 100vw, 34vw"
+        className="aspect-[4/3] h-auto w-full object-cover"
+        priority={priority}
+      />
+      <figcaption className="p-4 text-xs font-bold leading-5 text-ink/62">{caption}</figcaption>
+    </figure>
+  );
+}
+
 function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: ExperienceLevel }) {
   return (
     <div className="mt-6 space-y-6" data-toppings-practical-hierarchy>
@@ -842,20 +869,26 @@ function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: Expe
               ))}
             </ul>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            <ToppingTeachingImage
-              src="/toppings/diavola/diavola-balanced.webp"
-              alt="Balanced Diavola pizza with visible sauce, cheese islands and spaced salami."
-              label="Balanced"
-              note="Visible gaps leave room for the bake."
-            />
-            <ToppingTeachingImage
-              src="/toppings/diavola/diavola-too-much.webp"
-              alt="Diavola pizza with heavy sauce, cheese and salami coverage."
-              label="Too much"
-              note="A crowded surface slows the center."
-            />
-          </div>
+          <ToppingProcessImage
+            src="/toppings/teaching/toppings-even-distribution.webp"
+            alt="A raw pizza topped with visible sauce, separated cheese and evenly spaced vegetables with a clear crust border."
+            caption="Leave visible space between ingredients so heat can reach the surface and moisture can escape."
+            priority
+          />
+        </div>
+        <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-2">
+          <ToppingTeachingImage
+            src="/toppings/diavola/diavola-balanced.webp"
+            alt="Balanced Diavola pizza with visible sauce, cheese islands and spaced salami."
+            label="Balanced"
+            note="Visible gaps leave room for the bake."
+          />
+          <ToppingTeachingImage
+            src="/toppings/diavola/diavola-too-much.webp"
+            alt="Diavola pizza with heavy sauce, cheese and salami coverage."
+            label="Too much"
+            note="A crowded surface slows the center."
+          />
         </div>
       </section>
 
@@ -867,18 +900,11 @@ function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: Expe
             Wet mozzarella must be drained. Watery vegetables may need draining or pre-cooking. Sauce, cheese and
             toppings all count toward one moisture load, so fix the wettest ingredient before adding more.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <ToppingTeachingImage
-              src="/toppings/references/cheese-balanced.webp"
-              alt="Pizza with restrained melted fior di latte islands and visible tomato sauce."
-              label="Cheese supports"
-              note="Sauce remains visible between cheese."
-            />
-            <ToppingTeachingImage
-              src="/toppings/references/mozzarella-drained.webp"
-              alt="Fresh fior di latte pieces with a dry-looking surface and no pooling liquid."
-              label="Drain wet cheese"
-              note="Dry-looking pieces bring less water."
+          <div className="mt-4">
+            <ToppingProcessImage
+              src="/toppings/teaching/cheese-amount-placement.webp"
+              alt="A raw pizza with tomato sauce visible between small separated mozzarella pieces and a clean crust border."
+              caption="Use small, separated pieces of cheese instead of covering the whole pizza."
             />
           </div>
         </article>
@@ -891,6 +917,13 @@ function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: Expe
               Most cheese, cured meats, firm vegetables and prepared mushrooms can go on before baking. Keep pieces
               modest, leave gaps and avoid building the pizza long before launch.
             </p>
+            <div className="mt-4">
+              <ToppingProcessImage
+                src="/toppings/teaching/toppings-precook-wet-ingredients.webp"
+                alt="Raw wet mushrooms beside lightly cooked and drained mushrooms ready for pizza topping."
+                caption="Cook or drain moisture-heavy ingredients before they go on the pizza."
+              />
+            </div>
           </article>
 
           <article className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-labelledby="after-baking-title">
@@ -900,6 +933,13 @@ function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: Expe
               Fresh basil, delicate herbs, finishing oil and prosciutto where appropriate often taste cleaner after
               baking. Add them once the pizza is out so they stay fresh instead of drying or burning.
             </p>
+            <div className="mt-4">
+              <ToppingProcessImage
+                src="/toppings/teaching/toppings-after-baking.webp"
+                alt="A baked pizza finished with fresh basil, delicate herbs and a light sheen of finishing oil."
+                caption="Add delicate herbs and finishing oil after baking so they stay fresh and aromatic."
+              />
+            </div>
           </article>
         </div>
       </section>
