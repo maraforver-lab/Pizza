@@ -236,11 +236,60 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Custom ingredients");
     expect(component).toContain("Flour blend");
     expect(component).toContain("Ingredient amounts");
+    expect(component).toContain("Your dough batch");
+    expect(component).toContain("Dough balls");
+    expect(component).toContain("Dough ball weight");
     expect(component).toContain("Baker’s percentages");
     expect(component).toContain("Copy recipe");
     expect(component).toContain("Reset calculator");
     expect(component).toContain("Working assumptions");
     expect(component).not.toContain("Start Pizza Session");
+  });
+
+  it("makes the primary result hierarchy visible before the ingredient list", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("const primaryResults = [");
+    expect(component).toContain('[\"Total dough\", `${formatGrams(result.ingredients.total)} g`, \"Complete batch\"]');
+    expect(component).toContain('[\"Dough balls\", String(result.input.pizzaCount), \"Pieces in this batch\"]');
+    expect(component).toContain('[\"Dough ball weight\", `${formatGrams(result.sizing.doughWeightPerPieceGrams)} g`, \"Each portion\"]');
+    expect(component).toContain("const ingredientRows = [");
+    expect(component.indexOf("const primaryResults = [")).toBeLessThan(component.indexOf("const ingredientRows = ["));
+    expect(component.indexOf("<h3 className=\"text-sm font-extrabold text-white\">Ingredient amounts</h3>")).toBeGreaterThan(component.indexOf("{primaryResults.map"));
+  });
+
+  it("adds selected-level teaching without rendering all guidance levels together", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("quickResultTeachingCopy");
+    expect(component).toContain("What these numbers mean");
+    expect(component).toContain("The calculator turns your pizza count, dough ball size and hydration into one complete dough batch.");
+    expect(component).toContain("Weigh every ingredient accurately. Flour and water create the dough");
+    expect(component).toContain("Hydration describes the water compared with the flour.");
+    expect(component).toContain("Treat flour as 100%. Water, salt and yeast are baker's percentages");
+    expect(component).toContain("const selectedTeaching = quickResultTeachingCopy[experienceLevel];");
+    expect(component).toContain("{selectedTeaching}");
+    expect(component).not.toContain("EXPERIENCE_LEVELS.map((level) => quickResultTeachingCopy");
+  });
+
+  it("adds a compact formula visual and practical next steps without changing workflow", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("Your dough formula");
+    expect(component).toContain("Flour 100%");
+    expect(component).toContain("Water {formatPercent(result.bakerPercentages.water)}%");
+    expect(component).toContain("Salt {formatPercent(result.bakerPercentages.salt)}%");
+    expect(component).toContain("Yeast calculated for the plan");
+    expect(component).toContain("What to do next");
+    expect(component).toContain("Weigh accurately");
+    expect(component).toContain("Use a digital scale for every ingredient.");
+    expect(component).toContain("Mix completely");
+    expect(component).toContain("Continue until no dry flour remains.");
+    expect(component).toContain("Follow the fermentation plan");
+    expect(component).toContain("Time and temperature determine when the dough is ready.");
+    expect(component).toContain("Learn how to make the dough");
+    expect(component).toContain('href="/guides/dough"');
+    expect(component).not.toContain('href="/session/recipe"');
   });
 
   it("keeps reset and copy actions local to the Quick Calculator component", () => {

@@ -58,6 +58,18 @@ const quickGuidanceLevelDescriptions: Record<ExperienceLevel, string> = {
   pizza_nerd: "Advanced variables and deeper technical detail.",
 };
 
+const quickResultTeachingCopy: Record<ExperienceLevel, string> = {
+  beginner: "Weigh every ingredient accurately. Flour and water create the dough, salt adds flavour and strength, and the small yeast amount controls how quickly it ferments.",
+  enthusiast: "Hydration describes the water compared with the flour. More water can create a lighter dough, but it also makes handling more demanding.",
+  pizza_nerd: "Treat flour as 100%. Water, salt and yeast are baker's percentages relative to flour, which keeps the formula scalable across different batch sizes.",
+};
+
+const quickResultNextSteps = [
+  ["Weigh accurately", "Use a digital scale for every ingredient."],
+  ["Mix completely", "Continue until no dry flour remains."],
+  ["Follow the fermentation plan", "Time and temperature determine when the dough is ready."],
+] as const;
+
 function formatGrams(value: number, precise = false) {
   return new Intl.NumberFormat("en-GB", {
     maximumFractionDigits: precise ? 2 : 0,
@@ -372,12 +384,14 @@ function QuickCalculatorGuidancePreference({
 function RecipeResultPanel({
   result,
   presentation,
+  experienceLevel,
   copyState,
   onCopyRecipe,
   onResetCalculator,
 }: {
   result: ReturnType<typeof calculateQuickDough>;
   presentation: ReturnType<typeof getQuickCalculatorPresentation>;
+  experienceLevel: ExperienceLevel;
   copyState: CopyState;
   onCopyRecipe: () => void;
   onResetCalculator: () => void;
@@ -392,6 +406,25 @@ function RecipeResultPanel({
         ["Malt", result.advancedTools.customIngredients.maltGrams],
       ].filter(([, value]) => Number(value) > 0)
     : [];
+  const primaryResults = [
+    ["Total dough", `${formatGrams(result.ingredients.total)} g`, "Complete batch"],
+    ["Dough balls", String(result.input.pizzaCount), "Pieces in this batch"],
+    ["Dough ball weight", `${formatGrams(result.sizing.doughWeightPerPieceGrams)} g`, "Each portion"],
+  ] as const;
+  const ingredientRows = [
+    ["Flour", result.ingredients.flour, false],
+    ["Water", result.ingredients.water, false],
+    ["Salt", result.ingredients.salt, false],
+    [yeastLabel, result.ingredients.leavener, true],
+    ...optionalIngredientRows.map(([label, value]) => [label, value, false] as const),
+  ] as const;
+  const formulaItems = [
+    ["Flour", "100%"],
+    ["Water", `${formatPercent(result.bakerPercentages.water)}%`],
+    ["Salt", `${formatPercent(result.bakerPercentages.salt)}%`],
+    ["Yeast", presentation.showTechnicalResult ? `${formatPercent(result.bakerPercentages.yeast, 3)}%` : `${formatGrams(result.ingredients.leavener, true)} g`],
+  ] as const;
+  const selectedTeaching = quickResultTeachingCopy[experienceLevel];
 
   return (
     <aside
@@ -401,7 +434,7 @@ function RecipeResultPanel({
       data-quick-result-panel
     >
       <p className="text-xs font-extrabold uppercase tracking-[.22em] text-white/45">Recipe result</p>
-      <h2 id="quick-calculator-results" className="mt-2 font-display text-3xl font-semibold">Ingredient amounts</h2>
+      <h2 id="quick-calculator-results" className="mt-2 font-display text-3xl font-semibold">Your dough batch</h2>
       <p className="mt-3 text-sm leading-6 text-white/60">
         {result.input.pizzaCount} {result.input.sizingMode === "pan" ? "pans" : "pizzas"} × {formatGrams(result.sizing.doughWeightPerPieceGrams)} g · {result.input.hydrationPercent}% hydration · {selectedEnvironment.label}
       </p>
@@ -411,23 +444,75 @@ function RecipeResultPanel({
         </p>
       )}
 
-      <dl className="mt-6 divide-y divide-white/10">
-        {[
-          ["Total dough", result.ingredients.total, false],
-          ["Flour", result.ingredients.flour, false],
-          ["Water", result.ingredients.water, false],
-          ["Salt", result.ingredients.salt, false],
-          [yeastLabel, result.ingredients.leavener, true],
-          ...optionalIngredientRows.map(([label, value]) => [label, value, false] as const),
-        ].map(([label, value, precise]) => (
+      <dl className="mt-6 grid gap-2 sm:grid-cols-3">
+        {primaryResults.map(([label, value, helper]) => (
+          <div key={label} className="rounded-2xl border border-white/10 bg-white/[.055] p-3">
+            <dt className="text-[10px] font-extrabold uppercase tracking-[.14em] text-white/40">{label}</dt>
+            <dd className="mt-1 text-2xl font-extrabold tabular-nums">{value}</dd>
+            <p className="mt-1 text-[11px] leading-4 text-white/36">{helper}</p>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-6">
+        <h3 className="text-sm font-extrabold text-white">Ingredient amounts</h3>
+        <dl className="mt-3 divide-y divide-white/10">
+          {ingredientRows.map(([label, value, precise]) => (
           <div key={String(label)} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
             <dt className="text-sm font-semibold text-white/62">{label}</dt>
             <dd className="text-2xl font-extrabold tabular-nums">
               {formatGrams(Number(value), Boolean(precise))} <span className="text-sm text-white/35">g</span>
             </dd>
           </div>
-        ))}
-      </dl>
+          ))}
+        </dl>
+      </div>
+
+      <section className="mt-6 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-result-teaching-heading">
+        <h3 id="quick-result-teaching-heading" className="text-sm font-extrabold text-white">What these numbers mean</h3>
+        <p className="mt-2 text-xs leading-5 text-white/45">
+          The calculator turns your pizza count, dough ball size and hydration into one complete dough batch.
+        </p>
+        <p className="mt-3 rounded-2xl bg-white/[.055] p-3 text-sm leading-6 text-white/68">
+          {selectedTeaching}
+        </p>
+      </section>
+
+      <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-formula-visual-heading">
+        <h3 id="quick-formula-visual-heading" className="text-sm font-extrabold text-white">Your dough formula</h3>
+        <ol className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+          {formulaItems.map(([label, value]) => (
+            <li key={label} className="flex min-h-12 items-center justify-between gap-3 rounded-2xl bg-white/[.055] px-3 py-2">
+              <span className="font-semibold text-white/62">{label}</span>
+              <span className="font-extrabold tabular-nums text-white">{value}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-3 text-xs leading-5 text-white/42">
+          Flour 100% &rarr; Water {formatPercent(result.bakerPercentages.water)}% &rarr; Salt {formatPercent(result.bakerPercentages.salt)}% &rarr; Yeast calculated for the plan
+        </p>
+      </section>
+
+      <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.045] p-4" aria-labelledby="quick-next-steps-heading">
+        <h3 id="quick-next-steps-heading" className="text-sm font-extrabold text-white">What to do next</h3>
+        <ol className="mt-3 grid gap-2">
+          {quickResultNextSteps.map(([title, body], index) => (
+            <li key={title} className="flex gap-3 rounded-2xl bg-white/[.055] p-3">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-extrabold text-white/70">{index + 1}</span>
+              <span>
+                <span className="block text-sm font-extrabold text-white">{title}</span>
+                <span className="mt-1 block text-xs leading-5 text-white/45">{body}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <Link
+          href="/guides/dough"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-ink transition hover:bg-cream active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+        >
+          Learn how to make the dough
+        </Link>
+      </section>
 
       <details className="mt-6 rounded-2xl border border-white/10 bg-white/[.045] p-4" open={presentation.resultDetail !== "simple"}>
         <summary className="cursor-pointer list-none text-sm font-extrabold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
@@ -1363,6 +1448,7 @@ export default function QuickDoughCalculator() {
           <RecipeResultPanel
             result={result}
             presentation={presentation}
+            experienceLevel={experienceLevel}
             copyState={copyState}
             onCopyRecipe={copyRecipe}
             onResetCalculator={resetCalculator}
