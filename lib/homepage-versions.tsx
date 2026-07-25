@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import HomepageRefined from "@/components/homepage/HomepageRefined";
 import HomepageSimplified from "@/components/homepage/HomepageSimplified";
 import HomepageStable from "@/components/homepage/HomepageStable";
 import {
@@ -18,6 +19,7 @@ export type HomepageVersionRegistration = HomepageVersionMetadata & {
 const homepageVersionComponents: Record<HomepageVersionId, ComponentType> = {
   stable: HomepageStable,
   simplified: HomepageSimplified,
+  refined: HomepageRefined,
 };
 
 export const homepageVersionRegistry = homepageVersionMetadata.map((metadata) => ({

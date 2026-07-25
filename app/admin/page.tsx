@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DoughToolsIcon } from "@/components/icons";
+import { homepageVersionCountLabel } from "@/lib/homepage-version-labels";
 import { homepageVersionRegistry } from "@/lib/homepage-versions";
 
 const upcomingCapabilities = [
@@ -66,7 +67,7 @@ export default function AdminPage() {
               </p>
             </div>
             <p className="inline-flex min-h-10 items-center justify-center rounded-full border border-leaf/20 bg-leaf/[.08] px-4 text-sm font-extrabold text-leaf">
-              {homepageVersionRegistry.length} version
+              {homepageVersionCountLabel(homepageVersionRegistry.length)}
             </p>
           </div>
 
