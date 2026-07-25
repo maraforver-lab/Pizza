@@ -50,11 +50,16 @@ describe("Refined Homepage draft", () => {
     expect(page).toContain('copy: "Explore dough, sauce, toppings and ovens."');
     expect(page).toContain('href: "/guide"');
     expect(page).toContain("aria-label={`${path.title}: ${path.copy}`}");
+    expect(page).toContain("hover:shadow-card");
+    expect(page).toContain("focus-visible:outline");
+    expect(page).toContain("size-11");
+    expect(page).toContain("size={24} aria-hidden=\"true\"");
     expect(page).not.toContain("onClick");
     expect(page).not.toContain("path.cta");
+    expect(page).not.toContain("hover:-translate-y");
   });
 
-  it("keeps the four process stages in one compact connected structure", () => {
+  it("keeps the four process stages in one compact connected structure with a decorative desktop connector", () => {
     const page = source("components", "homepage", "HomepageRefined.tsx");
     const stages = [
       'title: "Plan"',
@@ -64,9 +69,14 @@ describe("Refined Homepage draft", () => {
     ];
 
     expect(page).toContain("How DoughTools works");
+    expect(page).toContain("relative mt-4 overflow-hidden rounded-[1.25rem] border");
     expect(page).toContain("overflow-hidden rounded-[1.25rem] border");
     expect(page).toContain("lg:grid lg:grid-cols-4");
+    expect(page).toContain("homepage-refined-process-connector");
+    expect(page).toContain("hidden h-px bg-ink/10 lg:block");
+    expect(page).toContain('aria-hidden="true"');
     expect(page).toContain("px-4 py-3.5");
+    expect(page).toContain("Step {index + 1}");
     expect(page).not.toContain("One calm flow");
     expect(page).not.toContain("rounded-2xl bg-cream/80 p-4");
     expect(stages.map((stage) => page.indexOf(stage))).toEqual([...stages].map((stage) => page.indexOf(stage)).sort((a, b) => a - b));
@@ -88,6 +98,8 @@ describe("Refined Homepage draft", () => {
     expect(page).toContain('href: "/guide/pizza-troubleshooting"');
     expect(page).toContain("aria-label={`${tool.title}: ${tool.action}`}");
     expect(page).toContain("grid grid-cols-2 gap-3 lg:grid-cols-4");
+    expect(page).toContain("group-hover:bg-tomato/[.08]");
+    expect(page).toContain("w-fit items-center rounded-full");
     expect(page).not.toContain("<button");
   });
 
@@ -97,6 +109,8 @@ describe("Refined Homepage draft", () => {
 
     expect(page).toContain("Ready to make your next pizza?");
     expect(page).toContain("Turn your choices into one clear plan from dough preparation to the final bake.");
+    expect(page).toContain("px-5 py-6 text-center");
+    expect(page).toContain("sm:px-8 sm:py-8");
     expect(page).toContain("<SiteFooter />");
     expect(homepageActionUses).toHaveLength(3);
     expect(page).not.toMatch(/HomepageSessionActions|HomeCalculatorWorkspace|calculateDough|PizzaSession|session-storage|account_preferences|supabase/i);

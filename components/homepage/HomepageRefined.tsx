@@ -172,8 +172,8 @@ export default function HomepageRefined() {
                 key={path.title}
                 className={
                   path.primary
-                    ? "group flex min-w-0 items-center gap-3 rounded-[1.25rem] border border-leaf/25 bg-forest px-4 py-3.5 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-forest-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:px-5 sm:py-4"
-                    : "group flex min-w-0 items-center gap-3 rounded-[1.25rem] border border-white/80 bg-white/84 px-4 py-3.5 shadow-sm transition hover:-translate-y-0.5 hover:border-tomato/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:px-5 sm:py-4"
+                    ? "group flex min-w-0 items-center gap-3 rounded-[1.25rem] border border-oven-gold/30 bg-forest px-4 py-3.5 text-white shadow-sm transition-colors hover:border-oven-gold/55 hover:bg-forest-dark hover:shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:px-5 sm:py-4"
+                    : "group flex min-w-0 items-center gap-3 rounded-[1.25rem] border border-white/80 bg-white/84 px-4 py-3.5 shadow-sm transition-colors hover:border-tomato/35 hover:bg-white hover:shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:px-5 sm:py-4"
                 }
                 href={path.href}
                 aria-label={`${path.title}: ${path.copy}`}
@@ -181,11 +181,11 @@ export default function HomepageRefined() {
                 <span
                   className={
                     path.primary
-                      ? "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-tomato text-white"
-                      : "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-cream text-tomato"
+                      ? "inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/18 bg-tomato text-white"
+                      : "inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-tomato/15 bg-cream text-tomato"
                   }
                 >
-                  <DoughToolsIcon name={path.icon} size={20} aria-hidden="true" />
+                  <DoughToolsIcon name={path.icon} size={24} aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className={path.primary ? "block text-[0.68rem] font-extrabold uppercase tracking-[.18em] text-oven-gold" : "block text-[0.68rem] font-extrabold uppercase tracking-[.18em] text-leaf"}>
@@ -208,12 +208,16 @@ export default function HomepageRefined() {
           <h2 id="homepage-refined-how-heading" className="font-display text-3xl font-semibold leading-none sm:text-4xl">
             How DoughTools works
           </h2>
-          <ol className="mt-4 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/84 shadow-sm lg:grid lg:grid-cols-4">
+          <ol className="relative mt-4 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/84 shadow-sm lg:grid lg:grid-cols-4">
+            <span
+              className="homepage-refined-process-connector pointer-events-none absolute left-14 right-14 top-[2.25rem] hidden h-px bg-ink/10 lg:block"
+              aria-hidden="true"
+            />
             {workSteps.map((step, index) => (
-              <li key={step.title} className="flex gap-3 border-b border-ink/10 px-4 py-3.5 last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0">
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-cream text-tomato">
+              <li key={step.title} className="relative z-10 flex gap-3 border-b border-ink/10 bg-white/0 px-4 py-3.5 last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0">
+                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-tomato/15 bg-cream text-tomato">
                   <span className="sr-only">Step {index + 1}</span>
-                  <DoughToolsIcon name={step.icon} size={20} aria-hidden="true" />
+                  <DoughToolsIcon name={step.icon} size={24} aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <p className="text-[0.68rem] font-extrabold uppercase tracking-[.18em] text-tomato">{String(index + 1).padStart(2, "0")}</p>
@@ -239,16 +243,16 @@ export default function HomepageRefined() {
               <Link
                 key={tool.title}
                 href={tool.href}
-                className="group flex min-w-0 flex-col rounded-[1.15rem] border border-white/80 bg-white/84 p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-tomato/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:p-3.5"
+                className="group flex min-w-0 flex-col rounded-[1.15rem] border border-white/80 bg-white/84 p-3 shadow-sm transition-colors hover:border-tomato/35 hover:bg-white hover:shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:p-3.5"
                 aria-label={`${tool.title}: ${tool.action}`}
               >
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-cream text-tomato">
-                  <DoughToolsIcon name={tool.icon} size={20} aria-hidden="true" />
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-tomato/15 bg-cream text-tomato">
+                  <DoughToolsIcon name={tool.icon} size={24} aria-hidden="true" />
                 </span>
                 <span className="mt-3 flex min-w-0 flex-1 flex-col">
                   <span className="block font-display text-xl font-semibold leading-none text-ink sm:text-2xl">{tool.title}</span>
                   <span className="mt-1.5 block text-xs font-bold leading-5 text-ink/64 sm:text-sm">{tool.copy}</span>
-                  <span className="mt-auto inline-flex items-center pt-2 text-xs font-extrabold text-tomato sm:text-sm">
+                  <span className="mt-auto inline-flex w-fit items-center rounded-full border border-tomato/15 bg-cream/70 px-2.5 py-1 text-xs font-extrabold text-tomato transition-colors group-hover:border-tomato/30 group-hover:bg-tomato/[.08] sm:text-sm">
                     {tool.action}
                     <DoughToolsIcon name="forward" size={16} className="ml-1.5 transition group-hover:translate-x-0.5" aria-hidden="true" />
                   </span>
@@ -260,7 +264,7 @@ export default function HomepageRefined() {
       </section>
 
       <section className="px-4 py-6 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="homepage-refined-final-heading">
-        <div className="mx-auto max-w-5xl rounded-[1.75rem] bg-forest-dark px-5 py-7 text-center text-white shadow-card sm:px-8 sm:py-9">
+        <div className="mx-auto max-w-5xl rounded-[1.75rem] bg-forest-dark px-5 py-6 text-center text-white shadow-card sm:px-8 sm:py-8">
           <h2 id="homepage-refined-final-heading" className="mx-auto max-w-3xl font-display text-[2rem] font-semibold leading-none sm:text-5xl">
             Ready to make your next pizza?
           </h2>
