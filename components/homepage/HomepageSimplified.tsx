@@ -8,7 +8,6 @@ type ChoicePath = {
   title: string;
   label: string;
   copy: string;
-  cta: string;
   href: string;
   icon: DoughToolsIconName;
   primary?: boolean;
@@ -24,7 +23,6 @@ type SupportingTool = {
   title: string;
   copy: string;
   href: string;
-  action: string;
   icon: DoughToolsIconName;
 };
 
@@ -32,8 +30,7 @@ const choicePaths: ChoicePath[] = [
   {
     title: "Make pizza",
     label: "Primary path",
-    copy: "Build one clear pizza plan with recipe, shopping list, timing and baking guidance.",
-    cta: "Plan a pizza",
+    copy: "Create your complete Pizza Plan.",
     href: "/session/start",
     icon: "pizza",
     primary: true,
@@ -41,8 +38,7 @@ const choicePaths: ChoicePath[] = [
   {
     title: "Learn pizza",
     label: "Learning path",
-    copy: "Explore practical guides when you want to understand dough, sauce, toppings or ovens first.",
-    cta: "Explore guides",
+    copy: "Explore dough, sauce, toppings and ovens.",
     href: "/guide",
     icon: "wheat",
   },
@@ -56,17 +52,17 @@ const workSteps: WorkStep[] = [
   },
   {
     title: "Prepare",
-    copy: "Follow the recipe, shopping list and preparation steps.",
+    copy: "Follow your recipe and preparation steps.",
     icon: "shopping-basket",
   },
   {
     title: "Bake",
-    copy: "Use the schedule and guided baking flow.",
+    copy: "Use your schedule and baking guidance.",
     icon: "oven",
   },
   {
     title: "Review",
-    copy: "Record the result and improve your next pizza.",
+    copy: "Save what worked for next time.",
     icon: "history",
   },
 ];
@@ -74,30 +70,26 @@ const workSteps: WorkStep[] = [
 const supportingTools: SupportingTool[] = [
   {
     title: "Quick Calculator",
-    copy: "Calculate dough amounts quickly without creating a full pizza plan.",
+    copy: "Calculate dough amounts quickly.",
     href: "/calculator/quick",
-    action: "Open calculator",
     icon: "scale",
   },
   {
     title: "Pizza Styles",
-    copy: "Compare pizza styles before choosing what to make.",
+    copy: "Compare styles before choosing.",
     href: "/styles",
-    action: "Explore guide",
     icon: "pizza",
   },
   {
     title: "Practical Tips",
-    copy: "Solve dough, storage, fermentation and common pizza problems.",
+    copy: "Solve timing, storage and dough problems.",
     href: "/guide/practical-pizza-tips",
-    action: "Explore guide",
     icon: "checklist",
   },
   {
     title: "Troubleshooting",
-    copy: "Diagnose what went wrong and choose the next practical fix.",
+    copy: "Diagnose what went wrong.",
     href: "/guide/pizza-troubleshooting",
-    action: "Explore guide",
     icon: "warning",
   },
 ];
@@ -127,9 +119,9 @@ function HomepageAction({
 export default function HomepageSimplified() {
   return (
     <main className="min-h-screen overflow-x-clip bg-[linear-gradient(180deg,#fff8f1_0%,#f1e6d8_48%,#fff8f1_100%)] text-ink">
-      <section className="px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-12 lg:px-8" aria-labelledby="homepage-simplified-hero-heading">
-        <div className="mx-auto grid max-w-7xl overflow-hidden rounded-[2rem] bg-forest-dark shadow-overlay lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
-          <div className="flex min-w-0 flex-col justify-center px-5 py-8 text-white sm:px-8 sm:py-12 lg:px-10 lg:py-14">
+      <section className="px-4 pb-7 pt-5 sm:px-6 sm:pb-10 sm:pt-10 lg:px-8" aria-labelledby="homepage-simplified-hero-heading">
+        <div className="mx-auto grid max-w-7xl overflow-hidden rounded-[1.75rem] bg-forest-dark shadow-overlay sm:rounded-[2rem] lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+          <div className="flex min-w-0 flex-col justify-center px-5 py-7 text-white sm:px-8 sm:py-10 lg:px-10 lg:py-12">
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-oven-gold">Pizza planning and learning</p>
             <h1
               id="homepage-simplified-hero-heading"
@@ -137,17 +129,17 @@ export default function HomepageSimplified() {
             >
               Make better pizza with one clear plan.
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-white/86 sm:text-xl sm:leading-8">
-              Choose your pizza, timing and oven. DoughTools creates your recipe, shopping list, schedule and baking guidance.
+            <p className="mt-4 max-w-2xl text-base leading-7 text-white/86 sm:text-lg sm:leading-8">
+              Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <HomepageAction href="/session/start">Plan a pizza</HomepageAction>
               <HomepageAction href="/guide" variant="secondary">
                 Explore guides
               </HomepageAction>
             </div>
           </div>
-          <div className="relative min-h-[20rem] bg-ink sm:min-h-[30rem] lg:min-h-full">
+          <div className="relative min-h-[16rem] bg-ink sm:min-h-[24rem] lg:min-h-full">
             <Image
               src="/images/homepage/doughtools-hero-desktop.webp"
               alt="Finished pizza with prepared dough in a warm pizza-making workspace"
@@ -161,110 +153,97 @@ export default function HomepageSimplified() {
         </div>
       </section>
 
-      <section className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8" aria-labelledby="homepage-path-heading">
+      <section className="px-4 py-6 sm:px-6 sm:py-9 lg:px-8" aria-labelledby="homepage-path-heading">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Make or learn</p>
-            <h2 id="homepage-path-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+            <h2 id="homepage-path-heading" className="mt-2 font-display text-3xl font-semibold leading-none sm:text-4xl">
               Choose how you want to begin
             </h2>
           </div>
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {choicePaths.map((path) => (
-              <article
+              <Link
                 key={path.title}
                 className={
                   path.primary
-                    ? "rounded-[1.5rem] bg-ink p-5 text-white shadow-card sm:p-6"
-                    : "rounded-[1.5rem] border border-white/80 bg-white/82 p-5 shadow-sm sm:p-6"
+                    ? "group flex min-w-0 items-center gap-3 rounded-[1.25rem] border border-leaf/25 bg-forest px-4 py-4 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-forest-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:px-5"
+                    : "group flex min-w-0 items-center gap-3 rounded-[1.25rem] border border-white/80 bg-white/82 px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-tomato/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:px-5"
                 }
+                href={path.href}
+                aria-label={`${path.title}: ${path.copy}`}
               >
-                <div className="flex items-start gap-4">
-                  <span
-                    className={
-                      path.primary
-                        ? "inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-tomato text-white"
-                        : "inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-cream text-tomato"
-                    }
-                  >
-                    <DoughToolsIcon name={path.icon} size={20} aria-hidden="true" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className={path.primary ? "text-xs font-extrabold uppercase tracking-[.22em] text-oven-gold" : "text-xs font-extrabold uppercase tracking-[.22em] text-leaf"}>
-                      {path.label}
-                    </p>
-                    <h3 className="mt-2 font-display text-3xl font-semibold leading-none">{path.title}</h3>
-                    <p className={path.primary ? "mt-3 text-base leading-7 text-white/82" : "mt-3 text-base leading-7 text-ink/70"}>{path.copy}</p>
-                  </div>
-                </div>
-                <Link
-                  href={path.href}
+                <span
                   className={
                     path.primary
-                      ? "mt-5 inline-flex min-h-11 items-center rounded-full bg-tomato px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-tomato/90"
-                      : "mt-5 inline-flex min-h-11 items-center rounded-full border border-ink/15 bg-white px-5 py-2.5 text-sm font-extrabold text-ink transition hover:border-tomato hover:text-tomato"
+                      ? "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-tomato text-white"
+                      : "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-cream text-tomato"
                   }
                 >
-                  {path.cta}
-                  <DoughToolsIcon name="forward" size={16} className="ml-2" aria-hidden="true" />
-                </Link>
-              </article>
+                  <DoughToolsIcon name={path.icon} size={20} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={path.primary ? "block text-[0.68rem] font-extrabold uppercase tracking-[.18em] text-oven-gold" : "block text-[0.68rem] font-extrabold uppercase tracking-[.18em] text-leaf"}>
+                    {path.label}
+                  </span>
+                  <span className="mt-1 block font-display text-2xl font-semibold leading-none">{path.title}</span>
+                  <span className={path.primary ? "mt-1.5 block text-sm font-bold leading-5 text-white/80" : "mt-1.5 block text-sm font-bold leading-5 text-ink/62"}>{path.copy}</span>
+                </span>
+                <DoughToolsIcon name="forward" size={20} className={path.primary ? "shrink-0 text-oven-gold transition group-hover:translate-x-0.5" : "shrink-0 text-tomato transition group-hover:translate-x-0.5"} aria-hidden="true" />
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8" aria-labelledby="homepage-how-heading">
-        <div className="mx-auto max-w-7xl rounded-[1.75rem] border border-white/80 bg-white/82 p-5 shadow-card sm:p-7">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[.24em] text-leaf">One calm flow</p>
-              <h2 id="homepage-how-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
-                How DoughTools works
-              </h2>
-            </div>
-          </div>
-          <ol className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section className="px-4 py-6 sm:px-6 sm:py-9 lg:px-8" aria-labelledby="homepage-how-heading">
+        <div className="mx-auto max-w-7xl">
+          <h2 id="homepage-how-heading" className="font-display text-3xl font-semibold leading-none sm:text-4xl">
+            How DoughTools works
+          </h2>
+          <ol className="mt-4 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/82 shadow-sm lg:grid lg:grid-cols-4">
             {workSteps.map((step, index) => (
-              <li key={step.title} className="rounded-2xl bg-cream/80 p-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-extrabold text-ink/40">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-tomato">
+              <li key={step.title} className="relative flex gap-3 border-b border-ink/10 p-4 last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0">
+                <span className="flex shrink-0 flex-col items-center">
+                  <span className="text-xs font-extrabold text-tomato">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="mt-2 inline-flex size-9 items-center justify-center rounded-full bg-cream text-tomato">
                     <DoughToolsIcon name={step.icon} size={20} aria-hidden="true" />
                   </span>
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-display text-2xl font-semibold leading-none">{step.title}</h3>
+                  <p className="mt-1.5 text-sm font-bold leading-6 text-ink/64">{step.copy}</p>
                 </div>
-                <h3 className="mt-4 font-display text-2xl font-semibold leading-none">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-ink/68">{step.copy}</p>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="px-4 py-8 sm:px-6 sm:py-12 lg:px-8" aria-labelledby="homepage-tools-heading">
+      <section className="px-4 py-6 sm:px-6 sm:py-9 lg:px-8" aria-labelledby="homepage-tools-heading">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Supporting tools</p>
-            <h2 id="homepage-tools-heading" className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+            <h2 id="homepage-tools-heading" className="mt-2 font-display text-3xl font-semibold leading-none sm:text-4xl">
               Useful when you need them
             </h2>
           </div>
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {supportingTools.map((tool) => (
               <Link
                 key={tool.title}
                 href={tool.href}
-                className="group flex min-w-0 items-start gap-4 rounded-2xl border border-white/80 bg-white/82 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-tomato/35 hover:shadow-card"
+                className="group flex min-w-0 flex-col rounded-[1.15rem] border border-white/80 bg-white/82 p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-tomato/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tomato sm:p-4"
+                aria-label={`${tool.title}: ${tool.copy}`}
               >
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-cream text-tomato">
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-cream text-tomato">
                   <DoughToolsIcon name={tool.icon} size={20} aria-hidden="true" />
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-display text-2xl font-semibold leading-none text-ink">{tool.title}</span>
-                  <span className="mt-2 block text-sm leading-6 text-ink/68">{tool.copy}</span>
-                  <span className="mt-3 inline-flex items-center text-sm font-extrabold text-tomato">
-                    {tool.action}
-                    <DoughToolsIcon name="forward" size={16} className="ml-1.5 transition group-hover:translate-x-0.5" aria-hidden="true" />
+                <span className="mt-3 flex min-w-0 flex-1 flex-col">
+                  <span className="block font-display text-xl font-semibold leading-none text-ink sm:text-2xl">{tool.title}</span>
+                  <span className="mt-1.5 block text-xs font-bold leading-5 text-ink/64 sm:text-sm">{tool.copy}</span>
+                  <span className="mt-auto pt-3 text-tomato">
+                    <DoughToolsIcon name="forward" size={16} className="transition group-hover:translate-x-0.5" aria-hidden="true" />
                   </span>
                 </span>
               </Link>
@@ -273,15 +252,15 @@ export default function HomepageSimplified() {
         </div>
       </section>
 
-      <section className="px-4 py-10 sm:px-6 sm:py-14 lg:px-8" aria-labelledby="homepage-simplified-final-heading">
-        <div className="mx-auto max-w-7xl rounded-[2rem] bg-forest-dark px-5 py-9 text-center text-white shadow-overlay sm:px-8 sm:py-12">
-          <h2 id="homepage-simplified-final-heading" className="mx-auto max-w-3xl font-display text-4xl font-semibold leading-none sm:text-5xl">
+      <section className="px-4 py-8 sm:px-6 sm:py-11 lg:px-8" aria-labelledby="homepage-simplified-final-heading">
+        <div className="mx-auto max-w-7xl rounded-[1.75rem] bg-forest-dark px-5 py-8 text-center text-white shadow-overlay sm:px-8 sm:py-10">
+          <h2 id="homepage-simplified-final-heading" className="mx-auto max-w-3xl font-display text-3xl font-semibold leading-none sm:text-5xl">
             Ready to make your next pizza?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/82 sm:text-lg">
             Turn your choices into one clear plan from dough preparation to the final bake.
           </p>
-          <div className="mt-7">
+          <div className="mt-6">
             <HomepageAction href="/session/start">Plan a pizza</HomepageAction>
           </div>
         </div>
