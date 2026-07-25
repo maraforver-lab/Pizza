@@ -2,7 +2,7 @@ export const HOMEPAGE_VERSION_IDS = ["stable", "simplified", "refined"] as const
 
 export type HomepageVersionId = (typeof HOMEPAGE_VERSION_IDS)[number];
 
-export type HomepageVersionStatus = "live" | "draft" | "retired";
+export type HomepageVersionStatus = "live" | "draft" | "archived";
 
 export type HomepageVersionMetadata = {
   id: HomepageVersionId;
@@ -12,12 +12,14 @@ export type HomepageVersionMetadata = {
   previewAvailable: boolean;
 };
 
+export const STABLE_HOMEPAGE_VERSION_ID = "stable" satisfies HomepageVersionId;
+
 export const homepageVersionMetadata = [
   {
     id: "stable",
     name: "Current homepage",
-    description: "The existing production Homepage.",
-    status: "live",
+    description: "The previous production Homepage, preserved as a rollback version.",
+    status: "archived",
     previewAvailable: true,
   },
   {
@@ -31,7 +33,7 @@ export const homepageVersionMetadata = [
     id: "refined",
     name: "Refined homepage",
     description: "A more image-led and compact refinement of the simplified Homepage.",
-    status: "draft",
+    status: "live",
     previewAvailable: true,
   },
 ] as const satisfies readonly HomepageVersionMetadata[];
@@ -45,10 +47,18 @@ export function getHomepageVersionMetadata(value: string): HomepageVersionMetada
   return homepageVersionMetadata.find((version) => version.id === value) ?? null;
 }
 
+export function getStableHomepageVersionMetadata(): HomepageVersionMetadata {
+  const stableVersion = homepageVersionMetadata.find((version) => version.id === STABLE_HOMEPAGE_VERSION_ID);
+  if (!stableVersion) {
+    throw new Error("Missing stable Homepage fallback version.");
+  }
+  return stableVersion;
+}
+
 export function getLiveHomepageVersionMetadata(): HomepageVersionMetadata {
   const liveVersions = homepageVersionMetadata.filter((version) => version.status === "live");
   if (liveVersions.length !== 1) {
-    throw new Error(`Expected exactly one live Homepage version, found ${liveVersions.length}.`);
+    return getStableHomepageVersionMetadata();
   }
-  return liveVersions[0];
+  return liveVersions[0] ?? getStableHomepageVersionMetadata();
 }

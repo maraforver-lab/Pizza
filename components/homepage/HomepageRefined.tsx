@@ -124,12 +124,12 @@ function HomepageAction({
 export default function HomepageRefined() {
   return (
     <main className="min-h-screen overflow-x-clip bg-[linear-gradient(180deg,#fff8f1_0%,#f1e6d8_46%,#fff8f1_100%)] text-ink">
-      <section className="px-4 pb-6 pt-5 sm:px-6 sm:pb-9 sm:pt-9 lg:px-8" aria-labelledby="homepage-refined-hero-heading">
+      <section className="px-4 pb-6 pt-5 sm:px-6 sm:pb-9 sm:pt-9 lg:px-8" aria-labelledby="homepage-hero-heading">
         <div className="mx-auto grid max-w-[92rem] overflow-hidden rounded-[1.75rem] bg-forest-dark shadow-overlay sm:rounded-[2rem] lg:min-h-[clamp(31rem,calc(100svh-8rem),38rem)] lg:grid-cols-[minmax(0,0.64fr)_minmax(0,1.1fr)]">
           <div className="flex min-w-0 flex-col justify-center px-5 py-7 text-white sm:px-8 sm:py-10 lg:px-10 lg:py-12 xl:px-12">
             <p className="text-xs font-extrabold uppercase tracking-[.28em] text-oven-gold">Pizza planning and learning</p>
             <h1
-              id="homepage-refined-hero-heading"
+              id="homepage-hero-heading"
               className="mt-4 max-w-[12ch] break-words font-display text-[clamp(2.65rem,9vw,5.2rem)] font-semibold leading-[.9] tracking-[-.04em] text-white lg:max-w-[12ch]"
             >
               Make better pizza with one clear plan.
@@ -158,11 +158,11 @@ export default function HomepageRefined() {
         </div>
       </section>
 
-      <section className="px-4 py-4 sm:px-6 sm:py-8 lg:px-8" aria-labelledby="homepage-refined-path-heading">
+      <section className="px-4 py-4 sm:px-6 sm:py-8 lg:px-8" aria-labelledby="homepage-path-heading">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Make or learn</p>
-            <h2 id="homepage-refined-path-heading" className="mt-2 font-display text-3xl font-semibold leading-none sm:text-4xl">
+            <h2 id="homepage-path-heading" className="mt-2 font-display text-3xl font-semibold leading-none sm:text-4xl">
               Choose how you want to begin
             </h2>
           </div>
@@ -203,14 +203,14 @@ export default function HomepageRefined() {
         </div>
       </section>
 
-      <section className="px-4 py-4 sm:px-6 sm:py-8 lg:px-8" aria-labelledby="homepage-refined-how-heading">
+      <section className="px-4 py-4 sm:px-6 sm:py-8 lg:px-8" aria-labelledby="homepage-how-heading">
         <div className="mx-auto max-w-7xl">
-          <h2 id="homepage-refined-how-heading" className="font-display text-3xl font-semibold leading-none sm:text-4xl">
+          <h2 id="homepage-how-heading" className="font-display text-3xl font-semibold leading-none sm:text-4xl">
             How DoughTools works
           </h2>
           <ol className="relative mt-4 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/84 shadow-sm lg:grid lg:grid-cols-4">
             <span
-              className="homepage-refined-process-connector pointer-events-none absolute left-14 right-14 top-[2.25rem] hidden h-px bg-ink/10 lg:block"
+              className="homepage-process-connector pointer-events-none absolute left-14 right-14 top-[2.25rem] hidden h-px bg-ink/10 lg:block"
               aria-hidden="true"
             />
             {workSteps.map((step, index) => (
@@ -230,11 +230,11 @@ export default function HomepageRefined() {
         </div>
       </section>
 
-      <section className="px-4 py-4 sm:px-6 sm:py-8 lg:px-8" aria-labelledby="homepage-refined-tools-heading">
+      <section className="px-4 py-4 sm:px-6 sm:py-8 lg:px-8" aria-labelledby="homepage-tools-heading">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Supporting tools</p>
-            <h2 id="homepage-refined-tools-heading" className="mt-2 font-display text-3xl font-semibold leading-none sm:text-4xl">
+            <h2 id="homepage-tools-heading" className="mt-2 font-display text-3xl font-semibold leading-none sm:text-4xl">
               Useful when you need them
             </h2>
           </div>
@@ -263,9 +263,9 @@ export default function HomepageRefined() {
         </div>
       </section>
 
-      <section className="px-4 py-6 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="homepage-refined-final-heading">
+      <section className="px-4 py-6 sm:px-6 sm:py-10 lg:px-8" aria-labelledby="homepage-final-heading">
         <div className="mx-auto max-w-5xl rounded-[1.75rem] bg-forest-dark px-5 py-6 text-center text-white shadow-card sm:px-8 sm:py-8">
-          <h2 id="homepage-refined-final-heading" className="mx-auto max-w-3xl font-display text-[2rem] font-semibold leading-none sm:text-5xl">
+          <h2 id="homepage-final-heading" className="mx-auto max-w-3xl font-display text-[2rem] font-semibold leading-none sm:text-5xl">
             Ready to make your next pizza?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/82">

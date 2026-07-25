@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DoughToolsIcon } from "@/components/icons";
 import { homepageVersionCountLabel } from "@/lib/homepage-version-labels";
+import type { HomepageVersionStatus } from "@/lib/homepage-version-metadata";
 import { homepageVersionRegistry } from "@/lib/homepage-versions";
 
 const upcomingCapabilities = [
@@ -21,12 +22,21 @@ const upcomingCapabilities = [
   },
 ] as const;
 
-function homepageVersionStatusLabel(status: string) {
-  return status === "live" ? "LIVE" : status.toUpperCase();
+const homepageVersionStatusOrder = {
+  live: 0,
+  draft: 1,
+  archived: 2,
+} satisfies Record<HomepageVersionStatus, number>;
+
+function homepageVersionStatusLabel(status: HomepageVersionStatus) {
+  return status.toUpperCase();
 }
 
 export default function AdminPage() {
   const liveHomepageVersions = homepageVersionRegistry.filter((version) => version.status === "live");
+  const homepageVersionsForDisplay = [...homepageVersionRegistry].sort((a, b) => (
+    homepageVersionStatusOrder[a.status] - homepageVersionStatusOrder[b.status]
+  ));
 
   return (
     <main className="min-h-screen bg-cream px-4 py-8 pb-24 text-ink sm:px-6 sm:py-10">
@@ -72,7 +82,7 @@ export default function AdminPage() {
           </div>
 
           <div className="mt-5 grid gap-3">
-            {homepageVersionRegistry.map((version) => (
+            {homepageVersionsForDisplay.map((version) => (
               <article key={version.id} className="rounded-[1.5rem] border border-ink/10 bg-cream/70 p-4">
                 <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                   <div className="min-w-0">

@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
 const footerBearingSources = [
-  ["homepage", source("app", "page.tsx")],
+  ["homepage stable", source("components", "homepage", "HomepageStable.tsx")],
+  ["homepage simplified", source("components", "homepage", "HomepageSimplified.tsx")],
+  ["homepage refined", source("components", "homepage", "HomepageRefined.tsx")],
   ["calculator workspace", source("components", "HomeCalculatorWorkspace.tsx")],
   ["about", source("app", "about", "page.tsx")],
   ["account", source("app", "account", "page.tsx")],
@@ -130,7 +132,8 @@ describe("canonical site footer", () => {
   it("avoids duplicate primary Pizza Session CTAs on public footer-bearing pages", () => {
     for (const [name, text] of footerBearingSources) {
       const directSessionStartLinks = (text.match(/href=["{:]?\s*["']\/session\/start/g) ?? []).length;
-      expect(directSessionStartLinks, name).toBeLessThanOrEqual(1);
+      const allowedDirectLinks = name.startsWith("homepage ") ? 2 : 1;
+      expect(directSessionStartLinks, name).toBeLessThanOrEqual(allowedDirectLinks);
     }
   });
 

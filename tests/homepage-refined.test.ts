@@ -4,21 +4,21 @@ import { describe, expect, it } from "vitest";
 
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
-describe("Refined Homepage draft", () => {
-  it("registers the refined Homepage as a draft preview without changing the public live route", () => {
+describe("Refined Homepage", () => {
+  it("registers the refined Homepage as the live version without public version selection", () => {
     const metadata = source("lib", "homepage-version-metadata.ts");
     const registry = source("lib", "homepage-versions.tsx");
     const publicRoute = source("app", "page.tsx");
 
     expect(metadata).toContain('id: "refined"');
     expect(metadata).toContain('name: "Refined homepage"');
-    expect(metadata).toContain('status: "draft"');
+    expect(metadata).toContain('status: "live"');
     expect(metadata).toContain('description: "A more image-led and compact refinement of the simplified Homepage."');
     expect(registry).toContain("import HomepageRefined");
     expect(registry).toContain("refined: HomepageRefined");
     expect(publicRoute).toContain("getLiveHomepageVersion()");
-    expect(publicRoute).not.toContain("refined");
     expect(publicRoute).not.toContain("HomepageRefined");
+    expect(publicRoute).not.toMatch(/searchParams.*version|homepage-preview|localStorage/i);
   });
 
   it("renders the refined hero with the approved CTAs and local image crop", () => {
@@ -72,7 +72,7 @@ describe("Refined Homepage draft", () => {
     expect(page).toContain("relative mt-4 overflow-hidden rounded-[1.25rem] border");
     expect(page).toContain("overflow-hidden rounded-[1.25rem] border");
     expect(page).toContain("lg:grid lg:grid-cols-4");
-    expect(page).toContain("homepage-refined-process-connector");
+    expect(page).toContain("homepage-process-connector");
     expect(page).toContain("hidden h-px bg-ink/10 lg:block");
     expect(page).toContain('aria-hidden="true"');
     expect(page).toContain("px-4 py-3.5");
@@ -123,8 +123,9 @@ describe("Refined Homepage draft", () => {
     const simplified = source("components", "homepage", "HomepageSimplified.tsx");
     const refined = source("components", "homepage", "HomepageRefined.tsx");
 
-    expect(stable).not.toContain("homepage-refined-hero-heading");
-    expect(simplified).not.toContain("homepage-refined-hero-heading");
+    expect(stable).not.toContain("homepage-refined");
+    expect(simplified).not.toContain("homepage-refined");
+    expect(refined).not.toContain("homepage-refined");
     expect(refined).not.toContain("HomepageStable");
     expect(refined).not.toContain("HomepageSimplified");
   });

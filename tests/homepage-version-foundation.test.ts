@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   getHomepageVersionMetadata,
   getLiveHomepageVersionMetadata,
+  getStableHomepageVersionMetadata,
   HOMEPAGE_VERSION_IDS,
   homepageVersionMetadata,
   isHomepageVersionId,
@@ -14,14 +15,14 @@ import { sitemapEntries } from "@/lib/seo-config";
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
 describe("Homepage version foundation", () => {
-  it("registers stable live, simplified draft and refined draft Homepage versions", () => {
+  it("registers refined live, simplified draft and stable archived Homepage versions", () => {
     expect(HOMEPAGE_VERSION_IDS).toEqual(["stable", "simplified", "refined"]);
     expect(homepageVersionMetadata.map((version) => version.id)).toEqual(["stable", "simplified", "refined"]);
     expect(homepageVersionMetadata[0]).toMatchObject({
       id: "stable",
       name: "Current homepage",
-      description: "The existing production Homepage.",
-      status: "live",
+      description: "The previous production Homepage, preserved as a rollback version.",
+      status: "archived",
       previewAvailable: true,
     });
     expect(homepageVersionMetadata[1]).toMatchObject({
@@ -35,12 +36,14 @@ describe("Homepage version foundation", () => {
       id: "refined",
       name: "Refined homepage",
       description: "A more image-led and compact refinement of the simplified Homepage.",
-      status: "draft",
+      status: "live",
       previewAvailable: true,
     });
     expect(homepageVersionMetadata.filter((version) => version.status === "live")).toHaveLength(1);
-    expect(homepageVersionMetadata.filter((version) => version.status === "draft")).toHaveLength(2);
-    expect(getLiveHomepageVersionMetadata().id).toBe("stable");
+    expect(homepageVersionMetadata.filter((version) => version.status === "draft")).toHaveLength(1);
+    expect(homepageVersionMetadata.filter((version) => version.status === "archived")).toHaveLength(1);
+    expect(getLiveHomepageVersionMetadata().id).toBe("refined");
+    expect(getStableHomepageVersionMetadata().id).toBe("stable");
   });
 
   it("allowlists version IDs and rejects unknown IDs safely", () => {
@@ -50,12 +53,13 @@ describe("Homepage version foundation", () => {
     expect(isHomepageVersionId("draft")).toBe(false);
     expect(isHomepageVersionId("../../../app/page")).toBe(false);
     expect(getHomepageVersionMetadata("stable")?.name).toBe("Current homepage");
+    expect(getHomepageVersionMetadata("stable")?.status).toBe("archived");
     expect(getHomepageVersionMetadata("simplified")?.status).toBe("draft");
-    expect(getHomepageVersionMetadata("refined")?.name).toBe("Refined homepage");
+    expect(getHomepageVersionMetadata("refined")).toMatchObject({ name: "Refined homepage", status: "live" });
     expect(getHomepageVersionMetadata("unknown-version")).toBeNull();
   });
 
-  it("keeps the public Homepage on the live registered stable component without public version selection", () => {
+  it("keeps the public Homepage on the live registered refined component without public version selection", () => {
     const publicRoute = source("app", "page.tsx");
     const renderer = source("components", "homepage", "HomepageRenderer.tsx");
     const stable = source("components", "homepage", "HomepageStable.tsx");
@@ -80,7 +84,11 @@ describe("Homepage version foundation", () => {
     expect(stable).not.toContain("Homepage versions");
     expect(stable).not.toContain("Current homepage");
     expect(simplified).toContain("Make better pizza with one clear plan.");
-    expect(refined).toContain("homepage-refined-hero-heading");
+    expect(refined).toContain("homepage-hero-heading");
+    expect(refined).not.toContain("homepage-refined");
+    expect(refined).toContain("Make better pizza with one clear plan.");
+    expect(refined).toContain("Plan a pizza");
+    expect(refined).toContain("Explore guides");
     expect(publicRoute).not.toContain("Make better pizza with one clear plan.");
     expect(publicRoute).not.toContain("Refined homepage");
     expect([publicRoute, renderer, stable, simplified, refined].join("\n")).not.toMatch(/localStorage|cookies\(|account_preferences|doughtools\.experienceLevel.*version/i);
@@ -98,15 +106,20 @@ describe("Homepage version foundation", () => {
     expect(adminPage).toContain("Homepage versions");
     expect(adminPage).toContain("Preview and manage Homepage presentation versions without changing Pizza Plan or calculation logic.");
     expect(adminPage).toContain("homepageVersionCountLabel(homepageVersionRegistry.length)");
-    expect(adminPage).toContain("LIVE");
+    expect(adminPage).toContain("homepageVersionStatusLabel(version.status)");
+    expect(adminPage).toContain("live: 0");
+    expect(adminPage).toContain("draft: 1");
+    expect(adminPage).toContain("archived: 2");
     expect(adminPage).toContain("{version.name}");
     expect(adminPage).toContain("{version.description}");
     expect(metadata).toContain("Current homepage");
-    expect(metadata).toContain("The existing production Homepage.");
+    expect(metadata).toContain("The previous production Homepage, preserved as a rollback version.");
     expect(metadata).toContain("Simplified homepage");
     expect(metadata).toContain("A clearer Make versus Learn Homepage concept.");
     expect(metadata).toContain("Refined homepage");
     expect(metadata).toContain("A more image-led and compact refinement of the simplified Homepage.");
+    expect(adminPage).toContain("homepageVersionsForDisplay");
+    expect(adminPage).toContain("homepageVersionStatusOrder");
     expect(adminPage).toContain("status.toUpperCase()");
     expect(adminPage).toContain("Preview");
     expect(adminPage).toContain("Preview ${version.name} Homepage version");
@@ -121,7 +134,7 @@ describe("Homepage version foundation", () => {
     expect(homepageVersionCountLabel(3)).toBe("3 versions");
   });
 
-  it("protects the stable preview route with Admin authorization, noindex metadata and safe unknown-ID handling", () => {
+  it("protects all Homepage preview routes with Admin authorization, noindex metadata and safe unknown-ID handling", () => {
     const adminLayout = source("app", "admin", "layout.tsx");
     const previewPage = source("app", "admin", "homepage-preview", "[version]", "page.tsx");
 
@@ -152,9 +165,14 @@ describe("Homepage version foundation", () => {
 
   it("keeps Homepage version management separate from Pizza Plan and calculation logic", () => {
     const registry = source("lib", "homepage-versions.tsx");
+    const metadata = source("lib", "homepage-version-metadata.ts");
     const renderer = source("components", "homepage", "HomepageRenderer.tsx");
     const previewPage = source("app", "admin", "homepage-preview", "[version]", "page.tsx");
 
+    expect(metadata).toContain("getStableHomepageVersionMetadata()");
+    expect(metadata).toContain("return getStableHomepageVersionMetadata()");
+    expect(registry).toContain("getStableHomepageVersionMetadata");
+    expect(registry).toContain('liveVersion.status === "draft"');
     expect([registry, renderer, previewPage].join("\n")).not.toMatch(
       /calculateDough|calculate.*Sauce|pizza-session|PizzaSession|session-storage|account_preferences|supabase|HomeCalculatorWorkspace/i,
     );

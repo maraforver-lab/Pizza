@@ -5,6 +5,7 @@ import HomepageStable from "@/components/homepage/HomepageStable";
 import {
   getHomepageVersionMetadata,
   getLiveHomepageVersionMetadata,
+  getStableHomepageVersionMetadata,
   homepageVersionMetadata,
   type HomepageVersionId,
   type HomepageVersionMetadata,
@@ -35,9 +36,9 @@ export function getHomepageVersion(value: string): HomepageVersionRegistration |
 
 export function getLiveHomepageVersion(): HomepageVersionRegistration {
   const liveMetadata = getLiveHomepageVersionMetadata();
-  const liveVersion = getHomepageVersion(liveMetadata.id);
-  if (!liveVersion) {
-    throw new Error(`Missing Homepage component for live version: ${liveMetadata.id}.`);
+  const liveVersion = getHomepageVersion(liveMetadata.id) ?? getHomepageVersion(getStableHomepageVersionMetadata().id);
+  if (!liveVersion || liveVersion.status === "draft") {
+    throw new Error("Missing safe Homepage component for public route.");
   }
   return liveVersion;
 }
