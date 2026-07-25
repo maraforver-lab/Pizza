@@ -61,7 +61,7 @@ const settingsSections: SettingsSection[] = [
       },
       {
         title: "Change password",
-        description: "Use the existing account access flow.",
+        description: "Update the password used for this account.",
         href: "/account/settings/security",
       },
       {

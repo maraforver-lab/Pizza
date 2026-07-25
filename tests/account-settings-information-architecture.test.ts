@@ -72,8 +72,9 @@ describe("Account Settings information architecture", () => {
     expect(privacyPage).toContain("<AccountDataExportCard />");
     expect(privacyPage).toContain("<AccountDeleteAccountCard />");
     expect(securityPage).toContain("<AccountSecurityControls />");
-    expect(securityControls).toContain("Email");
-    expect(securityControls).toContain("Change email or password");
+    expect(securityControls).toContain("Current account email");
+    expect(securityControls).toContain("Change email address");
+    expect(securityControls).toContain("Change password");
     expect(securityControls).toContain("supabase.auth.signOut()");
     expect(soundComponent).toContain('fetch("/api/account/preferences"');
     expect(exportComponent).toContain("/api/account/export");

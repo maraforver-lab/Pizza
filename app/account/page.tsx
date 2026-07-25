@@ -179,7 +179,17 @@ export default function AccountPage() {
                         onChange={event => setPassword(event.target.value)}
                         className="mt-2 h-12 w-full rounded-xl border border-ink/10 bg-cream/40 px-4 text-base text-ink outline-none focus:border-tomato"
                       />
-                      <span className="mt-1 block text-[10px] font-normal text-ink/35">{t.passwordHint}</span>
+                      <span className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[10px] font-normal text-ink/35">
+                        <span>{t.passwordHint}</span>
+                        {mode === "login" ? (
+                          <Link
+                            href="/account/forgot-password"
+                            className="font-extrabold text-tomato transition hover:text-forest focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                          >
+                            Forgot password?
+                          </Link>
+                        ) : null}
+                      </span>
                     </label>
                     <button type="submit" disabled={loading} className="min-h-12 w-full rounded-xl bg-tomato px-5 text-sm font-extrabold text-white shadow-lg disabled:opacity-50">
                       {loading ? t.working : mode === "login" ? t.login : t.signup}
