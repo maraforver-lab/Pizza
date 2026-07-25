@@ -68,16 +68,17 @@ describe("install app / add to home screen foundation", () => {
   });
 
   it("keeps install guidance available from account while the homepage stays minimal", () => {
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
     const account = source("app/account/page.tsx");
+    const settings = source("app/account/settings/page.tsx");
 
     expect(homepage).not.toContain("InstallAppPrompt");
-    expect(account).toContain("InstallAppPrompt");
+    expect(settings).toContain("InstallAppPrompt");
     expect(homepage).toContain("HomepageSessionActions");
     expect(homepage).not.toContain("homepageContent.workflow.map");
     expect(account).not.toContain("DoughTools remains local-first for recipes and bake notes");
     expect(account).not.toContain("Save recipes to make progress repeatable.");
-    expect(account).toContain("<InstallAppPrompt");
+    expect(settings).toContain("<InstallAppPrompt");
   });
 
   it("documents install behavior without claiming offline, push, tracking or indexing launch", () => {

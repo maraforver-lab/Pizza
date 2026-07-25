@@ -135,7 +135,8 @@ describe("homepage content model", () => {
   });
 
   it("renders the full Pizza Session landing page instead of old homepage clutter", () => {
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
+    const homepageRoute = source("app/page.tsx");
     const content = source("lib/homepage.ts");
     const guidance = source("components/HomepageGuidanceLevelSection.tsx");
     const sessionActions = source("components/HomepageSessionActions.tsx");
@@ -153,10 +154,11 @@ describe("homepage content model", () => {
     expect(homepage).toContain('variant="hero"');
     expect(homepage).toContain('variant="final"');
     expect(homepage).toContain("HomepageGuidanceLevelSection");
-    expect(homepage).toContain("HomeCalculatorWorkspace");
-    expect(homepage).toContain("calculatorViewFor");
-    expect(homepage).toContain('params.calculator === "2" ? "guided" : "entry"');
-    expect(homepage).toContain('return "full"');
+    expect(homepageRoute).toContain("HomeCalculatorWorkspace");
+    expect(homepageRoute).toContain("HomepageRenderer");
+    expect(homepageRoute).toContain("calculatorViewFor");
+    expect(homepageRoute).toContain('params.calculator === "2" ? "guided" : "entry"');
+    expect(homepageRoute).toContain('return "full"');
     expect(homepage).toContain("DoughToolsIcon");
     expect(homepage).toContain("/images/homepage/doughtools-hero-desktop.webp");
     expect(homepage).toContain("What changes");
@@ -331,7 +333,7 @@ describe("homepage content model", () => {
   });
 
   it("keeps the homepage primary and secondary CTAs pointed at the approved targets", () => {
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
     const content = source("lib/homepage.ts");
 
     expect(homepageContent.hero.primaryCta.href).toBe("/session/start");
@@ -343,7 +345,7 @@ describe("homepage content model", () => {
   });
 
   it("uses the final responsive homepage footer as the last visible page section", () => {
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
     const footer = source("components/SiteFooter.tsx");
     const footerStart = homepage.indexOf("<SiteFooter />");
     const finalCtaStart = homepage.indexOf('id="homepage-final-cta-heading"');
@@ -689,7 +691,7 @@ describe("homepage content model", () => {
   });
 
   it("keeps the homepage hero image, CTA and experience selector balanced responsively", () => {
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
 
     expect(homepage).toContain("overflow-x-clip");
     expect(homepage).toContain("lg:min-h-[clamp(34rem,calc(100svh-6rem),40rem)]");
@@ -737,7 +739,7 @@ describe("homepage content model", () => {
   });
 
   it("uses approved local realistic homepage hero assets without obsolete PNG references", () => {
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
     const invitation = source("components/account/PartyOrderInvitationCard.tsx");
     const review = source("docs/audits/patch-323-homepage-hero-assets.md");
     const desktopAsset = join(process.cwd(), "public", "images", "homepage", "doughtools-hero-desktop.webp");

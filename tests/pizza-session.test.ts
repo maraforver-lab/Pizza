@@ -311,7 +311,7 @@ describe("Pizza Session local storage", () => {
 
   it("adds accessible Continue Session UI without fake cloud or wizard claims", () => {
     const component = source("components/ContinuePizzaSessionCard.tsx");
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
     const account = source("app/account/page.tsx");
 
     expect(component).toContain("\"use client\"");

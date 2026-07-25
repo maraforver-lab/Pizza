@@ -39,7 +39,7 @@ describe("Patch 311 responsive visual audit protections", () => {
     const shopping = source("app/session/shopping/page.tsx");
     const troubleshooting = source("components/guide/PizzaTroubleshootingGuideClient.tsx");
     const navigation = source("components/GlobalToolNavigation.tsx");
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
     const siteFooter = source("components/SiteFooter.tsx");
     const globals = source("app/globals.css");
 

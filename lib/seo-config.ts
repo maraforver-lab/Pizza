@@ -208,6 +208,7 @@ export const privateSeoRoutes = [
   "/account",
   "/admin",
   "/admin/appearance",
+  "/admin/homepage-preview",
   "/auth",
   "/auth/callback",
   "/login",

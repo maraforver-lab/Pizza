@@ -267,7 +267,7 @@ describe("homepage active Pizza Session resume", () => {
   });
 
   it("keeps homepage mobile and desktop actions on one shared resolver and confirmation contract", () => {
-    const homepage = source("app/page.tsx");
+    const homepage = source("components/homepage/HomepageStable.tsx");
     const actions = source("components/HomepageSessionActions.tsx");
 
     expect(homepage).toContain("HomepageSessionActions");
