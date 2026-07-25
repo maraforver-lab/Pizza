@@ -1,4 +1,4 @@
-export const HOMEPAGE_VERSION_IDS = ["stable"] as const;
+export const HOMEPAGE_VERSION_IDS = ["stable", "simplified"] as const;
 
 export type HomepageVersionId = (typeof HOMEPAGE_VERSION_IDS)[number];
 
@@ -18,6 +18,13 @@ export const homepageVersionMetadata = [
     name: "Current homepage",
     description: "The existing production Homepage.",
     status: "live",
+    previewAvailable: true,
+  },
+  {
+    id: "simplified",
+    name: "Simplified homepage",
+    description: "A clearer Make versus Learn Homepage concept.",
+    status: "draft",
     previewAvailable: true,
   },
 ] as const satisfies readonly HomepageVersionMetadata[];

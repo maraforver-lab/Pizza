@@ -13,9 +13,9 @@ import { sitemapEntries } from "@/lib/seo-config";
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
 
 describe("Homepage version foundation", () => {
-  it("registers only the stable live Homepage version", () => {
-    expect(HOMEPAGE_VERSION_IDS).toEqual(["stable"]);
-    expect(homepageVersionMetadata.map((version) => version.id)).toEqual(["stable"]);
+  it("registers stable live and simplified draft Homepage versions", () => {
+    expect(HOMEPAGE_VERSION_IDS).toEqual(["stable", "simplified"]);
+    expect(homepageVersionMetadata.map((version) => version.id)).toEqual(["stable", "simplified"]);
     expect(homepageVersionMetadata[0]).toMatchObject({
       id: "stable",
       name: "Current homepage",
@@ -23,15 +23,25 @@ describe("Homepage version foundation", () => {
       status: "live",
       previewAvailable: true,
     });
+    expect(homepageVersionMetadata[1]).toMatchObject({
+      id: "simplified",
+      name: "Simplified homepage",
+      description: "A clearer Make versus Learn Homepage concept.",
+      status: "draft",
+      previewAvailable: true,
+    });
     expect(homepageVersionMetadata.filter((version) => version.status === "live")).toHaveLength(1);
+    expect(homepageVersionMetadata.filter((version) => version.status === "draft")).toHaveLength(1);
     expect(getLiveHomepageVersionMetadata().id).toBe("stable");
   });
 
   it("allowlists version IDs and rejects unknown IDs safely", () => {
     expect(isHomepageVersionId("stable")).toBe(true);
+    expect(isHomepageVersionId("simplified")).toBe(true);
     expect(isHomepageVersionId("draft")).toBe(false);
     expect(isHomepageVersionId("../../../app/page")).toBe(false);
     expect(getHomepageVersionMetadata("stable")?.name).toBe("Current homepage");
+    expect(getHomepageVersionMetadata("simplified")?.status).toBe("draft");
     expect(getHomepageVersionMetadata("unknown-version")).toBeNull();
   });
 
@@ -39,6 +49,7 @@ describe("Homepage version foundation", () => {
     const publicRoute = source("app", "page.tsx");
     const renderer = source("components", "homepage", "HomepageRenderer.tsx");
     const stable = source("components", "homepage", "HomepageStable.tsx");
+    const simplified = source("components", "homepage", "HomepageSimplified.tsx");
     const registry = source("lib", "homepage-versions.tsx");
 
     expect(publicRoute).toContain("getLiveHomepageVersion()");
@@ -47,6 +58,7 @@ describe("Homepage version foundation", () => {
     expect(publicRoute).toContain("calculatorViewFor");
     expect(registry).toContain("Component: homepageVersionComponents[metadata.id]");
     expect(registry).toContain("stable: HomepageStable");
+    expect(registry).toContain("simplified: HomepageSimplified");
     expect(renderer).toContain("getLiveHomepageVersion()");
     expect(renderer).toContain("getHomepageVersion(versionId)");
     expect(stable).toContain("Better pizza");
@@ -55,7 +67,9 @@ describe("Homepage version foundation", () => {
     expect(stable).toContain("<SiteFooter />");
     expect(stable).not.toContain("Homepage versions");
     expect(stable).not.toContain("Current homepage");
-    expect([publicRoute, renderer, stable].join("\n")).not.toMatch(/localStorage|cookies\(|account_preferences|doughtools\.experienceLevel.*version/i);
+    expect(simplified).toContain("Make better pizza with one clear plan.");
+    expect(publicRoute).not.toContain("Make better pizza with one clear plan.");
+    expect([publicRoute, renderer, stable, simplified].join("\n")).not.toMatch(/localStorage|cookies\(|account_preferences|doughtools\.experienceLevel.*version/i);
     expect(publicRoute).not.toMatch(/searchParams.*version|params\.version|homepage-preview/i);
   });
 
@@ -75,6 +89,9 @@ describe("Homepage version foundation", () => {
     expect(adminPage).toContain("{version.description}");
     expect(metadata).toContain("Current homepage");
     expect(metadata).toContain("The existing production Homepage.");
+    expect(metadata).toContain("Simplified homepage");
+    expect(metadata).toContain("A clearer Make versus Learn Homepage concept.");
+    expect(adminPage).toContain("status.toUpperCase()");
     expect(adminPage).toContain("Preview");
     expect(adminPage).toContain("Preview ${version.name} Homepage version");
     expect(adminPage).toContain("/admin/homepage-preview/${version.id}");
