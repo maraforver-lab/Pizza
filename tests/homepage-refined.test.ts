@@ -59,7 +59,7 @@ describe("Refined Homepage", () => {
     expect(page).not.toContain("hover:-translate-y");
   });
 
-  it("keeps the four process stages in one compact connected structure with a decorative desktop connector", () => {
+  it("keeps the four process stages in order without decorative connector or desktop dividers", () => {
     const page = source("components", "homepage", "HomepageRefined.tsx");
     const stages = [
       'title: "Plan"',
@@ -69,14 +69,19 @@ describe("Refined Homepage", () => {
     ];
 
     expect(page).toContain("How DoughTools works");
-    expect(page).toContain("relative mt-4 overflow-hidden rounded-[1.25rem] border");
+    expect(page).toContain("mt-4 overflow-hidden rounded-[1.25rem] border");
     expect(page).toContain("overflow-hidden rounded-[1.25rem] border");
     expect(page).toContain("lg:grid lg:grid-cols-4");
-    expect(page).toContain("homepage-process-connector");
-    expect(page).toContain("hidden h-px bg-ink/10 lg:block");
-    expect(page).toContain('aria-hidden="true"');
+    expect(page).not.toContain("homepage-process-connector");
+    expect(page).not.toContain("hidden h-px bg-ink/10 lg:block");
+    expect(page).not.toContain("lg:border-r");
+    expect(page).not.toContain("lg:last:border-r-0");
+    expect(page).not.toContain("relative z-10");
     expect(page).toContain("px-4 py-3.5");
     expect(page).toContain("Step {index + 1}");
+    expect(page).toContain("border-b border-ink/10");
+    expect(page).toContain("lg:border-b-0");
+    expect(page).toContain("size={24} aria-hidden=\"true\"");
     expect(page).not.toContain("One calm flow");
     expect(page).not.toContain("rounded-2xl bg-cream/80 p-4");
     expect(stages.map((stage) => page.indexOf(stage))).toEqual([...stages].map((stage) => page.indexOf(stage)).sort((a, b) => a - b));

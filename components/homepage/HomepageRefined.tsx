@@ -208,13 +208,9 @@ export default function HomepageRefined() {
           <h2 id="homepage-how-heading" className="font-display text-3xl font-semibold leading-none sm:text-4xl">
             How DoughTools works
           </h2>
-          <ol className="relative mt-4 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/84 shadow-sm lg:grid lg:grid-cols-4">
-            <span
-              className="homepage-process-connector pointer-events-none absolute left-14 right-14 top-[2.25rem] hidden h-px bg-ink/10 lg:block"
-              aria-hidden="true"
-            />
+          <ol className="mt-4 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/84 shadow-sm lg:grid lg:grid-cols-4">
             {workSteps.map((step, index) => (
-              <li key={step.title} className="relative z-10 flex gap-3 border-b border-ink/10 bg-white/0 px-4 py-3.5 last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0">
+              <li key={step.title} className="flex gap-3 border-b border-ink/10 bg-white/0 px-4 py-3.5 last:border-b-0 lg:border-b-0">
                 <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-tomato/15 bg-cream text-tomato">
                   <span className="sr-only">Step {index + 1}</span>
                   <DoughToolsIcon name={step.icon} size={24} aria-hidden="true" />
