@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useId, useState } from "react";
-import RelatedLearning, { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
+import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import ContextualReturn from "@/components/navigation/ContextualReturn";
 import {
   DOUGH_GUIDE_LEVEL_LABELS,
@@ -620,7 +620,9 @@ export default function DoughGuidePageClient() {
           </div>
         </section>
 
-        <DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />
+        {showPreparePlanSummary && (
+          <DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />
+        )}
 
         <DoughProcessVisual />
 
@@ -648,7 +650,7 @@ export default function DoughGuidePageClient() {
             </section>
 
             {showPreparePlanSummary && (
-              <div className="mt-4 hidden lg:block">
+              <div className="mt-4">
                 <PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />
               </div>
             )}
@@ -723,32 +725,6 @@ export default function DoughGuidePageClient() {
           </article>
         </div>
 
-        <div className="mt-8">
-          <RelatedLearning
-            title="What should I learn next?"
-            intro="Connect dough handling to the sauce and oven choices that shape the final pizza."
-            links={[
-              {
-                href: "/sauce",
-                title: "Sauce",
-                description: "Choose the right sauce style and control moisture.",
-                icon: "chef-hat",
-              },
-              {
-                href: "/ovens",
-                title: "Ovens",
-                description: "Learn how your oven setup changes the bake.",
-                icon: "oven",
-              },
-            ]}
-            cta={{
-              href: "/session/start",
-              title: "Plan a pizza",
-              description: "Turn what you learned into a guided pizza plan.",
-              icon: "calendar",
-            }}
-          />
-        </div>
       </div>
     </main>
   );

@@ -668,13 +668,29 @@ describe("Pizza Dough Guide foundation", () => {
 
     expect(page).toContain('const showPreparePlanSummary = activeStep.id === "prepare"');
     expect(page).toContain("{showPreparePlanSummary && (");
+    expect(page).toContain("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />");
     expect(page).toContain("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />");
+    expect(page.indexOf("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />")).toBeGreaterThan(
+      page.indexOf("{showPreparePlanSummary && ("),
+    );
     expect(page).toContain("Your dough plan");
-    expect(page).toContain('className="mt-4 hidden lg:block"');
-    expect(page).toContain("lg:block");
+    expect(page).toContain('className="mt-4"');
+    expect(page).not.toContain('className="mt-4 hidden lg:block"');
     expect(page).not.toContain("Your current dough plan");
     expect(page).not.toContain("For your flour");
     expect(page).not.toContain("activeStep.id !== \"prepare\"");
+  });
+
+  it("removes the generic cross-topic learning-next block from the Dough Guide", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).not.toContain("What should I learn next?");
+    expect(page).not.toContain("Connect dough handling to the sauce and oven choices");
+    expect(page).not.toContain('href: "/sauce"');
+    expect(page).not.toContain('href: "/ovens"');
+    expect(page).not.toContain("<RelatedLearning");
+    expect(page).toContain("<LearningBreadcrumbs current=\"Dough guides\" />");
+    expect(page).toContain("overflow-x-clip");
   });
 
   it("builds a compact active-session summary from existing recipe/session values", () => {
@@ -947,19 +963,19 @@ describe("Pizza Dough Guide foundation", () => {
     expect(page).toContain("buildDoughGuideHref(previousStep.id, sessionReturnPath ?? undefined)");
   });
 
-  it("keeps a compact related-guide handoff while preserving step navigation", () => {
+  it("removes generic related-guide handoff while preserving Dough step navigation", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
     expect(page).not.toContain("Connect dough technique to the rest of the pizza");
     expect(page).not.toContain("The dough steps make more sense when you connect them to sauce moisture");
-    expect(page).toContain("<RelatedLearning");
-    expect(page).toContain('href: "/sauce"');
-    expect(page).toContain('href: "/ovens"');
-    expect(page).toContain('href: "/session/start"');
-    expect(page).toContain('title: "Plan a pizza"');
+    expect(page).not.toContain("<RelatedLearning");
+    expect(page).not.toContain('href: "/sauce"');
+    expect(page).not.toContain('href: "/ovens"');
+    expect(page).not.toContain('title: "What should I learn next?"');
     expect(page).toContain("<LearningBreadcrumbs");
     expect(page).toContain("<TroubleshootingLinksCard");
     expect(page).toContain("Continue to {nextStep.actionName}");
     expect(page).toContain("Previous step");
+    expect(page).toContain('href="/session/start"');
   });
 });
