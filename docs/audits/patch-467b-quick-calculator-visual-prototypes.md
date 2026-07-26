@@ -1,24 +1,83 @@
-# Patch 467B: Quick Calculator Visual Prototypes
+# Patch 467B/467C: Quick Calculator Visual Prototypes
 
 ## Summary
 
-Patch 467B adds three Admin-only visual prototypes for the Quick Dough Calculator:
+The Admin-only Quick Dough Calculator prototypes now compare three visual directions with the calculator visible immediately:
 
 - Instant Recipe
 - Guided Builder
 - Calculator Workbench
 
-The public `/calculator/quick` route remains unchanged. The prototypes are presentation-only and exist so the admin can compare mobile-first, guided and workbench-style approaches before any public redesign.
+Patch 467B created the protected prototypes. Patch 467C refined the first pass because it was too intro-heavy: the old version placed a large prototype explanation card and a tall guidance selector before the actual calculator. That delayed the result and made the prototypes feel like landing pages instead of calculator concepts.
+
+## Calculator-First Hierarchy
+
+Every prototype preview now follows this order:
+
+1. Compact Admin prototype bar.
+2. Compact prototype title row.
+3. Compact Beginner / Enthusiast / Pizza Nerd selector.
+4. Prototype calculator.
+5. Short prototype notes.
+6. Prototype boundary notes.
+
+The calculator starts substantially earlier, and the prototype explanation is below the working surface.
+
+## Compact Guidance Tabs
+
+The large guidance card was replaced with a small segmented control:
+
+- Beginner
+- Enthusiast
+- Pizza Nerd
+
+Changing the selection changes explanation depth only. Numeric input, canonical defaults and calculated output remain identical.
+
+## Instant Recipe Refinement
+
+Instant Recipe now demonstrates the strongest result-first direction.
+
+Mobile order:
+
+1. Live ingredient result.
+2. Copy / Save / Share prototype actions.
+3. Pizza count.
+4. Dough-ball weight.
+5. Fermentation controls.
+6. Compact disclosures.
+
+Desktop uses a clear two-column structure with editable controls on the left and the live recipe/result actions on the right.
+
+## Guided Builder Refinement
+
+Guided Builder now opens directly into the staged tool:
+
+1. Pizza.
+2. Time.
+3. Formula.
+4. Result.
+
+The stage navigation, current-stage controls and mini live result appear before prototype notes. The flow remains a visual prototype only and does not become a Pizza Plan workflow.
+
+## Workbench Grouping Redesign
+
+Calculator Workbench was simplified from a cramped matrix into a calmer workspace:
+
+- Batch
+- Fermentation
+- Formula
+
+The four explanatory peer cards from the first pass were removed. The right pane now holds the live recipe, prototype actions and technical summary so desktop remains scannable and mobile does not collapse into narrow vertical cards.
 
 ## Prototype Access
 
-The prototypes are allowlisted at:
+The prototypes remain allowlisted at:
 
 - `/admin/quick-calculator-preview/instant`
 - `/admin/quick-calculator-preview/guided`
 - `/admin/quick-calculator-preview/workbench`
 
-The existing `/admin` layout applies Admin authorization. Unknown prototype IDs return safe not-found behavior. The preview route uses noindex metadata and is excluded from sitemap generation.
+The existing `/admin` layout applies Admin authorization. Unknown prototype IDs return safe not-found behavior. The preview route uses noindex metadata and remains excluded from sitemap generation.
 
 ## Calculation Boundary
 
@@ -50,12 +109,6 @@ Editable prototype controls are in-memory only:
 - hydration
 - salt
 
-## Guidance Behavior
-
-Each prototype has a local guidance selector for Beginner, Enthusiast and Pizza Nerd presentation. Changing the selector changes only the explanation copy. It does not change numeric inputs, calculated output, saved state or public user preference.
-
-Only the selected guidance explanation is rendered. The prototypes do not render all three explanations together.
-
 ## Non-Persistence Guarantees
 
 The prototypes do not:
@@ -69,17 +122,13 @@ The prototypes do not:
 
 Copy, Save and Share controls are visual prototype actions only.
 
-## Admin Listing
+## Remaining Comparison Questions
 
-The protected Admin page now includes a compact `Quick Calculator prototypes` section with:
+Before choosing the public redesign, compare:
 
-- concept name
-- purpose
-- `PROTOTYPE` status
-- Preview action
+- whether Instant Recipe is the best mobile-first default
+- whether Guided Builder feels helpful or too close to Pizza Plan
+- whether Workbench should become the desktop model
+- whether the final public direction should be a hybrid of Instant Recipe on mobile and Workbench on desktop
 
-No publish, restore, retire, delete, database switching or public selector behavior is introduced.
-
-## Deferred Decisions
-
-Future implementation work should choose a public direction based on prototype review. The expected decision is still likely a hybrid: Instant Recipe for mobile result-first hierarchy and Calculator Workbench for desktop efficiency. Any public redesign must preserve the canonical calculation engine and existing storage/share contracts unless a separate persistence patch explicitly changes them.
+Any public implementation must preserve the canonical calculation engine and existing saved-recipe/share contracts unless a separate persistence patch explicitly changes them.

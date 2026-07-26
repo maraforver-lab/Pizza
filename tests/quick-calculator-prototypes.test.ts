@@ -42,7 +42,7 @@ describe("Quick Calculator admin visual prototypes", () => {
 
     expect(adminLayout).toContain("await requireAdmin()");
     expect(route).toContain("noindexMetadata(");
-    expect(route).toContain("Admin prototype — not the public Quick Calculator");
+    expect(route).toContain("Admin prototype");
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/admin/quick-calculator-preview");
     expect(sitemapUrls.some((url) => url.includes("/admin/quick-calculator-preview"))).toBe(false);
   });
@@ -114,17 +114,60 @@ describe("Quick Calculator admin visual prototypes", () => {
     expect(component).toContain('data-prototype-layout="instant"');
     expect(component).toContain('data-prototype-layout="guided"');
     expect(component).toContain('data-prototype-layout="workbench"');
-    expect(component).toContain("Prototype actions do not write saved recipes, sessions, share URLs or browser storage.");
+    expect(component).toContain("Edits are in-memory only. Copy, Save and Share are visual prototype controls");
     expect(component).not.toMatch(/localStorage|sessionStorage|storeQuickCalculatorSavedRecipes|saveQuickCalculatorRecipe|buildQuickCalculatorShareUrl|fetch\(|\/api\/|createAndSavePizzaSession|setActivePizzaSession|writeExperienceLevelPreference|readExperienceLevelPreference/);
   });
 
-  it("shows only the selected guidance explanation instead of all three level explanations together", () => {
+  it("uses compact guidance tabs instead of the large pre-calculator guidance card", () => {
     const component = source("components/quick-calculator/QuickCalculatorPrototypePreview.tsx");
 
     expect(component).toContain("prototypeGuidanceCopy[selectedLevel.id]");
-    expect(component).toContain("{selectedCopy.body}");
-    expect(component).toContain("guidance text changes only presentation. Numeric output stays identical.");
+    expect(component).toContain("Prototype guidance level");
+    expect(component).toContain("EXPERIENCE_LEVELS.map((option)");
+    expect(component).toContain("aria-pressed={active}");
+    expect(component).toContain("Guidance changes explanation depth only.");
+    expect(component).not.toContain("Change level");
     expect(component).not.toContain("EXPERIENCE_LEVELS.map((level) => prototypeGuidanceCopy");
+  });
+
+  it("moves prototype notes after the calculator structure", () => {
+    const component = source("components/quick-calculator/QuickCalculatorPrototypePreview.tsx");
+    const mainComponent = component.slice(component.indexOf("export default function QuickCalculatorPrototypePreview"));
+
+    expect(component).toContain("data-prototype-title-row");
+    expect(component).toContain("data-prototype-notes");
+    expect(mainComponent.indexOf("<GuidancePrototypeControl")).toBeLessThan(mainComponent.indexOf("<InstantRecipeConcept"));
+    expect(mainComponent.indexOf("<InstantRecipeConcept")).toBeLessThan(mainComponent.indexOf("<PrototypeNotes level={level} />"));
+    expect(mainComponent.indexOf("<GuidedBuilderConcept")).toBeLessThan(mainComponent.indexOf("<PrototypeNotes level={level} />"));
+    expect(mainComponent.indexOf("<WorkbenchConcept")).toBeLessThan(mainComponent.indexOf("<PrototypeNotes level={level} />"));
+    expect(component).not.toContain("Editable only in memory: count, ball weight");
+    expect(component).not.toContain("Public Quick Calculator, saved recipes and share URLs remain unchanged.</p>");
+  });
+
+  it("keeps Instant Recipe result-first and Guided Builder task-first", () => {
+    const component = source("components/quick-calculator/QuickCalculatorPrototypePreview.tsx");
+    const instant = component.slice(component.indexOf("function InstantRecipeConcept"), component.indexOf("function GuidedBuilderConcept"));
+    const guided = component.slice(component.indexOf("function GuidedBuilderConcept"), component.indexOf("function WorkbenchSection"));
+
+    expect(instant).toContain("order-2 grid min-w-0 gap-4");
+    expect(instant).toContain("order-1 grid min-w-0 gap-4");
+    expect(instant.indexOf("<PrototypeResultCapsule result={result} />")).toBeGreaterThan(instant.indexOf("<EssentialControls input={input}"));
+    expect(instant.indexOf("<PrototypeResultCapsule result={result} />")).toBeLessThan(instant.indexOf("<PrototypeActions />"));
+    expect(guided.indexOf("Step {activeStageIndex + 1}")).toBeLessThan(guided.indexOf("<PrototypeActions />"));
+    expect(guided).toContain("Guided Builder stages");
+  });
+
+  it("groups Workbench controls into readable Batch, Fermentation and Formula sections", () => {
+    const component = source("components/quick-calculator/QuickCalculatorPrototypePreview.tsx");
+    const workbench = component.slice(component.indexOf("function WorkbenchConcept"), component.indexOf("export default function QuickCalculatorPrototypePreview"));
+
+    expect(workbench).toContain('<WorkbenchSection title="Batch" icon="pizza">');
+    expect(workbench).toContain('<WorkbenchSection title="Fermentation" icon="clock">');
+    expect(workbench).toContain('<WorkbenchSection title="Formula" icon="scale">');
+    expect(workbench).toContain("Technical summary");
+    expect(component).not.toContain("workbenchGroups");
+    expect(component).not.toContain("data-prototype-active-settings");
+    expect(component).not.toContain("Prototype tray");
   });
 
   it("adds compact Admin cards for all prototype previews without publish controls", () => {
