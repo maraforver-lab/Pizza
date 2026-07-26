@@ -198,21 +198,6 @@ const lessons: ToppingLesson[] = [
   },
 ];
 
-const toppingRelatedGuides = [
-  {
-    href: "/sauce",
-    title: "Sauce",
-    description: "Choose the sauce style and amount that fit your topping load.",
-    icon: "chef-hat" as DoughToolsIconName,
-  },
-  {
-    href: "/ovens",
-    title: "Ovens",
-    description: "Learn how heat changes moisture, browning and bake forgiveness.",
-    icon: "oven" as DoughToolsIconName,
-  },
-] as const;
-
 type ToppingReferenceCategory = "sauce" | "cheese" | "moisture";
 type ToppingReferenceState = "light" | "balanced" | "heavy" | "wet" | "drained";
 
@@ -784,9 +769,10 @@ function ReferenceComparison({ activeLevel }: { activeLevel: BalanceLevel }) {
 
 function ToppingsQuickAnswer({ experienceLevel }: { experienceLevel: ExperienceLevel }) {
   const levelCopy = TOPPINGS_QUICK_ANSWER_COPY[experienceLevel];
+  const starterRules = ["One cheese", "Two or three toppings", "Keep moisture under control", "Leave visible space"];
 
   return (
-    <section className="rounded-[1.75rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6 lg:grid lg:grid-cols-[minmax(0,.82fr)_minmax(18rem,.48fr)] lg:gap-6" aria-labelledby="toppings-quick-answer-title" data-toppings-quick-answer>
+    <section className="rounded-[1.75rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6 lg:grid lg:grid-cols-[minmax(0,.8fr)_minmax(18rem,.55fr)] lg:gap-6" aria-labelledby="toppings-quick-answer-title" data-toppings-quick-answer>
       <div>
         <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Quick answer</p>
         <h2 id="toppings-quick-answer-title" className="mt-3 font-display text-3xl font-semibold leading-tight text-ink sm:text-4xl">
@@ -795,15 +781,18 @@ function ToppingsQuickAnswer({ experienceLevel }: { experienceLevel: ExperienceL
         <p className="mt-3 text-sm font-bold leading-6 text-ink/68 sm:text-base">
           {levelCopy.answer}
         </p>
-        <p className="mt-4 rounded-2xl border border-leaf/20 bg-leaf/10 p-4 text-sm font-extrabold leading-6 text-ink">
-          {TOPPINGS_PRIMARY_RECOMMENDATION}
-        </p>
+        <div className="mt-4 rounded-2xl border border-ink/10 bg-flour p-4">
+          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Why balance matters</p>
+          <p className="mt-2 text-sm font-extrabold leading-6 text-ink">
+            More toppings do not automatically create a better pizza. {TOPPINGS_PRIMARY_RECOMMENDATION}
+          </p>
+        </div>
       </div>
 
       <ol className="mt-4 grid gap-2 lg:mt-0" aria-label="Topping quick answer rules">
-        {levelCopy.rules.map((rule, index) => (
+        {starterRules.map((rule, index) => (
           <li key={rule} className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-2xl border border-ink/10 bg-flour p-3">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-extrabold text-tomato shadow-sm" aria-hidden="true">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-xs font-extrabold text-tomato ring-1 ring-ink/10" aria-hidden="true">
               {index + 1}
             </span>
             <span className="text-sm font-extrabold leading-5 text-ink">{rule}</span>
@@ -863,7 +852,7 @@ function ToppingProcessImage({
   );
 }
 
-function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: ExperienceLevel }) {
+function ToppingsPracticalHierarchy() {
   return (
     <div className="mt-6 space-y-6" data-toppings-practical-hierarchy>
       <section className="rounded-[2rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6" aria-labelledby="balanced-set-title">
@@ -956,30 +945,6 @@ function ToppingsPracticalHierarchy({ experienceLevel }: { experienceLevel: Expe
               />
             </div>
           </article>
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] bg-forest-dark p-5 text-white shadow-raised sm:p-7 lg:grid lg:grid-cols-[minmax(0,.8fr)_minmax(18rem,.55fr)] lg:gap-8" aria-labelledby="overloaded-pizza-title">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Avoid an overloaded pizza</p>
-          <h2 id="overloaded-pizza-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">
-            An overloaded pizza traps moisture, blocks heat and makes the centre difficult to bake.
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-white/70">
-            {OVERLOADED_PIZZA_COPY[experienceLevel]}
-          </p>
-        </div>
-        <div className="mt-5 grid gap-3 lg:mt-0">
-          {[
-            ["Too crowded", "Heat cannot reach the dough cleanly."],
-            ["Too wet", "Water has to evaporate before the centre sets."],
-            ["Too covered", "A cheese blanket traps steam under the melt."],
-          ].map(([title, body]) => (
-            <div key={title} className="rounded-[1.25rem] border border-white/12 bg-white/8 p-4">
-              <h3 className="text-sm font-extrabold">{title}</h3>
-              <p className="mt-2 text-sm leading-6 text-white/62">{body}</p>
-            </div>
-          ))}
         </div>
       </section>
     </div>
@@ -1134,49 +1099,37 @@ export default function ToppingBalanceLab() {
 
   return (
     <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
-      <section className="bg-forest-dark text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,.82fr)_minmax(18rem,.48fr)] lg:px-8">
-          <div>
-            <div className="[&_a]:text-oven-gold [&_span]:text-white/60">
+      <section className="border-b border-ink/10 bg-flour/55">
+        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
+          <div className="max-w-4xl">
+            <div>
               <LearningBreadcrumbs current="Topping guides" />
             </div>
-            <p className="text-xs font-extrabold uppercase tracking-[.24em] text-oven-gold">Topping guides</p>
-            <h1 className="mt-4 max-w-4xl font-display text-5xl font-semibold leading-[.94] tracking-tight sm:text-6xl lg:text-7xl">
-              See what too much looks like.
+            <p className="mt-4 text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Topping guides</p>
+            <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+              Build toppings that bake well.
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-white/76">
-              Adjust sauce and cheese, compare the result, and learn how topping weight and moisture change the bake.
+            <p className="mt-4 max-w-2xl text-base leading-7 text-ink/68">
+              Balance cheese, moisture and topping weight so the pizza cooks evenly.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <a href="#interactive-lab" className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-6 text-sm font-extrabold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-white hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                Start the experiment
+            <div className="mt-5">
+              <a href="#interactive-lab" className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-6 text-sm font-extrabold text-white shadow-card transition hover:bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-tomato">
+                Start topping plan
               </a>
-              <button type="button" onClick={() => setPreset("balanced")} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-white/10 px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                See the balanced example
-              </button>
             </div>
-          </div>
-          <div className="rounded-[2rem] border border-white/12 bg-white/10 p-5 shadow-card backdrop-blur lg:self-end">
-            <p className="text-xs font-extrabold uppercase tracking-[.18em] text-oven-gold">Central lesson</p>
-            <p className="mt-3 text-sm leading-7 text-white/74">
-              More toppings do not automatically create a better pizza. Balance comes from coverage, topped area,
-              moisture, cheese behavior and oven heat working together.
-            </p>
           </div>
         </div>
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <ToppingsQuickAnswer experienceLevel={experienceLevel} />
-        <ToppingsPracticalHierarchy experienceLevel={experienceLevel} />
 
         <section id="interactive-lab" className="mt-10 scroll-mt-24" aria-labelledby="lab-title">
           <div className="mb-6 max-w-3xl">
-            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Existing deeper guidance and references</p>
-            <h2 id="lab-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Build and compare the topping load.</h2>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Topping Assistant</p>
+            <h2 id="lab-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">Choose, adjust and check the balance.</h2>
             <p className="mt-4 text-sm leading-7 text-ink/62">
-              Numbers support the lesson; the visual is the point. Change one thing, watch the coverage, then read the
-              likely consequence before the pizza reaches the oven.
+              Choose cheese, topping load and moisture details, then watch the balance, coverage and next adjustment before the pizza reaches the oven.
             </p>
           </div>
 
@@ -1203,9 +1156,12 @@ export default function ToppingBalanceLab() {
                 ))}
               </section>
               <ReferenceComparison activeLevel={result.combinedLevel} />
-              <section className="rounded-[1.75rem] border border-leaf/20 bg-leaf/10 p-5" aria-labelledby="recommendation-title">
+              <section className="rounded-[1.75rem] border border-ink/10 bg-flour p-5" aria-labelledby="recommendation-title">
                 <h3 id="recommendation-title" className="font-display text-2xl font-semibold">What to adjust next</h3>
                 <p className="mt-3 text-sm leading-7 text-ink/68">{result.recommendedAdjustment}</p>
+                <p className="mt-4 rounded-2xl bg-white p-4 text-sm font-bold leading-6 text-ink/62">
+                  {OVERLOADED_PIZZA_COPY[experienceLevel]}
+                </p>
               </section>
             </div>
 
@@ -1299,7 +1255,14 @@ export default function ToppingBalanceLab() {
           </div>
         </section>
 
-        <section className="mt-12 rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="area-title">
+        <ToppingsPracticalHierarchy />
+
+        <details className="mt-12 rounded-[1.75rem] border border-ink/10 bg-white p-4 shadow-card sm:p-6">
+          <summary className="cursor-pointer list-none rounded-[1.25rem] bg-flour px-4 py-3 text-sm font-extrabold text-ink marker:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+            Advanced topping reasoning and references
+          </summary>
+          <div className="mt-6">
+        <section className="rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7" aria-labelledby="area-title">
           <div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Topped area</p>
@@ -1404,36 +1367,8 @@ export default function ToppingBalanceLab() {
         <div className="mt-12">
           <ToppingReferenceGallery state={state} result={result} />
         </div>
-
-        <section className="mt-12 rounded-[1.75rem] border border-ink/10 bg-white/72 p-5 shadow-card sm:p-7" aria-labelledby="toppings-related-guides-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Related guides</p>
-          <h2 id="toppings-related-guides-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-            What should I learn next?
-          </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/60">
-            Connect topping balance to sauce moisture and oven heat.
-          </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {toppingRelatedGuides.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="group rounded-[1.35rem] border border-ink/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-tomato/30 hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-leaf/10 text-leaf" aria-hidden="true">
-                    <DoughToolsIcon name={link.icon} size={24} />
-                  </span>
-                  <span className="font-extrabold text-ink transition group-hover:text-tomato">{link.title}</span>
-                </span>
-                <span className="mt-2 block text-sm leading-6 text-ink/55">{link.description}</span>
-                <span className="mt-4 inline-flex text-sm font-extrabold text-tomato transition group-hover:text-ink">
-                  Explore guide
-                </span>
-              </Link>
-            ))}
           </div>
-        </section>
+        </details>
 
         <section className="mt-12 rounded-[2rem] bg-tomato p-6 text-white shadow-card sm:p-8 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8" aria-labelledby="final-cta-title">
           <div>

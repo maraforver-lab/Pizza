@@ -108,9 +108,17 @@ describe("Topping Balance Lab page structure", () => {
     expect(page).toContain("ToppingBalanceLab");
     expect(component).toContain("LearningBreadcrumbs");
     expect(component).toContain("Topping guides");
-    expect(component).toContain("See what too much looks like.");
-    expect(component).toContain("Start the experiment");
-    expect(component).toContain("Build and compare the topping load");
+    expect(component).toContain("Build toppings that bake well.");
+    expect(component).toContain("Balance cheese, moisture and topping weight so the pizza cooks evenly.");
+    expect(component).toContain("Start topping plan");
+    expect(component).toContain("Topping Assistant");
+    expect(component).toContain("Choose, adjust and check the balance.");
+    expect(component).not.toContain("See what too much looks like.");
+    expect(component).not.toContain("Start the experiment");
+    expect(component).not.toContain("See the balanced example");
+    expect(component).not.toContain("Central lesson");
+    expect(component).not.toContain("Existing deeper guidance and references");
+    expect(component).not.toContain("bg-leaf/10");
   });
 
   it("keeps the lab focused on topping balance rather than unrelated workflows", () => {
@@ -135,20 +143,20 @@ describe("Topping Balance Lab page structure", () => {
     );
   });
 
-  it("separates practical toppings guidance before existing deeper guidance", () => {
+  it("places the assistant before practical examples and deeper reasoning", () => {
     for (const text of [
       "Choose a balanced topping set",
       "Cheese and moisture",
       "Before baking",
       "After baking",
-      "Avoid an overloaded pizza",
-      "Existing deeper guidance and references",
+      "Advanced topping reasoning and references",
     ]) {
       expect(component).toContain(text);
     }
 
-    expect(component.indexOf("Choose a balanced topping set")).toBeLessThan(component.indexOf("Build and compare the topping load."));
-    expect(component.indexOf("Avoid an overloaded pizza")).toBeLessThan(component.indexOf("Existing deeper guidance and references"));
+    expect(component.indexOf('<section id="interactive-lab"')).toBeLessThan(component.indexOf("<ToppingsPracticalHierarchy />"));
+    expect(component.indexOf("<ToppingsPracticalHierarchy />")).toBeLessThan(component.indexOf("Advanced topping reasoning and references"));
+    expect(component.indexOf("Advanced topping reasoning and references")).toBeLessThan(component.indexOf("The rim is not part of the topping area."));
   });
 
   it("teaches area, sauce, cheese, drainage, combined load, oven interaction and overload risk", () => {
@@ -159,7 +167,6 @@ describe("Topping Balance Lab page structure", () => {
       "Drainage changes how much water reaches the pizza.",
       "Sauce and cheese cannot be judged alone.",
       "The oven changes how forgiving the topping load feels.",
-      "An overloaded pizza traps moisture, blocks heat and makes the centre difficult to bake.",
     ]) {
       expect(component).toContain(text);
     }
@@ -311,18 +318,15 @@ describe("Topping Balance Lab page structure", () => {
     expect(research).toContain("visual simulation");
   });
 
-  it("keeps a compact related-guide handoff and one final CTA", () => {
+  it("removes generic related-guide navigation and keeps one final CTA", () => {
     expect(component).not.toContain("Sources and methodology");
     expect(component).not.toContain("View topping sources and methodology");
     expect(component).not.toContain("Connect topping balance to the whole pizza");
     expect(component).not.toContain("<RelatedLearning");
-    expect(component).not.toContain("Oven and Heat Guide");
     expect(component).not.toContain("Pizza Style Atlas");
-    expect(component).toContain("What should I learn next?");
-    expect(component).toContain("Connect topping balance to sauce moisture and oven heat.");
-    expect(component).toContain('href: "/sauce"');
-    expect(component).toContain('href: "/ovens"');
-    expect(component).toContain("Explore guide");
+    expect(component).not.toContain("What should I learn next?");
+    expect(component).not.toContain("Connect topping balance to sauce moisture and oven heat.");
+    expect(component).not.toContain("toppingRelatedGuides");
     expect(component).toContain("Plan a pizza");
     expect(component).toContain('href="/session/start"');
     expect(component).not.toContain("Return to Pizza guides");
