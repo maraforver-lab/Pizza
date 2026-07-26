@@ -44,24 +44,34 @@ const sampleGuidance = [
 ] as const satisfies readonly PracticalTipLevelGuidanceItem[];
 
 describe("Practical pizza tips landing page", () => {
-  it("creates a dedicated Pizza guides destination for planned practical topics", () => {
+  it("creates a dedicated Pizza guides destination for practical topics", () => {
     const page = source("app", "guide", "practical-pizza-tips", "page.tsx");
     const guide = source("app", "guide", "page.tsx");
     const navigation = source("lib", "navigation.ts");
     const header = source("components", "GlobalToolNavigation.tsx");
+    const topicLinks = page.match(/href: "\/guide\/practical-pizza-tips\/[^"]+"/g) ?? [];
+    const leftoverLinks = page.match(/href: "\/guide\/practical-pizza-tips\/leftover-dough"/g) ?? [];
 
     expect(page).toContain("Practical pizza tips");
+    expect(page).toContain("Practical topics");
+    expect(page).not.toContain("Upcoming topics");
     expect(page).toContain("leftover dough");
-    expect(page).toContain("Freezing and thawing");
+    expect(page).toContain("Leftover dough, freezing and thawing");
+    expect(page).not.toContain('title: "Freezing and thawing"');
     expect(page).toContain("Choosing fermentation length");
     expect(page).toContain("Dough container and lid use");
     expect(page).toContain("Common dough, sauce and baking problems");
     expect(page).toContain("Open a focused tip when a small dough, sauce or baking decision needs a quick answer.");
+    expect(topicLinks).toHaveLength(4);
+    expect(leftoverLinks).toHaveLength(1);
     expect(page).toContain('href: "/guide/practical-pizza-tips/leftover-dough"');
     expect(page).toContain('href: "/guide/practical-pizza-tips/fermentation-length"');
     expect(page).toContain('href: "/guide/practical-pizza-tips/containers-and-lids"');
     expect(page).toContain('href: "/guide/practical-pizza-tips/common-problems"');
     expect(page).toContain("Explore guide");
+    expect(page).not.toContain("plannedPatch");
+    expect(page).not.toContain("Planned for Patch");
+    expect(page).not.toContain("<article");
     expect(guide).toContain('href: "/guide/practical-pizza-tips"');
     expect(navigation).toContain('id: "practical-tips"');
     expect(navigation).toContain('label: "Practical pizza tips"');
