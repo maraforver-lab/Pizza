@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
+import { PracticalTipTeachingImage } from "@/components/guide/PracticalTipTeachingImage";
 import { PracticalTipsLevelGuidance } from "@/components/guide/PracticalTipsLevelGuidance";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
@@ -43,6 +44,12 @@ const safetyChecks = [
   "Discard dough with mold, rotten smell, slime or signs it was held warm when it should have stayed cold.",
   "Shorten the plan if the dough is racing ahead; extend only when the dough still has strength and safe storage.",
 ] as const;
+
+const fermentationTeachingImage = {
+  src: "/guide/practical-pizza-tips/teaching/fermentation-readiness-comparison.webp",
+  alt: "Four covered dough containers showing progressively tighter, ready, bubbly and slack fermentation states.",
+  caption: "Compare expansion, surface gas and slackness; the clock is only a planning label.",
+} as const;
 
 const levelGuidance = [
   {
@@ -113,6 +120,9 @@ export default function FermentationLengthTipPage() {
             <h2 id="fermentation-options-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               12, 24, 48 and 72 hours mean different trade-offs.
             </h2>
+          </div>
+          <div className="mt-6 max-w-4xl">
+            <PracticalTipTeachingImage {...fermentationTeachingImage} />
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {fermentationOptions.map((option) => (

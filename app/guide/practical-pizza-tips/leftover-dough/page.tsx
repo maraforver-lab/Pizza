@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
+import { PracticalTipTeachingImage } from "@/components/guide/PracticalTipTeachingImage";
 import { PracticalTipsLevelGuidance } from "@/components/guide/PracticalTipsLevelGuidance";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
@@ -34,6 +35,12 @@ const safetyChecks = [
   "Thaw frozen dough in the refrigerator first, then let it warm and relax before stretching.",
   "Discard dough that shows mold, smells rotten, feels slimy or was held warm when it should have been cold.",
 ] as const;
+
+const storageTeachingImage = {
+  src: "/guide/practical-pizza-tips/teaching/leftover-dough-storage-thaw.webp",
+  alt: "Leftover pizza dough shown covered in refrigerator storage, sealed for freezing and covered while thawing.",
+  caption: "Use a covered container for the fridge, freeze portions before they collapse, then thaw covered before warming.",
+} as const;
 
 const levelGuidance = [
   {
@@ -104,6 +111,9 @@ export default function LeftoverDoughTipPage() {
             <h2 id="leftover-dough-decisions-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               Decide whether to chill, freeze or discard.
             </h2>
+          </div>
+          <div className="mt-6 max-w-4xl">
+            <PracticalTipTeachingImage {...storageTeachingImage} />
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {quickDecisions.map((decision) => (

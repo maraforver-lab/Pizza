@@ -1,10 +1,11 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { EXPERIENCE_LEVELS, EXPERIENCE_LEVEL_STORAGE_KEY } from "@/lib/experience-levels";
 import { selectPracticalTipLevelGuidance, type PracticalTipLevelGuidanceItem } from "@/lib/practical-tips-guidance";
 
 const source = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
+const publicAsset = (...parts: string[]) => join(process.cwd(), "public", ...parts);
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -83,6 +84,8 @@ describe("Practical pizza tips landing page", () => {
   it("keeps the landing focused on topic cards without redundant level explanations", () => {
     const page = source("app", "guide", "practical-pizza-tips", "page.tsx");
 
+    expect(page).not.toContain("next/image");
+    expect(page).not.toContain("/guide/practical-pizza-tips/teaching/");
     expect(page).not.toContain("Structure");
     expect(page).not.toContain("Each future tip will use the same Beginner, Enthusiast and Pizza Nerd pattern");
     expect(page).not.toContain("const practicalTipLevelPattern");
@@ -117,6 +120,23 @@ describe("Practical pizza tips landing page", () => {
     expect(guide).toContain('href: "/guide/pizza-troubleshooting"');
   });
 
+  it("adds only lightweight local WebP teaching assets for the targeted Practical Tips gaps", () => {
+    const assets = [
+      "leftover-dough-storage-thaw.webp",
+      "fermentation-readiness-comparison.webp",
+      "container-fill-lid-fit.webp",
+    ] as const;
+
+    for (const asset of assets) {
+      const path = publicAsset("guide", "practical-pizza-tips", "teaching", asset);
+
+      expect(existsSync(path)).toBe(true);
+      expect(asset.endsWith(".webp")).toBe(true);
+      expect(statSync(path).size).toBeGreaterThan(40_000);
+      expect(statSync(path).size).toBeLessThan(180_000);
+    }
+  });
+
   it("adds a leftover dough page with storage, freezing, thawing and safety guidance", () => {
     const page = source("app", "guide", "practical-pizza-tips", "leftover-dough", "page.tsx");
     const seo = source("lib", "seo-config.ts");
@@ -131,6 +151,9 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Move frozen dough to the refrigerator to thaw");
     expect(page).toContain("let chilled dough warm up and relax");
     expect(page).toContain("Discard dough");
+    expect(page).toContain("/guide/practical-pizza-tips/teaching/leftover-dough-storage-thaw.webp");
+    expect(page).toContain("covered in refrigerator storage, sealed for freezing and covered while thawing");
+    expect(page).toContain("Use a covered container for the fridge, freeze portions before they collapse");
     expect(page).not.toContain("75 minutes");
   });
 
@@ -178,6 +201,9 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain('label: "72 hours"');
     expect(page).toContain("Longer fermentation is not automatically better");
     expect(page).toContain("start with 24 hours");
+    expect(page).toContain("/guide/practical-pizza-tips/teaching/fermentation-readiness-comparison.webp");
+    expect(page).toContain("progressively tighter, ready, bubbly and slack fermentation states");
+    expect(page).toContain("Compare expansion, surface gas and slackness");
     expect(page).not.toContain("always better");
   });
 
@@ -224,6 +250,9 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("prevents drying");
     expect(page).toContain("Condensation is normal");
     expect(page).toContain("Clean and covered comes first.");
+    expect(page).toContain("/guide/practical-pizza-tips/teaching/container-fill-lid-fit.webp");
+    expect(page).toContain("comparing a covered dough ball with headspace");
+    expect(page).toContain("Leave headspace and cover the dough");
   });
 
   it("uses the shared three-level structure for container and lid depth", () => {
@@ -254,6 +283,11 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Pale top");
     expect(page).toContain("Burnt base");
     expect(page).toContain("Wet toppings");
+    expect(page).toContain("PracticalTipImageStrip");
+    expect(page).toContain("/images/troubleshooting/dough-dry-skin.webp");
+    expect(page).toContain("/images/troubleshooting/sauce-makes-center-watery.webp");
+    expect(page).toContain("/images/troubleshooting/top-burns-before-bottom.webp");
+    expect(page).not.toContain("/guide/practical-pizza-tips/teaching/common");
   });
 
   it("keeps common problems concise while linking to the existing troubleshooting guide", () => {
@@ -289,6 +323,33 @@ describe("Practical pizza tips landing page", () => {
       expect(page).not.toContain("EXPERIENCE_LEVELS");
       expect(page).not.toContain("getExperienceLevelCornerAccentStyle");
     }
+  });
+
+  it("uses one focused Practical Tips image component with explicit dimensions and captions", () => {
+    const component = source("components", "guide", "PracticalTipTeachingImage.tsx");
+
+    expect(component).toContain('import Image from "next/image"');
+    expect(component).toContain("width={1200}");
+    expect(component).toContain("height={800}");
+    expect(component).toContain("width={900}");
+    expect(component).toContain("height={675}");
+    expect(component).toContain("<figcaption");
+    expect(component).not.toContain("priority");
+    expect(component).not.toContain("backgroundImage");
+  });
+
+  it("leaves the inspected Sauce and Ovens image decisions unchanged", () => {
+    const sauce = source("app", "sauce", "page.tsx") + source("components", "sauce", "SaucePracticalGuidance.tsx");
+    const ovens = source("app", "ovens", "page.tsx");
+
+    expect(sauce).toContain("/sauce/neapolitan.webp");
+    expect(sauce).toContain("/toppings/references/sauce-balanced.webp");
+    expect(sauce).toContain("/toppings/references/sauce-heavy.webp");
+    expect(sauce).not.toContain("/guide/practical-pizza-tips/teaching/");
+    expect(ovens).toContain("/ovens/teaching/home-oven-steel-position.webp");
+    expect(ovens).toContain("/ovens/teaching/pizza-oven-launch-position.webp");
+    expect(ovens).not.toContain("HeatBalanceDiagram");
+    expect(ovens).not.toContain("/guide/practical-pizza-tips/teaching/");
   });
 
   it("selects only Beginner guidance when Beginner is stored", () => {

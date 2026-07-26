@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
+import { PracticalTipImageStrip } from "@/components/guide/PracticalTipTeachingImage";
 import { PracticalTipsLevelGuidance } from "@/components/guide/PracticalTipsLevelGuidance";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
@@ -45,6 +46,27 @@ const diagnosisAreas = [
     icon: "oven",
   },
 ] as const satisfies readonly { title: string; body: string; icon: DoughToolsIconName }[];
+
+const diagnosisImages = [
+  {
+    title: "Dry dough skin",
+    src: "/images/troubleshooting/dough-dry-skin.webp",
+    alt: "Pizza dough with a dry leathery skin caused by being left uncovered.",
+    caption: "Exposed dough dries before it ferments or stretches well.",
+  },
+  {
+    title: "Watery center",
+    src: "/images/troubleshooting/sauce-makes-center-watery.webp",
+    alt: "Pizza center left wet because sauce and toppings added too much moisture.",
+    caption: "Wet sauce or toppings increase bake load and slow the center.",
+  },
+  {
+    title: "Heat imbalance",
+    src: "/images/troubleshooting/top-burns-before-bottom.webp",
+    alt: "Pizza with top color developing before the base has baked through.",
+    caption: "Top and bottom heat need to finish the pizza at the same time.",
+  },
+] as const;
 
 const levelGuidance = [
   {
@@ -132,6 +154,9 @@ export default function CommonProblemsTipPage() {
             <h2 id="diagnosis-areas-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               Repeated problems usually come from one process area.
             </h2>
+          </div>
+          <div className="mt-6">
+            <PracticalTipImageStrip items={diagnosisImages} />
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {diagnosisAreas.map((area) => (

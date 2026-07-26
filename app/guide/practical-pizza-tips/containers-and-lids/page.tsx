@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
+import { PracticalTipTeachingImage } from "@/components/guide/PracticalTipTeachingImage";
 import { PracticalTipsLevelGuidance } from "@/components/guide/PracticalTipsLevelGuidance";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
@@ -34,6 +35,12 @@ const safetyChecks = [
   "Keep long-waiting dough cold when the plan depends on refrigeration.",
   "Discard dough with mold, rotten smell, slime or signs it was held warm when it should have stayed cold.",
 ] as const;
+
+const containerTeachingImage = {
+  src: "/guide/practical-pizza-tips/teaching/container-fill-lid-fit.webp",
+  alt: "Clear dough containers comparing a covered dough ball with headspace against an overfilled container touching the lid.",
+  caption: "Leave headspace and cover the dough; the lid protects moisture, not pressure.",
+} as const;
 
 const levelGuidance = [
   {
@@ -104,6 +111,9 @@ export default function ContainersAndLidsTipPage() {
             <h2 id="container-basics-title" className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               Protect the dough without trapping it.
             </h2>
+          </div>
+          <div className="mt-6 max-w-4xl">
+            <PracticalTipTeachingImage {...containerTeachingImage} />
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {containerBasics.map((item) => (
