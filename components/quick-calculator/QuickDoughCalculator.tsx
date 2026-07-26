@@ -64,7 +64,6 @@ const enthusiastKeys = [
   "yeastType",
   "fermentationDuration",
   "fermentationEnvironment",
-  "fermentationTemperatureCelsius",
 ] as const satisfies readonly (keyof QuickCalculatorInput)[];
 
 const beginnerTechnicalKeys = Object.keys(quickCalculatorDefaults).filter((key) => key !== "pizzaCount") as (keyof QuickCalculatorInput)[];

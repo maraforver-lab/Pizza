@@ -465,6 +465,15 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Use Enthusiast practical settings?");
   });
 
+  it("treats exact fermentation temperature as a Pizza Nerd-only value during level reset", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+    const enthusiastKeysBlock = component.match(/const enthusiastKeys = \[([\s\S]*?)\] as const/)?.[1] ?? "";
+
+    expect(enthusiastKeysBlock).toContain("\"fermentationEnvironment\"");
+    expect(enthusiastKeysBlock).not.toContain("\"fermentationTemperatureCelsius\"");
+    expect(component).toContain("fermentationTemperatureCelsius: defaultQuickFermentationTemperature(current.fermentationEnvironment)");
+  });
+
   it("normalizes advanced dough tool fields as optional Quick Calculator-only inputs", () => {
     const normalized = normalizeQuickCalculatorInput({
       ...quickCalculatorDefaults,
