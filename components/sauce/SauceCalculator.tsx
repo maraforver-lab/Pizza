@@ -137,6 +137,31 @@ function coveragePresets(method: SauceMethod) {
   ] as const;
 }
 
+function ResultSummary({ result }: { result: SauceCalculatorResult }) {
+  return (
+    <section className="rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-soft sm:p-5" aria-labelledby="sauce-result-title">
+      <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Calculated amount</p>
+      <h3 id="sauce-result-title" className="mt-2 font-display text-3xl font-semibold text-ink">
+        <span className="sr-only">Total sauce: </span>
+        {formatGrams(result.finishedSauceGrams)} total sauce
+      </h3>
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          ["Sauce per pizza", `${result.sauceGramsPerPizza} g`],
+          ["Pizzas", result.pizzaCount.toString()],
+          ["Reserve", formatGrams(result.reserveGrams)],
+          ["Prepare", formatGrams(result.preparationSauceGrams)],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl bg-flour p-3">
+            <p className="text-[0.68rem] font-extrabold uppercase tracking-[.12em] text-ink/48">{label}</p>
+            <strong className="mt-1 block text-xl text-ink">{value}</strong>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function SauceCalculator() {
   const defaults = defaultSauceCalculatorInput();
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(getDefaultExperienceLevel());
@@ -188,7 +213,7 @@ export default function SauceCalculator() {
       className="scroll-mt-24 overflow-hidden rounded-[2rem] border border-ink/10 bg-card shadow-card"
       aria-labelledby="sauce-calculator-title"
     >
-      <div className="border-b border-ink/10 p-5 sm:p-7 lg:p-8">
+      <div className="border-b border-ink/10 p-5 sm:p-7 lg:p-6">
         <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Sauce calculator and recipe</p>
         <h2 id="sauce-calculator-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
           How much sauce do I need?
@@ -203,31 +228,12 @@ export default function SauceCalculator() {
           Recommended for most pizzas: {sauceMethodLabels[method]} · {result.sauceGramsPerPizza} g per pizza.
         </p>
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-[1.15fr_0.85fr_0.7fr_0.75fr]">
-          <div className="rounded-2xl border border-ink/10 bg-white p-4">
-            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/48">Total sauce</p>
-            <strong className="mt-1 block text-4xl text-ink">{formatGrams(result.finishedSauceGrams)}</strong>
-            <span className="mt-1 block text-xs font-bold text-muted">Finished amount for topping</span>
-          </div>
-          <div className="rounded-2xl border border-ink/10 bg-white p-4">
-            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/48">Sauce per pizza</p>
-            <strong className="mt-1 block text-4xl text-ink">{result.sauceGramsPerPizza} g</strong>
-            <span className="mt-1 block text-xs font-bold text-muted">Recommended amount for each pizza</span>
-          </div>
-          <div className="rounded-2xl border border-ink/10 bg-white p-4">
-            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/48">Pizzas</p>
-            <strong className="mt-1 block text-4xl text-ink">{result.pizzaCount}</strong>
-          </div>
-          <div className="rounded-2xl border border-ink/10 bg-white p-4">
-            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-ink/48">Reserve</p>
-            <strong className="mt-1 block text-4xl text-ink">{formatGrams(result.reserveGrams)}</strong>
-            <span className="mt-1 block text-xs font-bold text-muted">Extra for bowl and spoon loss</span>
-          </div>
-        </div>
       </div>
 
-      <div className="grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(22rem,0.8fr)]">
-        <div className="order-1 p-5 sm:p-7 lg:p-8">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.82fr)]">
+        <div className="order-1 space-y-5 p-5 sm:p-7 lg:p-6 xl:p-7">
+          <ResultSummary result={result} />
+
           <fieldset>
             <legend className="text-sm font-extrabold text-ink">Sauce style</legend>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -412,44 +418,9 @@ export default function SauceCalculator() {
             ) : null}
           </details>
 
-          <section className="mt-5 rounded-[1.5rem] border border-ink/10 bg-flour p-4 sm:p-5" aria-labelledby="sauce-amount-teaching-title">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h3 id="sauce-amount-teaching-title" className="font-display text-2xl font-semibold text-ink">
-                  Why this amount works
-                </h3>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                  Sauce should support the pizza, not flood it. Too much sauce can leave the center wet. Too little can make the pizza dry or unbalanced.
-                </p>
-              </div>
-              <GuidanceModeBadge level={amountTeaching.level} />
-            </div>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="Sauce amount balance">
-              <div className="rounded-2xl border border-ink/10 bg-white p-4 text-center">
-                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-muted">Too little</p>
-                <strong className="mt-2 block text-sm text-ink">Dry or unbalanced</strong>
-              </div>
-              <div className="rounded-2xl border border-leaf/30 bg-leaf/[.08] p-4 text-center ring-1 ring-leaf/20">
-                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-leaf">Recommended</p>
-                <strong className="mt-2 block text-2xl text-ink">{result.sauceGramsPerPizza} g</strong>
-                <span className="mt-1 block text-xs font-bold text-muted">Recommended balance</span>
-              </div>
-              <div className="rounded-2xl border border-ink/10 bg-white p-4 text-center">
-                <p className="text-xs font-extrabold uppercase tracking-[.14em] text-muted">Too much</p>
-                <strong className="mt-2 block text-sm text-ink">Wet centre</strong>
-              </div>
-            </div>
-
-            <p className="mt-4 text-sm font-bold leading-6 text-ink">{amountTeaching.explanation}</p>
-            <div className="mt-4 grid gap-2 text-xs font-bold leading-5 text-muted sm:grid-cols-2">
-              <p className="rounded-2xl border border-ink/10 bg-white p-3">Wet mozzarella or wet toppings - slightly less sauce</p>
-              <p className="rounded-2xl border border-ink/10 bg-white p-3">Longer bake or dry toppings - sometimes slightly more sauce</p>
-            </div>
-          </section>
         </div>
 
-        <aside className="order-2 bg-forest-dark p-5 text-white sm:p-7 lg:p-8" aria-live="polite">
+        <aside className="order-2 bg-forest-dark p-5 text-white sm:p-7 lg:p-6 xl:p-7" aria-live="polite">
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Recipe and batch</p>
           <p className="mt-5 text-sm leading-6 text-white/68">
             This uses the selected style starting amount for a typical 30-32 cm pizza, then includes {result.reservePercent}% preparation reserve.
@@ -513,6 +484,42 @@ export default function SauceCalculator() {
           </div>
         </aside>
       </div>
+
+      <section className="border-t border-ink/10 bg-flour p-5 sm:p-7 lg:p-7" aria-labelledby="sauce-amount-teaching-title">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 id="sauce-amount-teaching-title" className="font-display text-2xl font-semibold text-ink">
+              Why this amount works
+            </h3>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+              Sauce should support the pizza, not flood it. Too much sauce can leave the center wet. Too little can make the pizza dry or unbalanced.
+            </p>
+          </div>
+          <GuidanceModeBadge level={amountTeaching.level} />
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="Sauce amount balance">
+          <div className="rounded-2xl border border-ink/10 bg-white p-4 text-center">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-muted">Too little</p>
+            <strong className="mt-2 block text-sm text-ink">Dry or unbalanced</strong>
+          </div>
+          <div className="rounded-2xl border border-leaf/30 bg-leaf/[.08] p-4 text-center ring-1 ring-leaf/20">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-leaf">Recommended</p>
+            <strong className="mt-2 block text-2xl text-ink">{result.sauceGramsPerPizza} g</strong>
+            <span className="mt-1 block text-xs font-bold text-muted">Recommended balance</span>
+          </div>
+          <div className="rounded-2xl border border-ink/10 bg-white p-4 text-center">
+            <p className="text-xs font-extrabold uppercase tracking-[.14em] text-muted">Too much</p>
+            <strong className="mt-2 block text-sm text-ink">Wet centre</strong>
+          </div>
+        </div>
+
+        <p className="mt-4 text-sm font-bold leading-6 text-ink">{amountTeaching.explanation}</p>
+        <div className="mt-4 grid gap-2 text-xs font-bold leading-5 text-muted sm:grid-cols-2">
+          <p className="rounded-2xl border border-ink/10 bg-white p-3">Wet mozzarella or wet toppings - slightly less sauce</p>
+          <p className="rounded-2xl border border-ink/10 bg-white p-3">Longer bake or dry toppings - sometimes slightly more sauce</p>
+        </div>
+      </section>
     </section>
   );
 }

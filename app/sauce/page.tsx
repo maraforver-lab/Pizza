@@ -16,11 +16,11 @@ export default function SaucePage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
       <section className="border-b border-ink/10 bg-card">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.65fr)] lg:items-center lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.5fr)] lg:items-center lg:px-8 lg:py-6">
           <div className="max-w-3xl">
             <LearningBreadcrumbs current="Sauce guides" />
             <p className="mt-6 text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Sauce guides</p>
-            <h1 className="mt-4 font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 className="mt-4 font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:text-6xl">
               Pizza sauce, measured clearly.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-muted sm:text-lg">
@@ -34,12 +34,12 @@ export default function SaucePage() {
             height={960}
             priority
             sizes="(min-width: 1024px) 34vw, 100vw"
-            className="aspect-[4/3] w-full rounded-[1.5rem] border border-ink/10 object-cover shadow-soft sm:aspect-[16/10] lg:aspect-square"
+            className="aspect-[4/3] w-full rounded-[1.5rem] border border-ink/10 object-cover shadow-soft sm:aspect-[16/10] lg:h-48"
           />
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <SauceCalculator />
 
         <SaucePracticalGuidance />

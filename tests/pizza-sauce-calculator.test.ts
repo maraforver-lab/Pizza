@@ -287,6 +287,52 @@ describe("Patch 471A sauce first viewport and realistic imagery", () => {
   });
 });
 
+describe("Patch 471B sauce desktop workspace scaling", () => {
+  it("connects result, controls and recipe inside one Sauce workspace", () => {
+    const calculator = source("components/sauce/SauceCalculator.tsx");
+
+    expect(calculator).toContain("ResultSummary");
+    expect(calculator).toContain("Calculated amount");
+    expect(calculator).toContain("Total sauce:");
+    expect(calculator).toContain("Recipe and batch");
+    expect(calculator).toContain("How to make pizza sauce");
+    expect(calculator.indexOf("<ResultSummary result={result} />")).toBeLessThan(calculator.indexOf("<fieldset>"));
+    expect(calculator.indexOf("<fieldset>")).toBeLessThan(calculator.indexOf("Recipe and batch"));
+    expect(calculator.indexOf("Recipe and batch")).toBeLessThan(calculator.indexOf("Why this amount works"));
+    expect(calculator).toContain("lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.82fr)]");
+  });
+
+  it("uses a compact result summary without changing calculated values", () => {
+    const calculator = source("components/sauce/SauceCalculator.tsx");
+    const result = calculatePizzaSauce({
+      ...defaultSauceCalculatorInput(),
+      pizzaCount: 4,
+      sauceGramsPerPizza: 70,
+      reservePercent: 10,
+    });
+
+    expect(result.finishedSauceGrams).toBe(280);
+    expect(result.preparationSauceGrams).toBe(308);
+    expect(result.reserveGrams).toBe(28);
+    expect(calculator).toContain("formatGrams(result.finishedSauceGrams)} total sauce");
+    expect(calculator).toContain("[\"Sauce per pizza\", `${result.sauceGramsPerPizza} g`]");
+    expect(calculator).toContain("[\"Pizzas\", result.pizzaCount.toString()]");
+    expect(calculator).toContain("[\"Reserve\", formatGrams(result.reserveGrams)]");
+    expect(calculator).toContain("[\"Prepare\", formatGrams(result.preparationSauceGrams)]");
+  });
+
+  it("keeps mobile order readable while moving deeper explanation lower", () => {
+    const calculator = source("components/sauce/SauceCalculator.tsx");
+
+    expect(calculator).toContain("order-1 space-y-5");
+    expect(calculator).toContain("order-2 bg-forest-dark");
+    expect(calculator).toContain("border-t border-ink/10 bg-flour");
+    expect(calculator.indexOf("Calculated amount")).toBeLessThan(calculator.indexOf("Sauce style"));
+    expect(calculator.indexOf("Sauce style")).toBeLessThan(calculator.indexOf("Recipe and batch"));
+    expect(calculator.indexOf("Recipe and batch")).toBeLessThan(calculator.indexOf("Why this amount works"));
+  });
+});
+
 describe("Pizza Session sauce quantity contract", () => {
   it("maps matching session assumptions to the Sauce calculator defaults", () => {
     expect(sessionSauceProfileForPizza("margherita", { ovenType: "gas" })).toMatchObject({
