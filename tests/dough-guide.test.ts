@@ -197,130 +197,110 @@ describe("Pizza Dough Guide foundation", () => {
   it("keeps the active step hierarchy action-first and mobile-friendly", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page).toContain("Do this now");
+    expect(page).toContain("What to do now");
     expect(page).toContain("You are ready when");
     expect(page).toContain("Common mistake");
-    expect(page).toContain("How to fix it");
+    expect(page).toContain("How to avoid it");
     expect(page).toContain("Why this matters");
-    expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("Why this matters"));
+    expect(page.indexOf("What to do now")).toBeLessThan(page.indexOf("You are ready when"));
+    expect(page.indexOf("You are ready when")).toBeLessThan(page.indexOf("Common mistake"));
+    expect(page.indexOf("Common mistake")).toBeLessThan(page.indexOf("Why this matters"));
     expect(page).toContain("Step {activeIndex + 1} of {doughGuideSteps.length}");
-    expect(page).toContain("lg:grid-cols-[20rem_minmax(0,1fr)]");
+    expect(page).toContain("lg:grid-cols-[18rem_minmax(0,1fr)]");
     expect(page).toContain('className="hidden lg:sticky lg:top-24 lg:block"');
     expect(page).not.toContain("<table");
   });
 
-  it("uses the active Guide image as responsive layout media instead of a separate progress card", () => {
+  it("uses the active Guide image inside the primary action block", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
     expect(page).not.toContain("Current progress");
     expect(page).not.toContain("Active step: {activeStep.actionName}. Guidance mode:");
     expect(page).not.toContain("getExperienceLevelConfig");
-    expect(page).toContain("lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)]");
-    expect(page).toContain('className="mt-6 hidden lg:mt-0 lg:block"');
-    expect(page).toContain('className="mt-5 lg:hidden"');
-    expect(page.match(/<StepVisual step=\{activeStep\} priority \/>/g)).toHaveLength(2);
+    expect(page).toContain("lg:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)]");
+    expect(page.match(/<StepVisual step=\{activeStep\} priority \/>/g)).toHaveLength(1);
+    expect(page.indexOf("What to do now")).toBeLessThan(page.indexOf("<StepVisual step={activeStep} priority />"));
+    expect(page.indexOf("<StepVisual step={activeStep} priority />")).toBeLessThan(page.indexOf("You are ready when"));
     expect(page).not.toContain("xl:grid-cols-[minmax(0,1fr)_20rem]");
   });
 
-  it("keeps the generic hero information note desktop-only", () => {
+  it("uses a compact page identity instead of a large introductory hero", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page).toContain("This guide works with or without a pizza plan. When a plan is active, it adds your dough-plan values without changing the plan.");
-    expect(page).toContain('className="mt-4 hidden max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65 lg:block"');
+    expect(page).toContain("Make the dough");
+    expect(page).toContain("Learn pizza dough step by step, from the first mix to a dough ball that is ready to stretch.");
+    expect(page).not.toContain("lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)]");
+    expect(page).not.toContain("This guide works with or without a pizza plan. When a plan is active");
   });
 
-  it("adds a concise selected-level quick answer before the twelve-step guide", () => {
+  it("does not render a separate first-action helper before the primary step action", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page).toContain("What should I do first?");
-    expect(page).toContain("Start with the Dough Plan, weigh every ingredient accurately, mix the dough, and let time do most of the work.");
-    expect(page).toContain("Control dough temperature and fermentation time. Adjust only after observing how the dough behaves.");
-    expect(page).toContain("Treat dough temperature, yeast amount, fermentation time and flour strength as one connected system.");
-    expect(page).toContain("const levelCopy = DOUGH_QUICK_ANSWER_COPY[experienceLevel];");
-    expect(page).toContain("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />");
-    expect(page.indexOf("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />")).toBeLessThan(
-      page.indexOf("<StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />"),
+    expect(page).not.toContain("Start here");
+    expect(page).not.toContain("What should I do first?");
+    expect(page).not.toContain("DoughStartHere");
+    expect(page).not.toContain("DOUGH_QUICK_ANSWER_COPY");
+  });
+
+  it("keeps Prepare progression compact through journey orientation and next-step navigation", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("Prepare");
+    expect(page).toContain("Mix");
+    expect(page).toContain("Ferment");
+    expect(page).toContain("Divide");
+    expect(page).toContain("Ball");
+    expect(page).toContain("Proof");
+    expect(page).toContain("Stretch");
+    expect(page).toContain("Continue to {nextStep.actionName}");
+    expect(page).not.toContain("Start with weighing");
+  });
+
+  it("renders compact process orientation only on the Prepare step", () => {
+    const page = source("components/guide/DoughGuidePageClient.tsx");
+
+    expect(page).toContain("Your dough journey");
+    expect(page).toContain("DOUGH_JOURNEY_STEPS.map");
+    expect(page).toContain("{showPreparePlanSummary && <DoughJourneyOverview />}");
+    expect(page.indexOf("{showPreparePlanSummary && <DoughJourneyOverview />}")).toBeLessThan(
+      page.indexOf("Step {activeIndex + 1} of {doughGuideSteps.length}"),
     );
+    expect(page).not.toContain("See the dough process");
+    expect(page).not.toContain("<DoughProcessVisual />");
+    expect(page).not.toContain("DOUGH_PROCESS_VISUAL_STAGES");
+    expect(page).not.toContain("grid-cols-[5.5rem_1fr]");
   });
 
-  it("keeps the Dough guide quick answer compact and linked to the existing weighing step", () => {
+  it("does not reuse step images as a large process gallery above every step", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page).toContain("Weigh the ingredients");
-    expect(page).toContain("Use an accurate digital scale.");
-    expect(page).toContain("Mix the dough");
-    expect(page).toContain("Combine the ingredients until no dry flour remains.");
-    expect(page).toContain("Let it ferment");
-    expect(page).toContain("Give the dough the planned time and temperature.");
-    expect(page).toContain("Divide and shape");
-    expect(page).toContain("Make dough balls and let them relax before baking.");
-    expect(page).toContain("Start with weighing");
-    expect(page).toContain('href={buildDoughGuideHref("measure", sessionReturnPath ?? undefined)}');
-    expect(page).toContain("lg:grid-cols-4");
-    expect(page.indexOf("{DOUGH_QUICK_ANSWER_STEPS.map")).toBeLessThan(page.indexOf("Start with weighing"));
-    expect(page).not.toContain("Object.entries(DOUGH_QUICK_ANSWER_COPY)");
+    expect(page).not.toContain("Weigh accurately");
+    expect(page).not.toContain("Let the dough develop");
+    expect(page).not.toContain("DOUGH_PROCESS_VISUAL_STAGES.map");
+    expect(page).toContain("VisualSequenceCard sequence={activeStep.visualSequence}");
+    expect(page).toContain("VisualComparisonCard comparison={activeStep.visualComparison}");
   });
 
-  it("adds one concise four-stage dough process visual after the quick answer", () => {
+  it("places the active step image inside the immediate action before readiness", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    expect(page).toContain("See the dough process");
-    expect(page).toContain("DOUGH_PROCESS_VISUAL_STAGES.map");
-    expect(page).toContain("<DoughProcessVisual />");
-    expect(page.indexOf("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />")).toBeLessThan(
-      page.indexOf("<DoughProcessVisual />"),
-    );
-    expect(page.indexOf("<DoughProcessVisual />")).toBeLessThan(
-      page.indexOf("<StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />"),
-    );
-    expect(page).toContain("lg:grid-cols-4");
-    expect(page).toContain("grid-cols-[5.5rem_1fr]");
+    const actionIndex = page.indexOf("What to do now");
+    const imageIndex = page.indexOf("<StepVisual step={activeStep} priority />");
+    const readyIndex = page.indexOf("You are ready when");
+
+    expect(actionIndex).toBeGreaterThan(-1);
+    expect(imageIndex).toBeGreaterThan(actionIndex);
+    expect(imageIndex).toBeLessThan(readyIndex);
   });
 
-  it("uses existing realistic local Dough guide images for the process visual", () => {
-    const page = source("components/guide/DoughGuidePageClient.tsx");
-    const processImages = [
-      "/dough-guide/teaching-step-02-measure.webp",
-      "/dough-guide/teaching-step-03-mix-before-after.webp",
-      "/dough-guide/teaching-step-06-bulk-before-after.webp",
-      "/dough-guide/guide-step-09-proof.webp",
-    ];
-
-    expect(page).toContain("Weigh accurately");
-    expect(page).toContain("Measure every ingredient with a digital scale.");
-    expect(page).toContain("Mix until combined");
-    expect(page).toContain("Stop when no dry flour remains. The dough can still look rough.");
-    expect(page).toContain("Let the dough develop");
-    expect(page).toContain("Look for visible expansion, trapped gas and a softer structure.");
-    expect(page).toContain("Make dough balls");
-    expect(page).toContain("Create smooth balls and give them time to relax before stretching.");
-    for (const image of processImages) {
-      expect(page).toContain(image);
-      expect(existsSync(join(process.cwd(), "public", image.slice(1)))).toBe(true);
-    }
-    expect(page.match(/src: "\/dough-guide\/(?:teaching-step-02-measure|teaching-step-03-mix-before-after|teaching-step-06-bulk-before-after|guide-step-09-proof)\.webp"/g)).toHaveLength(4);
-  });
-
-  it("places the compact image after the active step orientation and before the immediate action", () => {
+  it("keeps the current instruction ahead of Pizza Plan and flour context", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
-    const summaryIndex = page.indexOf("{activeStep.summary}");
-    const mobileImageIndex = page.indexOf('className="mt-5 lg:hidden"');
-    const doThisNowIndex = page.indexOf("Do this now");
-
-    expect(summaryIndex).toBeGreaterThan(-1);
-    expect(mobileImageIndex).toBeGreaterThan(summaryIndex);
-    expect(mobileImageIndex).toBeLessThan(doThisNowIndex);
-  });
-
-  it("keeps the current instruction ahead of session and flour context", () => {
-    const page = source("components/guide/DoughGuidePageClient.tsx");
-
-    expect(page.indexOf("Do this now")).toBeLessThan(page.indexOf("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />"));
+    expect(page.indexOf("What to do now")).toBeLessThan(page.indexOf("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />"));
+    expect(page.indexOf("What to do now")).toBeLessThan(page.indexOf("<StepPlanContext facts={stepPlanFacts} flourFacts={stepFlourFacts} />"));
     expect(page).not.toContain("<SessionContextCard context={sessionContext} />");
     expect(page).not.toContain("<FlourGuidanceCard guidance={flourGuidance} />");
     expect(page).not.toContain("<StepPersonalizationCard facts={stepPersonalization} />");
-    expect(page).not.toContain("Your plan for this step");
   });
 
   it("keeps mobile step progression primary and labels the active step without relying only on color", () => {
@@ -656,7 +636,7 @@ describe("Pizza Dough Guide foundation", () => {
 
     expect(context.hasActiveSession).toBe(false);
     expect(context.summaryRows).toEqual([]);
-    expect(page).toContain("No active pizza plan");
+    expect(page).toContain("No Pizza Plan active");
     expect(page).toContain("You can use this guide without a pizza plan.");
     expect(page).toContain('href="/session/start"');
     expect(page).toContain("Plan a pizza");
@@ -667,14 +647,11 @@ describe("Pizza Dough Guide foundation", () => {
     const page = source("components/guide/DoughGuidePageClient.tsx");
 
     expect(page).toContain('const showPreparePlanSummary = activeStep.id === "prepare"');
-    expect(page).toContain("{showPreparePlanSummary && (");
-    expect(page).toContain("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />");
+    expect(page).toContain("{showPreparePlanSummary && <DoughJourneyOverview />}");
     expect(page).toContain("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />");
-    expect(page.indexOf("<DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />")).toBeGreaterThan(
-      page.indexOf("{showPreparePlanSummary && ("),
-    );
+    expect(page.indexOf("<PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />")).toBeGreaterThan(page.indexOf("What to do now"));
     expect(page).toContain("Your dough plan");
-    expect(page).toContain('className="mt-4"');
+    expect(page).toContain("No Pizza Plan active");
     expect(page).not.toContain('className="mt-4 hidden lg:block"');
     expect(page).not.toContain("Your current dough plan");
     expect(page).not.toContain("For your flour");

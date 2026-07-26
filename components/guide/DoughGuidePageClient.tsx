@@ -24,6 +24,8 @@ import {
 import {
   getDoughGuideSessionContext,
   getDoughGuideFlourGuidance,
+  getDoughGuideStepFlourGuidance,
+  getDoughGuideStepPersonalization,
   type DoughGuideFact,
   type DoughGuideFlourGuidance,
   type DoughGuideSessionContext,
@@ -77,145 +79,52 @@ function FactList({ facts }: { facts: readonly DoughGuideFact[] }) {
   );
 }
 
-const DOUGH_QUICK_ANSWER_COPY: Record<ExperienceLevel, string> = {
-  beginner: "Start with the Dough Plan, weigh every ingredient accurately, mix the dough, and let time do most of the work.",
-  enthusiast: "Control dough temperature and fermentation time. Adjust only after observing how the dough behaves.",
-  pizza_nerd: "Treat dough temperature, yeast amount, fermentation time and flour strength as one connected system.",
-};
-
-const DOUGH_QUICK_ANSWER_STEPS = [
-  {
-    title: "Weigh the ingredients",
-    description: "Use an accurate digital scale.",
-  },
-  {
-    title: "Mix the dough",
-    description: "Combine the ingredients until no dry flour remains.",
-  },
-  {
-    title: "Let it ferment",
-    description: "Give the dough the planned time and temperature.",
-  },
-  {
-    title: "Divide and shape",
-    description: "Make dough balls and let them relax before baking.",
-  },
+const DOUGH_JOURNEY_STEPS = [
+  "Prepare",
+  "Mix",
+  "Ferment",
+  "Divide",
+  "Ball",
+  "Proof",
+  "Stretch",
 ] as const;
 
-const DOUGH_PROCESS_VISUAL_STAGES = [
-  {
-    label: "Weigh accurately",
-    helper: "Measure every ingredient with a digital scale.",
-    image: {
-      src: "/dough-guide/teaching-step-02-measure.webp",
-      alt: "Flour, water, salt and yeast prepared beside a mixing bowl on a digital scale.",
-    },
-  },
-  {
-    label: "Mix until combined",
-    helper: "Stop when no dry flour remains. The dough can still look rough.",
-    image: {
-      src: "/dough-guide/teaching-step-03-mix-before-after.webp",
-      alt: "Freshly mixed rough dough in a bowl, changing from floury patches to combined dough.",
-    },
-  },
-  {
-    label: "Let the dough develop",
-    helper: "Look for visible expansion, trapped gas and a softer structure.",
-    image: {
-      src: "/dough-guide/teaching-step-06-bulk-before-after.webp",
-      alt: "Dough before and after fermentation, showing expansion and visible gas in a covered container.",
-    },
-  },
-  {
-    label: "Make dough balls",
-    helper: "Create smooth balls and give them time to relax before stretching.",
-    image: {
-      src: "/dough-guide/guide-step-09-proof.webp",
-      alt: "Smooth shaped dough balls resting in a clean tray under a cover.",
-    },
-  },
-] as const;
-
-function DoughQuickAnswer({
-  experienceLevel,
-  sessionReturnPath,
-}: {
-  experienceLevel: ExperienceLevel;
-  sessionReturnPath?: DoughGuideReturnPath | null;
-}) {
-  const levelCopy = DOUGH_QUICK_ANSWER_COPY[experienceLevel];
-
+function DoughJourneyOverview() {
   return (
-    <section className="mt-6 rounded-[1.75rem] border border-white/80 bg-white/85 p-3 shadow-card backdrop-blur sm:p-5 lg:p-6" aria-labelledby="dough-quick-answer-heading">
-      <div>
-        <h2 id="dough-quick-answer-heading" className="font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl lg:text-4xl">
-          What should I do first?
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm font-bold leading-5 text-ink/62 sm:text-base sm:leading-6">
-          {levelCopy}
-        </p>
-      </div>
-
-      <ol className="mt-3 grid gap-1.5 lg:grid-cols-4 lg:gap-2">
-        {DOUGH_QUICK_ANSWER_STEPS.map((step, index) => (
-          <li key={step.title} className="grid grid-cols-[1.75rem_1fr] gap-2 rounded-xl border border-ink/10 bg-cream/70 p-2.5 sm:grid-cols-[2rem_1fr] sm:gap-3 sm:rounded-2xl sm:p-3 lg:p-4">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-xs font-extrabold text-tomato shadow-sm sm:h-8 sm:w-8" aria-hidden="true">
+    <section className="rounded-[1.25rem] border border-ink/10 bg-cream/70 p-3 sm:p-4" aria-labelledby="dough-journey-heading">
+      <h2 id="dough-journey-heading" className="text-sm font-extrabold text-ink">
+        Your dough journey
+      </h2>
+      <ol className="mt-3 grid grid-cols-2 gap-2 text-sm font-extrabold text-ink/65 sm:grid-cols-4 xl:grid-cols-7">
+        {DOUGH_JOURNEY_STEPS.map((label, index) => (
+          <li key={label} className="flex items-center gap-2 rounded-full bg-white/75 px-3 py-2">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tomato/[.10] text-xs text-tomato" aria-hidden="true">
               {index + 1}
             </span>
-            <span>
-              <span className="block text-sm font-extrabold leading-5 text-ink">{step.title}</span>
-              <span className="mt-0.5 block text-xs font-bold leading-4 text-ink/55 sm:mt-1 sm:leading-5">{step.description}</span>
-            </span>
+            <span>{label}</span>
           </li>
         ))}
       </ol>
-
-      <div className="mt-3 flex justify-start lg:mt-4 lg:justify-end">
-        <Link
-          href={buildDoughGuideHref("measure", sessionReturnPath ?? undefined)}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-tomato/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:min-h-12 sm:w-auto"
-        >
-          Start with weighing
-        </Link>
-      </div>
     </section>
   );
 }
 
-function DoughProcessVisual() {
-  return (
-    <section className="mt-5 rounded-[1.75rem] border border-white/80 bg-white/80 p-3 shadow-card backdrop-blur sm:p-5 lg:p-6" aria-labelledby="dough-process-visual-heading">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 id="dough-process-visual-heading" className="font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">
-            See the dough process
-          </h2>
-        </div>
-      </div>
+function StepPlanContext({
+  facts,
+  flourFacts,
+}: {
+  facts: readonly DoughGuideFact[];
+  flourFacts: readonly DoughGuideFact[];
+}) {
+  const rows = [...facts, ...flourFacts];
+  if (!rows.length) return null;
 
-      <ol className="mt-3 grid gap-2 lg:grid-cols-4">
-        {DOUGH_PROCESS_VISUAL_STAGES.map((stage, index) => (
-          <li key={stage.label} className="grid grid-cols-[5.5rem_1fr] gap-3 rounded-2xl border border-ink/10 bg-cream/70 p-2.5 sm:grid-cols-[7rem_1fr] sm:p-3 lg:grid-cols-1 lg:gap-3 lg:p-3">
-            <figure className="overflow-hidden rounded-xl bg-white shadow-sm">
-              <div className="relative aspect-square lg:aspect-[4/3]">
-                <Image
-                  src={stage.image.src}
-                  alt={stage.image.alt}
-                  fill
-                  sizes="(min-width: 1024px) 18vw, 7rem"
-                  className="object-cover"
-                />
-              </div>
-            </figure>
-            <div className="min-w-0">
-              <p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-tomato">Stage {index + 1}</p>
-              <h3 className="mt-1 text-sm font-extrabold leading-5 text-ink">{stage.label}</h3>
-              <p className="mt-1 text-xs font-bold leading-5 text-ink/58">{stage.helper}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
+  return (
+    <section className="rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-3 sm:p-4" aria-labelledby="dough-step-plan-context">
+      <p id="dough-step-plan-context" className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">
+        From your Pizza Plan
+      </p>
+      <FactList facts={rows} />
     </section>
   );
 }
@@ -247,11 +156,11 @@ function PreparePlanSummaryCard({
 }) {
   if (!context.hasActiveSession) {
     return (
-      <section className="rounded-[1.5rem] border border-ink/10 bg-white/75 p-4 shadow-sm" aria-labelledby="dough-guide-no-session">
-        <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
+      <section className="rounded-[1.25rem] border border-ink/10 bg-white/65 p-3 sm:p-4" aria-labelledby="dough-guide-no-session">
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
-            <h2 id="dough-guide-no-session" className="font-display text-2xl font-semibold">No active pizza plan</h2>
-            <p className="mt-2 text-sm font-bold leading-6 text-ink/60">
+            <h2 id="dough-guide-no-session" className="text-sm font-extrabold text-ink">No Pizza Plan active</h2>
+            <p className="mt-1 text-sm font-bold leading-6 text-ink/60">
               You can use this guide without a pizza plan. Plan a pizza to see your exact ingredient amounts, dough-ball size and fermentation plan inside each step.
             </p>
           </div>
@@ -269,11 +178,11 @@ function PreparePlanSummaryCard({
   const facts = compactPrepareFacts(context, flourGuidance);
 
   return (
-    <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.08] p-4 shadow-sm" aria-labelledby="dough-guide-current-plan">
+    <section className="rounded-[1.25rem] border border-leaf/20 bg-leaf/[.07] p-3 sm:p-4" aria-labelledby="dough-guide-current-plan">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">Active pizza plan</p>
-          <h2 id="dough-guide-current-plan" className="mt-1 font-display text-2xl font-semibold">Your dough plan</h2>
+          <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Active Pizza Plan</p>
+          <h2 id="dough-guide-current-plan" className="mt-1 text-sm font-extrabold text-ink">Your dough plan</h2>
         </div>
       </div>
       <FactList facts={facts} />
@@ -576,6 +485,8 @@ export default function DoughGuidePageClient() {
   const [sessionContext, setSessionContext] = useState<DoughGuideSessionContext>(() => getDoughGuideSessionContext(null));
   const levelDetails = getDoughGuideLevelDetails(activeStep, experienceLevel);
   const flourGuidance = getDoughGuideFlourGuidance(sessionContext.flourContext, experienceLevel);
+  const stepPlanFacts = getDoughGuideStepPersonalization(activeStep.id, sessionContext);
+  const stepFlourFacts = getDoughGuideStepFlourGuidance(activeStep.id, sessionContext.flourContext);
   const showPreparePlanSummary = activeStep.id === "prepare";
 
   useEffect(() => {
@@ -602,74 +513,66 @@ export default function DoughGuidePageClient() {
           )}
         </header>
 
-        <section className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/75 p-6 shadow-card backdrop-blur sm:p-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)] lg:items-center lg:gap-8">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Dough guides</p>
-            <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-[.95] tracking-tight sm:text-6xl">
-              Make the dough
-            </h1>
-            <p className="mt-5 max-w-2xl text-sm font-bold leading-7 text-ink/60 sm:text-base">
-              Learn how to make pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
-            </p>
-            <p className="mt-4 hidden max-w-2xl rounded-2xl bg-leaf/[.08] p-4 text-sm font-bold leading-6 text-ink/65 lg:block">
-              This guide works with or without a pizza plan. When a plan is active, it adds your dough-plan values without changing the plan.
-            </p>
-          </div>
-          <div className="mt-6 hidden lg:mt-0 lg:block">
-            <StepVisual step={activeStep} priority />
-          </div>
-        </section>
+        <div className="mb-4">
+          <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Dough guides</p>
+          <p className="mt-2 font-display text-2xl font-semibold leading-tight text-ink">Make the dough</p>
+          <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/60">
+            Learn pizza dough step by step, from the first mix to a dough ball that is ready to stretch.
+          </p>
+        </div>
 
-        {showPreparePlanSummary && (
-          <DoughQuickAnswer experienceLevel={experienceLevel} sessionReturnPath={sessionReturnPath} />
-        )}
-
-        <DoughProcessVisual />
-
-        <div className="mt-6 grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
+        <div className="grid gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
           <aside className="hidden lg:sticky lg:top-24 lg:block">
             <StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />
           </aside>
 
-          <article className="rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6" aria-labelledby="active-dough-guide-step">
-            <div className="max-w-3xl">
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Step {activeIndex + 1} of {doughGuideSteps.length}</p>
-              <h2 id="active-dough-guide-step" className="mt-2 font-display text-4xl font-semibold leading-tight">
-                {activeStep.title}
-              </h2>
-              <p className="mt-3 text-sm font-bold leading-7 text-ink/60">{activeStep.summary}</p>
-            </div>
+          <div className="space-y-4">
+            <article className="rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur sm:p-6" aria-labelledby="active-dough-guide-step">
+              <div className="space-y-4">
+                {showPreparePlanSummary && <DoughJourneyOverview />}
 
-            <div className="mt-5 lg:hidden">
-              <StepVisual step={activeStep} priority />
-            </div>
+                <div className="max-w-3xl">
+                  <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Step {activeIndex + 1} of {doughGuideSteps.length}</p>
+                  <h1 id="active-dough-guide-step" className="mt-2 font-display text-4xl font-semibold leading-tight sm:text-5xl">
+                    {activeStep.title}
+                  </h1>
+                  <p className="mt-3 text-sm font-bold leading-7 text-ink/60">{activeStep.summary}</p>
+                </div>
 
-            <section className="mt-5 rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 sm:p-5" aria-labelledby="do-this-now">
-              <h3 id="do-this-now" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Do this now</h3>
-              <BulletList items={activeStep.doThisNow} ordered />
-            </section>
+                <section className="rounded-[1.5rem] border border-tomato/20 bg-tomato/[.06] p-4 sm:p-5" aria-labelledby="what-to-do-now">
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)] lg:items-start">
+                    <div>
+                      <h2 id="what-to-do-now" className="font-display text-2xl font-semibold leading-tight text-ink">
+                        What to do now
+                      </h2>
+                      <BulletList items={activeStep.doThisNow} ordered />
+                    </div>
+                    <StepVisual step={activeStep} priority />
+                  </div>
+                </section>
 
-            {showPreparePlanSummary && (
-              <div className="mt-4">
-                <PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />
-              </div>
-            )}
+                {showPreparePlanSummary && (
+                  <PreparePlanSummaryCard context={sessionContext} flourGuidance={flourGuidance} />
+                )}
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-[1.08fr_.92fr]">
-              <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="you-are-ready-when">
-                <h3 id="you-are-ready-when" className="text-xs font-extrabold uppercase tracking-[.18em] text-leaf">You are ready when</h3>
-                <BulletList items={activeStep.readyWhen} />
-              </section>
-              <section className="rounded-[1.5rem] border border-orange/25 bg-[#fff7ed] p-4 sm:p-5" aria-labelledby="common-mistake">
-                <h3 id="common-mistake" className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Common mistake</h3>
-                <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.commonMistake}</p>
-              </section>
-            </div>
+                <StepPlanContext facts={stepPlanFacts} flourFacts={stepFlourFacts} />
 
-            <div className="mt-4 rounded-[1.5rem] border border-ink/10 bg-cream/80 p-4 sm:p-5" aria-labelledby="how-to-fix-it">
-              <h3 id="how-to-fix-it" className="text-xs font-extrabold uppercase tracking-[.18em] text-ink/45">How to fix it</h3>
-              <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.howToFix}</p>
-            </div>
+                <section className="rounded-[1.5rem] border border-leaf/20 bg-leaf/[.07] p-4 sm:p-5" aria-labelledby="you-are-ready-when">
+                  <h2 id="you-are-ready-when" className="font-display text-2xl font-semibold leading-tight text-ink">You are ready when</h2>
+                  <BulletList items={activeStep.readyWhen} />
+                </section>
+
+                <div className="grid gap-3 lg:grid-cols-[.9fr_1.1fr]">
+                  <section className="rounded-[1.25rem] border border-orange/25 bg-[#fff7ed] p-4" aria-labelledby="common-mistake">
+                    <h2 id="common-mistake" className="text-xs font-extrabold uppercase tracking-[.16em] text-tomato">Common mistake</h2>
+                    <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.commonMistake}</p>
+                  </section>
+
+                  <section className="rounded-[1.25rem] border border-ink/10 bg-cream/70 p-4" aria-labelledby="how-to-fix-it">
+                    <h2 id="how-to-fix-it" className="text-xs font-extrabold uppercase tracking-[.16em] text-ink/50">How to avoid it</h2>
+                    <p className="mt-3 text-sm font-bold leading-6 text-ink/65">{activeStep.howToFix}</p>
+                  </section>
+                </div>
 
             <div className="mt-4 space-y-4">
               <VisualSequenceCard sequence={activeStep.visualSequence} experienceLevel={experienceLevel} />
@@ -722,7 +625,18 @@ export default function DoughGuidePageClient() {
                 </p>
               )}
             </div>
-          </article>
+              </div>
+            </article>
+
+            <details className="rounded-[1.25rem] border border-white/80 bg-white/75 p-3 shadow-sm lg:hidden">
+              <summary className="cursor-pointer text-sm font-extrabold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+                All dough steps
+              </summary>
+              <div className="mt-3">
+                <StepNavigation activeIndex={activeIndex} sessionReturnPath={sessionReturnPath} />
+              </div>
+            </details>
+          </div>
         </div>
 
       </div>
