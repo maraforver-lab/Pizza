@@ -3,6 +3,7 @@ import { DoughToolsIcon } from "@/components/icons";
 import { homepageVersionCountLabel } from "@/lib/homepage-version-labels";
 import type { HomepageVersionStatus } from "@/lib/homepage-version-metadata";
 import { homepageVersionRegistry } from "@/lib/homepage-versions";
+import { quickCalculatorPrototypeRegistry } from "@/lib/quick-calculator-prototypes";
 
 const upcomingCapabilities = [
   {
@@ -110,6 +111,52 @@ export default function AdminPage() {
           <p className="mt-4 text-xs font-bold leading-5 text-ink/45">
             {liveHomepageVersions.length === 1 ? "One live Homepage version is registered." : "Homepage version registry needs one live version."}
           </p>
+        </section>
+
+        <section
+          className="mt-6 rounded-[2rem] border border-ink/10 bg-white/80 p-5 shadow-card sm:p-7"
+          aria-labelledby="admin-quick-calculator-prototypes-heading"
+        >
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">Quick Calculator</p>
+              <h2 id="admin-quick-calculator-prototypes-heading" className="mt-2 font-display text-3xl font-semibold leading-none text-ink">
+                Quick Calculator prototypes
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm font-bold leading-6 text-ink/60">
+                Compare admin-only visual concepts while the public Quick Calculator keeps its current behavior.
+              </p>
+            </div>
+            <p className="inline-flex min-h-10 items-center justify-center rounded-full border border-leaf/20 bg-leaf/[.08] px-4 text-sm font-extrabold text-leaf">
+              {quickCalculatorPrototypeRegistry.length} prototypes
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {quickCalculatorPrototypeRegistry.map((prototype) => (
+              <article key={prototype.id} className="rounded-[1.5rem] border border-ink/10 bg-cream/70 p-4">
+                <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                  <div className="min-w-0">
+                    <p className="text-[0.68rem] font-extrabold uppercase tracking-[.2em] text-leaf">
+                      {prototype.status.toUpperCase()}
+                    </p>
+                    <h3 className="mt-2 font-display text-2xl font-semibold text-ink">{prototype.name}</h3>
+                    <p className="mt-2 text-sm font-bold leading-6 text-ink/58">{prototype.purpose}</p>
+                  </div>
+                  {prototype.previewAvailable ? (
+                    <Link
+                      href={`/admin/quick-calculator-preview/${prototype.id}`}
+                      aria-label={`Preview ${prototype.name} Quick Calculator prototype`}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-tomato px-5 text-sm font-extrabold text-white transition hover:bg-forest focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
+                    >
+                      Preview
+                      <DoughToolsIcon name="forward" size={20} />
+                    </Link>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="mt-6 grid gap-4 md:grid-cols-3" aria-label="Upcoming admin capabilities">
