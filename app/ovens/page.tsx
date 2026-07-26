@@ -3,10 +3,13 @@ import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { buttonClass, cardClass } from "@/components/design-system";
 import { DoughToolsIcon, type DoughToolsIconName } from "@/components/icons";
-import PublicPageEnding, { type PublicPageEndingLink } from "@/components/learning/PublicPageEnding";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import OvenGuideHero from "@/components/ovens/OvenGuideHero";
-import OvensQuickAnswer from "@/components/ovens/OvensQuickAnswer";
+import {
+  OvenAssistant,
+  type OvenAssistantEquipmentItem,
+  type OvenAssistantPathId,
+} from "@/components/ovens/OvenAssistant";
 import { getPizzaSessionBakeProfile } from "@/lib/pizza-session-bake-profile";
 
 const homeProfile = getPizzaSessionBakeProfile("home");
@@ -45,6 +48,7 @@ const recoveryImage = {
 const ovenSetupPaths = [
   {
     title: "Home oven with baking steel",
+    anchorId: "home-oven-steel",
     icon: "flame" as DoughToolsIconName,
     summary: "Steel transfers heat quickly. It gives strong base colour but may require careful top-heat management.",
     tone: "default",
@@ -83,6 +87,7 @@ const ovenSetupPaths = [
   },
   {
     title: "Home oven with pizza stone",
+    anchorId: "home-oven-stone",
     icon: "oven" as DoughToolsIconName,
     summary: "Stone heats the base more gently than steel and usually needs a thorough preheat.",
     tone: "default",
@@ -121,6 +126,7 @@ const ovenSetupPaths = [
   },
   {
     title: "Home oven with baking tray",
+    anchorId: "home-oven-tray",
     icon: "oven" as DoughToolsIconName,
     summary: "A baking tray is less powerful than steel or stone, so the dough and topping load must remain realistic for the available heat.",
     tone: "information",
@@ -159,6 +165,7 @@ const ovenSetupPaths = [
   },
   {
     title: "Pizza oven",
+    anchorId: "pizza-oven-setup",
     icon: "flame" as DoughToolsIconName,
     summary: "A pizza oven bakes quickly, so launch position, turning and flame exposure matter throughout the bake.",
     tone: "dark",
@@ -234,26 +241,6 @@ const safetyItems = [
   "Keep hot tools and launch paths clear.",
   "Let stone, steel and oven parts cool before handling.",
 ] as const;
-
-const relatedOvenGuides: readonly PublicPageEndingLink[] = [
-  {
-    title: "Dough",
-    href: "/guides/dough",
-    description: "Review dough handling before opening, launching and baking.",
-  },
-  {
-    title: "Practical Tips",
-    href: "/guide/practical-pizza-tips",
-    description: "Solve storage, timing and common problem decisions after baking.",
-  },
-];
-
-const ovenFinalAction: PublicPageEndingLink = {
-  title: "Plan a pizza",
-  href: "/session/start",
-  description:
-    "Your pizza plan uses your Home oven or Pizza oven choice for the current preheat window, bake guidance and kitchen instructions.",
-};
 
 const equipmentGroups = [
   {
@@ -432,6 +419,52 @@ const equipmentGroups = [
   },
 ] as const;
 
+const compactEquipmentNamesByPath: Record<OvenAssistantPathId, string[]> = {
+  home: [
+    "Infrared thermometer",
+    "Launching peel",
+    "Fire blanket and heat gloves",
+    "Digital scale",
+  ],
+  pizza: [
+    "Launching peel",
+    "Turning peel",
+    "Infrared thermometer",
+    "Fire blanket and heat gloves",
+  ],
+  other: [
+    "Launching peel",
+    "Infrared thermometer",
+    "Fire blanket and heat gloves",
+    "Stable prep table",
+  ],
+};
+
+function getCompactEquipmentByPath(): Record<
+  OvenAssistantPathId,
+  OvenAssistantEquipmentItem[]
+> {
+  const allEquipment: OvenAssistantEquipmentItem[] = equipmentGroups.flatMap((group) =>
+    group.items.map((item) => ({
+      name: item.name,
+      use: item.use,
+      priority: item.priority,
+      image: item.image,
+    })),
+  );
+
+  return Object.fromEntries(
+    Object.entries(compactEquipmentNamesByPath).map(([path, names]) => [
+      path,
+      names
+        .map((name) => allEquipment.find((item) => item.name === name))
+        .filter((item): item is OvenAssistantEquipmentItem => Boolean(item)),
+    ]),
+  ) as Record<OvenAssistantPathId, OvenAssistantEquipmentItem[]>;
+}
+
+const compactEquipmentByPath = getCompactEquipmentByPath();
+
 function OvenTeachingFigure({
   image,
   dark = false,
@@ -502,26 +535,30 @@ export default function OvensPage() {
       <div className="mx-auto max-w-7xl">
         <LearningBreadcrumbs current="Baking guides" />
         <OvenGuideHero />
-        <OvensQuickAnswer />
+        <div className="mt-6">
+          <OvenAssistant compactEquipment={compactEquipmentByPath} />
+        </div>
 
         <section id="oven-comparison" className="mt-8 scroll-mt-24" aria-labelledby="oven-comparison-title">
           <div className="rounded-[1.75rem] border border-leaf/20 bg-leaf/10 p-5 sm:p-6">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Practical setup paths</p>
             <h2 id="oven-comparison-title" className="mt-3 font-display text-3xl font-semibold sm:text-5xl">
-              Choose your oven setup
+              Follow the setup closest to your oven
             </h2>
             <p className="mt-3 max-w-4xl text-sm leading-7 text-ink/65 sm:text-base">
-              Follow the setup that matches your oven and baking surface. Each setup needs a different balance of preheating, position and top heat.
+              These are the detailed setup paths behind the assistant. Use the
+              one that best matches your oven, baking surface and heat source.
             </p>
           </div>
 
-          <div className="mt-5 grid gap-5">
+          <div id="home-oven-setups" className="mt-5 grid scroll-mt-24 gap-5">
             {ovenSetupPaths.map((setup) => {
               const dark = setup.tone === "dark";
 
               return (
                 <article
                   key={setup.title}
+                  id={setup.anchorId}
                   className={cardClass({
                     className: "p-5 sm:p-6",
                     variant: setup.tone === "dark" ? "dark" : setup.tone === "information" ? "information" : "default",
@@ -660,7 +697,7 @@ export default function OvensPage() {
 
             <details className="group mt-5 rounded-[1.2rem] border border-ink/10 bg-flour/70">
               <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-extrabold text-ink transition hover:text-tomato focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-flour sm:px-5">
-                <span>Show more equipment</span>
+                <span>View all equipment recommendations</span>
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-white transition group-open:rotate-45" aria-hidden="true">
                   +
                 </span>
@@ -726,15 +763,6 @@ export default function OvensPage() {
             </details>
           </div>
         </section>
-
-        <PublicPageEnding
-          className="mt-8"
-          links={relatedOvenGuides}
-          relatedTitle="What should I learn next?"
-          action={ovenFinalAction}
-          actionEyebrow="Ready to plan"
-          actionTitle="Plan with the oven you actually have."
-        />
 
         <SiteFooter />
       </div>
