@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
-import PublicPageEnding, { type PublicPageEndingLink } from "@/components/learning/PublicPageEnding";
 import { LearningBreadcrumbs } from "@/components/learning/RelatedLearning";
 import SauceCalculator from "@/components/sauce/SauceCalculator";
 import SaucePracticalGuidance from "@/components/sauce/SaucePracticalGuidance";
-import SauceQuickAnswer from "@/components/sauce/SauceQuickAnswer";
 
 export const metadata: Metadata = {
   title: "Pizza Sauce Recipe and Calculator | DoughTools",
@@ -13,75 +12,57 @@ export const metadata: Metadata = {
     "Calculate sauce per pizza, total pizza sauce, and a simple pizza sauce recipe for raw, Marinara or home-oven cooked sauce.",
 };
 
-const finalAction: PublicPageEndingLink = {
-  title: "Plan a pizza",
-  href: "/session/start",
-  description: "Use the sauce in a real pizza plan.",
-};
-
-const relatedGuides: readonly PublicPageEndingLink[] = [
-  {
-    title: "Dough",
-    href: "/guides/dough",
-    description: "Build the dough foundation before you add sauce.",
-  },
-  {
-    title: "Toppings",
-    href: "/toppings",
-    description: "Balance cheese, toppings and moisture with the sauce.",
-  },
-];
-
 export default function SaucePage() {
   return (
     <main className="min-h-screen overflow-x-clip bg-warm-background text-ink">
       <section className="border-b border-ink/10 bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.65fr)] lg:items-center lg:px-8">
           <div className="max-w-3xl">
             <LearningBreadcrumbs current="Sauce guides" />
             <p className="mt-6 text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Sauce guides</p>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
-              Choose the sauce, then measure it clearly.
+              Pizza sauce, measured clearly.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-muted sm:text-lg">
-              Pick a simple sauce path first, then calculate the amount for each pizza and the batch.
+              Choose a sauce style, calculate the right amount and learn how to spread it without making the pizza wet.
             </p>
           </div>
+          <Image
+            src="/sauce/application/clean-border.webp"
+            alt="Pizza dough with an even tomato sauce layer and a clean uncovered crust border"
+            width={960}
+            height={960}
+            priority
+            sizes="(min-width: 1024px) 34vw, 100vw"
+            className="aspect-[4/3] w-full rounded-[1.5rem] border border-ink/10 object-cover shadow-soft sm:aspect-[16/10] lg:aspect-square"
+          />
         </div>
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <SauceQuickAnswer />
-
-        <div className="mt-8">
-          <SauceCalculator />
-        </div>
+        <SauceCalculator />
 
         <SaucePracticalGuidance />
 
-        <section className="mt-12 rounded-[2rem] border border-ink/10 bg-card p-5 shadow-soft sm:p-7" aria-labelledby="sauce-sources-title">
-          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Sources and methodology</p>
-          <h2 id="sauce-sources-title" className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
-            Traditional guidance, practical home-oven adaptation.
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-muted sm:text-base">
-            Traditional Neapolitan guidance is based on AVPN regulations and preparation guidance. Practical home-oven
-            adaptations are DoughTools recommendations, not claims that every sauce must be prepared one way.
-            {" "}
-            <Link href="/methodology#pizza-sauce" className="font-extrabold text-tomato underline-offset-4 hover:underline">
-              View sources and methodology
+        <section className="mt-12 rounded-[1.75rem] border border-ink/10 bg-forest-dark p-5 text-white shadow-soft sm:p-7" aria-labelledby="sauce-plan-title">
+          <p className="text-xs font-extrabold uppercase tracking-[.2em] text-oven-gold">Ready to use it?</p>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 id="sauce-plan-title" className="font-display text-3xl font-semibold sm:text-4xl">
+                Plan a pizza with the sauce in mind.
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">
+                Pizza Plan keeps the sauce, dough, toppings and bake in one practical workflow.
+              </p>
+            </div>
+            <Link
+              href="/session/start"
+              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-5 text-sm font-extrabold text-forest-dark shadow-soft transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
+              Plan a pizza
             </Link>
-            .
-          </p>
+          </div>
         </section>
-
-        <PublicPageEnding
-          links={relatedGuides}
-          relatedTitle="What should I learn next?"
-          action={finalAction}
-          actionEyebrow="Ready to use the sauce in a real plan?"
-          actionTitle="Plan a pizza with the sauce in mind."
-        />
         <SiteFooter />
       </div>
     </main>

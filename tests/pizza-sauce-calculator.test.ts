@@ -170,6 +170,123 @@ describe("pizza sauce calculator helper", () => {
   });
 });
 
+describe("Patch 471A sauce first viewport and realistic imagery", () => {
+  it("keeps the Sauce page focused on the calculator and removes generic lower sections", () => {
+    const page = source("app/sauce/page.tsx");
+
+    expect(page).toContain("Pizza sauce, measured clearly.");
+    expect(page).toContain("/sauce/application/clean-border.webp");
+    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("<SaucePracticalGuidance />"));
+    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("<SiteFooter />"));
+    expect(page).toContain("Plan a pizza with the sauce in mind.");
+    expect(page).toContain('href="/session/start"');
+    expect(page).not.toContain("<SauceQuickAnswer />");
+    expect(page).not.toContain("Sources and methodology");
+    expect(page).not.toContain("View sources and methodology");
+    expect(page).not.toContain("What should I learn next?");
+    expect(page).not.toContain("PublicPageEnding");
+    expect(page).not.toContain("relatedGuides");
+    expect(page).not.toContain('href: "/guides/dough"');
+    expect(page).not.toContain('href: "/toppings"');
+  });
+
+  it("integrates the level-aware quick answer into the calculator without formula changes", () => {
+    const calculator = source("components/sauce/SauceCalculator.tsx");
+    const engine = source("lib/pizza-sauce-calculator.ts");
+    const beginner = getSauceQuickAnswer("beginner");
+    const enthusiast = getSauceQuickAnswer("enthusiast");
+    const pizzaNerd = getSauceQuickAnswer("pizza_nerd");
+
+    expect(calculator).toContain("getSauceQuickAnswer(experienceLevel)");
+    expect(calculator).toContain("Recommended for most pizzas");
+    expect(calculator).toContain("How much sauce do I need?");
+    expect(calculator.indexOf("Total sauce")).toBeLessThan(calculator.indexOf("Sauce style"));
+    expect(calculator.indexOf("Sauce style")).toBeLessThan(calculator.indexOf("Why this amount works"));
+    expect(calculator).toContain("Total sauce");
+    expect(calculator).toContain("Sauce per pizza");
+    expect(calculator).toContain("Pizzas");
+    expect(calculator).toContain("Reserve");
+    expect(calculator).toContain("label=\"Pizzas\"");
+    expect(calculator).toContain("label=\"Sauce per pizza\"");
+    expect(calculator).toContain("Coverage preset");
+    expect(calculator).toContain("Adjust tomato, salt and batch details");
+    expect(calculator).toContain("calculatePizzaSauce");
+    expect(engine).toContain("baseSauceGrams = pizzaCount * sauceGramsPerPizza");
+    expect(new Set([beginner.answer, enthusiast.answer, pizzaNerd.answer]).size).toBe(3);
+  });
+
+  it("keeps amount comparison compact and selected-level only", () => {
+    const calculator = source("components/sauce/SauceCalculator.tsx");
+    const beginner = getSauceAmountTeaching("beginner");
+    const enthusiast = getSauceAmountTeaching("enthusiast");
+    const pizzaNerd = getSauceAmountTeaching("pizza_nerd");
+
+    expect(calculator).toContain("Why this amount works");
+    expect(calculator).toContain("aria-label=\"Sauce amount balance\"");
+    expect(calculator).toContain("Too little");
+    expect(calculator).toContain("Recommended");
+    expect(calculator).toContain("Too much");
+    expect(calculator).toContain("getSauceAmountTeaching(experienceLevel)");
+    expect(calculator).toContain("readExperienceLevelPreference()");
+    expect(beginner.level).toBe("beginner");
+    expect(enthusiast.level).toBe("enthusiast");
+    expect(pizzaNerd.level).toBe("pizza_nerd");
+    expect(new Set([beginner.explanation, enthusiast.explanation, pizzaNerd.explanation]).size).toBe(3);
+  });
+
+  it("uses four realistic Sauce application images instead of abstract CSS graphics", () => {
+    const practicalGuidance = source("components/sauce/SaucePracticalGuidance.tsx");
+
+    for (const imagePath of [
+      "/sauce/application/dough-ready.webp",
+      "/sauce/application/sauce-in-centre.webp",
+      "/sauce/application/spread-in-spiral.webp",
+      "/sauce/application/clean-border.webp",
+    ]) {
+      expect(practicalGuidance).toContain(imagePath);
+    }
+
+    expect(practicalGuidance).toContain("Plain stretched pizza dough on a floured work surface ready for sauce.");
+    expect(practicalGuidance).toContain("Measured tomato sauce placed in the centre of stretched pizza dough.");
+    expect(practicalGuidance).toContain("Tomato sauce spread outward in a thin spiral across pizza dough.");
+    expect(practicalGuidance).toContain("Pizza dough with an even tomato sauce layer and a clean uncovered crust border.");
+    expect(practicalGuidance).toContain("SauceApplicationImages");
+    expect(practicalGuidance).not.toContain("DoughApplicationVisual");
+    expect(practicalGuidance).not.toContain("sauce: \"center\"");
+    expect(practicalGuidance).not.toContain("sauce: \"spiral\"");
+    expect(practicalGuidance).not.toContain("sauce: \"border\"");
+    expect(practicalGuidance).not.toContain("absolute inset-[12%]");
+    expect(practicalGuidance).toContain("aria-label=\"Sauce application sequence\"");
+  });
+
+  it("preserves the practical Sauce guidance order and Pizza Plan boundary", () => {
+    const page = source("app/sauce/page.tsx");
+    const practicalGuidance = source("components/sauce/SaucePracticalGuidance.tsx");
+    const combined = `${page}\n${practicalGuidance}`;
+
+    expect(practicalGuidance.indexOf("Buy the tomatoes")).toBeLessThan(practicalGuidance.indexOf("Make and apply the sauce"));
+    expect(practicalGuidance.indexOf("Make and apply the sauce")).toBeLessThan(practicalGuidance.indexOf("Avoid a wet or burnt pizza"));
+    expect(practicalGuidance.indexOf("Avoid a wet or burnt pizza")).toBeLessThan(practicalGuidance.indexOf("Store safely"));
+    expect(combined).toContain("Refrigerate promptly");
+    expect(combined).toContain("Freeze for longer storage");
+    expect(combined).toContain("Discard unsafe sauce");
+    expect(combined).toContain("Explore guide");
+    expect(page).not.toContain("createAndSavePizzaSession");
+    expect(page).not.toContain("setActivePizzaSession");
+    expect(page).not.toContain("shoppingList");
+    expect(page.slice(page.indexOf("<SiteFooter />"))).not.toContain("Plan a pizza");
+  });
+
+  it("keeps Sauce metadata and calculation defaults unchanged", () => {
+    const metadata = metadataForRoute("/sauce");
+
+    expect(metadata.title).toBe("Pizza Sauce Recipe and Calculator | DoughTools");
+    expect(defaultSauceGramsForMethod("classic-neapolitan")).toBe(70);
+    expect(defaultSauceGramsForMethod("marinara")).toBe(80);
+    expect(defaultSauceGramsForMethod("home-oven-cooked")).toBe(80);
+  });
+});
+
 describe("Pizza Session sauce quantity contract", () => {
   it("maps matching session assumptions to the Sauce calculator defaults", () => {
     expect(sessionSauceProfileForPizza("margherita", { ovenType: "gas" })).toMatchObject({
@@ -249,277 +366,5 @@ describe("Pizza Session sauce quantity contract", () => {
     expect(result.preparationSauceGrams).toBe(314);
     expect(result.shoppingPurchaseGrams).toBe(400);
     expect(result.shoppingPurchaseGrams).toBeGreaterThan(result.finishedSauceGrams);
-  });
-});
-
-describe("simplified pizza sauce page", () => {
-  it("puts the quick answer before the calculator and the secondary guidance", () => {
-    const page = source("app/sauce/page.tsx");
-    const practicalGuidance = source("components/sauce/SaucePracticalGuidance.tsx");
-    const quickAnswer = source("components/sauce/SauceQuickAnswer.tsx");
-    const quickAnswerModel = source("lib/sauce-page-guidance.ts");
-
-    expect(page).toContain("Choose the sauce, then measure it clearly.");
-    expect(page).toContain("Pick a simple sauce path first");
-    expect(quickAnswerModel).toContain("Which sauce should I use?");
-    expect(page).not.toContain("Calculate my sauce");
-    expect(page).not.toContain("Learn the three methods");
-    expect(page.indexOf("<SauceQuickAnswer />")).toBeLessThan(page.indexOf("<SauceCalculator />"));
-    expect(page.indexOf("<SauceCalculator />")).toBeLessThan(page.indexOf("<SaucePracticalGuidance />"));
-    expect(practicalGuidance.indexOf("Buy the tomatoes")).toBeLessThan(practicalGuidance.indexOf("Make and apply the sauce"));
-    expect(practicalGuidance.indexOf("Make and apply the sauce")).toBeLessThan(practicalGuidance.indexOf("Avoid a wet or burnt pizza"));
-    expect(practicalGuidance.indexOf("Avoid a wet or burnt pizza")).toBeLessThan(practicalGuidance.indexOf("Store safely"));
-    expect(page.indexOf("Store safely")).toBeLessThan(page.indexOf("Sources and methodology"));
-    expect(page.indexOf("Sources and methodology")).toBeLessThan(page.indexOf("<PublicPageEnding"));
-    expect(page.indexOf("<PublicPageEnding")).toBeLessThan(page.indexOf("<SiteFooter />"));
-  });
-
-  it("provides one active Sauce quick answer per guidance level", () => {
-    const beginner = getSauceQuickAnswer("beginner");
-    const enthusiast = getSauceQuickAnswer("enthusiast");
-    const pizzaNerd = getSauceQuickAnswer("pizza_nerd");
-    const invalid = getSauceQuickAnswer("mystery");
-
-    expect(beginner).toMatchObject({
-      level: "beginner",
-      levelLabel: "Beginner",
-      title: "Which sauce should I use?",
-    });
-    expect(beginner.answer).toBe(
-      "Use a simple raw tomato sauce for most pizzas. It is the safest starting point for home pizza and pizza oven baking.",
-    );
-    expect(beginner.bullets).toEqual([
-      "Choose good canned whole peeled tomatoes.",
-      "Crush or blend lightly.",
-      "Use a small amount so the pizza does not turn wet.",
-    ]);
-    expect(enthusiast.answer).toBe(
-      "Raw tomato sauce is the default choice for most pizzas. Use cooked sauce only when you want a thicker, sweeter result or a home-oven style that benefits from lower moisture.",
-    );
-    expect(pizzaNerd.answer).toBe(
-      "Choose sauce style by bake profile and moisture budget. Raw sauce preserves brightness and suits fast, high-heat baking. Cooked sauce trades freshness for reduced water and a denser texture.",
-    );
-    expect(invalid.level).toBe("beginner");
-    expect(new Set([beginner.answer, enthusiast.answer, pizzaNerd.answer]).size).toBe(3);
-  });
-
-  it("keeps the calculator result hierarchy explicit without changing formulas", () => {
-    const calculator = source("components/sauce/SauceCalculator.tsx");
-    const engine = source("lib/pizza-sauce-calculator.ts");
-
-    expect(calculator).toContain("Total sauce");
-    expect(calculator).toContain("Sauce per pizza");
-    expect(calculator).toContain("Pizzas");
-    expect(calculator).not.toContain("Finished total");
-    expect(calculator).toContain("Finished amount before prep reserve");
-    expect(calculator.indexOf("Total sauce")).toBeLessThan(calculator.indexOf("Sauce per pizza"));
-    expect(calculator).toContain("Prepare {formatGrams(result.preparationSauceGrams)} including");
-    expect(calculator).toContain("Use {result.sauceGramsPerPizza} g on each pizza");
-    expect(calculator).toContain("calculatePizzaSauce");
-    expect(calculator).toContain("defaultSauceGramsForMethod");
-    expect(engine).toContain("export function calculatePizzaSauce");
-    expect(engine).toContain("baseSauceGrams = pizzaCount * sauceGramsPerPizza");
-  });
-
-  it("adds compact level-aware teaching below the calculator result", () => {
-    const calculator = source("components/sauce/SauceCalculator.tsx");
-    const beginner = getSauceAmountTeaching("beginner");
-    const enthusiast = getSauceAmountTeaching("enthusiast");
-    const pizzaNerd = getSauceAmountTeaching("pizza_nerd");
-
-    expect(calculator).toContain("Why this amount works");
-    expect(calculator).toContain("Sauce should support the pizza, not flood it.");
-    expect(calculator).toContain("Too little");
-    expect(calculator).toContain("Dry or unbalanced");
-    expect(calculator).toContain("Recommended balance");
-    expect(calculator).toContain("Too much");
-    expect(calculator).toContain("Wet centre");
-    expect(calculator).toContain("Wet mozzarella or wet toppings → slightly less sauce");
-    expect(calculator).toContain("Longer bake or dry toppings → sometimes slightly more sauce");
-    expect(calculator).toContain("getSauceAmountTeaching(experienceLevel)");
-    expect(calculator).toContain("readExperienceLevelPreference()");
-    expect(beginner.explanation).toBe(
-      "Start with the recommended amount. It gives clear tomato flavour without making the pizza heavy or wet.",
-    );
-    expect(enthusiast.explanation).toBe(
-      "Use slightly less sauce with wet mozzarella or moisture-heavy toppings. A longer bake or drier topping set may tolerate slightly more.",
-    );
-    expect(pizzaNerd.explanation).toBe(
-      "Treat the result as a moisture-budget baseline. Tomato water content, cheese moisture, topping load, bake temperature and bake time determine the final adjustment.",
-    );
-    expect(new Set([beginner.explanation, enthusiast.explanation, pizzaNerd.explanation]).size).toBe(3);
-  });
-
-  it("uses the established Sauce calculator defaults as the visible starting amounts", () => {
-    expect(defaultSauceGramsForMethod("classic-neapolitan")).toBe(70);
-    expect(defaultSauceGramsForMethod("marinara")).toBe(80);
-    expect(defaultSauceGramsForMethod("home-oven-cooked")).toBe(80);
-
-    const calculator = source("components/sauce/SauceCalculator.tsx");
-
-    expect(calculator).not.toContain("const methodDefaultSauceGrams");
-    expect(calculator).toContain("defaultSauceGramsForMethod(method)");
-    expect(calculator).toContain("A starting point for one typical 30-32 cm pizza.");
-  });
-
-  it("keeps quantity controls prominent and secondary controls behind disclosure", () => {
-    const calculator = source("components/sauce/SauceCalculator.tsx");
-
-    expect(calculator).toContain("Sauce style");
-    expect(calculator).toContain("label=\"Pizzas\"");
-    expect(calculator).toContain("label=\"Sauce per pizza\"");
-    expect(calculator).toContain("Coverage preset");
-    expect(calculator).toContain("Adjust tomato, salt and batch details");
-    expect(calculator.indexOf("Sauce per pizza")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
-    expect(calculator.indexOf("Total sauce")).toBeLessThan(calculator.indexOf("Adjust tomato, salt and batch details"));
-  });
-
-  it("connects the calculated batch to concise sauce recipe steps", () => {
-    const calculator = source("components/sauce/SauceCalculator.tsx");
-
-    expect(calculator).toContain("How to make pizza sauce");
-    expect(calculator).toContain("recipeSteps(result)");
-    expect(calculator).toContain("Choose whole peeled tomatoes");
-    expect(calculator).toContain("Crush by hand");
-    expect(calculator).toContain("Stir in the calculated salt");
-    expect(calculator).toContain("Measure about ${result.sauceGramsPerPizza} g onto each pizza");
-    expect(calculator.indexOf("How to make pizza sauce")).toBeLessThan(calculator.indexOf("Batch ingredients"));
-  });
-
-  it("uses compact tomato, application, moisture and storage sections instead of repeated card walls", () => {
-    const page = source("app/sauce/page.tsx");
-    const practicalGuidance = source("components/sauce/SaucePracticalGuidance.tsx");
-    const combined = `${page}\n${practicalGuidance}`;
-
-    expect(combined).toContain("Buy the tomatoes");
-    expect(combined).toContain("Good canned whole peeled tomatoes are the easiest starting point.");
-    expect(combined).toContain("Crushed tomatoes are acceptable");
-    expect(combined).toContain("Heavily seasoned ready-made pasta sauces");
-    expect(combined).toContain("Drain only when the tomatoes are unusually watery");
-    expect(combined).toContain("Make and apply the sauce");
-    expect(combined).toContain("Crush or blend lightly, then apply a thin, even layer.");
-    expect(combined).toContain("Avoid a wet or burnt pizza");
-    expect(combined).toContain("Store safely");
-    expect(combined).not.toContain("Adjust the sauce");
-    expect(combined).not.toContain("Change the amount only when the pizza changes.");
-    expect(combined).not.toContain("Useful details without a second recipe.");
-    expect(combined).not.toContain("Choose your tomatoes");
-    expect(combined).not.toContain("Choose your method");
-    expect(combined).not.toContain("Raw, cooked and reduced sauce solve different problems.");
-  });
-
-  it("keeps troubleshooting compact without duplicating moisture advice across multiple sections", () => {
-    const practicalGuidance = source("components/sauce/SaucePracticalGuidance.tsx");
-
-    for (const title of [
-      "Too much sauce",
-      "Wet mozzarella",
-      "Overloaded toppings",
-      "Pale or wet centre",
-      "Burnt or dried sauce",
-    ]) {
-      expect(practicalGuidance).toContain(title);
-    }
-
-    expect(practicalGuidance).toContain("If the pizza turns wet, the problem is often the total moisture load—not only the tomatoes.");
-    expect(practicalGuidance).toContain("GuidanceModeBadge level={experienceLevel}");
-    expect(practicalGuidance).toContain("moistureGuidance[experienceLevel]");
-    expect(practicalGuidance).not.toContain("Using too much sauce");
-    expect(practicalGuidance).not.toContain("Making sauce too far ahead without safe storage");
-    expect(practicalGuidance).not.toContain("SauceMistakeCard");
-    expect(practicalGuidance).not.toContain("<details");
-    expect(practicalGuidance).not.toContain("<summary");
-    expect(practicalGuidance).toContain("Explore guide");
-  });
-
-  it("keeps source and storage guidance visible without a second recipe", () => {
-    const page = source("app/sauce/page.tsx");
-    const practicalGuidance = source("components/sauce/SaucePracticalGuidance.tsx");
-    const combined = `${page}\n${practicalGuidance}`;
-
-    expect(combined).toContain("Store safely");
-    expect(combined).toContain("Refrigerate promptly");
-    expect(combined).toContain("Freeze for longer storage");
-    expect(combined).toContain("Discard unsafe sauce");
-    expect(page).toContain("Sources and methodology");
-    expect(page).toContain("Traditional guidance, practical home-oven adaptation.");
-    expect(combined).not.toContain("Ingredient roles");
-    expect(combined).not.toContain("How much sauce should go on the pizza?");
-  });
-
-  it("keeps a compact related-guide handoff and one final primary action before the footer", () => {
-    const page = source("app/sauce/page.tsx");
-    const pageEnding = source("components/learning/PublicPageEnding.tsx");
-
-    expect(page).toContain("PublicPageEnding");
-    expect(pageEnding).toContain("links.length > 3");
-    expect(pageEnding).toContain("cannot repeat the same destination");
-    expect(pageEnding).toContain("Explore guide");
-    expect(page).toContain("const relatedGuides");
-    expect(page).toContain("links={relatedGuides}");
-    expect(page).toContain('href: "/guides/dough"');
-    expect(page).toContain('href: "/toppings"');
-    expect(page).toContain('relatedTitle="What should I learn next?"');
-    expect((page.match(/href: "\/session\/start"/g) ?? []).length).toBe(1);
-    expect(page.indexOf("<PublicPageEnding")).toBeLessThan(page.indexOf("<SiteFooter />"));
-    expect(page.indexOf("Ready to use the sauce in a real plan?")).toBeLessThan(page.indexOf("<SiteFooter />"));
-    expect(page.slice(page.indexOf("<SiteFooter />"))).not.toContain("Plan my next pizza");
-  });
-
-  it("does not reintroduce WorkflowNextStep, duplicate CTA walls or session integration", () => {
-    const page = source("app/sauce/page.tsx");
-    const layout = source("app/layout.tsx");
-
-    expect(layout).not.toContain("WorkflowNextStep");
-    expect(page).not.toContain("WorkflowNextStep");
-    expect(page).not.toContain("Return to the Pizza Learning Center");
-    expect(page).not.toContain("createAndSavePizzaSession");
-    expect(page).not.toContain("setActivePizzaSession");
-    expect(page).not.toContain("shoppingList");
-  });
-
-  it("keeps accessibility and responsive semantics explicit", () => {
-    const page = source("app/sauce/page.tsx");
-    const calculator = source("components/sauce/SauceCalculator.tsx");
-    const quickAnswer = source("components/sauce/SauceQuickAnswer.tsx");
-    const practicalGuidance = source("components/sauce/SaucePracticalGuidance.tsx");
-    const combined = `${page}\n${practicalGuidance}`;
-
-    expect(page).toContain("<h1");
-    expect(combined).toContain("aria-labelledby");
-    expect(combined).toContain("overflow-x-clip");
-    expect(combined).toContain("w-full");
-    expect(combined).toContain("object-cover");
-    expect(practicalGuidance).toContain("aria-label=\"Sauce application sequence\"");
-    expect(calculator).toContain("aria-live=\"polite\"");
-    expect(calculator).toContain("aria-label=\"Sauce amount balance\"");
-    expect(calculator).toContain("aria-label={`Decrease ${label}`}");
-    expect(calculator).toContain("aria-label={`Increase ${label}`}");
-    expect(calculator).toContain("aria-pressed");
-    expect(quickAnswer).toContain("GuidanceModeBadge");
-    expect(combined).toContain("focus-visible:outline");
-    expect(combined).toContain("min-h-12");
-  });
-
-  it("updates Sauce SEO metadata while preserving the indexing policy", () => {
-    const metadata = metadataForRoute("/sauce");
-    const seo = source("lib/seo-config.ts");
-
-    expect(metadata.title).toBe("Pizza Sauce Recipe and Calculator | DoughTools");
-    expect(metadata.description).toContain("Calculate sauce per pizza");
-    expect(seo).toContain('"/sauce"');
-    expect(seo).toContain("statefulQueryParamRoutes");
-    expect(seo).toContain("ALLOW_INDEXING");
-  });
-
-  it("preserves concise source notes for sauce claims", () => {
-    const notes = source("docs/research/pizza-sauce-sources.md");
-    const page = source("app/sauce/page.tsx");
-
-    expect(notes).toContain("AVPN International Regulations");
-    expect(notes).toContain("AVPN Pizza Napoletana recipe");
-    expect(notes).toContain("USDA leftovers and food safety");
-    expect(page).toContain("View sources and methodology");
-    expect(page).not.toContain("docs/research/pizza-sauce-sources.md");
   });
 });

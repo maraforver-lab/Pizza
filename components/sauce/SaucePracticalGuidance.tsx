@@ -37,6 +37,33 @@ const applicationSteps = [
   "Keep the centre thin and even.",
 ];
 
+const applicationImages = [
+  {
+    alt: "Plain stretched pizza dough on a floured work surface ready for sauce.",
+    caption: "Start with stretched dough",
+    src: "/sauce/application/dough-ready.webp",
+    step: "01",
+  },
+  {
+    alt: "Measured tomato sauce placed in the centre of stretched pizza dough.",
+    caption: "Add sauce to the centre",
+    src: "/sauce/application/sauce-in-centre.webp",
+    step: "02",
+  },
+  {
+    alt: "Tomato sauce spread outward in a thin spiral across pizza dough.",
+    caption: "Spread in a spiral",
+    src: "/sauce/application/spread-in-spiral.webp",
+    step: "03",
+  },
+  {
+    alt: "Pizza dough with an even tomato sauce layer and a clean uncovered crust border.",
+    caption: "Leave a clean border",
+    src: "/sauce/application/clean-border.webp",
+    step: "04",
+  },
+] as const;
+
 function SectionIntro({ body, eyebrow, id, title }: SectionIntroProps) {
   return (
     <div className="max-w-3xl">
@@ -49,33 +76,23 @@ function SectionIntro({ body, eyebrow, id, title }: SectionIntroProps) {
   );
 }
 
-function DoughApplicationVisual() {
-  const steps = [
-    { label: "Dough", sauce: "none" },
-    { label: "Centre", sauce: "center" },
-    { label: "Spiral", sauce: "spiral" },
-    { label: "Border", sauce: "border" },
-  ] as const;
-
+function SauceApplicationImages() {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Sauce application sequence">
-      {steps.map((step, index) => (
-        <article key={step.label} className="rounded-2xl border border-ink/10 bg-white p-3">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Sauce application sequence">
+      {applicationImages.map((image) => (
+        <article key={image.src} className="rounded-2xl border border-ink/10 bg-white p-3">
           <div className="relative aspect-square overflow-hidden rounded-[1.1rem] border border-ink/10 bg-flour">
-            <div className="absolute inset-[12%] rounded-full border-[12px] border-tomato/10 bg-card shadow-inner" />
-            <div className="absolute inset-[21%] rounded-full border border-ink/10 bg-flour/70 shadow-inner" />
-            {step.sauce === "center" ? <div className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-tomato shadow-soft" /> : null}
-            {step.sauce === "spiral" ? (
-              <div className="absolute inset-[25%] rounded-full border-[12px] border-tomato/90 ring-8 ring-inset ring-tomato/30" />
-            ) : null}
-            {step.sauce === "border" ? (
-              <div className="absolute inset-[23%] rounded-full bg-tomato/90 shadow-inner">
-                <div className="absolute inset-[14%] rounded-full border-[6px] border-tomato/50" />
-              </div>
-            ) : null}
-            <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-extrabold text-ink shadow-soft">{index + 1}</span>
+            <Image
+              src={image.src}
+              alt={image.alt}
+              width={960}
+              height={960}
+              sizes="(min-width: 1280px) 18vw, (min-width: 640px) 42vw, 44vw"
+              className="h-full w-full object-cover"
+            />
+            <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-extrabold text-ink shadow-soft">{image.step}</span>
           </div>
-          <h3 className="mt-3 text-sm font-extrabold text-ink">{step.label}</h3>
+          <h3 className="mt-3 text-sm font-extrabold text-ink">{image.caption}</h3>
         </article>
       ))}
     </div>
@@ -145,7 +162,7 @@ export default function SaucePracticalGuidance() {
               ))}
             </ol>
           </div>
-          <DoughApplicationVisual />
+          <SauceApplicationImages />
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
