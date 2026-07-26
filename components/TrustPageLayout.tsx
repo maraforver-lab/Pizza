@@ -142,9 +142,14 @@ function TrustHero({ page }: { page: TrustPage }) {
   const image = page.heroImage;
 
   return (
-    <section className="overflow-hidden rounded-hero border border-white/80 bg-white/75 shadow-card">
-      <div className="grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
-        <div className="p-5 sm:p-8 lg:p-10">
+    <section
+      className={`overflow-hidden rounded-hero border border-white/80 bg-white/75 shadow-card ${
+        image ? "" : "px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-9"
+      }`}
+      data-trust-hero-layout={image ? "image" : "compact"}
+    >
+      <div className={image ? "grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch" : "max-w-4xl"}>
+        <div className={image ? "p-5 sm:p-8 lg:p-10" : ""}>
           <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-tomato/15 bg-tomato/[.06] px-4 text-xs font-extrabold uppercase tracking-[.2em] text-tomato">
             <DoughToolsIcon name={page.id === "terms" ? "checklist" : "information"} size={16} />
             {page.eyebrow}

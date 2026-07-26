@@ -295,22 +295,24 @@ describe("trust and legal pages", () => {
     expect(terms).not.toMatch(/provided “as is” and we are never liable|waive all rights|Online Dispute Resolution platform.*href/i);
   });
 
-  it("uses local people-free trust hero assets with explicit dimensions", () => {
-    for (const id of ["privacy", "terms"] as const) {
-      const image = trustPages[id].heroImage;
+  it("uses compact image-free legal headers while preserving the image-capable layout branch", () => {
+    const layout = source("components/TrustPageLayout.tsx");
+    const trustData = source("lib/trust-pages.ts");
 
-      expect(image).toBeDefined();
-      expect(image?.src).toMatch(/^\/images\/trust\/.+-desktop\.webp$/);
-      expect(image?.mobileSrc).toMatch(/^\/images\/trust\/.+-mobile\.webp$/);
-      expect(image?.width).toBeGreaterThan(0);
-      expect(image?.height).toBeGreaterThan(0);
-      expect(image?.mobileWidth).toBeGreaterThan(0);
-      expect(image?.mobileHeight).toBeGreaterThan(0);
-      expect(image?.alt).toMatch(/workspace|pizza/i);
-      expect(existsSync(join(process.cwd(), "public", image?.src ?? ""))).toBe(true);
-      expect(existsSync(join(process.cwd(), "public", image?.mobileSrc ?? ""))).toBe(true);
-      expect(`${image?.alt} ${image?.src} ${image?.mobileSrc}`).not.toMatch(/person|people|hand|hands|face|logo|signature|legal text/i);
+    for (const id of ["privacy", "terms"] as const) {
+      expect(trustPages[id].heroImage).toBeUndefined();
     }
+
+    expect(trustData).not.toContain("/images/trust/privacy-hero-desktop.webp");
+    expect(trustData).not.toContain("/images/trust/privacy-hero-mobile.webp");
+    expect(trustData).not.toContain("/images/trust/terms-hero-desktop.webp");
+    expect(trustData).not.toContain("/images/trust/terms-hero-mobile.webp");
+    expect(layout).toContain('data-trust-hero-layout={image ? "image" : "compact"}');
+    expect(layout).toContain('image ? "grid gap-0 lg:grid-cols');
+    expect(layout).toContain("<Image");
+    expect(layout).toContain("image.mobileSrc");
+    expect(layout).toContain("<SummaryCards page={page} />");
+    expect(layout).toContain("<TableOfContents page={page} />");
   });
 
   it("adds internal legal documentation without exposing raw internal paths publicly", () => {

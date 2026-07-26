@@ -128,15 +128,6 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       "DoughTools uses browser-local storage, optional accounts, and selected service providers to run the pizza-planning experience. This page describes how DoughTools currently operates, what is stored, why it is used, and the choices you have.",
     lastUpdated: "23 July 2026",
     effectiveFrom: "13 July 2026",
-    heroImage: {
-      src: "/images/trust/privacy-hero-desktop.webp",
-      mobileSrc: "/images/trust/privacy-hero-mobile.webp",
-      alt: "A calm pizza-planning workspace with blank cards, a closed notebook, and a blurred planning screen.",
-      width: 1600,
-      height: 900,
-      mobileWidth: 900,
-      mobileHeight: 1125,
-    },
     summary: [
       {
         title: "Local-first where possible",
@@ -344,15 +335,6 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
       "These Terms explain how the service may be used, what DoughTools provides, and the responsibilities that apply to accounts, photos, pizza plans, and Party Orders.",
     lastUpdated: "13 July 2026",
     effectiveFrom: "13 July 2026",
-    heroImage: {
-      src: "/images/trust/terms-hero-desktop.webp",
-      mobileSrc: "/images/trust/terms-hero-mobile.webp",
-      alt: "An orderly pizza-making workspace with blank planning cards, a closed notebook, and a finished pizza.",
-      width: 1600,
-      height: 900,
-      mobileWidth: 900,
-      mobileHeight: 1125,
-    },
     summary: [
       {
         title: "DoughTools helps you plan and learn",

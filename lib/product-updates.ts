@@ -17,10 +17,3 @@ export type ProductUpdate = {
 };
 
 export const productUpdates: readonly ProductUpdate[] = [];
-
-export const updatesHeroImage = {
-  src: "/images/homepage/doughtools-hero-desktop.webp",
-  alt: "Fresh artisan pizza with dough and ingredients in a warm pizza-making workspace.",
-  width: 2400,
-  height: 1500,
-} as const;

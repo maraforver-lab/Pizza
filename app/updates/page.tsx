@@ -1,8 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import { DoughToolsIcon } from "@/components/icons";
-import { productUpdates, updatesHeroImage } from "@/lib/product-updates";
+import { productUpdates } from "@/lib/product-updates";
 
 const hasPublishedUpdates = productUpdates.length > 0;
 
@@ -10,43 +9,30 @@ export default function UpdatesPage() {
   return (
     <main className="min-h-screen text-ink">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <section className="overflow-hidden rounded-hero border border-white/80 bg-white/75 shadow-card">
-          <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,.85fr)] lg:items-stretch">
-            <div className="p-5 sm:p-8 lg:p-10">
-              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">DoughTools updates</p>
-              <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
-                Product updates, when they are ready to share.
-              </h1>
-              <p className="mt-5 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
-                This is the future home for clear DoughTools release notes: what changed, why it matters for pizza
-                making, and whether anything affects your workflow.
-              </p>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/session/start"
-                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-forest active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                >
-                  Plan a pizza
-                </Link>
-                <Link
-                  href="/about"
-                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-extrabold text-ink/70 transition hover:border-tomato/30 hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                >
-                  Why DoughTools exists
-                </Link>
-              </div>
+        <section className="rounded-hero border border-white/80 bg-white/75 p-5 shadow-card sm:p-8 lg:p-10">
+          <div className="max-w-4xl">
+            <p className="text-xs font-extrabold uppercase tracking-[.22em] text-tomato">DoughTools updates</p>
+            <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
+              Product updates, when they are ready to share.
+            </h1>
+            <p className="mt-5 max-w-2xl text-sm leading-6 text-ink/60 sm:text-base">
+              This is the future home for clear DoughTools release notes: what changed, why it matters for pizza
+              making, and whether anything affects your workflow.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/session/start"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-tomato px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-forest active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              >
+                Plan a pizza
+              </Link>
+              <Link
+                href="/about"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-extrabold text-ink/70 transition hover:border-tomato/30 hover:text-ink active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              >
+                Why DoughTools exists
+              </Link>
             </div>
-            <figure className="relative min-h-64 overflow-hidden bg-ink/5 sm:min-h-80 lg:min-h-full">
-              <Image
-                src={updatesHeroImage.src}
-                alt={updatesHeroImage.alt}
-                width={updatesHeroImage.width}
-                height={updatesHeroImage.height}
-                sizes="(max-width: 1024px) 100vw, 42vw"
-                priority
-                className="h-full w-full object-cover"
-              />
-            </figure>
           </div>
         </section>
 

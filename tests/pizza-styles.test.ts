@@ -16,11 +16,13 @@ describe("Pizza Styles comparison and selection guide", () => {
   it("renders /styles as a concise comparison page instead of a long atlas-first page", () => {
     const page = source("app", "styles", "page.tsx");
     const hero = source("components", "styles", "PizzaStyleHero.tsx");
+    const visualComparison = source("components", "styles", "PizzaStyleVisualComparison.tsx");
     const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
     const goalGuide = source("components", "styles", "PizzaStyleGoalGuide.tsx");
     const notes = source("components", "styles", "PizzaStyleTechniqueNotes.tsx");
 
     expect(page).toContain("PizzaStyleHero");
+    expect(page).toContain("PizzaStyleVisualComparison");
     expect(page).toContain("PizzaStyleComparison");
     expect(page).toContain("PizzaStyleGoalGuide");
     expect(page).toContain("PizzaStyleTechniqueNotes");
@@ -28,6 +30,7 @@ describe("Pizza Styles comparison and selection guide", () => {
     expect(hero).toContain("Choose the pizza style you want to make.");
     expect(hero).toContain("Compare pizza styles by crust");
     expect(hero).not.toContain("actions=");
+    expect(visualComparison).toContain("See the styles before comparing the details.");
     expect(comparison).toContain("Main pizza styles at a glance.");
     expect(goalGuide).toContain("Which style fits your goal?");
     expect(notes).toContain("aria-expanded");
@@ -47,7 +50,7 @@ describe("Pizza Styles comparison and selection guide", () => {
       "sicilian",
     ]);
     expect(plannerSupportedPizzaStyleIds).toEqual(["neapolitan"]);
-    expect(pizzaStyleSupportSummary).toContain("currently plans Neapolitan-style pizza");
+    expect(pizzaStyleSupportSummary).toContain("currently support Neapolitan-style pizza");
     expect(pizzaStyleSupportSummary).toContain("Other styles here are educational learning guides");
     expect(pizzaStyleEducation.filter((style) => style.support === "supported").map((style) => style.id)).toEqual(["neapolitan"]);
     expect(pizzaStyleEducation.filter((style) => style.support === "learning").map((style) => style.id)).toEqual([
@@ -146,11 +149,16 @@ describe("Pizza Styles comparison and selection guide", () => {
 
   it("keeps page hierarchy and accessibility explicit", () => {
     const page = source("app", "styles", "page.tsx");
+    const visualComparison = source("components", "styles", "PizzaStyleVisualComparison.tsx");
     const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
     const notes = source("components", "styles", "PizzaStyleTechniqueNotes.tsx");
 
+    expect(page).toContain("<PizzaStyleHero />\n\n        <PizzaStyleVisualComparison />\n\n        <PizzaStyleComparison />");
     expect(page.indexOf("PizzaStyleComparison")).toBeLessThan(page.indexOf("PizzaStyleGoalGuide"));
     expect(page.lastIndexOf("PizzaStyleTechniqueNotes")).toBeGreaterThan(page.indexOf("practical-differences-title"));
+    expect(visualComparison).toContain('aria-labelledby="style-visual-comparison-title"');
+    expect(visualComparison).toContain('aria-label={`View ${style.name} details in the style comparison`}');
+    expect(visualComparison).toContain('href={`#${style.id}`}');
     expect(comparison).toContain("aria-labelledby");
     expect(comparison).toContain("<dl");
     expect(notes).toContain("role=\"region\"");
@@ -159,6 +167,7 @@ describe("Pizza Styles comparison and selection guide", () => {
 
   it("uses local image assets and keeps style research documentation available", () => {
     const imageSources = new Map<string, string>();
+    const visualComparison = source("components", "styles", "PizzaStyleVisualComparison.tsx");
 
     for (const style of pizzaStyleEducation) {
       if (!style.image) continue;
@@ -175,6 +184,16 @@ describe("Pizza Styles comparison and selection guide", () => {
     }
 
     expect(imageSources.size).toBe(7);
+    expect(visualComparison).toContain("pizzaStyleEducation.filter");
+    expect(visualComparison).toContain("<Image");
+    expect(visualComparison).toContain("image.src");
+    expect(visualComparison).toContain("image.alt");
+    expect(visualComparison).toContain("image.width");
+    expect(visualComparison).toContain("image.height");
+    expect(visualComparison).toContain('sizes="(max-width: 480px) 31vw');
+    expect(visualComparison).not.toContain("priority");
+    expect(visualComparison).not.toContain("backgroundImage");
+    expect(visualComparison).not.toMatch(/https?:\/\//);
 
     const research = source("docs", "research", "pizza-style-sources.md");
     expect(research).toContain("Associazione Verace Pizza Napoletana");

@@ -91,13 +91,17 @@ describe("sitewide hero and imagery system", () => {
     expect(component).toContain("DoughToolsIcon");
   });
 
-  it("applies the trust-page hero system with restrained legal imagery", () => {
+  it("applies the trust-page hero system with compact image-free legal headers", () => {
     const layout = source("components/TrustPageLayout.tsx");
+    const trustData = source("lib/trust-pages.ts");
 
     expect(layout).toContain("TrustHero");
     expect(layout).toContain("Back to DoughTools");
+    expect(layout).toContain('data-trust-hero-layout={image ? "image" : "compact"}');
     expect(layout).toContain("next/image");
     expect(layout).toContain("<Image");
+    expect(trustData).not.toContain("/images/trust/privacy-hero-desktop.webp");
+    expect(trustData).not.toContain("/images/trust/terms-hero-desktop.webp");
     expect(layout).toContain("<SiteFooter />");
   });
 

@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { productUpdates, updatesHeroImage } from "@/lib/product-updates";
+import { productUpdates } from "@/lib/product-updates";
 import { metadataForRoute } from "@/lib/seo-config";
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -22,17 +22,17 @@ describe("branded Updates empty state", () => {
     expect(page).not.toMatch(/Version 2\.0|coming soon|stay tuned|major update on the way/i);
   });
 
-  it("uses a local pizza-related hero asset with explicit dimensions", () => {
+  it("uses a compact image-free header instead of reusing the Homepage hero", () => {
     const page = source("app/updates/page.tsx");
+    const updatesData = source("lib/product-updates.ts");
 
-    expect(updatesHeroImage.src).toBe("/images/homepage/doughtools-hero-desktop.webp");
-    expect(updatesHeroImage.width).toBe(2400);
-    expect(updatesHeroImage.height).toBe(1500);
-    expect(updatesHeroImage.alt).toMatch(/pizza/i);
-    expect(updatesHeroImage.src).not.toMatch(/^https?:\/\//);
-    expect(existsSync(join(process.cwd(), "public", updatesHeroImage.src.slice(1)))).toBe(true);
-    expect(page).toContain("priority");
-    expect(page).toContain("sizes=\"(max-width: 1024px) 100vw, 42vw\"");
+    expect(page).not.toContain("next/image");
+    expect(page).not.toContain("<Image");
+    expect(page).not.toContain("updatesHeroImage");
+    expect(page).not.toContain("/images/homepage/doughtools-hero-desktop.webp");
+    expect(page).not.toContain("priority");
+    expect(updatesData).not.toContain("updatesHeroImage");
+    expect(updatesData).not.toContain("/images/homepage/doughtools-hero-desktop.webp");
   });
 
   it("keeps SEO positioning credible without fake release claims", () => {

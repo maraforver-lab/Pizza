@@ -6,6 +6,7 @@ import PizzaStyleComparison from "@/components/styles/PizzaStyleComparison";
 import PizzaStyleGoalGuide from "@/components/styles/PizzaStyleGoalGuide";
 import PizzaStyleHero from "@/components/styles/PizzaStyleHero";
 import PizzaStyleTechniqueNotes from "@/components/styles/PizzaStyleTechniqueNotes";
+import PizzaStyleVisualComparison from "@/components/styles/PizzaStyleVisualComparison";
 
 const practicalDifferences = [
   {
@@ -37,6 +38,8 @@ export default function StylesPage() {
       <div className="mx-auto max-w-7xl">
         <LearningBreadcrumbs current="Choose your pizza" />
         <PizzaStyleHero />
+
+        <PizzaStyleVisualComparison />
 
         <PizzaStyleComparison />
 
