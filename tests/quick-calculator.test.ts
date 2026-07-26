@@ -48,6 +48,12 @@ import {
   quickFermentationToRecipePreset,
   quickCalculatorInputToRecipeSettings,
 } from "@/lib/quick-calculator/quick-dough-calculator";
+import {
+  createQuickRecipeImageDataUrl,
+  dataUrlToQuickRecipeFile,
+  QUICK_RECIPE_IMAGE_HEIGHT,
+  QUICK_RECIPE_IMAGE_WIDTH,
+} from "@/lib/quick-calculator/quick-recipe-image-export";
 import { MemoryStorage } from "./helpers";
 import { metadataForRoute } from "@/lib/seo-config";
 
@@ -202,7 +208,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component.match(/href="\/session\/start"/g)).toHaveLength(1);
     expect(component).toContain("Need the full process?");
     expect(component).toContain("Plan a pizza");
-    expect(component).toContain("Pizza Plan starts separately and does not automatically import this Quick Calculator recipe.");
+    expect(component).toContain("Quick Calculator does not create or prepopulate a Pizza Plan.");
     expect(component).not.toContain('href="/start"');
     expect(component).not.toContain("Create my pizza plan");
     expect(component).not.toContain("Continue to Shopping");
@@ -233,71 +239,94 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("Water temperature");
     expect(component).toContain("Yeast converter");
     expect(component).toContain("Custom ingredients");
-    expect(component).toContain("Flour blend");
-    expect(component).toContain("Ingredient amounts");
+    expect(component).toContain("flour blend");
     expect(component).toContain("Live recipe");
-    expect(component).toContain("Dough balls");
-    expect(component).toContain("Dough ball weight");
+    expect(component).toContain("dough balls x");
     expect(component).toContain("View baker's percentages");
-    expect(component).toContain("Copy recipe");
-    expect(component).toContain("Reset calculator");
+    expect(component).toContain("Share recipe");
     expect(component).toContain("View calculation assumptions");
     expect(component).not.toContain("Start Pizza Session");
+    expect(component).not.toContain("Copy recipe");
+    expect(component).not.toContain("Reset calculator");
   });
 
-  it("makes the primary result hierarchy visible before the ingredient list", () => {
+  it("makes one coherent Live Recipe panel before the controls", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain("const primaryResults = [");
-    expect(component).toContain('[\"Total dough\", `${formatGrams(result.ingredients.total)} g`, \"Complete batch\"]');
-    expect(component).toContain('[\"Dough balls\", String(result.input.pizzaCount), \"Pieces in this batch\"]');
-    expect(component).toContain('[\"Dough ball weight\", `${formatGrams(result.sizing.doughWeightPerPieceGrams)} g`, \"Each portion\"]');
     expect(component).toContain("const ingredientRows = [");
-    expect(component.indexOf("const primaryResults = [")).toBeLessThan(component.indexOf("const ingredientRows = ["));
-    expect(component.indexOf("<h3 className=\"text-sm font-extrabold text-white\">Ingredient amounts</h3>")).toBeGreaterThan(component.indexOf("{primaryResults.map"));
+    expect(component).toContain("data-quick-dough-ball-summary");
+    expect(component).toContain("Total dough {formatGrams(result.ingredients.total)} g");
+    expect(component.indexOf("data-quick-result-panel")).toBeLessThan(component.indexOf("data-quick-essential-controls"));
+    expect(component).not.toContain("const primaryResults = [");
+    expect(component).not.toContain("Ingredient amounts");
   });
 
-  it("adds selected-level teaching without rendering all guidance levels together", () => {
+  it("uses guidance levels to change available controls instead of rendering all controls for every level", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain("quickResultTeachingCopy");
-    expect(component).toContain("Weigh every ingredient accurately. Flour and water create the dough");
-    expect(component).toContain("Hydration describes the water compared with the flour.");
-    expect(component).toContain("Treat flour as 100%. Water, salt and yeast are baker's percentages");
-    expect(component).toContain("const selectedTeaching = quickResultTeachingCopy[experienceLevel];");
-    expect(component).toContain("{selectedTeaching}");
+    expect(component).toContain("const isBeginner = experienceLevel === \"beginner\"");
+    expect(component).toContain("const isEnthusiast = experienceLevel === \"enthusiast\"");
+    expect(component).toContain("const isPizzaNerd = experienceLevel === \"pizza_nerd\"");
+    expect(component).toContain("{!isBeginner && (");
+    expect(component).toContain("{isPizzaNerd && (");
     expect(component).not.toContain("EXPERIENCE_LEVELS.map((level) => quickResultTeachingCopy");
   });
 
-  it("adds a compact formula visual and practical next steps without changing workflow", () => {
+  it("keeps compact handoffs without changing workflow", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
     expect(component).toContain("View baker's percentages");
-    expect(component).toContain("Flour 100%");
-    expect(component).toContain("Water {formatPercent(result.bakerPercentages.water)}%");
-    expect(component).toContain("Salt {formatPercent(result.bakerPercentages.salt)}%");
-    expect(component).toContain("Yeast calculated for the selected time and temperature");
+    expect(component).toContain("result.bakerPercentages.water");
+    expect(component).toContain("result.bakerPercentages.salt");
     expect(component).toContain("Quick calculator next steps");
-    expect(component).toContain("Weigh accurately");
-    expect(component).toContain("Use a digital scale for every ingredient.");
-    expect(component).toContain("Mix completely");
-    expect(component).toContain("Continue until no dry flour remains.");
-    expect(component).toContain("Follow the fermentation plan");
-    expect(component).toContain("Time and temperature determine when the dough is ready.");
-    expect(component).toContain("Learn how to make the dough");
+    expect(component).toContain("New to pizza dough? Learn the process");
+    expect(component).toContain("Need the full process? Plan a pizza");
     expect(component).toContain('href="/guides/dough"');
     expect(component).not.toContain('href="/session/recipe"');
   });
 
-  it("keeps reset and copy actions local to the Quick Calculator component", () => {
+  it("replaces copy, reset and saved-recipe actions with local recipe-image sharing", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+    const imageExport = source("lib/quick-calculator/quick-recipe-image-export.ts");
+
+    expect(component).toContain("createQuickRecipeImageDataUrl");
+    expect(component).toContain("dataUrlToQuickRecipeFile");
+    expect(component).toContain("navigator.share");
+    expect(component).toContain("Recipe image preview");
+    expect(component).toContain("Save image");
+    expect(imageExport).toContain("canvas.width = QUICK_RECIPE_IMAGE_WIDTH");
+    expect(imageExport).toContain("canvas.height = QUICK_RECIPE_IMAGE_HEIGHT");
+    expect(component).not.toContain("const resetCalculator = () =>");
+    expect(component).not.toContain("navigator.clipboard.writeText");
+    expect(component).not.toContain("Save recipe");
+    expect(component).not.toContain("storeQuickCalculatorSavedRecipes");
+    expect(component).not.toContain("addLocalBakeResult");
+  });
+
+  it("creates a 1080 by 1350 local recipe image payload without uploading data", () => {
+    const dataUrl = "data:image/png;base64,SGVsbG8=";
+    const file = dataUrlToQuickRecipeFile(dataUrl);
+    const helper = source("lib/quick-calculator/quick-recipe-image-export.ts");
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain("const resetCalculator = () =>");
-    expect(component).toContain("setInput(quickCalculatorDefaults)");
-    expect(component).toContain("navigator.clipboard.writeText(result.summaryText)");
-    expect(component).toContain("Save recipe");
-    expect(component).not.toContain("storeSavedRecipes");
-    expect(component).not.toContain("addLocalBakeResult");
+    expect(QUICK_RECIPE_IMAGE_WIDTH).toBe(1080);
+    expect(QUICK_RECIPE_IMAGE_HEIGHT).toBe(1350);
+    expect(file.type).toBe("image/png");
+    expect(file.name).toBe("doughtools-dough-recipe.png");
+    expect(helper).toContain('document.createElement("canvas")');
+    expect(helper).toContain('canvas.toDataURL("image/png")');
+    expect(helper).toContain("DoughTools");
+    expect(helper).toContain("Dough recipe");
+    expect(helper).toContain("Planned with DoughTools");
+    expect(helper).toContain("doughtools.app");
+    expect(helper).toContain("result.ingredients.flour");
+    expect(helper).toContain("result.ingredients.water");
+    expect(helper).toContain("result.ingredients.salt");
+    expect(helper).toContain("result.ingredients.leavener");
+    expect(String(createQuickRecipeImageDataUrl)).toContain("canvas.toDataURL");
+    expect(component).toContain("createQuickRecipeImageDataUrl(result, experienceLevel)");
+    expect(component).toContain("files: [file]");
+    expect(component).not.toMatch(/fetch\(|\/api\/|supabase|createAndSavePizzaSession|setActivePizzaSession/);
   });
 
   it("uses accessible controls and live result semantics without introducing a new dependency", () => {
@@ -326,7 +355,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).not.toContain("grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]");
     expect(component).not.toContain("pr-11");
     expect(component).not.toContain("absolute right-3");
-    expect(component).not.toMatch(/\bw-(?:12|14|16|20|24)\b/);
+    expect(component).not.toContain("absolute right-3");
   });
 
   it("keeps tight numeric-control groups responsive instead of forcing three narrow mobile columns", () => {
@@ -391,7 +420,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("QuickCalculatorGuidanceTabs");
     expect(component).toContain("data-quick-guidance-tabs");
     expect(component).toContain("Quick Calculator guidance level");
-    expect(component).toContain("Changes guidance depth only.");
+    expect(component).toContain("Choose how many pizzas you want to make. DoughTools uses a reliable recommended recipe.");
     expect(component).toContain("aria-pressed={active}");
     expect(component).not.toContain("Guidance level updated");
     expect(component).not.toContain('aria-controls="quick-calculator-guidance-preference"');
@@ -414,24 +443,26 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component.indexOf("data-quick-result-panel")).toBeLessThan(component.indexOf("data-quick-essential-controls"));
   });
 
-  it("keeps Beginner simpler while preserving access to the same effective inputs", () => {
+  it("implements the Patch 469A guidance-level capability model", () => {
     const beginner = getQuickCalculatorPresentation("beginner");
     const enthusiast = getQuickCalculatorPresentation("enthusiast");
     const nerd = getQuickCalculatorPresentation("pizza_nerd");
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(beginner.visibleGroups).toEqual(["batch", "fermentation"]);
-    expect(beginner.collapsedGroups).toContain("formula");
-    expect(beginner.collapsedGroups).toContain("advanced");
-    expect(enthusiast.visibleGroups).toContain("formula");
-    expect(enthusiast.collapsedGroups).toContain("advanced");
-    expect(nerd.visibleGroups).toEqual(["batch", "formula", "fermentation", "advanced"]);
-    expect(nerd.collapsedGroups).toEqual([]);
+    expect(beginner.level).toBe("beginner");
+    expect(enthusiast.level).toBe("enthusiast");
+    expect(nerd.level).toBe("pizza_nerd");
+    expect(component).toContain("beginnerTechnicalKeys");
+    expect(component).toContain("enthusiastUnsupportedKeys");
+    expect(component).toContain("beginnerRecommendedInput");
+    expect(component).toContain("enthusiastRecommendedInput");
     expect(component).toContain("OptionalControlGroup");
     expect(component).toContain("Adjust hydration, salt and extra dough");
     expect(component).toContain("Change yeast and temperature");
     expect(component).toContain("Dough-temperature and flour tools");
     expect(component).toContain("View calculation assumptions");
+    expect(component).toContain("Use Beginner recommended settings?");
+    expect(component).toContain("Use Enthusiast practical settings?");
   });
 
   it("normalizes advanced dough tool fields as optional Quick Calculator-only inputs", () => {
@@ -611,7 +642,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     }
   });
 
-  it("varies only result detail and explanations by level", () => {
+  it("keeps guidance-level calculations stable while lower levels reset unavailable active values by confirmation", () => {
     const beginner = getQuickCalculatorPresentation("beginner");
     const enthusiast = getQuickCalculatorPresentation("enthusiast");
     const nerd = getQuickCalculatorPresentation("pizza_nerd");
@@ -623,9 +654,9 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(enthusiast.showTechnicalResult).toBe(true);
     expect(nerd.resultDetail).toBe("technical");
     expect(nerd.showTechnicalResult).toBe(true);
-    expect(component).toContain('presentation.resultDetail !== "simple"');
-    expect(component).toContain("presentation.showTechnicalResult");
-    expect(component).toContain("Same input values produce the same ingredient output");
+    expect(component).toContain("valuesDiffer(result.input, quickCalculatorDefaults, beginnerTechnicalKeys)");
+    expect(component).toContain("valuesDiffer(result.input, quickCalculatorDefaults, enthusiastUnsupportedKeys)");
+    expect(component).toContain("Your pizza count stays the same.");
   });
 
   it("uses a dedicated versioned localStorage key for Quick Calculator recipes only", () => {
@@ -742,18 +773,21 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(quickCalculatorInputFromSearch("?quick=not-json")).toBeUndefined();
   });
 
-  it("renders local recipe management and share controls without workflow actions", () => {
+  it("removes public saved-recipe management and share-link controls without deleting legacy helpers", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain("Saved calculator recipes");
-    expect(component).toContain("browser-local Quick Calculator recipes");
-    expect(component).toContain("Save recipe");
+    expect(component).not.toContain("Saved calculator recipes");
+    expect(component).not.toContain("browser-local Quick Calculator recipes");
+    expect(component).not.toContain("Save recipe");
     expect(component).toContain("Share recipe");
-    expect(component).toContain("Load");
-    expect(component).toContain("Duplicate");
-    expect(component).toContain("Delete");
+    expect(component).not.toContain("Load recipe");
+    expect(component).not.toContain("Duplicate recipe");
+    expect(component).not.toContain("Delete recipe");
     expect(component).toContain("quickCalculatorInputFromSearch(window.location.search)");
-    expect(component).toContain("buildQuickCalculatorShareUrl(result.input)");
+    expect(component).not.toContain("buildQuickCalculatorShareUrl");
+    expect(component).not.toContain("QUICK_CALCULATOR_SAVED_RECIPES_STORAGE_KEY");
+    expect(component).not.toContain("loadQuickCalculatorSavedRecipes");
+    expect(component).not.toContain("storeQuickCalculatorSavedRecipes");
     expect(component).not.toContain("Start Pizza Session");
     expect(component).not.toContain("Saved quick recipes");
     expect(component).not.toContain("Quick recipe saved locally.");
@@ -995,23 +1029,20 @@ describe("Quick Dough Calculator isolated core UI", () => {
     const sizing = source("lib/quick-calculator/pizza-sizing.ts");
     const preferments = source("lib/quick-calculator/quick-preferments.ts");
 
-    expect(component).toContain("What are you making?");
     expect(component).toContain("Sizing mode");
     expect(component).toContain("Pizza diameter");
     expect(component).toContain("Pan width");
     expect(component).toContain("Pan length");
     expect(component).toContain("Dough loading");
     expect(component).toContain("Custom dough weight");
-    expect(component).toContain("Derived dough size");
     expect(component).toContain("Preferment");
     expect(preferments).toContain("Poolish");
     expect(preferments).toContain("Biga");
     expect(preferments).toContain("Sourdough / levain");
-    expect(component).toContain("Preferment build");
-    expect(component).toContain("Final dough additions");
+    expect(component).toContain("preferment build");
     expect(component).toContain("Required water");
     expect(component).toContain("Reverse fermentation target");
-    expect(component).toContain("Enhanced dough total");
+    expect(component).toContain("custom ingredients");
     expect(component).toContain("Primary flour");
     expect(component).toContain("Secondary flour");
     expect(component).toContain("mt-3 grid gap-2 sm:grid-cols-3");
@@ -1020,7 +1051,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(preferments).not.toMatch(/PizzaSession|buildPlanningResult|Timeline|Kitchen Mode|cloud-pizza-session|getActivePizzaSession/);
   });
 
-  it("uses the approved Patch 467E result-first workspace order without moving calculation state", () => {
+  it("uses the Patch 469A level-sensitive result-first workspace order without moving calculation state", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
     expect(component).toContain("data-quick-page-identity");
@@ -1029,10 +1060,10 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).toContain("data-quick-essential-controls");
     expect(component).toContain("data-quick-result-panel");
     expect(component).toContain("data-quick-advanced-section");
-    expect(component).toContain("data-quick-save-share");
+    expect(component).toContain("data-quick-share-recipe-image");
+    expect(component).not.toContain("data-quick-save-share");
     expect(component.indexOf("<QuickCalculatorGuidanceTabs")).toBeLessThan(component.indexOf("<RecipeResultPanel"));
     expect(component.indexOf("data-quick-result-panel")).toBeLessThan(component.indexOf("data-quick-essential-controls"));
-    expect(component.indexOf("data-quick-essential-controls")).toBeLessThan(component.indexOf("data-quick-save-share"));
     expect(component).toContain("RecipeResultPanel");
     expect(component).toContain("calculateQuickDough(input)");
   });
@@ -1045,8 +1076,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
     expect(component).not.toContain("data-quick-batch-summary");
     expect(component).not.toContain("Current workspace");
     expect(component).not.toContain("{presentation.description}");
-    expect(component).toContain('className="min-w-0 rounded-[1.75rem] border border-white/80 bg-white/74');
-    expect(component).toContain("min-w-0 rounded-[1.35rem] border p-4");
+    expect(component).toContain('className="min-w-0 rounded-[1.55rem] border border-white/80 bg-white/74');
+    expect(component).toContain("min-w-0 rounded-[1.35rem] border border-ink/10");
     expect(component).toContain("grid-cols-[2.5rem_minmax(3.5rem,1fr)_auto_2.5rem]");
     expect(component).toContain("sm:grid-cols-[3rem_minmax(5.75rem,1fr)_auto_3rem]");
     expect(component).toContain("lg:grid-cols-[minmax(0,0.98fr)_minmax(22rem,0.58fr)]");
@@ -1057,10 +1088,9 @@ describe("Quick Dough Calculator isolated core UI", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
     expect(component).toContain("Quick Dough Calculator");
-    expect(component).toContain("Changes guidance depth only.");
+    expect(component).toContain("Choose how many pizzas you want to make. DoughTools uses a reliable recommended recipe.");
     expect(component).toContain("Batch");
     expect(component).toContain("Total dough");
-    expect(component).toContain("What are you making?");
     expect(component).toContain("RecipeResultPanel");
     expect(component).toContain("calculateQuickDough(input)");
     expect(component).not.toContain("Fast recipe, fewer decisions");

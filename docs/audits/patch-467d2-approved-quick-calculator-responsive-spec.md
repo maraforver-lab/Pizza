@@ -5,6 +5,7 @@
 - Patch 467E implementation: complete.
 - Owner visual approval: pending.
 - Patch 467F production release: pending.
+- Patch 469A supersession: public guidance levels no longer expose every calculation-affecting control. Beginner now edits pizza count only and uses recommended defaults, Enthusiast edits practical controls, Pizza Nerd retains full technical capability. Public saved recipes, copy-recipe output and share-link actions are superseded by local recipe-image sharing.
 
 ## 1. Executive Summary
 

@@ -4,6 +4,8 @@
 
 Patch 467E replaces the public `/calculator/quick` presentation with the approved responsive hybrid from Patch 467D2.
 
+Patch 469A supersedes the Patch 467E assumption that every guidance level can access every calculation-affecting control. The public calculator now uses level-specific capability gates: Beginner edits only pizza count with recommended defaults, Enthusiast edits practical controls, and Pizza Nerd keeps the full technical calculator. Patch 469A also removes public saved recipes, copy-recipe output and share-link actions in favor of local recipe-image sharing.
+
 The implementation keeps:
 
 - one React calculator state
