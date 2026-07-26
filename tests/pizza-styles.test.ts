@@ -153,7 +153,8 @@ describe("Pizza Styles comparison and selection guide", () => {
     const comparison = source("components", "styles", "PizzaStyleComparison.tsx");
     const notes = source("components", "styles", "PizzaStyleTechniqueNotes.tsx");
 
-    expect(page).toContain("<PizzaStyleHero />\n\n        <PizzaStyleVisualComparison />\n\n        <PizzaStyleComparison />");
+    expect(page.indexOf("<PizzaStyleHero />")).toBeLessThan(page.indexOf("<PizzaStyleVisualComparison />"));
+    expect(page.indexOf("<PizzaStyleVisualComparison />")).toBeLessThan(page.indexOf("<PizzaStyleComparison />"));
     expect(page.indexOf("PizzaStyleComparison")).toBeLessThan(page.indexOf("PizzaStyleGoalGuide"));
     expect(page.lastIndexOf("PizzaStyleTechniqueNotes")).toBeGreaterThan(page.indexOf("practical-differences-title"));
     expect(visualComparison).toContain('aria-labelledby="style-visual-comparison-title"');

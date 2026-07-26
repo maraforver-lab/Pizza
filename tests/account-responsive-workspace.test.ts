@@ -79,7 +79,7 @@ describe("Patch 344 account responsive workspace", () => {
     const install = source("components/InstallAppPrompt.tsx");
     const settingsPage = source("app/account/settings/page.tsx");
 
-    expect(settingsPage).toContain("InstallAppPrompt compact collapsible");
+    expect(settingsPage).toContain('<InstallAppPrompt collapsible variant="settings-row" />');
     expect(install).toContain("collapsible?: boolean");
     expect(install).toContain("Show install options");
     expect(install).toContain("Hide install options");

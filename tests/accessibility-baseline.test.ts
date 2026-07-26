@@ -116,17 +116,20 @@ describe("core accessibility baseline", () => {
 
   it("keeps account guidance compact while preserving Pizza Session experience controls", () => {
     const accountSource = source("app/account/page.tsx");
+    const accountPreferencesSource = source("app/account/settings/preferences/page.tsx");
     const accountGuidanceSource = source("components/account/AccountGuidancePreference.tsx");
     const sessionStartSource = source("app/session/start/page.tsx");
 
-    expect(accountSource).toContain("AccountGuidancePreference");
+    expect(accountSource).not.toContain("AccountGuidancePreference");
+    expect(accountPreferencesSource).toContain("AccountGuidancePreference");
     expect(accountGuidanceSource).toContain("Guidance level");
     expect(accountGuidanceSource).toContain("aria-expanded={expanded}");
     expect(accountGuidanceSource).toContain("aria-controls=\"account-guidance-selector\"");
     expect(accountGuidanceSource).toContain("readExperienceLevelPreference");
     expect(accountGuidanceSource).toContain("ExperienceLevelSelector");
     expect(sessionStartSource).toContain("readExperienceLevelPreference");
-    expect(sessionStartSource).toContain("shouldShowPizzaNerdDoughControls");
+    expect(sessionStartSource).toContain("doughSettingsHelperCopy");
+    expect(sessionStartSource).toContain("Advanced dough settings");
     expect(sessionStartSource).toContain("pizza_nerd");
     expect(accountSource).not.toContain("Saved recipe value");
     expect(accountSource).not.toContain("Save recipes to make progress repeatable.");
