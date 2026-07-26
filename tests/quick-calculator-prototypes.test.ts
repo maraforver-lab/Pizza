@@ -76,8 +76,17 @@ describe("Quick Calculator admin visual prototypes", () => {
       doughBallWeightGrams: 245,
       fermentationDuration: "48h",
       fermentationEnvironment: "cold",
+      fermentationTemperatureCelsius: 4,
       hydrationPercent: 66,
       saltPercent: 2.7,
+      wastePercent: 5,
+      yeastType: "ady",
+      prefermentMethod: "poolish",
+      prefermentedFlourPercent: 30,
+      prefermentHydrationPercent: 100,
+      targetDoughTemperatureCelsius: 24,
+      flourBlendEnabled: true,
+      flourBlendPrimaryPercent: 70,
     });
     const signature = quickCalculatorPrototypeResultSignature(result);
 
@@ -151,7 +160,7 @@ describe("Quick Calculator admin visual prototypes", () => {
 
     expect(instant).toContain("order-2 grid min-w-0 gap-4");
     expect(instant).toContain("order-1 grid min-w-0 gap-4");
-    expect(instant.indexOf("<PrototypeResultCapsule result={result} />")).toBeGreaterThan(instant.indexOf("<EssentialControls input={input}"));
+    expect(instant.indexOf("<PrototypeResultCapsule result={result} />")).toBeGreaterThan(instant.indexOf("<ProgressiveControls"));
     expect(instant.indexOf("<PrototypeResultCapsule result={result} />")).toBeLessThan(instant.indexOf("<PrototypeActions />"));
     expect(guided.indexOf("Step {activeStageIndex + 1}")).toBeLessThan(guided.indexOf("<PrototypeActions />"));
     expect(guided).toContain("Guided Builder stages");
@@ -168,6 +177,84 @@ describe("Quick Calculator admin visual prototypes", () => {
     expect(component).not.toContain("workbenchGroups");
     expect(component).not.toContain("data-prototype-active-settings");
     expect(component).not.toContain("Prototype tray");
+  });
+
+  it("models guidance level as progressive disclosure rather than alternate calculators", () => {
+    const component = source("components/quick-calculator/QuickCalculatorPrototypePreview.tsx");
+
+    expect(component).toContain("prototypeProgressiveDisclosure");
+    expect(component).toMatch(/beginner:\s*{\s*visible:\s*\[\]/);
+    expect(component).toContain('collapsed: ["texture", "fermentation-details", "methods", "technical-tools"]');
+    expect(component).toMatch(/enthusiast:\s*{\s*visible:\s*\["texture", "fermentation-details"\]/);
+    expect(component).toMatch(/pizza_nerd:\s*{\s*visible:\s*\["texture", "fermentation-details", "methods", "technical-tools"\]/);
+    expect(component).toContain("data-prototype-progressive-controls");
+    expect(component).toContain("data-prototype-visible-group={groupId}");
+    expect(component).toContain("data-prototype-collapsed-group={groupId}");
+  });
+
+  it("keeps beginner technical controls available behind clear disclosures", () => {
+    const component = source("components/quick-calculator/QuickCalculatorPrototypePreview.tsx");
+
+    expect(component).toContain("Adjust dough texture");
+    expect(component).toContain("Change fermentation details");
+    expect(component).toContain("Use advanced dough methods");
+    expect(component).toContain("Technical dough tools");
+    expect(component).toContain("Extra dough");
+    expect(component).toContain("Yeast type");
+    expect(component).toContain("Fermentation temperature");
+    expect(component).toContain("Preferment");
+    expect(component).toContain("Dough temperature tools");
+    expect(component).toContain("Flour tools");
+    expect(component).toContain("Advanced calculations");
+  });
+
+  it("keeps every prototype calculation input represented in the admin prototype layer", () => {
+    const adapter = source("lib/quick-calculator-prototype-results.ts");
+    const component = source("components/quick-calculator/QuickCalculatorPrototypePreview.tsx");
+    const expectedInputs = [
+      "pizzaCount",
+      "doughBallWeightGrams",
+      "hydrationPercent",
+      "saltPercent",
+      "wastePercent",
+      "yeastType",
+      "fermentationDuration",
+      "fermentationEnvironment",
+      "fermentationTemperatureCelsius",
+      "prefermentMethod",
+      "prefermentedFlourPercent",
+      "prefermentHydrationPercent",
+      "prefermentInoculationPercent",
+      "targetDoughTemperatureCelsius",
+      "flourTemperatureCelsius",
+      "roomTemperatureCelsius",
+      "mixerFrictionCelsius",
+      "reverseFermentationHours",
+      "yeastConversionAmountGrams",
+      "yeastConversionFrom",
+      "yeastConversionTo",
+      "customIngredientsEnabled",
+      "oilPercent",
+      "sugarPercent",
+      "maltPercent",
+      "flourBlendEnabled",
+      "flourBlendPrimaryPercent",
+    ];
+
+    for (const inputName of expectedInputs) {
+      expect(adapter).toContain(inputName);
+      expect(component).toContain(inputName);
+    }
+  });
+
+  it("documents the 467D1 progressive disclosure rationale", () => {
+    const doc = source("docs/audits/patch-467b-quick-calculator-visual-prototypes.md");
+
+    expect(doc).toContain("Patch 467D1 Guidance-Level Prototype Model");
+    expect(doc).toContain("Beginner gets the shortest successful path without losing access to any calculation input.");
+    expect(doc).toContain("Enthusiast gets practical recipe controls");
+    expect(doc).toContain("Pizza Nerd gets the complete workbench.");
+    expect(doc).toContain("Switching the guidance selector changes presentation only");
   });
 
   it("adds compact Admin cards for all prototype previews without publish controls", () => {

@@ -17,9 +17,17 @@ import {
 import {
   quickCalculatorDurationOptions,
   quickCalculatorEnvironmentOptions,
+  quickCalculatorYeastOptions,
+  defaultQuickFermentationTemperature,
   type QuickFermentationDuration,
   type QuickFermentationEnvironment,
 } from "@/lib/quick-calculator/quick-dough-calculator";
+import {
+  applyQuickPrefermentPreset,
+  quickPrefermentPresets,
+  type QuickPrefermentMethod,
+} from "@/lib/quick-calculator/quick-preferments";
+import type { YeastType } from "@/lib/saved-recipes";
 
 type PrototypeInputKey = keyof QuickCalculatorPrototypeEditableInput;
 
@@ -44,6 +52,49 @@ const stageDefinitions = [
   { id: "formula", label: "Formula", title: "Formula balance", icon: "scale" },
   { id: "result", label: "Result", title: "Recipe result", icon: "checklist" },
 ] as const satisfies readonly { id: string; label: string; title: string; icon: DoughToolsIconName }[];
+
+type PrototypeControlGroupId = "texture" | "fermentation-details" | "methods" | "technical-tools";
+
+const prototypeProgressiveDisclosure: Record<ExperienceLevel, {
+  visible: PrototypeControlGroupId[];
+  collapsed: PrototypeControlGroupId[];
+}> = {
+  beginner: {
+    visible: [],
+    collapsed: ["texture", "fermentation-details", "methods", "technical-tools"],
+  },
+  enthusiast: {
+    visible: ["texture", "fermentation-details"],
+    collapsed: ["methods", "technical-tools"],
+  },
+  pizza_nerd: {
+    visible: ["texture", "fermentation-details", "methods", "technical-tools"],
+    collapsed: [],
+  },
+};
+
+const prototypeControlGroupCopy: Record<PrototypeControlGroupId, { title: string; body: string; icon: DoughToolsIconName }> = {
+  texture: {
+    title: "Adjust dough texture",
+    body: "Hydration, salt and extra dough stay available without crowding the fastest path.",
+    icon: "scale",
+  },
+  "fermentation-details": {
+    title: "Change fermentation details",
+    body: "Yeast type and fermentation temperature refine timing while keeping the same calculator engine.",
+    icon: "clock",
+  },
+  methods: {
+    title: "Use advanced dough methods",
+    body: "Preferment choices are optional presentation depth, not a separate calculator.",
+    icon: "yeast",
+  },
+  "technical-tools": {
+    title: "Technical dough tools",
+    body: "Dough temperature, flour blend and conversion tools remain available for the technical workspace.",
+    icon: "thermometer",
+  },
+};
 
 function formatGrams(value: number, precise = false) {
   return new Intl.NumberFormat("en-GB", {
@@ -129,6 +180,33 @@ function PrototypeNumberControl({
         </button>
       </div>
     </div>
+  );
+}
+
+function PrototypeToggleControl({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-[1.25rem] border border-ink/10 bg-white/78 p-3 shadow-sm">
+      <span className="min-w-0">
+        <span className="block text-sm font-extrabold leading-5 text-ink/72">{label}</span>
+        <span className="mt-1 block text-xs font-bold leading-5 text-ink/45">{description}</span>
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-5 w-5 shrink-0 rounded border-ink/20 text-tomato focus:ring-tomato"
+      />
+    </label>
   );
 }
 
@@ -246,6 +324,10 @@ function PrototypeResultCapsule({
   compact?: boolean;
 }) {
   const yeastLabel = result.input.yeastType === "idy" ? "Instant dry yeast" : "Yeast";
+  const batchMetrics = [
+    ["Dough balls", `${result.input.pizzaCount}`],
+    ["Dough-ball weight", `${formatGrams(result.sizing.doughWeightPerPieceGrams)} g`],
+  ] as const;
   const ingredients = [
     ["Flour", `${formatGrams(result.ingredients.flour)} g`],
     ["Water", `${formatGrams(result.ingredients.water)} g`],
@@ -265,8 +347,16 @@ function PrototypeResultCapsule({
         {formatGrams(result.ingredients.total)} g total dough
       </h2>
       <p className="mt-3 text-sm font-bold leading-6 text-white/60">
-        {result.input.pizzaCount} pizzas x {formatGrams(result.sizing.doughWeightPerPieceGrams)} g | {result.input.hydrationPercent}% hydration | {result.input.fermentationDuration} {result.input.fermentationEnvironment}
+        {result.input.hydrationPercent}% hydration | {result.input.fermentationDuration} {result.input.fermentationEnvironment}
       </p>
+      <dl className="mt-5 grid grid-cols-2 gap-2">
+        {batchMetrics.map(([label, value]) => (
+          <div key={label} className="rounded-2xl bg-white/12 p-3">
+            <dt className="text-[10px] font-extrabold uppercase tracking-[.14em] text-white/42">{label}</dt>
+            <dd className="mt-1 text-xl font-extrabold tabular-nums text-white">{value}</dd>
+          </div>
+        ))}
+      </dl>
       <dl className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {ingredients.map(([label, value]) => (
           <div key={label} className="rounded-2xl bg-white/8 p-3">
@@ -367,7 +457,7 @@ function EssentialControls({
   );
 }
 
-function FormulaControls({
+function FermentationControls({
   input,
   setInput,
 }: {
@@ -375,7 +465,36 @@ function FormulaControls({
   setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2" data-prototype-formula-controls>
+    <div className="grid gap-3 sm:grid-cols-2" data-prototype-fermentation-controls>
+      <PrototypeSegmentedControl<QuickFermentationDuration>
+        label="Fermentation time"
+        value={input.fermentationDuration}
+        options={quickCalculatorDurationOptions}
+        onChange={(value) => updatePrototypeInput(setInput, "fermentationDuration", value)}
+      />
+      <PrototypeSegmentedControl<QuickFermentationEnvironment>
+        label="Fermentation"
+        value={input.fermentationEnvironment}
+        options={quickCalculatorEnvironmentOptions}
+        onChange={(value) => setInput((current) => ({
+          ...current,
+          fermentationEnvironment: value,
+          fermentationTemperatureCelsius: defaultQuickFermentationTemperature(value),
+        }))}
+      />
+    </div>
+  );
+}
+
+function TextureControls({
+  input,
+  setInput,
+}: {
+  input: QuickCalculatorPrototypeEditableInput;
+  setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-3" data-prototype-texture-controls>
       <PrototypeNumberControl
         id="prototype-hydration"
         label="Hydration"
@@ -396,11 +515,21 @@ function FormulaControls({
         suffix="%"
         onChange={(value) => updatePrototypeInput(setInput, "saltPercent", value)}
       />
+      <PrototypeNumberControl
+        id="prototype-waste"
+        label="Extra dough"
+        value={input.wastePercent}
+        min={0}
+        max={15}
+        step={0.5}
+        suffix="%"
+        onChange={(value) => updatePrototypeInput(setInput, "wastePercent", value)}
+      />
     </div>
   );
 }
 
-function FermentationControls({
+function FermentationDetailControls({
   input,
   setInput,
 }: {
@@ -408,45 +537,431 @@ function FermentationControls({
   setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2" data-prototype-fermentation-controls>
-      <PrototypeSegmentedControl<QuickFermentationDuration>
-        label="Fermentation time"
-        value={input.fermentationDuration}
-        options={quickCalculatorDurationOptions}
-        onChange={(value) => updatePrototypeInput(setInput, "fermentationDuration", value)}
+    <div className="grid gap-3 sm:grid-cols-2" data-prototype-fermentation-detail-controls>
+      <PrototypeSegmentedControl<YeastType>
+        label="Yeast type"
+        value={input.yeastType}
+        options={quickCalculatorYeastOptions}
+        onChange={(value) => updatePrototypeInput(setInput, "yeastType", value)}
       />
-      <PrototypeSegmentedControl<QuickFermentationEnvironment>
-        label="Fermentation"
-        value={input.fermentationEnvironment}
-        options={quickCalculatorEnvironmentOptions}
-        onChange={(value) => updatePrototypeInput(setInput, "fermentationEnvironment", value)}
+      <PrototypeNumberControl
+        id="prototype-fermentation-temperature"
+        label="Fermentation temperature"
+        value={input.fermentationTemperatureCelsius}
+        min={0}
+        max={30}
+        step={1}
+        suffix="C"
+        onChange={(value) => updatePrototypeInput(setInput, "fermentationTemperatureCelsius", value)}
       />
+    </div>
+  );
+}
+
+function MethodControls({
+  input,
+  setInput,
+}: {
+  input: QuickCalculatorPrototypeEditableInput;
+  setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
+}) {
+  const prefermentOptions = quickPrefermentPresets.map((preset) => ({
+    value: preset.id,
+    label: preset.label,
+  }));
+
+  return (
+    <div className="grid gap-3" data-prototype-method-controls>
+      <PrototypeSegmentedControl<QuickPrefermentMethod>
+        label="Preferment"
+        value={input.prefermentMethod}
+        options={prefermentOptions}
+        onChange={(value) => setInput((current) => {
+          const nextPreferment = applyQuickPrefermentPreset({
+            method: current.prefermentMethod,
+            prefermentedFlourPercent: current.prefermentedFlourPercent,
+            prefermentHydrationPercent: current.prefermentHydrationPercent,
+            prefermentInoculationPercent: current.prefermentInoculationPercent,
+          }, value);
+
+          return {
+            ...current,
+            prefermentMethod: nextPreferment.method,
+            prefermentedFlourPercent: nextPreferment.prefermentedFlourPercent,
+            prefermentHydrationPercent: nextPreferment.prefermentHydrationPercent,
+            prefermentInoculationPercent: nextPreferment.prefermentInoculationPercent,
+          };
+        })}
+      />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <PrototypeNumberControl
+          id="prototype-prefermented-flour"
+          label="Prefermented flour"
+          value={input.prefermentedFlourPercent}
+          min={0}
+          max={80}
+          step={1}
+          suffix="%"
+          onChange={(value) => updatePrototypeInput(setInput, "prefermentedFlourPercent", value)}
+        />
+        <PrototypeNumberControl
+          id="prototype-preferment-hydration"
+          label="Preferment hydration"
+          value={input.prefermentHydrationPercent}
+          min={0}
+          max={125}
+          step={1}
+          suffix="%"
+          onChange={(value) => updatePrototypeInput(setInput, "prefermentHydrationPercent", value)}
+        />
+        <PrototypeNumberControl
+          id="prototype-preferment-inoculation"
+          label="Levain inoculation"
+          value={input.prefermentInoculationPercent}
+          min={0}
+          max={60}
+          step={1}
+          suffix="%"
+          onChange={(value) => updatePrototypeInput(setInput, "prefermentInoculationPercent", value)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TechnicalToolsControls({
+  input,
+  setInput,
+  result,
+}: {
+  input: QuickCalculatorPrototypeEditableInput;
+  setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
+  result: ReturnType<typeof calculateQuickCalculatorPrototypeResult>;
+}) {
+  return (
+    <div className="grid gap-4" data-prototype-technical-tools>
+      <section className="grid gap-3 rounded-[1.5rem] border border-ink/10 bg-white/62 p-3" aria-label="Dough temperature tools">
+        <h3 className="text-sm font-extrabold text-ink">Dough temperature tools</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <PrototypeNumberControl
+            id="prototype-target-dough-temperature"
+            label="Target dough temperature"
+            value={input.targetDoughTemperatureCelsius}
+            min={10}
+            max={35}
+            step={1}
+            suffix="C"
+            onChange={(value) => updatePrototypeInput(setInput, "targetDoughTemperatureCelsius", value)}
+          />
+          <PrototypeNumberControl
+            id="prototype-flour-temperature"
+            label="Flour temperature"
+            value={input.flourTemperatureCelsius}
+            min={0}
+            max={35}
+            step={1}
+            suffix="C"
+            onChange={(value) => updatePrototypeInput(setInput, "flourTemperatureCelsius", value)}
+          />
+          <PrototypeNumberControl
+            id="prototype-room-temperature"
+            label="Room temperature"
+            value={input.roomTemperatureCelsius}
+            min={0}
+            max={35}
+            step={1}
+            suffix="C"
+            onChange={(value) => updatePrototypeInput(setInput, "roomTemperatureCelsius", value)}
+          />
+          <PrototypeNumberControl
+            id="prototype-mixer-friction"
+            label="Mixer friction"
+            value={input.mixerFrictionCelsius}
+            min={0}
+            max={15}
+            step={1}
+            suffix="C"
+            onChange={(value) => updatePrototypeInput(setInput, "mixerFrictionCelsius", value)}
+          />
+        </div>
+        <p className="rounded-2xl bg-cream/70 px-3 py-2 text-sm font-extrabold text-ink/58">
+          Water temperature estimate: {formatGrams(result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius)} C
+        </p>
+      </section>
+
+      <section className="grid gap-3 rounded-[1.5rem] border border-ink/10 bg-white/62 p-3" aria-label="Advanced calculations">
+        <h3 className="text-sm font-extrabold text-ink">Advanced calculations</h3>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <PrototypeNumberControl
+            id="prototype-reverse-fermentation"
+            label="Reverse fermentation"
+            value={input.reverseFermentationHours}
+            min={3}
+            max={72}
+            step={1}
+            suffix="h"
+            onChange={(value) => updatePrototypeInput(setInput, "reverseFermentationHours", value)}
+          />
+          <PrototypeNumberControl
+            id="prototype-yeast-conversion-amount"
+            label="Yeast conversion"
+            value={input.yeastConversionAmountGrams}
+            min={0}
+            max={500}
+            step={0.1}
+            suffix="g"
+            onChange={(value) => updatePrototypeInput(setInput, "yeastConversionAmountGrams", value)}
+          />
+          <div className="grid gap-3">
+            <PrototypeSegmentedControl<YeastType>
+              label="Convert from"
+              value={input.yeastConversionFrom}
+              options={quickCalculatorYeastOptions}
+              onChange={(value) => updatePrototypeInput(setInput, "yeastConversionFrom", value)}
+            />
+            <PrototypeSegmentedControl<YeastType>
+              label="Convert to"
+              value={input.yeastConversionTo}
+              options={quickCalculatorYeastOptions}
+              onChange={(value) => updatePrototypeInput(setInput, "yeastConversionTo", value)}
+            />
+          </div>
+        </div>
+        <p className="rounded-2xl bg-cream/70 px-3 py-2 text-sm font-extrabold text-ink/58">
+          Converted yeast: {formatGrams(result.advancedTools.yeastConversion.convertedGrams, true)} g
+        </p>
+      </section>
+
+      <section className="grid gap-3 rounded-[1.5rem] border border-ink/10 bg-white/62 p-3" aria-label="Flour tools">
+        <h3 className="text-sm font-extrabold text-ink">Flour tools</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <PrototypeToggleControl
+            label="Custom ingredients"
+            description="Show optional oil, sugar and malt additions."
+            checked={input.customIngredientsEnabled}
+            onChange={(checked) => updatePrototypeInput(setInput, "customIngredientsEnabled", checked)}
+          />
+          <PrototypeToggleControl
+            label="Flour blend"
+            description="Split flour into primary and secondary flour amounts."
+            checked={input.flourBlendEnabled}
+            onChange={(checked) => updatePrototypeInput(setInput, "flourBlendEnabled", checked)}
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <PrototypeNumberControl
+            id="prototype-oil"
+            label="Oil"
+            value={input.oilPercent}
+            min={0}
+            max={10}
+            step={0.5}
+            suffix="%"
+            onChange={(value) => updatePrototypeInput(setInput, "oilPercent", value)}
+          />
+          <PrototypeNumberControl
+            id="prototype-sugar"
+            label="Sugar"
+            value={input.sugarPercent}
+            min={0}
+            max={10}
+            step={0.5}
+            suffix="%"
+            onChange={(value) => updatePrototypeInput(setInput, "sugarPercent", value)}
+          />
+          <PrototypeNumberControl
+            id="prototype-malt"
+            label="Malt"
+            value={input.maltPercent}
+            min={0}
+            max={5}
+            step={0.1}
+            suffix="%"
+            onChange={(value) => updatePrototypeInput(setInput, "maltPercent", value)}
+          />
+          <PrototypeNumberControl
+            id="prototype-flour-blend-primary"
+            label="Primary flour"
+            value={input.flourBlendPrimaryPercent}
+            min={0}
+            max={100}
+            step={5}
+            suffix="%"
+            onChange={(value) => updatePrototypeInput(setInput, "flourBlendPrimaryPercent", value)}
+          />
+        </div>
+      </section>
     </div>
   );
 }
 
 function PrototypeDisclosure({
   title,
+  description,
+  icon,
   children,
   defaultOpen = false,
+  groupId,
 }: {
   title: string;
+  description?: string;
+  icon?: DoughToolsIconName;
   children: ReactNode;
   defaultOpen?: boolean;
+  groupId?: PrototypeControlGroupId;
 }) {
   return (
     <details
       open={defaultOpen}
       className="group rounded-[1.5rem] border border-ink/10 bg-white/62 p-4 shadow-sm"
       data-prototype-disclosure
+      data-prototype-collapsed-group={groupId}
     >
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-        <span className="text-sm font-extrabold text-ink">{title}</span>
+        <span className="flex min-w-0 items-center gap-3">
+          {icon ? (
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-tomato/15 bg-tomato/[.06] text-tomato" aria-hidden="true">
+              <DoughToolsIcon name={icon} size={20} />
+            </span>
+          ) : null}
+          <span className="min-w-0">
+            <span className="block text-sm font-extrabold text-ink">{title}</span>
+            {description ? <span className="mt-1 block text-xs font-bold leading-5 text-ink/45">{description}</span> : null}
+          </span>
+        </span>
         <span className="text-xs font-extrabold text-tomato group-open:hidden">Show</span>
         <span className="hidden text-xs font-extrabold text-tomato group-open:inline">Hide</span>
       </summary>
       <div className="mt-4">{children}</div>
     </details>
+  );
+}
+
+function ProgressiveGroup({
+  groupId,
+  level,
+  children,
+}: {
+  groupId: PrototypeControlGroupId;
+  level: ExperienceLevel;
+  children: ReactNode;
+}) {
+  const groupCopy = prototypeControlGroupCopy[groupId];
+  const visible = prototypeProgressiveDisclosure[level].visible.includes(groupId);
+
+  if (!visible) {
+    return (
+      <PrototypeDisclosure
+        title={groupCopy.title}
+        description={groupCopy.body}
+        icon={groupCopy.icon}
+        groupId={groupId}
+      >
+        {children}
+      </PrototypeDisclosure>
+    );
+  }
+
+  return (
+    <section
+      className="rounded-[1.5rem] border border-ink/10 bg-white/72 p-4 shadow-sm"
+      aria-labelledby={`prototype-${groupId}-heading`}
+      data-prototype-visible-group={groupId}
+    >
+      <div className="mb-4 flex items-start gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-tomato/15 bg-tomato/[.06] text-tomato" aria-hidden="true">
+          <DoughToolsIcon name={groupCopy.icon} size={24} />
+        </span>
+        <div className="min-w-0">
+          <h3 id={`prototype-${groupId}-heading`} className="text-sm font-extrabold text-ink">{groupCopy.title}</h3>
+          <p className="mt-1 text-xs font-bold leading-5 text-ink/45">{groupCopy.body}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function ProgressiveOptionalGroups({
+  level,
+  input,
+  setInput,
+  result,
+}: {
+  level: ExperienceLevel;
+  input: QuickCalculatorPrototypeEditableInput;
+  setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
+  result: ReturnType<typeof calculateQuickCalculatorPrototypeResult>;
+}) {
+  return (
+    <div className="grid gap-3" data-prototype-progressive-controls data-prototype-level={level}>
+      <ProgressiveGroup groupId="texture" level={level}>
+        <TextureControls input={input} setInput={setInput} />
+      </ProgressiveGroup>
+      <ProgressiveGroup groupId="fermentation-details" level={level}>
+        <FermentationDetailControls input={input} setInput={setInput} />
+      </ProgressiveGroup>
+      <ProgressiveGroup groupId="methods" level={level}>
+        <MethodControls input={input} setInput={setInput} />
+      </ProgressiveGroup>
+      <ProgressiveGroup groupId="technical-tools" level={level}>
+        <TechnicalToolsControls input={input} setInput={setInput} result={result} />
+      </ProgressiveGroup>
+    </div>
+  );
+}
+
+function ProgressiveControls({
+  level,
+  input,
+  setInput,
+  result,
+}: {
+  level: ExperienceLevel;
+  input: QuickCalculatorPrototypeEditableInput;
+  setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
+  result: ReturnType<typeof calculateQuickCalculatorPrototypeResult>;
+}) {
+  return (
+    <div className="grid gap-3">
+      <section className="rounded-[1.5rem] border border-ink/10 bg-white/72 p-4 shadow-sm" aria-label="Core calculator controls" data-prototype-core-controls>
+        <div className="mb-4">
+          <p className="text-xs font-extrabold uppercase tracking-[.18em] text-tomato">Visible first</p>
+          <h3 className="mt-2 text-sm font-extrabold text-ink">Pizzas, ball weight and fermentation</h3>
+        </div>
+        <div className="grid gap-3">
+          <EssentialControls input={input} setInput={setInput} />
+          <FermentationControls input={input} setInput={setInput} />
+        </div>
+      </section>
+      <ProgressiveOptionalGroups level={level} input={input} setInput={setInput} result={result} />
+    </div>
+  );
+}
+
+function TechnicalResultReadout({ result }: { result: ReturnType<typeof calculateQuickCalculatorPrototypeResult> }) {
+  return (
+    <div className="grid gap-3" data-prototype-technical-readout>
+      <FormulaReadout result={result} />
+      <dl className="grid gap-2 rounded-[1.5rem] border border-ink/10 bg-white/70 p-4 text-sm">
+        <div className="flex justify-between gap-3">
+          <dt className="font-bold text-ink/48">Preferment</dt>
+          <dd className="font-extrabold text-ink">{result.preferment.label}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="font-bold text-ink/48">Extra dough</dt>
+          <dd className="font-extrabold text-ink">{formatPercent(result.input.wastePercent)}%</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="font-bold text-ink/48">Fermentation temp</dt>
+          <dd className="font-extrabold text-ink">{formatGrams(result.input.fermentationTemperatureCelsius)} C</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="font-bold text-ink/48">Water estimate</dt>
+          <dd className="font-extrabold text-ink">{formatGrams(result.advancedTools.waterTemperature.requiredWaterTemperatureCelsius)} C</dd>
+        </div>
+      </dl>
+    </div>
   );
 }
 
@@ -474,10 +989,12 @@ function FormulaReadout({ result }: { result: ReturnType<typeof calculateQuickCa
 }
 
 function InstantRecipeConcept({
+  level,
   input,
   setInput,
   result,
 }: {
+  level: ExperienceLevel;
   input: QuickCalculatorPrototypeEditableInput;
   setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
   result: ReturnType<typeof calculateQuickCalculatorPrototypeResult>;
@@ -489,13 +1006,9 @@ function InstantRecipeConcept({
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Fast edit</p>
             <h2 className="mt-2 font-display text-2xl font-semibold text-ink">Change the recipe without hunting for controls</h2>
           </div>
-          <EssentialControls input={input} setInput={setInput} />
-          <FermentationControls input={input} setInput={setInput} />
-        <PrototypeDisclosure title="Adjust hydration and salt" defaultOpen>
-          <FormulaControls input={input} setInput={setInput} />
-        </PrototypeDisclosure>
-        <PrototypeDisclosure title="What the formula means">
-          <FormulaReadout result={result} />
+        <ProgressiveControls level={level} input={input} setInput={setInput} result={result} />
+        <PrototypeDisclosure title="What the formula means" description="Baker percentages are explanatory only; the live recipe above stays primary.">
+          <TechnicalResultReadout result={result} />
         </PrototypeDisclosure>
       </section>
       <aside className="order-1 grid min-w-0 gap-4 lg:order-2 lg:sticky lg:top-6 lg:self-start">
@@ -507,10 +1020,12 @@ function InstantRecipeConcept({
 }
 
 function GuidedBuilderConcept({
+  level,
   input,
   setInput,
   result,
 }: {
+  level: ExperienceLevel;
   input: QuickCalculatorPrototypeEditableInput;
   setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
   result: ReturnType<typeof calculateQuickCalculatorPrototypeResult>;
@@ -520,10 +1035,10 @@ function GuidedBuilderConcept({
   const stageContent = [
     <EssentialControls key="pizza" input={input} setInput={setInput} secondary />,
     <FermentationControls key="time" input={input} setInput={setInput} />,
-    <FormulaControls key="formula" input={input} setInput={setInput} />,
+    <ProgressiveOptionalGroups key="formula" level={level} input={input} setInput={setInput} result={result} />,
     <div key="result" className="grid gap-4">
       <PrototypeResultCapsule result={result} compact />
-      <FormulaReadout result={result} />
+      <TechnicalResultReadout result={result} />
     </div>,
   ];
 
@@ -623,10 +1138,12 @@ function WorkbenchSection({
 }
 
 function WorkbenchConcept({
+  level,
   input,
   setInput,
   result,
 }: {
+  level: ExperienceLevel;
   input: QuickCalculatorPrototypeEditableInput;
   setInput: (updater: (current: QuickCalculatorPrototypeEditableInput) => QuickCalculatorPrototypeEditableInput) => void;
   result: ReturnType<typeof calculateQuickCalculatorPrototypeResult>;
@@ -641,17 +1158,17 @@ function WorkbenchConcept({
           <FermentationControls input={input} setInput={setInput} />
         </WorkbenchSection>
         <WorkbenchSection title="Formula" icon="scale">
-          <FormulaControls input={input} setInput={setInput} />
+          <ProgressiveOptionalGroups level={level} input={input} setInput={setInput} result={result} />
         </WorkbenchSection>
         <p className="rounded-[1.25rem] border border-ink/10 bg-white/62 px-4 py-3 text-sm font-bold leading-6 text-ink/52">
-          Workbench keeps related controls in broad sections so labels and values stay readable while the result remains visible.
+          Workbench keeps related controls in broad sections so labels and values stay readable while the result remains visible. The selected guidance level controls which groups are expanded first.
         </p>
       </div>
       <aside className="order-1 grid min-w-0 gap-4 xl:order-2 xl:sticky xl:top-6 xl:self-start">
         <PrototypeResultCapsule result={result} compact />
         <PrototypeActions />
         <PrototypeDisclosure title="Technical summary" defaultOpen>
-          <FormulaReadout result={result} />
+          <TechnicalResultReadout result={result} />
         </PrototypeDisclosure>
       </aside>
     </div>
@@ -682,13 +1199,13 @@ export default function QuickCalculatorPrototypePreview({
 
         <div className="mt-4">
           {prototype.id === "instant" ? (
-            <InstantRecipeConcept input={input} setInput={setInput} result={result} />
+            <InstantRecipeConcept level={level} input={input} setInput={setInput} result={result} />
           ) : null}
           {prototype.id === "guided" ? (
-            <GuidedBuilderConcept input={input} setInput={setInput} result={result} />
+            <GuidedBuilderConcept level={level} input={input} setInput={setInput} result={result} />
           ) : null}
           {prototype.id === "workbench" ? (
-            <WorkbenchConcept input={input} setInput={setInput} result={result} />
+            <WorkbenchConcept level={level} input={input} setInput={setInput} result={result} />
           ) : null}
         </div>
 

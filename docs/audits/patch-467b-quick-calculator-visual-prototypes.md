@@ -33,6 +33,42 @@ The large guidance card was replaced with a small segmented control:
 
 Changing the selection changes explanation depth only. Numeric input, canonical defaults and calculated output remain identical.
 
+## Patch 467D1 Guidance-Level Prototype Model
+
+Patch 467D1 keeps one calculator engine and tests guidance level as progressive disclosure in the Admin prototypes only.
+
+Presentation depth:
+
+- Beginner: the immediate path shows pizza count, dough-ball weight, fermentation duration and fermentation environment. Hydration, extra dough, yeast type, fermentation temperature, preferment controls, dough-temperature tools, flour tools and advanced calculations remain available behind clearly labelled disclosures.
+- Enthusiast: the immediate path adds hydration, salt, yeast type and fermentation temperature. Preferment controls, dough-temperature tools, flour tools and advanced calculations remain available behind disclosures.
+- Pizza Nerd: all technical groups are visible by default, including preferments, baker percentages, dough temperature, water temperature, flour tools and advanced calculations.
+
+Disclosure labels:
+
+- Adjust dough texture
+- Change fermentation details
+- Use advanced dough methods
+- Technical dough tools
+
+The labels describe the user job rather than using vague "Advanced" or "More" language.
+
+Result hierarchy for all levels:
+
+1. Total dough.
+2. Dough balls.
+3. Dough-ball weight.
+4. Flour.
+5. Water.
+6. Salt.
+7. Yeast.
+
+Rationale:
+
+- Beginner gets the shortest successful path without losing access to any calculation input.
+- Enthusiast gets practical recipe controls without the full technical workspace upfront.
+- Pizza Nerd gets the complete workbench.
+- Switching the guidance selector changes presentation only; the same input object and `calculateQuickDough` call produce the same numerical result.
+
 ## Instant Recipe Refinement
 
 Instant Recipe now demonstrates the strongest result-first direction.
@@ -108,6 +144,13 @@ Editable prototype controls are in-memory only:
 - room or cold fermentation
 - hydration
 - salt
+- extra dough
+- yeast type
+- fermentation temperature
+- preferment method and preferment percentages
+- dough temperature and water-temperature estimate inputs
+- yeast conversion and reverse-fermentation tools
+- optional oil, sugar, malt and flour-blend tools
 
 ## Non-Persistence Guarantees
 
