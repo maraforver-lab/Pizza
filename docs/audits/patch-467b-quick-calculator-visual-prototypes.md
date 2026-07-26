@@ -10,6 +10,16 @@ The Admin-only Quick Dough Calculator prototypes now compare three visual direct
 
 Patch 467B created the protected prototypes. Patch 467C refined the first pass because it was too intro-heavy: the old version placed a large prototype explanation card and a tall guidance selector before the actual calculator. That delayed the result and made the prototypes feel like landing pages instead of calculator concepts.
 
+## Current Status
+
+Prototype comparison is complete.
+
+- Final hybrid approved: mobile uses the Instant Recipe result-first hierarchy; desktop uses the refined Calculator Workbench.
+- Guided Builder is rejected as a public calculator mode.
+- Guided Builder terminology and question order may inform public section grouping.
+- Public implementation is deferred to Patch 467E.
+- The approved implementation specification is `docs/audits/patch-467d2-approved-quick-calculator-responsive-spec.md`.
+
 ## Calculator-First Hierarchy
 
 Every prototype preview now follows this order:
@@ -165,13 +175,13 @@ The prototypes do not:
 
 Copy, Save and Share controls are visual prototype actions only.
 
-## Remaining Comparison Questions
+## Final Comparison Decision
 
-Before choosing the public redesign, compare:
+The comparison questions are resolved:
 
-- whether Instant Recipe is the best mobile-first default
-- whether Guided Builder feels helpful or too close to Pizza Plan
-- whether Workbench should become the desktop model
-- whether the final public direction should be a hybrid of Instant Recipe on mobile and Workbench on desktop
+- Instant Recipe is the mobile foundation.
+- Calculator Workbench is the desktop foundation.
+- Guided Builder is not a public wizard.
+- The final public direction is a responsive hybrid of Instant Recipe on mobile and Workbench on desktop.
 
 Any public implementation must preserve the canonical calculation engine and existing saved-recipe/share contracts unless a separate persistence patch explicitly changes them.
