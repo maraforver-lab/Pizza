@@ -10,12 +10,12 @@ export default function PizzaStyleVisualComparison() {
       aria-labelledby="style-visual-comparison-title"
     >
       <div className="max-w-3xl">
-        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Visual comparison</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Browse all styles</p>
         <h2 id="style-visual-comparison-title" className="mt-2 font-display text-2xl font-semibold leading-tight sm:text-3xl">
-          See the styles before comparing the details.
+          Every style stays available.
         </h2>
         <p className="mt-2 text-sm leading-6 text-ink/60">
-          Shape, rim, thickness and bake style change what the pizza is built to do.
+          Use the images to recognize shape, rim, thickness and bake style, then jump to the compact comparison.
         </p>
       </div>
 
