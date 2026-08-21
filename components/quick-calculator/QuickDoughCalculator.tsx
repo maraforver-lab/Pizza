@@ -35,6 +35,7 @@ import {
 import {
   calculateQuickDough,
   defaultQuickFermentationTemperature,
+  deriveQuickFermentationEnvironment,
   quickCalculatorDefaults,
   quickCalculatorDurationOptions,
   quickCalculatorEnvironmentOptions,
@@ -103,6 +104,7 @@ function beginnerRecommendedInput(current: QuickCalculatorInput): QuickCalculato
 
 function enthusiastRecommendedInput(current: QuickCalculatorInput): QuickCalculatorInput {
   const currentResult = calculateQuickDough(current);
+  const fermentationEnvironment = deriveQuickFermentationEnvironment(current.fermentationDuration);
   return {
     ...quickCalculatorDefaults,
     pizzaCount: current.pizzaCount,
@@ -112,8 +114,8 @@ function enthusiastRecommendedInput(current: QuickCalculatorInput): QuickCalcula
     wastePercent: current.wastePercent,
     yeastType: current.yeastType,
     fermentationDuration: current.fermentationDuration,
-    fermentationEnvironment: current.fermentationEnvironment,
-    fermentationTemperatureCelsius: defaultQuickFermentationTemperature(current.fermentationEnvironment),
+    fermentationEnvironment,
+    fermentationTemperatureCelsius: defaultQuickFermentationTemperature(fermentationEnvironment),
   };
 }
 
@@ -129,6 +131,25 @@ function updateInput<K extends keyof QuickCalculatorInput>(
   value: QuickCalculatorInput[K],
 ) {
   setInput((current) => ({ ...current, [key]: value }));
+}
+
+function updateFermentationDuration(
+  setInput: (updater: (current: QuickCalculatorInput) => QuickCalculatorInput) => void,
+  duration: QuickFermentationDuration,
+  temperaturesByEnvironment: Record<QuickFermentationEnvironment, number>,
+) {
+  setInput((current) => {
+    const fermentationEnvironment = deriveQuickFermentationEnvironment(duration);
+    const currentEnvironment = deriveQuickFermentationEnvironment(current.fermentationDuration);
+    return {
+      ...current,
+      fermentationDuration: duration,
+      fermentationEnvironment,
+      fermentationTemperatureCelsius: currentEnvironment === fermentationEnvironment
+        ? current.fermentationTemperatureCelsius
+        : temperaturesByEnvironment[fermentationEnvironment],
+    };
+  });
 }
 
 function NumberField({
@@ -200,23 +221,26 @@ function OptionButton<T extends string>({
   description,
   selected,
   onClick,
+  disabled = false,
 }: {
   label: string;
   description?: string;
   selected: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-pressed={selected}
       className={`rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${
-        selected ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : "border-ink/10 bg-white text-ink hover:border-ink/25"
+        selected ? "border-tomato bg-tomato text-white shadow-lg shadow-tomato/15" : disabled ? "border-ink/10 bg-cream/60 text-ink/38" : "border-ink/10 bg-white text-ink hover:border-ink/25"
       }`}
     >
       <span className="block text-sm font-extrabold">{label}</span>
-      {description && <span className={`mt-1 block text-xs leading-5 ${selected ? "text-white/72" : "text-ink/52"}`}>{description}</span>}
+      {description && <span className={`mt-1 block text-xs leading-5 ${selected ? "text-white/72" : disabled ? "text-ink/36" : "text-ink/52"}`}>{description}</span>}
     </button>
   );
 }
@@ -431,6 +455,10 @@ function RecipeResultPanel({
 
 export default function QuickDoughCalculator() {
   const [input, setInput] = useState<QuickCalculatorInput>(quickCalculatorDefaults);
+  const [fermentationTemperaturesByEnvironment, setFermentationTemperaturesByEnvironment] = useState<Record<QuickFermentationEnvironment, number>>({
+    room: defaultQuickFermentationTemperature("room"),
+    cold: defaultQuickFermentationTemperature("cold"),
+  });
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(getDefaultExperienceLevel());
   const [pendingLevelChange, setPendingLevelChange] = useState<PendingLevelChange>(null);
   const [shareStatus, setShareStatus] = useState<ShareImageStatus>("idle");
@@ -466,6 +494,13 @@ export default function QuickDoughCalculator() {
       setInput((current) => safeInitialInput(current, savedLevel));
     }
   }, []);
+
+  useEffect(() => {
+    setFermentationTemperaturesByEnvironment((current) => ({
+      ...current,
+      [result.input.fermentationEnvironment]: result.input.fermentationTemperatureCelsius,
+    }));
+  }, [result.input.fermentationEnvironment, result.input.fermentationTemperatureCelsius]);
 
   const applyGuidanceLevel = (level: ExperienceLevel, nextInput?: QuickCalculatorInput) => {
     const savedLevel = writeExperienceLevelPreference(level);
@@ -744,7 +779,7 @@ export default function QuickDoughCalculator() {
                       <legend className="text-sm font-extrabold text-ink/72">Fermentation duration</legend>
                       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {quickCalculatorDurationOptions.map((option) => (
-                          <OptionButton<QuickFermentationDuration> key={option.value} label={option.label} selected={result.input.fermentationDuration === option.value} onClick={() => updateInput(setInput, "fermentationDuration", option.value)} />
+                          <OptionButton<QuickFermentationDuration> key={option.value} label={option.label} selected={result.input.fermentationDuration === option.value} onClick={() => updateFermentationDuration(setInput, option.value, fermentationTemperaturesByEnvironment)} />
                         ))}
                       </div>
                     </fieldset>
@@ -752,21 +787,26 @@ export default function QuickDoughCalculator() {
                     <fieldset className="mt-5">
                       <legend className="text-sm font-extrabold text-ink/72">Fermentation environment</legend>
                       <div className="mt-3 grid grid-cols-2 gap-2">
-                        {quickCalculatorEnvironmentOptions.map((option) => (
-                          <OptionButton<QuickFermentationEnvironment>
-                            key={option.value}
-                            label={option.label}
-                            description={option.value === "room" ? "Room temperature · 22 C" : "Cold fermentation · 4 C"}
-                            selected={result.input.fermentationEnvironment === option.value}
-                            onClick={() => {
-                              setInput((current) => ({
-                                ...current,
-                                fermentationEnvironment: option.value,
-                                fermentationTemperatureCelsius: defaultQuickFermentationTemperature(option.value),
-                              }));
-                            }}
-                          />
-                        ))}
+                        {quickCalculatorEnvironmentOptions.map((option) => {
+                          const validForDuration = option.value === deriveQuickFermentationEnvironment(result.input.fermentationDuration);
+                          return (
+                            <OptionButton<QuickFermentationEnvironment>
+                              key={option.value}
+                              label={option.label}
+                              description={option.value === "room" ? "Used through 24 h · 22 C" : "Used after 24 h · 4 C"}
+                              selected={result.input.fermentationEnvironment === option.value}
+                              disabled={!validForDuration}
+                              onClick={() => {
+                                if (!validForDuration) return;
+                                setInput((current) => ({
+                                  ...current,
+                                  fermentationEnvironment: option.value,
+                                  fermentationTemperatureCelsius: defaultQuickFermentationTemperature(option.value),
+                                }));
+                              }}
+                            />
+                          );
+                        })}
                       </div>
                     </fieldset>
                   </>

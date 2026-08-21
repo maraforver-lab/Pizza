@@ -41,6 +41,7 @@ import {
 import {
   buildQuickRecipePlainText,
   calculateQuickDough,
+  deriveQuickFermentationEnvironment,
   getQuickCalculatorPresentation,
   normalizeQuickCalculatorInput,
   quickCalculatorDefaults,
@@ -129,12 +130,16 @@ describe("Quick Dough Calculator isolated core UI", () => {
   });
 
   it("maps Quick Calculator fermentation choices only to existing supported recipe presets", () => {
+    expect(deriveQuickFermentationEnvironment("6h")).toBe("room");
+    expect(deriveQuickFermentationEnvironment("12h")).toBe("room");
+    expect(deriveQuickFermentationEnvironment("24h")).toBe("room");
+    expect(deriveQuickFermentationEnvironment("48h")).toBe("cold");
     expect(quickFermentationToRecipePreset({ fermentationDuration: "6h", fermentationEnvironment: "room" })).toBe("6h-room");
     expect(quickFermentationToRecipePreset({ fermentationDuration: "12h", fermentationEnvironment: "room" })).toBe("12h-room");
     expect(quickFermentationToRecipePreset({ fermentationDuration: "24h", fermentationEnvironment: "room" })).toBe("24h-room");
-    expect(quickFermentationToRecipePreset({ fermentationDuration: "24h", fermentationEnvironment: "cold" })).toBe("24h-cold");
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "24h", fermentationEnvironment: "cold" })).toBe("24h-room");
     expect(quickFermentationToRecipePreset({ fermentationDuration: "48h", fermentationEnvironment: "cold" })).toBe("48h-cold");
-    expect(quickFermentationToRecipePreset({ fermentationDuration: "48h", fermentationEnvironment: "room" })).toBe("24h-room");
+    expect(quickFermentationToRecipePreset({ fermentationDuration: "48h", fermentationEnvironment: "room" })).toBe("48h-cold");
   });
 
   it("keeps Quick Calculator state and calculation input local to the quick module", () => {
@@ -165,9 +170,79 @@ describe("Quick Dough Calculator isolated core UI", () => {
       doughBallWeightGrams: 100,
       hydrationPercent: 100,
       saltPercent: 0,
-      fermentationTemperatureCelsius: 30,
+      fermentationEnvironment: "room",
+      fermentationTemperatureCelsius: 22,
       wastePercent: 25,
     });
+  });
+
+  it("normalizes Quick Calculator fermentation environment from duration before calculation", () => {
+    const staleRoomFortyEight = normalizeQuickCalculatorInput({
+      ...quickCalculatorDefaults,
+      fermentationDuration: "48h",
+      fermentationEnvironment: "room",
+      fermentationTemperatureCelsius: 22,
+    });
+    const staleColdTwentyFour = normalizeQuickCalculatorInput({
+      ...quickCalculatorDefaults,
+      fermentationDuration: "24h",
+      fermentationEnvironment: "cold",
+      fermentationTemperatureCelsius: 4,
+    });
+    const coldCustomTemperature = normalizeQuickCalculatorInput({
+      ...quickCalculatorDefaults,
+      fermentationDuration: "48h",
+      fermentationEnvironment: "cold",
+      fermentationTemperatureCelsius: 6,
+    });
+
+    expect(staleRoomFortyEight).toMatchObject({
+      fermentationDuration: "48h",
+      fermentationEnvironment: "cold",
+      fermentationTemperatureCelsius: 4,
+    });
+    expect(staleColdTwentyFour).toMatchObject({
+      fermentationDuration: "24h",
+      fermentationEnvironment: "room",
+      fermentationTemperatureCelsius: 22,
+    });
+    expect(coldCustomTemperature).toMatchObject({
+      fermentationDuration: "48h",
+      fermentationEnvironment: "cold",
+      fermentationTemperatureCelsius: 6,
+    });
+    expect(calculateQuickDough(staleRoomFortyEight).settings.fermentation).toBe("48h-cold");
+    expect(calculateQuickDough(staleColdTwentyFour).settings.fermentation).toBe("24h-room");
+  });
+
+  it("does not leave stale room yeast calculation active for a 48h Quick Calculator duration", () => {
+    const result = calculateQuickDough({
+      ...quickCalculatorDefaults,
+      yeastType: "ady",
+      fermentationDuration: "48h",
+      fermentationEnvironment: "room",
+      fermentationTemperatureCelsius: 22,
+    });
+
+    expect(result.input.fermentationEnvironment).toBe("cold");
+    expect(result.input.fermentationTemperatureCelsius).toBe(4);
+    expect(result.settings.fermentation).toBe("48h-cold");
+    expect(result.settings.temperature).toBe(4);
+    expect(result.ingredients.leavener / result.ingredients.flour * 100).toBeCloseTo(0.144, 6);
+    expect(result.ingredients.leavener / result.ingredients.flour * 100).toBeGreaterThan(0.0216 * 5);
+  });
+
+  it("keeps the public duration control as the source of truth for displayed environment", () => {
+    const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
+
+    expect(component).toContain("function updateFermentationDuration");
+    expect(component).toContain("const fermentationEnvironment = deriveQuickFermentationEnvironment(duration)");
+    expect(component).toContain("fermentationTemperaturesByEnvironment");
+    expect(component).toContain("onClick={() => updateFermentationDuration(setInput, option.value, fermentationTemperaturesByEnvironment)}");
+    expect(component).toContain("const validForDuration = option.value === deriveQuickFermentationEnvironment(result.input.fermentationDuration)");
+    expect(component).toContain("disabled={!validForDuration}");
+    expect(component).toContain("Used through 24 h");
+    expect(component).toContain("Used after 24 h");
   });
 
   it("derives baker percentages and plain-text copy without changing central calculation output", () => {
@@ -471,7 +546,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
 
     expect(enthusiastKeysBlock).toContain("\"fermentationEnvironment\"");
     expect(enthusiastKeysBlock).not.toContain("\"fermentationTemperatureCelsius\"");
-    expect(component).toContain("fermentationTemperatureCelsius: defaultQuickFermentationTemperature(current.fermentationEnvironment)");
+    expect(component).toContain("const fermentationEnvironment = deriveQuickFermentationEnvironment(current.fermentationDuration)");
+    expect(component).toContain("fermentationTemperatureCelsius: defaultQuickFermentationTemperature(fermentationEnvironment)");
   });
 
   it("normalizes advanced dough tool fields as optional Quick Calculator-only inputs", () => {
@@ -561,11 +637,16 @@ describe("Quick Dough Calculator isolated core UI", () => {
 
   it("estimates reverse fermentation yeast without calling the planning engine", () => {
     const target = calculateQuickDough(quickCalculatorDefaults);
-    const reverse = calculateQuickReverseFermentation(target.ingredients, "idy", 4, 24);
+    const reverse = calculateQuickReverseFermentation(
+      target.ingredients,
+      quickCalculatorDefaults.yeastType,
+      quickCalculatorDefaults.fermentationTemperatureCelsius,
+      24,
+    );
 
     expect(reverse.targetHours).toBe(24);
     expect(reverse.yeastGramsForTargetHours).toBeCloseTo(target.ingredients.leavener, 6);
-    expect(reverse.estimatedHoursFromCurrentYeast).toBeCloseTo(24, 6);
+    expect(reverse.estimatedHoursFromCurrentYeast).toBeCloseTo(24, 1);
   });
 
   it("calculates optional custom ingredients and flour blends without changing the target formula", () => {

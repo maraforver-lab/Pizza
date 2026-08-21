@@ -102,8 +102,8 @@ export const quickCalculatorDefaults: QuickCalculatorInput = {
   saltPercent: 2.8,
   yeastType: "idy",
   fermentationDuration: "24h",
-  fermentationEnvironment: "cold",
-  fermentationTemperatureCelsius: 4,
+  fermentationEnvironment: "room",
+  fermentationTemperatureCelsius: 22,
   wastePercent: 3,
   ...quickAdvancedDoughToolsDefaults,
 };
@@ -172,12 +172,13 @@ const clampNumber = (value: number, min: number, max: number) => (
   Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : min
 );
 
-export function quickFermentationToRecipePreset(input: Pick<QuickCalculatorInput, "fermentationDuration" | "fermentationEnvironment">): Fermentation {
-  if (input.fermentationEnvironment === "cold") {
-    if (input.fermentationDuration === "48h") return "48h-cold";
-    return "24h-cold";
-  }
+export function deriveQuickFermentationEnvironment(duration: QuickFermentationDuration): QuickFermentationEnvironment {
+  return duration === "48h" ? "cold" : "room";
+}
 
+export function quickFermentationToRecipePreset(input: Pick<QuickCalculatorInput, "fermentationDuration" | "fermentationEnvironment">): Fermentation {
+  const fermentationEnvironment = deriveQuickFermentationEnvironment(input.fermentationDuration);
+  if (fermentationEnvironment === "cold") return "48h-cold";
   if (input.fermentationDuration === "6h") return "6h-room";
   if (input.fermentationDuration === "12h") return "12h-room";
   return "24h-room";
@@ -191,8 +192,11 @@ export function defaultQuickFermentationTemperature(environment: QuickFermentati
 export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): QuickCalculatorInput {
   const durationOption = quickCalculatorDurationOptions.find((option) => option.value === input.fermentationDuration)
     ?? quickCalculatorDurationOptions.find((option) => option.value === quickCalculatorDefaults.fermentationDuration)!;
-  const environmentOption = quickCalculatorEnvironmentOptions.find((option) => option.value === input.fermentationEnvironment)
-    ?? quickCalculatorEnvironmentOptions.find((option) => option.value === quickCalculatorDefaults.fermentationEnvironment)!;
+  const inputEnvironmentOption = quickCalculatorEnvironmentOptions.find((option) => option.value === input.fermentationEnvironment);
+  const fermentationEnvironment = deriveQuickFermentationEnvironment(durationOption.value);
+  const fermentationTemperatureCelsius = inputEnvironmentOption?.value === fermentationEnvironment
+    ? clampNumber(input.fermentationTemperatureCelsius, 0, 30)
+    : defaultQuickFermentationTemperature(fermentationEnvironment);
   const yeastOption = quickCalculatorYeastOptions.find((option) => option.value === input.yeastType)
     ?? quickCalculatorYeastOptions.find((option) => option.value === quickCalculatorDefaults.yeastType)!;
   const preferment = normalizeQuickPrefermentInput({
@@ -251,8 +255,8 @@ export function normalizeQuickCalculatorInput(input: QuickCalculatorInput): Quic
     saltPercent: clampNumber(input.saltPercent, 0, 10),
     yeastType: yeastOption.value,
     fermentationDuration: durationOption.value,
-    fermentationEnvironment: environmentOption.value,
-    fermentationTemperatureCelsius: clampNumber(input.fermentationTemperatureCelsius, 0, 30),
+    fermentationEnvironment,
+    fermentationTemperatureCelsius,
     wastePercent: clampNumber(input.wastePercent, 0, 25),
     ...advancedTools,
   };
