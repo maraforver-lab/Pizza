@@ -81,6 +81,7 @@ describe("canonical site footer", () => {
       "/contact",
       "/methodology",
       "/privacy",
+      "/privacy#cookies-local-storage-and-similar-technologies",
       "/terms",
     ]) {
       expect(footer).toContain(`href: "${href}"`);

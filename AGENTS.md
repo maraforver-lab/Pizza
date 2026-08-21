@@ -39,6 +39,7 @@ Core product rules:
 - Do not overuse Italian clichés.
 - Do not redesign individual pages independently unless explicitly requested.
 - Do not change formulas, calculations, persistence, auth, SEO, pricing or route behavior unless the task explicitly requests it.
+- No analytics, advertising, marketing, profiling, or other non-essential browser storage may be introduced without a prior consent-impact review. Where consent is required, the technology must not load or write storage before valid consent.
 - Every route must have one primary user job. Do not let public pages grow into several loosely related products.
 - Public learning pages should normally keep a compact content budget: one hero, one primary outcome or interaction, roughly three to six major sections, a compact related-learning group, one final primary action and the canonical footer.
 - Use one dominant action per decision point. Avoid duplicate buttons or links that send users to the same destination for the same purpose.

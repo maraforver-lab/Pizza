@@ -247,11 +247,33 @@ describe("trust and legal pages", () => {
     expect(privacy).toContain("localStorage");
     expect(privacy).toContain("sessionStorage");
     expect(privacy).toContain("Supabase");
+    expect(privacy).toContain("DoughTools uses cookies and browser storage only where the current product needs them");
+    expect(privacy).toContain("does not use analytics cookies, marketing cookies, advertising pixels, profiling identifiers");
+    expect(privacy).toContain("Anonymous page loads checked during the Patch 475 audit did not create cookies");
+    expect(privacy).toContain("sb-<project-ref>-auth-token");
+    expect(privacy).toContain("doughtools:pizza-sessions-v1");
+    expect(privacy).toContain("doughtools.experienceLevel");
+    expect(privacy).toContain("functional preference storage");
+    expect(privacy).toContain("Shared Quick Calculator links may include calculator settings in the URL");
     expect(privacy).toContain("Account sync is optional");
     expect(privacy).toContain("browser-local");
     expect(privacy).toContain("Supabase-backed cloud storage");
     expect(privacy).not.toMatch(/\bjournal\b|community recipe drafts/i);
     expect(privacy).not.toMatch(/all data (stays|is stored|remains) local/i);
+  });
+
+  it("links the footer directly to cookie and browser storage information", () => {
+    const footer = source("components/SiteFooter.tsx");
+
+    expect(footer).toContain('label: "Cookie & storage"');
+    expect(footer).toContain('href: "/privacy#cookies-local-storage-and-similar-technologies"');
+  });
+
+  it("records the consent-impact governance rule before optional browser storage can be added", () => {
+    const agents = source("AGENTS.md");
+
+    expect(agents).toContain("No analytics, advertising, marketing, profiling, or other non-essential browser storage may be introduced without a prior consent-impact review.");
+    expect(agents).toContain("Where consent is required, the technology must not load or write storage before valid consent.");
   });
 
   it("covers the current privacy data flow without unsupported compliance claims", () => {

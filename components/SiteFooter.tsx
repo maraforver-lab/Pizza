@@ -29,6 +29,7 @@ const footerGroups = [
       { label: "Contact", href: "/contact" },
       { label: "Methodology", href: "/methodology" },
       { label: "Privacy", href: "/privacy" },
+      { label: "Cookie & storage", href: "/privacy#cookies-local-storage-and-similar-technologies" },
       { label: "Terms", href: "/terms" },
     ],
   },
