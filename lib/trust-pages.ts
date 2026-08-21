@@ -580,7 +580,7 @@ export const trustPages: Record<TrustPageId, TrustPage> = {
         heading: "Reference regression case",
         paragraphs: [
           "The protected baseline case is: 6 pizzas, 260 g dough ball, 3% waste, 64% hydration, 2.8% salt, instant dry yeast, 24-hour cold fermentation and 4°C.",
-          "Expected result: total dough 1606.8 g, flour 962.71 g, water 616.14 g, salt 26.96 g and yeast 0.99 g.",
+          "Expected result: total dough 1606.8 g, flour 962.04 g, water 615.71 g, salt 26.94 g and yeast 2.12 g.",
         ],
       },
       {

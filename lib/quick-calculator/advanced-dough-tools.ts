@@ -1,4 +1,11 @@
 import type { RecipeIngredients, YeastType } from "@/lib/saved-recipes";
+import {
+  calculateCanonicalYeastRequirement,
+  CANONICAL_YEAST_FACTORS_FROM_FRESH,
+  canonicalYeastTypeFromRecipeYeastType,
+  recommendedFermentationProcessForMinutes,
+  type CanonicalFermentationProcess,
+} from "@/lib/yeast-fermentation-model";
 
 export type QuickAdvancedDoughToolsInput = {
   targetDoughTemperatureCelsius: number;
@@ -82,22 +89,26 @@ export const quickAdvancedDoughToolsDefaults: QuickAdvancedDoughToolsInput = {
   flourBlendSecondaryPercent: 0,
 };
 
+type CommercialRecipeYeastType = "cy" | "idy" | "ady";
+
 const yeastConversionFactors: Record<YeastType, number> = {
-  cy: 1,
-  ady: 0.52,
-  idy: 0.414,
+  cy: CANONICAL_YEAST_FACTORS_FROM_FRESH.fresh,
+  ady: CANONICAL_YEAST_FACTORS_FROM_FRESH.active_dry,
+  idy: CANONICAL_YEAST_FACTORS_FROM_FRESH.instant_dry,
   ssd: 0,
   lsd: 0,
 };
 
-const commercialYeastTypes: YeastType[] = ["idy", "ady", "cy"];
+const commercialYeastTypes: CommercialRecipeYeastType[] = ["idy", "ady", "cy"];
 
 const clamp = (value: number, min: number, max: number) => (
   Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : min
 );
 
-function normalizeYeastType(value: YeastType, fallback: YeastType) {
-  return commercialYeastTypes.includes(value) ? value : fallback;
+function normalizeYeastType(value: YeastType, fallback: CommercialRecipeYeastType): CommercialRecipeYeastType {
+  return commercialYeastTypes.includes(value as CommercialRecipeYeastType)
+    ? value as CommercialRecipeYeastType
+    : fallback;
 }
 
 export function normalizeQuickAdvancedDoughToolsInput(
@@ -180,26 +191,77 @@ export function calculateQuickReverseFermentation(
   targetHours: number,
 ): QuickReverseFermentationResult {
   const normalizedYeastType = normalizeYeastType(yeastType, "idy");
-  const factor = yeastConversionFactors[normalizedYeastType];
   const safeTemperature = clamp(temperatureCelsius, 0, 35);
   const safeHours = clamp(targetHours, 1, 96);
-  const temperatureFactor = Math.pow(2, (safeTemperature - 22) / 10);
-  const targetEffectiveHours = Math.max(safeHours * temperatureFactor, 0.25);
-  const targetCyPercent = 0.14335 * (12 / targetEffectiveHours);
-  const targetYeastPercent = targetCyPercent * factor;
-  const yeastGramsForTargetHours = ingredients.flour * targetYeastPercent / 100;
   const currentYeastPercent = ingredients.flour > 0 ? ingredients.leavener / ingredients.flour * 100 : 0;
-  const currentCyPercent = factor > 0 ? currentYeastPercent / factor : 0;
-  const estimatedEffectiveHours = currentCyPercent > 0 ? 0.14335 * 12 / currentCyPercent : null;
-  const estimatedHoursFromCurrentYeast = estimatedEffectiveHours === null
-    ? null
-    : estimatedEffectiveHours / temperatureFactor;
+  const targetMinutes = Math.round(safeHours * 60);
+  const process = inferReverseFermentationProcess(targetMinutes, safeTemperature);
+  const target = calculateCanonicalYeastRequirement({
+    flourGrams: Math.max(ingredients.flour, 0),
+    hydrationPercent: 0,
+    saltPercent: 0,
+    fermentationMinutes: targetMinutes,
+    fermentationTemperatureC: safeTemperature,
+    fermentationProcess: process,
+    yeastType: canonicalYeastTypeFromRecipeYeastType(normalizedYeastType),
+  });
+  const yeastGramsForTargetHours = target.status === "ok" ? target.yeastGrams : 0;
+  const estimatedHoursFromCurrentYeast = estimateCanonicalHoursForYeastPercent({
+    yeastPercentOfFlour: currentYeastPercent,
+    yeastType: normalizedYeastType,
+    temperatureCelsius: safeTemperature,
+    process,
+  });
 
   return {
     targetHours: safeHours,
     estimatedHoursFromCurrentYeast,
     yeastGramsForTargetHours,
   };
+}
+
+function inferReverseFermentationProcess(
+  targetMinutes: number,
+  temperatureCelsius: number,
+): CanonicalFermentationProcess {
+  if (temperatureCelsius <= 8 && targetMinutes >= 24 * 60) return "cold";
+  return recommendedFermentationProcessForMinutes(targetMinutes);
+}
+
+function estimateCanonicalHoursForYeastPercent(input: {
+  yeastPercentOfFlour: number;
+  yeastType: CommercialRecipeYeastType;
+  temperatureCelsius: number;
+  process: CanonicalFermentationProcess;
+}) {
+  if (!Number.isFinite(input.yeastPercentOfFlour) || input.yeastPercentOfFlour <= 0) return null;
+
+  const minMinutes = input.process === "cold" ? 24 * 60 : 3 * 60;
+  const maxMinutes = input.process === "cold" ? 72 * 60 : 24 * 60;
+  let low = minMinutes;
+  let high = maxMinutes;
+
+  for (let index = 0; index < 32; index += 1) {
+    const middle = (low + high) / 2;
+    const result = calculateCanonicalYeastRequirement({
+      flourGrams: 100,
+      hydrationPercent: 0,
+      saltPercent: 0,
+      fermentationMinutes: middle,
+      fermentationTemperatureC: input.temperatureCelsius,
+      fermentationProcess: input.process,
+      yeastType: canonicalYeastTypeFromRecipeYeastType(input.yeastType),
+    });
+
+    if (result.status !== "ok") return null;
+    if (result.yeastPercentOfFlour > input.yeastPercentOfFlour) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+
+  return (low + high) / 120;
 }
 
 export function calculateQuickCustomIngredients(

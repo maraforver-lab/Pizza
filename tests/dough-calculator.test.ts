@@ -20,18 +20,18 @@ describe("calculateDoughIngredients", () => {
     const result = calculateDoughIngredients(baseSettings);
 
     expect(result.total).toBeCloseTo(1606.8, 3);
-    expect(result.flour).toBeCloseTo(962.71, 2);
-    expect(result.water).toBeCloseTo(616.14, 2);
-    expect(result.salt).toBeCloseTo(26.96, 2);
-    expect(result.leavener).toBeCloseTo(0.99, 2);
+    expect(result.flour).toBeCloseTo(962.04, 2);
+    expect(result.water).toBeCloseTo(615.71, 2);
+    expect(result.salt).toBeCloseTo(26.94, 2);
+    expect(result.leavener).toBeCloseTo(2.12, 2);
     expectIngredientTotal(result);
   });
 
   it("calculates stable commercial yeast baselines for CY, ADY and IDY", () => {
     const expected: Record<Extract<YeastType, "cy" | "ady" | "idy">, number> = {
-      cy: 2.40,
-      ady: 1.25,
-      idy: 0.99,
+      cy: 6.33,
+      ady: 2.54,
+      idy: 2.12,
     };
 
     for (const yeastType of commercialYeastTypes) {
@@ -47,8 +47,8 @@ describe("calculateDoughIngredients", () => {
     const ady = calculateDoughIngredients({ ...baseSettings, yeastType: "ady" });
     const idy = calculateDoughIngredients({ ...baseSettings, yeastType: "idy" });
 
-    expect((ady.leavener / ady.flour) / (cy.leavener / cy.flour)).toBeCloseTo(0.52, 6);
-    expect((idy.leavener / idy.flour) / (cy.leavener / cy.flour)).toBeCloseTo(0.414, 6);
+    expect((ady.leavener / ady.flour) / (cy.leavener / cy.flour)).toBeCloseTo(0.4, 6);
+    expect((idy.leavener / idy.flour) / (cy.leavener / cy.flour)).toBeCloseTo(1 / 3, 6);
   });
 
   it("uses less commercial yeast as fermentation time increases under the current model", () => {
@@ -85,8 +85,8 @@ describe("calculateDoughIngredients", () => {
 
     expect(cold.leavener).toBeGreaterThan(baseline.leavener);
     expect(baseline.leavener).toBeGreaterThan(warm.leavener);
-    expect(cold.leavener).toBeCloseTo(1.31, 2);
-    expect(warm.leavener).toBeCloseTo(0.16, 2);
+    expect(cold.leavener).toBeCloseTo(3.68, 2);
+    expect(warm.leavener).toBeCloseTo(0.06, 2);
   });
 
   it("applies waste percentage to total dough before splitting ingredients", () => {
@@ -164,6 +164,8 @@ describe("calculateDoughIngredients", () => {
       expect(result.leavener).toBeGreaterThan(0);
     }
     expect(results.find((item) => item.fermentation === "6h-room")?.result.leavener)
+      .toBeGreaterThan(results.find((item) => item.fermentation === "24h-room")?.result.leavener ?? 0);
+    expect(results.find((item) => item.fermentation === "24h-cold")?.result.leavener)
       .toBeGreaterThan(results.find((item) => item.fermentation === "48h-cold")?.result.leavener ?? 0);
   });
 

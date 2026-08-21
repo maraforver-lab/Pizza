@@ -551,7 +551,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
 
     expect(converted.from).toBe("idy");
     expect(converted.to).toBe("ady");
-    expect(converted.convertedGrams).toBeCloseTo(1 / 0.414 * 0.52, 6);
+    expect(converted.convertedGrams).toBeCloseTo(1 / (1 / 3) * 0.4, 6);
     expect(convertQuickYeast("lsd", "ssd", 2)).toMatchObject({
       from: "idy",
       to: "ady",

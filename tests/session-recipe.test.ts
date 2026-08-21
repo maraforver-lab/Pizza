@@ -1591,10 +1591,10 @@ describe("Session recipe build step", () => {
     const ingredients = calculateDoughIngredients(settings);
 
     expect(ingredients.total).toBeCloseTo(1606.8, 1);
-    expect(ingredients.flour).toBeCloseTo(962.71, 2);
-    expect(ingredients.water).toBeCloseTo(616.14, 2);
-    expect(ingredients.salt).toBeCloseTo(26.96, 2);
-    expect(ingredients.leavener).toBeCloseTo(0.99, 2);
+    expect(ingredients.flour).toBeCloseTo(962.04, 2);
+    expect(ingredients.water).toBeCloseTo(615.71, 2);
+    expect(ingredients.salt).toBeCloseTo(26.94, 2);
+    expect(ingredients.leavener).toBeCloseTo(2.12, 2);
   });
 
   it("keeps topping presets as a compatibility bridge instead of renaming stored session data", () => {

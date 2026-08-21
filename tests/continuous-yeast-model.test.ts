@@ -58,9 +58,9 @@ describe("continuous yeast model helper", () => {
       fermentationHours: 3,
       yeastType: "instant_dry_yeast",
     });
-    expect(result.freshYeastEquivalentPercent).toBeCloseTo(0.3, 5);
-    expect(result.yeastPercentOfFlour).toBeCloseTo(0.3 * 0.414, 5);
-    expect(result.yeastAmountGrams).toBeCloseTo(1.242, 3);
+    expect(result.freshYeastEquivalentPercent).toBeCloseTo(0.52734, 5);
+    expect(result.yeastPercentOfFlour).toBeCloseTo(0.52734 / 3, 5);
+    expect(result.yeastAmountGrams).toBeCloseTo(1.758, 3);
   });
 
   it("produces room fermentation recommendations for 6h and 12h windows", () => {
@@ -70,8 +70,8 @@ describe("continuous yeast model helper", () => {
     expect(sixHour.status).toBe("ok");
     expect(twelveHour.status).toBe("ok");
     expect(sixHour.yeastAmountGrams).toBeGreaterThan(twelveHour.yeastAmountGrams ?? 0);
-    expect(sixHour.freshYeastEquivalentPercent).toBeCloseTo(0.2, 5);
-    expect(twelveHour.freshYeastEquivalentPercent).toBeCloseTo(0.1, 5);
+    expect(sixHour.freshYeastEquivalentPercent).toBeCloseTo(0.24671, 5);
+    expect(twelveHour.freshYeastEquivalentPercent).toBeCloseTo(0.11542, 5);
   });
 
   it("keeps cold fermentation yeast monotonic across 24h, 40h, 48h and 72h", () => {
@@ -96,7 +96,7 @@ describe("continuous yeast model helper", () => {
       directScalingApplied: true,
       longHorizonFallbackRequired: false,
     });
-    expect(result.freshYeastEquivalentPercent).toBeCloseTo(0.0125, 5);
+    expect(result.freshYeastEquivalentPercent).toBeCloseTo(0.225, 5);
     expect(result.cautions.join(" ")).toContain("upper direct-scaling limit");
   });
 
@@ -168,10 +168,10 @@ describe("continuous yeast model helper", () => {
     const activeDry = resultFor(24, "cold", 4, "active_dry_yeast");
 
     expect(fresh.conversionFactorFromFresh).toBe(1);
-    expect(instantDry.conversionFactorFromFresh).toBe(0.414);
-    expect(activeDry.conversionFactorFromFresh).toBe(0.52);
-    expect(instantDry.yeastPercentOfFlour).toBeCloseTo((fresh.yeastPercentOfFlour ?? 0) * 0.414, 5);
-    expect(activeDry.yeastPercentOfFlour).toBeCloseTo((fresh.yeastPercentOfFlour ?? 0) * 0.52, 5);
+    expect(instantDry.conversionFactorFromFresh).toBe(1 / 3);
+    expect(activeDry.conversionFactorFromFresh).toBe(0.4);
+    expect(instantDry.yeastPercentOfFlour).toBeCloseTo((fresh.yeastPercentOfFlour ?? 0) / 3, 5);
+    expect(activeDry.yeastPercentOfFlour).toBeCloseTo((fresh.yeastPercentOfFlour ?? 0) * 0.4, 5);
   });
 
   it("returns a stable structured output shape", () => {

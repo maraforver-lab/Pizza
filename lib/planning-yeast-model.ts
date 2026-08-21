@@ -1,8 +1,9 @@
 import type { PlanningFlourProfile } from "@/lib/planning-flour-profiles";
 import type { FermentationMode, PlanningYeastConfidence, PlanningYeastRecommendation } from "@/lib/planning-types";
+import { CANONICAL_YEAST_FACTORS_FROM_FRESH } from "@/lib/yeast-fermentation-model";
 
-export const INSTANT_DRY_YEAST_FROM_FRESH_FACTOR = 1 / 3;
-export const ACTIVE_DRY_YEAST_FROM_FRESH_FACTOR = 0.42;
+export const INSTANT_DRY_YEAST_FROM_FRESH_FACTOR = CANONICAL_YEAST_FACTORS_FROM_FRESH.instant_dry;
+export const ACTIVE_DRY_YEAST_FROM_FRESH_FACTOR = CANONICAL_YEAST_FACTORS_FROM_FRESH.active_dry;
 
 export type PlanningYeastModelInput = {
   availableFermentationHours: number;

@@ -1,4 +1,5 @@
 import type { YeastType } from "@/lib/saved-recipes";
+import { CANONICAL_YEAST_FACTORS_FROM_FRESH } from "@/lib/yeast-fermentation-model";
 import type {
   FermentationMode,
   PlanningFermentationSetupRecommendation,
@@ -23,9 +24,9 @@ type PlanningYeastGuidanceInput = {
 };
 
 const FRESH_EQUIVALENT_FACTORS: Record<Extract<YeastType, "cy" | "ady" | "idy">, number> = {
-  cy: 1,
-  ady: 0.52,
-  idy: 0.414,
+  cy: CANONICAL_YEAST_FACTORS_FROM_FRESH.fresh,
+  ady: CANONICAL_YEAST_FACTORS_FROM_FRESH.active_dry,
+  idy: CANONICAL_YEAST_FACTORS_FROM_FRESH.instant_dry,
 };
 
 export function buildPlanningYeastGuidance(input: PlanningYeastGuidanceInput): PlanningYeastGuidance {

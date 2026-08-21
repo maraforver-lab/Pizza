@@ -7,7 +7,7 @@ const supportedSessionYeastTypes = new Set<YeastType>(["ady", "cy", "idy"]);
 export const sessionYeastTypeOptions = [
   {
     id: "ady" as const,
-    label: "Dry yeast",
+    label: "Active dry yeast",
     description: "Default for most home bakers",
   },
   {
@@ -30,5 +30,5 @@ export function normalizeSessionYeastType(value: unknown): YeastType {
 
 export function yeastTypeLabel(value: unknown): string {
   const yeastType = normalizeSessionYeastType(value);
-  return sessionYeastTypeOptions.find((option) => option.id === yeastType)?.label ?? "Dry yeast";
+  return sessionYeastTypeOptions.find((option) => option.id === yeastType)?.label ?? "Active dry yeast";
 }

@@ -94,7 +94,7 @@ describe("Start Pizza Session wizard", () => {
     expect(page).toContain("savePatch({ yeastType: normalizeSessionYeastType(yeastType) }, \"quantity\")");
     const yeastTypes = source("lib/yeast-types.ts");
     expect(yeastTypes).toContain('DEFAULT_SESSION_YEAST_TYPE: YeastType = "ady"');
-    expect(yeastTypes).toContain("Dry yeast");
+    expect(yeastTypes).toContain("Active dry yeast");
     expect(yeastTypes).toContain("Fresh yeast");
     expect(yeastTypes).toContain("Instant dry yeast");
     expect(yeastTypes).toContain("Default for most home bakers");

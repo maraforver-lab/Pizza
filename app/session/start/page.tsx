@@ -1394,7 +1394,7 @@ function StartPizzaSessionContent() {
                         <p className="mt-1 text-xs font-bold leading-5 text-ink/50">Choose the yeast you will use. This affects the yeast amount.</p>
                       </div>
                       <span className="mt-1 w-fit rounded-full bg-cream px-3 py-1.5 text-xs font-extrabold text-ink/45 sm:mt-0">
-                        {sessionYeastTypeOptions.find((option) => option.id === selectedYeastType)?.label ?? "Dry yeast"}
+                        {sessionYeastTypeOptions.find((option) => option.id === selectedYeastType)?.label ?? "Active dry yeast"}
                       </span>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">

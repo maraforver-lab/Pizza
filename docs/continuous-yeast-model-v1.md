@@ -1,5 +1,10 @@
 # Continuous yeast model v1 audit/design
 
+> Patch 474B supersedes this historical Patch 152/153 design for production
+> commercial yeast calculation. Current production yeast grams are owned by
+> `lib/yeast-fermentation-model.ts`, with `lib/continuous-yeast-model.ts` acting
+> as a Dough Plan adapter to the canonical Patch 474A model.
+
 Patch 152 was an audit/design pass only. Patch 153 adds the first isolated helper described here without changing production recipe formulas, ingredient amounts, Pizza Session behavior, storage, routes, or UI.
 
 Patch 153 helper:

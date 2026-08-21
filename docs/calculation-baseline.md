@@ -1,6 +1,6 @@
 # Calculation baseline
 
-Temporary Patch 02 regression document for DoughTools calculation safety.
+Regression document for DoughTools calculation safety.
 
 This document records the current calculation behavior as a baseline. It does not claim that every formula is universal pizza science; it locks the current behavior so later feature work can detect accidental changes.
 
@@ -31,10 +31,10 @@ Current baseline settings:
 Current expected output:
 
 - Total dough: about 1606.8 g
-- Flour: about 962.71 g
-- Water: about 616.14 g
-- Salt: about 26.96 g
-- Yeast/leavener: about 0.99 g
+- Flour: about 962.04 g
+- Water: about 615.71 g
+- Salt: about 26.94 g
+- Yeast/leavener: about 2.12 g
 
 The test suite compares floating-point values with tolerances instead of exact string formatting, because the UI may round display values separately.
 
@@ -47,10 +47,10 @@ The current calculation treats:
 
 Tests verify that starter flour and starter water are included when checking the final baker's hydration.
 
-## Known non-goals in Patch 02
+## Known non-goals in Patch 474B
 
-- No formula changes.
-- No new pizza science decisions.
+- No formula changes beyond the approved Patch 474A canonical commercial yeast model.
+- No recalibration beyond the approved Patch 474A specification.
 - No UI wording or layout changes.
 - No route changes.
 - No deployment or indexing changes.

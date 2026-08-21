@@ -766,13 +766,13 @@ describe("Pizza Session Kitchen Mode", () => {
       "Flour",
       "Water",
       "Salt",
-      "Yeast — Dry yeast",
+      "Yeast — Active dry yeast",
       "Dough balls",
     ]);
     expect(lines).toContainEqual({ label: "Flour", value: "623 g" });
     expect(lines).toContainEqual({ label: "Water", value: "399 g" });
     expect(lines).toContainEqual({ label: "Salt", value: "17 g" });
-    expect(lines).toContainEqual({ label: "Yeast — Dry yeast", value: "0.5 g" });
+    expect(lines).toContainEqual({ label: "Yeast — Active dry yeast", value: "0.5 g" });
     expect(lines.map((line) => line.value).join(" ")).toContain("4 × 260 g");
     expect(recipeSnapshotIngredientLines(undefined)).toEqual([]);
     expect(isMixDoughStep(sampleTimeline.steps[0])).toBe(true);
@@ -792,7 +792,7 @@ describe("Pizza Session Kitchen Mode", () => {
   it("limits Dough Kitchen Mode ingredient lines to dough ingredients", () => {
     const lines = doughKitchenIngredientLines(recipeSnapshot);
 
-    expect(lines.map((line) => line.label)).toEqual(["Flour", "Water", "Salt", "Yeast — Dry yeast"]);
+    expect(lines.map((line) => line.label)).toEqual(["Flour", "Water", "Salt", "Yeast — Active dry yeast"]);
     expect(lines.map((line) => line.label)).not.toContain("Sauce");
     expect(lines.map((line) => line.label)).not.toContain("Cheese");
     expect(lines.map((line) => line.label)).not.toContain("Toppings");

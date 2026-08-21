@@ -268,7 +268,7 @@ describe("Planning Engine fermentation rules v1", () => {
       calculatedYeastGrams: ingredients.leavener,
     }));
 
-    expect(warmRoom.yeastGuidance?.riskLevel).toBe("high_risk");
+    expect(warmRoom.yeastGuidance?.riskLevel).toBe("caution");
     expect(warmRoom.yeastGuidance?.cautions.join(" ")).toContain("Warm room");
     expect(warmFridge.yeastGuidance?.cautions.join(" ")).toContain("Warm fridge");
   });
@@ -435,7 +435,7 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(lowW.flourGuidance?.summary).toContain("W 220");
     expect(highW.flourGuidance?.summary).toContain("W 340");
     expect(highW.flourGuidance?.summary).toContain("protein 13.8%");
-    expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.71, 2);
+    expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.04, 2);
   });
 
   it("returns a default available flour recommendation without changing the selected flour", () => {
@@ -458,7 +458,7 @@ describe("Planning Engine fermentation rules v1", () => {
       "All-purpose flour",
     ]);
     expect(result.availableFlourRecommendation?.summary).toContain("available flour choices");
-    expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.71, 2);
+    expect(calculateDoughIngredients(baseSettings).flour).toBeCloseTo(962.04, 2);
   });
 
   it("recommends medium pizza flour for an 8-10h same-day pizza-oven plan", () => {
@@ -1733,14 +1733,14 @@ describe("Planning Engine fermentation rules v1", () => {
     expect(result.technicalDetails.assumptions.join(" ")).toContain("not gram calculations");
   });
 
-  it("keeps existing dough calculator gram calculations untouched", () => {
+  it("keeps canonical dough calculator gram calculations stable", () => {
     const ingredients = calculateDoughIngredients(baseSettings);
 
     expect(ingredients.total).toBeCloseTo(1606.8, 3);
-    expect(ingredients.flour).toBeCloseTo(962.71, 2);
-    expect(ingredients.water).toBeCloseTo(616.14, 2);
-    expect(ingredients.salt).toBeCloseTo(26.96, 2);
-    expect(ingredients.leavener).toBeCloseTo(0.99, 2);
+    expect(ingredients.flour).toBeCloseTo(962.04, 2);
+    expect(ingredients.water).toBeCloseTo(615.71, 2);
+    expect(ingredients.salt).toBeCloseTo(26.94, 2);
+    expect(ingredients.leavener).toBeCloseTo(2.12, 2);
   });
 
   it("keeps the Planning Engine isolated from calculator math and non-Dough-Plan session flows", () => {

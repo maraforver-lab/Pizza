@@ -1,3 +1,13 @@
+import {
+  calculateCanonicalYeastRequirement,
+  CANONICAL_YEAST_FACTORS_FROM_FRESH,
+  CANONICAL_YEAST_MAX_COLD_MINUTES,
+  CANONICAL_YEAST_MIN_ROOM_MINUTES,
+  COLD_REFERENCE_TEMPERATURE_C,
+  ROOM_REFERENCE_TEMPERATURE_C,
+  type CanonicalYeastType,
+} from "@/lib/yeast-fermentation-model";
+
 export const CONTINUOUS_YEAST_MIN_HOURS = 3;
 export const CONTINUOUS_YEAST_MAX_HOURS = 72;
 export const LONG_HORIZON_YEAST_WINDOWS_HOURS = [24, 48, 72] as const;
@@ -35,33 +45,16 @@ export type ContinuousYeastModelResult = {
   assumptions: string[];
 };
 
-type YeastAnchor = {
-  hours: number;
-  freshYeastPercent: number;
-};
-
-const FRESH_YEAST_ANCHORS: YeastAnchor[] = [
-  { hours: 3, freshYeastPercent: 0.3 },
-  { hours: 6, freshYeastPercent: 0.2 },
-  { hours: 12, freshYeastPercent: 0.1 },
-  { hours: 24, freshYeastPercent: 0.04 },
-  { hours: 48, freshYeastPercent: 0.02 },
-  { hours: 72, freshYeastPercent: 0.0125 },
-];
-
-const PRODUCTION_COMPATIBLE_YEAST_FACTORS: Record<ContinuousYeastType, number> = {
-  fresh_yeast: 1,
-  // Patch 152 found that planning used 1 / 3 for IDY while production uses 0.414.
-  // This isolated helper intentionally uses the current production-compatible factor
-  // so future integration can compare outputs without silently changing conversion behavior.
-  instant_dry_yeast: 0.414,
-  active_dry_yeast: 0.52,
+const CANONICAL_CONTINUOUS_YEAST_FACTORS: Record<ContinuousYeastType, number> = {
+  fresh_yeast: CANONICAL_YEAST_FACTORS_FROM_FRESH.fresh,
+  instant_dry_yeast: CANONICAL_YEAST_FACTORS_FROM_FRESH.instant_dry,
+  active_dry_yeast: CANONICAL_YEAST_FACTORS_FROM_FRESH.active_dry,
 };
 
 export function calculateContinuousYeastRecommendation(
   input: ContinuousYeastModelInput,
 ): ContinuousYeastModelResult {
-  const conversionFactorFromFresh = PRODUCTION_COMPATIBLE_YEAST_FACTORS[input.yeastType];
+  const conversionFactorFromFresh = CANONICAL_CONTINUOUS_YEAST_FACTORS[input.yeastType];
   const baseResult = buildBaseResult(input, conversionFactorFromFresh);
 
   if (!Number.isFinite(input.flourGrams) || input.flourGrams <= 0 || !Number.isFinite(input.fermentationHours)) {
@@ -77,7 +70,9 @@ export function calculateContinuousYeastRecommendation(
     };
   }
 
-  if (input.fermentationHours < CONTINUOUS_YEAST_MIN_HOURS) {
+  const fermentationMinutes = Math.round(input.fermentationHours * 60);
+
+  if (fermentationMinutes < CANONICAL_YEAST_MIN_ROOM_MINUTES) {
     return {
       ...baseResult,
       flourGrams: round(input.flourGrams, 3),
@@ -95,7 +90,7 @@ export function calculateContinuousYeastRecommendation(
     };
   }
 
-  if (input.fermentationHours > CONTINUOUS_YEAST_MAX_HOURS) {
+  if (fermentationMinutes > CANONICAL_YEAST_MAX_COLD_MINUTES) {
     return {
       ...baseResult,
       flourGrams: round(input.flourGrams, 3),
@@ -114,11 +109,37 @@ export function calculateContinuousYeastRecommendation(
     };
   }
 
-  const baseFreshYeastPercent = interpolateFreshYeastPercent(input.fermentationHours);
-  const temperatureAdjustment = getTemperatureAdjustment(input);
-  const freshYeastEquivalentPercent = roundYeastPercent(baseFreshYeastPercent * temperatureAdjustment.factor);
-  const yeastPercentOfFlour = roundYeastPercent(freshYeastEquivalentPercent * conversionFactorFromFresh);
-  const yeastAmountGrams = round((input.flourGrams * yeastPercentOfFlour) / 100, 3);
+  const canonical = calculateCanonicalYeastRequirement({
+    flourGrams: input.flourGrams,
+    hydrationPercent: 0,
+    saltPercent: 0,
+    fermentationMinutes,
+    fermentationTemperatureC: input.temperatureC,
+    fermentationProcess: input.fermentationMode,
+    yeastType: canonicalYeastTypeFromContinuous(input.yeastType),
+  });
+
+  if (canonical.status !== "ok") {
+    return {
+      ...baseResult,
+      flourGrams: round(input.flourGrams, 3),
+      fermentationHours: round(input.fermentationHours, 2),
+      temperatureC: normalizeTemperature(input.temperatureC),
+      status: canonical.status === "out_of_range" ? "long_horizon_required" : "not_enough_information",
+      riskLevel: canonical.status === "out_of_range" ? "not_enough_information" : "not_enough_information",
+      longHorizonFallbackRequired: canonical.status === "out_of_range",
+      warnings: canonical.warnings,
+      assumptions: [
+        ...baseResult.assumptions,
+        ...canonical.assumptions,
+      ],
+    };
+  }
+
+  const freshYeastEquivalentPercent = roundYeastPercent(canonical.freshYeastPercent);
+  const yeastPercentOfFlour = roundYeastPercent(canonical.yeastPercentOfFlour);
+  const yeastAmountGrams = round(canonical.yeastGrams, 3);
+  const temperatureAdjustment = getTemperatureAdjustment(input, canonical.coldTemperatureMultiplier ?? canonical.roomTemperatureRate ?? 1);
   const cautions = buildCautions(input, temperatureAdjustment.cautions);
   const riskLevel = getRiskLevel(input, cautions);
 
@@ -136,9 +157,10 @@ export function calculateContinuousYeastRecommendation(
     cautions,
     assumptions: [
       ...baseResult.assumptions,
-      "Fresh yeast equivalent is interpolated between conservative 3-72 h v1 anchors.",
-      "Temperature adjustment is clamped and cautionary, not exact fermentation science.",
+      "Fresh yeast equivalent is calculated by the canonical Patch 474A yeast model.",
+      "Hydration and salt are retained model inputs but do not modify V1 yeast percentage.",
       ...temperatureAdjustment.assumptions,
+      ...canonical.assumptions,
     ],
   };
 }
@@ -166,25 +188,12 @@ function buildBaseResult(
     cautions: [],
     assumptions: [
       "Direct continuous yeast scaling is limited to 3-72 h before bake.",
-      "Commercial yeast conversion uses current production-compatible factors.",
+      "Commercial yeast conversion uses the canonical Patch 474A factors.",
     ],
   };
 }
 
-function interpolateFreshYeastPercent(hours: number): number {
-  const upperIndex = FRESH_YEAST_ANCHORS.findIndex((anchor) => hours <= anchor.hours);
-  if (upperIndex <= 0) return FRESH_YEAST_ANCHORS[0].freshYeastPercent;
-
-  const lower = FRESH_YEAST_ANCHORS[upperIndex - 1];
-  const upper = FRESH_YEAST_ANCHORS[upperIndex];
-  const position = (Math.log(hours) - Math.log(lower.hours)) / (Math.log(upper.hours) - Math.log(lower.hours));
-  const logPercent = Math.log(lower.freshYeastPercent)
-    + position * (Math.log(upper.freshYeastPercent) - Math.log(lower.freshYeastPercent));
-
-  return Math.exp(logPercent);
-}
-
-function getTemperatureAdjustment(input: ContinuousYeastModelInput): {
+function getTemperatureAdjustment(input: ContinuousYeastModelInput, appliedFactor = 1): {
   factor: number;
   cautions: string[];
   assumptions: string[];
@@ -198,9 +207,6 @@ function getTemperatureAdjustment(input: ContinuousYeastModelInput): {
   }
 
   if (input.fermentationMode === "room") {
-    const factor = input.temperatureC > 22
-      ? Math.max(0.6, 1 - (input.temperatureC - 22) * 0.04)
-      : Math.min(1.5, 1 + (22 - input.temperatureC) * 0.05);
     const cautions: string[] = [];
 
     if (input.temperatureC >= 25) {
@@ -212,15 +218,12 @@ function getTemperatureAdjustment(input: ContinuousYeastModelInput): {
     }
 
     return {
-      factor,
+      factor: appliedFactor,
       cautions,
-      assumptions: [`Room temperature reference is 22 °C; applied factor ${round(factor, 3)}.`],
+      assumptions: [`Room temperature reference is ${ROOM_REFERENCE_TEMPERATURE_C} °C; applied factor ${round(appliedFactor, 3)}.`],
     };
   }
 
-  const factor = input.temperatureC > 4
-    ? Math.max(0.75, 1 - (input.temperatureC - 4) * 0.03)
-    : Math.min(1.25, 1 + (4 - input.temperatureC) * 0.06);
   const cautions: string[] = [];
 
   if (input.temperatureC > 6 && input.fermentationHours >= 24) {
@@ -232,10 +235,16 @@ function getTemperatureAdjustment(input: ContinuousYeastModelInput): {
   }
 
   return {
-    factor,
+    factor: appliedFactor,
     cautions,
-    assumptions: [`Cold fermentation temperature reference is 4 °C; applied factor ${round(factor, 3)}.`],
+    assumptions: [`Cold fermentation temperature reference is ${COLD_REFERENCE_TEMPERATURE_C} °C; applied factor ${round(appliedFactor, 3)}.`],
   };
+}
+
+function canonicalYeastTypeFromContinuous(yeastType: ContinuousYeastType): CanonicalYeastType {
+  if (yeastType === "fresh_yeast") return "fresh";
+  if (yeastType === "instant_dry_yeast") return "instant_dry";
+  return "active_dry";
 }
 
 function buildCautions(input: ContinuousYeastModelInput, temperatureCautions: string[]): string[] {

@@ -82,17 +82,17 @@ describe("calculator progressive disclosure", () => {
     }, recommended)).toBe(true);
   });
 
-  it("keeps existing query parameter round-trips and calculation results unchanged", () => {
+  it("keeps query parameter round-trips and canonical calculation results stable", () => {
     const params = recipeParams(baseSettings);
     const parsed = settingsFromUrl(`?${params.toString()}`);
     const ingredients = calculateDoughIngredients(baseSettings);
 
     expect(parsed).toEqual(baseSettings);
     expect(ingredients.total).toBeCloseTo(1606.8, 3);
-    expect(ingredients.flour).toBeCloseTo(962.71, 2);
-    expect(ingredients.water).toBeCloseTo(616.14, 2);
-    expect(ingredients.salt).toBeCloseTo(26.96, 2);
-    expect(ingredients.leavener).toBeCloseTo(0.99, 2);
+    expect(ingredients.flour).toBeCloseTo(962.04, 2);
+    expect(ingredients.water).toBeCloseTo(615.71, 2);
+    expect(ingredients.salt).toBeCloseTo(26.94, 2);
+    expect(ingredients.leavener).toBeCloseTo(2.12, 2);
     expectIngredientTotal(ingredients);
   });
 

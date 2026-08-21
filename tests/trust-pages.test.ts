@@ -348,10 +348,10 @@ describe("trust and legal pages", () => {
     expect(methodology).toContain("6 pizzas");
     expect(methodology).toContain("260 g dough ball");
     expect(methodology).toContain("total dough 1606.8 g");
-    expect(methodology).toContain("flour 962.71 g");
-    expect(methodology).toContain("water 616.14 g");
-    expect(methodology).toContain("salt 26.96 g");
-    expect(methodology).toContain("yeast 0.99 g");
+    expect(methodology).toContain("flour 962.04 g");
+    expect(methodology).toContain("water 615.71 g");
+    expect(methodology).toContain("salt 26.94 g");
+    expect(methodology).toContain("yeast 2.12 g");
   });
 
   it("replaces launch placeholders with real project details", () => {
