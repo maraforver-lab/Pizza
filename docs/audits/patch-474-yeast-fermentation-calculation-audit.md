@@ -508,6 +508,23 @@ Recommended scope:
 6. Decide whether sub-gram yeast display should include practical measurement guidance without changing calculations.
 7. Keep existing saved/session contracts intact unless explicitly approved.
 
+### Mandatory continuous-time requirement
+
+Patch 474A must not convert fermentation duration into a new preset system or fixed-increment calculation grid.
+
+Any specific duration used in this audit or in a later specification, for example `27 h 15 min`, is only a representative test example. It is not:
+
+- a preset
+- an allowed increment
+- an interval
+- an anchor
+- a rounding target
+- a product rule
+
+The future canonical yeast engine must accept any valid fermentation duration at one-minute resolution throughout its supported range. Examples such as `23 h 01 min`, `23 h 47 min`, `24 h 00 min`, `24 h 01 min`, `27 h 13 min`, `37 h 52 min`, `51 h 06 min` and `71 h 59 min` must be independently calculable.
+
+Calibration tables may contain selected representative times, but those points must not define the only calculable times. The implementation specification must define a continuous mathematical function or interpolation method that produces deterministic yeast requirements for every valid minute. Do not introduce `15` minute, `30` minute, hourly or other fixed calculation increments.
+
 Avoid:
 
 - copying Weekend Bakery, PizzApp or any single calculator formula
