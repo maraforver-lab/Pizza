@@ -1,17 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DoughTools small pizza favicon">
-  <rect width="512" height="512" rx="108" fill="#E9492F"/>
-  <path d="M256 78c39 2 78 13 111 37 38 27 59 64 66 107 8 45-4 90-31 126-28 39-68 66-115 76-45 9-92 1-132-23-40-25-67-64-76-111-9-45 2-91 31-130 33-45 87-78 146-78Z" fill="#F5B75A"/>
-  <path d="M256 78c39 2 78 13 111 37 38 27 59 64 66 107 8 45-4 90-31 126-28 39-68 66-115 76-45 9-92 1-132-23-40-25-67-64-76-111-9-45 2-91 31-130 33-45 87-78 146-78Z" fill="none" stroke="#7A3D1E" stroke-width="24" stroke-linejoin="round"/>
-  <path d="M260 133c31 2 62 11 88 30 30 22 47 51 53 85 6 35-3 70-25 99-22 31-54 52-91 60-36 7-73 1-105-19-32-19-53-51-60-88-7-36 2-72 25-103 26-36 68-62 115-64Z" fill="#E9492F"/>
-  <circle cx="202" cy="224" r="37" fill="#7A221B"/>
-  <circle cx="202" cy="224" r="28" fill="#A72F25"/>
-  <circle cx="315" cy="206" r="35" fill="#7A221B"/>
-  <circle cx="315" cy="206" r="26" fill="#A72F25"/>
-  <circle cx="289" cy="318" r="39" fill="#7A221B"/>
-  <circle cx="289" cy="318" r="30" fill="#A72F25"/>
-  <ellipse cx="235" cy="286" rx="42" ry="24" fill="#FFF3D5" transform="rotate(-20 235 286)"/>
-  <ellipse cx="332" cy="274" rx="34" ry="20" fill="#FFF3D5" transform="rotate(18 332 274)"/>
-  <ellipse cx="244" cy="116" rx="21" ry="11" fill="#362217" transform="rotate(8 244 116)"/>
-  <ellipse cx="383" cy="236" rx="19" ry="11" fill="#362217" transform="rotate(-22 383 236)"/>
-  <ellipse cx="186" cy="383" rx="23" ry="12" fill="#362217" transform="rotate(24 186 383)"/>
+  <rect width="512" height="512" rx="108" fill="#6F211B"/>
+  <circle cx="230" cy="284" r="182" fill="#F5B75A"/>
+  <circle cx="230" cy="284" r="137" fill="#E9492F"/>
+  <path d="M234 284 304 70c58 17 109 57 141 109L263 315Z" fill="#6F211B"/>
+  <path d="M324 77c56 17 102 53 132 102L292 236Z" fill="#F5B75A"/>
+  <path d="M339 121c33 12 61 34 80 63L326 214Z" fill="#E9492F"/>
+  <circle cx="166" cy="232" r="35" fill="#FFF3D5"/>
+  <circle cx="225" cy="358" r="36" fill="#FFF3D5"/>
+  <circle cx="316" cy="304" r="34" fill="#FFF3D5"/>
+  <circle cx="150" cy="318" r="25" fill="#A72F25"/>
+  <circle cx="248" cy="218" r="27" fill="#A72F25"/>
+  <circle cx="357" cy="168" r="18" fill="#FFF3D5"/>
 </svg>
