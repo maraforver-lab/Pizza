@@ -195,6 +195,11 @@ describe("Practical pizza tips landing page", () => {
     expect(seo).toContain('path: "/guide/practical-pizza-tips/fermentation-length"');
     expect(page).toContain("Choosing fermentation length");
     expect(page).toContain("12, 24, 48 and 72 hour");
+    expect(page).toContain("Compare room and cold pizza dough fermentation plans");
+    expect(page).toContain("Time only makes sense with temperature.");
+    expect(page).toContain("Open pizza dough calculator");
+    expect(page).toContain('href="/calculator/quick"');
+    expect(page).toContain('href="/methodology"');
     expect(page).toContain('label: "12 hours"');
     expect(page).toContain('label: "24 hours"');
     expect(page).toContain('label: "48 hours"');
@@ -221,7 +226,8 @@ describe("Practical pizza tips landing page", () => {
     expect(page).toContain("Gas retention depends on gluten quality");
     expect(page).toContain("Nominal hours are only a planning label");
     expect(EXPERIENCE_LEVELS.map((level) => level.label)).toEqual(["Beginner", "Enthusiast", "Pizza Nerd"]);
-    expect(page).not.toContain("calculate");
+    expect(page).not.toContain("calculateQuickDough");
+    expect(page).not.toContain("calculateDoughIngredients");
     expect(page).not.toContain("PizzaSession");
     expect(page).not.toContain("Timeline");
   });

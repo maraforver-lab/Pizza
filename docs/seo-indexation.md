@@ -1,6 +1,6 @@
 # DoughTools SEO indexation policy
 
-Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect. Patch 389 retires the old `/gear` page as a compatibility redirect to the equipment section on `/ovens`. Patch 390B retires the old `/doctor` page as a compatibility redirect to Troubleshooting. Patch 392B retires the old `/coach` page as a compatibility redirect to Troubleshooting. Patch 476A adds launch-ready social identity assets and explicit noindex protection for downstream workflow, token and API routes while keeping indexing disabled.
+Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect. Patch 389 retires the old `/gear` page as a compatibility redirect to the equipment section on `/ovens`. Patch 390B retires the old `/doctor` page as a compatibility redirect to Troubleshooting. Patch 392B retires the old `/coach` page as a compatibility redirect to Troubleshooting. Patch 476A adds launch-ready social identity assets and explicit noindex protection for downstream workflow, token and API routes while keeping indexing disabled. Patch 479B separates public metadata from first-wave indexable routes before the indexing switch is opened.
 
 The goal is still not to open indexing automatically. The goal is to keep the public sitemap, canonical URLs, explicit noindex routes and robots behavior aligned with the current product architecture.
 
@@ -16,20 +16,20 @@ Do not enable indexing in this patch.
 
 ## Public indexable route policy
 
-Clean public routes are the routes intended to become discoverable when indexing is explicitly enabled later.
+Clean public routes are split into metadata routes and first-wave indexable routes. A page can be publicly accessible and have stable metadata without being included in the search sitemap.
 
-The central source of truth is `publicSeoRoutes` in `lib/seo-config.ts`.
+The central source of truth is `lib/seo-config.ts`:
 
-Current public indexable routes are:
+- `publicSeoRoutes`: pages with public metadata.
+- `publicIndexableRoutePaths`: first-wave routes intended for the sitemap when indexing is opened.
+- `publicNoindexRoutePaths`: public pages that must remain noindex.
+
+Current first-wave public indexable routes are:
 
 - `/`
 - `/about`
-- `/contact`
-- `/privacy`
-- `/terms`
 - `/methodology`
 - `/guide`
-- `/session/start`
 - `/guides/dough`
 - `/guide/pizza-troubleshooting`
 - `/guide/practical-pizza-tips`
@@ -42,12 +42,21 @@ Current public indexable routes are:
 - `/sauce`
 - `/toppings`
 - `/calculator/quick`
+- `/costs`
+
+These routes should have stable page metadata, clean canonical URLs and enough crawlable context to work as standalone search results.
+
+Current public routes that remain noindex:
+
+- `/contact`
+- `/privacy`
+- `/terms`
+- `/session/start`
 - `/timer`
 - `/tools/bake-timer`
-- `/costs`
 - `/updates`
 
-These routes should have stable page metadata and clean canonical URLs.
+These pages may remain linked for users, but they are not first-wave organic search landing pages.
 
 ## Legacy noindex and redirect routes
 
@@ -107,7 +116,6 @@ Examples:
 - `/sauce?balls=6`
 - `/calculator/quick?quick=...`
 - `/toppings?toppings=mushroom%3A35%3Araw`
-- `/timer?oven=gas`
 
 These URLs remain supported and shareable.
 
@@ -157,24 +165,38 @@ The implementation is:
 app/sitemap.ts
 ```
 
-The sitemap includes clean public routes only.
+The sitemap includes first-wave indexable public routes only.
 
 It must include:
 
 - `/`
-- `/session/start`
+- `/about`
+- `/methodology`
 - `/guide`
 - `/guides/dough`
 - `/guide/pizza-troubleshooting`
 - `/guide/practical-pizza-tips`
+- `/guide/practical-pizza-tips/leftover-dough`
+- `/guide/practical-pizza-tips/fermentation-length`
+- `/guide/practical-pizza-tips/containers-and-lids`
+- `/guide/practical-pizza-tips/common-problems`
+- `/styles`
+- `/ovens`
 - `/sauce`
+- `/toppings`
 - `/calculator/quick`
-- `/tools/bake-timer`
-- `/updates`
+- `/costs`
 
 It must exclude:
 
 - query-param URLs
+- `/session/start`
+- `/timer`
+- `/tools/bake-timer`
+- `/updates`
+- `/contact`
+- `/privacy`
+- `/terms`
 - `/start`
 - `/plan`
 - `/doctor`
@@ -205,7 +227,7 @@ app/robots.ts
 
 While `ALLOW_INDEXING=false`, robots blocks crawling broadly as part of the temporary launch protection. This is not the only protection layer; pages also use noindex metadata and response headers.
 
-When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes, downstream session workflow routes, public token order routes and API routes. Legacy predecessor routes that still render pages remain noindexed by page metadata even when global indexing is enabled.
+When indexing is explicitly enabled later, robots should allow first-wave public content and continue to disallow private/account/auth/debug routes, downstream session workflow routes, public token order routes and API routes. Public noindex routes remain protected by route metadata and response headers. Legacy predecessor routes that still render pages remain noindexed by page metadata even when global indexing is enabled.
 
 Redirect-only compatibility routes are handled by server-side redirects rather than page-level noindex metadata.
 
@@ -221,20 +243,21 @@ When DoughTools is ready for public indexing:
 2. Submit `https://www.doughtools.app/sitemap.xml`.
 3. Inspect:
    - `/`
-   - `/session/start`
    - `/guide`
    - `/guides/dough`
    - `/guide/pizza-troubleshooting`
    - `/sauce`
    - `/calculator/quick`
-4. Confirm `/coach` is not submitted through the sitemap and redirects to `/guide/pizza-troubleshooting`.
-5. Confirm `/plan` redirects to `/session/start`, `/history` redirects to `/about`, `/gear` redirects to `/ovens#other-equipment`, `/doctor` redirects to `/guide/pizza-troubleshooting` and none of those routes are submitted through the sitemap.
-6. Inspect representative query-param URLs:
+   - `/guide/practical-pizza-tips/fermentation-length`
+4. Confirm `/session/start`, `/timer`, `/tools/bake-timer`, `/updates`, `/contact`, `/privacy` and `/terms` are not submitted through the sitemap.
+5. Confirm `/coach` is not submitted through the sitemap and redirects to `/guide/pizza-troubleshooting`.
+6. Confirm `/plan` redirects to `/session/start`, `/history` redirects to `/about`, `/gear` redirects to `/ovens#other-equipment`, `/doctor` redirects to `/guide/pizza-troubleshooting` and none of those routes are submitted through the sitemap.
+7. Inspect representative query-param URLs:
    - `/?balls=6&ballWeight=260`
    - `/calculator/quick?quick=...`
-7. Confirm clean canonical URLs.
-8. Confirm private/account routes are not submitted.
-9. Monitor duplicate URL patterns.
+8. Confirm clean canonical URLs.
+9. Confirm private/account routes are not submitted.
+10. Monitor duplicate URL patterns.
 
 ## Intentionally not implemented yet
 

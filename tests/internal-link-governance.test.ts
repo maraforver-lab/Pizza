@@ -49,7 +49,8 @@ describe("internal link governance", () => {
     expect(globalSurfaces).not.toContain("/timer");
     expect(globalSurfaces).not.toContain("/costs");
     expect(footer).toContain('href: "/costs"');
-    expect(footer).not.toContain('href: "/toppings"');
+    expect(footer).toContain('href: "/toppings"');
+    expect(footer).toContain("Choose toppings");
     expect(footer).not.toContain('href: "/timer"');
     expect(shopping).toContain('href="/toppings"');
     expect(kitchen).toContain('href="/toppings"');

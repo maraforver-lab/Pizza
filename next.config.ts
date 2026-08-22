@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { publicNoindexRoutePaths } from "./lib/seo-config";
 import { securityHeaders } from "./lib/security-headers";
 
 const gitValue = (args: string[], fallback: string) => {
@@ -47,6 +48,7 @@ const noIndexHeader = {
 };
 
 const noIndexHeaderSources = [
+  ...publicNoindexRoutePaths,
   "/account/:path*",
   "/admin/:path*",
   "/api/:path*",

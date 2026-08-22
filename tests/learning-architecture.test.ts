@@ -59,16 +59,16 @@ describe("learning architecture", () => {
   });
 
   it("turns the homepage footer into a concise learning and product map", () => {
-    const homepage = source("app", "page.tsx");
     const footer = source("components", "SiteFooter.tsx");
 
-    expect(homepage).toContain("<SiteFooter />");
     expect(footer).toContain("footerGroups");
     expect(footer).toContain('title: "Learn"');
     expect(footer).toContain('href: "/guide"');
     expect(footer).toContain('href: "/sauce"');
     expect(footer).toContain('href: "/guides/dough"');
+    expect(footer).toContain('href: "/toppings"');
     expect(footer).toContain('href: "/guide/pizza-troubleshooting"');
+    expect(footer).toContain('href: "/guide/practical-pizza-tips"');
     expect(footer).toContain('href: "/styles"');
     expect(footer).toContain('href: "/ovens"');
     expect(footer).toContain('title: "Product"');

@@ -40,10 +40,14 @@ describe("standalone Bake Timer", () => {
 
   it("defines a standalone route with metadata and no authentication or session resolver requirement", () => {
     const page = source("app/tools/bake-timer/page.tsx");
+    const duplicateTimerRoute = source("app/timer/page.tsx");
     const tool = source("components/tools/StandaloneBakeTimerTool.tsx");
 
     expect(page).toContain('metadataForRoute("/tools/bake-timer")');
     expect(page).toContain("StandaloneBakeTimerTool");
+    expect(duplicateTimerRoute).toContain("permanentRedirect");
+    expect(duplicateTimerRoute).toContain("/tools/bake-timer");
+    expect(duplicateTimerRoute).toContain("encodeTimerRedirectQuery");
     expect(tool).toContain("Bake timer");
     expect(tool).toContain("Choose the oven you are using.");
     expect(tool).toContain("This timer works on its own and does not change your pizza plan.");

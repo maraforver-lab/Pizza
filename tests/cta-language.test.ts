@@ -59,7 +59,7 @@ describe("sitewide CTA language", () => {
       "lib/homepage.ts",
       "app/guide/page.tsx",
       "app/sauce/page.tsx",
-      "app/timer/page.tsx",
+      "components/tools/StandaloneBakeTimerTool.tsx",
       "components/costs/PizzaCostsPlayfulClient.tsx",
       "components/styles/PizzaStyleHero.tsx",
       "components/styles/PizzaStyleAtlas.tsx",
@@ -69,9 +69,9 @@ describe("sitewide CTA language", () => {
     expect(toolSources).toContain("Calculate my dough");
     expect(toolSources).toContain("Make the sauce");
     expect(toolSources).toContain("Estimate my pizza cost");
-    expect(toolSources).toContain("Build and compare the topping load");
-    expect(toolSources).toContain("Keep your eyes on the pizza");
-    expect(toolSources).toContain("Compare pizza styles");
+    expect(toolSources).toContain("Build and compare presets");
+    expect(toolSources).toContain("Use the timer as a guide");
+    expect(toolSources).toContain("Compare style details");
     expect(toolSources).not.toContain("Use this in my pizza plan");
     expect(toolSources).not.toContain("Add this to my pizza plan");
     expect(toolSources).not.toContain("Plan my next pizza with these settings");

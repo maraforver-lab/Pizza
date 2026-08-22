@@ -164,7 +164,7 @@ describe("pizza cost calculator", () => {
   it("updates the SEO positioning for home versus restaurant comparison", () => {
     const seo = source("lib/seo-config.ts");
 
-    expect(seo).toContain("Home Pizza vs Restaurant Pizza Cost Calculator | DoughTools");
+    expect(seo).toContain("Pizza Cost Calculator: Homemade vs Restaurant Pizza | DoughTools");
     expect(seo).toContain("Compare the estimated cost of making pizza at home");
   });
 });

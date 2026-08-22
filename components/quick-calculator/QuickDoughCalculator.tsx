@@ -453,6 +453,59 @@ function RecipeResultPanel({
   );
 }
 
+function QuickCalculatorSeoContext() {
+  return (
+    <section
+      className="mt-8 rounded-[1.6rem] border border-ink/10 bg-white/72 p-5 shadow-sm sm:p-6"
+      aria-labelledby="quick-calculator-seo-context-heading"
+      data-quick-seo-context
+    >
+      <div className="max-w-3xl">
+        <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza dough calculator</p>
+        <h2 id="quick-calculator-seo-context-heading" className="mt-2 font-display text-3xl font-semibold">
+          Calculate a dough recipe from the pizza you want to make.
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-ink/64 sm:text-base">
+          DoughTools calculates flour, water, salt and yeast from your pizza count, dough-ball weight,
+          hydration, salt level, yeast type and fermentation plan. Use it when you need exact dough
+          amounts without starting a full Pizza Plan.
+        </p>
+      </div>
+      <div className="mt-5 grid gap-3 text-sm leading-6 text-ink/64 md:grid-cols-3">
+        <div className="rounded-2xl bg-cream/70 p-4">
+          <h3 className="font-extrabold text-ink">Inputs</h3>
+          <p className="mt-2">
+            Choose pizzas, dough-ball weight, hydration, salt, yeast and fermentation time.
+          </p>
+        </div>
+        <div className="rounded-2xl bg-cream/70 p-4">
+          <h3 className="font-extrabold text-ink">Results</h3>
+          <p className="mt-2">
+            Get total dough plus flour, water, salt and yeast in grams.
+          </p>
+        </div>
+        <div className="rounded-2xl bg-cream/70 p-4">
+          <h3 className="font-extrabold text-ink">Next step</h3>
+          <p className="mt-2">
+            Learn the dough process or turn the evening into a full pizza plan.
+          </p>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap gap-2 text-sm font-extrabold">
+        <Link href="/methodology" className="rounded-full bg-white px-4 py-2 text-ink transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+          How the calculation works
+        </Link>
+        <Link href="/guides/dough" className="rounded-full bg-white px-4 py-2 text-ink transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+          Learn the dough process
+        </Link>
+        <Link href="/guide/practical-pizza-tips/fermentation-length" className="rounded-full bg-white px-4 py-2 text-ink transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+          Choose fermentation time
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export default function QuickDoughCalculator() {
   const [input, setInput] = useState<QuickCalculatorInput>(quickCalculatorDefaults);
   const [fermentationTemperaturesByEnvironment, setFermentationTemperaturesByEnvironment] = useState<Record<QuickFermentationEnvironment, number>>({
@@ -736,11 +789,11 @@ export default function QuickDoughCalculator() {
           <section className="max-w-3xl" aria-labelledby="quick-calculator-heading" data-quick-page-identity>
             <p className="text-xs font-extrabold uppercase tracking-[.24em] text-tomato">Quick calculator</p>
             <h1 id="quick-calculator-heading" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-5xl">
-              Quick Dough Calculator
+              Pizza Dough Calculator
             </h1>
             {!isBeginner && (
               <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65 sm:text-base">
-                Get the dough amounts you need, then adjust only what matters.
+                Calculate flour, water, salt and yeast for the pizza dough you want to make.
               </p>
             )}
             <QuickCalculatorGuidanceTabs level={experienceLevel} onSelectLevel={requestGuidanceLevel} />
@@ -951,6 +1004,8 @@ export default function QuickDoughCalculator() {
               </section>
             </section>
           </div>
+
+          <QuickCalculatorSeoContext />
         </div>
       </main>
 

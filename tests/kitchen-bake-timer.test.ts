@@ -353,14 +353,13 @@ describe("Kitchen bake timer integration", () => {
     expect(styles).toContain("animation: none !important");
   });
 
-  it("keeps the standalone Timer route while sharing timer formatting and normalization", () => {
+  it("redirects the duplicate Timer route while keeping the standalone tool canonical", () => {
     const timerPage = source("app/timer/page.tsx");
+    const standaloneTool = source("components/tools/StandaloneBakeTimerTool.tsx");
 
-    expect(timerPage).toContain('import { formatBakeTimerClock, normalizeBakeTimerDuration, type BakeTimerStatus } from "@/lib/bake-timer"');
-    expect(timerPage).toContain("const clock = formatBakeTimerClock");
-    expect(timerPage).toContain("normalizeBakeTimerDuration");
-    expect(timerPage).toContain("toggleInspectionLight");
-    expect(timerPage).toContain("wakeLock");
-    expect(timerPage).toContain("SiteFooter");
+    expect(timerPage).toContain('permanentRedirect(`/tools/bake-timer${query}`)');
+    expect(timerPage).toContain("encodeTimerRedirectQuery");
+    expect(standaloneTool).toContain("StandaloneBakeTimerTool");
+    expect(standaloneTool).toContain("BakeTimerPanel");
   });
 });

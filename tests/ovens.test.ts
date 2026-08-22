@@ -319,8 +319,8 @@ describe("Oven Guide", () => {
   it("keeps SEO positioning and indexing policy unchanged", () => {
     const seo = source("lib", "seo-config.ts");
 
-    expect(seo).toContain("Home Oven vs Pizza Oven: Heat, Baking and Pizza Results | DoughTools");
-    expect(seo).toContain("Compare Home oven and Pizza oven baking paths, including heat, bake time, topping moisture");
+    expect(seo).toContain("Pizza Oven and Home Oven Baking Guide | DoughTools");
+    expect(seo).toContain("Get better pizza from a home oven or pizza oven with practical setup, heat, preheating, bake-time and topping-moisture guidance.");
     expect(seo).toContain("ALLOW_INDEXING");
     expect(seo).not.toContain("Compare electric ovens, gas pizza ovens and other common pizza oven setups with practical trade-offs.");
   });

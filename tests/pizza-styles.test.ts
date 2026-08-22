@@ -261,9 +261,9 @@ describe("Pizza Styles Assistant", () => {
   it("preserves SEO positioning without changing indexing policy", () => {
     const seo = source("lib", "seo-config.ts");
 
-    expect(seo).toContain("Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools");
-    expect(seo).toContain("Compare major pizza styles by crust, texture, dough, oven, sauce and baking method");
-    expect(seo).toContain("learn which style DoughTools currently supports for planning");
+    expect(seo).toContain("Pizza Style Guide: Choose Neapolitan, New York, Detroit and More | DoughTools");
+    expect(seo).toContain("Compare pizza styles by crust, texture, dough, oven, sauce and baking method");
+    expect(seo).toContain("choose the style that fits your oven and goal");
     expect(seo).toContain("ALLOW_INDEXING");
   });
 });

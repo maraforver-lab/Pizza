@@ -280,7 +280,7 @@ describe("Patch 471A sauce first viewport and realistic imagery", () => {
   it("keeps Sauce metadata and calculation defaults unchanged", () => {
     const metadata = metadataForRoute("/sauce");
 
-    expect(metadata.title).toBe("Pizza Sauce Recipe and Calculator | DoughTools");
+    expect(metadata.title).toBe("Pizza Sauce Recipe and Amount Calculator | DoughTools");
     expect(defaultSauceGramsForMethod("classic-neapolitan")).toBe(70);
     expect(defaultSauceGramsForMethod("marinara")).toBe(80);
     expect(defaultSauceGramsForMethod("home-oven-cooked")).toBe(80);

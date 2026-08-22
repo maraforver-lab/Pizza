@@ -103,7 +103,7 @@ export default function FermentationLengthTipPage() {
               Choosing fermentation length
             </h1>
             <p className="mt-4 max-w-2xl text-base font-bold leading-8 text-ink/64">
-              Compare 12, 24, 48 and 72 hour dough plans without treating the clock as a guarantee.
+              Compare room and cold pizza dough fermentation plans without treating the clock as a guarantee.
             </p>
           </div>
           <div className="mt-6 rounded-[1.5rem] border border-tomato/15 bg-tomato/[.06] p-5 lg:mt-0">
@@ -111,6 +111,34 @@ export default function FermentationLengthTipPage() {
             <p className="mt-2 text-sm font-bold leading-6 text-ink/64">
               For a normal home bake, start with 24 hours unless your flour, temperature or schedule makes a shorter or longer plan safer.
             </p>
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]" aria-labelledby="room-cold-fermentation-title" data-fermentation-search-context>
+          <div className={cardClass({ className: "p-5 sm:p-6", variant: "information" })}>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Room or cold fermentation</p>
+            <h2 id="room-cold-fermentation-title" className="mt-3 font-display text-3xl font-semibold">
+              Time only makes sense with temperature.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-ink/64">
+              A 24 hour room-temperature dough and a 24 hour cold-fermented dough are different plans.
+              Room fermentation moves faster near normal kitchen temperatures. Cold fermentation slows the dough down,
+              gives more schedule control and usually needs a different yeast amount and warm-up plan.
+            </p>
+          </div>
+          <div className="rounded-[1.5rem] border border-ink/10 bg-white/76 p-5 shadow-sm lg:w-80">
+            <h2 className="font-display text-2xl font-semibold">Need exact yeast?</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              Use the dough calculator when pizza count, hydration, yeast type or fermentation temperature matters.
+            </p>
+            <div className="mt-4 grid gap-2">
+              <Link href="/calculator/quick" className={buttonClass({ className: "w-full" })}>
+                Open pizza dough calculator
+              </Link>
+              <Link href="/methodology" className={buttonClass({ className: "w-full bg-white text-tomato hover:bg-cream", variant: "secondary" })}>
+                See calculation methodology
+              </Link>
+            </div>
           </div>
         </section>
 

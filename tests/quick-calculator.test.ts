@@ -97,8 +97,8 @@ describe("Quick Dough Calculator isolated core UI", () => {
     const metadata = metadataForRoute("/calculator/quick");
 
     expect(page).toContain("QuickDoughCalculator");
-    expect(metadata.title).toBe("Quick Dough Calculator | DoughTools");
-    expect(metadata.description).toContain("Calculate pizza dough ingredient amounts");
+    expect(metadata.title).toBe("Pizza Dough Calculator: Yeast, Hydration and Dough Balls | DoughTools");
+    expect(metadata.description).toContain("Calculate pizza dough flour, water, salt and yeast");
     expect(page).not.toContain("redirect(");
     expect(page).not.toContain("HomeCalculatorWorkspace");
     expect(page).not.toContain("calculator=1");
@@ -299,7 +299,11 @@ describe("Quick Dough Calculator isolated core UI", () => {
   it("builds the core PizzApp-style UI for entering values and viewing ingredient results", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain("Quick Dough Calculator");
+    expect(component).toContain("Pizza Dough Calculator");
+    expect(component).toContain("data-quick-seo-context");
+    expect(component).toContain("Calculate a dough recipe from the pizza you want to make.");
+    expect(component).toContain("How the calculation works");
+    expect(component).toContain("Choose fermentation time");
     expect(component).toContain("Number of pizzas");
     expect(component).toContain("Dough-ball weight");
     expect(component).toContain("Hydration");
@@ -1177,7 +1181,7 @@ describe("Quick Dough Calculator isolated core UI", () => {
   it("removes the redundant intro workspace panel while keeping the calculator header and results", () => {
     const component = source("components/quick-calculator/QuickDoughCalculator.tsx");
 
-    expect(component).toContain("Quick Dough Calculator");
+    expect(component).toContain("Pizza Dough Calculator");
     expect(component).toContain("Choose how many pizzas you want to make. DoughTools uses a reliable recommended recipe.");
     expect(component).toContain("Batch");
     expect(component).toContain("Total dough");

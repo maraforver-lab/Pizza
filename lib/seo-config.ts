@@ -13,7 +13,9 @@ export type SeoRoute = {
 };
 
 export type SeoRoutePolicy = {
+  publicMetadataRoutes: readonly string[];
   publicIndexableRoutes: readonly string[];
+  publicNoindexRoutes: readonly string[];
   publicToolBaseRoutes: readonly string[];
   statefulQueryParamRoutes: readonly string[];
   legacyNoindexRoutes: readonly string[];
@@ -68,8 +70,8 @@ export const publicSeoRoutes = [
   },
   {
     path: "/methodology",
-    title: "Calculation Methodology | DoughTools",
-    description: "How DoughTools calculates pizza dough using baker’s percentages and fermentation estimates.",
+    title: "Pizza Dough Calculation Methodology | DoughTools",
+    description: "How DoughTools calculates pizza dough, hydration, salt, yeast and fermentation using baker’s percentages and documented assumptions.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
@@ -120,9 +122,9 @@ export const publicSeoRoutes = [
   },
   {
     path: "/guide/practical-pizza-tips/fermentation-length",
-    title: "Pizza Dough Fermentation Length Guide | DoughTools",
+    title: "Pizza Dough Fermentation Time Guide: 12, 24, 48 and 72 Hours | DoughTools",
     description:
-      "Compare 12, 24, 48 and 72 hour pizza dough fermentation plans and learn how flour, temperature and schedule affect readiness.",
+      "Compare room and cold pizza dough fermentation plans for 12, 24, 48 and 72 hours, and learn how time, temperature, yeast and flour affect readiness.",
     changeFrequency: "monthly",
     priority: 0.7,
   },
@@ -144,38 +146,38 @@ export const publicSeoRoutes = [
   },
   {
     path: "/styles",
-    title: "Pizza Style Guide: Neapolitan, New York, Detroit, Roman and Sicilian | DoughTools",
-    description: "Compare major pizza styles by crust, texture, dough, oven, sauce and baking method, and learn which style DoughTools currently supports for planning.",
+    title: "Pizza Style Guide: Choose Neapolitan, New York, Detroit and More | DoughTools",
+    description: "Compare pizza styles by crust, texture, dough, oven, sauce and baking method, then choose the style that fits your oven and goal.",
     changeFrequency: "monthly",
     priority: 0.7,
   },
   {
     path: "/ovens",
-    title: "Home Oven vs Pizza Oven: Heat, Baking and Pizza Results | DoughTools",
-    description: "Compare Home oven and Pizza oven baking paths, including heat, bake time, topping moisture, dough behavior, preheating and common mistakes.",
+    title: "Pizza Oven and Home Oven Baking Guide | DoughTools",
+    description: "Get better pizza from a home oven or pizza oven with practical setup, heat, preheating, bake-time and topping-moisture guidance.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
   {
     path: "/sauce",
-    title: "Pizza Sauce Recipe and Calculator | DoughTools",
+    title: "Pizza Sauce Recipe and Amount Calculator | DoughTools",
     description:
-      "Calculate sauce per pizza, total pizza sauce, and a simple pizza sauce recipe for raw, Marinara or home-oven cooked sauce.",
+      "Calculate pizza sauce amount per pizza and make a simple sauce for raw, Marinara or home-oven cooked pizza styles.",
     changeFrequency: "monthly",
     priority: 0.7,
   },
   {
     path: "/toppings",
-    title: "Pizza Topping Balance Lab: Sauce, Cheese and Moisture | DoughTools",
+    title: "Pizza Toppings Guide: Balance Cheese, Sauce and Moisture | DoughTools",
     description:
-      "See how sauce, cheese, pizza size and mozzarella moisture change topping balance, and learn what too little, balanced and overloaded pizza look like.",
+      "Choose pizza toppings that bake well by balancing sauce, cheese, topping weight, pizza size and mozzarella moisture.",
     changeFrequency: "monthly",
     priority: 0.7,
   },
   {
     path: "/calculator/quick",
-    title: "Quick Dough Calculator | DoughTools",
-    description: "Calculate pizza dough ingredient amounts without creating a full pizza plan.",
+    title: "Pizza Dough Calculator: Yeast, Hydration and Dough Balls | DoughTools",
+    description: "Calculate pizza dough flour, water, salt and yeast from pizza count, dough-ball weight, hydration and fermentation time.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
@@ -195,7 +197,7 @@ export const publicSeoRoutes = [
   },
   {
     path: "/costs",
-    title: "Home Pizza vs Restaurant Pizza Cost Calculator | DoughTools",
+    title: "Pizza Cost Calculator: Homemade vs Restaurant Pizza | DoughTools",
     description: "Compare the estimated cost of making pizza at home with buying the same number of pizzas from a restaurant, including cost per pizza and total difference.",
     changeFrequency: "monthly",
     priority: 0.5,
@@ -232,13 +234,42 @@ export const privateSeoRoutes = [
 
 export const legacyNoindexRoutes: readonly SeoRoute[] = [];
 
+export const publicIndexableRoutePaths = [
+  "/",
+  "/about",
+  "/methodology",
+  "/guide",
+  "/guides/dough",
+  "/guide/pizza-troubleshooting",
+  "/guide/practical-pizza-tips",
+  "/guide/practical-pizza-tips/leftover-dough",
+  "/guide/practical-pizza-tips/fermentation-length",
+  "/guide/practical-pizza-tips/containers-and-lids",
+  "/guide/practical-pizza-tips/common-problems",
+  "/styles",
+  "/ovens",
+  "/sauce",
+  "/toppings",
+  "/calculator/quick",
+  "/costs",
+] as const;
+
+export const publicNoindexRoutePaths = [
+  "/contact",
+  "/privacy",
+  "/terms",
+  "/session/start",
+  "/timer",
+  "/tools/bake-timer",
+  "/updates",
+] as const;
+
 export const publicToolBaseRoutes = [
   "/",
   "/sauce",
   "/tools/bake-timer",
   "/calculator/quick",
   "/toppings",
-  "/timer",
   "/costs",
 ] as const;
 
@@ -247,11 +278,12 @@ export const statefulQueryParamRoutes = [
   "/sauce",
   "/calculator/quick",
   "/toppings",
-  "/timer",
 ] as const;
 
 export const seoRoutePolicy: SeoRoutePolicy = {
-  publicIndexableRoutes: publicSeoRoutes.map((route) => route.path),
+  publicMetadataRoutes: publicSeoRoutes.map((route) => route.path),
+  publicIndexableRoutes: publicIndexableRoutePaths,
+  publicNoindexRoutes: publicNoindexRoutePaths,
   publicToolBaseRoutes,
   statefulQueryParamRoutes,
   legacyNoindexRoutes: legacyNoindexRoutes.map((route) => route.path),
@@ -337,6 +369,23 @@ export function robotsMetadata(env: EnvLike = process.env): Metadata["robots"] {
   };
 }
 
+function publicNoindexRobots(): Metadata["robots"] {
+  return {
+    index: false,
+    follow: true,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: true,
+      noimageindex: false,
+    },
+  };
+}
+
+function isPublicNoindexRoute(path: string): boolean {
+  return (publicNoindexRoutePaths as readonly string[]).includes(cleanCanonicalPath(path));
+}
+
 export function cleanCanonicalPath(path: string): string {
   try {
     const url = new URL(path, "https://doughtools.invalid");
@@ -379,7 +428,7 @@ export function metadataForRoute(path: keyof typeof routeMetadataByPath, env: En
   const metadata: Metadata = {
     title: route.title,
     description: route.description,
-    robots: robotsMetadata(env),
+    robots: isPublicNoindexRoute(path) ? publicNoindexRobots() : robotsMetadata(env),
     openGraph: {
       title: route.title,
       description: route.description,
@@ -453,7 +502,7 @@ export function noindexMetadata(title: string, description: string): Metadata {
 export function sitemapEntries(env: EnvLike = process.env): MetadataRoute.Sitemap {
   const lastModified = new Date("2026-06-23T00:00:00.000Z");
 
-  return publicSeoRoutes.map((route) => ({
+  return publicSeoRoutes.filter((route) => (publicIndexableRoutePaths as readonly string[]).includes(route.path)).map((route) => ({
     url: canonicalUrl(route.path, env),
     lastModified,
     changeFrequency: route.changeFrequency ?? "monthly",

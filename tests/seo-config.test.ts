@@ -17,6 +17,8 @@ import {
   metadataForRoute,
   normalizeSiteUrl,
   privateSeoRoutes,
+  publicIndexableRoutePaths,
+  publicNoindexRoutePaths,
   publicSeoRoutes,
   seoRoutePolicy,
   robotsMetadata,
@@ -61,6 +63,36 @@ const requiredPublicRoutes = [
 ];
 
 const legacyNoindexRoutePaths: string[] = [];
+
+const expectedFirstWaveIndexableRoutes = [
+  "/",
+  "/about",
+  "/methodology",
+  "/guide",
+  "/guides/dough",
+  "/guide/pizza-troubleshooting",
+  "/guide/practical-pizza-tips",
+  "/guide/practical-pizza-tips/leftover-dough",
+  "/guide/practical-pizza-tips/fermentation-length",
+  "/guide/practical-pizza-tips/containers-and-lids",
+  "/guide/practical-pizza-tips/common-problems",
+  "/styles",
+  "/ovens",
+  "/sauce",
+  "/toppings",
+  "/calculator/quick",
+  "/costs",
+] as const;
+
+const expectedPublicNoindexRoutes = [
+  "/contact",
+  "/privacy",
+  "/terms",
+  "/session/start",
+  "/timer",
+  "/tools/bake-timer",
+  "/updates",
+] as const;
 
 const trustPageText = (id: TrustPageId) => [
   trustPages[id].title,
@@ -125,14 +157,17 @@ describe("SEO launch configuration", () => {
   });
 
   it("defines a central SEO route policy for public, stateful and private route groups", () => {
-    expect(seoRoutePolicy.publicIndexableRoutes).toEqual(requiredPublicRoutes);
+    expect(seoRoutePolicy.publicMetadataRoutes).toEqual(requiredPublicRoutes);
+    expect(seoRoutePolicy.publicIndexableRoutes).toEqual(expectedFirstWaveIndexableRoutes);
+    expect(seoRoutePolicy.publicNoindexRoutes).toEqual(expectedPublicNoindexRoutes);
+    expect(publicIndexableRoutePaths).toEqual(expectedFirstWaveIndexableRoutes);
+    expect(publicNoindexRoutePaths).toEqual(expectedPublicNoindexRoutes);
     expect(seoRoutePolicy.publicToolBaseRoutes).toEqual([
       "/",
       "/sauce",
       "/tools/bake-timer",
       "/calculator/quick",
       "/toppings",
-      "/timer",
       "/costs",
     ]);
     expect(seoRoutePolicy.statefulQueryParamRoutes).toEqual([
@@ -140,7 +175,6 @@ describe("SEO launch configuration", () => {
       "/sauce",
       "/calculator/quick",
       "/toppings",
-      "/timer",
     ]);
     expect(seoRoutePolicy.legacyNoindexRoutes).toEqual(legacyNoindexRoutePaths);
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/account");
@@ -182,22 +216,15 @@ describe("SEO launch configuration", () => {
     expect(JSON.stringify(metadata)).not.toContain("/opengraph-image");
   });
 
-  it("includes canonical public product, learning and supporting utility routes in the sitemap", () => {
+  it("includes only first-wave public search routes in the sitemap", () => {
     const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);
 
-    for (const route of [
-      "/session/start",
-      "/guides/dough",
-      "/guide/pizza-troubleshooting",
-      "/guide/practical-pizza-tips",
-      "/guide/practical-pizza-tips/leftover-dough",
-      "/guide/practical-pizza-tips/fermentation-length",
-      "/guide/practical-pizza-tips/containers-and-lids",
-      "/guide/practical-pizza-tips/common-problems",
-      "/calculator/quick",
-      "/tools/bake-timer",
-    ]) {
+    for (const route of expectedFirstWaveIndexableRoutes) {
       expect(sitemapUrls).toContain(`https://doughtools.app${route}`);
+    }
+
+    for (const route of expectedPublicNoindexRoutes) {
+      expect(sitemapUrls).not.toContain(`https://doughtools.app${route}`);
     }
   });
 
@@ -286,7 +313,7 @@ describe("SEO launch configuration", () => {
     expect(seoRoutePolicy.legacyNoindexRoutes).not.toContain("/plan");
     expect(seoRoutePolicy.statefulQueryParamRoutes).not.toContain("/plan");
     expect(sitemapUrls).not.toContain("https://doughtools.app/plan");
-    expect(sitemapUrls).toContain("https://doughtools.app/session/start");
+    expect(sitemapUrls).not.toContain("https://doughtools.app/session/start");
     expect(() => metadataForLegacyRoute("/plan" as Parameters<typeof metadataForLegacyRoute>[0])).toThrow(
       "Missing legacy SEO metadata for route: /plan",
     );
@@ -327,6 +354,9 @@ describe("SEO launch configuration", () => {
   it("keeps private workflow, token and API routes covered by explicit noindex response headers", () => {
     const nextConfig = readFileSync(join(process.cwd(), "next.config.ts"), "utf8");
 
+    expect(nextConfig).toContain("publicNoindexRoutePaths");
+    expect(nextConfig).toContain("...publicNoindexRoutePaths");
+
     for (const source of [
       "/account/:path*",
       "/admin/:path*",
@@ -345,6 +375,19 @@ describe("SEO launch configuration", () => {
     expect(nextConfig).toContain("noindex, nofollow, noarchive");
   });
 
+  it("adds minimal site and organization structured data without recipe or fake calculator schema", () => {
+    const layout = readFileSync(join(process.cwd(), "app", "layout.tsx"), "utf8");
+    const structuredData = readFileSync(join(process.cwd(), "components", "SeoStructuredData.tsx"), "utf8");
+
+    expect(layout).toContain("SeoStructuredData");
+    expect(structuredData).toContain('"@type": "WebSite"');
+    expect(structuredData).toContain('"@type": "Organization"');
+    expect(structuredData).toContain("hasConfiguredProductionSiteUrl");
+    expect(structuredData).not.toContain('"@type": "Recipe"');
+    expect(structuredData).not.toContain('"@type": "SoftwareApplication"');
+    expect(structuredData).not.toContain('"@type": "WebApplication"');
+  });
+
   it("adds route-level noindex metadata for downstream session and public token workflows", () => {
     for (const layoutPath of [
       ["app", "order", "[publicToken]", "layout.tsx"],
@@ -361,23 +404,22 @@ describe("SEO launch configuration", () => {
     }
   });
 
-  it("keeps public pages indexable only when indexing is explicitly allowed and private pages noindex", () => {
+  it("keeps first-wave public pages indexable only when indexing is explicitly allowed while public noindex routes stay protected", () => {
     expect(() => metadataForRoute("/start" as Parameters<typeof metadataForRoute>[0])).toThrow(
       "Missing SEO metadata for route: /start",
     );
 
-    expect(metadataForRoute("/updates", {
+    expect(metadataForRoute("/calculator/quick", {
       ALLOW_INDEXING: "true",
       NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
     }).robots).toMatchObject({ index: true, follow: true });
 
-    expect(metadataForRoute("/session/start", {
-      ALLOW_INDEXING: "true",
-      NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
-    })).toMatchObject({
-      robots: { index: true, follow: true },
-      alternates: { canonical: "https://www.doughtools.app/session/start" },
-    });
+    for (const route of expectedPublicNoindexRoutes) {
+      expect(metadataForRoute(route as Parameters<typeof metadataForRoute>[0], {
+        ALLOW_INDEXING: "true",
+        NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+      }).robots).toMatchObject({ index: false, follow: true, nocache: true });
+    }
 
     expect(privateSeoRoutes).toContain("/account");
     expect(privateSeoRoutes).toContain("/admin");

@@ -16,7 +16,6 @@ const footerBearingSources = [
   ["ovens", source("app", "ovens", "page.tsx")],
   ["sauce", source("app", "sauce", "page.tsx")],
   ["styles", source("app", "styles", "page.tsx")],
-  ["timer", source("app", "timer", "page.tsx")],
   ["toppings", source("components", "toppings", "ToppingBalanceLab.tsx")],
   ["trust layout", source("components", "TrustPageLayout.tsx")],
   ["updates", source("app", "updates", "page.tsx")],
@@ -42,6 +41,7 @@ const noFooterSources = [
   ["legacy doctor redirect", source("app", "doctor", "page.tsx")],
   ["legacy plan redirect", source("app", "plan", "page.tsx")],
   ["legacy coach redirect", source("app", "coach", "page.tsx")],
+  ["duplicate timer redirect", source("app", "timer", "page.tsx")],
 ] as const;
 
 describe("canonical site footer", () => {
@@ -69,7 +69,9 @@ describe("canonical site footer", () => {
       "/guide",
       "/sauce",
       "/guides/dough",
+      "/toppings",
       "/guide/pizza-troubleshooting",
+      "/guide/practical-pizza-tips",
       "/styles",
       "/ovens",
       "/session/start",
@@ -89,7 +91,6 @@ describe("canonical site footer", () => {
 
     expect(footer).toContain('label: "Quick dough calculator", href: "/calculator/quick"');
     expect(footer).toContain('label: "Pizza costs", href: "/costs"');
-    expect(footer).not.toContain('href: "/toppings"');
     expect(footer).not.toContain('href: "/timer"');
 
     expect(footer).not.toMatch(/localhost|C:\\|C:\/|\/Users\//);
