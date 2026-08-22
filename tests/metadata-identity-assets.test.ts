@@ -28,7 +28,6 @@ describe("DoughTools public identity assets", () => {
   it("ships one canonical pizza mark and required favicon/app derivatives", () => {
     const iconFiles = [
       "icon.svg",
-      "favicon.svg",
       "favicon.ico",
       "apple-touch-icon.png",
       "icons/icon-192.png",
@@ -42,8 +41,6 @@ describe("DoughTools public identity assets", () => {
     }
 
     expect(source("public/icon.svg")).toContain("DoughTools pizza mark");
-    expect(source("public/favicon.svg")).toContain("DoughTools small pizza favicon");
-    expect(source("public/favicon.svg")).not.toBe(source("public/icon.svg"));
     expect(source("public/brand/doughtools-pizza-mark.svg")).toBe(source("public/icon.svg"));
     expect(pngDimensions(publicFile("apple-touch-icon.png"))).toEqual({ width: 180, height: 180 });
     expect(pngDimensions(publicFile("icons/icon-192.png"))).toEqual({ width: 192, height: 192 });
@@ -67,7 +64,7 @@ describe("DoughTools public identity assets", () => {
     const seo = source("lib/seo-config.ts");
 
     expect(layout).toContain("/favicon.ico");
-    expect(layout).toContain("/favicon.svg");
+    expect(layout).not.toContain("/favicon.svg");
     expect(layout).toContain("/apple-touch-icon.png");
     expect(manifest).toContain("/icons/icon-192.png");
     expect(manifest).toContain("/icons/icon-512.png");
