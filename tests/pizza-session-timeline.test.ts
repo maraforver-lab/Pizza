@@ -662,6 +662,14 @@ describe("Pizza Session timeline", () => {
     expect(coldTimeline.steps.some((step) => step.id === "cold-ferment")).toBe(true);
     expect(coldTimeline.steps.some((step) => step.id === "room-ferment")).toBe(false);
     expect(roomTimeline.inputSignature).not.toBe(coldTimeline.inputSignature);
+
+    const roomCopy = roomTimeline.steps.map((step) => `${step.label} ${step.description} ${step.helperCopy} ${step.beginnerNote} ${step.enthusiastNote} ${step.pizzaNerdNote}`).join(" ");
+    const coldCopy = coldTimeline.steps.map((step) => `${step.label} ${step.description} ${step.helperCopy} ${step.beginnerNote} ${step.enthusiastNote} ${step.pizzaNerdNote}`).join(" ");
+
+    expect(roomCopy).toContain("Room temperature ferment");
+    expect(roomCopy).not.toContain("This offset assumes a cold-ferment style preparation");
+    expect(coldCopy).toContain("Cold fermentation");
+    expect(coldCopy).toContain("This offset assumes a cold-ferment style preparation");
   });
 
   it("can anchor a weekend cold fermentation display from the stated dough start time", () => {
@@ -700,6 +708,7 @@ describe("Pizza Session timeline", () => {
       .not.toMatch(/Room temperature ferment|at room temperature/i);
     expect(displayed.find((step) => step.id === "mix-dough")?.scheduledAt).toBe(now.toISOString());
     expect(displayed.find((step) => step.id === "cold-ferment")?.scheduledAt).toBe(new Date(now.getTime() + 60 * 60_000).toISOString());
+    expect(getTimelineNote(displayed[0], "pizza_nerd")).toContain("cold-ferment style preparation");
   });
 
   it("normalizes stale room fermentation timeline copy to cold copy when the selected plan is cold", () => {
@@ -1636,7 +1645,7 @@ describe("Pizza Session timeline", () => {
 
     expect(getTimelineNote(firstStep, "beginner")).toContain("Do this first");
     expect(getTimelineNote(firstStep, "enthusiast")).toContain("rest");
-    expect(getTimelineNote(firstStep, "pizza_nerd")).toContain("offset");
+    expect(getTimelineNote(firstStep, "pizza_nerd")).toContain("selected dough plan timing");
     expect(formatTimelinePlainText(session, timeline)).toContain("DoughTools pizza timeline");
     expect(formatTimelinePlainText(session, timeline)).toContain("Pizza Nerd");
     expect(formatTimelinePlainText(session, timeline)).not.toMatch(/cloud sync|push notification|email reminder/i);

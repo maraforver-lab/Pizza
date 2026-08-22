@@ -321,6 +321,29 @@ function ovenTimelineStepCopy(
   return {};
 }
 
+function fermentationAwareTimelineStepCopy(
+  step: TimelineTemplateStep,
+  fermentationMode?: "room" | "cold",
+) {
+  if (step.id !== "mix-dough") return {};
+
+  if (fermentationMode === "cold") {
+    return {
+      pizzaNerdNote: "This offset assumes a cold-ferment style preparation. Adjust earlier for very low yeast or very strong flour.",
+    };
+  }
+
+  if (fermentationMode === "room") {
+    return {
+      pizzaNerdNote: "This start time follows the selected room-temperature fermentation plan.",
+    };
+  }
+
+  return {
+    pizzaNerdNote: "This start time follows the selected dough plan timing.",
+  };
+}
+
 function scheduleStepsFromDoughStart(
   steps: PizzaSessionTimelineStep[],
   doughStart: Date | undefined,
@@ -371,6 +394,7 @@ export function generatePizzaSessionTimeline(
   const templateSteps = timelineTemplate.map((step) => {
     const schedule = scheduleTemplateStep(target, step, session);
     const ovenStepCopy = ovenTimelineStepCopy(step, bakeProfile);
+    const fermentationStepCopy = fermentationAwareTimelineStepCopy(step, effectiveFermentation?.fermentationMode);
     return {
       id: step.id,
       label: step.label,
@@ -384,7 +408,7 @@ export function generatePizzaSessionTimeline(
       helperCopy: ovenStepCopy.helperCopy ?? step.helperCopy,
       beginnerNote: ovenStepCopy.beginnerNote ?? step.beginnerNote,
       enthusiastNote: ovenStepCopy.enthusiastNote ?? step.enthusiastNote,
-      pizzaNerdNote: ovenStepCopy.pizzaNerdNote ?? step.pizzaNerdNote,
+      pizzaNerdNote: ovenStepCopy.pizzaNerdNote ?? fermentationStepCopy.pizzaNerdNote ?? step.pizzaNerdNote,
     };
   });
   const steps = timelineStepsForPlanningSummaryDisplay({

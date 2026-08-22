@@ -253,7 +253,7 @@ function roomFermentationCopy(step: PizzaSessionTimelineStep): Partial<PizzaSess
     return {
       label: "Final room rest",
       description: "Let the dough finish relaxing at room temperature before opening.",
-      helperCopy: "This is a final room rest before baking, not a cold-dough warm-up.",
+      helperCopy: "This is the final room rest before baking.",
       beginnerNote: "Keep the dough covered until it feels relaxed enough to open.",
       enthusiastNote: "Use this final rest to make the dough easier to stretch.",
       pizzaNerdNote: "The final room rest improves extensibility before opening.",
