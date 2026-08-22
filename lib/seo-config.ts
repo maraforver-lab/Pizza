@@ -22,12 +22,17 @@ export type SeoRoutePolicy = {
 
 const unsupportedMarketingClaims = /\b(perfect pizza|guaranteed|ultimate|revolutionary|scientifically exact)\b/i;
 
+export const SOCIAL_IMAGE_PATH = "/social/doughtools-og-v1.png";
+export const SOCIAL_IMAGE_WIDTH = 1200;
+export const SOCIAL_IMAGE_HEIGHT = 630;
+export const SOCIAL_IMAGE_ALT = "DoughTools pizza planning preview with the DoughTools pizza mark";
+
 export const publicSeoRoutes = [
   {
     path: "/",
     title: "Plan Better Pizza Nights | DoughTools",
     description:
-      "Plan a complete pizza night with a Dough Plan, Shopping list, Timeline, Kitchen and Review path.",
+      "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
     changeFrequency: "weekly",
     priority: 1,
   },
@@ -212,10 +217,17 @@ export const privateSeoRoutes = [
   "/admin/quick-calculator-preview",
   "/auth",
   "/auth/callback",
+  "/api",
   "/login",
+  "/order",
   "/signup",
   "/preview",
   "/debug",
+  "/session/recipe",
+  "/session/shopping",
+  "/session/timeline",
+  "/session/kitchen",
+  "/session/review",
 ] as const;
 
 export const legacyNoindexRoutes: readonly SeoRoute[] = [];
@@ -344,6 +356,14 @@ export function canonicalUrl(path: string, env: EnvLike = process.env): string {
   return url.toString();
 }
 
+export function socialImageUrl(env: EnvLike = process.env): string {
+  if (!hasConfiguredProductionSiteUrl(env)) {
+    return SOCIAL_IMAGE_PATH;
+  }
+
+  return new URL(SOCIAL_IMAGE_PATH, `${getSiteUrl(env)}/`).toString();
+}
+
 export function metadataForRoute(path: keyof typeof routeMetadataByPath, env: EnvLike = process.env): Metadata {
   const route = routeMetadataByPath[path];
 
@@ -355,6 +375,7 @@ export function metadataForRoute(path: keyof typeof routeMetadataByPath, env: En
     throw new Error(`Unsupported marketing claim in SEO metadata for route: ${path}`);
   }
 
+  const imageUrl = socialImageUrl(env);
   const metadata: Metadata = {
     title: route.title,
     description: route.description,
@@ -364,13 +385,18 @@ export function metadataForRoute(path: keyof typeof routeMetadataByPath, env: En
       description: route.description,
       type: "website",
       siteName: "DoughTools",
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "DoughTools pizza planning workspace" }],
+      images: [{
+        url: imageUrl,
+        width: SOCIAL_IMAGE_WIDTH,
+        height: SOCIAL_IMAGE_HEIGHT,
+        alt: SOCIAL_IMAGE_ALT,
+      }],
     },
     twitter: {
       card: "summary_large_image",
       title: route.title,
       description: route.description,
-      images: ["/opengraph-image"],
+      images: [imageUrl],
     },
   };
 
@@ -390,6 +416,7 @@ export function metadataForLegacyRoute(path: keyof typeof legacyRouteMetadataByP
   }
 
   const metadata = noindexMetadata(route.title, route.description);
+  const imageUrl = socialImageUrl(env);
 
   if (hasConfiguredProductionSiteUrl(env)) {
     metadata.alternates = { canonical: canonicalUrl(path, env) };
@@ -399,7 +426,12 @@ export function metadataForLegacyRoute(path: keyof typeof legacyRouteMetadataByP
       type: "website",
       siteName: "DoughTools",
       url: canonicalUrl(path, env),
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "DoughTools pizza planning workspace" }],
+      images: [{
+        url: imageUrl,
+        width: SOCIAL_IMAGE_WIDTH,
+        height: SOCIAL_IMAGE_HEIGHT,
+        alt: SOCIAL_IMAGE_ALT,
+      }],
     };
   }
 

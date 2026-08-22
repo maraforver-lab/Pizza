@@ -1,6 +1,6 @@
 # DoughTools SEO indexation policy
 
-Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect. Patch 389 retires the old `/gear` page as a compatibility redirect to the equipment section on `/ovens`. Patch 390B retires the old `/doctor` page as a compatibility redirect to Troubleshooting. Patch 392B retires the old `/coach` page as a compatibility redirect to Troubleshooting.
+Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect. Patch 389 retires the old `/gear` page as a compatibility redirect to the equipment section on `/ovens`. Patch 390B retires the old `/doctor` page as a compatibility redirect to Troubleshooting. Patch 392B retires the old `/coach` page as a compatibility redirect to Troubleshooting. Patch 476A adds launch-ready social identity assets and explicit noindex protection for downstream workflow, token and API routes while keeping indexing disabled.
 
 The goal is still not to open indexing automatically. The goal is to keep the public sitemap, canonical URLs, explicit noindex routes and robots behavior aligned with the current product architecture.
 
@@ -32,12 +32,18 @@ Current public indexable routes are:
 - `/session/start`
 - `/guides/dough`
 - `/guide/pizza-troubleshooting`
+- `/guide/practical-pizza-tips`
+- `/guide/practical-pizza-tips/leftover-dough`
+- `/guide/practical-pizza-tips/fermentation-length`
+- `/guide/practical-pizza-tips/containers-and-lids`
+- `/guide/practical-pizza-tips/common-problems`
 - `/styles`
 - `/ovens`
 - `/sauce`
 - `/toppings`
 - `/calculator/quick`
 - `/timer`
+- `/tools/bake-timer`
 - `/costs`
 - `/updates`
 
@@ -81,6 +87,13 @@ Important private/noindex routes include:
 - `/signup`
 - `/preview`
 - `/debug`
+- `/session/recipe`
+- `/session/shopping`
+- `/session/timeline`
+- `/session/kitchen`
+- `/session/review`
+- `/order`
+- `/api`
 
 These routes must not appear in the sitemap.
 
@@ -153,8 +166,10 @@ It must include:
 - `/guide`
 - `/guides/dough`
 - `/guide/pizza-troubleshooting`
+- `/guide/practical-pizza-tips`
 - `/sauce`
 - `/calculator/quick`
+- `/tools/bake-timer`
 - `/updates`
 
 It must exclude:
@@ -167,10 +182,11 @@ It must exclude:
 - `/history`
 - `/coach`
 - downstream session routes
+- dynamic guest order routes
 - `/account`
 - auth routes
+- API routes
 - private routes
-- dynamic guest order routes
 - draft or debug routes
 
 ## Robots rules
@@ -189,7 +205,7 @@ app/robots.ts
 
 While `ALLOW_INDEXING=false`, robots blocks crawling broadly as part of the temporary launch protection. This is not the only protection layer; pages also use noindex metadata and response headers.
 
-When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes. Legacy predecessor routes that still render pages remain noindexed by page metadata even when global indexing is enabled.
+When indexing is explicitly enabled later, robots should allow public content and continue to disallow private/account/auth/debug routes, downstream session workflow routes, public token order routes and API routes. Legacy predecessor routes that still render pages remain noindexed by page metadata even when global indexing is enabled.
 
 Redirect-only compatibility routes are handled by server-side redirects rather than page-level noindex metadata.
 

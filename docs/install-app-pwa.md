@@ -47,11 +47,17 @@ Important manifest fields:
 
 ## Icon status
 
-Patch 30 keeps the existing project-owned icon:
+Patch 476A replaces the earlier SVG-only icon setup with one project-owned pizza identity and platform-specific derivatives:
 
 - `public/icon.svg`
+- `public/favicon.svg`
+- `public/favicon.ico`
+- `public/apple-touch-icon.png`
+- `public/icons/icon-192.png`
+- `public/icons/icon-512.png`
+- `public/icons/maskable-512.png`
 
-This is enough for a conservative manifest foundation. Future polish can add dedicated 192×192 and 512×512 PNG icons and platform-specific screenshots, but that is intentionally not part of this patch.
+The SVG remains the canonical vector mark. The PNG derivatives support iOS home-screen shortcuts and Android/PWA installation without relying on browser-generated SVG fallbacks. No screenshots, service worker or offline behavior are added by this icon update.
 
 ## Browser behavior
 
@@ -69,7 +75,6 @@ Google indexing remains disabled by the existing pre-launch configuration until 
 
 Possible future improvements:
 
-- richer 192×192 and 512×512 app icons
 - optional screenshots for install surfaces
 - optional service-worker/offline fallback after a separate safety review
 - session autosave integration

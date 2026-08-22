@@ -3,6 +3,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   SAFE_INTERNAL_SITE_URL,
+  SOCIAL_IMAGE_ALT,
+  SOCIAL_IMAGE_HEIGHT,
+  SOCIAL_IMAGE_PATH,
+  SOCIAL_IMAGE_WIDTH,
   cleanCanonicalPath,
   canonicalUrl,
   getSiteUrl,
@@ -17,6 +21,7 @@ import {
   seoRoutePolicy,
   robotsMetadata,
   robotsPolicy,
+  socialImageUrl,
   sitemapEntries,
   statefulQueryParamRoutes,
 } from "@/lib/seo-config";
@@ -140,6 +145,41 @@ describe("SEO launch configuration", () => {
     expect(seoRoutePolicy.legacyNoindexRoutes).toEqual(legacyNoindexRoutePaths);
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/account");
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/admin");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/api");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/order");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/recipe");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/shopping");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/timeline");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/kitchen");
+    expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/review");
+  });
+
+  it("uses the versioned static DoughTools pizza social image for public metadata", () => {
+    const env = { NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" };
+    const imageUrl = "https://www.doughtools.app/social/doughtools-og-v1.png";
+    const metadata = metadataForRoute("/", env);
+
+    expect(SOCIAL_IMAGE_PATH).toBe("/social/doughtools-og-v1.png");
+    expect(SOCIAL_IMAGE_WIDTH).toBe(1200);
+    expect(SOCIAL_IMAGE_HEIGHT).toBe(630);
+    expect(SOCIAL_IMAGE_ALT).toContain("DoughTools pizza mark");
+    expect(socialImageUrl(env)).toBe(imageUrl);
+    expect(metadata.description).toBe("Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.");
+    expect(metadata.openGraph).toMatchObject({
+      title: "Plan Better Pizza Nights | DoughTools",
+      description: "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
+      type: "website",
+      siteName: "DoughTools",
+      url: "https://www.doughtools.app/",
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: SOCIAL_IMAGE_ALT }],
+    });
+    expect(metadata.twitter).toMatchObject({
+      card: "summary_large_image",
+      title: "Plan Better Pizza Nights | DoughTools",
+      description: "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
+      images: [imageUrl],
+    });
+    expect(JSON.stringify(metadata)).not.toContain("/opengraph-image");
   });
 
   it("includes canonical public product, learning and supporting utility routes in the sitemap", () => {
@@ -164,6 +204,13 @@ describe("SEO launch configuration", () => {
   it("excludes private, dynamic, downstream session and legacy routes from indexable route definitions and sitemap", () => {
     expect(privateSeoRoutes).toContain("/account");
     expect(privateSeoRoutes).toContain("/auth/callback");
+    expect(privateSeoRoutes).toContain("/api");
+    expect(privateSeoRoutes).toContain("/order");
+    expect(privateSeoRoutes).toContain("/session/recipe");
+    expect(privateSeoRoutes).toContain("/session/shopping");
+    expect(privateSeoRoutes).toContain("/session/timeline");
+    expect(privateSeoRoutes).toContain("/session/kitchen");
+    expect(privateSeoRoutes).toContain("/session/review");
     expect(publicSeoRoutes.map((route) => route.path)).not.toContain("/account");
 
     const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);
@@ -277,6 +324,43 @@ describe("SEO launch configuration", () => {
     });
   });
 
+  it("keeps private workflow, token and API routes covered by explicit noindex response headers", () => {
+    const nextConfig = readFileSync(join(process.cwd(), "next.config.ts"), "utf8");
+
+    for (const source of [
+      "/account/:path*",
+      "/admin/:path*",
+      "/api/:path*",
+      "/auth/:path*",
+      "/order/:path*",
+      "/session/recipe/:path*",
+      "/session/shopping/:path*",
+      "/session/timeline/:path*",
+      "/session/kitchen/:path*",
+      "/session/review/:path*",
+    ]) {
+      expect(nextConfig).toContain(source);
+    }
+
+    expect(nextConfig).toContain("noindex, nofollow, noarchive");
+  });
+
+  it("adds route-level noindex metadata for downstream session and public token workflows", () => {
+    for (const layoutPath of [
+      ["app", "order", "[publicToken]", "layout.tsx"],
+      ["app", "session", "recipe", "layout.tsx"],
+      ["app", "session", "shopping", "layout.tsx"],
+      ["app", "session", "timeline", "layout.tsx"],
+      ["app", "session", "kitchen", "layout.tsx"],
+      ["app", "session", "review", "layout.tsx"],
+    ]) {
+      const layout = readFileSync(join(process.cwd(), ...layoutPath), "utf8");
+
+      expect(layout).toContain("noindexMetadata");
+      expect(layout).toContain("return children");
+    }
+  });
+
   it("keeps public pages indexable only when indexing is explicitly allowed and private pages noindex", () => {
     expect(() => metadataForRoute("/start" as Parameters<typeof metadataForRoute>[0])).toThrow(
       "Missing SEO metadata for route: /start",
@@ -297,6 +381,8 @@ describe("SEO launch configuration", () => {
 
     expect(privateSeoRoutes).toContain("/account");
     expect(privateSeoRoutes).toContain("/admin");
+    expect(privateSeoRoutes).toContain("/order");
+    expect(privateSeoRoutes).toContain("/session/recipe");
   });
 
   it("keeps obsolete predecessor routes accessible but explicitly noindexed", () => {
@@ -414,6 +500,11 @@ describe("SEO launch configuration", () => {
 
     expect(indexationDoc).toContain("https://www.doughtools.app");
     expect(indexationDoc).toContain("/session/start");
+    expect(indexationDoc).toContain("/guide/practical-pizza-tips/leftover-dough");
+    expect(indexationDoc).toContain("/tools/bake-timer");
+    expect(indexationDoc).toContain("/session/recipe");
+    expect(indexationDoc).toContain("/order");
+    expect(indexationDoc).toContain("/api");
     expect(indexationDoc).toContain("- `/start`");
     expect(indexationDoc).toContain("It must exclude:");
     expect(indexationDoc).toContain("/sitemap.xml");

@@ -46,6 +46,23 @@ const noIndexHeader = {
   value: "noindex, nofollow, noarchive",
 };
 
+const noIndexHeaderSources = [
+  "/account/:path*",
+  "/admin/:path*",
+  "/api/:path*",
+  "/auth/:path*",
+  "/debug/:path*",
+  "/login",
+  "/order/:path*",
+  "/preview/:path*",
+  "/session/recipe/:path*",
+  "/session/shopping/:path*",
+  "/session/timeline/:path*",
+  "/session/kitchen/:path*",
+  "/session/review/:path*",
+  "/signup",
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   async headers() {
@@ -55,14 +72,10 @@ const nextConfig: NextConfig = {
           source: "/:path*",
           headers: securityHeaders,
         },
-        {
-          source: "/account/:path*",
+        ...noIndexHeaderSources.map((source) => ({
+          source,
           headers: [noIndexHeader],
-        },
-        {
-          source: "/auth/:path*",
-          headers: [noIndexHeader],
-        },
+        })),
       ];
     }
 

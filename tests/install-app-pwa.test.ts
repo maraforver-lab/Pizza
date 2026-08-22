@@ -20,6 +20,9 @@ describe("install app / add to home screen foundation", () => {
     expect(data.background_color).toBe("#FFF8F1");
     expect(data.theme_color).toBe("#FFF8F1");
     expect(data.icons).toEqual([
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
     ]);
   });
@@ -93,6 +96,9 @@ describe("install app / add to home screen foundation", () => {
     expect(doc).toContain("No analytics, tracking, cookies or install-choice telemetry are added");
     expect(doc).toContain("Google indexing remains disabled");
     expect(doc).toContain("public/icon.svg");
+    expect(doc).toContain("public/apple-touch-icon.png");
+    expect(doc).toContain("public/icons/icon-192.png");
+    expect(doc).toContain("public/icons/maskable-512.png");
   });
 
   it("keeps launch safety and avoids adding service worker or push files", () => {
