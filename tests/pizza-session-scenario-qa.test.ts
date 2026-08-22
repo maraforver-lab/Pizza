@@ -72,7 +72,12 @@ describe("Pizza Session scenario QA", () => {
     const now = new Date("2026-07-02T09:00:00");
     const { recipe, displayedSteps } = buildScenario({
       id: "qa-24h-cold",
-      doughStartMode: "now",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-02T09:00:00.000Z",
+      doughStartAnchorTime: now.toISOString(),
+      fermentationChoice: "twenty_four_hour_cold",
+      plannedFermentationHours: 24,
+      plannedFermentationMode: "cold",
       targetEatTime: "2026-07-03T09:00",
       flourSituation: "has_w_range",
       availableFlourWRanges: ["w_260_300"],

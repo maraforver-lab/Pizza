@@ -132,6 +132,24 @@ describe("Pizza Session data model", () => {
     expect(createPizzaSession({ plannedFermentationHours: 96 }).plannedFermentationHours).toBeUndefined();
   });
 
+  it("normalizes explicit Dough Plan fermentation choice state without changing legacy duration support", () => {
+    const selected = createPizzaSession({
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-02T18:00:00.000Z",
+      doughStartAnchorTime: "2026-07-02T10:06:00.000Z",
+      fermentationChoice: "twenty_four_hour_room",
+      plannedFermentationHours: 24,
+      plannedFermentationMode: "room",
+    });
+
+    expect(selected.fermentationChoice).toBe("twenty_four_hour_room");
+    expect(selected.plannedFermentationMode).toBe("room");
+    expect(selected.plannedFermentationHours).toBe(24);
+    expect(selected.doughStartAnchorTime).toBe("2026-07-02T10:06:00.000Z");
+    expect(createPizzaSession({ fermentationChoice: "invalid" }).fermentationChoice).toBeUndefined();
+    expect(createPizzaSession({ plannedFermentationMode: "warm" }).plannedFermentationMode).toBeUndefined();
+  });
+
   it("normalizes optional Pizza Nerd hydration and fermentation temperature overrides safely", () => {
     expect(createPizzaSession({ hydrationPercentOverride: 50 }).hydrationPercentOverride).toBe(50);
     expect(createPizzaSession({ hydrationPercentOverride: 72 }).hydrationPercentOverride).toBe(72);

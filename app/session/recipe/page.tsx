@@ -11,7 +11,7 @@ import { SavePizzaSessionToAccount } from "@/components/session/SavePizzaSession
 import { SessionStepHero } from "@/components/session/SessionStepHero";
 import { SessionViewportReset } from "@/components/session/SessionViewportReset";
 import { SessionWorkspaceLayout } from "@/components/session/SessionWorkspaceLayout";
-import type { PizzaSession } from "@/lib/pizza-session";
+import type { PizzaSession, PizzaSessionFermentationChoice } from "@/lib/pizza-session";
 import { PIZZA_SESSION_LOCAL_ONLY_COPY, updatePizzaSession } from "@/lib/pizza-session-storage";
 import { buildSessionFermentationDisplay } from "@/lib/session-fermentation-display";
 import {
@@ -22,6 +22,7 @@ import {
   generateAndSaveActiveSessionRecipe,
   type SessionRecipeBuildResult,
 } from "@/lib/session-recipe";
+import { sessionFermentationChoiceOptions } from "@/lib/session-fermentation-choice";
 import {
   calculateSessionPizzaSauce,
   formatSauceCanPurchase,
@@ -43,25 +44,25 @@ function amountCardTone(label: string) {
   return "text-leaf";
 }
 
-function formatAvailableHours(value?: number) {
+function formatAvailableDuration(value?: number) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "Time not available";
-  if (value < 1) return `${Math.round(value * 60)} min`;
-  const rounded = Math.round(value * 10) / 10;
-  return `${rounded} h`;
+  const totalMinutes = Math.max(0, Math.round(value * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${minutes} min`;
+  if (minutes === 0) return `${hours} h`;
+  return `${hours} h ${minutes} min`;
 }
 
-function fermentationDurationOptions(availableHours?: number) {
-  if (typeof availableHours !== "number" || !Number.isFinite(availableHours)) return [];
-  if (availableHours < 24 || availableHours > 72) return [];
-  const roundedAvailable = Math.round(availableHours * 10) / 10;
-  return [...new Set([24, 48, 72, roundedAvailable]
-    .filter((value) => value >= 24 && value <= 72 && value <= availableHours)
-    .sort((a, b) => a - b))];
+function parseSessionTargetTime(session: PizzaSession) {
+  const value = session.targetEatTime ?? session.targetBakeTime;
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : undefined;
 }
 
-function formatFermentationLength(value?: number) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "Not selected";
-  return `${Math.round(value * 10) / 10} h`;
+function subtractHours(date: Date, hours: number) {
+  return new Date(date.getTime() - hours * 3_600_000);
 }
 
 function activeFermentationMode(result: Extract<SessionRecipeBuildResult, { ok: true }>) {
@@ -91,10 +92,6 @@ const advancedDoughSettingsCopy: Record<PizzaSession["experienceLevel"], string>
   pizza_nerd: "These controls feed the same recipe model for every guidance level: hydration changes the flour-water balance, and temperature changes yeast activity.",
 };
 
-function fermentationOptionIsActive(selected: number | undefined, option: number) {
-  return typeof selected === "number" && Number.isFinite(selected) && Math.abs(selected - option) < 0.11;
-}
-
 function formatPlanningDateTime(value: string) {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Date not available";
@@ -121,6 +118,31 @@ function longHorizonOptionIsSelected(session: PizzaSession, option: LongHorizonF
   return session.doughStartMode === "later"
     && session.plannedFermentationHours === option.durationHours
     && samePlanStart(session.doughEarliestStartTime, option.startIso);
+}
+
+function activeFermentationChoice(
+  session: PizzaSession,
+  result: Extract<SessionRecipeBuildResult, { ok: true }>,
+): PizzaSessionFermentationChoice {
+  const choice = result.continuousYeast?.fermentationChoice;
+  if (choice === "start_now" || choice === "twenty_four_hour_room" || choice === "twenty_four_hour_cold") return choice;
+  if (session.plannedFermentationHours === 24 && session.plannedFermentationMode === "room") return "twenty_four_hour_room";
+  if (session.plannedFermentationHours === 24) return "twenty_four_hour_cold";
+  return "start_now";
+}
+
+function choiceTemperatureLabel(choice: PizzaSessionFermentationChoice, availableHours?: number) {
+  if (choice === "twenty_four_hour_room") return "Room temperature · 22 °C";
+  if (choice === "twenty_four_hour_cold") return "Cold fermentation · 4 °C";
+  return availableHours && availableHours > 24
+    ? "Cold fermentation · 4 °C"
+    : "Room temperature · 22 °C";
+}
+
+function choiceTitle(choice: PizzaSessionFermentationChoice) {
+  if (choice === "start_now") return "Start now";
+  if (choice === "twenty_four_hour_room") return "Start later — 24 h room";
+  return "Start later — 24 h cold";
 }
 
 function selectedFlourLabel(value?: string) {
@@ -279,13 +301,12 @@ export default function SessionRecipePage() {
     longHorizonOptionIsSelected(session, option)
   ));
   const longHorizonNeedsSelection = Boolean(longHorizonRecommendation && !selectedLongHorizonOption);
-  const coldFermentationOptions = fermentationDurationOptions(result.continuousYeast?.availableFermentationHours);
-  const showColdFermentationSelector = Boolean(
-    result.continuousYeast?.recommendation.fermentationMode === "cold"
-    && coldFermentationOptions.length > 0
+  const fermentationChoices = sessionFermentationChoiceOptions(result.continuousYeast?.choiceAvailabilityHours);
+  const showFermentationChoiceSelector = Boolean(
+    fermentationChoices.length > 0
     && !longHorizonRecommendation,
   );
-  const selectedFermentationHours = result.continuousYeast?.selectedFermentationHours;
+  const selectedFermentationChoice = activeFermentationChoice(session, result);
   const fermentationModeForControls = activeFermentationMode(result);
   const temperatureBounds = fermentationTemperatureBounds(fermentationModeForControls);
   const activeFermentationTemperatureC = result.continuousYeast?.recommendation.temperatureC
@@ -308,10 +329,37 @@ export default function SessionRecipePage() {
     setResult(saved.result);
   };
 
-  const updatePlannedFermentationHours = (plannedFermentationHours: number) => {
+  const updateFermentationChoice = (fermentationChoice: PizzaSessionFermentationChoice) => {
     if (!session) return;
+    const target = parseSessionTargetTime(session);
+    if (!target) return;
+    const anchorTime = session.doughStartAnchorTime ?? new Date().toISOString();
+
+    if (fermentationChoice === "start_now") {
+      const updated = updatePizzaSession(session.id, {
+        fermentationChoice,
+        doughStartMode: "now",
+        doughStartAnchorTime: anchorTime,
+        doughEarliestStartTime: undefined,
+        plannedFermentationHours: undefined,
+        plannedFermentationMode: undefined,
+        fermentationTemperatureCOverride: undefined,
+        currentStep: "recipe",
+        status: "planning",
+      });
+      regenerateRecipeAfterSessionUpdate(updated);
+      return;
+    }
+
+    const plannedFermentationMode = fermentationChoice === "twenty_four_hour_room" ? "room" : "cold";
     const updated = updatePizzaSession(session.id, {
-      plannedFermentationHours,
+      fermentationChoice,
+      doughStartMode: "later",
+      doughStartAnchorTime: anchorTime,
+      doughEarliestStartTime: subtractHours(target, 24).toISOString(),
+      plannedFermentationHours: 24,
+      plannedFermentationMode,
+      fermentationTemperatureCOverride: undefined,
       currentStep: "recipe",
       status: "planning",
     });
@@ -321,9 +369,13 @@ export default function SessionRecipePage() {
   const updateLongHorizonPlan = (option: LongHorizonFermentationOption) => {
     if (!session) return;
     const updated = updatePizzaSession(session.id, {
+      fermentationChoice: option.durationHours === 24 ? "twenty_four_hour_cold" : undefined,
       plannedFermentationHours: option.durationHours,
+      plannedFermentationMode: "cold",
       doughStartMode: "later",
       doughEarliestStartTime: option.startIso,
+      doughStartAnchorTime: undefined,
+      fermentationTemperatureCOverride: undefined,
       currentStep: "recipe",
       status: "planning",
     });
@@ -378,34 +430,49 @@ export default function SessionRecipePage() {
           hideMeta
         />
 
-        {showColdFermentationSelector && (
-          <section className="mt-4 rounded-[1.5rem] border border-leaf/25 bg-leaf/[.07] p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6 lg:p-7" aria-labelledby="fermentation-duration-heading">
+        {showFermentationChoiceSelector && (
+          <section className="mt-4 rounded-[1.5rem] border border-leaf/25 bg-leaf/[.07] p-4 shadow-card sm:mt-6 sm:rounded-[2rem] sm:p-6 lg:p-7" aria-labelledby="fermentation-choice-heading">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Fermentation length</p>
-                <h2 id="fermentation-duration-heading" className="mt-2 font-display text-3xl font-semibold">Choose your fermentation length</h2>
+                <p className="text-xs font-extrabold uppercase tracking-[.16em] text-leaf">Dough start</p>
+                <h2 id="fermentation-choice-heading" className="mt-2 font-display text-3xl font-semibold">When do you want to make the dough?</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-                  Pick the cold fermentation length that fits your bake day. A longer fermentation can build deeper flavor and a more developed dough, but it also needs flour strong enough to hold its structure over time. DoughTools uses your choice to guide yeast amount, start time, and flour-strength recommendations.
+                  Choose whether to start now or use a clear 24 h plan. DoughTools uses this choice for yeast, temperature context, and the Timeline.
                 </p>
               </div>
               <span className="w-fit rounded-full bg-white/80 px-3 py-2 text-xs font-extrabold text-ink/55">
-                Available window: {formatAvailableHours(result.continuousYeast?.availableFermentationHours)}
+                Available window: {formatAvailableDuration(result.continuousYeast?.choiceAvailabilityHours)}
               </span>
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {coldFermentationOptions.map((hours) => (
+            <div className="mt-4 grid gap-2 md:grid-cols-3">
+              {fermentationChoices.map((choice) => (
                 <button
-                  key={hours}
+                  key={choice}
                   type="button"
-                  onClick={() => updatePlannedFermentationHours(hours)}
-                  aria-pressed={fermentationOptionIsActive(selectedFermentationHours, hours)}
-                  className={`min-h-11 rounded-2xl px-4 text-sm font-extrabold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
-                    fermentationOptionIsActive(selectedFermentationHours, hours)
-                      ? "bg-tomato text-white"
-                      : "bg-white text-ink/65 ring-1 ring-ink/10 hover:text-tomato"
+                  onClick={() => updateFermentationChoice(choice)}
+                  aria-pressed={selectedFermentationChoice === choice}
+                  className={`min-h-20 rounded-2xl border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato ${
+                    selectedFermentationChoice === choice
+                      ? "border-tomato/45 bg-white ring-2 ring-tomato/20"
+                      : "border-ink/10 bg-white/80 hover:border-tomato/30"
                   }`}
                 >
-                  {formatFermentationLength(hours)} cold
+                  <span className="flex items-start justify-between gap-2">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-extrabold text-ink">{choiceTitle(choice)}</span>
+                      <span className="mt-1 block text-xs font-bold leading-5 text-ink/55">
+                        {choice === "start_now"
+                          ? `${formatAvailableDuration(result.continuousYeast?.choiceAvailabilityHours)} available`
+                          : `Start ${formatPlanningDateTime(subtractHours(parseSessionTargetTime(session) ?? new Date(), 24).toISOString())}`}
+                      </span>
+                      <span className="mt-1 block text-xs font-extrabold leading-5 text-leaf">
+                        {choiceTemperatureLabel(choice, result.continuousYeast?.choiceAvailabilityHours)}
+                      </span>
+                    </span>
+                    {selectedFermentationChoice === choice && (
+                      <DoughToolsIcon name="check" size={16} strokeWidth={2.4} className="mt-0.5 shrink-0 text-tomato" />
+                    )}
+                  </span>
                 </button>
               ))}
             </div>

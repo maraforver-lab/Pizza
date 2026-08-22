@@ -10,7 +10,7 @@ import { flourIds } from "@/lib/flours";
 import { buildPlanningResult } from "@/lib/planning-engine";
 import type { PlanningInput } from "@/lib/planning-input";
 import type { FermentationMode } from "@/lib/planning-types";
-import type { PizzaSession, PizzaSessionRecipeParams, PizzaSessionRecipeSnapshot } from "@/lib/pizza-session";
+import type { PizzaSession, PizzaSessionFermentationChoice, PizzaSessionRecipeParams, PizzaSessionRecipeSnapshot } from "@/lib/pizza-session";
 import { recipeParams } from "@/lib/recipe-url";
 import type { Fermentation, OvenType, PizzaGoal, PizzaStyleId, RecipeIngredients, RecipeSettings, YeastType } from "@/lib/saved-recipes";
 import { buildSessionFlourWGuidance, type SessionFlourWGuidance } from "@/lib/session-flour-w-guidance";
@@ -27,8 +27,11 @@ export type SessionRecipeContinuousYeastInfo = {
   basisLabel: string;
   summary: string;
   availableFermentationHours: number;
+  choiceAvailabilityHours: number;
   selectedFermentationHours: number;
   selectedByUser: boolean;
+  fermentationChoice: PizzaSessionFermentationChoice | "legacy";
+  fermentationMode: ContinuousYeastFermentationMode;
 };
 
 export type SessionRecipeBuildResult =
@@ -68,6 +71,17 @@ function safeFlourId(value?: string): FlourId | undefined {
 
 function planningFermentationModeFromRecipe(fermentation: Fermentation): FermentationMode {
   return fermentation.endsWith("cold") ? "cold" : "room";
+}
+
+function continuousModeForHours(hours: number): ContinuousYeastFermentationMode {
+  return hours <= 24 ? "room" : "cold";
+}
+
+function fermentationPresetForHoursAndMode(hours: number, mode: ContinuousYeastFermentationMode): Fermentation {
+  if (mode === "cold") return hours <= 24 ? "24h-cold" : "48h-cold";
+  if (hours <= 6) return "6h-room";
+  if (hours <= 12) return "12h-room";
+  return "24h-room";
 }
 
 function doughStyleForPlanning(settings: RecipeSettings) {
@@ -129,6 +143,10 @@ function hoursBetween(start: Date, end: Date) {
   return (end.getTime() - start.getTime()) / 3_600_000;
 }
 
+function subtractHours(date: Date, hours: number) {
+  return new Date(date.getTime() - hours * 3_600_000);
+}
+
 function continuousYeastTypeFromRecipe(yeastType: YeastType): ContinuousYeastType | null {
   if (yeastType === "cy") return "fresh_yeast";
   if (yeastType === "idy") return "instant_dry_yeast";
@@ -155,6 +173,10 @@ function validSessionPlannedFermentationHours(value: number | undefined, availab
   if (value < 24 || value > 72) return undefined;
   if (!Number.isFinite(availableHours) || availableHours < 24 || availableHours > 72) return undefined;
   return value <= availableHours ? value : undefined;
+}
+
+function validSessionPlannedFermentationMode(value: PizzaSession["plannedFermentationMode"]): ContinuousYeastFermentationMode | undefined {
+  return value === "room" || value === "cold" ? value : undefined;
 }
 
 function validSessionHydrationPercent(value: number | undefined, fallback: number) {
@@ -230,6 +252,107 @@ function resolveDoughStartForRecipe(session: PizzaSession, now: Date, target: Da
   return now.getTime() < target.getTime() ? now : target;
 }
 
+type ResolvedSessionFermentationPlan = {
+  start: Date;
+  fermentationHours: number;
+  fermentationMode: ContinuousYeastFermentationMode;
+  selectedByUser: boolean;
+  fermentationChoice: SessionRecipeContinuousYeastInfo["fermentationChoice"];
+  choiceAvailabilityHours: number;
+};
+
+function resolveStartNowAnchor(session: PizzaSession, now: Date) {
+  return parseSessionDate(session.doughStartAnchorTime) ?? now;
+}
+
+function resolveSessionFermentationPlan({
+  session,
+  planningInfo,
+  now,
+  target,
+}: {
+  session: PizzaSession;
+  planningInfo: SessionRecipePlanningInfo;
+  now: Date;
+  target: Date;
+}): ResolvedSessionFermentationPlan {
+  const choice = session.fermentationChoice;
+  const choiceWindowStart = choice ? resolveStartNowAnchor(session, now) : now;
+  const choiceAvailabilityHours = hoursBetween(choiceWindowStart, target);
+
+  if (choice === "twenty_four_hour_room" || choice === "twenty_four_hour_cold") {
+    const fermentationMode = choice === "twenty_four_hour_room" ? "room" : "cold";
+    return {
+      start: subtractHours(target, 24),
+      fermentationHours: 24,
+      fermentationMode,
+      selectedByUser: true,
+      fermentationChoice: choice,
+      choiceAvailabilityHours,
+    };
+  }
+
+  if (choice === "start_now") {
+    const start = resolveStartNowAnchor(session, now);
+    const fermentationHours = hoursBetween(start, target);
+    return {
+      start,
+      fermentationHours,
+      fermentationMode: continuousModeForHours(fermentationHours),
+      selectedByUser: true,
+      fermentationChoice: choice,
+      choiceAvailabilityHours,
+    };
+  }
+
+  const start = resolveDoughStartForRecipe(session, now, target);
+  const availableFermentationHours = hoursBetween(start, target);
+  const explicitMode = validSessionPlannedFermentationMode(session.plannedFermentationMode);
+  const recommendedMode = planningInfo.ok
+    ? planningInfo.result.fermentationSetupRecommendation?.recommendedFermentationMode
+    : undefined;
+  const fallbackMode: ContinuousYeastFermentationMode = recommendedMode === "room" ? "room" : continuousModeForHours(availableFermentationHours);
+  const legacySelectedFermentationHours = validSessionPlannedFermentationHours(session.plannedFermentationHours, availableFermentationHours);
+
+  if (legacySelectedFermentationHours !== undefined) {
+    return {
+      start,
+      fermentationHours: legacySelectedFermentationHours,
+      fermentationMode: explicitMode ?? "cold",
+      selectedByUser: true,
+      fermentationChoice: "legacy",
+      choiceAvailabilityHours: hoursBetween(now, target),
+    };
+  }
+
+  return {
+    start,
+    fermentationHours: availableFermentationHours,
+    fermentationMode: explicitMode ?? fallbackMode,
+    selectedByUser: false,
+    fermentationChoice: "legacy",
+    choiceAvailabilityHours: hoursBetween(now, target),
+  };
+}
+
+function sessionFermentationPreset(session: PizzaSession, now: Date, fallback: Fermentation) {
+  const target = parseSessionDate(session.targetEatTime ?? session.targetBakeTime);
+  if (!target) return fallback;
+  if (session.fermentationChoice === "twenty_four_hour_room") return "24h-room";
+  if (session.fermentationChoice === "twenty_four_hour_cold") return "24h-cold";
+  if (session.plannedFermentationHours === 24 && session.plannedFermentationMode === "room") return "24h-room";
+  if (session.plannedFermentationHours === 24 && session.plannedFermentationMode === "cold") return "24h-cold";
+  if (session.plannedFermentationHours === 24) return "24h-cold";
+  if (session.plannedFermentationHours && session.plannedFermentationHours >= 48) return "48h-cold";
+
+  const start = session.fermentationChoice === "start_now"
+    ? resolveStartNowAnchor(session, now)
+    : resolveDoughStartForRecipe(session, now, target);
+  const hours = hoursBetween(start, target);
+  if (!Number.isFinite(hours) || hours <= 0) return fallback;
+  return fermentationPresetForHoursAndMode(hours, continuousModeForHours(hours));
+}
+
 function buildSessionContinuousYeast({
   session,
   settings,
@@ -247,16 +370,10 @@ function buildSessionContinuousYeast({
   const target = parseSessionDate(session.targetEatTime ?? session.targetBakeTime);
   if (!yeastType || !target) return { ingredients: baseIngredients, continuousYeast: null };
 
-  const start = resolveDoughStartForRecipe(session, now, target);
-  const availableFermentationHours = hoursBetween(start, target);
-  const recommendedMode = planningInfo.ok
-    ? planningInfo.result.fermentationSetupRecommendation?.recommendedFermentationMode
-    : undefined;
-  const mode: ContinuousYeastFermentationMode = recommendedMode === "room" ? "room" : "cold";
-  const selectedFermentationHours = mode === "cold"
-    ? validSessionPlannedFermentationHours(session.plannedFermentationHours, availableFermentationHours)
-    : undefined;
-  const fermentationHours = selectedFermentationHours ?? availableFermentationHours;
+  const plan = resolveSessionFermentationPlan({ session, planningInfo, now, target });
+  const availableFermentationHours = hoursBetween(plan.start, target);
+  const fermentationHours = plan.fermentationHours;
+  const mode = plan.fermentationMode;
   const temperatureC = validSessionFermentationTemperatureC(
     session.fermentationTemperatureCOverride,
     mode,
@@ -283,8 +400,11 @@ function buildSessionContinuousYeast({
         basisLabel,
         summary,
         availableFermentationHours,
+        choiceAvailabilityHours: plan.choiceAvailabilityHours,
         selectedFermentationHours: fermentationHours,
-        selectedByUser: Boolean(selectedFermentationHours),
+        selectedByUser: plan.selectedByUser,
+        fermentationChoice: plan.fermentationChoice,
+        fermentationMode: mode,
       },
     };
   }
@@ -307,8 +427,11 @@ function buildSessionContinuousYeast({
       basisLabel,
       summary: `Yeast amount is calculated for about ${basisLabel}.`,
       availableFermentationHours,
+      choiceAvailabilityHours: plan.choiceAvailabilityHours,
       selectedFermentationHours: fermentationHours,
-      selectedByUser: Boolean(selectedFermentationHours),
+      selectedByUser: plan.selectedByUser,
+      fermentationChoice: plan.fermentationChoice,
+      fermentationMode: mode,
     },
   };
 }
@@ -344,7 +467,8 @@ function recipeSettingsFromSession(session: PizzaSession | undefined, now = new 
   const goal: PizzaGoal = isPan ? "pan" : isPizzaOven ? "balanced" : session.pizzaPreset === "funghi" ? "balanced" : "balanced";
   const ovenType: OvenType = isPizzaOven ? "gas" : "home";
   const ballWeight = sessionBallWeight({ session, isPan, ovenType });
-  const fermentation: Fermentation = isPan ? "48h-cold" : ovenType === "gas" ? "12h-room" : "24h-cold";
+  const fallbackFermentation: Fermentation = isPan ? "48h-cold" : ovenType === "gas" ? "12h-room" : "24h-cold";
+  const fermentation = sessionFermentationPreset(session, now, fallbackFermentation);
   const fermentationMode = fermentation.endsWith("cold") ? "cold" : "room";
   const temperature = validSessionFermentationTemperatureC(
     session.fermentationTemperatureCOverride,

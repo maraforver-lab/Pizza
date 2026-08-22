@@ -625,6 +625,45 @@ describe("Pizza Session timeline", () => {
       .toBe(new Date("2026-07-05T16:00").toISOString());
   });
 
+  it("keeps selected 24h room and 24h cold timelines aligned with the recipe process", () => {
+    const now = new Date("2026-07-02T10:06:00");
+    const base = {
+      status: "planning" as const,
+      currentStep: "recipe" as const,
+      targetEatTime: "2026-07-03T18:00:00.000Z",
+      doughStartMode: "later" as const,
+      doughEarliestStartTime: "2026-07-02T18:00:00.000Z",
+      doughStartAnchorTime: "2026-07-02T10:06:00.000Z",
+      plannedFermentationHours: 24,
+      pizzaStyle: "home-oven" as const,
+      pizzaPreset: "margherita" as const,
+      pizzaCount: 4,
+      ovenType: "home" as const,
+      flour: "tipo-00" as const,
+    };
+    const room = createPizzaSession({
+      ...base,
+      id: "selected-24h-room-timeline",
+      fermentationChoice: "twenty_four_hour_room",
+      plannedFermentationMode: "room",
+    }, now);
+    const cold = createPizzaSession({
+      ...base,
+      id: "selected-24h-cold-timeline",
+      fermentationChoice: "twenty_four_hour_cold",
+      plannedFermentationMode: "cold",
+    }, now);
+
+    const roomTimeline = generatePizzaSessionTimeline(room, now).timeline!;
+    const coldTimeline = generatePizzaSessionTimeline(cold, now).timeline!;
+
+    expect(roomTimeline.steps.some((step) => step.id === "room-ferment")).toBe(true);
+    expect(roomTimeline.steps.some((step) => step.id === "cold-ferment")).toBe(false);
+    expect(coldTimeline.steps.some((step) => step.id === "cold-ferment")).toBe(true);
+    expect(coldTimeline.steps.some((step) => step.id === "room-ferment")).toBe(false);
+    expect(roomTimeline.inputSignature).not.toBe(coldTimeline.inputSignature);
+  });
+
   it("can anchor a weekend cold fermentation display from the stated dough start time", () => {
     const now = new Date("2026-07-02T18:00:00");
     const session = createPizzaSession({

@@ -37,6 +37,8 @@ export const PIZZA_SESSION_NAME_MAX_LENGTH = 80;
 export type PizzaSessionStatus = (typeof PIZZA_SESSION_STATUSES)[number];
 export type PizzaSessionStep = (typeof PIZZA_SESSION_STEPS)[number];
 export type PizzaSessionDoughStartMode = "now" | "later" | "recommend";
+export type PizzaSessionFermentationChoice = "start_now" | "twenty_four_hour_room" | "twenty_four_hour_cold";
+export type PizzaSessionPlannedFermentationMode = "room" | "cold";
 export type PizzaSessionFlourSituation = "recommend" | "unknown_w" | "has_w_range";
 export type PizzaSessionFlourWRange = "w_180_220" | "w_220_260" | "w_260_300" | "w_300_340" | "w_340_plus";
 export type PizzaSessionPizzaMixType = "margherita" | "marinara" | "diavola" | "funghi" | "prosciutto" | "quattro-formaggi";
@@ -148,7 +150,10 @@ export type PizzaSession = {
   targetBakeTime?: string;
   doughStartMode?: PizzaSessionDoughStartMode;
   doughEarliestStartTime?: string;
+  doughStartAnchorTime?: string;
+  fermentationChoice?: PizzaSessionFermentationChoice;
   plannedFermentationHours?: number;
+  plannedFermentationMode?: PizzaSessionPlannedFermentationMode;
   hydrationPercentOverride?: number;
   fermentationTemperatureCOverride?: number;
   yeastType?: string;
@@ -188,6 +193,8 @@ const timelineKindSet = new Set(["active", "passive"]);
 const shoppingGroupSet = new Set(["Dough", "Sauce", "Cheese", "Toppings", "Gear"]);
 const shoppingStatusSet = new Set(["already_have", "need_to_buy", "bought"]);
 const doughStartModeSet = new Set(["now", "later", "recommend"]);
+const fermentationChoiceSet = new Set(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+const plannedFermentationModeSet = new Set(["room", "cold"]);
 const flourSituationSet = new Set(["recommend", "unknown_w", "has_w_range"]);
 const flourWRangeSet = new Set(["w_180_220", "w_220_260", "w_260_300", "w_300_340", "w_340_plus"]);
 const pizzaMixTypeSet = new Set(["margherita", "marinara", "diavola", "funghi", "prosciutto", "quattro-formaggi"]);
@@ -247,6 +254,18 @@ function normalizeStep(value: unknown): PizzaSessionStep {
 function normalizeDoughStartMode(value: unknown): PizzaSessionDoughStartMode | undefined {
   return typeof value === "string" && doughStartModeSet.has(value)
     ? value as PizzaSessionDoughStartMode
+    : undefined;
+}
+
+function normalizeFermentationChoice(value: unknown): PizzaSessionFermentationChoice | undefined {
+  return typeof value === "string" && fermentationChoiceSet.has(value)
+    ? value as PizzaSessionFermentationChoice
+    : undefined;
+}
+
+function normalizePlannedFermentationMode(value: unknown): PizzaSessionPlannedFermentationMode | undefined {
+  return typeof value === "string" && plannedFermentationModeSet.has(value)
+    ? value as PizzaSessionPlannedFermentationMode
     : undefined;
 }
 
@@ -405,6 +424,8 @@ export function newPizzaSessionId(now = new Date()) {
 
 export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = new Date()): PizzaSession {
   const timestamp = now.toISOString();
+  const doughStartMode = normalizeDoughStartMode(input.doughStartMode);
+  const fermentationChoice = normalizeFermentationChoice(input.fermentationChoice);
   const session: PizzaSession = {
     id: input.id ?? newPizzaSessionId(now),
     schemaVersion: PIZZA_SESSION_SCHEMA_VERSION,
@@ -422,11 +443,16 @@ export function createPizzaSession(input: CreatePizzaSessionInput = {}, now = ne
     pizzaMix: normalizePizzaMix(input.pizzaMix),
     targetEatTime: stringValue(input.targetEatTime),
     targetBakeTime: stringValue(input.targetBakeTime),
-    doughStartMode: normalizeDoughStartMode(input.doughStartMode),
-    doughEarliestStartTime: normalizeDoughStartMode(input.doughStartMode) === "later"
+    doughStartMode,
+    doughEarliestStartTime: doughStartMode === "later"
       ? stringValue(input.doughEarliestStartTime)
       : undefined,
+    doughStartAnchorTime: doughStartMode === "now" || fermentationChoice
+      ? stringValue(input.doughStartAnchorTime)
+      : undefined,
+    fermentationChoice,
     plannedFermentationHours: plannedFermentationHoursValue(input.plannedFermentationHours),
+    plannedFermentationMode: normalizePlannedFermentationMode(input.plannedFermentationMode),
     hydrationPercentOverride: hydrationPercentOverrideValue(input.hydrationPercentOverride),
     fermentationTemperatureCOverride: fermentationTemperatureCOverrideValue(input.fermentationTemperatureCOverride),
     yeastType: normalizeSessionYeastType(input.yeastType),

@@ -156,7 +156,7 @@ function stableDateIso(value?: string) {
 
 function timelineAnchorTimeForSession(session: PizzaSession, now: Date) {
   if (session.doughStartMode !== "now") return undefined;
-  return stableDateIso(session.timeline?.anchorTime) ?? now.toISOString();
+  return stableDateIso(session.doughStartAnchorTime) ?? stableDateIso(session.timeline?.anchorTime) ?? now.toISOString();
 }
 
 export function buildPizzaSessionTimelineInputSignature(session: PizzaSession, anchorTime?: string) {
@@ -166,8 +166,10 @@ export function buildPizzaSessionTimelineInputSignature(session: PizzaSession, a
     ["doughStartMode", session.doughStartMode ?? "recommend"],
     ["doughStartAnchor", session.doughStartMode === "now" ? stableDateIso(anchorTime) : undefined],
     ["doughEarliestStartTime", session.doughStartMode === "later" ? stableDateIso(session.doughEarliestStartTime) : undefined],
+    ["fermentationChoice", session.fermentationChoice],
     ["recipeFermentation", session.recipeSnapshot?.fermentation],
     ["plannedFermentationHours", session.plannedFermentationHours],
+    ["plannedFermentationMode", session.plannedFermentationMode],
     ["pizzaCount", session.recipeSnapshot?.balls ?? session.pizzaCount],
     ["doughBallWeight", session.recipeSnapshot?.ballWeight ?? session.doughBallWeight],
     ["ovenType", session.recipeSnapshot?.oven ?? session.ovenType],
@@ -262,7 +264,7 @@ function effectiveFermentationHoursForTimeline(
   ) {
     return {
       hours: session.plannedFermentationHours,
-      fermentationMode: "cold" as const,
+      fermentationMode: session.plannedFermentationMode === "room" ? "room" as const : "cold" as const,
     };
   }
 

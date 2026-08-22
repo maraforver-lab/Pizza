@@ -5,7 +5,7 @@ import type { PlanningResult } from "@/lib/planning-result";
 type TimelineDisplayInput = {
   steps: PizzaSessionTimelineStep[];
   planningResult?: PlanningResult | null;
-  session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime" | "plannedFermentationHours" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null;
+  session?: Pick<PizzaSession, "doughStartMode" | "doughEarliestStartTime" | "targetEatTime" | "targetBakeTime" | "plannedFermentationHours" | "plannedFermentationMode" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null;
   fermentationMode?: "room" | "cold" | null;
   now?: Date;
   anchorTime?: string;
@@ -54,11 +54,15 @@ function fermentationModeFromPreset(value?: string): TimelineFermentationMode {
 }
 
 export function resolveSessionTimelineFermentationMode(
-  session?: Pick<PizzaSession, "plannedFermentationHours" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null,
+  session?: Pick<PizzaSession, "plannedFermentationHours" | "plannedFermentationMode" | "recipeSnapshot" | "ovenType" | "pizzaStyle"> | null,
   planningResult?: PlanningResult | null,
   fermentationMode?: "room" | "cold" | null,
 ): TimelineFermentationMode {
   if (fermentationMode === "cold" || fermentationMode === "room") return fermentationMode;
+
+  if (session?.plannedFermentationMode === "cold" || session?.plannedFermentationMode === "room") {
+    return session.plannedFermentationMode;
+  }
 
   if (typeof session?.plannedFermentationHours === "number" && Number.isFinite(session.plannedFermentationHours)) {
     return "cold";

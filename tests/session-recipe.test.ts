@@ -17,6 +17,7 @@ import {
   generateAndSaveActiveSessionRecipe,
   sessionRecipeQuery,
 } from "@/lib/session-recipe";
+import { fermentationModeForStartNow, sessionFermentationChoiceOptions } from "@/lib/session-fermentation-choice";
 import { calculateSessionPizzaSauce } from "@/lib/pizza-sauce-calculator";
 import { buildLongHorizonStartRecommendation } from "@/lib/session-long-horizon-start";
 import type { RecipeSettings } from "@/lib/saved-recipes";
@@ -52,6 +53,76 @@ const completeSessionInput = {
 };
 
 describe("Session recipe build step", () => {
+  it("defines Dough Plan fermentation choice availability across audited boundaries", () => {
+    expect(sessionFermentationChoiceOptions(23)).toEqual(["start_now"]);
+    expect(fermentationModeForStartNow(23)).toBe("room");
+    expect(sessionFermentationChoiceOptions(24)).toEqual(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+    expect(fermentationModeForStartNow(24)).toBe("room");
+    expect(sessionFermentationChoiceOptions(24 + 1 / 60)).toEqual(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+    expect(fermentationModeForStartNow(24 + 1 / 60)).toBe("cold");
+    expect(sessionFermentationChoiceOptions(26)).toEqual(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+    expect(sessionFermentationChoiceOptions(31.9)).toEqual(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+    expect(sessionFermentationChoiceOptions(48)).toEqual(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+    expect(sessionFermentationChoiceOptions(71 + 59 / 60)).toEqual(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+    expect(sessionFermentationChoiceOptions(72)).toEqual(["start_now", "twenty_four_hour_room", "twenty_four_hour_cold"]);
+    expect(sessionFermentationChoiceOptions(72 + 1 / 60)).toEqual([]);
+  });
+
+  it("keeps canonical yeast reference values for the three Dough Plan choices", () => {
+    const common = {
+      flourGrams: 963,
+    };
+    const startNowIdy = calculateContinuousYeastRecommendation({
+      ...common,
+      fermentationHours: 31.9,
+      fermentationMode: "cold",
+      temperatureC: 4,
+      yeastType: "instant_dry_yeast",
+    });
+    const startNowAdy = calculateContinuousYeastRecommendation({
+      ...common,
+      fermentationHours: 31.9,
+      fermentationMode: "cold",
+      temperatureC: 4,
+      yeastType: "active_dry_yeast",
+    });
+    const room24Ady = calculateContinuousYeastRecommendation({
+      ...common,
+      fermentationHours: 24,
+      fermentationMode: "room",
+      temperatureC: 22,
+      yeastType: "active_dry_yeast",
+    });
+    const room24Idy = calculateContinuousYeastRecommendation({
+      ...common,
+      fermentationHours: 24,
+      fermentationMode: "room",
+      temperatureC: 22,
+      yeastType: "instant_dry_yeast",
+    });
+    const cold24Ady = calculateContinuousYeastRecommendation({
+      ...common,
+      fermentationHours: 24,
+      fermentationMode: "cold",
+      temperatureC: 4,
+      yeastType: "active_dry_yeast",
+    });
+    const cold24Idy = calculateContinuousYeastRecommendation({
+      ...common,
+      fermentationHours: 24,
+      fermentationMode: "cold",
+      temperatureC: 4,
+      yeastType: "instant_dry_yeast",
+    });
+
+    expect(startNowIdy.yeastAmountGrams).toBeCloseTo(1.735, 3);
+    expect(startNowAdy.yeastAmountGrams).toBeCloseTo(2.082, 3);
+    expect(room24Idy.yeastAmountGrams).toBeCloseTo(0.173, 3);
+    expect(room24Ady.yeastAmountGrams).toBeCloseTo(0.208, 3);
+    expect(cold24Idy.yeastAmountGrams).toBeCloseTo(2.119, 3);
+    expect(cold24Ady.yeastAmountGrams).toBeCloseTo(2.542, 3);
+  });
+
   it("adds the /session/recipe route with local-first dough plan UI", () => {
     expect(existsSync(join(process.cwd(), "app", "session", "recipe", "page.tsx"))).toBe(true);
     const page = source("app/session/recipe/page.tsx");
@@ -157,11 +228,13 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("fermentationDisplay.label");
     expect(page).not.toContain("Fermentation place / temperature");
     expect(page).not.toContain("fermentationDisplay.temperatureC");
-    expect(page).toContain("Choose your fermentation length");
-    expect(page).toContain("Pick the cold fermentation length that fits your bake day.");
-    expect(page).toContain("A longer fermentation can build deeper flavor and a more developed dough");
-    expect(page).toContain("flour strong enough to hold its structure over time");
-    expect(page).toContain("DoughTools uses your choice to guide yeast amount, start time, and flour-strength recommendations.");
+    expect(page).toContain("When do you want to make the dough?");
+    expect(page).toContain("Choose whether to start now or use a clear 24 h plan.");
+    expect(page).toContain("Start now");
+    expect(page).toContain("Start later — 24 h room");
+    expect(page).toContain("Start later — 24 h cold");
+    expect(page).not.toContain("Choose your fermentation length");
+    expect(page).not.toContain("Pick the cold fermentation length that fits your bake day.");
     expect(page).not.toContain("Choose a cold fermentation length");
     expect(page).not.toContain("Pick the length you want DoughTools to use for yeast and flour-strength guidance.");
     expect(page).not.toContain("W-value guidance");
@@ -192,9 +265,9 @@ describe("Session recipe build step", () => {
     expect(page).not.toContain("Add a bake date and time to get a stronger planning risk summary.");
     expect(page).not.toContain("Calculator v1");
     expect(page).not.toContain("Calculator v2");
-    expect(page.indexOf("title=\"Dough Plan\"")).toBeLessThan(page.indexOf("Choose your fermentation length"));
-    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("<SavePizzaSessionToAccount session={session} />"));
-    expect(page.indexOf("Choose your fermentation length")).toBeLessThan(page.indexOf("Make the dough"));
+    expect(page.indexOf("title=\"Dough Plan\"")).toBeLessThan(page.indexOf("When do you want to make the dough?"));
+    expect(page.indexOf("When do you want to make the dough?")).toBeLessThan(page.indexOf("<SavePizzaSessionToAccount session={session} />"));
+    expect(page.indexOf("When do you want to make the dough?")).toBeLessThan(page.indexOf("Make the dough"));
     expect(page.indexOf("title=\"Dough Plan\"")).toBeLessThan(page.indexOf("Make the dough"));
   });
 
@@ -1036,6 +1109,119 @@ describe("Session recipe build step", () => {
     expect(selectedTwentyFour.flourWGuidance?.recommendationLabel).toBe("W 260–300");
   });
 
+  it("uses explicit Dough Plan fermentation choices for start-now, 24h room and 24h cold", () => {
+    const now = new Date("2026-07-02T10:06:00.000Z");
+    const targetEatTime = "2026-07-03T18:00:00.000Z";
+    const base = {
+      ...completeSessionInput,
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime,
+      pizzaCount: 4,
+      doughBallWeight: 260,
+      yeastType: "ady",
+    };
+    const startNow = buildSessionRecipe(createPizzaSession({
+      ...base,
+      id: "session-recipe-choice-start-now",
+      doughStartMode: "now",
+      doughStartAnchorTime: now.toISOString(),
+      fermentationChoice: "start_now",
+    }, now), now);
+    const twentyFourRoom = buildSessionRecipe(createPizzaSession({
+      ...base,
+      id: "session-recipe-choice-24h-room",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-02T18:00:00.000Z",
+      doughStartAnchorTime: now.toISOString(),
+      fermentationChoice: "twenty_four_hour_room",
+      plannedFermentationHours: 24,
+      plannedFermentationMode: "room",
+    }, now), now);
+    const twentyFourCold = buildSessionRecipe(createPizzaSession({
+      ...base,
+      id: "session-recipe-choice-24h-cold",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-02T18:00:00.000Z",
+      doughStartAnchorTime: now.toISOString(),
+      fermentationChoice: "twenty_four_hour_cold",
+      plannedFermentationHours: 24,
+      plannedFermentationMode: "cold",
+    }, now), now);
+
+    expect(startNow.ok).toBe(true);
+    expect(twentyFourRoom.ok).toBe(true);
+    expect(twentyFourCold.ok).toBe(true);
+    if (!startNow.ok || !twentyFourRoom.ok || !twentyFourCold.ok) throw new Error("Expected explicit fermentation choice recipes");
+
+    expect(startNow.continuousYeast).toMatchObject({
+      fermentationChoice: "start_now",
+      selectedFermentationHours: 31.9,
+      choiceAvailabilityHours: 31.9,
+      selectedByUser: true,
+      basisLabel: "31.9 h cold fermentation",
+    });
+    expect(startNow.continuousYeast?.recommendation.fermentationHours).toBe(31.9);
+    expect(startNow.continuousYeast?.recommendation.fermentationMode).toBe("cold");
+    expect(startNow.continuousYeast?.recommendation.temperatureC).toBe(4);
+
+    expect(twentyFourRoom.continuousYeast).toMatchObject({
+      fermentationChoice: "twenty_four_hour_room",
+      selectedFermentationHours: 24,
+      choiceAvailabilityHours: 31.9,
+      selectedByUser: true,
+      basisLabel: "24 h room fermentation",
+    });
+    expect(twentyFourRoom.recipeSnapshot.fermentation).toBe("24h-room");
+    expect(twentyFourRoom.continuousYeast?.recommendation.fermentationMode).toBe("room");
+    expect(twentyFourRoom.continuousYeast?.recommendation.temperatureC).toBe(22);
+
+    expect(twentyFourCold.continuousYeast).toMatchObject({
+      fermentationChoice: "twenty_four_hour_cold",
+      selectedFermentationHours: 24,
+      choiceAvailabilityHours: 31.9,
+      selectedByUser: true,
+      basisLabel: "24 h cold fermentation",
+    });
+    expect(twentyFourCold.recipeSnapshot.fermentation).toBe("24h-cold");
+    expect(twentyFourCold.continuousYeast?.recommendation.fermentationMode).toBe("cold");
+    expect(twentyFourCold.continuousYeast?.recommendation.temperatureC).toBe(4);
+    expect(twentyFourCold.ingredients.leavener).toBeGreaterThan(startNow.ingredients.leavener);
+    expect(startNow.ingredients.leavener).toBeGreaterThan(twentyFourRoom.ingredients.leavener);
+  });
+
+  it("keeps the original choice window visible after a legacy 24h cold later-start state", () => {
+    const now = new Date("2026-07-02T10:06:00.000Z");
+    const session = createPizzaSession({
+      ...completeSessionInput,
+      id: "session-recipe-legacy-narrowed-choice-window",
+      pizzaStyle: "home-oven",
+      pizzaPreset: "margherita",
+      ovenType: "home",
+      flour: "tipo-00",
+      targetEatTime: "2026-07-03T18:00:00.000Z",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-02T18:00:00.000Z",
+      plannedFermentationHours: 24,
+      yeastType: "ady",
+    }, now);
+    const result = buildSessionRecipe(session, now);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected legacy narrowed state recipe");
+
+    expect(result.continuousYeast).toMatchObject({
+      availableFermentationHours: 24,
+      choiceAvailabilityHours: 31.9,
+      selectedFermentationHours: 24,
+      selectedByUser: true,
+      fermentationChoice: "legacy",
+      basisLabel: "24 h cold fermentation",
+    });
+  });
+
   it("ignores selected cold fermentation length for under-24h and over-72h windows", () => {
     const now = new Date("2026-07-02T09:00:00");
     const under24 = buildSessionRecipe(createPizzaSession({
@@ -1235,7 +1421,12 @@ describe("Session recipe build step", () => {
       flourSituation: "has_w_range",
       availableFlourWRanges: ["w_260_300"],
       targetEatTime: "2026-07-03T09:00",
-      doughStartMode: "now",
+      doughStartMode: "later",
+      doughEarliestStartTime: "2026-07-02T09:00:00.000Z",
+      doughStartAnchorTime: now.toISOString(),
+      fermentationChoice: "twenty_four_hour_cold",
+      plannedFermentationHours: 24,
+      plannedFermentationMode: "cold",
     }, now), now);
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("Expected 24h W guidance");

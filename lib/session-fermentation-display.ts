@@ -86,6 +86,7 @@ export function buildSessionFermentationDisplay({
     ?? selectedHours
     ?? preset?.fermentationHours;
   const mode = basisMode
+    ?? session?.plannedFermentationMode
     ?? (selectedHours ? "cold" : undefined)
     ?? preset?.fermentationMode;
   const temperatureC = finiteNumber(basis?.temperatureC)
