@@ -1,14 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DoughTools small pizza favicon">
-  <rect width="512" height="512" rx="108" fill="#6F211B"/>
-  <circle cx="230" cy="284" r="182" fill="#F5B75A"/>
-  <circle cx="230" cy="284" r="137" fill="#E9492F"/>
-  <path d="M234 284 304 70c58 17 109 57 141 109L263 315Z" fill="#6F211B"/>
-  <path d="M324 77c56 17 102 53 132 102L292 236Z" fill="#F5B75A"/>
-  <path d="M339 121c33 12 61 34 80 63L326 214Z" fill="#E9492F"/>
-  <circle cx="166" cy="232" r="35" fill="#FFF3D5"/>
-  <circle cx="225" cy="358" r="36" fill="#FFF3D5"/>
-  <circle cx="316" cy="304" r="34" fill="#FFF3D5"/>
-  <circle cx="150" cy="318" r="25" fill="#A72F25"/>
-  <circle cx="248" cy="218" r="27" fill="#A72F25"/>
-  <circle cx="357" cy="168" r="18" fill="#FFF3D5"/>
+  <defs>
+    <radialGradient id="bg" cx="35%" cy="20%" r="85%">
+      <stop offset="0%" stop-color="#8D1B1C"/>
+      <stop offset="68%" stop-color="#5A1414"/>
+      <stop offset="100%" stop-color="#310908"/>
+    </radialGradient>
+    <radialGradient id="crust" cx="38%" cy="26%" r="78%">
+      <stop offset="0%" stop-color="#FFE08A"/>
+      <stop offset="48%" stop-color="#F4A72D"/>
+      <stop offset="100%" stop-color="#B95F13"/>
+    </radialGradient>
+    <radialGradient id="sauce" cx="38%" cy="26%" r="76%">
+      <stop offset="0%" stop-color="#FF4E27"/>
+      <stop offset="58%" stop-color="#E71911"/>
+      <stop offset="100%" stop-color="#A90E0B"/>
+    </radialGradient>
+    <radialGradient id="cheese" cx="34%" cy="26%" r="72%">
+      <stop offset="0%" stop-color="#FFF9DE"/>
+      <stop offset="70%" stop-color="#FFEAA7"/>
+      <stop offset="100%" stop-color="#EBC56C"/>
+    </radialGradient>
+    <radialGradient id="pepperoni" cx="35%" cy="25%" r="74%">
+      <stop offset="0%" stop-color="#F05025"/>
+      <stop offset="64%" stop-color="#B72015"/>
+      <stop offset="100%" stop-color="#70120F"/>
+    </radialGradient>
+    <filter id="soft-shadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#1A0504" flood-opacity=".42"/>
+    </filter>
+    <filter id="slice-shadow" x="-24%" y="-24%" width="148%" height="148%">
+      <feDropShadow dx="0" dy="12" stdDeviation="9" flood-color="#1A0504" flood-opacity=".48"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <g filter="url(#soft-shadow)">
+    <circle cx="230" cy="292" r="184" fill="url(#crust)"/>
+    <circle cx="230" cy="292" r="136" fill="url(#sauce)"/>
+    <circle cx="230" cy="292" r="160" fill="none" stroke="#FFE7A3" stroke-width="10" opacity=".9"/>
+    <circle cx="230" cy="292" r="118" fill="none" stroke="#FF6A38" stroke-width="8" opacity=".4"/>
+
+    <circle cx="165" cy="249" r="35" fill="url(#cheese)"/>
+    <circle cx="234" cy="365" r="34" fill="url(#cheese)"/>
+    <circle cx="319" cy="307" r="34" fill="url(#cheese)"/>
+    <circle cx="151" cy="333" r="25" fill="url(#pepperoni)"/>
+    <circle cx="260" cy="223" r="27" fill="url(#pepperoni)"/>
+
+    <path d="M246 283 313 83c38 11 77 37 112 76L270 320Z" fill="url(#bg)"/>
+  </g>
+
+  <g filter="url(#slice-shadow)">
+    <path d="M333 79c50 15 91 43 119 85L301 234Z" fill="url(#crust)"/>
+    <path d="M349 123c30 10 54 28 72 52L331 216Z" fill="url(#sauce)"/>
+    <path d="M340 92c43 13 78 38 104 73" fill="none" stroke="#FFF0B6" stroke-width="10" stroke-linecap="round" opacity=".95"/>
+    <circle cx="368" cy="165" r="18" fill="url(#cheese)"/>
+    <circle cx="393" cy="177" r="15" fill="url(#pepperoni)"/>
+  </g>
 </svg>
