@@ -1,8 +1,8 @@
 # Patch 476: Public Metadata, Social Sharing and App Icon Audit
 
-Type: read-only audit  
-Starting commit: `d00f2d85960884e39106d2b176402a6c55f153d8`  
-Branch: `patch/476-public-metadata-social-icons-indexing-audit`  
+Type: read-only audit
+Starting commit: `d00f2d85960884e39106d2b176402a6c55f153d8`
+Branch: `patch/476-public-metadata-social-icons-indexing-audit`
 Production changes: none
 
 ## 1. Executive Summary

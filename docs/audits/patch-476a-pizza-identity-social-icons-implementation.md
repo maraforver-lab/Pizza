@@ -1,8 +1,8 @@
 # Patch 476A: DoughTools Pizza Identity, Social Preview and App Icons
 
-Type: branding metadata + icon implementation  
-Starting commit: `6df96e2baebb26638ed2238f2785f3230ad38323`  
-Branch: `patch/476a-pizza-identity-social-icons`  
+Type: branding metadata + icon implementation
+Starting commit: `6df96e2baebb26638ed2238f2785f3230ad38323`
+Branch: `patch/476a-pizza-identity-social-icons`
 Production deployment: not performed
 
 ## Summary
