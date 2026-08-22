@@ -166,7 +166,7 @@ describe("SEO launch configuration", () => {
     expect(socialImageUrl(env)).toBe(imageUrl);
     expect(metadata.description).toBe("Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.");
     expect(metadata.openGraph).toMatchObject({
-      title: "Plan Better Pizza Nights | DoughTools",
+      title: "Make better pizza with one clear plan | DoughTools",
       description: "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
       type: "website",
       siteName: "DoughTools",
@@ -175,7 +175,7 @@ describe("SEO launch configuration", () => {
     });
     expect(metadata.twitter).toMatchObject({
       card: "summary_large_image",
-      title: "Plan Better Pizza Nights | DoughTools",
+      title: "Make better pizza with one clear plan | DoughTools",
       description: "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
       images: [imageUrl],
     });

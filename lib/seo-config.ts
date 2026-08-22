@@ -30,7 +30,7 @@ export const SOCIAL_IMAGE_ALT = "DoughTools pizza planning preview with the Doug
 export const publicSeoRoutes = [
   {
     path: "/",
-    title: "Plan Better Pizza Nights | DoughTools",
+    title: "Make better pizza with one clear plan | DoughTools",
     description:
       "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
     changeFrequency: "weekly",

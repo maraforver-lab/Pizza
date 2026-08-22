@@ -42,7 +42,8 @@ describe("DoughTools public identity assets", () => {
     }
 
     expect(source("public/icon.svg")).toContain("DoughTools pizza mark");
-    expect(source("public/favicon.svg")).toBe(source("public/icon.svg"));
+    expect(source("public/favicon.svg")).toContain("DoughTools small pizza favicon");
+    expect(source("public/favicon.svg")).not.toBe(source("public/icon.svg"));
     expect(source("public/brand/doughtools-pizza-mark.svg")).toBe(source("public/icon.svg"));
     expect(pngDimensions(publicFile("apple-touch-icon.png"))).toEqual({ width: 180, height: 180 });
     expect(pngDimensions(publicFile("icons/icon-192.png"))).toEqual({ width: 192, height: 192 });
