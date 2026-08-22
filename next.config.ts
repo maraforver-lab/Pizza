@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { publicNoindexRoutePaths } from "./lib/seo-config";
+import { privateSeoRoutes, publicNoindexRoutePaths } from "./lib/seo-config";
 import { securityHeaders } from "./lib/security-headers";
 
 const gitValue = (args: string[], fallback: string) => {
@@ -35,35 +35,26 @@ const hasSafeProductionSiteUrl = (value?: string) => {
 };
 
 const allowIndexing = (
-  process.env.ALLOW_INDEXING === "true"
-  && hasSafeProductionSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
+  hasSafeProductionSiteUrl(process.env.NEXT_PUBLIC_SITE_URL)
   && process.env.VERCEL_ENV !== "preview"
 );
 
-const noIndexHeader = {
+const globalPrelaunchNoIndexHeader = {
   key: "X-Robots-Tag",
-  // TEMPORARY PRE-LAUNCH INDEXING BLOCK:
-  // Controlled by ALLOW_INDEXING and a safe NEXT_PUBLIC_SITE_URL before public launch.
   value: "noindex, nofollow, noarchive",
 };
 
-const noIndexHeaderSources = [
-  ...publicNoindexRoutePaths,
-  "/account/:path*",
-  "/admin/:path*",
-  "/api/:path*",
-  "/auth/:path*",
-  "/debug/:path*",
-  "/login",
-  "/order/:path*",
-  "/preview/:path*",
-  "/session/recipe/:path*",
-  "/session/shopping/:path*",
-  "/session/timeline/:path*",
-  "/session/kitchen/:path*",
-  "/session/review/:path*",
-  "/signup",
-];
+const publicNoIndexHeader = {
+  key: "X-Robots-Tag",
+  value: "noindex, noarchive",
+};
+
+const privateNoIndexHeader = {
+  key: "X-Robots-Tag",
+  value: "noindex, nofollow, noarchive",
+};
+
+const privateNoIndexHeaderSources = privateSeoRoutes.map((source) => `${source}/:path*`);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -74,9 +65,13 @@ const nextConfig: NextConfig = {
           source: "/:path*",
           headers: securityHeaders,
         },
-        ...noIndexHeaderSources.map((source) => ({
+        ...publicNoindexRoutePaths.map((source) => ({
           source,
-          headers: [noIndexHeader],
+          headers: [publicNoIndexHeader],
+        })),
+        ...privateNoIndexHeaderSources.map((source) => ({
+          source,
+          headers: [privateNoIndexHeader],
         })),
       ];
     }
@@ -86,7 +81,7 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           ...securityHeaders,
-          noIndexHeader,
+          globalPrelaunchNoIndexHeader,
         ],
       },
     ];

@@ -1,67 +1,65 @@
 # DoughTools production domain verification
 
-This checklist prepares DoughTools for using the real production domain later without enabling search indexing yet.
+This checklist verifies DoughTools on the real production domain after the controlled indexing launch.
 
 For the owner-friendly rehearsal flow, see `docs/manual-launch-rehearsal.md`.
 
 ## Intended production domain
 
 ```text
-https://doughtools.app
+https://www.doughtools.app
 ```
 
 ## Required Vercel environment variables
 
-Use these safe pre-launch values in Vercel:
+Use this production value in Vercel:
 
 ```text
-NEXT_PUBLIC_SITE_URL=https://doughtools.app
-ALLOW_INDEXING=false
+NEXT_PUBLIC_SITE_URL=https://www.doughtools.app
 ```
 
-`ALLOW_INDEXING=false` is intentional while DoughTools is still pre-launch. It keeps the site noindexed even when the real domain is configured.
+`ALLOW_INDEXING` is no longer the production indexing switch after Patch 479C. Preview deployments remain protected by the non-preview deployment check and unsafe/preview URL filtering.
 
 ## What to check in Vercel before deployment
 
-- The `doughtools.app` domain is connected to the correct Vercel project.
-- HTTPS is active for `https://doughtools.app`.
-- `NEXT_PUBLIC_SITE_URL` is set to `https://doughtools.app`.
-- `ALLOW_INDEXING` is set to `false`.
+- The `www.doughtools.app` domain is connected to the correct Vercel project.
+- HTTPS is active for `https://www.doughtools.app`.
+- `NEXT_PUBLIC_SITE_URL` is set to `https://www.doughtools.app`.
 - Preview deployments remain noindex.
-- Production remains noindex until indexing is explicitly enabled later.
-- `/robots.txt` still blocks indexing.
-- The `X-Robots-Tag` response header is still present.
-- `/sitemap.xml` uses `https://doughtools.app` only when `NEXT_PUBLIC_SITE_URL` is configured.
+- Production uses the centralized route-aware indexing policy.
+- `/robots.txt` no longer contains a global `Disallow: /` on production.
+- `/sitemap.xml` contains exactly the first-wave indexable routes.
+- Public KEEP NOINDEX routes still receive noindex metadata and response headers.
 
 ## Manual post-deployment checks
 
-After a future deployment, before any public launch:
+After a future deployment, open:
 
-- Open the homepage.
-- Open `/robots.txt`.
-- Open `/sitemap.xml`.
-- Check the page source for `noindex`.
-- Check response headers for `X-Robots-Tag`.
-- Confirm `/account` is not in `/sitemap.xml`.
-- Confirm no old Vercel URL appears as a canonical URL.
-- Confirm `doughtools.invalid` does not appear on production pages when `NEXT_PUBLIC_SITE_URL=https://doughtools.app` is configured.
+- `https://www.doughtools.app`
+- `https://www.doughtools.app/calculator/quick`
+- `https://www.doughtools.app/guide/practical-pizza-tips/fermentation-length`
+- `https://www.doughtools.app/privacy`
+- `https://www.doughtools.app/session/start`
+- `https://www.doughtools.app/robots.txt`
+- `https://www.doughtools.app/sitemap.xml`
+- `https://www.doughtools.app/account`
 
-## What not to do yet
+Check that:
 
-- Do not set `ALLOW_INDEXING=true`.
-- Do not submit the sitemap to Google.
-- Do not remove noindex.
+- first-wave public pages are crawlable and do not emit noindex
+- `/privacy` and `/session/start` emit noindex but are not robots-blocked
+- `/account` is not in `/sitemap.xml`
+- query-string recipe URLs are not in `/sitemap.xml`
+- no old Vercel URL appears as a canonical URL
+- `doughtools.invalid` does not appear on production pages
+- no broken metadata, icon or social-image requests appear
+
+## What not to do from this checklist
+
+- Do not submit the sitemap to Google from this checklist.
+- Do not add Google Search Console verification.
+- Do not request indexing.
+- Do not add analytics.
 - Do not publish public bake pages.
-- Do not announce a public launch.
 
-## Later indexing launch checklist
-
-Only later, when DoughTools is ready for public launch:
-
-- Run final visual QA.
-- Review legal pages.
-- Confirm the production domain.
-- Confirm the sitemap.
-- Confirm robots behavior.
-- Remove noindex only through `ALLOW_INDEXING=true`.
-- Add Google Search Console later, not now.
+Search Console submission remains a separate owner action after production verification.

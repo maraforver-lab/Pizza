@@ -102,9 +102,9 @@ describe("install app / add to home screen foundation", () => {
   });
 
   it("keeps launch safety and avoids adding service worker or push files", () => {
-    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(false);
+    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(true);
     expect(robotsPolicy({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
-      rules: { userAgent: "*", disallow: "/" },
+      rules: { userAgent: "*", allow: "/" },
     });
     expect(sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).some((entry) => entry.url.includes("/account"))).toBe(false);
     expect(existsSync(join(process.cwd(), "public", "sw.js"))).toBe(false);

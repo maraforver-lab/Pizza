@@ -343,8 +343,7 @@ export function getSiteUrl(env: EnvLike = process.env): string {
 
 export function isIndexingAllowed(env: EnvLike = process.env): boolean {
   return (
-    env.ALLOW_INDEXING === "true"
-    && hasConfiguredProductionSiteUrl(env)
+    hasConfiguredProductionSiteUrl(env)
     && env.VERCEL_ENV !== "preview"
   );
 }

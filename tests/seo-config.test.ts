@@ -118,10 +118,10 @@ describe("SEO launch configuration", () => {
     expect(hasConfiguredProductionSiteUrl({ NEXT_PUBLIC_SITE_URL: "https://pizza-maraforver.vercel.app" })).toBe(false);
   });
 
-  it("keeps indexing disabled by default and only enables it with an explicit safe production URL", () => {
+  it("allows indexing only for a safe production URL outside preview deployments", () => {
     expect(isIndexingAllowed({})).toBe(false);
-    expect(isIndexingAllowed({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(false);
-    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(false);
+    expect(isIndexingAllowed({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(true);
+    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(true);
     expect(isIndexingAllowed({ ALLOW_INDEXING: "true" })).toBe(false);
     expect(isIndexingAllowed({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(true);
     expect(isIndexingAllowed({
@@ -131,12 +131,11 @@ describe("SEO launch configuration", () => {
     })).toBe(false);
   });
 
-  it("returns noindex robots metadata until indexing is explicitly enabled", () => {
+  it("returns indexable robots metadata for approved production pages", () => {
     expect(robotsMetadata({})).toMatchObject({ index: false, follow: false, nocache: true });
     expect(robotsMetadata({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
-      index: false,
-      follow: false,
-      nocache: true,
+      index: true,
+      follow: true,
     });
     expect(robotsMetadata({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
       index: true,
@@ -333,13 +332,17 @@ describe("SEO launch configuration", () => {
     );
   });
 
-  it("blocks all crawlers by default in robots.txt policy while still advertising the sitemap location", () => {
+  it("allows production crawling without a global Disallow while preserving private disallows", () => {
     expect(robotsPolicy({})).toEqual({
       rules: { userAgent: "*", disallow: "/" },
       sitemap: `${SAFE_INTERNAL_SITE_URL}/sitemap.xml`,
     });
     expect(robotsPolicy({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" })).toEqual({
-      rules: { userAgent: "*", disallow: "/" },
+      rules: {
+        userAgent: "*",
+        allow: "/",
+        disallow: privateSeoRoutes.flatMap((route) => [route, `${route}${route.endsWith("/") ? "" : "/"}`]),
+      },
       sitemap: "https://www.doughtools.app/sitemap.xml",
     });
     expect(robotsPolicy({ ALLOW_INDEXING: "true", NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app" })).toMatchObject({
@@ -355,23 +358,13 @@ describe("SEO launch configuration", () => {
     const nextConfig = readFileSync(join(process.cwd(), "next.config.ts"), "utf8");
 
     expect(nextConfig).toContain("publicNoindexRoutePaths");
-    expect(nextConfig).toContain("...publicNoindexRoutePaths");
+    expect(nextConfig).toContain("privateSeoRoutes");
+    expect(nextConfig).toContain("publicNoIndexHeader");
+    expect(nextConfig).toContain("privateNoIndexHeader");
 
-    for (const source of [
-      "/account/:path*",
-      "/admin/:path*",
-      "/api/:path*",
-      "/auth/:path*",
-      "/order/:path*",
-      "/session/recipe/:path*",
-      "/session/shopping/:path*",
-      "/session/timeline/:path*",
-      "/session/kitchen/:path*",
-      "/session/review/:path*",
-    ]) {
-      expect(nextConfig).toContain(source);
-    }
+    expect(nextConfig).toContain("privateNoIndexHeaderSources = privateSeoRoutes.map");
 
+    expect(nextConfig).toContain("noindex, noarchive");
     expect(nextConfig).toContain("noindex, nofollow, noarchive");
   });
 
@@ -404,19 +397,19 @@ describe("SEO launch configuration", () => {
     }
   });
 
-  it("keeps first-wave public pages indexable only when indexing is explicitly allowed while public noindex routes stay protected", () => {
+  it("keeps first-wave public pages indexable in production while public noindex routes stay protected", () => {
     expect(() => metadataForRoute("/start" as Parameters<typeof metadataForRoute>[0])).toThrow(
       "Missing SEO metadata for route: /start",
     );
 
     expect(metadataForRoute("/calculator/quick", {
-      ALLOW_INDEXING: "true",
+      ALLOW_INDEXING: "false",
       NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
     }).robots).toMatchObject({ index: true, follow: true });
 
     for (const route of expectedPublicNoindexRoutes) {
       expect(metadataForRoute(route as Parameters<typeof metadataForRoute>[0], {
-        ALLOW_INDEXING: "true",
+        ALLOW_INDEXING: "false",
         NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
       }).robots).toMatchObject({ index: false, follow: true, nocache: true });
     }
@@ -483,7 +476,7 @@ describe("SEO launch configuration", () => {
     expect(trustText).toContain(projectJurisdiction);
   });
 
-  it("documents safe production-domain verification without enabling indexing", () => {
+  it("documents safe production-domain verification after the controlled indexing launch", () => {
     const productionDocPath = join(process.cwd(), "docs", "production-domain-verification.md");
     const envExamplePath = join(process.cwd(), ".env.example");
     const seoDoc = readFileSync(join(process.cwd(), "docs", "seo-launch-config.md"), "utf8");
@@ -495,17 +488,17 @@ describe("SEO launch configuration", () => {
     const envExample = readFileSync(envExamplePath, "utf8");
     const combined = `${productionDoc}\n${envExample}\n${seoDoc}`;
 
-    expect(combined).toContain("https://doughtools.app");
-    expect(combined).toContain("NEXT_PUBLIC_SITE_URL=https://doughtools.app");
-    expect(combined).toContain("ALLOW_INDEXING=false");
-    expect(combined).toMatch(/no indexing yet|noindexed|noindex/i);
-    expect(productionDoc).toContain("Do not set `ALLOW_INDEXING=true`");
+    expect(combined).toContain("https://www.doughtools.app");
+    expect(combined).toContain("NEXT_PUBLIC_SITE_URL=https://www.doughtools.app");
+    expect(combined).toContain("first-wave indexable routes");
+    expect(combined).toMatch(/public noindex|KEEP NOINDEX|noindex/i);
+    expect(productionDoc).toContain("Do not submit the sitemap to Google from this checklist.");
     expect(seoDoc).toContain("docs/production-domain-verification.md");
     expect(seoDoc).toContain("docs/seo-indexation.md");
-    expect(seoDoc).toContain("Query-param tool URLs remain shareable");
+    expect(seoDoc).toContain("Stateful recipe and tool URLs canonicalize to their clean base route");
   });
 
-  it("documents a manual launch rehearsal without instructing this patch to deploy or enable indexing", () => {
+  it("documents a manual controlled-indexing verification without Search Console submission", () => {
     const rehearsalDocPath = join(process.cwd(), "docs", "manual-launch-rehearsal.md");
     const productionDoc = readFileSync(join(process.cwd(), "docs", "production-domain-verification.md"), "utf8");
     const seoDoc = readFileSync(join(process.cwd(), "docs", "seo-launch-config.md"), "utf8");
@@ -514,21 +507,20 @@ describe("SEO launch configuration", () => {
 
     const rehearsalDoc = readFileSync(rehearsalDocPath, "utf8");
 
-    expect(rehearsalDoc).toContain("https://doughtools.app");
-    expect(rehearsalDoc).toContain("NEXT_PUBLIC_SITE_URL=https://doughtools.app");
-    expect(rehearsalDoc).toContain("ALLOW_INDEXING=false");
+    expect(rehearsalDoc).toContain("https://www.doughtools.app");
+    expect(rehearsalDoc).toContain("NEXT_PUBLIC_SITE_URL=https://www.doughtools.app");
     expect(rehearsalDoc).toContain("noindex");
     expect(rehearsalDoc).toContain("robots.txt");
     expect(rehearsalDoc).toContain("sitemap.xml");
     expect(rehearsalDoc).toContain("X-Robots-Tag");
     expect(rehearsalDoc).toContain("`/account` is not in sitemap");
     expect(rehearsalDoc).toContain("Do not submit sitemap to Google yet");
-    expect(rehearsalDoc).toContain("Do not yet:");
-    expect(rehearsalDoc).toContain("set `ALLOW_INDEXING=true`");
+    expect(rehearsalDoc).toContain("first-wave indexable routes");
+    expect(rehearsalDoc).toContain("public noindex routes");
     expect(rehearsalDoc).toMatch(/rollback/i);
     expect(rehearsalDoc).toContain("This checklist does not deploy the site.");
-    expect(rehearsalDoc).toContain("Do not execute either approach as part of this documentation patch.");
-    expect(rehearsalDoc).toContain("Opening indexing must be a separate patch and process. Do not enable indexing now.");
+    expect(rehearsalDoc).toContain("Do not execute deployment from this documentation checklist.");
+    expect(rehearsalDoc).toContain("Search Console submission remains a separate owner action.");
     expect(productionDoc).toContain("docs/manual-launch-rehearsal.md");
     expect(seoDoc).toContain("docs/manual-launch-rehearsal.md");
   });

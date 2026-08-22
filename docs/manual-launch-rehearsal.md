@@ -1,222 +1,146 @@
-# DoughTools manual launch rehearsal checklist
+# DoughTools manual controlled-indexing verification
 
-This checklist is for rehearsing a controlled production-domain deployment to:
-
-```text
-https://doughtools.app
-```
-
-It is written for a non-expert project owner. Follow it slowly, one checkbox at a time.
-
-Important: this checklist does not deploy the site. It explains what to check before and after a future deployment. The first production-domain deployment must remain noindexed.
-
-Required production values for the rehearsal:
+This checklist verifies the controlled production indexing behavior for:
 
 ```text
-NEXT_PUBLIC_SITE_URL=https://doughtools.app
-ALLOW_INDEXING=false
+https://www.doughtools.app
 ```
 
-`ALLOW_INDEXING=false` must remain false for the first production-domain deployment.
+It is written for a non-expert project owner. It does not deploy the site and it does not submit anything to Google Search Console.
+
+Required production value:
+
+```text
+NEXT_PUBLIC_SITE_URL=https://www.doughtools.app
+```
 
 ## 1. Before deployment
 
-- Confirm the latest local branch and commit have been reviewed and approved.
-- Confirm all tests pass with `npm run test`.
-- Confirm the production build passes with `npm run build`.
-- Confirm noindex is active locally.
+- Confirm the latest branch and commit have been reviewed and approved.
+- Confirm focused SEO/indexing tests pass.
+- Confirm `npm run lint` passes.
+- Confirm `npm run build` passes.
 - Confirm `.env.example` contains no secrets.
 - Confirm contact and legal details are filled:
   - `hello@doughtools.app`
   - `Marcin Arcisz`
   - `Finland`
-- Confirm no visible placeholder text remains.
-- Confirm no unsupported claims remain.
-- Confirm the site has been manually checked on desktop and mobile.
-- Confirm you understand that noindex means “not indexed by search engines”; it does not mean the site is private.
+- Confirm no unsupported claims or placeholder copy remain on first-wave public pages.
+- Confirm the site has been checked on desktop and mobile.
 
 ## 2. Vercel configuration
 
 In the Vercel project settings, manually verify Production environment variables:
 
 ```text
-NEXT_PUBLIC_SITE_URL=https://doughtools.app
-ALLOW_INDEXING=false
+NEXT_PUBLIC_SITE_URL=https://www.doughtools.app
 ```
 
-If Preview environment variables are configured, keep indexing disabled there too.
+Preview deployments must remain protected. Do not add secrets to public environment variables.
 
 Do not:
 
-- set `ALLOW_INDEXING=true` yet
-- add analytics yet
+- add analytics
 - add Google Search Console verification yet
+- submit the sitemap to Google yet
 - change build settings unless there is a clear reason
-- add secrets to public environment variables
-- add fake project IDs, private tokens or private keys to documentation
 
 ## 3. Domain configuration
 
 Before deploying or promoting anything, verify:
 
-- `doughtools.app` is connected to the correct Vercel project.
-- HTTPS is active for `https://doughtools.app`.
-- You understand the `www` behavior if `www.doughtools.app` is configured.
+- `www.doughtools.app` is connected to the correct Vercel project.
+- HTTPS is active for `https://www.doughtools.app`.
 - The domain does not point to an old project.
 - Old Vercel preview URLs are not used as canonical URLs.
-- Production pages do not show `doughtools.invalid` when `NEXT_PUBLIC_SITE_URL=https://doughtools.app` is configured.
-
-Do not perform DNS changes from this checklist unless you intentionally decide to do that outside this patch.
+- Production pages do not show `doughtools.invalid`.
 
 ## 4. Deployment action
 
 This checklist does not deploy the site.
 
-When you intentionally decide to rehearse deployment later, use one controlled approach:
-
-### A. Git-based deployment
+When deployment is intentionally approved later:
 
 - Merge the approved launch branch into the production branch.
 - Push the production branch.
 - Let Vercel build the production deployment from the Git integration.
-- Keep `ALLOW_INDEXING=false`.
+- Verify production before submitting anything to Google.
 
-### B. Manual Vercel deployment or promotion
+Do not execute deployment from this documentation checklist.
 
-- Use this only if you intentionally choose the manual Vercel workflow.
-- Confirm the target deployment is the correct one.
-- Confirm Production environment variables are still:
-  - `NEXT_PUBLIC_SITE_URL=https://doughtools.app`
-  - `ALLOW_INDEXING=false`
+## 5. Production route checks
 
-Do not execute either approach as part of this documentation patch.
+Open:
 
-## 5. Immediate post-deployment checks
-
-After a future deployment to the real domain, manually open:
-
-- `https://doughtools.app`
-- `https://doughtools.app/about`
-- `https://doughtools.app/contact`
-- `https://doughtools.app/privacy`
-- `https://doughtools.app/terms`
-- `https://doughtools.app/methodology`
-- `https://doughtools.app/robots.txt`
-- `https://doughtools.app/sitemap.xml`
-- `https://doughtools.app/account`
+- `https://www.doughtools.app`
+- `https://www.doughtools.app/calculator/quick`
+- `https://www.doughtools.app/guide/practical-pizza-tips/fermentation-length`
+- `https://www.doughtools.app/guides/dough`
+- `https://www.doughtools.app/sauce`
+- `https://www.doughtools.app/toppings`
+- `https://www.doughtools.app/ovens`
+- `https://www.doughtools.app/privacy`
+- `https://www.doughtools.app/session/start`
+- `https://www.doughtools.app/account`
+- `https://www.doughtools.app/robots.txt`
+- `https://www.doughtools.app/sitemap.xml`
 
 Check that:
 
-- pages load
-- no major visual errors appear
-- the calculator loads
-- navigation works
-- footer links work
-- contact email appears
-- legal pages are readable
-- no old placeholders appear
+- first-wave indexable routes load
+- public noindex routes load but remain noindex
 - `/account` is not in sitemap
 - query-string recipe URLs are not in sitemap
+- no major visual errors appear
+- navigation and footer links work
 
-## 6. Noindex verification
+## 6. Indexing verification
 
-Noindex must remain active after deployment.
+First-wave indexable routes should:
 
-Browser-based checks:
+- not contain `noindex` in page metadata
+- not return `X-Robots-Tag: noindex`
+- have a self-canonical production URL
+- appear in `/sitemap.xml`
 
-- Open the homepage.
-- View page source.
-- Search the source for `noindex`.
-- Open `https://doughtools.app/robots.txt`.
-- Confirm it blocks crawling while indexing is disabled.
-- Open `https://doughtools.app/sitemap.xml`.
-- Confirm sitemap exists but does not include `/account` or query-string recipe URLs.
+Public noindex routes should:
 
-Optional command-line checks:
+- contain `noindex`
+- return `X-Robots-Tag: noindex, noarchive`
+- not appear in `/sitemap.xml`
+- not be blocked by robots.txt
+
+Private/workflow routes should:
+
+- not appear in `/sitemap.xml`
+- remain protected by noindex metadata and/or `X-Robots-Tag: noindex, nofollow, noarchive`
+- not expose user-specific content for search
+
+Confirm `/robots.txt` does not contain a global:
 
 ```text
-curl -I https://doughtools.app
-curl https://doughtools.app/robots.txt
-curl https://doughtools.app/sitemap.xml
+Disallow: /
 ```
 
-Confirm the response headers include:
+## 7. Search Console boundary
 
-```text
-X-Robots-Tag: noindex, nofollow, noarchive
-```
+Do not submit sitemap to Google yet.
 
-The sitemap does not override noindex. Do not ask Google to index the site yet. Do not submit sitemap to Google yet.
+Do not request indexing yet.
 
-## 7. Visual QA on production domain
+Do not add Search Console verification yet unless that work is explicitly approved as a separate task.
 
-Desktop checks:
+Search Console submission remains a separate owner action.
 
-- homepage
-- calculator
-- navigation
-- footer
-- About
-- Contact
-- Privacy
-- Terms
-- Methodology
-
-Mobile checks:
-
-- homepage
-- calculator
-- mobile navigation
-- footer
-- Privacy
-- Terms
-- Methodology
-- long email address
-- bottom navigation spacing
-
-Test on at least one real phone if possible.
-
-## 8. What not to do yet
-
-Do not yet:
-
-- set `ALLOW_INDEXING=true`
-- submit sitemap to Google
-- request indexing
-- announce public launch
-- run paid ads
-- add Google Search Console verification unless specifically planned later
-- add analytics
-- add public bake pages
-- add share-card public URLs
-- claim the product is fully launched
-- delete noindex protection
-
-## 9. Rollback plan
+## 8. Rollback plan
 
 If something looks wrong after deployment:
 
-1. Keep `ALLOW_INDEXING=false`.
-2. Do not submit sitemap.
-3. Do not announce launch.
-4. Roll back the production deployment in Vercel or redeploy the previous stable version.
-5. Record the issue.
-6. Fix it in a new patch.
-7. Redeploy only after tests pass.
+1. Do not submit sitemap.
+2. Do not request indexing.
+3. Roll back the production deployment in Vercel or redeploy the previous stable version.
+4. Record the issue.
+5. Fix it in a new patch.
+6. Redeploy only after tests pass.
 
 This checklist does not claim rollback has been tested.
-
-## 10. When indexing can be considered later
-
-Indexing should only be considered after:
-
-- the production domain works
-- the noindex deployment has been checked
-- legal and trust pages are reviewed
-- mobile QA passes
-- the calculator works in production
-- sitemap is correct
-- robots behavior is understood
-- the owner intentionally decides to open indexing
-
-Opening indexing must be a separate patch and process. Do not enable indexing now.

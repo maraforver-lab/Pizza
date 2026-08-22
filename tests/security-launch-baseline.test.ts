@@ -40,20 +40,22 @@ describe("security and launch-safety baseline", () => {
     expect(contentSecurityPolicy).not.toMatch(/report-uri|report-to/i);
   });
 
-  it("configures headers through next.config without replacing indexing protection", () => {
+  it("configures headers through next.config with route-aware indexing protection", () => {
     const nextConfig = source("next.config.ts");
 
     expect(nextConfig).toContain("securityHeaders");
     expect(nextConfig).toContain("X-Robots-Tag");
+    expect(nextConfig).toContain("noindex, noarchive");
     expect(nextConfig).toContain("noindex, nofollow, noarchive");
-    expect(nextConfig).toContain("ALLOW_INDEXING");
+    expect(nextConfig).toContain("publicNoIndexHeader");
+    expect(nextConfig).toContain("privateNoIndexHeader");
     expect(nextConfig).toContain("VERCEL_ENV !== \"preview\"");
   });
 
-  it("preserves pre-launch indexing and sitemap behavior", () => {
-    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(false);
+  it("preserves route-aware indexing and sitemap behavior", () => {
+    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(true);
     expect(robotsPolicy({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
-      rules: { userAgent: "*", disallow: "/" },
+      rules: { userAgent: "*", allow: "/" },
       sitemap: "https://doughtools.app/sitemap.xml",
     });
 
@@ -75,8 +77,8 @@ describe("security and launch-safety baseline", () => {
     expect(doc).toContain("CSP decision");
     expect(doc).toContain("HSTS decision");
     expect(doc).toContain("Production verification checklist");
-    expect(doc).toContain("ALLOW_INDEXING=false");
-    expect(doc).toContain("no Google indexing is enabled");
+    expect(doc).toContain("route-aware indexing");
+    expect(doc).toContain("private and noindex route protections");
     expect(doc).toContain("no CSP console violations");
     expect(doc).toContain("Future hardening backlog");
     expect(doc).toContain("Local `next start` validation is useful");

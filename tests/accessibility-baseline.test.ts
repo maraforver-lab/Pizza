@@ -147,12 +147,14 @@ describe("core accessibility baseline", () => {
     expect(doc).toContain("did not change");
   });
 
-  it("preserves pre-launch indexing protection and avoids Search Console changes", () => {
+  it("preserves route-aware indexing protection and avoids Search Console changes", () => {
     const seoSource = source("lib/seo-config.ts");
     const nextConfig = source("next.config.ts");
     const accessibilityDoc = source("docs/accessibility-baseline.md");
 
-    expect(seoSource).toContain("ALLOW_INDEXING");
+    expect(seoSource).toContain("publicIndexableRoutePaths");
+    expect(seoSource).toContain("publicNoindexRoutePaths");
+    expect(nextConfig).toContain("noindex, noarchive");
     expect(nextConfig).toContain("noindex, nofollow, noarchive");
     expect(accessibilityDoc).not.toMatch(/Search Console verification|Google Analytics|gtag|posthog|plausible/i);
   });

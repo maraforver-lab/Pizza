@@ -1,18 +1,18 @@
 # DoughTools SEO indexation policy
 
-Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect. Patch 389 retires the old `/gear` page as a compatibility redirect to the equipment section on `/ovens`. Patch 390B retires the old `/doctor` page as a compatibility redirect to Troubleshooting. Patch 392B retires the old `/coach` page as a compatibility redirect to Troubleshooting. Patch 476A adds launch-ready social identity assets and explicit noindex protection for downstream workflow, token and API routes while keeping indexing disabled. Patch 479B separates public metadata from first-wave indexable routes before the indexing switch is opened.
+Patch 23 defined the first clean search-indexing baseline for DoughTools. Patch 387 updated that baseline after the Pizza Session and Learning Center simplification work. Patch 388 retires the old `/history` editorial page as a compatibility redirect. Patch 389 retires the old `/gear` page as a compatibility redirect to the equipment section on `/ovens`. Patch 390B retires the old `/doctor` page as a compatibility redirect to Troubleshooting. Patch 392B retires the old `/coach` page as a compatibility redirect to Troubleshooting. Patch 476A adds launch-ready social identity assets and explicit noindex protection for downstream workflow, token and API routes while keeping indexing disabled. Patch 479B separates public metadata from first-wave indexable routes. Patch 479C opens production indexing for the first-wave route set while keeping public noindex, private, workflow, token, API and duplicate routes protected.
 
-The goal is still not to open indexing automatically. The goal is to keep the public sitemap, canonical URLs, explicit noindex routes and robots behavior aligned with the current product architecture.
+The goal is to keep the public sitemap, canonical URLs, explicit noindex routes and robots behavior aligned with the current product architecture.
 
 ## Current launch state
 
-DoughTools is live for testing, but indexing remains controlled by the centralized launch switch:
+DoughTools uses route-aware indexing. Production first-wave routes become indexable when `NEXT_PUBLIC_SITE_URL` is configured as a safe non-preview production URL:
 
 ```text
-ALLOW_INDEXING=false
+NEXT_PUBLIC_SITE_URL=https://www.doughtools.app
 ```
 
-Do not enable indexing in this patch.
+Unsafe, local and preview deployments remain globally noindex and robots-blocked.
 
 ## Public indexable route policy
 
@@ -225,9 +225,15 @@ The implementation is:
 app/robots.ts
 ```
 
-While `ALLOW_INDEXING=false`, robots blocks crawling broadly as part of the temporary launch protection. This is not the only protection layer; pages also use noindex metadata and response headers.
+On production, robots allows crawling of public content and disallows private/account/auth/debug routes, downstream session workflow routes, public token order routes and API routes.
 
-When indexing is explicitly enabled later, robots should allow first-wave public content and continue to disallow private/account/auth/debug routes, downstream session workflow routes, public token order routes and API routes. Public noindex routes remain protected by route metadata and response headers. Legacy predecessor routes that still render pages remain noindexed by page metadata even when global indexing is enabled.
+Public noindex routes are not robots-blocked. They remain crawlable so crawlers can see their route metadata and `X-Robots-Tag: noindex, noarchive` response header.
+
+Unsafe, local and preview deployments still use the broad temporary protection:
+
+```text
+Disallow: /
+```
 
 Redirect-only compatibility routes are handled by server-side redirects rather than page-level noindex metadata.
 
@@ -237,7 +243,7 @@ Robots includes a Sitemap line so crawlers can find the sitemap when the owner i
 
 Search Console verification is not implemented automatically. Do not add a fake verification token.
 
-When DoughTools is ready for public indexing:
+When production verification is complete and the owner intentionally decides to use Search Console:
 
 1. Verify `https://www.doughtools.app` in Google Search Console.
 2. Submit `https://www.doughtools.app/sitemap.xml`.

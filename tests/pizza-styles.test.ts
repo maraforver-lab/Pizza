@@ -264,6 +264,6 @@ describe("Pizza Styles Assistant", () => {
     expect(seo).toContain("Pizza Style Guide: Choose Neapolitan, New York, Detroit and More | DoughTools");
     expect(seo).toContain("Compare pizza styles by crust, texture, dough, oven, sauce and baking method");
     expect(seo).toContain("choose the style that fits your oven and goal");
-    expect(seo).toContain("ALLOW_INDEXING");
+    expect(seo).toContain("publicIndexableRoutePaths");
   });
 });

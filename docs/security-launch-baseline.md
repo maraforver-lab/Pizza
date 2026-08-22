@@ -94,24 +94,25 @@ camera=(), microphone=(), geolocation=(), payment=()
 
 If future features need one of these APIs, that feature should update this policy deliberately.
 
-## Indexing protection remains unchanged
+## Indexing protection
 
-Patch 27 does not change the centralized indexing controls.
+Patch 27 did not change the centralized indexing controls. Patch 479C later changed the public launch state from a global pre-launch block to route-aware indexing.
 
-Current protection still depends on:
+Current protection depends on:
 
-- `ALLOW_INDEXING`
 - safe `NEXT_PUBLIC_SITE_URL`
 - preview-environment protection
+- first-wave indexable route policy
+- public noindex route policy
+- private and noindex route protections
 - robots metadata
 - `robots.txt`
 - `X-Robots-Tag`
 
-When `ALLOW_INDEXING=false`, DoughTools remains noindexed and `robots.txt` blocks crawlers.
+Unsafe, local and preview builds remain noindexed and `robots.txt` blocks crawlers. Safe production builds allow first-wave public routes while keeping public noindex, private, workflow, token and API route classes protected.
 
-Patch 27 does not:
+The security baseline still does not:
 
-- set `ALLOW_INDEXING=true`
 - add Google Search Console verification
 - submit a sitemap
 - add analytics
@@ -157,10 +158,10 @@ After deployment to Vercel, verify:
    - `X-Frame-Options`
    - `Strict-Transport-Security`
    - `Content-Security-Policy`
-   - `X-Robots-Tag` while indexing remains disabled
-4. Confirm `robots.txt` still blocks crawling when `ALLOW_INDEXING=false`.
-5. Confirm `/sitemap.xml` still renders and does not include `/account`.
-6. Confirm no Google indexing is enabled.
+   - `X-Robots-Tag` on public noindex and private/workflow routes
+4. Confirm `robots.txt` allows production public crawling and still disallows private route classes.
+5. Confirm `/sitemap.xml` renders exactly the approved first-wave routes and does not include `/account`.
+6. Confirm public KEEP NOINDEX routes still emit noindex.
 7. Confirm no Search Console verification or sitemap submission was added.
 8. Confirm the calculator still works.
 9. Confirm Supabase login still works if auth is available.

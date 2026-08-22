@@ -321,7 +321,7 @@ describe("Oven Guide", () => {
 
     expect(seo).toContain("Pizza Oven and Home Oven Baking Guide | DoughTools");
     expect(seo).toContain("Get better pizza from a home oven or pizza oven with practical setup, heat, preheating, bake-time and topping-moisture guidance.");
-    expect(seo).toContain("ALLOW_INDEXING");
+    expect(seo).toContain("publicIndexableRoutePaths");
     expect(seo).not.toContain("Compare electric ovens, gas pizza ovens and other common pizza oven setups with practical trade-offs.");
   });
 

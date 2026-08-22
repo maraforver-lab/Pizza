@@ -59,10 +59,10 @@ describe("performance and rendering baseline", () => {
     expect(patch25?.technicalNote).toContain("SEO indexing permissions");
   });
 
-  it("preserves pre-launch indexing protection and sitemap behavior", () => {
-    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(false);
+  it("preserves controlled indexing protection and sitemap behavior", () => {
+    expect(isIndexingAllowed({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toBe(true);
     expect(robotsPolicy({ ALLOW_INDEXING: "false", NEXT_PUBLIC_SITE_URL: "https://doughtools.app" })).toMatchObject({
-      rules: { userAgent: "*", disallow: "/" },
+      rules: { userAgent: "*", allow: "/" },
     });
 
     const sitemapUrls = sitemapEntries({ NEXT_PUBLIC_SITE_URL: "https://doughtools.app" }).map((entry) => entry.url);

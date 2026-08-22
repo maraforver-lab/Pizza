@@ -1830,7 +1830,7 @@ describe("Session recipe build step", () => {
     expect(recipeDoc).toContain("/session/recipe");
     expect(dataDoc).toContain("When `currentStep` is `recipe`, Continue Session resumes at `/session/recipe`.");
     expect(wizardDoc).toContain("Patch 150 separates early dough planning from topping/shopping choices");
-    expect(seoConfig).toContain("ALLOW_INDEXING");
+    expect(seoConfig).toContain("publicNoindexRoutePaths");
     expect([startPage, recipePage, timelinePage, shoppingPage, recipeDoc].join("\n")).not.toMatch(/analytics added|tracking added|Google indexing enabled|Cloud sync is active/i);
   });
 });
