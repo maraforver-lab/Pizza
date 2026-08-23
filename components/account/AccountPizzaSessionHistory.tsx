@@ -204,16 +204,16 @@ export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly
   }
 
   return (
-    <section className={`rounded-[2rem] border border-ink/10 bg-white p-5 shadow-card sm:p-7 ${className}`} aria-labelledby="pizza-session-history-heading">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <section className={`rounded-[1.5rem] border border-ink/10 bg-white p-4 shadow-card sm:rounded-[2rem] sm:p-7 ${className}`} aria-labelledby="pizza-session-history-heading">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[.2em] text-leaf">Completed pizza plans</p>
-          <h2 id="pizza-session-history-heading" className="mt-2 font-display text-3xl font-semibold">
+          <h2 id="pizza-session-history-heading" className="mt-1.5 font-display text-2xl font-semibold sm:mt-2 sm:text-3xl">
             Pizza plan history
           </h2>
         </div>
         {sessions.length > 0 && (
-          <p className="text-xs font-bold leading-5 text-ink/45">
+          <p className="text-xs font-bold leading-5 text-ink/45 sm:text-right">
             Showing all retained completed pizza plans, newest first.
           </p>
         )}
@@ -225,11 +225,19 @@ export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly
           <p className="mt-2 text-sm leading-6 text-ink/60">Finish and review a pizza plan to save it here.</p>
         </div>
       ) : (
-        <div id="account-pizza-session-history-list" className="mt-5 grid gap-3">
+        <div id="account-pizza-session-history-list" className="mt-4 grid gap-2.5">
           {sessions.map((session) => {
             const summary = cloudPizzaSessionHistorySummary(session);
             const sessionData = migratePizzaSession(session.session_data);
             const photo = sessionData?.photo?.url;
+            const compactDoughLine = summary.doughLine
+              .replace("dough balls", "balls")
+              .replace("each", "");
+            const compactFermentationLine = summary.fermentationLine
+              ?.replace(/^Fermentation:\s*/, "")
+              .replace(" fermentation", "");
+            const compactBakeProfileLine = summary.bakeProfileLine
+              ?.replace("Oven: ", "");
             const isConfirmingDelete = confirmingDeleteId === session.id;
             const isDeleting = deletingId === session.id;
             const customTitle = cloudPizzaSessionCustomName(session);
@@ -237,21 +245,26 @@ export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly
             const isSavingTitle = savingTitleId === session.id;
             const titleDraft = titleDrafts[session.id] ?? customTitle ?? "";
             return (
-              <article key={session.id} className="rounded-[1.5rem] border border-leaf/15 bg-leaf/[.06] p-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <article key={session.id} className="rounded-[1.25rem] border border-leaf/15 bg-leaf/[.06] p-3 shadow-sm sm:p-3.5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h3 className="[overflow-wrap:anywhere] font-display text-2xl font-semibold text-ink">{summary.title}</h3>
-                        <p className="mt-1 [overflow-wrap:anywhere] text-sm font-extrabold leading-6 text-leaf">{summary.statusLine}</p>
+                        <h3 className="[overflow-wrap:anywhere] font-display text-xl font-semibold leading-tight text-ink sm:text-2xl">{summary.title}</h3>
+                        <p className="mt-1 [overflow-wrap:anywhere] text-xs font-extrabold leading-5 text-leaf sm:text-sm">{summary.statusLine}</p>
                       </div>
-                      <span className="w-fit rounded-full bg-white px-3 py-2 text-xs font-extrabold text-ink/55 ring-1 ring-ink/10">
-                        Read-only summary
-                      </span>
+                      <Link
+                        href={`/account/pizza-sessions/${session.id}`}
+                        aria-label={`View pizza plan: ${summary.title}`}
+                        className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-ink px-3 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                      >
+                        View
+                        <span className="sr-only"> pizza plan</span>
+                      </Link>
                     </div>
                     {isEditingTitle && (
                       <form
-                        className="mt-4 rounded-[1.25rem] border border-white/80 bg-white/85 p-4"
+                        className="mt-3 rounded-[1.1rem] border border-white/80 bg-white/85 p-3"
                         onSubmit={(event) => {
                           event.preventDefault();
                           saveSessionTitle(session.id, titleDraft);
@@ -269,7 +282,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly
                           className="mt-2 min-h-11 w-full rounded-2xl border border-ink/10 bg-white px-4 text-sm font-bold text-ink outline-none transition placeholder:text-ink/35 focus:border-leaf/35 focus:ring-2 focus:ring-leaf/20"
                         />
                         {titleError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{titleError}</p>}
-                        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                        <div className="mt-3 flex flex-wrap gap-2">
                           <button
                             type="submit"
                             disabled={isSavingTitle}
@@ -301,35 +314,32 @@ export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly
                         </div>
                       </form>
                     )}
-                    <div className="mt-4 grid gap-2 [overflow-wrap:anywhere] rounded-[1.25rem] border border-white/70 bg-white/80 p-4 text-sm leading-6 text-ink/62">
-                      <p>{summary.doughLine}</p>
-                      {summary.hydrationLine && <p>{summary.hydrationLine}</p>}
-                      {summary.fermentationLine && <p>{summary.fermentationLine}</p>}
-                      {summary.reviewLine && <p>{summary.reviewLine}</p>}
-                      <p>{summary.bakeLine}</p>
-                      {summary.bakeProfileLine && <p>{summary.bakeProfileLine}</p>}
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 [overflow-wrap:anywhere] text-sm leading-5 text-ink/65">
+                      <p>{compactDoughLine}</p>
+                      {compactFermentationLine && <p>{compactFermentationLine}</p>}
+                      {compactBakeProfileLine && <p>{compactBakeProfileLine}</p>}
                     </div>
                   </div>
                   {photo && (
-                    <div className="w-full shrink-0 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/75 shadow-sm sm:w-36">
+                    <div className="w-full shrink-0 overflow-hidden rounded-[1rem] border border-white/80 bg-white/75 shadow-sm sm:w-28">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photo}
                         alt="Completed pizza plan thumbnail"
-                        className="aspect-square w-full object-cover"
+                        className="aspect-[4/3] w-full object-cover sm:aspect-square"
                         loading="lazy"
                       />
                     </div>
                   )}
                 </div>
                 {isConfirmingDelete && (
-                  <div className="mt-4 rounded-[1.25rem] border border-tomato/15 bg-white/85 p-4">
+                  <div className="mt-3 rounded-[1.1rem] border border-tomato/15 bg-white/85 p-3">
                     <h4 className="text-sm font-extrabold text-ink">Delete this pizza plan?</h4>
                     <p className="mt-2 text-sm leading-6 text-ink/60">
                       This removes the completed pizza plan from your account history. This cannot be undone.
                     </p>
                     {deleteError && <p role="alert" className="mt-3 text-sm font-extrabold text-tomato">{deleteError}</p>}
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -352,20 +362,14 @@ export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly
                   </div>
                 )}
                 {!isConfirmingDelete && (
-                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                    <Link
-                      href={`/account/pizza-sessions/${session.id}`}
-                      className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-ink px-4 text-xs font-extrabold text-white transition hover:bg-ink/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                    >
-                      View pizza plan
-                    </Link>
+                  <div className="mt-2 flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         setConfirmingDeleteId(session.id);
                         setDeleteError("");
                       }}
-                      className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-tomato/15 bg-white px-4 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                      className="inline-flex min-h-10 items-center justify-center rounded-full border border-tomato/15 bg-white px-3 text-xs font-extrabold text-tomato transition hover:border-tomato/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                     >
                       Delete
                     </button>
@@ -376,7 +380,7 @@ export function AccountPizzaSessionHistory({ enabled, className = "", latestOnly
                         setTitleError("");
                         setTitleDrafts((current) => ({ ...current, [session.id]: customTitle ?? "" }));
                       }}
-                      className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-ink/10 bg-white px-4 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                      className="inline-flex min-h-10 items-center justify-center rounded-full border border-ink/10 bg-white px-3 text-xs font-extrabold text-ink/65 transition hover:border-ink/25 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                     >
                       Edit name
                     </button>
