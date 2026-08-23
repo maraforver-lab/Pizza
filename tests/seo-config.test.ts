@@ -185,6 +185,8 @@ describe("SEO launch configuration", () => {
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/timeline");
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/kitchen");
     expect(seoRoutePolicy.privateNoindexRoutes).toContain("/session/review");
+    expect(publicSeoRoutes.map((route) => route.path)).not.toContain("/account/pizza-sessions");
+    expect((publicIndexableRoutePaths as readonly string[]).some((route) => route === "/account/pizza-sessions")).toBe(false);
   });
 
   it("uses the versioned static DoughTools pizza social image for public metadata", () => {
@@ -255,6 +257,7 @@ describe("SEO launch configuration", () => {
       "/session/kitchen",
       "/session/review",
       "/account",
+      "/account/pizza-sessions",
       "/admin",
       "/account/party-orders",
       "/order/",

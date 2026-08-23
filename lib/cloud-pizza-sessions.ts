@@ -270,8 +270,8 @@ export function cloudPizzaSessionCompletedLabel(value: string | null | undefined
 
 export function sortCloudPizzaSessionHistoryRows(rows: CloudPizzaSessionRow[]) {
   return [...rows].sort((a, b) => {
-    const left = new Date(a.completed_at ?? a.updated_at).getTime();
-    const right = new Date(b.completed_at ?? b.updated_at).getTime();
+    const left = new Date(a.created_at).getTime();
+    const right = new Date(b.created_at).getTime();
     return (Number.isFinite(right) ? right : 0) - (Number.isFinite(left) ? left : 0);
   });
 }

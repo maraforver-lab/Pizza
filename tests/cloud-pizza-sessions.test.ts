@@ -1510,19 +1510,19 @@ describe("cloud pizza session foundation", () => {
     expect(selected.stepRuntime?.["mix-dough"]?.actualCompletedAt).toBe("2026-07-04T10:15:00.000Z");
   });
 
-  it("sorts completed cloud history newest first with updated_at fallback", () => {
-    const older = normalizeCloudPizzaSessionHistoryRow({
-      id: "older",
+  it("sorts completed cloud history newest first by original creation time", () => {
+    const olderButRecentlyUpdated = normalizeCloudPizzaSessionHistoryRow({
+      id: "older-updated",
       user_id: "user-1",
       status: "completed",
       title: "Active pizza session",
       current_step: "review",
       session_data: createPizzaSession({ id: "older-session", status: "completed", currentStep: "review" }),
       created_at: "2026-07-01T10:00:00.000Z",
-      updated_at: "2026-07-01T12:00:00.000Z",
-      completed_at: "2026-07-01T12:00:00.000Z",
+      updated_at: "2026-07-04T12:00:00.000Z",
+      completed_at: "2026-07-04T12:00:00.000Z",
     })!;
-    const newerWithFallback = normalizeCloudPizzaSessionHistoryRow({
+    const newerCreated = normalizeCloudPizzaSessionHistoryRow({
       id: "newer",
       user_id: "user-1",
       status: "completed",
@@ -1534,7 +1534,7 @@ describe("cloud pizza session foundation", () => {
       completed_at: null,
     })!;
 
-    expect(sortCloudPizzaSessionHistoryRows([older, newerWithFallback]).map((row) => row.id)).toEqual(["newer", "older"]);
+    expect(sortCloudPizzaSessionHistoryRows([olderButRecentlyUpdated, newerCreated]).map((row) => row.id)).toEqual(["newer", "older-updated"]);
   });
 
   it("auto-saves signed-in Dough Plan sessions while preserving manual fallback", () => {
@@ -1791,12 +1791,12 @@ describe("cloud pizza session foundation", () => {
 
     expect(accountPage).toContain("AccountActivePizzaSessionCard");
     expect(accountPage).toContain("<AccountActivePizzaSessionCard enabled");
-    expect(accountPage).toContain("Your DoughTools workspace.");
+    expect(accountPage).toContain("Your DoughTools workspace");
     expect(accountPage).toContain("Back to homepage");
     expect(accountPage).toContain('href="/"');
-    expect(accountPage).toContain("t.signedIn");
-    expect(accountPage).toContain("user.email");
-    expect(accountPage).toContain("t.signOut");
+    expect(accountPage).toContain("Continue your active pizza plan, review the latest finished bake");
+    expect(accountPage).toContain("href=\"/account/settings\"");
+    expect(accountPage).toContain("Open settings");
     expect(accountPage).not.toContain("Your password is handled by Supabase and is not stored in DoughTools code.");
     expect(accountCard).toContain("resolveCanonicalActivePizzaSession()");
     expect(accountCard).toContain("summary.title");
@@ -1837,6 +1837,7 @@ describe("cloud pizza session foundation", () => {
     const detailRoute = source("app/api/pizza-sessions/history/[id]/route.ts");
     const photoRoute = source("app/api/pizza-sessions/history/[id]/photo/route.ts");
     const historyComponent = source("components/account/AccountPizzaSessionHistory.tsx");
+    const historyPage = source("app/account/pizza-sessions/page.tsx");
     const detailPage = source("app/account/pizza-sessions/[id]/page.tsx");
     const detailComponent = source("components/account/CompletedPizzaSessionDetail.tsx");
     const overlayComponent = source("components/account/PizzaPhotoOverlayGenerator.tsx");
@@ -1853,11 +1854,19 @@ describe("cloud pizza session foundation", () => {
     expect(historyRoute).toContain("createSignedUrl(session.photo.path");
     expect(historyRoute).toContain(".eq(\"user_id\", user.id)");
     expect(historyRoute).toContain(".eq(\"status\", \"completed\")");
+    expect(historyRoute).toContain(".order(\"created_at\", { ascending: false })");
     expect(historyRoute).toContain("sortCloudPizzaSessionHistoryRows");
     expect(historyRoute).toContain("COMPLETED_PIZZA_SESSION_RETENTION_LIMIT");
     expect(historyComponent).toContain("fetch(\"/api/pizza-sessions/history\"");
     expect(historyComponent).toContain("migratePizzaSession(session.session_data)");
+    expect(historyComponent).toContain("Latest pizza plan");
+    expect(historyComponent).toContain("Newest by original plan creation date.");
+    expect(historyComponent).toContain("View all pizza plans ({sessions.length})");
+    expect(historyComponent).toContain("href=\"/account/pizza-sessions\"");
+    expect(historyComponent).toContain("href=\"/session/start\"");
+    expect(historyComponent).toContain("sessions.map((session)");
     expect(historyComponent).toContain("Completed pizza plan thumbnail");
+    expect(historyComponent).toContain("Latest completed pizza plan thumbnail");
     expect(historyComponent).toContain("loading=\"lazy\"");
     expect(historyComponent).toContain("Delete");
     expect(historyComponent).toContain("Delete this pizza plan?");
@@ -1875,8 +1884,12 @@ describe("cloud pizza session foundation", () => {
     expect(historyComponent).toContain("retained completed pizza plans");
     expect(historyComponent).toContain("current.filter((session) => session.id !== sessionId)");
     expect(historyComponent).toContain("Pizza plan history");
+    expect(historyPage).toContain("Pizza plan history");
+    expect(historyPage).toContain("<AccountPizzaSessionHistory enabled />");
+    expect(historyPage).toContain("href=\"/account\"");
     expect(source("lib/cloud-pizza-sessions.ts")).toContain("COMPLETED_PIZZA_SESSION_DEFAULT_TITLE");
     expect(source("lib/cloud-pizza-sessions.ts")).toContain("cloudPizzaSessionDisplayTitle(row, COMPLETED_PIZZA_SESSION_DEFAULT_TITLE)");
+    expect(source("lib/cloud-pizza-sessions.ts")).toContain("new Date(a.created_at).getTime()");
     expect(historyComponent).toContain("summary.doughLine");
     expect(historyComponent).toContain("summary.hydrationLine");
     expect(historyComponent).toContain("summary.fermentationLine");

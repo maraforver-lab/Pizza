@@ -41,18 +41,25 @@ describe("Account workspace redesign", () => {
   it("shows only the latest completed pizza plan on Account and keeps safe photo behavior", () => {
     const page = source("app/account/page.tsx");
     const history = source("components/account/AccountPizzaSessionHistory.tsx");
+    const historyPage = source("app/account/pizza-sessions/page.tsx");
 
     expect(page).toContain("<AccountPizzaSessionHistory enabled latestOnly");
     expect(history).toContain("latestOnly?: boolean");
     expect(history).toContain("latestCompletedSession = sessions[0] ?? null");
-    expect(history).toContain("latestCompletedSession ? [latestCompletedSession] : []");
+    expect(history).toContain("Latest pizza plan");
+    expect(history).toContain("Newest by original plan creation date.");
+    expect(history).toContain("href=\"/account/pizza-sessions\"");
+    expect(history).toContain("View all pizza plans ({sessions.length})");
     expect(history).toContain("sortCloudPizzaSessionHistoryRows(rows)");
-    expect(history).toContain("Showing your latest completed pizza plan.");
-    expect(history).toContain("Only the latest completed pizza plan is shown here to keep Account compact.");
+    expect(history).toContain("No completed pizza plans yet");
+    expect(history).toContain("href=\"/session/start\"");
     expect(history).toContain("const photo = sessionData?.photo?.url");
     expect(history).toContain("{photo && (");
-    expect(history).toContain("Completed pizza plan thumbnail");
+    expect(history).toContain("Latest completed pizza plan thumbnail");
+    expect(history).toContain("Showing all retained completed pizza plans, newest first.");
     expect(history).toContain("href={`/account/pizza-sessions/${session.id}`}");
+    expect(historyPage).toContain("Pizza plan history");
+    expect(historyPage).toContain("<AccountPizzaSessionHistory enabled />");
     expect(history).not.toMatch(/placeholder.*photo|generated image|image_gen|createSignedUrl/i);
   });
 });

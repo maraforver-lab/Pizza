@@ -48,24 +48,26 @@ describe("Patch 344 account responsive workspace", () => {
     expect(adminIndex).toBeGreaterThan(settingsIndex);
   });
 
-  it("keeps full history disclosure support while Account requests only the latest completed pizza plan", () => {
+  it("keeps the account overview focused on the latest plan with a dedicated history route", () => {
     const page = source("app/account/page.tsx");
     const history = source("components/account/AccountPizzaSessionHistory.tsx");
+    const historyPage = source("app/account/pizza-sessions/page.tsx");
 
     expect(page).toContain("AccountPizzaSessionHistory enabled latestOnly");
     expect(history).toContain("latestOnly?: boolean");
     expect(history).toContain("latestCompletedSession = sessions[0] ?? null");
-    expect(history).toContain("latestCompletedSession ? [latestCompletedSession] : []");
-    expect(history).toContain("Showing your latest completed pizza plan.");
-    expect(history).toContain("Only the latest completed pizza plan is shown here to keep Account compact.");
-    expect(history).toContain("const ACCOUNT_HISTORY_COLLAPSED_LIMIT = 2");
+    expect(history).toContain("Latest pizza plan");
+    expect(history).toContain("Open plan");
+    expect(history).toContain("View all pizza plans ({sessions.length})");
+    expect(history).toContain("href=\"/account/pizza-sessions\"");
+    expect(history).toContain("href=\"/session/start\"");
     expect(history).toContain("sortCloudPizzaSessionHistoryRows(rows)");
-    expect(history).toContain("sessions.slice(0, ACCOUNT_HISTORY_COLLAPSED_LIMIT)");
-    expect(history).toContain("retained completed pizza plans");
-    expect(history).toContain("Show ${hiddenSessionCount} more pizza plans");
-    expect(history).toContain("Show fewer pizza plans");
-    expect(history).toContain("aria-expanded={historyExpanded}");
-    expect(history).toContain("aria-controls=\"account-pizza-session-history-list\"");
+    expect(history).toContain("sessions.map((session)");
+    expect(history).toContain("Showing all retained completed pizza plans, newest first.");
+    expect(historyPage).toContain("Pizza plan history");
+    expect(historyPage).toContain("<AccountPizzaSessionHistory enabled />");
+    expect(history).not.toContain("ACCOUNT_HISTORY_COLLAPSED_LIMIT");
+    expect(history).not.toContain("Show fewer pizza plans");
   });
 
   it("removes the archived unfinished-session product surface", () => {
@@ -123,8 +125,11 @@ describe("Patch 344 account responsive workspace", () => {
   it("uses pizza plan terminology for completed account history", () => {
     const history = source("components/account/AccountPizzaSessionHistory.tsx");
     const detail = source("components/account/CompletedPizzaSessionDetail.tsx");
+    const historyPage = source("app/account/pizza-sessions/page.tsx");
 
+    expect(history).toContain("Latest pizza plan");
     expect(history).toContain("Pizza plan history");
+    expect(historyPage).toContain("Pizza plan history");
     expect(history).toContain("No completed pizza plans yet");
     expect(history).toContain("Finish and review a pizza plan to save it here.");
     expect(history).toContain("View pizza plan");

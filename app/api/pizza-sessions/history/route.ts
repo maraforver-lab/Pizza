@@ -45,7 +45,7 @@ export async function GET() {
     .select(CLOUD_PIZZA_SESSION_SELECT)
     .eq("user_id", user.id)
     .eq("status", "completed")
-    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(COMPLETED_PIZZA_SESSION_RETENTION_LIMIT);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
