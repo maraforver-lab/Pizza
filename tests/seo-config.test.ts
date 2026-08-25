@@ -197,7 +197,7 @@ describe("SEO launch configuration", () => {
     expect(SOCIAL_IMAGE_PATH).toBe("/social/doughtools-og-v1.png");
     expect(SOCIAL_IMAGE_WIDTH).toBe(1200);
     expect(SOCIAL_IMAGE_HEIGHT).toBe(630);
-    expect(SOCIAL_IMAGE_ALT).toContain("DoughTools D timing mark");
+    expect(SOCIAL_IMAGE_ALT).toContain("DoughTools filled-corner pizza mark");
     expect(socialImageUrl(env)).toBe(imageUrl);
     expect(metadata.description).toBe("Calculate pizza dough ingredients, plan fermentation and follow one clear recipe, schedule and baking plan with DoughTools.");
     expect(metadata.openGraph).toMatchObject({

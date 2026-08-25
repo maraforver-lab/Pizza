@@ -27,7 +27,7 @@ const unsupportedMarketingClaims = /\b(perfect pizza|guaranteed|ultimate|revolut
 export const SOCIAL_IMAGE_PATH = "/social/doughtools-og-v1.png";
 export const SOCIAL_IMAGE_WIDTH = 1200;
 export const SOCIAL_IMAGE_HEIGHT = 630;
-export const SOCIAL_IMAGE_ALT = "DoughTools pizza planning preview with the DoughTools D timing mark";
+export const SOCIAL_IMAGE_ALT = "DoughTools pizza planning preview with the DoughTools filled-corner pizza mark";
 
 export const publicSeoRoutes = [
   {

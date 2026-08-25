@@ -555,7 +555,7 @@ export default function GlobalToolNavigation() {
         >
           <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl shadow-lg shadow-tomato/15" aria-hidden="true">
             <Image
-              src="/icon.svg"
+              src="/icons/icon-192.png"
               alt=""
               width={40}
               height={40}

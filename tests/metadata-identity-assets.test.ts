@@ -35,7 +35,7 @@ function icoSizes(path: string) {
 }
 
 describe("DoughTools public identity assets", () => {
-  it("ships one canonical D timing mark and required favicon/app derivatives", () => {
+  it("ships the approved filled-corner pizza mark and required favicon/app derivatives", () => {
     const iconFiles = [
       "icon.svg",
       "favicon.ico",
@@ -43,22 +43,22 @@ describe("DoughTools public identity assets", () => {
       "icons/icon-192.png",
       "icons/icon-512.png",
       "icons/maskable-512.png",
-      "brand/doughtools-d-timing-mark.svg",
+      "brand/doughtools-pizza-mark.svg",
     ];
 
     for (const file of iconFiles) {
       expect(existsSync(publicFile(file))).toBe(true);
     }
 
-    expect(source("public/icon.svg")).toContain("DoughTools D timing mark");
-    expect(source("public/icon.svg")).not.toContain("pizza mark");
-    expect(source("public/brand/doughtools-d-timing-mark.svg")).toContain("DoughTools D timing mark");
+    expect(source("public/icon.svg")).toContain("DoughTools filled-corner pizza mark");
+    expect(source("public/icon.svg")).not.toContain("DoughTools D timing mark");
+    expect(source("public/brand/doughtools-pizza-mark.svg")).toContain("DoughTools filled-corner pizza mark");
     expect(pngDimensions(publicFile("apple-touch-icon.png"))).toEqual({ width: 180, height: 180 });
     expect(pngDimensions(publicFile("icons/icon-192.png"))).toEqual({ width: 192, height: 192 });
     expect(pngDimensions(publicFile("icons/icon-512.png"))).toEqual({ width: 512, height: 512 });
     expect(pngDimensions(publicFile("icons/maskable-512.png"))).toEqual({ width: 512, height: 512 });
     expect(icoSizes(publicFile("favicon.ico"))).toEqual(new Set(["16x16", "32x32", "48x48"]));
-    expect(existsSync(publicFile("brand/doughtools-pizza-mark.svg"))).toBe(false);
+    expect(existsSync(publicFile("brand/doughtools-d-timing-mark.svg"))).toBe(false);
   });
 
   it("ships the versioned static Open Graph image at the required dimensions", () => {
@@ -81,6 +81,7 @@ describe("DoughTools public identity assets", () => {
     expect(manifest).toContain("/icons/icon-192.png");
     expect(manifest).toContain("/icons/icon-512.png");
     expect(manifest).toContain("/icons/maskable-512.png");
+    expect(manifest).not.toContain("/icon.svg");
     expect(manifest).toContain('purpose: "maskable"');
     expect(seo).toContain("/social/doughtools-og-v1.png");
     expect(seo).not.toContain("/opengraph-image");
