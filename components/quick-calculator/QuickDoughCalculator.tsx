@@ -463,10 +463,10 @@ function QuickCalculatorSeoContext() {
       <div className="max-w-3xl">
         <p className="text-xs font-extrabold uppercase tracking-[.2em] text-tomato">Pizza dough calculator</p>
         <h2 id="quick-calculator-seo-context-heading" className="mt-2 font-display text-3xl font-semibold">
-          Calculate a dough recipe from the pizza you want to make.
+          How the pizza dough calculator works
         </h2>
         <p className="mt-3 text-sm leading-6 text-ink/64 sm:text-base">
-          DoughTools calculates flour, water, salt and yeast from your pizza count, dough-ball weight,
+          DoughTools calculates flour, water, salt and yeast from your pizza count, dough ball weight,
           hydration, salt level, yeast type and fermentation plan. Use it when you need exact dough
           amounts without starting a full Pizza Plan.
         </p>
@@ -491,17 +491,81 @@ function QuickCalculatorSeoContext() {
           </p>
         </div>
       </div>
-      <div className="mt-5 flex flex-wrap gap-2 text-sm font-extrabold">
+      <div className="mt-5 grid gap-4 text-sm leading-6 text-ink/64 lg:grid-cols-2">
+        <section className="rounded-2xl bg-white/80 p-4" aria-labelledby="quick-ingredients-heading">
+          <h3 id="quick-ingredients-heading" className="font-display text-2xl font-semibold text-ink">
+            Pizza dough ingredients
+          </h3>
+          <dl className="mt-3 grid gap-3">
+            <div>
+              <dt className="font-extrabold text-ink">Flour</dt>
+              <dd>Flour is the base amount. The other ingredients are calculated from it using baker&apos;s percentages.</dd>
+            </div>
+            <div>
+              <dt className="font-extrabold text-ink">Water and hydration</dt>
+              <dd>Hydration describes how much water the dough contains. For example, 65% hydration means 65 g of water for every 100 g of flour.</dd>
+            </div>
+            <div>
+              <dt className="font-extrabold text-ink">Salt</dt>
+              <dd>Salt is calculated as a percentage of flour so the seasoning scales with the dough size.</dd>
+            </div>
+            <div>
+              <dt className="font-extrabold text-ink">Yeast</dt>
+              <dd>Yeast changes with fermentation time, temperature and whether the dough ferments at room temperature or in the refrigerator.</dd>
+            </div>
+          </dl>
+        </section>
+        <section className="rounded-2xl bg-white/80 p-4" aria-labelledby="quick-fermentation-heading">
+          <h3 id="quick-fermentation-heading" className="font-display text-2xl font-semibold text-ink">
+            Why fermentation time changes the yeast amount
+          </h3>
+          <p className="mt-3">
+            Shorter fermentation generally needs more yeast. Longer fermentation generally needs less yeast.
+            Temperature also matters because warmer dough ferments faster and colder dough ferments more slowly.
+          </p>
+          <p className="mt-3">
+            Room-temperature and cold fermentation are different processes, so the calculator treats them separately
+            instead of using one simple time rule for both.
+          </p>
+        </section>
+      </div>
+      <section className="mt-5 rounded-2xl bg-cream/70 p-4" aria-labelledby="quick-faq-heading">
+        <h3 id="quick-faq-heading" className="font-display text-2xl font-semibold text-ink">
+          Common pizza dough questions
+        </h3>
+        <div className="mt-3 grid gap-3 text-sm leading-6 text-ink/64 md:grid-cols-2">
+          <div>
+            <h4 className="font-extrabold text-ink">What hydration should I use for pizza dough?</h4>
+            <p className="mt-1">A moderate hydration is easiest to handle. Higher hydration can feel softer and stickier, especially for beginners.</p>
+          </div>
+          <div>
+            <h4 className="font-extrabold text-ink">How much yeast should I use for pizza dough?</h4>
+            <p className="mt-1">The amount depends on flour quantity, yeast type, fermentation time and temperature. Use the calculator result instead of a fixed spoon measure.</p>
+          </div>
+          <div>
+            <h4 className="font-extrabold text-ink">How much dough do I need per pizza?</h4>
+            <p className="mt-1">Many round pizzas use roughly 240-280 g per dough ball, but pan pizzas and larger pizzas need more.</p>
+          </div>
+          <div>
+            <h4 className="font-extrabold text-ink">Does fermentation time affect yeast?</h4>
+            <p className="mt-1">Yes. Time and temperature both affect how active the yeast is before baking.</p>
+          </div>
+        </div>
+      </section>
+      <nav className="mt-5 flex flex-wrap gap-2 text-sm font-extrabold" aria-label="Pizza dough calculator learning links">
         <Link href="/methodology" className="rounded-full bg-white px-4 py-2 text-ink transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-          How the calculation works
+          pizza dough calculation method
         </Link>
         <Link href="/guides/dough" className="rounded-full bg-white px-4 py-2 text-ink transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-          Learn the dough process
+          pizza dough process guide
         </Link>
         <Link href="/guide/practical-pizza-tips/fermentation-length" className="rounded-full bg-white px-4 py-2 text-ink transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
-          Choose fermentation time
+          pizza dough fermentation guide
         </Link>
-      </div>
+        <Link href="/ovens" className="rounded-full bg-white px-4 py-2 text-ink transition hover:bg-cream focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato">
+          choose your oven setup
+        </Link>
+      </nav>
     </section>
   );
 }
@@ -791,11 +855,11 @@ export default function QuickDoughCalculator() {
             <h1 id="quick-calculator-heading" className="mt-2 font-display text-4xl font-semibold leading-none sm:text-5xl">
               Pizza Dough Calculator
             </h1>
-            {!isBeginner && (
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65 sm:text-base">
-                Calculate flour, water, salt and yeast for the pizza dough you want to make.
-              </p>
-            )}
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65 sm:text-base">
+              Calculate the exact flour, water, salt and yeast you need for your pizza dough.
+              Choose the number of pizzas, dough ball weight, hydration and fermentation plan,
+              and DoughTools calculates the recipe for you.
+            </p>
             <QuickCalculatorGuidanceTabs level={experienceLevel} onSelectLevel={requestGuidanceLevel} />
             {isBeginner && (
               <p className="mt-3 max-w-2xl rounded-2xl bg-white/70 px-4 py-3 text-sm font-bold leading-6 text-ink/68" data-quick-beginner-recommended-note>

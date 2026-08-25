@@ -176,8 +176,9 @@ export const publicSeoRoutes = [
   },
   {
     path: "/calculator/quick",
-    title: "Pizza Dough Calculator: Yeast, Hydration and Dough Balls | DoughTools",
-    description: "Calculate pizza dough flour, water, salt and yeast from pizza count, dough-ball weight, hydration and fermentation time.",
+    title: "Pizza Dough Calculator - Flour, Water, Salt & Yeast | DoughTools",
+    description:
+      "Calculate exact flour, water, salt and yeast for pizza dough based on pizza count, dough ball weight, hydration and fermentation time.",
     changeFrequency: "monthly",
     priority: 0.6,
   },

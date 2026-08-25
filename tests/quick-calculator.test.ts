@@ -94,11 +94,16 @@ const forbiddenBoundaryPatterns = [
 describe("Quick Dough Calculator isolated core UI", () => {
   it("adds a dedicated public quick calculator route", () => {
     const page = source("app/calculator/quick/page.tsx");
-    const metadata = metadataForRoute("/calculator/quick");
+    const metadata = metadataForRoute("/calculator/quick", {
+      NEXT_PUBLIC_SITE_URL: "https://www.doughtools.app",
+      VERCEL_ENV: "production",
+    });
 
     expect(page).toContain("QuickDoughCalculator");
-    expect(metadata.title).toBe("Pizza Dough Calculator: Yeast, Hydration and Dough Balls | DoughTools");
-    expect(metadata.description).toContain("Calculate pizza dough flour, water, salt and yeast");
+    expect(metadata.title).toBe("Pizza Dough Calculator - Flour, Water, Salt & Yeast | DoughTools");
+    expect(metadata.description).toBe("Calculate exact flour, water, salt and yeast for pizza dough based on pizza count, dough ball weight, hydration and fermentation time.");
+    expect(metadata.alternates).toMatchObject({ canonical: "https://www.doughtools.app/calculator/quick" });
+    expect(metadata.robots).toMatchObject({ index: true, follow: true });
     expect(page).not.toContain("redirect(");
     expect(page).not.toContain("HomeCalculatorWorkspace");
     expect(page).not.toContain("calculator=1");
@@ -301,9 +306,14 @@ describe("Quick Dough Calculator isolated core UI", () => {
 
     expect(component).toContain("Pizza Dough Calculator");
     expect(component).toContain("data-quick-seo-context");
-    expect(component).toContain("Calculate a dough recipe from the pizza you want to make.");
-    expect(component).toContain("How the calculation works");
-    expect(component).toContain("Choose fermentation time");
+    expect(component).toContain("Calculate the exact flour, water, salt and yeast you need for your pizza dough.");
+    expect(component).toContain("How the pizza dough calculator works");
+    expect(component).toContain("Pizza dough ingredients");
+    expect(component).toContain("Why fermentation time changes the yeast amount");
+    expect(component).toContain("Common pizza dough questions");
+    expect(component).toContain("pizza dough calculation method");
+    expect(component).toContain("pizza dough fermentation guide");
+    expect(component).toContain("choose your oven setup");
     expect(component).toContain("Number of pizzas");
     expect(component).toContain("Dough-ball weight");
     expect(component).toContain("Hydration");
