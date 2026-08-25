@@ -157,7 +157,8 @@ describe("trust and legal pages", () => {
     expect(aboutPage).toContain("If DoughTools helps you make your first great pizza");
     expect(aboutPage).toContain("or confidently host twenty friends");
     expect(aboutPage).toContain("then every evening spent building it has been worth it.");
-    expect(aboutPage).toContain('href="/account/party-orders/new"');
+    expect(aboutPage).toContain('href="/tools/pizza-party-planner"');
+    expect(aboutPage).not.toContain('href="/account/party-orders/new"');
     expect(aboutPage).toContain("Plan a pizza party");
     expect(aboutPage).toContain('href="/session/start"');
     expect(aboutPage).toContain("Plan a pizza");

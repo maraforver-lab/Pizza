@@ -384,7 +384,7 @@ describe("homepage content model", () => {
       'label: "Choose your oven", href: "/ovens"',
       'label: "Plan a pizza", href: "/session/start"',
       'label: "Quick dough calculator", href: "/calculator/quick"',
-      'label: "Party Orders", href: "/account/party-orders"',
+      'label: "Pizza Party Planner", href: "/tools/pizza-party-planner"',
       'label: "Pizza costs", href: "/costs"',
       'label: "About", href: "/about"',
       'label: "Updates", href: "/updates"',

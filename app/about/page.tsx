@@ -355,7 +355,7 @@ export default function AboutPage() {
               ))}
             </div>
             <div className="pt-2">
-              <SecondaryLink href="/account/party-orders/new">Plan a pizza party</SecondaryLink>
+              <SecondaryLink href="/tools/pizza-party-planner">Plan a pizza party</SecondaryLink>
             </div>
           </StoryChapter>
         </article>

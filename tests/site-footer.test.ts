@@ -17,6 +17,7 @@ const footerBearingSources = [
   ["sauce", source("app", "sauce", "page.tsx")],
   ["styles", source("app", "styles", "page.tsx")],
   ["toppings", source("components", "toppings", "ToppingBalanceLab.tsx")],
+  ["pizza party planner", source("app", "tools", "pizza-party-planner", "page.tsx")],
   ["trust layout", source("components", "TrustPageLayout.tsx")],
   ["updates", source("app", "updates", "page.tsx")],
 ] as const;
@@ -76,7 +77,7 @@ describe("canonical site footer", () => {
       "/ovens",
       "/session/start",
       "/calculator/quick",
-      "/account/party-orders",
+      "/tools/pizza-party-planner",
       "/costs",
       "/about",
       "/updates",
@@ -90,7 +91,9 @@ describe("canonical site footer", () => {
     }
 
     expect(footer).toContain('label: "Quick dough calculator", href: "/calculator/quick"');
+    expect(footer).toContain('label: "Pizza Party Planner", href: "/tools/pizza-party-planner"');
     expect(footer).toContain('label: "Pizza costs", href: "/costs"');
+    expect(footer).not.toContain('href: "/account/party-orders"');
     expect(footer).not.toContain('href: "/timer"');
 
     expect(footer).not.toMatch(/localhost|C:\\|C:\/|\/Users\//);

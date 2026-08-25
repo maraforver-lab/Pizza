@@ -74,7 +74,8 @@ describe("learning architecture", () => {
     expect(footer).toContain('title: "Product"');
     expect(footer).toContain('href: "/session/start"');
     expect(footer).toContain('href: "/calculator/quick"');
-    expect(footer).toContain('href: "/account/party-orders"');
+    expect(footer).toContain('href: "/tools/pizza-party-planner"');
+    expect(footer).not.toContain('href: "/account/party-orders"');
     expect(footer).toContain('title: "Company"');
     expect(footer).toContain('aria-label="DoughTools footer"');
     expect(footer).toContain("Made for better pizza nights.");

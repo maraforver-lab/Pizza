@@ -58,6 +58,7 @@ const requiredPublicRoutes = [
   "/calculator/quick",
   "/timer",
   "/tools/bake-timer",
+  "/tools/pizza-party-planner",
   "/costs",
   "/updates",
 ];
@@ -81,6 +82,7 @@ const expectedFirstWaveIndexableRoutes = [
   "/sauce",
   "/toppings",
   "/calculator/quick",
+  "/tools/pizza-party-planner",
   "/costs",
 ] as const;
 
@@ -165,6 +167,7 @@ describe("SEO launch configuration", () => {
       "/",
       "/sauce",
       "/tools/bake-timer",
+      "/tools/pizza-party-planner",
       "/calculator/quick",
       "/toppings",
       "/costs",

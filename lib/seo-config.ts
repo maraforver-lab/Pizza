@@ -197,6 +197,14 @@ export const publicSeoRoutes = [
     priority: 0.5,
   },
   {
+    path: "/tools/pizza-party-planner",
+    title: "Pizza Party Planner - Easy Guest Orders for 4 or 40 | DoughTools",
+    description:
+      "Plan a pizza party without WhatsApp chaos or spreadsheets. Share one invitation, let guests choose their pizzas and see every order in one place.",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
     path: "/costs",
     title: "Pizza Cost Calculator: Homemade vs Restaurant Pizza | DoughTools",
     description: "Compare the estimated cost of making pizza at home with buying the same number of pizzas from a restaurant, including cost per pizza and total difference.",
@@ -252,6 +260,7 @@ export const publicIndexableRoutePaths = [
   "/sauce",
   "/toppings",
   "/calculator/quick",
+  "/tools/pizza-party-planner",
   "/costs",
 ] as const;
 
@@ -269,6 +278,7 @@ export const publicToolBaseRoutes = [
   "/",
   "/sauce",
   "/tools/bake-timer",
+  "/tools/pizza-party-planner",
   "/calculator/quick",
   "/toppings",
   "/costs",
