@@ -13,7 +13,7 @@ describe("install app / add to home screen foundation", () => {
 
     expect(data.name).toBe("DoughTools");
     expect(data.short_name).toBe("DoughTools");
-    expect(data.description).toBe("Practical pizza-making workspace for dough, planning, baking and improvement.");
+    expect(data.description).toBe("Pizza dough calculator and step-by-step pizza planner for dough, fermentation, baking and improvement.");
     expect(data.start_url).toBe("/");
     expect(data.scope).toBe("/");
     expect(data.display).toBe("standalone");

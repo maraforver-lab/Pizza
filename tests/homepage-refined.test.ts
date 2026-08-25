@@ -25,7 +25,7 @@ describe("Refined Homepage", () => {
     const page = source("components", "homepage", "HomepageRefined.tsx");
 
     expect(page).toContain("Make better pizza with one clear plan.");
-    expect(page).toContain("Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.");
+    expect(page).toContain("Calculate your pizza dough, choose your fermentation timing and oven, and get one clear recipe, shopping list, schedule and baking plan.");
     expect(page).toContain('<HomepageAction href="/session/start">Plan a pizza</HomepageAction>');
     expect(page).toContain('<HomepageAction href="/guide" variant="secondary">');
     expect(page).toContain("Explore guides");
@@ -92,6 +92,7 @@ describe("Refined Homepage", () => {
 
     expect(page).toContain("Useful when you need them");
     expect(page).toContain('title: "Quick Calculator"');
+    expect(page).toContain('copy: "Use the pizza dough calculator for quick ingredient amounts."');
     expect(page).toContain('action: "Open calculator"');
     expect(page).toContain('href: "/calculator/quick"');
     expect(page).toContain('title: "Pizza Styles"');

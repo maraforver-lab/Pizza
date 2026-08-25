@@ -12,7 +12,7 @@ export function SeoStructuredData() {
         "@id": `${siteUrl}/#website`,
         "name": "DoughTools",
         "url": `${siteUrl}/`,
-        "description": "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
+        "description": "DoughTools is a pizza dough calculator and step-by-step pizza planner for calculating ingredients, fermentation timing and baking steps.",
       },
       {
         "@type": "Organization",

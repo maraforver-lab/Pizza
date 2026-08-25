@@ -27,14 +27,14 @@ const unsupportedMarketingClaims = /\b(perfect pizza|guaranteed|ultimate|revolut
 export const SOCIAL_IMAGE_PATH = "/social/doughtools-og-v1.png";
 export const SOCIAL_IMAGE_WIDTH = 1200;
 export const SOCIAL_IMAGE_HEIGHT = 630;
-export const SOCIAL_IMAGE_ALT = "DoughTools pizza planning preview with the DoughTools pizza mark";
+export const SOCIAL_IMAGE_ALT = "DoughTools pizza planning preview with the DoughTools D timing mark";
 
 export const publicSeoRoutes = [
   {
     path: "/",
-    title: "Make better pizza with one clear plan | DoughTools",
+    title: "Pizza Dough Calculator & Pizza Planner | DoughTools",
     description:
-      "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
+      "Calculate pizza dough ingredients, plan fermentation and follow one clear recipe, schedule and baking plan with DoughTools.",
     changeFrequency: "weekly",
     priority: 1,
   },

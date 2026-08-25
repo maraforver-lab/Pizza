@@ -197,12 +197,12 @@ describe("SEO launch configuration", () => {
     expect(SOCIAL_IMAGE_PATH).toBe("/social/doughtools-og-v1.png");
     expect(SOCIAL_IMAGE_WIDTH).toBe(1200);
     expect(SOCIAL_IMAGE_HEIGHT).toBe(630);
-    expect(SOCIAL_IMAGE_ALT).toContain("DoughTools pizza mark");
+    expect(SOCIAL_IMAGE_ALT).toContain("DoughTools D timing mark");
     expect(socialImageUrl(env)).toBe(imageUrl);
-    expect(metadata.description).toBe("Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.");
+    expect(metadata.description).toBe("Calculate pizza dough ingredients, plan fermentation and follow one clear recipe, schedule and baking plan with DoughTools.");
     expect(metadata.openGraph).toMatchObject({
-      title: "Make better pizza with one clear plan | DoughTools",
-      description: "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
+      title: "Pizza Dough Calculator & Pizza Planner | DoughTools",
+      description: "Calculate pizza dough ingredients, plan fermentation and follow one clear recipe, schedule and baking plan with DoughTools.",
       type: "website",
       siteName: "DoughTools",
       url: "https://www.doughtools.app/",
@@ -210,8 +210,8 @@ describe("SEO launch configuration", () => {
     });
     expect(metadata.twitter).toMatchObject({
       card: "summary_large_image",
-      title: "Make better pizza with one clear plan | DoughTools",
-      description: "Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.",
+      title: "Pizza Dough Calculator & Pizza Planner | DoughTools",
+      description: "Calculate pizza dough ingredients, plan fermentation and follow one clear recipe, schedule and baking plan with DoughTools.",
       images: [imageUrl],
     });
     expect(JSON.stringify(metadata)).not.toContain("/opengraph-image");

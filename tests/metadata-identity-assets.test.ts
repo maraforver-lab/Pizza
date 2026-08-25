@@ -16,16 +16,26 @@ function pngDimensions(path: string) {
   };
 }
 
-function icoImageCount(path: string) {
+function icoSizes(path: string) {
   const buffer = readFileSync(path);
 
   expect(buffer.readUInt16LE(0)).toBe(0);
   expect(buffer.readUInt16LE(2)).toBe(1);
-  return buffer.readUInt16LE(4);
+  const count = buffer.readUInt16LE(4);
+  const sizes = new Set<string>();
+
+  for (let index = 0; index < count; index += 1) {
+    const offset = 6 + index * 16;
+    const width = buffer[offset] === 0 ? 256 : buffer[offset];
+    const height = buffer[offset + 1] === 0 ? 256 : buffer[offset + 1];
+    sizes.add(`${width}x${height}`);
+  }
+
+  return sizes;
 }
 
 describe("DoughTools public identity assets", () => {
-  it("ships one canonical pizza mark and required favicon/app derivatives", () => {
+  it("ships one canonical D timing mark and required favicon/app derivatives", () => {
     const iconFiles = [
       "icon.svg",
       "favicon.ico",
@@ -33,20 +43,22 @@ describe("DoughTools public identity assets", () => {
       "icons/icon-192.png",
       "icons/icon-512.png",
       "icons/maskable-512.png",
-      "brand/doughtools-pizza-mark.svg",
+      "brand/doughtools-d-timing-mark.svg",
     ];
 
     for (const file of iconFiles) {
       expect(existsSync(publicFile(file))).toBe(true);
     }
 
-    expect(source("public/icon.svg")).toContain("DoughTools pizza mark");
-    expect(source("public/brand/doughtools-pizza-mark.svg")).toBe(source("public/icon.svg"));
+    expect(source("public/icon.svg")).toContain("DoughTools D timing mark");
+    expect(source("public/icon.svg")).not.toContain("pizza mark");
+    expect(source("public/brand/doughtools-d-timing-mark.svg")).toContain("DoughTools D timing mark");
     expect(pngDimensions(publicFile("apple-touch-icon.png"))).toEqual({ width: 180, height: 180 });
     expect(pngDimensions(publicFile("icons/icon-192.png"))).toEqual({ width: 192, height: 192 });
     expect(pngDimensions(publicFile("icons/icon-512.png"))).toEqual({ width: 512, height: 512 });
     expect(pngDimensions(publicFile("icons/maskable-512.png"))).toEqual({ width: 512, height: 512 });
-    expect(icoImageCount(publicFile("favicon.ico"))).toBeGreaterThanOrEqual(3);
+    expect(icoSizes(publicFile("favicon.ico"))).toEqual(new Set(["16x16", "32x32", "48x48"]));
+    expect(existsSync(publicFile("brand/doughtools-pizza-mark.svg"))).toBe(false);
   });
 
   it("ships the versioned static Open Graph image at the required dimensions", () => {

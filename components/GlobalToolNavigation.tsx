@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from "react";
@@ -552,8 +553,15 @@ export default function GlobalToolNavigation() {
           className="flex shrink-0 items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-tomato focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           aria-label="DoughTools home"
         >
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-tomato text-white shadow-lg shadow-tomato/15" aria-hidden="true">
-            <DoughToolsIcon name="pizza" size={24} strokeWidth={2.2} />
+          <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl shadow-lg shadow-tomato/15" aria-hidden="true">
+            <Image
+              src="/icon.svg"
+              alt=""
+              width={40}
+              height={40}
+              priority
+              className="h-10 w-10"
+            />
           </span>
           <strong className="text-lg tracking-tight max-sm:sr-only">Dough<span className="text-tomato">Tools</span></strong>
         </Link>

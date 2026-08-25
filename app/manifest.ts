@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "DoughTools",
     short_name: "DoughTools",
-    description: "Practical pizza-making workspace for dough, planning, baking and improvement.",
+    description: "Pizza dough calculator and step-by-step pizza planner for dough, fermentation, baking and improvement.",
     start_url: "/",
     scope: "/",
     display: "standalone",

@@ -71,7 +71,7 @@ const workSteps: WorkStep[] = [
 const supportingTools: SupportingTool[] = [
   {
     title: "Quick Calculator",
-    copy: "Calculate dough amounts quickly.",
+    copy: "Use the pizza dough calculator for quick ingredient amounts.",
     action: "Open calculator",
     href: "/calculator/quick",
     icon: "scale",
@@ -135,7 +135,7 @@ export default function HomepageRefined() {
               Make better pizza with one clear plan.
             </h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-white/86 sm:text-lg sm:leading-8">
-              Choose your pizza, timing and oven. Get one clear recipe, shopping list, schedule and baking plan.
+              Calculate your pizza dough, choose your fermentation timing and oven, and get one clear recipe, shopping list, schedule and baking plan.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <HomepageAction href="/session/start">Plan a pizza</HomepageAction>
@@ -208,6 +208,9 @@ export default function HomepageRefined() {
           <h2 id="homepage-how-heading" className="font-display text-3xl font-semibold leading-none sm:text-4xl">
             How DoughTools works
           </h2>
+          <p className="mt-3 max-w-3xl text-sm font-bold leading-6 text-ink/64 sm:text-base sm:leading-7">
+            DoughTools is a pizza dough calculator and step-by-step pizza planner for calculating ingredients, fermentation timing and baking steps.
+          </p>
           <ol className="mt-4 overflow-hidden rounded-[1.25rem] border border-white/80 bg-white/84 shadow-sm lg:grid lg:grid-cols-4">
             {workSteps.map((step, index) => (
               <li key={step.title} className="flex gap-3 border-b border-ink/10 bg-white/0 px-4 py-3.5 last:border-b-0 lg:border-b-0">
